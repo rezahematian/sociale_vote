@@ -70,23 +70,30 @@ class PollRepositoryImpl implements PollRepository {
   Future<List<Poll>> getPolls({
     String? countryCode,
     String? cityId,
+    int? limit,
+    int? offset,
   }) async {
     await Future.delayed(const Duration(milliseconds: 300));
 
-    // Se nessun filtro è specificato -> ritorniamo tutti i poll.
-    if (countryCode == null && cityId == null) {
-      return List<Poll>.unmodifiable(_polls);
-    }
-
-    // Altrimenti applichiamo il filtro.
     final filtered = _polls.where((poll) {
       final matchesCountry =
           countryCode == null || poll.countryCode == countryCode;
       final matchesCity = cityId == null || poll.cityId == cityId;
       return matchesCountry && matchesCity;
-    }).toList();
+    }).toList(growable: false);
 
-    return filtered;
+    final int safeOffset = offset == null || offset < 0 ? 0 : offset;
+    final int start = safeOffset > filtered.length ? filtered.length : safeOffset;
+
+    int end = filtered.length;
+    if (limit != null && limit >= 0) {
+      end = start + limit;
+      if (end > filtered.length) {
+        end = filtered.length;
+      }
+    }
+
+    return List<Poll>.unmodifiable(filtered.sublist(start, end));
   }
 
   @override
@@ -104,18 +111,8 @@ class PollRepositoryImpl implements PollRepository {
 
   @override
   Future<Poll> createPoll(Poll poll) async {
-    // Simuliamo una piccola latenza di rete.
     await Future.delayed(const Duration(milliseconds: 200));
-
-    // In un backend reale qui si potrebbe:
-    // - generare un nuovo PollId
-    // - salvare su DB
-    // - restituire il Poll aggiornato.
-    //
-    // Per ora assumiamo che chi chiama fornisca un Poll con un PollId valido
-    // e lo aggiungiamo semplicemente al "database" in memoria.
     _polls.add(poll);
-
     return poll;
   }
 }

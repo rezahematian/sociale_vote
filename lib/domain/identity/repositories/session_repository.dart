@@ -1,43 +1,24 @@
-import 'package:sociale_vote/domain/identity/entities/user.dart';
-import 'package:sociale_vote/domain/identity/value_objects/user_id.dart';
+import 'dart:async';
 
-/// Repository di dominio per la gestione della sessione utente.
+/// Repository per la sessione utente.
 ///
-/// Responsabilità:
-/// - sapere qual è l'utente attualmente loggato (se esiste)
-/// - salvare/aggiornare la sessione corrente
-/// - cancellare la sessione (logout)
-/// - esporre uno stream per reagire ai cambiamenti di sessione
-///
-/// Nota: questa è solo l'interfaccia di dominio.
-/// L'implementazione concreta sta in `infrastructure/auth/session_repository_impl.dart`.
+/// V1 semplificata:
+/// - gestiamo solo uno userId (String)
+/// - niente profilo utente completo
+/// - storage solo in-memory
 abstract class SessionRepository {
-  /// Restituisce l'utente attualmente loggato, se presente.
-  Future<User?> getCurrentUser();
+  /// Restituisce l'ID utente corrente se esiste una sessione,
+  /// altrimenti `null`.
+  Future<String?> getCurrentUserId();
 
-  /// Restituisce solo l'ID dell'utente loggato, se presente.
-  ///
-  /// Comodo per casi d'uso che non hanno bisogno di tutto l'oggetto [User].
-  Future<UserId?> getCurrentUserId();
-
-  /// Salva/aggiorna la sessione corrente per l'utente dato.
-  ///
-  /// In implementazioni future potrà:
-  /// - persistere su storage locale sicuro
-  /// - aggiornare token di accesso/refresh
-  Future<void> saveSession(User user);
+  /// Salva l'ID dell'utente corrente (login).
+  Future<void> saveCurrentUserId(String userId);
 
   /// Cancella la sessione corrente (logout).
-  ///
-  /// Dopo questa chiamata:
-  /// - [getCurrentUser] e [getCurrentUserId] dovrebbero restituire `null`
-  /// - lo stream [watchCurrentUser] dovrebbe emettere `null`
   Future<void> clearSession();
 
-  /// Stream reattivo dei cambiamenti di utente corrente.
+  /// Stream che emette l'ID utente corrente ogni volta che cambia.
   ///
-  /// Utile per:
-  /// - UI che devono reagire al login/logout
-  /// - controller che vogliono tenersi allineati allo stato di sessione
-  Stream<User?> watchCurrentUser();
+  /// Può emettere `null` se non c'è nessuna sessione.
+  Stream<String?> watchCurrentUserId();
 }

@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/vote.dart';
+import 'package:sociale_vote/domain/poll/errors/poll_closed_exception.dart';
+import 'package:sociale_vote/domain/poll/errors/unauthorized_vote_exception.dart';
 import 'package:sociale_vote/domain/poll/usecases/submit_vote.dart';
-import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
+
+/// Tipologia di errore di voto (UI-agnostica).
+enum VoteErrorType {
+  none,
+  noSelection,
+  unauthorized,
+  closed,
+  generic,
+}
 
 class VoteController extends ChangeNotifier {
   final SubmitVote _submitVote;
@@ -10,8 +21,14 @@ class VoteController extends ChangeNotifier {
   final Set<String> _selectedOptionIds = {};
 
   bool _isSubmitting = false;
+
+  /// Messaggio testuale legacy (non localizzato).
+  /// Non usarlo in UI: usa [errorType] e mappa in pagina.
   String? _errorMessage;
+
   bool _submittedSuccessfully = false;
+
+  VoteErrorType _errorType = VoteErrorType.none;
 
   VoteController(this._submitVote);
 
@@ -19,19 +36,15 @@ class VoteController extends ChangeNotifier {
   bool get isSubmitting => _isSubmitting;
   String? get errorMessage => _errorMessage;
   bool get submittedSuccessfully => _submittedSuccessfully;
+  VoteErrorType get errorType => _errorType;
 
   /// Seleziona/deseleziona un’opzione.
-  ///
-  /// [allowMultiple] indica se il poll permette più selezioni (es. multipleChoice).
-  /// Per i poll single choice (o yes/no) se selezioni una nuova opzione
-  /// viene automaticamente svuotata la selezione precedente.
   void toggleOption(String optionId, {required bool allowMultiple}) {
     _errorMessage = null;
+    _errorType = VoteErrorType.none;
     _submittedSuccessfully = false;
 
     if (!allowMultiple) {
-      // Single choice: se clicchi di nuovo la stessa la deselezioni,
-      // altrimenti selezione unica.
       if (_selectedOptionIds.contains(optionId)) {
         _selectedOptionIds.clear();
       } else {
@@ -40,7 +53,6 @@ class VoteController extends ChangeNotifier {
           ..add(optionId);
       }
     } else {
-      // Multiple choice: toggle libero.
       if (_selectedOptionIds.contains(optionId)) {
         _selectedOptionIds.remove(optionId);
       } else {
@@ -56,18 +68,20 @@ class VoteController extends ChangeNotifier {
     _selectedOptionIds.clear();
     _isSubmitting = false;
     _errorMessage = null;
+    _errorType = VoteErrorType.none;
     _submittedSuccessfully = false;
     notifyListeners();
   }
 
-  /// Invia il voto per il poll indicato.
-  ///
-  /// Per ora validiamo solo che ci sia almeno una opzione selezionata.
-  /// Le regole min/max più avanzate possono essere aggiunte in seguito
-  /// usando PollConfiguration a livello di UI o application.
-  Future<void> submitVote(PollId pollId) async {
+  /// Invia il voto per il [poll] indicato.
+  Future<void> submitVote({
+    required Poll poll,
+    required String? userId,
+    String? userCountryCode,
+  }) async {
     if (_selectedOptionIds.isEmpty) {
-      _errorMessage = 'Please select at least one option.';
+      _errorType = VoteErrorType.noSelection;
+      _errorMessage = null;
       _submittedSuccessfully = false;
       notifyListeners();
       return;
@@ -75,20 +89,35 @@ class VoteController extends ChangeNotifier {
 
     _isSubmitting = true;
     _errorMessage = null;
+    _errorType = VoteErrorType.none;
     _submittedSuccessfully = false;
     notifyListeners();
 
     try {
       final vote = Vote.now(
-        pollId: pollId,
+        pollId: poll.id,
         optionIds: _selectedOptionIds.toList(),
       );
 
-      await _submitVote(vote);
+      await _submitVote(
+        vote,
+        poll: poll,
+        userId: userId,
+        userCountryCode: userCountryCode,
+      );
 
       _submittedSuccessfully = true;
-    } catch (e) {
-      _errorMessage = 'Failed to submit vote. Please try again.';
+    } on UnauthorizedVoteException {
+      _errorType = VoteErrorType.unauthorized;
+      _errorMessage = null;
+      _submittedSuccessfully = false;
+    } on PollClosedException {
+      _errorType = VoteErrorType.closed;
+      _errorMessage = null;
+      _submittedSuccessfully = false;
+    } catch (_) {
+      _errorType = VoteErrorType.generic;
+      _errorMessage = null;
       _submittedSuccessfully = false;
     } finally {
       _isSubmitting = false;

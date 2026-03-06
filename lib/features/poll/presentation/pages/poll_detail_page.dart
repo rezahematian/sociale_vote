@@ -93,7 +93,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
               _resultController.loadResults(poll);
             }
 
-            // === DiscussionController per questo poll (TargetRef.poll) ===
             return ChangeNotifierProvider<DiscussionController>(
               create: (_) => AppDI.instance
                   .createDiscussionController(
@@ -122,7 +121,11 @@ class _PollDetailPageState extends State<PollDetailPage> {
     if (poll.status != PollStatus.open) return;
     if (!_canVote(poll)) return;
 
-    await _voteController.submitVote(poll.id);
+    await _voteController.submitVote(
+      poll: poll,
+      userId: AppDI.instance.currentUserId,
+      userCountryCode: null,
+    );
 
     if (_voteController.submittedSuccessfully) {
       await _resultController.loadResults(poll);
@@ -171,17 +174,11 @@ class _PollDetailPageState extends State<PollDetailPage> {
             ),
           ),
           const SizedBox(height: 8),
-
           if (poll.description != null && poll.description!.isNotEmpty)
             Text(poll.description!, style: theme.textTheme.bodyMedium),
-
           const SizedBox(height: 16),
-
           _buildMetaRow(context, poll),
-
           const SizedBox(height: 12),
-
-          // ===== ENGAGEMENT BAR (🔥 / ❄) =====
           EngagementBar(
             fireCount: fireCount,
             iceCount: iceCount,
@@ -210,9 +207,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
               _controller.toggleIce(userId: userId);
             },
           ),
-
           const SizedBox(height: 16),
-
           Wrap(
             spacing: 8,
             runSpacing: 4,
@@ -232,9 +227,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
                 ),
             ],
           ),
-
           const SizedBox(height: 24),
-
           Text(
             'Options',
             style: theme.textTheme.titleMedium?.copyWith(
@@ -242,13 +235,10 @@ class _PollDetailPageState extends State<PollDetailPage> {
             ),
           ),
           const SizedBox(height: 8),
-
           ...poll.options.map(
             (option) => _buildOptionTile(context, poll, option),
           ),
-
           const SizedBox(height: 24),
-
           if (poll.status != PollStatus.open) ...[
             Text(
               poll.status == PollStatus.closed
@@ -262,7 +252,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
             ),
             const SizedBox(height: 12),
           ],
-
           if (_voteController.errorMessage != null) ...[
             Text(
               _voteController.errorMessage!,
@@ -270,7 +259,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
             ),
             const SizedBox(height: 12),
           ],
-
           if (_voteController.submittedSuccessfully) ...[
             Text(
               'Vote submitted successfully!',
@@ -281,7 +269,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
             ),
             const SizedBox(height: 12),
           ],
-
           FilledButton(
             onPressed: _canVote(poll) ? () => _onVotePressed(poll) : null,
             child: _voteController.isSubmitting
@@ -292,9 +279,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
                   )
                 : const Text('Vote'),
           ),
-
           const SizedBox(height: 32),
-
           if (canShowResults) ...[
             Text(
               'Results',
@@ -303,7 +288,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
               ),
             ),
             const SizedBox(height: 8),
-
             if (_resultController.isLoading) ...[
               const Center(
                 child: Padding(
@@ -334,10 +318,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
               ),
             ),
           ],
-
           const SizedBox(height: 32),
-
-          // ===== COMMENT SECTION (DISCUSSION UNIFICATO) =====
           CommentSection(
             userId: AppDI.instance.currentUserId ?? 'demo-user',
           ),
@@ -363,7 +344,10 @@ class _PollDetailPageState extends State<PollDetailPage> {
   }
 
   Widget _buildOptionTile(
-      BuildContext context, Poll poll, PollOption option) {
+    BuildContext context,
+    Poll poll,
+    PollOption option,
+  ) {
     final isSingleChoice =
         poll.type == PollType.singleChoice || poll.type == PollType.yesNo;
 
@@ -373,12 +357,16 @@ class _PollDetailPageState extends State<PollDetailPage> {
     return ListTile(
       title: Text(option.label),
       leading: isSingleChoice
-          ? Icon(isSelected
-              ? Icons.radio_button_checked
-              : Icons.radio_button_unchecked)
-          : Icon(isSelected
-              ? Icons.check_box
-              : Icons.check_box_outline_blank),
+          ? Icon(
+              isSelected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
+            )
+          : Icon(
+              isSelected
+                  ? Icons.check_box
+                  : Icons.check_box_outline_blank,
+            ),
       onTap: poll.status == PollStatus.open
           ? () {
               _voteController.toggleOption(

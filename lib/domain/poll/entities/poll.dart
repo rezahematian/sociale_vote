@@ -32,9 +32,11 @@ class Poll {
   final DateTime? endAt;
 
   /// Informazioni geografiche di alto livello (es. codice paese, città).
-  /// Le terremo come stringhe neutrali per non legare troppo il dominio.
   final String? countryCode;
   final String? cityId;
+
+  /// Utente che ha creato il poll.
+  final String? createdByUserId;
 
   const Poll({
     required this.id,
@@ -48,6 +50,7 @@ class Poll {
     this.endAt,
     this.countryCode,
     this.cityId,
+    this.createdByUserId,
   });
 
   bool get isOpen => status == PollStatus.open;
@@ -79,6 +82,7 @@ class Poll {
     DateTime? endAt,
     String? countryCode,
     String? cityId,
+    String? createdByUserId,
   }) {
     return Poll(
       id: id ?? this.id,
@@ -92,11 +96,12 @@ class Poll {
       endAt: endAt ?? this.endAt,
       countryCode: countryCode ?? this.countryCode,
       cityId: cityId ?? this.cityId,
+      createdByUserId: createdByUserId ?? this.createdByUserId,
     );
   }
 
   @override
   String toString() {
-    return 'Poll(id: $id, title: $title, type: $type, status: $status, options: ${options.length})';
+    return 'Poll(id: $id, title: $title, type: $type, status: $status, options: ${options.length}, createdBy: $createdByUserId)';
   }
 }
