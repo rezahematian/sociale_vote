@@ -2,74 +2,110 @@ import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/content/news/repositories/news_repository.dart';
 
+import 'package:sociale_vote/infrastructure/news/aggregator/news_aggregator.dart';
+import 'package:sociale_vote/infrastructure/news/models/news_dto.dart';
+import 'package:sociale_vote/infrastructure/news/mappers/news_mapper.dart';
+
+/// Implementazione HTTP di [NewsRepository] basata su aggregazione multi-provider.
 class NewsRepositoryImpl implements NewsRepository {
-  final List<NewsItem> _mockNews = [
-    NewsItem(
-      id: const EntityId('n1'),
-      title: 'Global Climate Agreement Updated',
-      content: 'World leaders have agreed on new climate targets...',
-      summary: 'New global climate targets agreed.',
-      authorId: 'admin',
-      publishedAt: DateTime.now().subtract(const Duration(hours: 5)),
-      isBreaking: true,
-    ),
-    NewsItem(
-      id: const EntityId('n2'),
-      title: 'Italy Approves New Budget Reform',
-      content: 'The Italian parliament has approved a new budget reform...',
-      summary: 'New economic reform approved in Italy.',
-      authorId: 'it_editor',
-      countryCode: 'IT',
-      publishedAt: DateTime.now().subtract(const Duration(hours: 3)),
-    ),
-    NewsItem(
-      id: const EntityId('n3'),
-      title: 'Torino Launches Smart Mobility Plan',
-      content: 'The city of Torino has launched a new smart mobility initiative...',
-      summary: 'New mobility initiative in Torino.',
-      authorId: 'torino_editor',
-      countryCode: 'IT',
-      cityId: 'TORINO',
-      publishedAt: DateTime.now().subtract(const Duration(hours: 1)),
-    ),
-  ];
+  final NewsAggregator _aggregator;
+  final NewsMapper _mapper;
+
+  NewsRepositoryImpl(
+    this._aggregator,
+    this._mapper,
+  );
 
   @override
   Future<List<NewsItem>> getNewsFeed({
     String? countryCode,
     String? cityId,
+    String? topic,
+    String? language, // ✅ parametro opzionale
+    int? limit,
+    int? offset,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    // Manteniamo lo scope effettivamente usato (serve per mapper/id/label coerenti)
+    String? usedCountryCode = countryCode;
+    String? usedCityId = cityId;
 
-    final filtered = _mockNews.where((news) {
-      if (countryCode == null && cityId == null) {
-        return news.countryCode == null && news.cityId == null;
+    // 1) Proviamo con lo scope richiesto (world/country/city)
+    var jsonList = await _aggregator.fetchNews(
+      countryCode: usedCountryCode,
+      cityId: usedCityId,
+      topic: topic,
+      language: language, // ✅ pass-through
+      limit: limit,
+      offset: offset,
+    );
+
+    // 2) Empty-state intelligente (solo per city): fallback soft a country → world
+    //    (non tocca UI: la UI vede "empty" solo se anche i fallback sono vuoti)
+    if (jsonList.isEmpty && cityId != null) {
+      // fallback a country (stesso paging)
+      usedCountryCode = countryCode;
+      usedCityId = null;
+
+      jsonList = await _aggregator.fetchNews(
+        countryCode: usedCountryCode,
+        cityId: usedCityId,
+        topic: topic,
+        language: language, // ✅ pass-through anche nei fallback
+        limit: limit,
+        offset: offset,
+      );
+
+      // fallback a world
+      if (jsonList.isEmpty) {
+        usedCountryCode = null;
+        usedCityId = null;
+
+        jsonList = await _aggregator.fetchNews(
+          countryCode: usedCountryCode,
+          cityId: usedCityId,
+          topic: topic,
+          language: language, // ✅ pass-through anche nei fallback
+          limit: limit,
+          offset: offset,
+        );
       }
+    }
 
-      if (countryCode != null && cityId == null) {
-        return news.countryCode == countryCode && news.cityId == null;
-      }
-
-      if (countryCode != null && cityId != null) {
-        return news.countryCode == countryCode &&
-            news.cityId == cityId;
-      }
-
-      return false;
+    // JSON → DTO → Domain
+    final items = jsonList.map((json) {
+      final dto = NewsDto.fromJson(json as Map<String, dynamic>);
+      return _mapper.toDomain(
+        dto,
+        countryCode: usedCountryCode,
+        cityId: usedCityId,
+      );
     }).toList();
 
-    filtered.sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
+    // Garantiamo ordine per recency (publishedAt desc),
+    // come si aspetta il NewsController in modalità "latest".
+    items.sort(
+      (a, b) => b.publishedAt.compareTo(a.publishedAt),
+    );
 
-    return filtered;
+    // Dedupe difensivo (alcuni provider possono ripetere risultati tra pagine in certe query).
+    final seen = <String>{};
+    final unique = <NewsItem>[];
+    for (final item in items) {
+      final key = item.id.value;
+      if (seen.add(key)) {
+        unique.add(item);
+      }
+    }
+
+    return List<NewsItem>.unmodifiable(unique);
   }
 
   @override
   Future<NewsItem> getNewsDetail(EntityId id) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-
-    return _mockNews.firstWhere(
-      (news) => news.id == id,
-      orElse: () => throw Exception('News not found'),
-    );
+    final json = await _aggregator.fetchNewsDetail(id.value);
+    final dto = NewsDto.fromJson(json);
+    // Per il dettaglio non abbiamo più country/city dal backend,
+    // li lasciamo null lato dominio.
+    return _mapper.toDomain(dto);
   }
 }

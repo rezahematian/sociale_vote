@@ -1,5 +1,4 @@
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
-
 import '../entities/comment.dart';
 
 abstract class CommentRepository {
@@ -12,6 +11,9 @@ abstract class CommentRepository {
   });
 
   Future<List<Comment>> getCommentsForTarget(TargetRef target);
+
+  /// Nuovo metodo per My Comments
+  Future<List<Comment>> getCommentsByUser(String userId);
 
   Future<void> deleteComment(String commentId);
 }

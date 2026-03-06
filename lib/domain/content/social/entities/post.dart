@@ -41,6 +41,10 @@ class Post {
   /// Identificatore città associato al post (es. 'TORINO').
   final String? cityId;
 
+  /// Utente che ha creato il post.
+  /// Per i post esistenti può essere null.
+  final String? createdByUserId;
+
   /// Costruttore principale.
   const Post({
     required this.id,
@@ -50,6 +54,7 @@ class Post {
     required this.createdAt,
     this.countryCode,
     this.cityId,
+    this.createdByUserId,
   });
 
   /// True se il post è globale (world).
@@ -99,6 +104,7 @@ class Post {
     DateTime? createdAt,
     String? countryCode,
     String? cityId,
+    String? createdByUserId,
   }) {
     return Post(
       id: id ?? this.id,
@@ -108,6 +114,7 @@ class Post {
       createdAt: createdAt ?? this.createdAt,
       countryCode: countryCode ?? this.countryCode,
       cityId: cityId ?? this.cityId,
+      createdByUserId: createdByUserId ?? this.createdByUserId,
     );
   }
 }

@@ -46,6 +46,18 @@ import 'package:sociale_vote/infrastructure/social/repositories/post_repository_
 import 'package:sociale_vote/infrastructure/engagement/repositories/reaction_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/discussion/repositories/comment_repository_impl.dart';
 
+// NEWS infra nuovi
+import 'package:sociale_vote/core/http/api_client.dart';
+import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api.dart';
+import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api_org_api.dart';
+import 'package:sociale_vote/infrastructure/persistence/remote/rest/mediastack_api.dart';
+import 'package:sociale_vote/infrastructure/news/mappers/news_mapper.dart';
+import 'package:sociale_vote/infrastructure/news/aggregator/news_aggregator.dart';
+import 'package:sociale_vote/infrastructure/news/aggregator/news_provider.dart';
+import 'package:sociale_vote/infrastructure/news/aggregator/gnews_provider.dart';
+import 'package:sociale_vote/infrastructure/news/aggregator/news_api_org_provider.dart';
+import 'package:sociale_vote/infrastructure/news/aggregator/mediastack_provider.dart';
+
 /// Contenitore molto semplice per la Dependency Injection
 /// dell'applicazione.
 class AppDI {
@@ -62,12 +74,53 @@ class AppDI {
   GeoScopeController get geoScopeController => _geoScopeController;
 
   // ==========================================================
-  // REPOSITORIES (singleton in-memory)
+  // HTTP CLIENTS
+  // ==========================================================
+
+  final ApiClient _gnewsClient = ApiClient(
+    baseUrl: 'https://gnews.io/api/v4',
+  );
+
+  final ApiClient _newsApiOrgClient = ApiClient(
+    baseUrl: 'https://newsapi.org/v2',
+  );
+
+  final ApiClient _mediaStackClient = ApiClient(
+    baseUrl: 'http://api.mediastack.com/v1',
+  );
+
+  // ==========================================================
+  // NEWS INFRA
+  // ==========================================================
+
+  late final NewsApi _newsApi = NewsApi(_gnewsClient);
+  late final NewsApiOrgApi _newsApiOrgApi = NewsApiOrgApi(_newsApiOrgClient);
+  late final MediaStackApi _mediaStackApi = MediaStackApi(_mediaStackClient);
+
+  late final NewsMapper _newsMapper = NewsMapper();
+
+  late final NewsProvider _gnewsProvider = GNewsProvider(_newsApi);
+  late final NewsProvider _newsApiOrgProvider =
+      NewsApiOrgProvider(_newsApiOrgApi);
+  late final NewsProvider _mediaStackProvider =
+      MediaStackProvider(_mediaStackApi);
+
+  late final NewsAggregator _newsAggregator = NewsAggregator(
+    providers: <NewsProvider>[
+      _gnewsProvider,
+      _newsApiOrgProvider,
+      _mediaStackProvider,
+    ],
+  );
+
+  // ==========================================================
+  // REPOSITORIES (singleton)
   // ==========================================================
 
   final PollRepository _pollRepository = PollRepositoryImpl();
   final VoteRepository _voteRepository = VoteRepositoryImpl();
-  final NewsRepository _newsRepository = NewsRepositoryImpl();
+  late final NewsRepository _newsRepository =
+      NewsRepositoryImpl(_newsAggregator, _newsMapper);
   final PostRepository _postRepository = PostRepositoryImpl();
   final ReactionRepository _reactionRepository = ReactionRepositoryImpl();
   final CommentRepository _commentRepository = CommentRepositoryImpl();
@@ -88,9 +141,6 @@ class AppDI {
   // IDENTITY / SESSION (per ora stub)
   // ==========================================================
 
-  /// Id utente corrente.
-  ///
-  /// TODO: collegare a `SessionRepository` / `IdentityService` reale.
   String? get currentUserId => 'demo-user';
 
   // ==========================================================

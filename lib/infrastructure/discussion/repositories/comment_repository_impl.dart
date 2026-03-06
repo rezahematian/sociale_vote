@@ -47,6 +47,16 @@ class CommentRepositoryImpl implements CommentRepository {
   }
 
   @override
+  Future<List<Comment>> getCommentsByUser(String userId) async {
+    final list = _commentsById.values
+        .where((c) => c.userId == userId)
+        .toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    return list;
+  }
+
+  @override
   Future<void> deleteComment(String commentId) async {
     _commentsById.remove(commentId);
   }
