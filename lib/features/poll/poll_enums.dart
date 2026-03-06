@@ -1,4 +1,0 @@
-enum PollStatus {
-  open,
-  closed,
-}
