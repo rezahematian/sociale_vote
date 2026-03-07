@@ -1,26 +1,36 @@
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/core/security/participation_policy.dart';
+import 'package:sociale_vote/shared/services/auth_guard.dart';
+
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
+import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
+import 'package:sociale_vote/shared/widgets/app_card.dart';
 
 /// Card visuale per un singolo post social.
 ///
-/// v1:
-/// - mostra un contenuto base del post (toString)
-/// - mostra barra di engagement con 🔥 e ❄
+/// Responsabilità:
+/// - mostra contenuto base del post
+/// - mostra barra engagement (🔥 / ❄)
+/// - mostra conteggio commenti
+/// - garantisce che le azioni passino SEMPRE da AuthGuard
 ///
-/// La logica di chi è loggato / userId / ecc. resta nel controller.
-/// Qui passiamo solo callback e contatori già calcolati.
+/// NOTA:
+/// Questo widget NON deve mai gestire direttamente userId.
+/// I controller devono già passare callback corrette.
 class PostCard extends StatelessWidget {
   final Post post;
 
-  /// Conteggio like (🔥) e dislike (❄) da mostrare sotto il post.
   final int fireCount;
   final int iceCount;
 
-  /// Callback per tap su 🔥 e ❄.
+  /// Reazione corrente dell'utente (like / dislike / null).
+  final ReactionType? userReaction;
+
+  /// Callback già preparate dal controller.
   final VoidCallback? onFireTap;
   final VoidCallback? onIceTap;
 
@@ -29,6 +39,7 @@ class PostCard extends StatelessWidget {
     required this.post,
     this.fireCount = 0,
     this.iceCount = 0,
+    this.userReaction,
     this.onFireTap,
     this.onIceTap,
   });
@@ -37,56 +48,69 @@ class PostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
+    /// Wrapper sicurezza:
+    /// - Verifica permesso via AuthGuard
+    /// - Non esegue nulla se non autorizzato
+    VoidCallback? _wrapReactCallback(VoidCallback? original) {
+      if (original == null) return null;
+
+      return () async {
+        final allowed = await AuthGuard.ensureCanPerformAction(
+          context,
+          ParticipationAction.react,
+        );
+
+        if (!allowed) return;
+
+        original();
+      };
+    }
+
+    return AppCard(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header super semplice v1: in futuro possiamo usare
-            // autore, avatar, data, ecc.
-            Text(
-              'Post',
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
+      elevated: true,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header placeholder (in futuro autore, avatar, data)
+          Text(
+            'Post',
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
 
-            // Contenuto post - placeholder sicuro che non rompe la compilazione.
-            Text(
-              post.toString(),
-              style: theme.textTheme.bodyMedium,
-            ),
+          // Contenuto post (placeholder sicuro)
+          Text(
+            post.toString(),
+            style: theme.textTheme.bodyMedium,
+          ),
 
-            const SizedBox(height: 12),
-            const Divider(height: 1),
-            const SizedBox(height: 8),
+          const SizedBox(height: 12),
+          const Divider(height: 1),
+          const SizedBox(height: 8),
 
-            // ===== FOOTER: COMMENT COUNT + ENGAGEMENT BAR =====
-            Row(
-              children: [
-                _CommentCountBadge(post: post),
-                const Spacer(),
-                EngagementBar(
-                  fireCount: fireCount,
-                  iceCount: iceCount,
-                  onFireTap: onFireTap,
-                  onIceTap: onIceTap,
-                ),
-              ],
-            ),
-          ],
-        ),
+          // ===== FOOTER =====
+          Row(
+            children: [
+              _CommentCountBadge(post: post),
+              const Spacer(),
+              EngagementBar(
+                fireCount: fireCount,
+                iceCount: iceCount,
+                userReaction: userReaction,
+                onFireTap: _wrapReactCallback(onFireTap),
+                onIceTap: _wrapReactCallback(onIceTap),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 }
 
-/// Badge che mostra il numero di commenti per questo post usando il dominio `discussion/`.
+/// Badge conteggio commenti (discussion/).
 class _CommentCountBadge extends StatelessWidget {
   final Post post;
 
@@ -101,12 +125,10 @@ class _CommentCountBadge extends StatelessWidget {
           .getCommentsForTarget(TargetRef.post(post.id.value)),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          // Durante il load non mostriamo nulla per non far saltare il layout.
           return const SizedBox.shrink();
         }
 
         if (snapshot.hasError) {
-          // In caso di errore, nessun badge (silenzioso).
           return const SizedBox.shrink();
         }
 
@@ -114,7 +136,6 @@ class _CommentCountBadge extends StatelessWidget {
         final count = comments.length;
 
         if (count == 0) {
-          // Nessun commento → nessun badge.
           return const SizedBox.shrink();
         }
 

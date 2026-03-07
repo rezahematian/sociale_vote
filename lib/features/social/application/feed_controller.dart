@@ -10,14 +10,28 @@ import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart'
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 
+/// Modalità di ordinamento per il social feed.
+///
+/// - [latest]  → usa l'ordine restituito da GetFeed (tipicamente per data)
+/// - [hottest] → per "calore" (engagement / reazioni)
+enum FeedSortMode {
+  latest,
+  hottest,
+}
+
 /// Controller applicativo per il social feed.
 ///
 /// Responsabilità:
 /// - leggere lo scope corrente da [GeoScopeController]
-/// - chiamare il use case [GetFeed]
+/// - chiamare il use case [GetFeed] con paginazione (limit/offset)
 /// - gestire reazioni (🔥 / ❄) tramite [ToggleReaction]
-/// - esporre summary delle reazioni per ogni post
+/// - esporre summary delle reazioni per ogni post (conteggi + userReaction)
 /// - esporre stato semplice per la UI (loading / error / lista post)
+/// - gestire paginazione reale (loadMorePosts)
+///
+/// NOTA IMPORTANTE:
+/// Questo controller NON gestisce permessi.
+/// Il controllo accessi deve avvenire PRIMA (es. tramite AuthGuard).
 class FeedController extends ChangeNotifier {
   final GetFeed _getFeed;
   final GeoScopeController _geoScopeController;
@@ -37,109 +51,243 @@ class FeedController extends ChangeNotifier {
   bool _isLoading = false;
   bool _hasError = false;
   String? _errorMessage;
-  List<Post> _posts = const [];
 
-  /// Reaction summary per postId (post.id.value).
-  Map<String, ReactionSummary> _reactionSummaries =
-      const <String, ReactionSummary>{};
+  /// Post caricati finora (aggregato delle pagine).
+  final List<Post> _posts = <Post>[];
+
+  /// Reaction summary per postId.
+  final Map<String, ReactionSummary> _reactionSummaries =
+      <String, ReactionSummary>{};
+
+  /// Paging reale (Fase 4.3).
+  static const int _pageSize = 10;
+  int _currentOffset = 0;
+  bool _hasMoreFromSource = true;
+
+  /// Ultimo userId usato per caricare i ReactionSummary.
+  String? _lastKnownUserId;
+
+  /// Modalità di ordinamento corrente per il feed.
+  FeedSortMode _sortMode = FeedSortMode.latest;
+
+  // ===== GETTER STATO PUBBLICO =====
 
   bool get isLoading => _isLoading;
   bool get hasError => _hasError;
   String? get errorMessage => _errorMessage;
-  List<Post> get posts => _posts;
 
-  /// Ritorna il summary per un post, se presente.
-  ReactionSummary? summaryForPost(Post post) {
-    final postId = _postId(post);
-    return _reactionSummaries[postId];
+  /// Tutti i post caricati (già ordinati secondo [_sortMode]).
+  List<Post> get posts => List<Post>.unmodifiable(_posts);
+
+  /// True se il backend (o repo) ha ancora altre pagine da fornire.
+  bool get hasMoreFromSource => _hasMoreFromSource;
+
+  /// Modalità di ordinamento esposta alla UI.
+  FeedSortMode get sortMode => _sortMode;
+
+  // ===== ORDINAMENTO =====
+
+  /// Cambia modalità di ordinamento e riordina la lista in memoria.
+  void setSortMode(FeedSortMode mode) {
+    if (_sortMode == mode) return;
+    _sortMode = mode;
+    _sortPosts();
+    notifyListeners();
   }
 
-  /// Conteggio like (🔥) per un post.
+  // ===== REACTION SUMMARY =====
+
+  ReactionSummary? summaryForPost(Post post) {
+    return _reactionSummaries[_postId(post)];
+  }
+
   int likeCountForPost(Post post) {
     return summaryForPost(post)?.likeCount ?? 0;
   }
 
-  /// Conteggio dislike (❄) per un post.
   int dislikeCountForPost(Post post) {
     return summaryForPost(post)?.dislikeCount ?? 0;
   }
 
-  String _postId(Post post) {
-    // Adatta qui se il tuo modello Post è diverso.
-    // Se post.id è già una String, puoi fare semplicemente:
-    // return post.id;
-    return post.id.value;
+  ReactionType? userReactionForPost(Post post) {
+    return summaryForPost(post)?.userReaction;
   }
+
+  String _postId(Post post) => post.id.value;
 
   TargetRef _targetForPost(Post post) {
     return TargetRef.post(_postId(post));
   }
 
-  /// Carica il feed in base allo scope geografico corrente.
+  // ===== CARICAMENTO FEED (PAGINAZIONE REALE) =====
+
+  /// Carica la **prima pagina** di feed per lo scope corrente.
   ///
-  /// Usato tipicamente in initState della pagina:
-  ///   controller.loadFeed();
-  Future<void> loadFeed() async {
+  /// [userId] è opzionale:
+  /// - se presente → GetReactionSummary può valorizzare anche userReaction
+  /// - se nullo   → avremo solo i count globali (no stato utente)
+  Future<void> loadFeed({String? userId}) async {
     _setLoading(true);
+    _hasError = false;
+    _errorMessage = null;
+    notifyListeners();
+
+    // Reset stato paging + lista corrente
+    _posts.clear();
+    _reactionSummaries.clear();
+    _currentOffset = 0;
+    _hasMoreFromSource = true;
+    _lastKnownUserId = userId ?? _lastKnownUserId;
 
     try {
-      final scope = _geoScopeController.scope;
-
-      String? countryCode;
-      String? cityId;
-
-      switch (scope.level) {
-        case GeoScopeLevel.world:
-          countryCode = null;
-          cityId = null;
-          break;
-        case GeoScopeLevel.country:
-          countryCode = scope.countryCode;
-          cityId = null;
-          break;
-        case GeoScopeLevel.city:
-          countryCode = scope.countryCode;
-          cityId = scope.cityId;
-          break;
-      }
-
-      final result = await _getFeed(
-        countryCode: countryCode,
-        cityId: cityId,
-      );
-
-      _posts = result;
-      _hasError = false;
-      _errorMessage = null;
-
-      // Dopo aver caricato i post, carichiamo i summary delle reazioni.
-      await _loadReactionSummariesForPosts(result);
-    } catch (e) {
-      // v1: gestione errore minimale, niente Failure/Result globale.
+      await _loadNextPage();
+    } catch (e, stackTrace) {
       _hasError = true;
       _errorMessage = 'Impossibile caricare il feed.';
-      _reactionSummaries = const {};
+      _posts.clear();
+      _reactionSummaries.clear();
+      _currentOffset = 0;
+      _hasMoreFromSource = false;
+
+      if (kDebugMode) {
+        debugPrint('Error loading feed: $e');
+        debugPrint('$stackTrace');
+      }
     } finally {
       _setLoading(false);
     }
   }
 
-  /// Forza un reload (utile per pull-to-refresh).
-  Future<void> refresh() async {
-    await loadFeed();
+  /// Ricarica il feed da zero (shortcut per pull-to-refresh).
+  Future<void> refresh({String? userId}) async {
+    await loadFeed(userId: userId);
   }
 
-  /// Toggle 🔥 per un post (like).
+  /// Carica la **pagina successiva** del feed, se disponibile.
+  Future<void> loadMorePosts() async {
+    if (_isLoading) return;
+    if (!_hasMoreFromSource) return;
+
+    _setLoading(true);
+
+    try {
+      await _loadNextPage();
+    } catch (e, stackTrace) {
+      _hasError = true;
+      _errorMessage ??= 'Impossibile caricare altri post.';
+      _hasMoreFromSource = false;
+
+      if (kDebugMode) {
+        debugPrint('Error loading more posts: $e');
+        debugPrint('$stackTrace');
+      }
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> _loadNextPage() async {
+    final scope = _geoScopeController.scope;
+
+    String? countryCode;
+    String? cityId;
+
+    switch (scope.level) {
+      case GeoScopeLevel.world:
+        countryCode = null;
+        cityId = null;
+        break;
+      case GeoScopeLevel.country:
+        countryCode = scope.countryCode;
+        cityId = null;
+        break;
+      case GeoScopeLevel.city:
+        countryCode = scope.countryCode;
+        cityId = scope.cityId;
+        break;
+    }
+
+    final result = await _getFeed(
+      countryCode: countryCode,
+      cityId: cityId,
+      limit: _pageSize,
+      offset: _currentOffset,
+    );
+
+    if (result.length < _pageSize) {
+      _hasMoreFromSource = false;
+    }
+
+    _currentOffset += result.length;
+    _posts.addAll(result);
+
+    await _loadReactionSummariesForPosts(
+      result,
+      userId: _lastKnownUserId,
+    );
+
+    _sortPosts();
+  }
+
+  Future<void> _loadReactionSummariesForPosts(
+    List<Post> posts, {
+    String? userId,
+  }) async {
+    if (posts.isEmpty) {
+      return;
+    }
+
+    final targets = posts.map(_targetForPost).toList();
+
+    final summaries = await _getReactionSummary(
+      targets,
+      userId: userId,
+    );
+
+    for (final summary in summaries) {
+      _reactionSummaries[summary.target.id] = summary;
+    }
+  }
+
+  // ===== HEAT / SORTING =====
+
+  /// Metrica di "calore" per un post, usata in modalità hottest.
   ///
-  /// Richiede userId NON vuoto (solo utenti registrati).
+  /// v1: differenza semplice like - dislike.
+  /// In futuro qui puoi sostituire con un vero HeatScore (ReactionSummary.heat).
+  double _heatForPost(Post post) {
+    final summary = summaryForPost(post);
+    if (summary == null) return 0;
+    final likes = summary.likeCount;
+    final dislikes = summary.dislikeCount;
+    return (likes - dislikes).toDouble();
+  }
+
+  /// Ordina la lista interna _posts in base a [_sortMode].
+  void _sortPosts() {
+    if (_posts.isEmpty) return;
+
+    switch (_sortMode) {
+      case FeedSortMode.latest:
+        // Assumiamo che il repository restituisca già i post in ordine
+        // di recency (createdAt desc). Non forziamo sort extra.
+        break;
+      case FeedSortMode.hottest:
+        _posts.sort(
+          (a, b) => _heatForPost(b).compareTo(_heatForPost(a)),
+        );
+        break;
+    }
+  }
+
+  // ===== REAZIONI 🔥 / ❄ =====
+
   Future<void> toggleFireForPost({
     required String userId,
     required Post post,
   }) async {
-    if (userId.isEmpty) {
-      // v1: la UI dovrebbe intercettare e mandare al login, qui non facciamo nulla.
-      return;
-    }
+    assert(userId.isNotEmpty,
+        'toggleFireForPost richiede userId valido.');
 
     final target = _targetForPost(post);
 
@@ -150,20 +298,20 @@ class FeedController extends ChangeNotifier {
     );
 
     _reactionSummaries[_postId(post)] = summary;
+
+    if (_sortMode == FeedSortMode.hottest) {
+      _sortPosts();
+    }
+
     notifyListeners();
   }
 
-  /// Toggle ❄ per un post (dislike).
-  ///
-  /// Richiede userId NON vuoto (solo utenti registrati).
   Future<void> toggleIceForPost({
     required String userId,
     required Post post,
   }) async {
-    if (userId.isEmpty) {
-      // v1: la UI dovrebbe intercettare e mandare al login, qui non facciamo nulla.
-      return;
-    }
+    assert(userId.isNotEmpty,
+        'toggleIceForPost richiede userId valido.');
 
     final target = _targetForPost(post);
 
@@ -174,25 +322,12 @@ class FeedController extends ChangeNotifier {
     );
 
     _reactionSummaries[_postId(post)] = summary;
+
+    if (_sortMode == FeedSortMode.hottest) {
+      _sortPosts();
+    }
+
     notifyListeners();
-  }
-
-  Future<void> _loadReactionSummariesForPosts(List<Post> posts) async {
-    if (posts.isEmpty) {
-      _reactionSummaries = const {};
-      return;
-    }
-
-    final targets = posts.map(_targetForPost).toList();
-    final summaries = await _getReactionSummary(targets);
-
-    final map = <String, ReactionSummary>{};
-    for (final summary in summaries) {
-      // summary.target.id contiene l’id del post (post.id.value)
-      map[summary.target.id] = summary;
-    }
-
-    _reactionSummaries = map;
   }
 
   void _setLoading(bool value) {

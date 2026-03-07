@@ -7,17 +7,57 @@ import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart'
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_polls.dart';
+import 'package:sociale_vote/domain/poll/value_objects/poll_status.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
+
+enum PollSortMode {
+  latest,
+  hottest,
+}
+
+/// Filtro logico di scope per la lista poll.
+/// V1: solo currentScope (lo stesso del GeoScopeController),
+/// ma l'enum è pronto per estensioni future (es. followed, global, ecc.).
+enum PollScopeFilter {
+  currentScope,
+}
+
+/// Filtro di stato delle votazioni (aperta/chiusa).
+enum PollStatusFilter {
+  all,
+  open,
+  closed,
+}
 
 class PollListController extends ChangeNotifier {
   final GetPolls getPollsUseCase;
   final GeoScopeController geoScopeController;
-
-  // Engagement
   final ToggleReaction toggleReaction;
   final GetReactionSummary getReactionSummary;
 
   late final VoidCallback _geoScopeListener;
+
+  String? _lastKnownUserId;
+
+  // ===== Filtri / ordinamento =====
+  PollSortMode _sortMode = PollSortMode.latest;
+  PollScopeFilter _scopeFilter = PollScopeFilter.currentScope;
+  PollStatusFilter _statusFilter = PollStatusFilter.all;
+
+  // ===== Stato =====
+  bool _isLoading = false;
+  bool _hasMoreFromSource = true;
+
+  static const int _pageSize = 10;
+  int _currentOffset = 0;
+
+  /// Lista sorgente: tutti i poll ricevuti dal backend per lo scope corrente.
+  final List<Poll> _allPolls = [];
+
+  /// Lista visibile: applicazione di filtri + sorting su [_allPolls].
+  final List<Poll> _visiblePolls = [];
+
+  final Map<String, ReactionSummary> _reactionSummaries = {};
 
   PollListController({
     required this.getPollsUseCase,
@@ -25,32 +65,82 @@ class PollListController extends ChangeNotifier {
     required this.toggleReaction,
     required this.getReactionSummary,
   }) {
-    // Quando cambia lo scope geografico, ricarichiamo automaticamente i poll.
     _geoScopeListener = () {
-      loadPolls();
+      loadPolls(userId: _lastKnownUserId);
     };
     geoScopeController.addListener(_geoScopeListener);
   }
 
-  bool _isLoading = false;
-  List<Poll> _polls = [];
-
-  /// Reaction summary per pollId (poll.id.value).
-  Map<String, ReactionSummary> _reactionSummaries = {};
+  // ===== Getters di stato esposto alla UI =====
 
   bool get isLoading => _isLoading;
-  List<Poll> get polls => _polls;
+  bool get hasMoreFromSource => _hasMoreFromSource;
 
-  /// Carica i poll in base allo scope geografico corrente.
-  ///
-  /// Legge:
-  /// - scope.level == world  -> nessun filtro (poll globali)
-  /// - scope.level == country -> filtra per countryCode
-  /// - scope.level == city    -> filtra per countryCode + cityId
-  Future<void> loadPolls() async {
+  /// Lista di poll già filtrata e ordinata secondo
+  /// sortMode, scopeFilter e statusFilter.
+  List<Poll> get polls => List.unmodifiable(_visiblePolls);
+
+  PollSortMode get sortMode => _sortMode;
+  PollScopeFilter get scopeFilter => _scopeFilter;
+  PollStatusFilter get statusFilter => _statusFilter;
+
+  // ===== Setter filtri / ordinamento =====
+
+  void setSortMode(PollSortMode mode) {
+    if (_sortMode == mode) return;
+    _sortMode = mode;
+    _recomputeVisiblePolls();
+    notifyListeners();
+  }
+
+  void setScopeFilter(PollScopeFilter filter) {
+    if (_scopeFilter == filter) return;
+    _scopeFilter = filter;
+    _recomputeVisiblePolls();
+    notifyListeners();
+  }
+
+  void setStatusFilter(PollStatusFilter filter) {
+    if (_statusFilter == filter) return;
+    _statusFilter = filter;
+    _recomputeVisiblePolls();
+    notifyListeners();
+  }
+
+  // ===== Caricamento / paginazione =====
+
+  Future<void> loadPolls({String? userId}) async {
+    _lastKnownUserId = userId ?? _lastKnownUserId;
+
     _isLoading = true;
     notifyListeners();
 
+    _allPolls.clear();
+    _visiblePolls.clear();
+    _reactionSummaries.clear();
+    _currentOffset = 0;
+    _hasMoreFromSource = true;
+
+    await _loadNextPage();
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> loadMorePolls() async {
+    if (_isLoading) return;
+    if (!_hasMoreFromSource) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    await _loadNextPage();
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> _loadNextPage() async {
     final scope = geoScopeController.scope;
 
     String? countryCode;
@@ -58,12 +148,9 @@ class PollListController extends ChangeNotifier {
 
     switch (scope.level) {
       case GeoScopeLevel.world:
-        countryCode = null;
-        cityId = null;
         break;
       case GeoScopeLevel.country:
         countryCode = scope.countryCode;
-        cityId = null;
         break;
       case GeoScopeLevel.city:
         countryCode = scope.countryCode;
@@ -71,82 +158,151 @@ class PollListController extends ChangeNotifier {
         break;
     }
 
-    _polls = await getPollsUseCase(
+    final result = await getPollsUseCase(
       countryCode: countryCode,
       cityId: cityId,
+      limit: _pageSize,
+      offset: _currentOffset,
     );
 
-    // Dopo aver caricato i poll, carichiamo i reaction summary associati.
-    await _loadReactionSummariesForPolls();
-
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  Future<void> _loadReactionSummariesForPolls() async {
-    if (_polls.isEmpty) {
-      _reactionSummaries = {};
-      return;
+    if (result.length < _pageSize) {
+      _hasMoreFromSource = false;
     }
 
-    final targets = _polls
-        .map(
-          (poll) => TargetRef.poll(poll.id.value),
-        )
-        .toList();
+    _currentOffset += result.length;
+    _allPolls.addAll(result);
 
-    final summaries = await getReactionSummary(targets);
+    await _loadReactionSummariesForPolls(result);
 
-    _reactionSummaries = {
-      for (final summary in summaries) summary.target.id: summary,
-    };
+    _recomputeVisiblePolls();
   }
+
+  Future<void> _loadReactionSummariesForPolls(List<Poll> newPolls) async {
+    if (newPolls.isEmpty) return;
+
+    final targets =
+        newPolls.map((p) => TargetRef.poll(p.id.value)).toList();
+
+    final summaries = await getReactionSummary(
+      targets,
+      userId: _lastKnownUserId,
+    );
+
+    for (final summary in summaries) {
+      _reactionSummaries[summary.target.id] = summary;
+    }
+  }
+
+  // ===== Reaction helpers =====
 
   ReactionSummary? _summaryForPoll(Poll poll) {
     return _reactionSummaries[poll.id.value];
   }
 
-  int likeCountForPoll(Poll poll) {
-    return _summaryForPoll(poll)?.likeCount ?? 0;
+  int likeCountForPoll(Poll poll) =>
+      _summaryForPoll(poll)?.likeCount ?? 0;
+
+  int dislikeCountForPoll(Poll poll) =>
+      _summaryForPoll(poll)?.dislikeCount ?? 0;
+
+  ReactionType? userReactionForPoll(Poll poll) =>
+      _summaryForPoll(poll)?.userReaction;
+
+  double _heatForPoll(Poll poll) {
+    final summary = _summaryForPoll(poll);
+    if (summary == null) return 0;
+    return (summary.likeCount - summary.dislikeCount).toDouble();
   }
 
-  int dislikeCountForPoll(Poll poll) {
-    return _summaryForPoll(poll)?.dislikeCount ?? 0;
+  // ===== Filtri + ordinamento =====
+
+  void _recomputeVisiblePolls() {
+    // Partiamo sempre da tutti i poll dello scope corrente.
+    var tmp = List<Poll>.from(_allPolls);
+
+    // 1) Filtro di scope logico (V1: currentScope → nessun cambio).
+    tmp = _applyScopeFilter(tmp);
+
+    // 2) Filtro di stato (open/closed/all).
+    tmp = _applyStatusFilter(tmp);
+
+    // 3) Ordinamento Latest / Hottest.
+    _sortPolls(tmp);
+
+    _visiblePolls
+      ..clear()
+      ..addAll(tmp);
   }
 
-  /// Toggle 🔥 per un poll.
-  ///
-  /// userId: per ora può essere 'demo-user', in futuro userId reale da identity.
+  List<Poll> _applyScopeFilter(List<Poll> input) {
+    switch (_scopeFilter) {
+      case PollScopeFilter.currentScope:
+        // V1: i poll sono già filtrati per scope lato use case (GeoScopeController),
+        // quindi non modifichiamo la lista.
+        return input;
+    }
+  }
+
+  List<Poll> _applyStatusFilter(List<Poll> input) {
+    switch (_statusFilter) {
+      case PollStatusFilter.all:
+        return input;
+      case PollStatusFilter.open:
+        return input
+            .where((p) => p.status == PollStatus.open)
+            .toList();
+      case PollStatusFilter.closed:
+        return input
+            .where((p) => p.status == PollStatus.closed)
+            .toList();
+    }
+  }
+
+  void _sortPolls(List<Poll> list) {
+    switch (_sortMode) {
+      case PollSortMode.latest:
+        // V1: manteniamo l'ordine di arrivo dal repository
+        // (considerato già "latest" lato sorgente).
+        break;
+      case PollSortMode.hottest:
+        list.sort(
+          (a, b) => _heatForPoll(b).compareTo(_heatForPoll(a)),
+        );
+        break;
+    }
+  }
+
+  // ===== Toggle reazioni =====
+
   Future<void> toggleFireForPoll({
     required String userId,
     required Poll poll,
   }) async {
-    final target = TargetRef.poll(poll.id.value);
-
     final summary = await toggleReaction(
       userId: userId,
-      target: target,
+      target: TargetRef.poll(poll.id.value),
       type: ReactionType.like,
     );
 
     _reactionSummaries[poll.id.value] = summary;
+
+    _recomputeVisiblePolls();
     notifyListeners();
   }
 
-  /// Toggle ❄ per un poll.
   Future<void> toggleIceForPoll({
     required String userId,
     required Poll poll,
   }) async {
-    final target = TargetRef.poll(poll.id.value);
-
     final summary = await toggleReaction(
       userId: userId,
-      target: target,
+      target: TargetRef.poll(poll.id.value),
       type: ReactionType.dislike,
     );
 
     _reactionSummaries[poll.id.value] = summary;
+
+    _recomputeVisiblePolls();
     notifyListeners();
   }
 

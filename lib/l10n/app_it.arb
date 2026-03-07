@@ -1,0 +1,421 @@
+{
+  "@@locale": "it",
+
+  "appTitle": "Sociale Vote",
+  "voteButton": "Vota",
+
+  "createPollPageTitle": "Crea sondaggio",
+  "createPollPageSubtitle": "Definisci un nuovo voto civico",
+
+  "createPollBasicInfoTitle": "Informazioni di base",
+  "createPollBasicInfoSubtitle": "Definisci i dettagli principali del sondaggio.",
+  "createPollTitleFieldLabel": "Titolo *",
+  "createPollTitleFieldHelper": "Una domanda o affermazione chiara e concisa.",
+  "createPollDescriptionFieldLabel": "Descrizione (facoltativa)",
+
+  "createPollVotingModelTitle": "Modello di voto",
+  "createPollVotingModelSubtitle": "Scegli come verrà espresso il voto e le regole di base.",
+  "createPollTypeFieldLabel": "Tipo di sondaggio",
+
+  "createPollSelectionRules": "Regole di selezione: minimo {min}, massimo {max} scelte (regolate automaticamente in base al tipo di sondaggio e alle opzioni).",
+  "@createPollSelectionRules": {
+    "placeholders": {
+      "min": { "type": "int" },
+      "max": { "type": "int" }
+    }
+  },
+
+  "createPollAllowVoteChangeTitle": "Consenti agli utenti di modificare il proprio voto",
+  "createPollAllowVoteChangeSubtitle": "Fino alla chiusura del sondaggio.",
+
+  "createPollOptionsTitle": "Opzioni",
+  "createPollOptionsSubtitle": "Aggiungi almeno due opzioni tra cui gli utenti possano scegliere. I campi contrassegnati con * sono obbligatori.",
+
+  "createPollOptionLabel": "Opzione {index}{requiredMarker}",
+  "@createPollOptionLabel": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "requiredMarker": {}
+    }
+  },
+
+  "createPollRemoveOptionTooltip": "Rimuovi opzione",
+  "createPollAddOptionButton": "Aggiungi opzione",
+
+  "createPollParticipationPrivacyTitle": "Partecipazione e privacy",
+  "createPollParticipationPrivacySubtitle": "Decidi chi può votare e quanto devono essere identificabili i voti.",
+  "createPollWhoCanVoteLabel": "Chi può votare?",
+
+  "createPollParticipationEveryoneSubtitle": "Qualsiasi utente registrato può partecipare.",
+  "createPollParticipationGeoScopeSubtitle": "Limita questo sondaggio alle persone di uno specifico Paese.",
+
+  "createPollCountryFieldLabel": "Paese per questo sondaggio",
+  "createPollCountryFieldHelper": "Questo Paese definirà chi è autorizzato a partecipare a questo sondaggio (integrazione backend futura).",
+
+  "createPollVoteAnonymityTitle": "Anonimato del voto",
+  "createPollAnonymityAnonymousSubtitle": "Impostazione predefinita consigliata per piattaforme di voto civico.",
+  "createPollAnonymityPublicSubtitle": "Usare con cautela: i voti potrebbero essere associati alle identità (funzionalità futura).",
+
+  "createPollResultsValidityTitle": "Risultati e validità",
+  "createPollResultsValiditySubtitle": "Controlla quando i risultati sono visibili e definisci un quorum minimo, se necessario.",
+  "createPollResultsVisibilityFieldLabel": "Visibilità dei risultati",
+
+  "createPollQuorumTitle": "Quorum (facoltativo)",
+  "createPollQuorumSubtitle": "Se impostato, il sondaggio è considerato valido solo se viene raggiunto almeno questo numero di voti. Lascia vuoto per nessun quorum.",
+  "createPollQuorumMinVotesFieldLabel": "Numero minimo di voti",
+
+  "createPollTimingTitle": "Tempistiche",
+  "createPollTimingSubtitle": "Definisci quando il sondaggio deve essere aperto alle votazioni.",
+  "createPollStartDateLabel": "Data di inizio",
+  "createPollEndDateLabel": "Data di fine",
+  "createPollChangeDateButtonLabel": "Modifica",
+  "createPollTimingStatusInfo": "Lo stato iniziale (aperto/pianificato/chiuso) sarà determinato automaticamente in base a queste date.",
+
+  "createPollSuccessMessage": "Sondaggio creato con successo",
+  "createPollSubmitCreatingLabel": "Creazione in corso...",
+  "createPollSubmitLabel": "Crea sondaggio",
+
+  "createPollPollTypeYesNoLabel": "Sì / No",
+  "createPollPollTypeSingleChoiceLabel": "Scelta singola",
+  "createPollPollTypeMultipleChoiceLabel": "Scelta multipla",
+  "createPollPollTypeApprovalLabel": "Voto di approvazione",
+  "createPollPollTypeRankedLabel": "Voto a scelta ordinata",
+  "createPollPollTypeScoreLabel": "Punteggio / Valutazione",
+
+  "createPollParticipationScopeEveryoneLabel": "Tutti possono votare",
+  "createPollParticipationScopeGeoScopeOnlyLabel": "Solo utenti in un Paese specifico",
+
+  "createPollAnonymityLevelAnonymousLabel": "I voti sono anonimi",
+  "createPollAnonymityLevelPublicLabel": "I voti sono pubblici (uso avanzato / ristretto)",
+
+  "createPollResultsVisibilityAlwaysLabel": "Sempre visibili (mentre il sondaggio è aperto)",
+  "createPollResultsVisibilityAfterVoteLabel": "Visibili solo dopo aver votato",
+  "createPollResultsVisibilityAfterCloseLabel": "Visibili solo dopo la chiusura del sondaggio",
+
+  "homeLoginButton": "Accedi",
+  "homeRegisterButton": "Registrati",
+  "homeProfileButton": "Profilo",
+  "homeLogoutButton": "Logout",
+
+  "homeLogoutMessage": "Logout eseguito. Ora stai usando l’app come ospite (solo lettura).",
+
+  "homeSearchHint": "Cerca città, Paese, sondaggi, news, post...",
+
+  "homeUserStatusLoggedIn": "Accesso effettuato come: {userId}",
+  "@homeUserStatusLoggedIn": {
+    "placeholders": {
+      "userId": {}
+    }
+  },
+
+  "homeUserStatusGuest": "Modalità ospite: puoi solo leggere. Accedi o registrati per votare, commentare e reagire.",
+
+  "homeScopeLabelWorld": "World – Votazioni e news globali",
+  "homeScopeLabelCountry": "Country – Votazioni e news del Paese",
+  "homeScopeLabelCity": "City – Votazioni e news della città",
+
+  "homeScopeShortWorld": "World",
+  "homeScopeShortCountry": "Paese",
+  "homeScopeShortCity": "Città",
+
+  "homeScopeChipWorld": "World",
+  "homeScopeChipItaly": "Italia",
+  "homeScopeChipTorino": "Torino",
+
+  "homeScopeChangedWorld": "Scope cambiato su World",
+  "homeScopeChangedItaly": "Scope cambiato su Italy",
+  "homeScopeChangedTorino": "Scope cambiato su Torino",
+
+  "followScopeButtonFollowed": "Seguito",
+  "followScopeButtonFollow": "Segui quest’area",
+
+  "homeTrendingTitle": "Trending now",
+  "homeTrendingError": "Impossibile caricare i contenuti trending per quest’area.",
+  "homeTrendingEmpty": "Nessun contenuto trending per questo scope al momento.",
+
+  "homeForYouTitle": "For You ({scope})",
+  "@homeForYouTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeForYouError": "Impossibile caricare il feed \"For You\" per quest’area.",
+  "homeForYouEmpty": "Nessun contenuto suggerito \"For You\" per questo scope al momento.",
+
+  "homePollsTitle": "Highlighted Polls ({scope})",
+  "@homePollsTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homePollsEmptyTitle": "Nessun sondaggio per quest’area",
+  "homePollsEmptySubtitle": "Non ci sono votazioni per questo scope.",
+  "homePollsViewAllButton": "Vedi tutti i sondaggi",
+
+  "homeNewsTitle": "Top News ({scope})",
+  "@homeNewsTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeNewsErrorTitle": "Impossibile caricare le news",
+  "homeNewsErrorSubtitle": "Si è verificato un problema nel caricamento delle news per quest’area.",
+  "homeNewsEmptyTitle": "Nessuna news per quest’area",
+  "homeNewsEmptySubtitle": "Non ci sono news per questo scope al momento.",
+  "homeNewsViewAllButton": "Vedi tutte le news",
+  "homeNewsBreakingBadge": "BREAKING",
+
+  "homeSocialTitle": "Discussions / Feed ({scope})",
+  "@homeSocialTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeSocialErrorTitle": "Impossibile caricare le discussioni",
+  "homeSocialErrorSubtitle": "Si è verificato un problema nel caricamento del feed sociale per quest’area.",
+  "homeSocialEmptyTitle": "Nessuna discussione per quest’area",
+  "homeSocialEmptySubtitle": "Non ci sono discussioni per questo scope al momento.",
+  "homeSocialViewFeedButton": "Vedi il social feed",
+
+  "pollDetail_title": "Dettaglio sondaggio",
+
+  "pollDetail_removeFromFavoritesTooltip": "Rimuovi dai preferiti",
+  "pollDetail_addToFavoritesTooltip": "Aggiungi ai preferiti",
+
+  "pollDetail_chipAnonymous": "Voto anonimo",
+  "pollDetail_chipPublic": "Voto pubblico",
+  "pollDetail_chipRestrictedGeo": "Limitato all'ambito geografico",
+
+  "pollDetail_quorumReached": "Quorum raggiunto ({currentVotes} / {requiredVotes})",
+  "@pollDetail_quorumReached": {
+    "placeholders": {
+      "currentVotes": { "type": "int" },
+      "requiredVotes": { "type": "int" }
+    }
+  },
+  "pollDetail_quorumNotReached": "Quorum non raggiunto ({currentVotes} / {requiredVotes})",
+  "@pollDetail_quorumNotReached": {
+    "placeholders": {
+      "currentVotes": { "type": "int" },
+      "requiredVotes": { "type": "int" }
+    }
+  },
+
+  "pollDetail_optionsTitle": "Opzioni",
+
+  "pollDetail_statusClosedMessage": "Questo sondaggio è chiuso.",
+  "pollDetail_statusScheduledMessage": "Questo sondaggio non è ancora aperto.",
+  "pollDetail_statusNotAvailableMessage": "La votazione non è disponibile.",
+
+  "pollDetail_voteSubmitted": "Voto registrato con successo!",
+  "pollDetail_voteButton": "Vota",
+
+  "pollDetail_resultsTitle": "Risultati",
+  "pollDetail_outcomePrefix": "Esito: {label}",
+  "@pollDetail_outcomePrefix": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "pollDetail_noResults": "Nessun risultato disponibile al momento.",
+  "pollDetail_resultsAfterVote": "I risultati saranno visibili dopo il tuo voto.",
+  "pollDetail_resultsWhenClosed": "I risultati saranno visibili alla chiusura del sondaggio.",
+
+  "pollType_yesNo": "Sì / No",
+  "pollType_singleChoice": "Scelta singola",
+  "pollType_multipleChoice": "Scelta multipla",
+  "pollType_approval": "Approvazione",
+
+  "pollStatus_draft": "Bozza",
+  "pollStatus_open": "Aperto",
+  "pollStatus_closed": "Chiuso",
+  "pollStatus_scheduled": "Programmato",
+
+  "pollGeo_global": "Globale",
+  "pollGeo_local": "Locale",
+
+  "pollOutcome_approved": "Approvato",
+  "pollOutcome_rejected": "Respinto",
+  "pollOutcome_tie": "Parità",
+  "pollOutcome_noMajority": "Nessuna maggioranza",
+  "pollOutcome_notApplicable": "Non applicabile",
+
+  "pollList_title": "Sondaggi",
+
+  "pollList_scopeWorld": "Mondo",
+  "pollList_scopeCountryFallback": "Paese",
+  "pollList_scopeCityFallback": "Città",
+
+  "pollList_scopeDescriptionGlobal": "Visualizzazione dei sondaggi globali.",
+  "pollList_scopeDescriptionCountry": "Visualizzazione dei sondaggi per questo paese.",
+  "pollList_scopeDescriptionCity": "Visualizzazione dei sondaggi per questa città.",
+
+  "pollList_filterStatus_all": "Tutti",
+  "pollList_filterStatus_open": "Aperti",
+  "pollList_filterStatus_closed": "Chiusi",
+
+  "pollList_sort_latest": "Più recenti",
+  "pollList_sort_hottest": "Più caldi",
+
+  "pollList_filterScope_currentArea": "Area corrente",
+
+  "pollList_headerTitle": "{scopeLabel} · {count, plural, =0 {nessun sondaggio} =1 {1 sondaggio} other {{count} sondaggi}}",
+  "@pollList_headerTitle": {
+    "placeholders": {
+      "scopeLabel": {},
+      "count": { "type": "int" }
+    }
+  },
+
+  "pollList_createPollButton": "Crea sondaggio",
+
+  "pollList_paginationHint": "Scorri per caricare altri sondaggi…",
+
+  "pollList_emptyMessage": "Nessun sondaggio che corrisponde a questo filtro per quest’area.",
+
+  "pollType_ranked": "Voto a graduatoria",
+  "pollType_score": "Punteggio / Valutazione",
+
+  "pollVisibility_whileOpen": "Risultati visibili durante l'apertura",
+  "pollVisibility_afterVote": "Risultati visibili dopo il voto",
+  "pollVisibility_afterClose": "Risultati visibili dopo la chiusura",
+
+  "pollCard_countryRestricted": "Limitato al paese",
+  "pollCard_restrictedToCountry": "Limitato a {countryName}",
+  "@pollCard_restrictedToCountry": {
+    "placeholders": {
+      "countryName": {}
+    }
+  },
+
+  "pollCard_quorumLabel": "Quorum {minVotes}",
+  "@pollCard_quorumLabel": {
+    "placeholders": {
+      "minVotes": { "type": "int" }
+    }
+  },
+
+  "pollCard_viewDetails": "Vedi dettagli",
+
+  "pollResult_title": "{count, plural, =0 {Risultati (nessun voto)} =1 {Risultati (1 voto)} other {Risultati ({count} voti)}}",
+  "@pollResult_title": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "voteError_noSelection": "Seleziona almeno un'opzione.",
+  "voteError_unauthorized": "Non sei autorizzato a votare in questo sondaggio.",
+  "voteError_generic": "Impossibile registrare il voto. Riprova.",
+
+  "commentSection_title": "Commenti",
+  "commentSection_sortLabel": "Ordina:",
+  "commentSection_sortOldest": "Meno recenti",
+  "commentSection_sortNewest": "Più recenti",
+
+  "commentSection_errorGeneric": "Si è verificato un errore durante il caricamento dei commenti.",
+  "commentSection_empty": "Non ci sono ancora commenti. Scrivi il primo tu.",
+
+  "commentSection_loadMore": "Carica altri commenti",
+
+  "commentSection_replyingTo": "Stai rispondendo a: {snippet}",
+  "@commentSection_replyingTo": {
+    "placeholders": {
+      "snippet": {}
+    }
+  },
+
+  "commentSection_cancelReply": "Annulla",
+
+  "commentSection_inputHintRoot": "Aggiungi un commento...",
+  "commentSection_inputHintReply": "Scrivi una risposta...",
+
+  "commentSection_deleteAction": "Elimina",
+  "commentSection_replyAction": "Rispondi",
+  "commentSection_youBadge": "Tu",
+
+  "newsDetail_title": "Dettaglio notizia",
+  "newsDetail_breakingBadge": "ULTIM'ORA",
+
+  "newsDetail_removeFromFavoritesTooltip": "Rimuovi dai preferiti",
+  "newsDetail_addToFavoritesTooltip": "Aggiungi ai preferiti",
+
+  "newsDetail_bodyFallback": "Non sono disponibili ulteriori dettagli per questa notizia.",
+  "newsDetail_footerMoreContext": "Altri contesti e fonti saranno disponibili a breve.",
+
+  "newsFeed_title": "Notizie",
+  "newsFeed_scopeWorld": "Mondo",
+  "newsFeed_scopeCountry": "Paese",
+  "newsFeed_scopeCity": "Città",
+
+  "newsFeed_scopeLabel": "Ambito: {scope}",
+  "@newsFeed_scopeLabel": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+
+  "newsFeed_scopeGlobalDescription": "Notizie a livello globale.",
+  "newsFeed_scopeCountryDescription": "Notizie per questo paese.",
+  "newsFeed_scopeCityDescription": "Notizie per questa città.",
+
+  "newsFeed_emptyTitle": "Nessuna notizia disponibile per quest’area.",
+  "newsFeed_emptySubtitle": "Trascina per aggiornare o riprova più tardi.",
+
+  "newsFeed_itemsFound": "{count} notizie trovate",
+  "@newsFeed_itemsFound": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "newsFeed_loadingMoreHint": "Scorri per caricare altre notizie…",
+
+  "newsFeed_errorTitle": "Impossibile caricare le notizie",
+  "newsFeed_errorGeneric": "Si è verificato un errore durante il caricamento delle notizie.",
+  "newsFeed_retryButton": "Riprova",
+
+  "newsCard_headerTitle": "Notizia",
+
+  "newsFeed_errorUnauthorized": "Configurazione News non valida (API key).",
+  "newsFeed_errorRateLimited": "Troppe richieste. Riprova tra poco.",
+  "newsFeed_errorServerUnavailable": "Servizio News temporaneamente non disponibile. Riprova più tardi.",
+  "newsFeed_errorTimeout": "La richiesta sta impiegando troppo tempo. Riprova.",
+  "newsFeed_errorNetwork": "Nessuna connessione. Controlla internet e riprova.",
+
+  "newsFeed_moreTooltip": "Altro",
+  "newsFeed_actionCopyTitle": "Copia titolo",
+  "newsFeed_actionRefreshFeed": "Aggiorna feed",
+  "newsFeed_copiedTitleToast": "Titolo copiato",
+
+  "newsFeed_languageTooltip": "Lingua notizie",
+  "newsFeed_languageAuto": "AUTO",
+  "newsFeed_languageIt": "IT",
+  "newsFeed_languageEn": "EN",
+  "newsFeed_languageEs": "ES",
+  "newsFeed_languageFr": "FR",
+  "newsFeed_languageDe": "DE",
+  "newsFeed_languageAr": "AR",
+  "newsFeed_languageFa": "FA",
+  "newsFeed_languageLimitedHint": "Poche fonti disponibili in questa lingua. Prova AUTO.",
+
+  "newsTopic_all": "Tutte",
+  "newsTopic_world": "Mondo",
+  "newsTopic_nation": "Nazione",
+  "newsTopic_business": "Economia",
+  "newsTopic_technology": "Tecnologia",
+  "newsTopic_science": "Scienza",
+  "newsTopic_health": "Salute",
+  "newsTopic_sports": "Sport",
+  "newsTopic_entertainment": "Intrattenimento",
+
+  "newsDetail_openSource": "Apri fonte",
+  "@newsDetail_openSource": {
+    "description": "Bottone per aprire l'articolo originale sul sito della fonte"
+  },
+
+  "newsDetail_openSourceUnavailable": "Impossibile aprire la fonte",
+  "@newsDetail_openSourceUnavailable": {
+    "description": "Messaggio mostrato quando il link alla fonte non può essere aperto"
+  }
+}

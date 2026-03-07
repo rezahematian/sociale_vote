@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/core/security/participation_policy.dart';
+import 'package:sociale_vote/shared/services/auth_guard.dart';
+
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
 import 'package:sociale_vote/features/discussion/presentation/widgets/comment_section.dart';
+import 'package:sociale_vote/features/news/application/news_controller.dart';
+import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 
 /// Pagina di dettaglio per una singola news.
 ///
@@ -16,7 +22,7 @@ import 'package:sociale_vote/features/discussion/presentation/widgets/comment_se
 ///     builder: (_) => NewsDetailPage(news: newsItem),
 ///   ),
 /// );
-class NewsDetailPage extends StatelessWidget {
+class NewsDetailPage extends StatefulWidget {
   final NewsItem news;
 
   const NewsDetailPage({
@@ -25,18 +31,84 @@ class NewsDetailPage extends StatelessWidget {
   });
 
   @override
+  State<NewsDetailPage> createState() => _NewsDetailPageState();
+}
+
+class _NewsDetailPageState extends State<NewsDetailPage> {
+  bool _isFavorite = false;
+  bool _favoriteInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initFavoriteStatus();
+  }
+
+  Future<void> _initFavoriteStatus() async {
+    final userId = AppDI.instance.currentUserId;
+    if (userId == null) {
+      return;
+    }
+
+    try {
+      final isFav = await AppDI.instance.isFavorite(
+        userId: userId,
+        target: TargetRef.news(widget.news.id.value),
+      );
+      if (!mounted) return;
+      setState(() {
+        _isFavorite = isFav;
+        _favoriteInitialized = true;
+      });
+    } catch (_) {
+      // v1: nessun handling specifico per errori sui preferiti in-memory.
+      if (!mounted) return;
+      setState(() {
+        _favoriteInitialized = true;
+      });
+    }
+  }
+
+  Future<void> _onFavoritePressed() async {
+    // Usiamo la stessa policy delle reazioni per ora.
+    final allowed = await AuthGuard.ensureCanPerformAction(
+      context,
+      ParticipationAction.react,
+    );
+    if (!allowed) return;
+
+    final userId = AppDI.instance.currentUserId;
+    if (userId == null) return;
+
+    try {
+      final newState = await AppDI.instance.toggleFavorite(
+        userId: userId,
+        target: TargetRef.news(widget.news.id.value),
+      );
+      if (!mounted) return;
+      setState(() {
+        _isFavorite = newState;
+      });
+    } catch (_) {
+      // v1: silenzioso; in futuro si può mostrare SnackBar.
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final news = widget.news;
 
     return ChangeNotifierProvider<DiscussionController>(
       create: (_) => AppDI.instance.createDiscussionController(
-        // QUI era l'errore: news.id è un EntityId, serve la String interna
+        // news.id è un EntityId, serve la String interna
         TargetRef.news(news.id.value),
       )..loadComments(),
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            'News detail',
+            l10n.newsDetail_title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -49,15 +121,17 @@ class NewsDetailPage extends StatelessWidget {
               children: [
                 if (news.isBreaking) ...[
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.error,
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      'BREAKING',
+                      l10n.newsDetail_breakingBadge,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onError,
                         fontWeight: FontWeight.w700,
@@ -67,12 +141,31 @@ class NewsDetailPage extends StatelessWidget {
                   ),
                 ],
 
-                // Titolo principale
-                Text(
-                  news.title,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                // Titolo principale + ⭐ preferiti
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        news.title,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        _isFavorite ? Icons.star : Icons.star_border,
+                        color: _isFavorite
+                            ? theme.colorScheme.primary
+                            : theme.iconTheme.color,
+                      ),
+                      tooltip: _isFavorite
+                          ? l10n.newsDetail_removeFromFavoritesTooltip
+                          : l10n.newsDetail_addToFavoritesTooltip,
+                      onPressed: _onFavoritePressed,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
 
@@ -129,7 +222,7 @@ class NewsDetailPage extends StatelessWidget {
                       vertical: 20,
                     ),
                     child: Text(
-                      _resolveBodyText(),
+                      _resolveBodyText(l10n),
                       style: theme.textTheme.bodyLarge?.copyWith(
                         height: 1.4,
                       ),
@@ -139,11 +232,82 @@ class NewsDetailPage extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
+                // Barra di engagement 🔥 / ❄ nel dettaglio.
+                Builder(
+                  builder: (context) {
+                    NewsController? newsController;
+                    try {
+                      newsController = Provider.of<NewsController>(
+                        context,
+                        listen: true,
+                      );
+                    } catch (_) {
+                      newsController = null;
+                    }
+
+                    if (newsController == null) {
+                      // Nessun NewsController trovato → niente barra, ma nessun crash.
+                      return const SizedBox.shrink();
+                    }
+
+                    final summary = newsController.summaryForNews(news);
+                    final fireCount = summary?.likeCount ?? 0;
+                    final iceCount = summary?.dislikeCount ?? 0;
+                    final userReaction = summary?.userReaction;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: EngagementBar(
+                        fireCount: fireCount,
+                        iceCount: iceCount,
+                        userReaction: userReaction,
+                        onFireTap: () async {
+                          // 🔐 Proteggiamo le reazioni come nel resto dell'app
+                          final allowed =
+                              await AuthGuard.ensureCanPerformAction(
+                            context,
+                            ParticipationAction.react,
+                          );
+                          if (!allowed) return;
+
+                          final String? userId =
+                              AppDI.instance.currentUserId;
+                          if (userId == null) return;
+
+                          newsController!.toggleFireForNews(
+                            userId: userId,
+                            newsItem: news,
+                          );
+                        },
+                        onIceTap: () async {
+                          final allowed =
+                              await AuthGuard.ensureCanPerformAction(
+                            context,
+                            ParticipationAction.react,
+                          );
+                          if (!allowed) return;
+
+                          final String? userId =
+                              AppDI.instance.currentUserId;
+                          if (userId == null) return;
+
+                          newsController!.toggleIceForNews(
+                            userId: userId,
+                            newsItem: news,
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 24),
+
                 // Placeholder per future meta: fonte, tag, scope, ecc.
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'More context and sources coming soon.',
+                    l10n.newsDetail_footerMoreContext,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.hintColor,
                     ),
@@ -155,8 +319,11 @@ class NewsDetailPage extends StatelessWidget {
                 // Sezione commenti (discussion/)
                 const Divider(),
                 const SizedBox(height: 16),
-                const CommentSection(
-                  userId: 'demo-user', // TODO: collegare a identity reale
+                CommentSection(
+                  // Questo parametro è storicamente ignorato dalla logica interna,
+                  // l'utente corrente reale viene letto da AppDI.instance.currentUserId.
+                  // Usiamo un fallback neutro, NON "anonymous".
+                  userId: AppDI.instance.currentUserId ?? 'guest',
                 ),
               ],
             ),
@@ -168,10 +335,10 @@ class NewsDetailPage extends StatelessWidget {
 
   /// Per ora usiamo la summary come corpo principale.
   /// In futuro possiamo collegare un campo "content" o testo completo.
-  String _resolveBodyText() {
-    final s = news.summary;
+  String _resolveBodyText(AppLocalizations l10n) {
+    final s = widget.news.summary;
     if (s == null || s.trim().isEmpty) {
-      return 'No additional text is available for this news item.';
+      return l10n.newsDetail_bodyFallback;
     }
     return s;
   }

@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/core/security/participation_policy.dart';
+import 'package:sociale_vote/shared/services/auth_guard.dart';
+
 import 'package:sociale_vote/domain/discussion/entities/comment.dart';
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 
 /// Sezione commenti generica basata su [DiscussionController].
 ///
@@ -12,6 +17,11 @@ import 'package:sociale_vote/features/discussion/application/discussion_controll
 /// - PostDetailPage
 /// - VideoDetailPage, ecc.
 class CommentSection extends StatefulWidget {
+  /// ATTENZIONE:
+  /// Questo userId era usato in passato come "utente corrente".
+  /// Ora l'utente corrente viene letto da AppDI.instance.currentUserId
+  /// dentro al widget, quindi questo parametro è di fatto ignorato
+  /// per sicurezza e coerenza con l'AuthGuard.
   final String userId;
 
   const CommentSection({
@@ -36,11 +46,17 @@ class _CommentSectionState extends State<CommentSection> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final controller = context.watch<DiscussionController>();
 
     final isLoading = controller.isLoading;
     final isSubmitting = controller.isSubmitting;
     final hasError = controller.errorMessage != null;
+    final sortOrder = controller.sortOrder;
+    final hasMore = controller.hasMoreRootComments;
+
+    // Utente correntemente loggato (può essere null = guest)
+    final String? currentUserId = AppDI.instance.currentUserId;
 
     return Card(
       elevation: 0,
@@ -66,7 +82,7 @@ class _CommentSectionState extends State<CommentSection> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Comments',
+                  l10n.commentSection_title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -78,6 +94,52 @@ class _CommentSectionState extends State<CommentSection> {
                     width: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+
+            // Toggle ordinamento (Oldest / Newest)
+            Row(
+              children: [
+                Text(
+                  l10n.commentSection_sortLabel,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.hintColor,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ChoiceChip(
+                  label: Text(
+                    l10n.commentSection_sortOldest,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontWeight: sortOrder == CommentSortOrder.oldestFirst
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                    ),
+                  ),
+                  selected: sortOrder == CommentSortOrder.oldestFirst,
+                  onSelected: (selected) {
+                    if (!selected) return;
+                    controller.setSortOrder(CommentSortOrder.oldestFirst);
+                  },
+                ),
+                const SizedBox(width: 6),
+                ChoiceChip(
+                  label: Text(
+                    l10n.commentSection_sortNewest,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontWeight: sortOrder == CommentSortOrder.newestFirst
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                    ),
+                  ),
+                  selected: sortOrder == CommentSortOrder.newestFirst,
+                  onSelected: (selected) {
+                    if (!selected) return;
+                    controller.setSortOrder(CommentSortOrder.newestFirst);
+                  },
+                ),
               ],
             ),
 
@@ -111,7 +173,7 @@ class _CommentSectionState extends State<CommentSection> {
                     Expanded(
                       child: Text(
                         controller.errorMessage ??
-                            'An error occurred while loading comments.',
+                            l10n.commentSection_errorGeneric,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.error,
                         ),
@@ -137,7 +199,7 @@ class _CommentSectionState extends State<CommentSection> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
-                  'No comments yet. Be the first to comment.',
+                  l10n.commentSection_empty,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.hintColor,
                   ),
@@ -151,9 +213,13 @@ class _CommentSectionState extends State<CommentSection> {
                     _CommentTile(
                       comment: root,
                       isReply: false,
+                      isCurrentUser:
+                          currentUserId != null && root.userId == currentUserId,
                       onReplyTap: () => _startReply(root),
-                      canDelete: root.userId == widget.userId,
-                      onDeleteTap: root.userId == widget.userId
+                      canDelete:
+                          currentUserId != null && root.userId == currentUserId,
+                      onDeleteTap: (currentUserId != null &&
+                              root.userId == currentUserId)
                           ? () => controller.deleteComment(root)
                           : null,
                     ),
@@ -164,15 +230,34 @@ class _CommentSectionState extends State<CommentSection> {
                         child: _CommentTile(
                           comment: reply,
                           isReply: true,
+                          isCurrentUser: currentUserId != null &&
+                              reply.userId == currentUserId,
                           onReplyTap: () => _startReply(root),
-                          canDelete: reply.userId == widget.userId,
-                          onDeleteTap: reply.userId == widget.userId
+                          canDelete: currentUserId != null &&
+                              reply.userId == currentUserId,
+                          onDeleteTap: (currentUserId != null &&
+                                  reply.userId == currentUserId)
                               ? () => controller.deleteComment(reply)
                               : null,
                         ),
                       ),
                     ],
                     const SizedBox(height: 8),
+                  ],
+
+                  // Bottone "Load more" per root comment aggiuntivi
+                  if (hasMore) ...[
+                    const SizedBox(height: 4),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () {
+                          controller.loadMoreRootComments();
+                        },
+                        icon: const Icon(Icons.expand_more),
+                        label: Text(l10n.commentSection_loadMore),
+                      ),
+                    ),
                   ],
                 ],
               ),
@@ -203,7 +288,9 @@ class _CommentSectionState extends State<CommentSection> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'Replying to: ${_shorten(_replyParent!.content)}',
+                        l10n.commentSection_replyingTo(
+                          _shorten(_replyParent!.content),
+                        ),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.primary,
                         ),
@@ -214,7 +301,7 @@ class _CommentSectionState extends State<CommentSection> {
                     GestureDetector(
                       onTap: _cancelReply,
                       child: Text(
-                        'Cancel',
+                        l10n.commentSection_cancelReply,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.primary,
                           fontWeight: FontWeight.w600,
@@ -238,8 +325,8 @@ class _CommentSectionState extends State<CommentSection> {
                     textInputAction: TextInputAction.newline,
                     decoration: InputDecoration(
                       hintText: _replyParent == null
-                          ? 'Add a comment...'
-                          : 'Write a reply...',
+                          ? l10n.commentSection_inputHintRoot
+                          : l10n.commentSection_inputHintReply,
                       isDense: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -292,16 +379,33 @@ class _CommentSectionState extends State<CommentSection> {
       return;
     }
 
+    // 1️⃣ Verifica permessi tramite AuthGuard (guest → login / register sheet)
+    final allowed = await AuthGuard.ensureCanPerformAction(
+      context,
+      ParticipationAction.comment,
+    );
+    if (!allowed) {
+      return;
+    }
+
+    // 2️⃣ Dopo il guard, ci aspettiamo un utente loggato.
+    final String? userId = AppDI.instance.currentUserId;
+    if (userId == null) {
+      // Se succede, significa che la policy o il guard sono cambiati
+      // in modo inconsistente. Per sicurezza, non procediamo.
+      return;
+    }
+
     final controller = context.read<DiscussionController>();
 
     if (_replyParent == null) {
       await controller.addRootComment(
-        userId: widget.userId,
+        userId: userId,
         content: text,
       );
     } else {
       await controller.replyToComment(
-        userId: widget.userId,
+        userId: userId,
         parent: _replyParent!,
         content: text,
       );
@@ -315,6 +419,8 @@ class _CommentSectionState extends State<CommentSection> {
           _replyParent = null;
         });
       }
+      // Chiudo la tastiera dopo submit riuscito
+      FocusScope.of(context).unfocus();
     }
   }
 
@@ -328,6 +434,7 @@ class _CommentSectionState extends State<CommentSection> {
 class _CommentTile extends StatelessWidget {
   final Comment comment;
   final bool isReply;
+  final bool isCurrentUser;
   final VoidCallback onReplyTap;
   final bool canDelete;
   final VoidCallback? onDeleteTap;
@@ -335,6 +442,7 @@ class _CommentTile extends StatelessWidget {
   const _CommentTile({
     required this.comment,
     required this.isReply,
+    required this.isCurrentUser,
     required this.onReplyTap,
     required this.canDelete,
     this.onDeleteTap,
@@ -343,77 +451,116 @@ class _CommentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(
-              isReply ? Icons.subdirectory_arrow_right : Icons.person_outline,
-              size: 16,
-              color: theme.hintColor,
-            ),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                // Per ora usiamo userId come nome
-                comment.userId,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              _formatTime(comment.createdAt),
-              style: theme.textTheme.bodySmall?.copyWith(
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      decoration: isCurrentUser
+          ? BoxDecoration(
+              color: theme.colorScheme.primary.withOpacity(0.03),
+              borderRadius: BorderRadius.circular(8),
+            )
+          : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isReply
+                    ? Icons.subdirectory_arrow_right
+                    : Icons.person_outline,
+                size: 16,
                 color: theme.hintColor,
-                fontSize: 10,
               ),
-            ),
-            if (canDelete && onDeleteTap != null) ...[
-              const SizedBox(width: 4),
-              PopupMenuButton<String>(
-                onSelected: (value) {
-                  if (value == 'delete') {
-                    onDeleteTap!();
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem<String>(
-                    value: 'delete',
-                    child: Text('Delete'),
-                  ),
-                ],
-                icon: Icon(
-                  Icons.more_vert,
-                  size: 16,
-                  color: theme.hintColor,
+              const SizedBox(width: 6),
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        // Per ora usiamo userId come nome
+                        comment.userId,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (isCurrentUser) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          l10n.commentSection_youBadge,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                padding: EdgeInsets.zero,
               ),
+              const SizedBox(width: 6),
+              Text(
+                _formatTime(comment.createdAt),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.hintColor,
+                  fontSize: 10,
+                ),
+              ),
+              if (canDelete && onDeleteTap != null) ...[
+                const SizedBox(width: 4),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'delete') {
+                      onDeleteTap!();
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Text(l10n.commentSection_deleteAction),
+                    ),
+                  ],
+                  icon: Icon(
+                    Icons.more_vert,
+                    size: 16,
+                    color: theme.hintColor,
+                  ),
+                  padding: EdgeInsets.zero,
+                ),
+              ],
             ],
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          comment.content,
-          style: theme.textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 4),
-        GestureDetector(
-          onTap: onReplyTap,
-          child: Text(
-            'Reply',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.w500,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            comment.content,
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 4),
+          GestureDetector(
+            onTap: onReplyTap,
+            child: Text(
+              l10n.commentSection_replyAction,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

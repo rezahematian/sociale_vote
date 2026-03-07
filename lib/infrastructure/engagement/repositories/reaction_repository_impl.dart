@@ -11,6 +11,12 @@ import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart'
 /// - nessuna persistenza
 /// - calcolo summary on-the-fly
 ///
+/// Nota:
+/// - qui calcoliamo solo i conteggi aggregati (like/dislike)
+/// - il campo [userReaction] di [ReactionSummary] viene popolato
+///   a livello di use case (es. ToggleReaction/GetReactionSummary),
+///   combinando questo summary con la reaction dell’utente corrente.
+///
 /// È perfetto per:
 /// - sviluppo locale
 /// - test UI
@@ -107,10 +113,12 @@ class ReactionRepositoryImpl implements ReactionRepository {
       }
     }
 
+    // Qui non conosciamo l’utente, quindi userReaction resta null.
     return ReactionSummary.fromCounts(
       target: target,
       likeCount: likeCount,
       dislikeCount: dislikeCount,
+      userReaction: null,
     );
   }
 

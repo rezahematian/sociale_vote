@@ -5,13 +5,11 @@ import 'package:sociale_vote/domain/discussion/entities/comment.dart';
 import 'package:sociale_vote/domain/discussion/usecases/add_comment.dart';
 import 'package:sociale_vote/domain/discussion/usecases/get_comments_for_target.dart';
 
-/// Controller applicativo generico per la discussione (commenti)
-/// associata a un qualsiasi contenuto identificato da [TargetRef].
-///
-/// Utilizzi previsti:
-/// - NewsDetailPage (TargetRef.news)
-/// - PollDetailPage (TargetRef.poll)
-/// - in futuro: PostDetailPage, VideoDetailPage, ecc.
+enum CommentSortOrder {
+  oldestFirst,
+  newestFirst,
+}
+
 class DiscussionController extends ChangeNotifier {
   final TargetRef target;
   final AddComment _addComment;
@@ -29,34 +27,67 @@ class DiscussionController extends ChangeNotifier {
   bool _isSubmitting = false;
   String? _errorMessage;
 
+  CommentSortOrder _sortOrder = CommentSortOrder.oldestFirst;
+
+  static const int _defaultPageSize = 10;
+  int _pageSize = _defaultPageSize;
+  int _visibleRootCount = _defaultPageSize;
+
   List<Comment> get comments => List.unmodifiable(_comments);
   bool get isLoading => _isLoading;
   bool get isSubmitting => _isSubmitting;
   String? get errorMessage => _errorMessage;
-
   bool get hasComments => _comments.isNotEmpty;
+  CommentSortOrder get sortOrder => _sortOrder;
+  int get pageSize => _pageSize;
 
-  /// Commenti root (depth == 0 oppure parentId == null).
+  bool get hasMoreRootComments {
+    final totalRoots = _allRootCommentsCount();
+    return _visibleRootCount < totalRoots;
+  }
+
+  void setSortOrder(CommentSortOrder order) {
+    if (_sortOrder == order) return;
+    _sortOrder = order;
+    notifyListeners();
+  }
+
   List<Comment> get rootComments {
+    final roots = _allRootCommentsSorted();
+    final visible = roots.take(_visibleRootCount).toList();
+    return visible;
+  }
+
+  List<Comment> repliesFor(String parentId) {
+    final replies = _comments
+        .where((c) => c.parentId == parentId)
+        .toList()
+      ..sort(_compareByCreatedAt);
+    return replies;
+  }
+
+  int _compareByCreatedAt(Comment a, Comment b) {
+    switch (_sortOrder) {
+      case CommentSortOrder.oldestFirst:
+        return a.createdAt.compareTo(b.createdAt);
+      case CommentSortOrder.newestFirst:
+        return b.createdAt.compareTo(a.createdAt);
+    }
+  }
+
+  List<Comment> _allRootCommentsSorted() {
     return _comments
         .where((c) => c.parentId == null || c.depth == 0)
         .toList()
-      ..sort(
-        (a, b) => a.createdAt.compareTo(b.createdAt),
-      );
+      ..sort(_compareByCreatedAt);
   }
 
-  /// Reply per un commento root specifico.
-  List<Comment> repliesFor(String parentId) {
+  int _allRootCommentsCount() {
     return _comments
-        .where((c) => c.parentId == parentId)
-        .toList()
-      ..sort(
-        (a, b) => a.createdAt.compareTo(b.createdAt),
-      );
+        .where((c) => c.parentId == null || c.depth == 0)
+        .length;
   }
 
-  /// Carica tutti i commenti per il [target] configurato.
   Future<void> loadComments() async {
     if (_isLoading) return;
 
@@ -67,11 +98,12 @@ class DiscussionController extends ChangeNotifier {
     try {
       final result = await _getCommentsForTarget(target);
       _comments = List<Comment>.from(result)
-        ..sort(
-          (a, b) => a.createdAt.compareTo(b.createdAt),
-        );
+        ..sort(_compareByCreatedAt);
+
+      final totalRoots = _allRootCommentsCount();
+      _visibleRootCount =
+          totalRoots < _pageSize ? totalRoots : _pageSize;
     } catch (e) {
-      // Per ora messaggio generico; eventualmente log esterno.
       _errorMessage = 'Impossibile caricare i commenti.';
     } finally {
       _isLoading = false;
@@ -79,11 +111,21 @@ class DiscussionController extends ChangeNotifier {
     }
   }
 
-  /// Aggiunge un nuovo commento root (depth 0).
+  void loadMoreRootComments() {
+    final totalRoots = _allRootCommentsCount();
+    if (_visibleRootCount >= totalRoots) return;
+
+    _visibleRootCount =
+        (_visibleRootCount + _pageSize).clamp(0, totalRoots);
+    notifyListeners();
+  }
+
   Future<void> addRootComment({
     required String userId,
     required String content,
   }) async {
+    if (_isSubmitting) return; // 🔒 HARDENING
+
     final trimmed = content.trim();
     if (trimmed.isEmpty) {
       return;
@@ -102,9 +144,16 @@ class DiscussionController extends ChangeNotifier {
       );
 
       _comments = List<Comment>.from(_comments)..add(newComment);
-      _comments.sort(
-        (a, b) => a.createdAt.compareTo(b.createdAt),
-      );
+      _comments.sort(_compareByCreatedAt);
+
+      final totalRoots = _allRootCommentsCount();
+      if (_visibleRootCount < _pageSize) {
+        _visibleRootCount =
+            totalRoots < _pageSize ? totalRoots : _pageSize;
+      } else {
+        _visibleRootCount =
+            _visibleRootCount.clamp(0, totalRoots);
+      }
     } catch (e) {
       _errorMessage = 'Impossibile aggiungere il commento.';
     } finally {
@@ -113,25 +162,21 @@ class DiscussionController extends ChangeNotifier {
     }
   }
 
-  /// Aggiunge una reply a un commento esistente.
-  ///
-  /// v1: supporto depth 0/1
-  /// - se [parent] è root → reply (depth 1)
-  /// - se [parent] è già reply → niente nesting ulteriore (opzione: blocco soft)
   Future<void> replyToComment({
     required String userId,
     required Comment parent,
     required String content,
   }) async {
+    if (_isSubmitting) return; // 🔒 HARDENING
+
     final trimmed = content.trim();
     if (trimmed.isEmpty) {
       return;
     }
 
-    // v1: niente nesting oltre depth 1
     if (parent.parentId != null && parent.depth >= 1) {
-      // Possiamo semplicemente ignorare o impostare un errore soft.
-      _errorMessage = 'Le risposte nidificate oltre un livello non sono supportate.';
+      _errorMessage =
+          'Le risposte nidificate oltre un livello non sono supportate.';
       notifyListeners();
       return;
     }
@@ -149,9 +194,7 @@ class DiscussionController extends ChangeNotifier {
       );
 
       _comments = List<Comment>.from(_comments)..add(reply);
-      _comments.sort(
-        (a, b) => a.createdAt.compareTo(b.createdAt),
-      );
+      _comments.sort(_compareByCreatedAt);
     } catch (e) {
       _errorMessage = 'Impossibile aggiungere la risposta.';
     } finally {
@@ -160,13 +203,9 @@ class DiscussionController extends ChangeNotifier {
     }
   }
 
-  /// Elimina un commento (e le sue reply immediate) dalla discussione.
-  ///
-  /// v1:
-  /// - operazione solo in-memory sul controller
-  /// - niente chiamata a repository / backend
-  /// - pensata per repo in-memory; in futuro potremo aggiungere un use case `DeleteComment`.
   Future<void> deleteComment(Comment comment) async {
+    if (_isSubmitting) return; // 🔒 HARDENING
+
     _isSubmitting = true;
     _errorMessage = null;
     notifyListeners();
@@ -174,13 +213,14 @@ class DiscussionController extends ChangeNotifier {
     try {
       final id = comment.id;
 
-      // Rimuove il commento e le sue reply (depth 1).
       _comments = _comments
           .where((c) => c.id != id && c.parentId != id)
           .toList()
-        ..sort(
-          (a, b) => a.createdAt.compareTo(b.createdAt),
-        );
+        ..sort(_compareByCreatedAt);
+
+      final totalRoots = _allRootCommentsCount();
+      _visibleRootCount =
+          _visibleRootCount.clamp(0, totalRoots);
     } catch (e) {
       _errorMessage = 'Impossibile eliminare il commento.';
     } finally {
@@ -189,8 +229,6 @@ class DiscussionController extends ChangeNotifier {
     }
   }
 
-  /// Utility per resettare un eventuale messaggio di errore
-  /// dopo che la UI l'ha mostrato.
   void clearError() {
     _errorMessage = null;
     notifyListeners();

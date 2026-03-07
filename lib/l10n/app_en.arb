@@ -1,0 +1,397 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Sociale Vote",
+  "voteButton": "Vote",
+
+  "createPollPageTitle": "Create Poll",
+  "createPollPageSubtitle": "Define a new civic vote",
+
+  "createPollBasicInfoTitle": "Basic information",
+  "createPollBasicInfoSubtitle": "Define the main details of the poll.",
+  "createPollTitleFieldLabel": "Title *",
+  "createPollTitleFieldHelper": "A clear, concise question or statement.",
+  "createPollDescriptionFieldLabel": "Description (optional)",
+
+  "createPollVotingModelTitle": "Voting model",
+  "createPollVotingModelSubtitle": "Choose how people will express their vote and basic rules.",
+  "createPollTypeFieldLabel": "Poll type",
+
+  "createPollSelectionRules": "Selection rules: minimum {min}, maximum {max} selections (automatically adjusted based on poll type and options).",
+  "@createPollSelectionRules": {
+    "placeholders": {
+      "min": { "type": "int" },
+      "max": { "type": "int" }
+    }
+  },
+
+  "createPollAllowVoteChangeTitle": "Allow voters to change their vote",
+  "createPollAllowVoteChangeSubtitle": "Until the poll is closed.",
+
+  "createPollOptionsTitle": "Options",
+  "createPollOptionsSubtitle": "Add at least two options for voters to choose from. Fields marked with * are mandatory.",
+
+  "createPollOptionLabel": "Option {index}{requiredMarker}",
+  "@createPollOptionLabel": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "requiredMarker": {}
+    }
+  },
+
+  "createPollRemoveOptionTooltip": "Remove option",
+  "createPollAddOptionButton": "Add option",
+
+  "createPollParticipationPrivacyTitle": "Participation & privacy",
+  "createPollParticipationPrivacySubtitle": "Decide who can vote and how private the votes should be.",
+  "createPollWhoCanVoteLabel": "Who can vote?",
+
+  "createPollParticipationEveryoneSubtitle": "Any registered user can participate.",
+  "createPollParticipationGeoScopeSubtitle": "Limit this poll to people from a specific country.",
+
+  "createPollCountryFieldLabel": "Country for this poll",
+  "createPollCountryFieldHelper": "This country will define who is allowed to participate in this poll (future backend integration).",
+
+  "createPollVoteAnonymityTitle": "Vote anonymity",
+  "createPollAnonymityAnonymousSubtitle": "Recommended default for civic voting platforms.",
+  "createPollAnonymityPublicSubtitle": "Use with caution: votes may be associated with identities (future feature).",
+
+  "createPollResultsValidityTitle": "Results & validity",
+  "createPollResultsValiditySubtitle": "Control when results are visible and define minimum quorum if needed.",
+  "createPollResultsVisibilityFieldLabel": "Results visibility",
+
+  "createPollQuorumTitle": "Quorum (optional)",
+  "createPollQuorumSubtitle": "If set, the poll is considered valid only if at least this number of votes is reached. Leave empty for no quorum.",
+  "createPollQuorumMinVotesFieldLabel": "Minimum number of votes",
+
+  "createPollTimingTitle": "Timing",
+  "createPollTimingSubtitle": "Define when the poll should be open for voting.",
+  "createPollStartDateLabel": "Start date",
+  "createPollEndDateLabel": "End date",
+  "createPollChangeDateButtonLabel": "Change",
+  "createPollTimingStatusInfo": "The initial status (open/scheduled/closed) will be determined automatically based on these dates.",
+
+  "createPollSuccessMessage": "Poll created successfully",
+  "createPollSubmitCreatingLabel": "Creating...",
+  "createPollSubmitLabel": "Create poll",
+
+  "createPollPollTypeYesNoLabel": "Yes / No",
+  "createPollPollTypeSingleChoiceLabel": "Single choice",
+  "createPollPollTypeMultipleChoiceLabel": "Multiple choice",
+  "createPollPollTypeApprovalLabel": "Approval voting",
+  "createPollPollTypeRankedLabel": "Ranked choice",
+  "createPollPollTypeScoreLabel": "Score / Rating",
+
+  "createPollParticipationScopeEveryoneLabel": "Everyone can vote",
+  "createPollParticipationScopeGeoScopeOnlyLabel": "Only users in a specific country",
+
+  "createPollAnonymityLevelAnonymousLabel": "Votes are anonymous",
+  "createPollAnonymityLevelPublicLabel": "Votes are public (advanced / restricted use)",
+
+  "createPollResultsVisibilityAlwaysLabel": "Always visible (while poll is open)",
+  "createPollResultsVisibilityAfterVoteLabel": "Only visible after voting",
+  "createPollResultsVisibilityAfterCloseLabel": "Only visible after poll is closed",
+
+  "homeLoginButton": "Log in",
+  "homeRegisterButton": "Sign up",
+  "homeProfileButton": "Profile",
+  "homeLogoutButton": "Logout",
+
+  "homeLogoutMessage": "Logout completed. You are now using the app as a guest (read-only).",
+
+  "homeSearchHint": "Search city, country, polls, news, posts...",
+
+  "homeUserStatusLoggedIn": "Logged in as: {userId}",
+  "@homeUserStatusLoggedIn": {
+    "placeholders": { "userId": {} }
+  },
+
+  "homeUserStatusGuest": "Guest mode: you can only read. Log in or register to vote, comment and react.",
+
+  "homeScopeLabelWorld": "World – Global votes and news",
+  "homeScopeLabelCountry": "Country – National votes and news",
+  "homeScopeLabelCity": "City – Local city votes and news",
+
+  "homeScopeShortWorld": "World",
+  "homeScopeShortCountry": "Country",
+  "homeScopeShortCity": "City",
+
+  "homeScopeChipWorld": "World",
+  "homeScopeChipItaly": "Italy",
+  "homeScopeChipTorino": "Torino",
+
+  "homeScopeChangedWorld": "Scope changed to World",
+  "homeScopeChangedItaly": "Scope changed to Italy",
+  "homeScopeChangedTorino": "Scope changed to Torino",
+
+  "followScopeButtonFollowed": "Following",
+  "followScopeButtonFollow": "Follow this area",
+
+  "homeTrendingTitle": "Trending now",
+  "homeTrendingError": "Unable to load trending content for this area.",
+  "homeTrendingEmpty": "No trending content for this scope at the moment.",
+
+  "homeForYouTitle": "For You ({scope})",
+  "@homeForYouTitle": {
+    "placeholders": { "scope": {} }
+  },
+  "homeForYouError": "Unable to load the \"For You\" feed for this area.",
+  "homeForYouEmpty": "No suggested \"For You\" content for this scope at the moment.",
+
+  "homePollsTitle": "Highlighted Polls ({scope})",
+  "@homePollsTitle": {
+    "placeholders": { "scope": {} }
+  },
+  "homePollsEmptyTitle": "No polls for this area",
+  "homePollsEmptySubtitle": "There are no polls for this scope.",
+  "homePollsViewAllButton": "View all polls",
+
+  "homeNewsTitle": "Top News ({scope})",
+  "@homeNewsTitle": {
+    "placeholders": { "scope": {} }
+  },
+  "homeNewsErrorTitle": "Unable to load news",
+  "homeNewsErrorSubtitle": "There was a problem loading the news for this area.",
+  "homeNewsEmptyTitle": "No news for this area",
+  "homeNewsEmptySubtitle": "There are no news items for this scope at the moment.",
+  "homeNewsViewAllButton": "View all news",
+  "homeNewsBreakingBadge": "BREAKING",
+
+  "homeSocialTitle": "Discussions / Feed ({scope})",
+  "@homeSocialTitle": {
+    "placeholders": { "scope": {} }
+  },
+  "homeSocialErrorTitle": "Unable to load discussions",
+  "homeSocialErrorSubtitle": "There was a problem loading the social feed for this area.",
+  "homeSocialEmptyTitle": "No discussions for this area",
+  "homeSocialEmptySubtitle": "There are no discussions for this scope at the moment.",
+  "homeSocialViewFeedButton": "View social feed",
+
+  "pollDetail_title": "Poll detail",
+
+  "pollDetail_removeFromFavoritesTooltip": "Remove from favorites",
+  "pollDetail_addToFavoritesTooltip": "Add to favorites",
+
+  "pollDetail_chipAnonymous": "Anonymous vote",
+  "pollDetail_chipPublic": "Public vote",
+  "pollDetail_chipRestrictedGeo": "Restricted to geographic scope",
+
+  "pollDetail_quorumReached": "Quorum reached ({currentVotes} / {requiredVotes})",
+  "@pollDetail_quorumReached": {
+    "placeholders": {
+      "currentVotes": { "type": "int" },
+      "requiredVotes": { "type": "int" }
+    }
+  },
+  "pollDetail_quorumNotReached": "Quorum not reached ({currentVotes} / {requiredVotes})",
+  "@pollDetail_quorumNotReached": {
+    "placeholders": {
+      "currentVotes": { "type": "int" },
+      "requiredVotes": { "type": "int" }
+    }
+  },
+
+  "pollDetail_optionsTitle": "Options",
+
+  "pollDetail_statusClosedMessage": "This poll is closed.",
+  "pollDetail_statusScheduledMessage": "This poll is not yet open.",
+  "pollDetail_statusNotAvailableMessage": "Voting is not available.",
+
+  "pollDetail_voteSubmitted": "Vote submitted successfully!",
+  "pollDetail_voteButton": "Vote",
+
+  "pollDetail_resultsTitle": "Results",
+  "pollDetail_outcomePrefix": "Outcome: {label}",
+  "@pollDetail_outcomePrefix": {
+    "placeholders": { "label": {} }
+  },
+  "pollDetail_noResults": "No results available yet.",
+  "pollDetail_resultsAfterVote": "Results will be visible after you vote.",
+  "pollDetail_resultsWhenClosed": "Results will be visible when the poll is closed.",
+
+  "pollType_yesNo": "Yes / No",
+  "pollType_singleChoice": "Single choice",
+  "pollType_multipleChoice": "Multiple choice",
+  "pollType_approval": "Approval",
+
+  "pollStatus_draft": "Draft",
+  "pollStatus_open": "Open",
+  "pollStatus_closed": "Closed",
+  "pollStatus_scheduled": "Scheduled",
+
+  "pollGeo_global": "Global",
+  "pollGeo_local": "Local",
+
+  "pollOutcome_approved": "Approved",
+  "pollOutcome_rejected": "Rejected",
+  "pollOutcome_tie": "Tie",
+  "pollOutcome_noMajority": "No majority",
+  "pollOutcome_notApplicable": "Not applicable",
+
+  "pollList_title": "Polls",
+
+  "pollList_scopeWorld": "World",
+  "pollList_scopeCountryFallback": "Country",
+  "pollList_scopeCityFallback": "City",
+
+  "pollList_scopeDescriptionGlobal": "Showing global polls.",
+  "pollList_scopeDescriptionCountry": "Showing polls for this country.",
+  "pollList_scopeDescriptionCity": "Showing polls for this city.",
+
+  "pollList_filterStatus_all": "All",
+  "pollList_filterStatus_open": "Open",
+  "pollList_filterStatus_closed": "Closed",
+
+  "pollList_sort_latest": "Latest",
+  "pollList_sort_hottest": "Hottest",
+
+  "pollList_filterScope_currentArea": "Current area",
+
+  "pollList_headerTitle": "{scopeLabel} · {count, plural, =0 {no polls found} =1 {1 poll found} other {{count} polls found}}",
+  "@pollList_headerTitle": {
+    "placeholders": {
+      "scopeLabel": {},
+      "count": { "type": "int" }
+    }
+  },
+
+  "pollList_createPollButton": "Create poll",
+
+  "pollList_paginationHint": "Scroll to load more polls…",
+
+  "pollList_emptyMessage": "No polls matching this filter for this area.",
+
+  "pollType_ranked": "Ranked choice",
+  "pollType_score": "Score / Rating",
+
+  "pollVisibility_whileOpen": "Results visible while open",
+  "pollVisibility_afterVote": "Results visible after vote",
+  "pollVisibility_afterClose": "Results visible after close",
+
+  "pollCard_countryRestricted": "Country restricted",
+  "pollCard_restrictedToCountry": "Restricted to {countryName}",
+  "@pollCard_restrictedToCountry": {
+    "placeholders": { "countryName": {} }
+  },
+
+  "pollCard_quorumLabel": "Quorum {minVotes}",
+  "@pollCard_quorumLabel": {
+    "placeholders": { "minVotes": { "type": "int" } }
+  },
+
+  "pollCard_viewDetails": "View details",
+
+  "pollResult_title": "{count, plural, =0 {Results (no votes)} =1 {Results (1 vote)} other {Results ({count} votes)}}",
+  "@pollResult_title": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "voteError_noSelection": "Please select at least one option.",
+  "voteError_unauthorized": "You are not allowed to vote in this poll.",
+  "voteError_generic": "Failed to submit vote. Please try again.",
+
+  "commentSection_title": "Comments",
+  "commentSection_sortLabel": "Sort:",
+  "commentSection_sortOldest": "Oldest",
+  "commentSection_sortNewest": "Newest",
+
+  "commentSection_errorGeneric": "An error occurred while loading comments.",
+  "commentSection_empty": "No comments yet. Be the first to comment.",
+
+  "commentSection_loadMore": "Load more comments",
+
+  "commentSection_replyingTo": "Replying to: {snippet}",
+  "@commentSection_replyingTo": {
+    "placeholders": { "snippet": {} }
+  },
+
+  "commentSection_cancelReply": "Cancel",
+
+  "commentSection_inputHintRoot": "Add a comment...",
+  "commentSection_inputHintReply": "Write a reply...",
+
+  "commentSection_deleteAction": "Delete",
+  "commentSection_replyAction": "Reply",
+  "commentSection_youBadge": "You",
+
+  "newsDetail_title": "News detail",
+  "newsDetail_breakingBadge": "BREAKING",
+
+  "newsDetail_removeFromFavoritesTooltip": "Remove from favorites",
+  "newsDetail_addToFavoritesTooltip": "Add to favorites",
+
+  "newsDetail_bodyFallback": "No additional text is available for this news item.",
+  "newsDetail_footerMoreContext": "More context and sources coming soon.",
+
+  "newsFeed_title": "News",
+  "newsFeed_scopeWorld": "World",
+  "newsFeed_scopeCountry": "Country",
+  "newsFeed_scopeCity": "City",
+
+  "newsFeed_scopeLabel": "Scope: {scope}",
+  "@newsFeed_scopeLabel": {
+    "placeholders": { "scope": {} }
+  },
+
+  "newsFeed_scopeGlobalDescription": "Showing global news.",
+  "newsFeed_scopeCountryDescription": "Showing news for this country.",
+  "newsFeed_scopeCityDescription": "Showing news for this city.",
+
+  "newsFeed_emptyTitle": "No news available for this area.",
+  "newsFeed_emptySubtitle": "Pull to refresh or try again later.",
+
+  "newsFeed_itemsFound": "{count} news item(s) found",
+  "@newsFeed_itemsFound": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "newsFeed_loadingMoreHint": "Scroll to load more news…",
+
+  "newsFeed_errorTitle": "Unable to load news",
+  "newsFeed_errorGeneric": "An unexpected error occurred while loading news.",
+  "newsFeed_retryButton": "Retry",
+
+  "newsCard_headerTitle": "News",
+
+  "newsFeed_errorUnauthorized": "News configuration is invalid (API key).",
+  "newsFeed_errorRateLimited": "Too many requests. Please try again shortly.",
+  "newsFeed_errorServerUnavailable": "News service is temporarily unavailable. Please try again later.",
+  "newsFeed_errorTimeout": "The request is taking too long. Please try again.",
+  "newsFeed_errorNetwork": "No connection. Check your internet and try again.",
+
+  "newsFeed_moreTooltip": "More",
+  "newsFeed_actionCopyTitle": "Copy title",
+  "newsFeed_actionRefreshFeed": "Refresh feed",
+  "newsFeed_copiedTitleToast": "Title copied",
+
+  "newsFeed_languageTooltip": "News language",
+  "newsFeed_languageAuto": "AUTO",
+  "newsFeed_languageIt": "IT",
+  "newsFeed_languageEn": "EN",
+  "newsFeed_languageEs": "ES",
+  "newsFeed_languageFr": "FR",
+  "newsFeed_languageDe": "DE",
+  "newsFeed_languageAr": "AR",
+  "newsFeed_languageFa": "FA",
+  "newsFeed_languageLimitedHint": "Limited sources in this language. Try AUTO.",
+
+  "newsTopic_all": "All",
+  "newsTopic_world": "World",
+  "newsTopic_nation": "Nation",
+  "newsTopic_business": "Business",
+  "newsTopic_technology": "Technology",
+  "newsTopic_science": "Science",
+  "newsTopic_health": "Health",
+  "newsTopic_sports": "Sports",
+  "newsTopic_entertainment": "Entertainment",
+
+  "newsDetail_openSource": "Open source article",
+  "@newsDetail_openSource": {
+  "description": "Button to open the original article from the source website"
+  },
+
+  "newsDetail_openSourceUnavailable": "Unable to open the source article",
+  "@newsDetail_openSourceUnavailable": {
+  "description": "Shown when the source link cannot be opened"
+  }
+}

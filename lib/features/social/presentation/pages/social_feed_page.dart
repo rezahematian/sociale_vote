@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
-import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/core/security/participation_policy.dart';
+import 'package:sociale_vote/shared/services/auth_guard.dart';
+
 import 'package:sociale_vote/features/social/application/feed_controller.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
+import 'package:sociale_vote/features/social/presentation/pages/create_post_page.dart';
+import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 
 class SocialFeedPage extends StatelessWidget {
@@ -13,14 +17,52 @@ class SocialFeedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<FeedController>(
-      create: (_) => AppDI.instance.createFeedController()..loadFeed(),
+      create: (_) {
+        final controller = AppDI.instance.createFeedController();
+        final userId = AppDI.instance.currentUserId;
+        controller.loadFeed(userId: userId);
+        return controller;
+      },
       child: const _SocialFeedView(),
     );
   }
 }
 
-class _SocialFeedView extends StatelessWidget {
+class _SocialFeedView extends StatefulWidget {
   const _SocialFeedView();
+
+  @override
+  State<_SocialFeedView> createState() => _SocialFeedViewState();
+}
+
+class _SocialFeedViewState extends State<_SocialFeedView> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    final controller = context.read<FeedController>();
+    if (controller.isLoading) return;
+    if (!_scrollController.hasClients) return;
+
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 200) {
+      if (controller.hasMoreFromSource) {
+        controller.loadMorePosts();
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +76,9 @@ class _SocialFeedView extends StatelessWidget {
         color: theme.colorScheme.surface,
         child: Consumer<FeedController>(
           builder: (context, controller, _) {
-            if (controller.isLoading) {
+            final allPosts = controller.posts;
+
+            if (controller.isLoading && allPosts.isEmpty) {
               return const Center(
                 child: CircularProgressIndicator(),
               );
@@ -44,27 +88,73 @@ class _SocialFeedView extends StatelessWidget {
               return _SocialErrorState(
                 message: controller.errorMessage ??
                     'Si è verificato un errore nel caricamento del feed.',
-                onRetry: controller.loadFeed,
+                onRetry: () {
+                  final userId = AppDI.instance.currentUserId;
+                  return controller.loadFeed(userId: userId);
+                },
               );
             }
 
-            if (controller.posts.isEmpty) {
-              return const _SocialEmptyState();
+            if (allPosts.isEmpty) {
+              return RefreshIndicator(
+                onRefresh: () {
+                  final userId = AppDI.instance.currentUserId;
+                  return controller.refresh(userId: userId);
+                },
+                child: ListView(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(16),
+                  children: const [
+                    _SocialEmptyState(),
+                  ],
+                ),
+              );
             }
 
             return RefreshIndicator(
-              onRefresh: controller.refresh,
+              onRefresh: () {
+                final userId = AppDI.instance.currentUserId;
+                return controller.refresh(userId: userId);
+              },
               child: ListView.builder(
+                controller: _scrollController,
                 padding: const EdgeInsets.all(16),
-                itemCount: controller.posts.length,
+                itemCount: allPosts.length,
                 itemBuilder: (context, index) {
-                  final Post post = controller.posts[index];
+                  final Post post = allPosts[index];
                   return _PostCard(post: post);
                 },
               ),
             );
           },
         ),
+      ),
+
+      // 🔒 Create post protetto da AuthGuard + ParticipationAction.createPost
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final allowed = await AuthGuard.ensureCanPerformAction(
+            context,
+            ParticipationAction.createPost,
+          );
+          if (!allowed) return;
+
+          // Prendiamo il controller PRIMA dell'await del Navigator.
+          final feedController = context.read<FeedController>();
+
+          final result = await Navigator.of(context).push<bool>(
+            MaterialPageRoute(
+              builder: (_) => const CreatePostPage(),
+            ),
+          );
+
+          if (result == true) {
+            final userId = AppDI.instance.currentUserId;
+            await feedController.refresh(userId: userId);
+          }
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Create post'),
       ),
     );
   }
@@ -168,8 +258,6 @@ class _PostCard extends StatelessWidget {
   });
 
   String _formatDate(DateTime date) {
-    // v1: formattazione molto semplice.
-    // In futuro possiamo usare DateFormat con localization.
     return '${date.day.toString().padLeft(2, '0')}/'
         '${date.month.toString().padLeft(2, '0')}/'
         '${date.year}';
@@ -180,11 +268,9 @@ class _PostCard extends StatelessWidget {
     final theme = Theme.of(context);
     final feedController = context.watch<FeedController>();
 
-    // TODO: quando agganciamo la vera auth, prendiamo lo userId dalla sessione.
-    const String userId = 'demo-user';
-
     final fireCount = feedController.likeCountForPost(post);
     final iceCount = feedController.dislikeCountForPost(post);
+    final userReaction = feedController.userReactionForPost(post);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -192,11 +278,18 @@ class _PostCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: InkWell(
-        onTap: () {
-          Navigator.of(context).pushNamed(
+        onTap: () async {
+          // Andiamo al dettaglio e, quando torniamo, ricarichiamo
+          // i summary includendo la userReaction.
+          final controller = context.read<FeedController>();
+
+          await Navigator.of(context).pushNamed(
             AppRouter.socialDetail,
             arguments: post.id.value,
           );
+
+          final userId = AppDI.instance.currentUserId;
+          await controller.refresh(userId: userId);
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -261,14 +354,33 @@ class _PostCard extends StatelessWidget {
               EngagementBar(
                 fireCount: fireCount,
                 iceCount: iceCount,
-                onFireTap: () {
-                  feedController.toggleFireForPost(
+                userReaction: userReaction,
+                onFireTap: () async {
+                  final allowed = await AuthGuard.ensureCanPerformAction(
+                    context,
+                    ParticipationAction.react,
+                  );
+                  if (!allowed) return;
+
+                  final userId = AppDI.instance.currentUserId;
+                  if (userId == null) return;
+
+                  await feedController.toggleFireForPost(
                     userId: userId,
                     post: post,
                   );
                 },
-                onIceTap: () {
-                  feedController.toggleIceForPost(
+                onIceTap: () async {
+                  final allowed = await AuthGuard.ensureCanPerformAction(
+                    context,
+                    ParticipationAction.react,
+                  );
+                  if (!allowed) return;
+
+                  final userId = AppDI.instance.currentUserId;
+                  if (userId == null) return;
+
+                  await feedController.toggleIceForPost(
                     userId: userId,
                     post: post,
                   );

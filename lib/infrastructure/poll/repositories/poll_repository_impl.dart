@@ -1,70 +1,17 @@
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
-import 'package:sociale_vote/domain/poll/entities/poll_option.dart';
 import 'package:sociale_vote/domain/poll/repositories/poll_repository.dart';
-import 'package:sociale_vote/domain/poll/value_objects/poll_configuration.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
-import 'package:sociale_vote/domain/poll/value_objects/poll_status.dart';
-import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
+
+import 'package:sociale_vote/core/http/api_client.dart';
+import 'package:sociale_vote/core/http/api_exception.dart';
+
+import 'package:sociale_vote/infrastructure/poll/models/poll_dto.dart';
+import 'package:sociale_vote/infrastructure/poll/mappers/poll_mapper.dart';
 
 class PollRepositoryImpl implements PollRepository {
-  /// Mock in-memory di tutti i poll disponibili.
-  ///
-  /// In un contesto reale questo verrebbe popolato da una sorgente esterna
-  /// (API, database, ecc.). Qui funge da "database" in memoria, che può
-  /// essere arricchito da [createPoll].
-  final List<Poll> _polls = <Poll>[
-    Poll(
-      id: const PollId('1'),
-      title: 'Global Climate Agreement',
-      description: 'Should countries adopt stricter climate policies?',
-      type: PollType.yesNo,
-      status: PollStatus.open,
-      options: const [
-        PollOption(id: 'yes', label: 'Yes'),
-        PollOption(id: 'no', label: 'No'),
-      ],
-      configuration: const PollConfiguration(
-        minSelections: 1,
-        maxSelections: 1,
-      ),
-      // Nessun country/city -> poll globale
-    ),
-    Poll(
-      id: const PollId('2'),
-      title: 'City Transport Reform',
-      description: 'Which transport improvement should be prioritised?',
-      type: PollType.singleChoice,
-      status: PollStatus.open,
-      options: const [
-        PollOption(id: 'metro', label: 'Expand metro'),
-        PollOption(id: 'bus', label: 'Improve buses'),
-        PollOption(id: 'bike', label: 'More bike lanes'),
-      ],
-      configuration: const PollConfiguration(
-        minSelections: 1,
-        maxSelections: 1,
-      ),
-      countryCode: 'IT',
-      cityId: 'TORINO',
-    ),
-    Poll(
-      id: const PollId('3'),
-      title: 'Tech Policy Priorities',
-      description: 'Select the areas that should receive funding.',
-      type: PollType.multipleChoice,
-      status: PollStatus.open,
-      options: const [
-        PollOption(id: 'ai', label: 'AI Research'),
-        PollOption(id: 'cyber', label: 'Cybersecurity'),
-        PollOption(id: 'edu', label: 'Digital Education'),
-      ],
-      configuration: const PollConfiguration(
-        minSelections: 1,
-        maxSelections: 3,
-      ),
-      // Anche questo, per ora, è globale.
-    ),
-  ];
+  final ApiClient _apiClient;
+
+  PollRepositoryImpl(this._apiClient);
 
   @override
   Future<List<Poll>> getPolls({
@@ -73,46 +20,63 @@ class PollRepositoryImpl implements PollRepository {
     int? limit,
     int? offset,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    try {
+      final dynamic response = await _apiClient.getJson(
+        '/polls',
+        query: {
+          if (countryCode != null) 'countryCode': countryCode,
+          if (cityId != null) 'cityId': cityId,
+          if (limit != null) 'limit': limit.toString(),
+          if (offset != null) 'offset': offset.toString(),
+        },
+      );
 
-    final filtered = _polls.where((poll) {
-      final matchesCountry =
-          countryCode == null || poll.countryCode == countryCode;
-      final matchesCity = cityId == null || poll.cityId == cityId;
-      return matchesCountry && matchesCity;
-    }).toList(growable: false);
+      if (response == null) return <Poll>[];
 
-    final int safeOffset = offset == null || offset < 0 ? 0 : offset;
-    final int start = safeOffset > filtered.length ? filtered.length : safeOffset;
+      final List<dynamic> data = response as List<dynamic>;
 
-    int end = filtered.length;
-    if (limit != null && limit >= 0) {
-      end = start + limit;
-      if (end > filtered.length) {
-        end = filtered.length;
-      }
+      return data.map((json) {
+        final dto =
+            PollDto.fromJson(json as Map<String, dynamic>);
+        return PollMapper.fromDto(dto);
+      }).toList();
+    } on ApiException {
+      // 🔥 Backend non disponibile → fallback sicuro
+      return <Poll>[];
+    } catch (_) {
+      return <Poll>[];
     }
-
-    return List<Poll>.unmodifiable(filtered.sublist(start, end));
   }
 
   @override
   Future<Poll?> getPollDetail(PollId pollId) async {
-    await Future.delayed(const Duration(milliseconds: 200));
+    try {
+      final dynamic response =
+          await _apiClient.getJson('/polls/${pollId.value}');
 
-    for (final poll in _polls) {
-      if (poll.id == pollId) {
-        return poll;
-      }
+      if (response == null) return null;
+
+      final dto =
+          PollDto.fromJson(response as Map<String, dynamic>);
+
+      return PollMapper.fromDto(dto);
+    } catch (_) {
+      return null;
     }
-
-    return null;
   }
 
   @override
   Future<Poll> createPoll(Poll poll) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    _polls.add(poll);
-    return poll;
+    final dto = PollMapper.toDto(poll);
+
+    final dynamic response = await _apiClient.postJson(
+      '/polls',
+      body: dto.toJson(),
+    );
+
+    final createdDto =
+        PollDto.fromJson(response as Map<String, dynamic>);
+
+    return PollMapper.fromDto(createdDto);
   }
 }
