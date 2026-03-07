@@ -1,0 +1,4 @@
+enum PollStatus {
+  open,
+  closed,
+}

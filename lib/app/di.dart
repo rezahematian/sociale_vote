@@ -1,5 +1,4 @@
 import 'package:sociale_vote/core/http/api_client.dart';
-
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 
 import 'package:sociale_vote/domain/content/news/repositories/news_repository.dart';
@@ -80,7 +79,7 @@ import 'package:sociale_vote/infrastructure/news/repositories/news_repository_im
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/mediastack_api.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api_org_api.dart';
-import 'package:sociale_vote/infrastructure/poll/repositories/poll_repository_impl.dart';
+import 'package:sociale_vote/infrastructure/poll/repositories/poll_repository_in_memory.dart';
 import 'package:sociale_vote/infrastructure/poll/repositories/vote_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/search/repositories/search_repository_in_memory.dart';
 import 'package:sociale_vote/infrastructure/social/repositories/post_repository_impl.dart';
@@ -126,10 +125,6 @@ class AppDI {
   // HTTP CLIENTS
   // ==========================================================
 
-  final ApiClient _pollClient = ApiClient(
-    baseUrl: 'http://localhost:8080',
-  );
-
   final ApiClient _gnewsClient = ApiClient(
     baseUrl: 'https://gnews.io/api/v4',
   );
@@ -174,7 +169,7 @@ class AppDI {
   late final GeoResolver _geoResolver = GeoResolverImpl();
   late final FollowScopeRepository _followScopeRepository =
       FollowScopeRepositoryInMemory();
-  late final PollRepository _pollRepository = PollRepositoryImpl(_pollClient);
+  late final PollRepository _pollRepository = PollRepositoryInMemory();
   final VoteRepository _voteRepository = VoteRepositoryImpl();
   late final NewsRepository _newsRepository =
       NewsRepositoryImpl(_newsAggregator, _newsMapper);
@@ -396,6 +391,7 @@ class AppDI {
     return CreatePollController(
       createPollUseCase: createPoll,
       geoScopeController: geoScopeController,
+      createdByUserId: currentUserId ?? 'guest',
     );
   }
 

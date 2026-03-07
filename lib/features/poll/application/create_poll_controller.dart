@@ -17,11 +17,17 @@ class CreatePollController extends ChangeNotifier {
   final CreatePoll _createPollUseCase;
   final GeoScopeController _geoScopeController;
 
+  /// Utente che sta creando il poll.
+  /// Può essere null in teoria, ma in pratica la UI dovrebbe bloccare i guest.
+  final String? _createdByUserId;
+
   CreatePollController({
     required CreatePoll createPollUseCase,
     required GeoScopeController geoScopeController,
+    required String? createdByUserId,
   })  : _createPollUseCase = createPollUseCase,
-        _geoScopeController = geoScopeController;
+        _geoScopeController = geoScopeController,
+        _createdByUserId = createdByUserId;
 
   // ===== BASIC =====
   String _title = '';
@@ -44,6 +50,13 @@ class CreatePollController extends ChangeNotifier {
   ResultsVisibilityMode _resultsVisibility = ResultsVisibilityMode.always;
   int? _minQuorumVotes;
 
+  /// Country code scelto esplicitamente in UI per la partecipazione
+  /// (campo "Country for this poll").
+  ///
+  /// - viene usato solo se [_participationScope] == geoScopeOnly;
+  /// - se null, possiamo eventualmente fallback al country del [GeoScope].
+  String? _countryCodeForParticipation;
+
   // ===== STATO UI =====
   bool _isSubmitting = false;
   String? _errorMessage;
@@ -65,6 +78,8 @@ class CreatePollController extends ChangeNotifier {
   AnonymityLevel get anonymityLevel => _anonymityLevel;
   ResultsVisibilityMode get resultsVisibility => _resultsVisibility;
   int? get minQuorumVotes => _minQuorumVotes;
+
+  String? get countryCodeForParticipation => _countryCodeForParticipation;
 
   bool get isSubmitting => _isSubmitting;
   String? get errorMessage => _errorMessage;
@@ -179,6 +194,14 @@ class CreatePollController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Impostato dalla UI quando l'utente seleziona un paese nel
+  /// [CountrySelectorField] in CreatePollPage.
+  void setCountryCodeForParticipation(String? code) {
+    _countryCodeForParticipation = code;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   void setAnonymityLevel(AnonymityLevel level) {
     _anonymityLevel = level;
     _errorMessage = null;
@@ -250,14 +273,30 @@ class CreatePollController extends ChangeNotifier {
     try {
       // GeoScope → country / city
       final scope = _geoScopeController.scope;
-      String? countryCode;
+      String? geoCountryCode;
       String? cityId;
 
       if (scope.level == GeoScopeLevel.country) {
-        countryCode = scope.countryCode;
+        geoCountryCode = scope.countryCode;
       } else if (scope.level == GeoScopeLevel.city) {
-        countryCode = scope.countryCode;
+        geoCountryCode = scope.countryCode;
         cityId = scope.cityId;
+      }
+
+      // Country effettivo per le regole di partecipazione
+      final effectiveParticipationCountry =
+          _participationScope == ParticipationScope.geoScopeOnly
+              ? (_countryCodeForParticipation ?? geoCountryCode)
+              : null;
+
+      // Validazione rigorosa: se la partecipazione è limitata a uno specifico
+      // paese, dobbiamo avere un country effettivo.
+      if (_participationScope == ParticipationScope.geoScopeOnly &&
+          effectiveParticipationCountry == null) {
+        _isSubmitting = false;
+        _errorMessage = 'Please select a country for this poll.';
+        notifyListeners();
+        return null;
       }
 
       // ID mock
@@ -274,12 +313,18 @@ class CreatePollController extends ChangeNotifier {
         );
       }
 
+      // Participation rules con country opzionale:
+      final participationRules = ParticipationRules(
+        scope: _participationScope,
+        countryCode: effectiveParticipationCountry,
+      );
+
       // Configurazione completa
       final configuration = PollConfiguration(
         minSelections: _minSelections,
         maxSelections: _maxSelections,
         allowVoteChange: _allowVoteChange,
-        participationRules: ParticipationRules(scope: _participationScope),
+        participationRules: participationRules,
         anonymityRules: AnonymityRules(level: _anonymityLevel),
         visibilityRules:
             VisibilityRules(resultsVisibility: _resultsVisibility),
@@ -308,8 +353,9 @@ class CreatePollController extends ChangeNotifier {
         configuration: configuration,
         startAt: _startAt,
         endAt: _endAt,
-        countryCode: countryCode,
+        countryCode: geoCountryCode,
         cityId: cityId,
+        createdByUserId: _createdByUserId,
       );
 
       await _createPollUseCase(poll);

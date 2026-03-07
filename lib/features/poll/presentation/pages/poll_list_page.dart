@@ -3,77 +3,160 @@ import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/app/theme/spacing.dart';
+import 'package:sociale_vote/app/theme/radius.dart';
+import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
+import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 import 'package:sociale_vote/features/poll/application/poll_list_controller.dart';
 import 'package:sociale_vote/features/poll/presentation/widgets/poll_card.dart';
+import 'package:sociale_vote/shared/services/auth_guard.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 
-class PollListPage extends StatelessWidget {
+class PollListPage extends StatefulWidget {
   const PollListPage({super.key});
 
-  String _scopeShortLabel(GeoScope scope) {
-    switch (scope.level) {
-      case GeoScopeLevel.world:
-        return 'World';
-      case GeoScopeLevel.country:
-        return scope.countryCode ?? 'Country';
-      case GeoScopeLevel.city:
-        // Se hai cityName in futuro, puoi mostrarlo qui.
-        return scope.cityId ?? 'City';
+  @override
+  State<PollListPage> createState() => _PollListPageState();
+}
+
+class _PollListPageState extends State<PollListPage> {
+  final ScrollController _scrollController = ScrollController();
+  late final PollListController _pollListController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pollListController = AppDI.instance.createPollListController();
+    final userId = AppDI.instance.currentUserId;
+    _pollListController.loadPolls(userId: userId);
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _pollListController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_pollListController.isLoading) return;
+    if (!_scrollController.hasClients) return;
+
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 200) {
+      if (_pollListController.hasMoreFromSource) {
+        _pollListController.loadMorePolls();
+      }
     }
   }
 
-  String _scopeDescription(GeoScope scope) {
+  String _scopeShortLabel(AppLocalizations l10n, GeoScope scope) {
     switch (scope.level) {
       case GeoScopeLevel.world:
-        return 'Showing global polls.';
+        return l10n.pollList_scopeWorld;
       case GeoScopeLevel.country:
-        return 'Showing polls for this country.';
+        return scope.countryCode ?? l10n.pollList_scopeCountryFallback;
       case GeoScopeLevel.city:
-        return 'Showing polls for this city.';
+        // Se hai cityName in futuro, puoi mostrarlo qui.
+        return scope.cityId ?? l10n.pollList_scopeCityFallback;
+    }
+  }
+
+  String _scopeDescription(AppLocalizations l10n, GeoScope scope) {
+    switch (scope.level) {
+      case GeoScopeLevel.world:
+        return l10n.pollList_scopeDescriptionGlobal;
+      case GeoScopeLevel.country:
+        return l10n.pollList_scopeDescriptionCountry;
+      case GeoScopeLevel.city:
+        return l10n.pollList_scopeDescriptionCity;
+    }
+  }
+
+  String _statusFilterLabel(
+    AppLocalizations l10n,
+    PollStatusFilter filter,
+  ) {
+    switch (filter) {
+      case PollStatusFilter.all:
+        return l10n.pollList_filterStatus_all;
+      case PollStatusFilter.open:
+        return l10n.pollList_filterStatus_open;
+      case PollStatusFilter.closed:
+        return l10n.pollList_filterStatus_closed;
+    }
+  }
+
+  String _sortModeLabel(AppLocalizations l10n, PollSortMode mode) {
+    switch (mode) {
+      case PollSortMode.latest:
+        return l10n.pollList_sort_latest;
+      case PollSortMode.hottest:
+        return l10n.pollList_sort_hottest;
+    }
+  }
+
+  String _scopeFilterLabel(
+    AppLocalizations l10n,
+    PollScopeFilter filter,
+  ) {
+    switch (filter) {
+      case PollScopeFilter.currentScope:
+        return l10n.pollList_filterScope_currentArea;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) {
-        final controller = AppDI.instance.createPollListController();
-        controller.loadPolls();
-        return controller;
-      },
+    return ChangeNotifierProvider<PollListController>.value(
+      value: _pollListController,
       child: Builder(
         builder: (context) {
           final theme = Theme.of(context);
+          final l10n = AppLocalizations.of(context)!;
 
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Polls'),
+              title: Text(l10n.pollList_title),
             ),
             body: Consumer<PollListController>(
               builder: (context, controller, _) {
                 final scope = AppDI.instance.geoScopeController.scope;
-                final scopeLabel = _scopeShortLabel(scope);
-                final scopeDescription = _scopeDescription(scope);
+                final scopeLabel = _scopeShortLabel(l10n, scope);
+                final scopeDescription = _scopeDescription(l10n, scope);
 
-                // Per ora user demo; in futuro prenderemo l'ID reale da identity.
-                const String userId = 'demo-user';
+                final visiblePolls = controller.polls;
+                final hasMore = controller.hasMoreFromSource;
 
                 return RefreshIndicator(
-                  onRefresh: controller.loadPolls,
+                  onRefresh: () {
+                    final userId = AppDI.instance.currentUserId;
+                    return controller.loadPolls(userId: userId);
+                  },
                   child: ListView(
-                    padding: const EdgeInsets.all(16),
+                    controller: _scrollController,
+                    padding: AppSpacing.page,
                     children: [
+                      // ===== HEADER COMPATTO (MODELLO A) =====
                       _buildScopeHeader(
                         context,
+                        l10n: l10n,
                         scopeLabel: scopeLabel,
                         scopeDescription: scopeDescription,
-                        pollCount: controller.polls.length,
+                        pollCount: visiblePolls.length,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppSpacing.unitS),
+
+                      // ===== FILTRI COMPATTATI IN UN'UNICA FASCIA =====
+                      _buildFiltersRow(context, controller),
+                      const SizedBox(height: AppSpacing.unitL),
 
                       // ===== LOADING INIZIALE =====
-                      if (controller.isLoading && controller.polls.isEmpty)
+                      if (controller.isLoading && visiblePolls.isEmpty)
                         const Padding(
                           padding: EdgeInsets.only(top: 24),
                           child: Center(
@@ -82,52 +165,102 @@ class PollListPage extends StatelessWidget {
                         ),
 
                       // ===== EMPTY STATE =====
-                      if (!controller.isLoading && controller.polls.isEmpty)
+                      if (!controller.isLoading && visiblePolls.isEmpty)
                         _buildEmptyStateCard(context),
 
-                      // ===== LISTA POLL =====
-                      if (controller.polls.isNotEmpty)
-                        ...controller.polls.map(
+                      // ===== LISTA POLL FILTRATA + ORDINATA DAL CONTROLLER =====
+                      if (visiblePolls.isNotEmpty)
+                        ...visiblePolls.map(
                           (poll) {
                             final fire = controller.likeCountForPoll(poll);
                             final ice = controller.dislikeCountForPoll(poll);
+                            final userReaction =
+                                controller.userReactionForPoll(poll);
 
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.of(context).pushNamed(
-                                    AppRouter.pollDetail,
-                                    arguments: poll.id,
+                            return GestureDetector(
+                              onTap: () async {
+                                final pollListController =
+                                    context.read<PollListController>();
+
+                                await Navigator.of(context).pushNamed(
+                                  AppRouter.pollDetail,
+                                  arguments: poll.id,
+                                );
+
+                                // Quando torniamo dal dettaglio, ricarichiamo i poll
+                                // includendo la userReaction.
+                                final userId =
+                                    AppDI.instance.currentUserId;
+                                await pollListController.loadPolls(
+                                  userId: userId,
+                                );
+                              },
+                              child: PollCard(
+                                poll: poll,
+                                fireCount: fire,
+                                iceCount: ice,
+                                userReaction: userReaction,
+                                onFireTap: () async {
+                                  final allowed =
+                                      await AuthGuard.ensureCanPerformAction(
+                                    context,
+                                    ParticipationAction.react,
+                                  );
+                                  if (!allowed) return;
+
+                                  final userId =
+                                      AppDI.instance.currentUserId;
+                                  if (userId == null || userId.isEmpty) {
+                                    return;
+                                  }
+
+                                  await controller.toggleFireForPoll(
+                                    userId: userId,
+                                    poll: poll,
                                   );
                                 },
-                                child: PollCard(
-                                  poll: poll,
-                                  fireCount: fire,
-                                  iceCount: ice,
-                                  onFireTap: () {
-                                    controller.toggleFireForPoll(
-                                      userId: userId,
-                                      poll: poll,
-                                    );
-                                  },
-                                  onIceTap: () {
-                                    controller.toggleIceForPoll(
-                                      userId: userId,
-                                      poll: poll,
-                                    );
-                                  },
-                                ),
+                                onIceTap: () async {
+                                  final allowed =
+                                      await AuthGuard.ensureCanPerformAction(
+                                    context,
+                                    ParticipationAction.react,
+                                  );
+                                  if (!allowed) return;
+
+                                  final userId =
+                                      AppDI.instance.currentUserId;
+                                  if (userId == null || userId.isEmpty) {
+                                    return;
+                                  }
+
+                                  await controller.toggleIceForPoll(
+                                    userId: userId,
+                                    poll: poll,
+                                  );
+                                },
                               ),
                             );
                           },
                         ),
 
-                      // ===== LOADING DURANTE REFRESH (overlay in fondo) =====
-                      if (controller.isLoading &&
-                          controller.polls.isNotEmpty)
+                      // Hint di paginazione (se ci sono ancora pagine lato sorgente).
+                      if (hasMore &&
+                          !controller.isLoading &&
+                          visiblePolls.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Center(
+                            child: Text(
+                              l10n.pollList_paginationHint,
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                          ),
+                        ),
+
+                      // Loading bottom mentre carichiamo altre pagine.
+                      if (controller.isLoading && visiblePolls.isNotEmpty)
                         const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
+                          padding: EdgeInsets.symmetric(vertical: 12),
                           child: Center(
                             child: CircularProgressIndicator(),
                           ),
@@ -143,111 +276,289 @@ class PollListPage extends StatelessWidget {
     );
   }
 
+  /// Fascia filtri compatta (scope + status + sort) su una sola riga scrollabile.
+  Widget _buildFiltersRow(
+    BuildContext context,
+    PollListController controller,
+  ) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _buildScopeFilterChips(context, controller),
+          const SizedBox(width: AppSpacing.unitL),
+          _buildStatusFilterChips(context, controller),
+          const SizedBox(width: AppSpacing.unitL),
+          _buildSortFilterChips(context, controller),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScopeFilterChips(
+    BuildContext context,
+    PollListController controller,
+  ) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final currentFilter = controller.scopeFilter;
+
+    return Row(
+      children: PollScopeFilter.values.map((filter) {
+        final selected = currentFilter == filter;
+
+        final Color borderColor = selected
+            ? theme.colorScheme.primary
+            : theme.colorScheme.outline.withOpacity(0.4);
+
+        final Color bgColor = selected
+            ? theme.colorScheme.primary.withOpacity(0.10)
+            : Colors.transparent;
+
+        final Color textColor = selected
+            ? theme.colorScheme.primary
+            : theme.colorScheme.onSurface.withOpacity(0.80);
+
+        return Padding(
+          padding: const EdgeInsets.only(right: AppSpacing.unitS),
+          child: ChoiceChip(
+            label: Text(
+              _scopeFilterLabel(l10n, filter),
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                color: textColor,
+              ),
+            ),
+            selected: selected,
+            showCheckmark: false,
+            backgroundColor: bgColor,
+            selectedColor: bgColor,
+            side: BorderSide(color: borderColor, width: 1),
+            shape: RoundedRectangleBorder(
+              borderRadius: AppRadius.buttonRadius,
+            ),
+            onSelected: (value) {
+              if (!value) return;
+              controller.setScopeFilter(filter);
+            },
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildStatusFilterChips(
+    BuildContext context,
+    PollListController controller,
+  ) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final currentFilter = controller.statusFilter;
+
+    return Row(
+      children: PollStatusFilter.values.map((filter) {
+        final selected = currentFilter == filter;
+
+        final Color borderColor = selected
+            ? theme.colorScheme.primary
+            : theme.colorScheme.outline.withOpacity(0.4);
+
+        final Color bgColor = selected
+            ? theme.colorScheme.primary.withOpacity(0.10)
+            : Colors.transparent;
+
+        final Color textColor = selected
+            ? theme.colorScheme.primary
+            : theme.colorScheme.onSurface.withOpacity(0.80);
+
+        return Padding(
+          padding: const EdgeInsets.only(right: AppSpacing.unitS),
+          child: ChoiceChip(
+            label: Text(
+              _statusFilterLabel(l10n, filter),
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                color: textColor,
+              ),
+            ),
+            selected: selected,
+            showCheckmark: false,
+            backgroundColor: bgColor,
+            selectedColor: bgColor,
+            side: BorderSide(color: borderColor, width: 1),
+            shape: RoundedRectangleBorder(
+              borderRadius: AppRadius.buttonRadius,
+            ),
+            onSelected: (value) {
+              if (!value) return;
+              controller.setStatusFilter(filter);
+            },
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildSortFilterChips(
+    BuildContext context,
+    PollListController controller,
+  ) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final currentMode = controller.sortMode;
+
+    return Row(
+      children: PollSortMode.values.map((mode) {
+        final selected = currentMode == mode;
+
+        final Color borderColor = selected
+            ? theme.colorScheme.primary
+            : theme.colorScheme.outline.withOpacity(0.4);
+
+        final Color bgColor = selected
+            ? theme.colorScheme.primary.withOpacity(0.10)
+            : Colors.transparent;
+
+        final Color textColor = selected
+            ? theme.colorScheme.primary
+            : theme.colorScheme.onSurface.withOpacity(0.80);
+
+        return Padding(
+          padding: const EdgeInsets.only(right: AppSpacing.unitS),
+          child: ChoiceChip(
+            label: Text(
+              _sortModeLabel(l10n, mode),
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                color: textColor,
+              ),
+            ),
+            selected: selected,
+            showCheckmark: false,
+            backgroundColor: bgColor,
+            selectedColor: bgColor,
+            side: BorderSide(color: borderColor, width: 1),
+            shape: RoundedRectangleBorder(
+              borderRadius: AppRadius.buttonRadius,
+            ),
+            onSelected: (value) {
+              if (!value) return;
+              controller.setSortMode(mode);
+            },
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  /// Header compatto in stile "product-focused" (modello A).
   Widget _buildScopeHeader(
     BuildContext context, {
+    required AppLocalizations l10n,
     required String scopeLabel,
     required String scopeDescription,
     required int pollCount,
   }) {
     final theme = Theme.of(context);
 
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Riga superiore: scope + pulsante Create poll
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.public,
-                  size: 20,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    scopeLabel,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                FilledButton.icon(
-                  onPressed: () async {
-                    final result = await Navigator.of(context)
-                        .pushNamed(AppRouter.createPoll);
-
-                    if (!context.mounted) return;
-
-                    // Nuovo comportamento: se CreatePoll ritorna un PollId,
-                    // ricarichiamo i poll e apriamo subito il dettaglio.
-                    if (result is PollId) {
-                      await context
-                          .read<PollListController>()
-                          .loadPolls();
-
-                      Navigator.of(context).pushNamed(
-                        AppRouter.pollDetail,
-                        arguments: result,
-                      );
-                    } else if (result == true) {
-                      // Fallback per eventuali vecchi flussi (retrocompatibilità)
-                      context.read<PollListController>().loadPolls();
-                    }
-                  },
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Create poll'),
-                  style: FilledButton.styleFrom(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    textStyle: theme.textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              scopeDescription,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.textTheme.bodySmall?.color?.withOpacity(0.8),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '$pollCount poll(s) found',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.public,
+          size: 20,
+          color: theme.colorScheme.primary,
         ),
-      ),
+        const SizedBox(width: AppSpacing.unitS),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Riga unica: "World · X poll(s) found"
+              Text(
+                l10n.pollList_headerTitle(scopeLabel, pollCount),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: AppSpacing.unitXS),
+              // Descrizione area molto leggera
+              Text(
+                scopeDescription,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: AppSpacing.unitS),
+        OutlinedButton.icon(
+          onPressed: () async {
+            final allowed = await AuthGuard.ensureCanPerformAction(
+              context,
+              ParticipationAction.createPoll,
+            );
+            if (!allowed) return;
+
+            final result =
+                await Navigator.of(context).pushNamed(AppRouter.createPoll);
+
+            if (!context.mounted) return;
+
+            final pollListController = context.read<PollListController>();
+            final userId = AppDI.instance.currentUserId;
+
+            // Se CreatePoll ritorna un PollId,
+            // ricarichiamo i poll e apriamo subito il dettaglio.
+            if (result is PollId) {
+              await pollListController.loadPolls(userId: userId);
+
+              Navigator.of(context).pushNamed(
+                AppRouter.pollDetail,
+                arguments: result,
+              );
+            } else if (result == true) {
+              // Fallback per eventuali vecchi flussi (retrocompatibilità)
+              await pollListController.loadPolls(userId: userId);
+            }
+          },
+          icon: const Icon(Icons.add, size: 18),
+          label: Text(l10n.pollList_createPollButton),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(0, 32),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 6,
+            ),
+            textStyle: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: AppRadius.buttonRadius,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildEmptyStateCard(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.cardRadius,
       ),
       color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: AppSpacing.card,
         child: Column(
           children: [
             Icon(
@@ -255,9 +566,9 @@ class PollListPage extends StatelessWidget {
               size: 32,
               color: theme.colorScheme.onSurface.withOpacity(0.6),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.unitS),
             Text(
-              'No polls available for this area.',
+              l10n.pollList_emptyMessage,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
               ),

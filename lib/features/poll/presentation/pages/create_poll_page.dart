@@ -7,6 +7,8 @@ import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
 import 'package:sociale_vote/features/poll/application/create_poll_controller.dart';
+import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class CreatePollPage extends StatelessWidget {
   const CreatePollPage({super.key});
@@ -20,23 +22,32 @@ class CreatePollPage extends StatelessWidget {
   }
 }
 
-class _CreatePollView extends StatelessWidget {
+class _CreatePollView extends StatefulWidget {
   const _CreatePollView();
 
+  @override
+  State<_CreatePollView> createState() => _CreatePollViewState();
+}
+
+class _CreatePollViewState extends State<_CreatePollView> {
+  String? _selectedCountryCode;
+
   String _pollTypeLabel(PollType type) {
+    final l10n = AppLocalizations.of(context)!;
+
     switch (type) {
       case PollType.yesNo:
-        return 'Yes / No';
+        return l10n.createPollPollTypeYesNoLabel;
       case PollType.singleChoice:
-        return 'Single choice';
+        return l10n.createPollPollTypeSingleChoiceLabel;
       case PollType.multipleChoice:
-        return 'Multiple choice';
+        return l10n.createPollPollTypeMultipleChoiceLabel;
       case PollType.approval:
-        return 'Approval voting';
+        return l10n.createPollPollTypeApprovalLabel;
       case PollType.ranked:
-        return 'Ranked choice';
+        return l10n.createPollPollTypeRankedLabel;
       case PollType.score:
-        return 'Score / Rating';
+        return l10n.createPollPollTypeScoreLabel;
     }
   }
 
@@ -46,37 +57,44 @@ class _CreatePollView extends StatelessWidget {
   }
 
   String _participationScopeLabel(ParticipationScope scope) {
+    final l10n = AppLocalizations.of(context)!;
+
     switch (scope) {
       case ParticipationScope.everyone:
-        return 'Everyone can vote';
+        return l10n.createPollParticipationScopeEveryoneLabel;
       case ParticipationScope.geoScopeOnly:
-        return 'Only users in this geographic scope';
+        return l10n.createPollParticipationScopeGeoScopeOnlyLabel;
     }
   }
 
   String _anonymityLabel(AnonymityLevel level) {
+    final l10n = AppLocalizations.of(context)!;
+
     switch (level) {
       case AnonymityLevel.anonymous:
-        return 'Votes are anonymous';
+        return l10n.createPollAnonymityLevelAnonymousLabel;
       case AnonymityLevel.public:
-        return 'Votes are public (advanced / restricted use)';
+        return l10n.createPollAnonymityLevelPublicLabel;
     }
   }
 
   String _resultsVisibilityLabel(ResultsVisibilityMode mode) {
+    final l10n = AppLocalizations.of(context)!;
+
     switch (mode) {
       case ResultsVisibilityMode.always:
-        return 'Always visible (while poll is open)';
+        return l10n.createPollResultsVisibilityAlwaysLabel;
       case ResultsVisibilityMode.afterVote:
-        return 'Only visible after voting';
+        return l10n.createPollResultsVisibilityAfterVoteLabel;
       case ResultsVisibilityMode.afterClose:
-        return 'Only visible after poll is closed';
+        return l10n.createPollResultsVisibilityAfterCloseLabel;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
@@ -84,10 +102,10 @@ class _CreatePollView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Create Poll'),
+            Text(l10n.createPollPageTitle),
             const SizedBox(height: 2),
             Text(
-              'Define a new civic vote',
+              l10n.createPollPageSubtitle,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurface.withOpacity(0.7),
               ),
@@ -158,7 +176,7 @@ class _CreatePollView extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Basic information',
+                                  l10n.createPollBasicInfoTitle,
                                   style:
                                       theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -166,7 +184,7 @@ class _CreatePollView extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Define the main details of the poll.',
+                                  l10n.createPollBasicInfoSubtitle,
                                   style:
                                       theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
@@ -176,20 +194,22 @@ class _CreatePollView extends StatelessWidget {
                                 const SizedBox(height: 16),
                                 TextField(
                                   enabled: !isSubmitting,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Title *',
-                                    border: OutlineInputBorder(),
+                                  decoration: InputDecoration(
+                                    labelText:
+                                        l10n.createPollTitleFieldLabel,
+                                    border: const OutlineInputBorder(),
                                     helperText:
-                                        'A clear, concise question or statement.',
+                                        l10n.createPollTitleFieldHelper,
                                   ),
                                   onChanged: controller.setTitle,
                                 ),
                                 const SizedBox(height: 12),
                                 TextField(
                                   enabled: !isSubmitting,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Description (optional)',
-                                    border: OutlineInputBorder(),
+                                  decoration: InputDecoration(
+                                    labelText:
+                                        l10n.createPollDescriptionFieldLabel,
+                                    border: const OutlineInputBorder(),
                                     alignLabelWithHint: true,
                                   ),
                                   maxLines: 3,
@@ -214,7 +234,7 @@ class _CreatePollView extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Voting model',
+                                  l10n.createPollVotingModelTitle,
                                   style:
                                       theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -222,7 +242,7 @@ class _CreatePollView extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Choose how people will express their vote and basic rules.',
+                                  l10n.createPollVotingModelSubtitle,
                                   style:
                                       theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
@@ -231,9 +251,10 @@ class _CreatePollView extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 16),
                                 InputDecorator(
-                                  decoration: const InputDecoration(
-                                    labelText: 'Poll type',
-                                    border: OutlineInputBorder(),
+                                  decoration: InputDecoration(
+                                    labelText:
+                                        l10n.createPollTypeFieldLabel,
+                                    border: const OutlineInputBorder(),
                                   ),
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<PollType>(
@@ -271,8 +292,10 @@ class _CreatePollView extends StatelessWidget {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        'Selection rules: minimum ${controller.minSelections}, maximum ${controller.maxSelections} selections '
-                                        '(automatically adjusted based on poll type and options).',
+                                        l10n.createPollSelectionRules(
+                                          controller.minSelections,
+                                          controller.maxSelections,
+                                        ),
                                         style: theme.textTheme.bodySmall
                                             ?.copyWith(
                                           color: theme.textTheme.bodySmall
@@ -286,12 +309,15 @@ class _CreatePollView extends StatelessWidget {
                                 const SizedBox(height: 8),
                                 SwitchListTile.adaptive(
                                   contentPadding: EdgeInsets.zero,
-                                  title: const Text(
-                                    'Allow voters to change their vote',
+                                  title: Text(
+                                    l10n
+                                        .createPollAllowVoteChangeTitle,
                                   ),
                                   subtitle: Text(
-                                    'Until the poll is closed.',
-                                    style: theme.textTheme.bodySmall?.copyWith(
+                                    l10n
+                                        .createPollAllowVoteChangeSubtitle,
+                                    style: theme.textTheme.bodySmall
+                                        ?.copyWith(
                                       color: theme.textTheme.bodySmall?.color
                                           ?.withOpacity(0.8),
                                     ),
@@ -320,7 +346,7 @@ class _CreatePollView extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Options',
+                                  l10n.createPollOptionsTitle,
                                   style:
                                       theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -328,7 +354,7 @@ class _CreatePollView extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Add at least two options for voters to choose from. Fields marked with * are mandatory.',
+                                  l10n.createPollOptionsSubtitle,
                                   style:
                                       theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
@@ -341,7 +367,10 @@ class _CreatePollView extends StatelessWidget {
                                     controller.options.length,
                                     (index) {
                                       final optionLabel =
-                                          'Option ${index + 1}${index < 2 ? " *" : ""}';
+                                          l10n.createPollOptionLabel(
+                                        index + 1,
+                                        index < 2 ? ' *' : '',
+                                      );
                                       final canRemove =
                                           controller.options.length > 2;
 
@@ -368,7 +397,8 @@ class _CreatePollView extends StatelessWidget {
                                             const SizedBox(width: 8),
                                             if (canRemove)
                                               IconButton(
-                                                tooltip: 'Remove option',
+                                                tooltip: l10n
+                                                    .createPollRemoveOptionTooltip,
                                                 onPressed: isSubmitting
                                                     ? null
                                                     : () => controller
@@ -389,7 +419,9 @@ class _CreatePollView extends StatelessWidget {
                                         ? null
                                         : controller.addOption,
                                     icon: const Icon(Icons.add),
-                                    label: const Text('Add option'),
+                                    label: Text(
+                                      l10n.createPollAddOptionButton,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -411,7 +443,7 @@ class _CreatePollView extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Participation & privacy',
+                                  l10n.createPollParticipationPrivacyTitle,
                                   style:
                                       theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -419,7 +451,8 @@ class _CreatePollView extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Decide who can vote and how private the votes should be.',
+                                  l10n
+                                      .createPollParticipationPrivacySubtitle,
                                   style:
                                       theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
@@ -428,7 +461,7 @@ class _CreatePollView extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
-                                  'Who can vote?',
+                                  l10n.createPollWhoCanVoteLabel,
                                   style:
                                       theme.textTheme.bodySmall?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -439,11 +472,14 @@ class _CreatePollView extends StatelessWidget {
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(
                                     _participationScopeLabel(
-                                        ParticipationScope.everyone),
+                                      ParticipationScope.everyone,
+                                    ),
                                   ),
                                   subtitle: Text(
-                                    'Any registered user can participate.',
-                                    style: theme.textTheme.bodySmall?.copyWith(
+                                    l10n
+                                        .createPollParticipationEveryoneSubtitle,
+                                    style:
+                                        theme.textTheme.bodySmall?.copyWith(
                                       color: theme.textTheme.bodySmall?.color
                                           ?.withOpacity(0.8),
                                     ),
@@ -454,8 +490,16 @@ class _CreatePollView extends StatelessWidget {
                                       ? null
                                       : (value) {
                                           if (value != null) {
+                                            setState(() {
+                                              _selectedCountryCode = null;
+                                            });
                                             controller
                                                 .setParticipationScope(value);
+                                            // azzera anche il vincolo di country a livello di dominio
+                                            controller
+                                                .setCountryCodeForParticipation(
+                                              null,
+                                            );
                                           }
                                         },
                                 ),
@@ -463,11 +507,14 @@ class _CreatePollView extends StatelessWidget {
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(
                                     _participationScopeLabel(
-                                        ParticipationScope.geoScopeOnly),
+                                      ParticipationScope.geoScopeOnly,
+                                    ),
                                   ),
                                   subtitle: Text(
-                                    'Only users that belong to the same geographic scope as this poll (world/country/city).',
-                                    style: theme.textTheme.bodySmall?.copyWith(
+                                    l10n
+                                        .createPollParticipationGeoScopeSubtitle,
+                                    style:
+                                        theme.textTheme.bodySmall?.copyWith(
                                       color: theme.textTheme.bodySmall?.color
                                           ?.withOpacity(0.8),
                                     ),
@@ -480,12 +527,51 @@ class _CreatePollView extends StatelessWidget {
                                           if (value != null) {
                                             controller
                                                 .setParticipationScope(value);
+                                            // se c'è già un paese selezionato in UI,
+                                            // sincronizzalo nel controller
+                                            controller
+                                                .setCountryCodeForParticipation(
+                                              _selectedCountryCode,
+                                            );
                                           }
                                         },
                                 ),
+
+                                // 🔹 Country picker visibile solo se scegliamo geoScopeOnly
+                                if (controller.participationScope ==
+                                    ParticipationScope.geoScopeOnly) ...[
+                                  const SizedBox(height: 12),
+                                  CountrySelectorField(
+                                    selectedCountryCode:
+                                        _selectedCountryCode,
+                                    onCountrySelected: (code) {
+                                      setState(() {
+                                        _selectedCountryCode = code;
+                                      });
+                                      // collega il paese selezionato al controller/dominio
+                                      controller
+                                          .setCountryCodeForParticipation(
+                                        code,
+                                      );
+                                    },
+                                    label:
+                                        l10n.createPollCountryFieldLabel,
+                                    required: true,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    l10n.createPollCountryFieldHelper,
+                                    style:
+                                        theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.textTheme.bodySmall?.color
+                                          ?.withOpacity(0.7),
+                                    ),
+                                  ),
+                                ],
+
                                 const Divider(height: 24),
                                 Text(
-                                  'Vote anonymity',
+                                  l10n.createPollVoteAnonymityTitle,
                                   style:
                                       theme.textTheme.bodySmall?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -499,8 +585,10 @@ class _CreatePollView extends StatelessWidget {
                                         AnonymityLevel.anonymous),
                                   ),
                                   subtitle: Text(
-                                    'Recommended default for civic voting platforms.',
-                                    style: theme.textTheme.bodySmall?.copyWith(
+                                    l10n
+                                        .createPollAnonymityAnonymousSubtitle,
+                                    style:
+                                        theme.textTheme.bodySmall?.copyWith(
                                       color: theme.textTheme.bodySmall?.color
                                           ?.withOpacity(0.8),
                                     ),
@@ -519,11 +607,14 @@ class _CreatePollView extends StatelessWidget {
                                 RadioListTile<AnonymityLevel>(
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(
-                                    _anonymityLabel(AnonymityLevel.public),
+                                    _anonymityLabel(
+                                        AnonymityLevel.public),
                                   ),
                                   subtitle: Text(
-                                    'Use with caution: votes may be associated with identities (future feature).',
-                                    style: theme.textTheme.bodySmall?.copyWith(
+                                    l10n
+                                        .createPollAnonymityPublicSubtitle,
+                                    style:
+                                        theme.textTheme.bodySmall?.copyWith(
                                       color: theme.textTheme.bodySmall?.color
                                           ?.withOpacity(0.8),
                                     ),
@@ -558,7 +649,7 @@ class _CreatePollView extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Results & validity',
+                                  l10n.createPollResultsValidityTitle,
                                   style:
                                       theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -566,7 +657,7 @@ class _CreatePollView extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Control when results are visible and define minimum quorum if needed.',
+                                  l10n.createPollResultsValiditySubtitle,
                                   style:
                                       theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
@@ -575,9 +666,10 @@ class _CreatePollView extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 16),
                                 InputDecorator(
-                                  decoration: const InputDecoration(
-                                    labelText: 'Results visibility',
-                                    border: OutlineInputBorder(),
+                                  decoration: InputDecoration(
+                                    labelText: l10n
+                                        .createPollResultsVisibilityFieldLabel,
+                                    border: const OutlineInputBorder(),
                                   ),
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<
@@ -598,7 +690,8 @@ class _CreatePollView extends StatelessWidget {
                                             (mode) => DropdownMenuItem(
                                               value: mode,
                                               child: Text(
-                                                _resultsVisibilityLabel(mode),
+                                                _resultsVisibilityLabel(
+                                                    mode),
                                               ),
                                             ),
                                           )
@@ -608,7 +701,7 @@ class _CreatePollView extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'Quorum (optional)',
+                                  l10n.createPollQuorumTitle,
                                   style:
                                       theme.textTheme.bodySmall?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -616,7 +709,7 @@ class _CreatePollView extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'If set, the poll is considered valid only if at least this number of votes is reached. Leave empty for no quorum.',
+                                  l10n.createPollQuorumSubtitle,
                                   style:
                                       theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
@@ -627,14 +720,14 @@ class _CreatePollView extends StatelessWidget {
                                 TextFormField(
                                   enabled: !isSubmitting,
                                   initialValue: controller
-                                          .minQuorumVotes
-                                          ?.toString() ??
-                                      '',
+                                              .minQuorumVotes
+                                              ?.toString() ??
+                                          '',
                                   keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText:
-                                        'Minimum number of votes',
+                                  decoration: InputDecoration(
+                                    border: const OutlineInputBorder(),
+                                    labelText: l10n
+                                        .createPollQuorumMinVotesFieldLabel,
                                   ),
                                   onChanged: (value) {
                                     if (value.trim().isEmpty) {
@@ -666,7 +759,7 @@ class _CreatePollView extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Timing',
+                                  l10n.createPollTimingTitle,
                                   style:
                                       theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -674,7 +767,7 @@ class _CreatePollView extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Define when the poll should be open for voting.',
+                                  l10n.createPollTimingSubtitle,
                                   style:
                                       theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
@@ -686,7 +779,9 @@ class _CreatePollView extends StatelessWidget {
                                   contentPadding: EdgeInsets.zero,
                                   leading:
                                       const Icon(Icons.play_circle_outline),
-                                  title: const Text('Start date'),
+                                  title: Text(
+                                    l10n.createPollStartDateLabel,
+                                  ),
                                   subtitle: Text(
                                     _formatDate(controller.startAt),
                                   ),
@@ -732,7 +827,9 @@ class _CreatePollView extends StatelessWidget {
                                               );
                                             }
                                           },
-                                    child: const Text('Change'),
+                                    child: Text(
+                                      l10n.createPollChangeDateButtonLabel,
+                                    ),
                                   ),
                                 ),
                                 ListTile(
@@ -740,7 +837,9 @@ class _CreatePollView extends StatelessWidget {
                                   leading: const Icon(
                                     Icons.stop_circle_outlined,
                                   ),
-                                  title: const Text('End date'),
+                                  title: Text(
+                                    l10n.createPollEndDateLabel,
+                                  ),
                                   subtitle: Text(
                                     _formatDate(controller.endAt),
                                   ),
@@ -786,12 +885,14 @@ class _CreatePollView extends StatelessWidget {
                                               );
                                             }
                                           },
-                                    child: const Text('Change'),
+                                    child: Text(
+                                      l10n.createPollChangeDateButtonLabel,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'The initial status (open/scheduled/closed) will be determined automatically based on these dates.',
+                                  l10n.createPollTimingStatusInfo,
                                   style:
                                       theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
@@ -819,15 +920,15 @@ class _CreatePollView extends StatelessWidget {
                                     if (pollId != null) {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
-                                        const SnackBar(
+                                        SnackBar(
                                           behavior:
                                               SnackBarBehavior.floating,
                                           content: Text(
-                                            'Poll created successfully',
+                                            l10n
+                                                .createPollSuccessMessage,
                                           ),
                                         ),
                                       );
-                                      // Torniamo alla lista passando il PollId
                                       Navigator.of(context).pop(pollId);
                                     }
                                   }
@@ -842,7 +943,9 @@ class _CreatePollView extends StatelessWidget {
                                   )
                                 : const Icon(Icons.check),
                             label: Text(
-                              isSubmitting ? 'Creating...' : 'Create poll',
+                              isSubmitting
+                                  ? l10n.createPollSubmitCreatingLabel
+                                  : l10n.createPollSubmitLabel,
                             ),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(

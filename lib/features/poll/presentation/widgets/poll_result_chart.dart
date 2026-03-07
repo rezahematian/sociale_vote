@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:sociale_vote/domain/poll/entities/poll_result.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 
 /// Widget di presentazione che mostra i risultati di un poll
 /// (percentuali per opzione) utilizzando un grafico a barre.
@@ -22,13 +23,14 @@ class PollResultChart extends StatelessWidget {
     }
 
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final maxPercentage = _computeMaxPercentage();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Results (${result.totalVotes} votes)',
+          l10n.pollResult_title(result.totalVotes),
           style: theme.textTheme.titleMedium,
         ),
         const SizedBox(height: 12),

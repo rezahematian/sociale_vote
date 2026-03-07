@@ -38,6 +38,7 @@ class PollListController extends ChangeNotifier {
   late final VoidCallback _geoScopeListener;
 
   String? _lastKnownUserId;
+  bool _isDisposed = false;
 
   // ===== Filtri / ordinamento =====
   PollSortMode _sortMode = PollSortMode.latest;
@@ -84,36 +85,43 @@ class PollListController extends ChangeNotifier {
   PollScopeFilter get scopeFilter => _scopeFilter;
   PollStatusFilter get statusFilter => _statusFilter;
 
+  void _safeNotifyListeners() {
+    if (_isDisposed) return;
+    notifyListeners();
+  }
+
   // ===== Setter filtri / ordinamento =====
 
   void setSortMode(PollSortMode mode) {
     if (_sortMode == mode) return;
     _sortMode = mode;
     _recomputeVisiblePolls();
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void setScopeFilter(PollScopeFilter filter) {
     if (_scopeFilter == filter) return;
     _scopeFilter = filter;
     _recomputeVisiblePolls();
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void setStatusFilter(PollStatusFilter filter) {
     if (_statusFilter == filter) return;
     _statusFilter = filter;
     _recomputeVisiblePolls();
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   // ===== Caricamento / paginazione =====
 
   Future<void> loadPolls({String? userId}) async {
+    if (_isDisposed) return;
+
     _lastKnownUserId = userId ?? _lastKnownUserId;
 
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     _allPolls.clear();
     _visiblePolls.clear();
@@ -122,25 +130,30 @@ class PollListController extends ChangeNotifier {
     _hasMoreFromSource = true;
 
     await _loadNextPage();
+    if (_isDisposed) return;
 
     _isLoading = false;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> loadMorePolls() async {
+    if (_isDisposed) return;
     if (_isLoading) return;
     if (!_hasMoreFromSource) return;
 
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     await _loadNextPage();
+    if (_isDisposed) return;
 
     _isLoading = false;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> _loadNextPage() async {
+    if (_isDisposed) return;
+
     final scope = geoScopeController.scope;
 
     String? countryCode;
@@ -164,6 +177,7 @@ class PollListController extends ChangeNotifier {
       limit: _pageSize,
       offset: _currentOffset,
     );
+    if (_isDisposed) return;
 
     if (result.length < _pageSize) {
       _hasMoreFromSource = false;
@@ -173,20 +187,22 @@ class PollListController extends ChangeNotifier {
     _allPolls.addAll(result);
 
     await _loadReactionSummariesForPolls(result);
+    if (_isDisposed) return;
 
     _recomputeVisiblePolls();
   }
 
   Future<void> _loadReactionSummariesForPolls(List<Poll> newPolls) async {
+    if (_isDisposed) return;
     if (newPolls.isEmpty) return;
 
-    final targets =
-        newPolls.map((p) => TargetRef.poll(p.id.value)).toList();
+    final targets = newPolls.map((p) => TargetRef.poll(p.id.value)).toList();
 
     final summaries = await getReactionSummary(
       targets,
       userId: _lastKnownUserId,
     );
+    if (_isDisposed) return;
 
     for (final summary in summaries) {
       _reactionSummaries[summary.target.id] = summary;
@@ -199,8 +215,7 @@ class PollListController extends ChangeNotifier {
     return _reactionSummaries[poll.id.value];
   }
 
-  int likeCountForPoll(Poll poll) =>
-      _summaryForPoll(poll)?.likeCount ?? 0;
+  int likeCountForPoll(Poll poll) => _summaryForPoll(poll)?.likeCount ?? 0;
 
   int dislikeCountForPoll(Poll poll) =>
       _summaryForPoll(poll)?.dislikeCount ?? 0;
@@ -248,13 +263,9 @@ class PollListController extends ChangeNotifier {
       case PollStatusFilter.all:
         return input;
       case PollStatusFilter.open:
-        return input
-            .where((p) => p.status == PollStatus.open)
-            .toList();
+        return input.where((p) => p.status == PollStatus.open).toList();
       case PollStatusFilter.closed:
-        return input
-            .where((p) => p.status == PollStatus.closed)
-            .toList();
+        return input.where((p) => p.status == PollStatus.closed).toList();
     }
   }
 
@@ -278,36 +289,43 @@ class PollListController extends ChangeNotifier {
     required String userId,
     required Poll poll,
   }) async {
+    if (_isDisposed) return;
+
     final summary = await toggleReaction(
       userId: userId,
       target: TargetRef.poll(poll.id.value),
       type: ReactionType.like,
     );
+    if (_isDisposed) return;
 
     _reactionSummaries[poll.id.value] = summary;
 
     _recomputeVisiblePolls();
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> toggleIceForPoll({
     required String userId,
     required Poll poll,
   }) async {
+    if (_isDisposed) return;
+
     final summary = await toggleReaction(
       userId: userId,
       target: TargetRef.poll(poll.id.value),
       type: ReactionType.dislike,
     );
+    if (_isDisposed) return;
 
     _reactionSummaries[poll.id.value] = summary;
 
     _recomputeVisiblePolls();
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
     geoScopeController.removeListener(_geoScopeListener);
     super.dispose();
   }

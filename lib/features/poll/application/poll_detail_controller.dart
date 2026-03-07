@@ -22,13 +22,28 @@ class PollDetailController extends ChangeNotifier {
   ReactionSummary? _reactionSummary;
   ReactionSummary? get reactionSummary => _reactionSummary;
 
+  /// Per supportare eventuale refresh: ricordiamo l'ultimo pollId e userId.
+  PollId? _currentPollId;
+  String? _lastUserId;
+
   PollDetailController(
     this._getPollDetail,
     this._toggleReaction,
     this._getReactionSummary,
   );
 
-  Future<void> loadPoll(PollId pollId) async {
+  /// Carica il poll + reaction summary.
+  ///
+  /// [userId] è opzionale:
+  /// - se valorizzato, viene usato per ottenere anche userReaction
+  /// - viene memorizzato in [_lastUserId] per futuri reload/refresh
+  Future<void> loadPoll(
+    PollId pollId, {
+    String? userId,
+  }) async {
+    _currentPollId = pollId;
+    _lastUserId = userId ?? _lastUserId;
+
     _state = const PollDetailLoading();
     _reactionSummary = null;
     notifyListeners();
@@ -44,7 +59,10 @@ class PollDetailController extends ChangeNotifier {
         // Dopo aver caricato il poll, carichiamo anche il reaction summary.
         try {
           final target = TargetRef.poll(poll.id.value);
-          final summaries = await _getReactionSummary([target]);
+          final summaries = await _getReactionSummary(
+            [target],
+            userId: _lastUserId,
+          );
           _reactionSummary =
               summaries.isNotEmpty ? summaries.first : null;
         } catch (_) {
@@ -60,6 +78,12 @@ class PollDetailController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Comodo per pull-to-refresh, se hai già chiamato loadPoll una volta.
+  Future<void> refresh() async {
+    if (_currentPollId == null) return;
+    await loadPoll(_currentPollId!, userId: _lastUserId);
+  }
+
   int likeCount() {
     return _reactionSummary?.likeCount ?? 0;
   }
@@ -68,10 +92,18 @@ class PollDetailController extends ChangeNotifier {
     return _reactionSummary?.dislikeCount ?? 0;
   }
 
+  /// Reazione corrente dell'utente sul poll (se presente).
+  ReactionType? get userReaction => _reactionSummary?.userReaction;
+
   /// Toggle 🔥 per il poll corrente.
   Future<void> toggleFire({required String userId}) async {
     final currentState = _state;
     if (currentState is! PollDetailLoaded) return;
+
+    if (userId.isEmpty) {
+      // v1: la UI / AuthGuard dovrebbe già bloccare i guest.
+      return;
+    }
 
     final poll = currentState.poll;
     final target = TargetRef.poll(poll.id.value);
@@ -83,6 +115,7 @@ class PollDetailController extends ChangeNotifier {
     );
 
     _reactionSummary = summary;
+    _lastUserId = userId;
     notifyListeners();
   }
 
@@ -90,6 +123,10 @@ class PollDetailController extends ChangeNotifier {
   Future<void> toggleIce({required String userId}) async {
     final currentState = _state;
     if (currentState is! PollDetailLoaded) return;
+
+    if (userId.isEmpty) {
+      return;
+    }
 
     final poll = currentState.poll;
     final target = TargetRef.poll(poll.id.value);
@@ -101,6 +138,7 @@ class PollDetailController extends ChangeNotifier {
     );
 
     _reactionSummary = summary;
+    _lastUserId = userId;
     notifyListeners();
   }
 }
