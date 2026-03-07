@@ -11,6 +11,10 @@ import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
+import 'package:sociale_vote/features/auth/presentation/pages/login_page.dart';
+import 'package:sociale_vote/features/auth/presentation/pages/register_page.dart';
+import 'package:sociale_vote/features/discovery/application/for_you_feed_controller.dart';
+import 'package:sociale_vote/features/discovery/application/trending_controller.dart';
 import 'package:sociale_vote/features/geo/application/follow_scope_controller.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/civic_map_widget.dart';
@@ -18,23 +22,11 @@ import 'package:sociale_vote/features/news/application/news_controller.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
 import 'package:sociale_vote/features/poll/application/poll_list_controller.dart';
 import 'package:sociale_vote/features/poll/presentation/widgets/poll_card.dart';
+import 'package:sociale_vote/features/search/presentation/pages/search_page.dart';
 import 'package:sociale_vote/features/social/application/feed_controller.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
-
-// 🔍 Trending
-import 'package:sociale_vote/features/discovery/application/trending_controller.dart';
-// ⭐ For You
-import 'package:sociale_vote/features/discovery/application/for_you_feed_controller.dart';
-
-// 🔍 Search page
-import 'package:sociale_vote/features/search/presentation/pages/search_page.dart';
-
-// Auth pages
-import 'package:sociale_vote/features/auth/presentation/pages/login_page.dart';
-import 'package:sociale_vote/features/auth/presentation/pages/register_page.dart';
-
-import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class PublicHomeScreen extends StatefulWidget {
   const PublicHomeScreen({super.key});
@@ -50,11 +42,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   FollowScopeController get _followScopeController =>
       AppDI.instance.followScopeController;
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
   void _setWorld() => _geoScopeController.setWorld();
   void _setItaly() => _geoScopeController.setCountry('IT');
   void _setTorino() =>
@@ -67,7 +54,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
     final q = query.toLowerCase();
 
-    // --- GEO SEARCH (places) ---
     if (q == 'world' || q == 'mondo' || q == 'global') {
       _setWorld();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -92,7 +78,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       return;
     }
 
-    // --- CONTENT SEARCH (SearchPage) ---
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => const SearchPage(),
@@ -128,9 +113,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          l10n.homeLogoutMessage,
-        ),
+        content: Text(l10n.homeLogoutMessage),
       ),
     );
   }
@@ -189,55 +172,85 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+      padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: LinearGradient(
+        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
           colors: [
-            theme.colorScheme.primary.withOpacity(0.18),
-            theme.colorScheme.secondary.withOpacity(0.10),
+            Color(0xFFEFF6FF),
+            Color(0xFFF5F3FF),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.18),
+          color: theme.colorScheme.outline.withOpacity(0.14),
         ),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(0.04),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surface.withOpacity(0.65),
+              color: Colors.white.withOpacity(0.78),
               borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: theme.colorScheme.outline.withOpacity(0.10),
+              ),
             ),
             child: Text(
-              l10n.homeScopeLabelWorld == scopeShortLabel
-                  ? l10n.homeScopeLabelWorld
-                  : scopeShortLabel,
+              scopeShortLabel,
               style: theme.textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: theme.colorScheme.primary,
               ),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           Text(
             'Decidi il futuro.\nInsieme.',
             style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              height: 1.05,
+              fontWeight: FontWeight.w800,
+              height: 1.0,
+              letterSpacing: -0.6,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Text(
             'Esplora il tuo scope, segui aree geografiche, scopri sondaggi, news e discussioni civiche in un’unica home.',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.78),
-              height: 1.45,
+              color: theme.colorScheme.onSurface.withOpacity(0.76),
+              height: 1.5,
             ),
+          ),
+          const SizedBox(height: 18),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRouter.polls);
+                },
+                icon: const Icon(Icons.how_to_vote, size: 18),
+                label: Text(l10n.homePollsViewAllButton),
+              ),
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRouter.news);
+                },
+                icon: const Icon(Icons.article_outlined, size: 18),
+                label: Text(l10n.homeNewsViewAllButton),
+              ),
+            ],
           ),
         ],
       ),
@@ -251,21 +264,21 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     final theme = Theme.of(context);
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(22),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface.withOpacity(0.72),
-            borderRadius: BorderRadius.circular(20),
+            color: Colors.white.withOpacity(0.58),
+            borderRadius: BorderRadius.circular(22),
             border: Border.all(
-              color: theme.colorScheme.outline.withOpacity(0.18),
+              color: Colors.white.withOpacity(0.22),
             ),
             boxShadow: [
               BoxShadow(
-                blurRadius: 18,
-                offset: const Offset(0, 6),
-                color: Colors.black.withOpacity(0.05),
+                blurRadius: 24,
+                offset: const Offset(0, 10),
+                color: Colors.black.withOpacity(0.06),
               ),
             ],
           ),
@@ -319,7 +332,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                     Text(
                       'Sociale Vote',
                       style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -333,21 +346,30 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                 ),
                 const Spacer(),
                 if (!isLoggedIn) ...[
-                  TextButton(
+                  OutlinedButton(
                     onPressed: _onLoginPressed,
+                    style: OutlinedButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                    ),
                     child: Text(l10n.homeLoginButton),
                   ),
-                  const SizedBox(width: 4),
-                  TextButton(
+                  const SizedBox(width: 6),
+                  FilledButton(
                     onPressed: _onRegisterPressed,
+                    style: FilledButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                    ),
                     child: Text(l10n.homeRegisterButton),
                   ),
                 ] else ...[
-                  TextButton(
+                  OutlinedButton(
                     onPressed: _onProfilePressed,
+                    style: OutlinedButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                    ),
                     child: Text(l10n.homeProfileButton),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 6),
                   TextButton(
                     onPressed: _onLogoutPressed,
                     child: Text(l10n.homeLogoutButton),
@@ -360,12 +382,12 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
             children: [
               Positioned.fill(
                 child: Container(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        theme.colorScheme.surface,
-                        theme.colorScheme.surfaceVariant.withOpacity(0.55),
-                        theme.colorScheme.background,
+                        Color(0xFFF8FAFC),
+                        Color(0xFFEFF4FF),
+                        Color(0xFFF5F7FB),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -374,29 +396,29 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                 ),
               ),
               Positioned(
-                top: -60,
+                top: -70,
                 right: -40,
                 child: IgnorePointer(
                   child: Container(
-                    width: 220,
-                    height: 220,
+                    width: 240,
+                    height: 240,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: theme.colorScheme.primary.withOpacity(0.10),
+                      color: const Color(0xFF60A5FA).withOpacity(0.10),
                     ),
                   ),
                 ),
               ),
               Positioned(
-                top: 180,
+                top: 190,
                 left: -70,
                 child: IgnorePointer(
                   child: Container(
-                    width: 220,
-                    height: 220,
+                    width: 230,
+                    height: 230,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: theme.colorScheme.secondary.withOpacity(0.08),
+                      color: const Color(0xFFA78BFA).withOpacity(0.08),
                     ),
                   ),
                 ),
@@ -467,9 +489,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(12.0),
                         child: Card(
-                          elevation: 3,
+                          elevation: 4,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                           clipBehavior: Clip.antiAlias,
                           child: CivicMapWidget(
@@ -489,7 +511,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                       child: Column(
                         children: [
-                          // TRENDING
                           ChangeNotifierProvider<TrendingController>(
                             key: ValueKey(
                               'home_trending_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}',
@@ -500,7 +521,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                           ),
                           const SizedBox(height: 24),
 
-                          // FOR YOU
                           ChangeNotifierProvider<ForYouFeedController>(
                             key: ValueKey(
                               'home_for_you_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}',
@@ -517,7 +537,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                           ),
                           const SizedBox(height: 24),
 
-                          // POLLS
                           ChangeNotifierProvider<PollListController>(
                             key: ValueKey(
                               'home_polls_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}',
@@ -535,7 +554,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                           ),
                           const SizedBox(height: 24),
 
-                          // NEWS
                           ChangeNotifierProvider<NewsController>(
                             key: ValueKey(
                               'home_news_${scope.level}_${scope.countryCode}_${scope.cityId}',
@@ -549,7 +567,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                           ),
                           const SizedBox(height: 24),
 
-                          // SOCIAL
                           ChangeNotifierProvider<FeedController>(
                             key: ValueKey(
                               'home_social_${scope.level}_${scope.countryCode}_${scope.cityId}',
@@ -695,7 +712,6 @@ class _FollowScopeButton extends StatelessWidget {
   }
 }
 
-/// Sezione "Trending now"
 class _HomeTrendingSection extends StatelessWidget {
   const _HomeTrendingSection();
 
@@ -750,9 +766,7 @@ class _HomeTrendingSection extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Text(
-            l10n.homeTrendingError,
-          ),
+          child: Text(l10n.homeTrendingError),
         ),
       );
     } else if (posts.isEmpty) {
@@ -765,9 +779,7 @@ class _HomeTrendingSection extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Text(
-            l10n.homeTrendingEmpty,
-          ),
+          child: Text(l10n.homeTrendingEmpty),
         ),
       );
     } else {
@@ -856,9 +868,7 @@ class _HomeForYouSection extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Text(
-            l10n.homeForYouError,
-          ),
+          child: Text(l10n.homeForYouError),
         ),
       );
     } else if (posts.isEmpty) {
@@ -871,9 +881,7 @@ class _HomeForYouSection extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Text(
-            l10n.homeForYouEmpty,
-          ),
+          child: Text(l10n.homeForYouEmpty),
         ),
       );
     } else {
