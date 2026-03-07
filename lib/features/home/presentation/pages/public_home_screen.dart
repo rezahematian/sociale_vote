@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,8 +11,8 @@ import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
-import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 import 'package:sociale_vote/features/geo/application/follow_scope_controller.dart';
+import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/civic_map_widget.dart';
 import 'package:sociale_vote/features/news/application/news_controller.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
@@ -134,7 +136,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   }
 
   void _onProfilePressed() {
-    Navigator.pushNamed(context, '/profile');
+    Navigator.pushNamed(context, AppRouter.profile);
   }
 
   String _scopeLabel(GeoScope scope) {
@@ -179,6 +181,112 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     setState(() {});
   }
 
+  Widget _buildHeroSection(
+    BuildContext context, {
+    required ThemeData theme,
+    required AppLocalizations l10n,
+    required String scopeShortLabel,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.primary.withOpacity(0.18),
+            theme.colorScheme.secondary.withOpacity(0.10),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.18),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withOpacity(0.65),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              l10n.homeScopeLabelWorld == scopeShortLabel
+                  ? l10n.homeScopeLabelWorld
+                  : scopeShortLabel,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'Decidi il futuro.\nInsieme.',
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              height: 1.05,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Esplora il tuo scope, segui aree geografiche, scopri sondaggi, news e discussioni civiche in un’unica home.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.78),
+              height: 1.45,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlassSearchBar(
+    BuildContext context, {
+    required AppLocalizations l10n,
+  }) {
+    final theme = Theme.of(context);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface.withOpacity(0.72),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: theme.colorScheme.outline.withOpacity(0.18),
+            ),
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 18,
+                offset: const Offset(0, 6),
+                color: Colors.black.withOpacity(0.05),
+              ),
+            ],
+          ),
+          child: TextField(
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              hintText: l10n.homeSearchHint,
+              isDense: true,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 18,
+              ),
+            ),
+            onSubmitted: _handleSearchSubmitted,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -195,7 +303,10 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
         final scopeShortLabel = _scopeShortLabel(scope);
 
         return Scaffold(
+          backgroundColor: Colors.transparent,
           appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
             elevation: 0,
             centerTitle: false,
             titleSpacing: 16,
@@ -245,164 +356,218 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
               ],
             ),
           ),
-          body: SafeArea(
-            child: ListView(
-              padding: const EdgeInsets.only(bottom: 16),
-              children: [
-                // ====== SEARCH BAR ======
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search),
-                      hintText: l10n.homeSearchHint,
-                      isDense: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        theme.colorScheme.surface,
+                        theme.colorScheme.surfaceVariant.withOpacity(0.55),
+                        theme.colorScheme.background,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    onSubmitted: _handleSearchSubmitted,
                   ),
                 ),
+              ),
+              Positioned(
+                top: -60,
+                right: -40,
+                child: IgnorePointer(
+                  child: Container(
+                    width: 220,
+                    height: 220,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: theme.colorScheme.primary.withOpacity(0.10),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 180,
+                left: -70,
+                child: IgnorePointer(
+                  child: Container(
+                    width: 220,
+                    height: 220,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: theme.colorScheme.secondary.withOpacity(0.08),
+                    ),
+                  ),
+                ),
+              ),
+              SafeArea(
+                child: ListView(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: _buildHeroSection(
+                        context,
+                        theme: theme,
+                        l10n: l10n,
+                        scopeShortLabel: scopeShortLabel,
+                      ),
+                    ),
 
-                // ====== STATO UTENTE ======
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.account_circle_outlined,
-                          size: 18,
-                          color: theme.colorScheme.primary,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            isLoggedIn
-                                ? l10n.homeUserStatusLoggedIn(
-                                    currentUserId!,
-                                  )
-                                : l10n.homeUserStatusGuest,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface
-                                  .withOpacity(0.8),
+                    // ====== SEARCH BAR ======
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: _buildGlassSearchBar(
+                        context,
+                        l10n: l10n,
+                      ),
+                    ),
+
+                    // ====== STATO UTENTE ======
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+                      ),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.account_circle_outlined,
+                              size: 18,
+                              color: theme.colorScheme.primary,
                             ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                isLoggedIn
+                                    ? l10n.homeUserStatusLoggedIn(
+                                        currentUserId!,
+                                      )
+                                    : l10n.homeUserStatusGuest,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.8),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // ====== MAPPA ======
+                    SizedBox(
+                      height: 300,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Card(
+                          elevation: 3,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: CivicMapWidget(
+                            currentScopeLabel: scopeShortLabel,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // ====== MAPPA ======
-                SizedBox(
-                  height: 300,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Card(
-                      elevation: 3,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: CivicMapWidget(
-                        currentScopeLabel: scopeShortLabel,
                       ),
                     ),
-                  ),
+
+                    // ====== SCOPE PANEL ======
+                    _buildScopePanel(context, scope, scopeLabel),
+
+                    const Divider(height: 1),
+
+                    // ====== CONTENUTO PRINCIPALE ======
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                      child: Column(
+                        children: [
+                          // TRENDING
+                          ChangeNotifierProvider<TrendingController>(
+                            key: ValueKey(
+                              'home_trending_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}',
+                            ),
+                            create: (_) =>
+                                AppDI.instance.createTrendingController(),
+                            child: const _HomeTrendingSection(),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // FOR YOU
+                          ChangeNotifierProvider<ForYouFeedController>(
+                            key: ValueKey(
+                              'home_for_you_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}',
+                            ),
+                            create: (_) {
+                              final controller =
+                                  AppDI.instance.createForYouFeedController();
+                              controller.load(userId: currentUserId);
+                              return controller;
+                            },
+                            child: _HomeForYouSection(
+                              scopeShortLabel: scopeShortLabel,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // POLLS
+                          ChangeNotifierProvider<PollListController>(
+                            key: ValueKey(
+                              'home_polls_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}',
+                            ),
+                            create: (_) {
+                              final controller =
+                                  AppDI.instance.createPollListController();
+                              final userId = AppDI.instance.currentUserId;
+                              controller.loadPolls(userId: userId);
+                              return controller;
+                            },
+                            child: _HomePollsSection(
+                              scopeShortLabel: scopeShortLabel,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // NEWS
+                          ChangeNotifierProvider<NewsController>(
+                            key: ValueKey(
+                              'home_news_${scope.level}_${scope.countryCode}_${scope.cityId}',
+                            ),
+                            create: (_) =>
+                                AppDI.instance.createNewsController()
+                                  ..loadNews(),
+                            child: _HomeNewsSection(
+                              scopeShortLabel: scopeShortLabel,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // SOCIAL
+                          ChangeNotifierProvider<FeedController>(
+                            key: ValueKey(
+                              'home_social_${scope.level}_${scope.countryCode}_${scope.cityId}',
+                            ),
+                            create: (_) =>
+                                AppDI.instance.createFeedController()
+                                  ..loadFeed(),
+                            child: _HomeSocialSection(
+                              scopeShortLabel: scopeShortLabel,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-
-                // ====== SCOPE PANEL ======
-                _buildScopePanel(context, scope, scopeLabel),
-
-                const Divider(height: 1),
-
-                // ====== CONTENUTO PRINCIPALE ======
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                  child: Column(
-                    children: [
-                      // TRENDING
-                      ChangeNotifierProvider<TrendingController>(
-                        key: ValueKey(
-                          'home_trending_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}',
-                        ),
-                        create: (_) =>
-                            AppDI.instance.createTrendingController(),
-                        child: const _HomeTrendingSection(),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // FOR YOU
-                      ChangeNotifierProvider<ForYouFeedController>(
-                        key: ValueKey(
-                          'home_for_you_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}',
-                        ),
-                        create: (_) {
-                          final controller =
-                              AppDI.instance.createForYouFeedController();
-                          controller.load(userId: currentUserId);
-                          return controller;
-                        },
-                        child: _HomeForYouSection(
-                          scopeShortLabel: scopeShortLabel,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // POLLS
-                      ChangeNotifierProvider<PollListController>(
-                        key: ValueKey(
-                          'home_polls_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}',
-                        ),
-                        create: (_) {
-                          final controller =
-                              AppDI.instance.createPollListController();
-                          final userId = AppDI.instance.currentUserId;
-                          controller.loadPolls(userId: userId);
-                          return controller;
-                        },
-                        child: _HomePollsSection(
-                          scopeShortLabel: scopeShortLabel,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // NEWS
-                      ChangeNotifierProvider<NewsController>(
-                        key: ValueKey(
-                          'home_news_${scope.level}_${scope.countryCode}_${scope.cityId}',
-                        ),
-                        create: (_) =>
-                            AppDI.instance.createNewsController()..loadNews(),
-                        child: _HomeNewsSection(
-                          scopeShortLabel: scopeShortLabel,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // SOCIAL
-                      ChangeNotifierProvider<FeedController>(
-                        key: ValueKey(
-                          'home_social_${scope.level}_${scope.countryCode}_${scope.cityId}',
-                        ),
-                        create: (_) =>
-                            AppDI.instance.createFeedController()..loadFeed(),
-                        child: _HomeSocialSection(
-                          scopeShortLabel: scopeShortLabel,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
