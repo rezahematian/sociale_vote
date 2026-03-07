@@ -215,8 +215,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                     Text(
                       scopeShortLabel,
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withOpacity(0.7),
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
                       ),
                     ),
                   ],
@@ -271,8 +270,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
                 // ====== STATO UTENTE ======
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Row(
@@ -326,8 +325,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
                 // ====== CONTENUTO PRINCIPALE ======
                 Padding(
-                  padding:
-                      const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                   child: Column(
                     children: [
                       // TRENDING
@@ -361,7 +359,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                       // POLLS
                       ChangeNotifierProvider<PollListController>(
                         key: ValueKey(
-                          'home_polls_${scope.level}_${scope.countryCode}_${scope.cityId}',
+                          'home_polls_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}',
                         ),
                         create: (_) {
                           final controller =
@@ -382,8 +380,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                           'home_news_${scope.level}_${scope.countryCode}_${scope.cityId}',
                         ),
                         create: (_) =>
-                            AppDI.instance.createNewsController()
-                              ..loadNews(),
+                            AppDI.instance.createNewsController()..loadNews(),
                         child: _HomeNewsSection(
                           scopeShortLabel: scopeShortLabel,
                         ),
@@ -396,8 +393,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                           'home_social_${scope.level}_${scope.countryCode}_${scope.cityId}',
                         ),
                         create: (_) =>
-                            AppDI.instance.createFeedController()
-                              ..loadFeed(),
+                            AppDI.instance.createFeedController()..loadFeed(),
                         child: _HomeSocialSection(
                           scopeShortLabel: scopeShortLabel,
                         ),
@@ -879,11 +875,9 @@ class _HomePollsSection extends StatelessWidget {
       final sorted = List<Poll>.from(allPolls);
       sorted.sort((a, b) {
         final heatA =
-            controller.likeCountForPoll(a) -
-                controller.dislikeCountForPoll(a);
+            controller.likeCountForPoll(a) - controller.dislikeCountForPoll(a);
         final heatB =
-            controller.likeCountForPoll(b) -
-                controller.dislikeCountForPoll(b);
+            controller.likeCountForPoll(b) - controller.dislikeCountForPoll(b);
         return heatB.compareTo(heatA);
       });
 
@@ -897,14 +891,58 @@ class _HomePollsSection extends StatelessWidget {
               (poll) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(
+                  onTap: () async {
+                    await Navigator.pushNamed(
                       context,
                       AppRouter.pollDetail,
                       arguments: poll.id,
                     );
+
+                    final userId = AppDI.instance.currentUserId;
+                    await controller.loadPolls(userId: userId);
                   },
-                  child: PollCard(poll: poll),
+                  child: PollCard(
+                    poll: poll,
+                    fireCount: controller.likeCountForPoll(poll),
+                    iceCount: controller.dislikeCountForPoll(poll),
+                    userReaction: controller.userReactionForPoll(poll),
+                    onFireTap: () async {
+                      final allowed =
+                          await AuthGuard.ensureCanPerformAction(
+                        context,
+                        ParticipationAction.react,
+                      );
+                      if (!allowed) return;
+
+                      final userId = AppDI.instance.currentUserId;
+                      if (userId == null || userId.isEmpty) {
+                        return;
+                      }
+
+                      await controller.toggleFireForPoll(
+                        userId: userId,
+                        poll: poll,
+                      );
+                    },
+                    onIceTap: () async {
+                      final allowed =
+                          await AuthGuard.ensureCanPerformAction(
+                        context,
+                        ParticipationAction.react,
+                      );
+                      if (!allowed) return;
+
+                      final userId = AppDI.instance.currentUserId;
+                      if (userId == null || userId.isEmpty) {
+                        return;
+                      }
+
+                      await controller.toggleIceForPoll(
+                        userId: userId,
+                        poll: poll,
+                      );
+                    },
+                  ),
                 ),
               ),
             )
@@ -972,8 +1010,7 @@ class _HomePollsPlaceholderCard extends StatelessWidget {
             Text(
               subtitle,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color
-                    ?.withOpacity(0.8),
+                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
               ),
             ),
           ],
@@ -1001,12 +1038,8 @@ class _HomeNewsSection extends StatelessWidget {
     sorted.sort((a, b) {
       final summaryA = controller.summaryForNews(a);
       final summaryB = controller.summaryForNews(b);
-      final heatA =
-          (summaryA?.likeCount ?? 0) -
-              (summaryA?.dislikeCount ?? 0);
-      final heatB =
-          (summaryB?.likeCount ?? 0) -
-              (summaryB?.dislikeCount ?? 0);
+      final heatA = (summaryA?.likeCount ?? 0) - (summaryA?.dislikeCount ?? 0);
+      final heatB = (summaryB?.likeCount ?? 0) - (summaryB?.dislikeCount ?? 0);
       return heatB.compareTo(heatA);
     });
 
@@ -1170,8 +1203,7 @@ class _HomeNewsPlaceholderCard extends StatelessWidget {
             Text(
               subtitle,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color
-                    ?.withOpacity(0.8),
+                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
               ),
             ),
           ],
@@ -1213,8 +1245,7 @@ class _NewsPreviewCard extends StatelessWidget {
           final newsController = context.read<NewsController>();
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) =>
-                  ChangeNotifierProvider<NewsController>.value(
+              builder: (_) => ChangeNotifierProvider<NewsController>.value(
                 value: newsController,
                 child: NewsDetailPage(news: news),
               ),
@@ -1245,8 +1276,7 @@ class _NewsPreviewCard extends StatelessWidget {
                   ),
                   child: Text(
                     l10n.homeNewsBreakingBadge,
-                    style:
-                        theme.textTheme.labelSmall?.copyWith(
+                    style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.onError,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.6,
@@ -1262,8 +1292,7 @@ class _NewsPreviewCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              if (news.summary != null &&
-                  news.summary!.trim().isNotEmpty) ...[
+              if (news.summary != null && news.summary!.trim().isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
                   news.summary!,
@@ -1337,11 +1366,9 @@ class _HomeSocialSection extends StatelessWidget {
     final sorted = List<Post>.from(posts);
     sorted.sort((a, b) {
       final heatA =
-          controller.likeCountForPost(a) -
-              controller.dislikeCountForPost(a);
+          controller.likeCountForPost(a) - controller.dislikeCountForPost(a);
       final heatB =
-          controller.likeCountForPost(b) -
-              controller.dislikeCountForPost(b);
+          controller.likeCountForPost(b) - controller.dislikeCountForPost(b);
       return heatB.compareTo(heatA);
     });
 
@@ -1399,10 +1426,8 @@ class _HomeSocialSection extends StatelessWidget {
         children: topPosts
             .map(
               (post) {
-                final fire =
-                    controller.likeCountForPost(post);
-                final ice =
-                    controller.dislikeCountForPost(post);
+                final fire = controller.likeCountForPost(post);
+                final ice = controller.dislikeCountForPost(post);
                 final ReactionType? userReaction =
                     controller.userReactionForPost(post);
 
@@ -1502,8 +1527,7 @@ class _HomeSocialSection extends StatelessWidget {
             Text(
               subtitle,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color
-                    ?.withOpacity(0.8),
+                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
               ),
             ),
           ],

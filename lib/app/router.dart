@@ -12,6 +12,8 @@ import 'package:sociale_vote/features/news/presentation/pages/news_feed_page.dar
 import 'package:sociale_vote/features/social/presentation/pages/social_feed_page.dart';
 import 'package:sociale_vote/features/social/presentation/pages/post_detail_page.dart';
 
+import 'package:sociale_vote/features/profile/presentation/pages/my_profile_page.dart';
+
 class AppRouter {
   static const String home = '/';
   static const String polls = '/polls';
@@ -22,6 +24,9 @@ class AppRouter {
   // 🔹 SOCIAL
   static const String social = '/social';
   static const String socialDetail = '/social/detail';
+
+  // 🔹 PROFILE
+  static const String profile = '/profile';
 
   static const String initialRoute = home;
 
@@ -78,6 +83,13 @@ class AppRouter {
           );
         }
         break;
+
+      // 🔹 PROFILE
+      case profile:
+        return MaterialPageRoute<void>(
+          builder: (_) => const MyProfilePage(),
+          settings: settings,
+        );
 
       default:
         break;
