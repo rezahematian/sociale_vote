@@ -1,3 +1,5 @@
+import 'poll_option_dto.dart';
+
 class PollDto {
   final String id;
   final String title;
@@ -36,21 +38,21 @@ class PollDto {
 
   factory PollDto.fromJson(Map<String, dynamic> json) {
     return PollDto(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'],
-      type: json['type'],
-      status: json['status'],
-      options: (json['options'] as List)
-          .map((o) => PollOptionDto.fromJson(o))
+      id: json['id'] as String,
+      title: json['title'] as String,
+      description: json['description'] as String?,
+      type: json['type'] as String,
+      status: json['status'] as String,
+      options: (json['options'] as List<dynamic>)
+          .map((o) => PollOptionDto.fromJson(o as Map<String, dynamic>))
           .toList(),
-      minSelections: json['minSelections'],
-      maxSelections: json['maxSelections'],
-      participationScope: json['participationScope'] ?? 'everyone',
-      participationCountryCode: json['participationCountryCode'],
-      countryCode: json['countryCode'],
-      cityId: json['cityId'],
-      createdByUserId: json['createdByUserId'],
+      minSelections: json['minSelections'] as int,
+      maxSelections: json['maxSelections'] as int,
+      participationScope: json['participationScope'] as String? ?? 'everyone',
+      participationCountryCode: json['participationCountryCode'] as String?,
+      countryCode: json['countryCode'] as String?,
+      cityId: json['cityId'] as String?,
+      createdByUserId: json['createdByUserId'] as String?,
     );
   }
 
@@ -69,30 +71,6 @@ class PollDto {
       'countryCode': countryCode,
       'cityId': cityId,
       'createdByUserId': createdByUserId,
-    };
-  }
-}
-
-class PollOptionDto {
-  final String id;
-  final String label;
-
-  PollOptionDto({
-    required this.id,
-    required this.label,
-  });
-
-  factory PollOptionDto.fromJson(Map<String, dynamic> json) {
-    return PollOptionDto(
-      id: json['id'],
-      label: json['label'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'label': label,
     };
   }
 }

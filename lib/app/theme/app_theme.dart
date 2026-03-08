@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'colors.dart';
-import 'typography.dart';
 import 'radius.dart';
+import 'typography.dart';
 
 /// Theme centrale di Sociale_Vote.
 ///
@@ -28,8 +28,6 @@ class AppTheme {
       onSecondary: AppColors.textInverted,
       error: AppColors.error,
       onError: AppColors.textInverted,
-      background: AppColors.background,
-      onBackground: AppColors.textPrimary,
       surface: AppColors.surface,
       onSurface: AppColors.textPrimary,
     );
@@ -78,64 +76,56 @@ class AppTheme {
             width: 1,
           ),
         ),
-        margin: EdgeInsets.zero, // i margini li gestiamo nei layout
+        margin: EdgeInsets.zero,
       ),
 
       // =========================================================
       // BUTTON
-      // (in futuro AppButton userà questi valori come base)
       // =========================================================
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
-          backgroundColor:
-              MaterialStateProperty.resolveWith<Color>((states) {
-            if (states.contains(MaterialState.disabled)) {
-              return AppColors.primary.withOpacity(0.4);
+          backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return AppColors.primary.withValues(alpha: 0.4);
             }
             return AppColors.primary;
           }),
-          foregroundColor:
-              MaterialStateProperty.all<Color>(AppColors.textInverted),
-          overlayColor: MaterialStateProperty.resolveWith<Color?>(
-            (states) {
-              if (states.contains(MaterialState.pressed)) {
-                return AppColors.primaryDark.withOpacity(0.12);
-              }
-              return null;
-            },
+          foregroundColor: WidgetStateProperty.all<Color>(
+            AppColors.textInverted,
           ),
-          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(WidgetState.pressed)) {
+              return AppColors.primaryDark.withValues(alpha: 0.12);
+            }
+            return null;
+          }),
+          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
             RoundedRectangleBorder(
               borderRadius: AppRadius.buttonRadius,
             ),
           ),
-          // 🔧 IMPORTANTE: larghezza FINITA, non Infinity
-          minimumSize: MaterialStateProperty.all<Size>(
+          minimumSize: WidgetStateProperty.all<Size>(
             const Size(64, 44),
           ),
-          elevation: MaterialStateProperty.all<double>(0),
+          elevation: WidgetStateProperty.all<double>(0),
         ),
       ),
 
       textButtonTheme: TextButtonThemeData(
         style: ButtonStyle(
-          foregroundColor:
-              MaterialStateProperty.all<Color>(AppColors.primary),
-          overlayColor: MaterialStateProperty.resolveWith<Color?>(
-            (states) {
-              if (states.contains(MaterialState.pressed)) {
-                return AppColors.primarySoftBackground;
-              }
-              return null;
-            },
-          ),
-          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          foregroundColor: WidgetStateProperty.all<Color>(AppColors.primary),
+          overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(WidgetState.pressed)) {
+              return AppColors.primarySoftBackground;
+            }
+            return null;
+          }),
+          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
             RoundedRectangleBorder(
               borderRadius: AppRadius.buttonRadius,
             ),
           ),
-          // Anche qui: niente Infinity
-          minimumSize: MaterialStateProperty.all<Size>(
+          minimumSize: WidgetStateProperty.all<Size>(
             const Size(48, 36),
           ),
         ),
@@ -143,29 +133,25 @@ class AppTheme {
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: ButtonStyle(
-          foregroundColor:
-              MaterialStateProperty.all<Color>(AppColors.primary),
-          side: MaterialStateProperty.all<BorderSide>(
+          foregroundColor: WidgetStateProperty.all<Color>(AppColors.primary),
+          side: WidgetStateProperty.all<BorderSide>(
             const BorderSide(
               color: AppColors.primary,
               width: 1,
             ),
           ),
-          overlayColor: MaterialStateProperty.resolveWith<Color?>(
-            (states) {
-              if (states.contains(MaterialState.pressed)) {
-                return AppColors.primarySoftBackground;
-              }
-              return null;
-            },
-          ),
-          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(WidgetState.pressed)) {
+              return AppColors.primarySoftBackground;
+            }
+            return null;
+          }),
+          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
             RoundedRectangleBorder(
               borderRadius: AppRadius.buttonRadius,
             ),
           ),
-          // E soprattutto qui, per il tuo _FollowScopeButton:
-          minimumSize: MaterialStateProperty.all<Size>(
+          minimumSize: WidgetStateProperty.all<Size>(
             const Size(48, 36),
           ),
         ),
