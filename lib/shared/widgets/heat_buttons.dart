@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
-import '../../features/news/news_item.dart';
+
+enum HeatState {
+  none,
+  hot,
+  cold,
+}
 
 /// CivicHeatButtons
 ///
-/// Stateless – stato reale gestito dal NewsController
+/// Stateless – stato reale gestito dal controller chiamante
 ///
 /// Comportamento:
-/// - tap hot → toggle gestito dal controller
-/// - tap cold → toggle gestito dal controller
+/// - tap hot → toggle gestito dal caller
+/// - tap cold → toggle gestito dal caller
 /// - nessuna logica locale sui contatori
 class CivicHeatButtons extends StatelessWidget {
   final int hotCount;
   final int coldCount;
-  final HeatVote userVote;
+  final HeatState userVote;
 
   final VoidCallback? onHot;
   final VoidCallback? onCold;
@@ -38,8 +43,8 @@ class CivicHeatButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isHot = userVote == HeatVote.hot;
-    final isCold = userVote == HeatVote.cold;
+    final isHot = userVote == HeatState.hot;
+    final isCold = userVote == HeatState.cold;
 
     return Row(
       mainAxisSize: MainAxisSize.min,

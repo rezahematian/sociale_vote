@@ -16,9 +16,9 @@ class AuthService {
     await Future.delayed(const Duration(milliseconds: 400));
 
     final user = UserIdentity(
-      id: 'user_${email.hashCode}',
-      email: email,
-      verified: true,
+      userId: 'user_${email.hashCode}',
+      username: email,
+      isVerified: true,
     );
 
     final token = AuthToken(
@@ -26,7 +26,11 @@ class AuthService {
       expiresAt: DateTime.now().add(const Duration(hours: 12)),
     );
 
-    final session = AuthSession(user: user, token: token);
+    final session = AuthSession(
+      user: user,
+      token: token,
+    );
+
     await storage.save(session);
 
     return session;

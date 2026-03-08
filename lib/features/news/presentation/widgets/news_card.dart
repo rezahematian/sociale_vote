@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sociale_vote/app/di.dart';
-import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
+import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/shared/widgets/app_card.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
@@ -49,8 +49,7 @@ class NewsCard extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    // Wrapper che applica l'AuthGuard prima di eseguire le callback reali.
-    VoidCallback? _wrapReactCallback(VoidCallback? original) {
+    VoidCallback? wrapReactCallback(VoidCallback? original) {
       if (original == null) return null;
 
       return () async {
@@ -64,26 +63,30 @@ class NewsCard extends StatelessWidget {
       };
     }
 
-    // Accesso "safe" ai campi senza toccare Domain.
     final dynamic n = news;
 
-    final String title = (n.title is String && (n.title as String).trim().isNotEmpty)
-        ? (n.title as String).trim()
-        : news.toString();
+    final String title =
+        (n.title is String && (n.title as String).trim().isNotEmpty)
+            ? (n.title as String).trim()
+            : news.toString();
 
-    final String? description = (n.description is String && (n.description as String).trim().isNotEmpty)
-        ? (n.description as String).trim()
-        : null;
+    final String? description =
+        (n.description is String &&
+                (n.description as String).trim().isNotEmpty)
+            ? (n.description as String).trim()
+            : null;
 
-    final String? imageUrl = (n.imageUrl is String && (n.imageUrl as String).trim().isNotEmpty)
-        ? (n.imageUrl as String).trim()
-        : (n.image is String && (n.image as String).trim().isNotEmpty)
+    final String? imageUrl =
+        (n.imageUrl is String && (n.imageUrl as String).trim().isNotEmpty)
+            ? (n.imageUrl as String).trim()
+            : (n.image is String && (n.image as String).trim().isNotEmpty)
             ? (n.image as String).trim()
             : null;
 
-    final String? sourceName = (n.sourceName is String && (n.sourceName as String).trim().isNotEmpty)
-        ? (n.sourceName as String).trim()
-        : (n.source is String && (n.source as String).trim().isNotEmpty)
+    final String? sourceName =
+        (n.sourceName is String && (n.sourceName as String).trim().isNotEmpty)
+            ? (n.sourceName as String).trim()
+            : (n.source is String && (n.source as String).trim().isNotEmpty)
             ? (n.source as String).trim()
             : null;
 
@@ -101,7 +104,7 @@ class NewsCard extends StatelessWidget {
         ? null
         : 'https://www.google.com/s2/favicons?domain=$domain&sz=64';
 
-    Future<void> _openSource() async {
+    Future<void> openSource() async {
       if (url == null || url.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.newsDetail_openSourceUnavailable)),
@@ -122,7 +125,7 @@ class NewsCard extends StatelessWidget {
         mode: LaunchMode.externalApplication,
       );
 
-      if (!ok) {
+      if (!ok && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.newsDetail_openSourceUnavailable)),
         );
@@ -133,9 +136,10 @@ class NewsCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevated: true,
       onTap: () {
-        Navigator.of(context).pushNamed(
-          AppRouter.newsDetail,
-          news.id,
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => NewsDetailPage(news: news),
+          ),
         );
       },
       child: Padding(
@@ -143,12 +147,12 @@ class NewsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ===== HEADER: favicon + source + time + open source =====
             Row(
               children: [
                 _Favicon(
                   url: faviconUrl,
-                  fallbackLetter: (sourceName != null && sourceName.isNotEmpty)
+                  fallbackLetter:
+                      (sourceName != null && sourceName.isNotEmpty)
                       ? sourceName[0].toUpperCase()
                       : 'N',
                 ),
@@ -178,11 +182,9 @@ class NewsCard extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                // ✅ Apri articolo originale (fonte)
                 IconButton(
                   tooltip: l10n.newsDetail_openSource,
-                  onPressed: _openSource,
+                  onPressed: openSource,
                   icon: Icon(
                     Icons.open_in_new,
                     size: 20,
@@ -191,10 +193,7 @@ class NewsCard extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
-            // ===== TITLE =====
             Text(
               title,
               maxLines: 3,
@@ -204,7 +203,6 @@ class NewsCard extends StatelessWidget {
                 height: 1.15,
               ),
             ),
-
             if (description != null) ...[
               const SizedBox(height: 8),
               Text(
@@ -217,7 +215,6 @@ class NewsCard extends StatelessWidget {
                 ),
               ),
             ],
-
             if (imageUrl != null) ...[
               const SizedBox(height: 12),
               ClipRRect(
@@ -249,7 +246,7 @@ class NewsCard extends StatelessWidget {
                             value: progress.expectedTotalBytes == null
                                 ? null
                                 : progress.cumulativeBytesLoaded /
-                                    (progress.expectedTotalBytes ?? 1),
+                                      (progress.expectedTotalBytes ?? 1),
                           ),
                         ),
                       );
@@ -258,12 +255,9 @@ class NewsCard extends StatelessWidget {
                 ),
               ),
             ],
-
             const SizedBox(height: 12),
             const Divider(height: 1),
             const SizedBox(height: 8),
-
-            // ===== FOOTER: COMMENT COUNT + ENGAGEMENT BAR =====
             Row(
               children: [
                 _CommentCountBadge(news: news),
@@ -271,8 +265,8 @@ class NewsCard extends StatelessWidget {
                 EngagementBar(
                   fireCount: fireCount,
                   iceCount: iceCount,
-                  onFireTap: _wrapReactCallback(onFireTap),
-                  onIceTap: _wrapReactCallback(onIceTap),
+                  onFireTap: wrapReactCallback(onFireTap),
+                  onIceTap: wrapReactCallback(onIceTap),
                 ),
               ],
             ),
@@ -314,7 +308,6 @@ class NewsCard extends StatelessWidget {
   }
 }
 
-/// Mini widget per favicon con fallback.
 class _Favicon extends StatelessWidget {
   final String? url;
   final String fallbackLetter;
@@ -362,7 +355,6 @@ class _Favicon extends StatelessWidget {
   }
 }
 
-/// Badge che mostra il numero di commenti per questa news usando il dominio `discussion/`.
 class _CommentCountBadge extends StatelessWidget {
   final NewsItem news;
 
