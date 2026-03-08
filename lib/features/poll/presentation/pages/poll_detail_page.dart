@@ -7,22 +7,20 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
-import 'package:sociale_vote/domain/poll/entities/poll_option.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_status.dart';
-import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
 import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
-import 'package:sociale_vote/domain/poll/value_objects/poll_outcome.dart';
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
 import 'package:sociale_vote/features/discussion/presentation/widgets/comment_section.dart';
-import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
 import '../../application/poll_detail_controller.dart';
 import '../../application/poll_result_controller.dart';
 import '../../application/poll_state.dart';
 import '../../application/vote_controller.dart';
-import '../widgets/poll_result_chart.dart';
+import '../widgets/poll_detail_header.dart';
+import '../widgets/poll_options_section.dart';
+import '../widgets/poll_results_section.dart';
 
 class PollDetailPage extends StatefulWidget {
   final PollId pollId;
@@ -213,12 +211,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
     final l10n = AppLocalizations.of(context)!;
 
     final config = poll.configuration;
-
     final visibilityMode = config.visibilityRules.resultsVisibility;
-    final anonymityLevel = config.anonymityRules.level;
-    final participationScope = config.participationRules.scope;
-    final minQuorum = config.quorumRules.minAbsoluteVotes;
-
     final totalVotes = _resultController.result?.totalVotes ?? 0;
 
     final int fireCount = _controller.likeCount();
@@ -234,41 +227,10 @@ class _PollDetailPageState extends State<PollDetailPage> {
       padding: const EdgeInsets.all(16.0),
       child: ListView(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  poll.title,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  _isFavorite ? Icons.star : Icons.star_border,
-                  color: _isFavorite
-                      ? theme.colorScheme.primary
-                      : theme.iconTheme.color,
-                ),
-                tooltip: _isFavorite
-                    ? l10n.pollDetail_removeFromFavoritesTooltip
-                    : l10n.pollDetail_addToFavoritesTooltip,
-                onPressed: () => _onFavoritePressed(poll),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          if (poll.description != null && poll.description!.isNotEmpty)
-            Text(
-              poll.description!,
-              style: theme.textTheme.bodyMedium,
-            ),
-          const SizedBox(height: 16),
-          _buildMetaRow(context, poll),
-          const SizedBox(height: 12),
-          EngagementBar(
+          PollDetailHeader(
+            poll: poll,
+            isFavorite: _isFavorite,
+            onFavoritePressed: () => _onFavoritePressed(poll),
             fireCount: fireCount,
             iceCount: iceCount,
             userReaction: userReaction,
@@ -296,32 +258,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
               await _controller.toggleIce(userId: userId);
             },
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            children: [
-              if (anonymityLevel.name == 'anonymous')
-                _buildChip(context, l10n.pollDetail_chipAnonymous),
-              if (anonymityLevel.name == 'public')
-                _buildChip(context, l10n.pollDetail_chipPublic),
-              if (participationScope.name == 'geoScopeOnly')
-                _buildChip(context, l10n.pollDetail_chipRestrictedGeo),
-              if (minQuorum != null && _resultController.isQuorumApplicable)
-                _buildChip(
-                  context,
-                  _resultController.isQuorumReached
-                      ? l10n.pollDetail_quorumReached(
-                          totalVotes,
-                          minQuorum,
-                        )
-                      : l10n.pollDetail_quorumNotReached(
-                          totalVotes,
-                          minQuorum,
-                        ),
-                ),
-            ],
+            isQuorumApplicable: _resultController.isQuorumApplicable,
+            isQuorumReached: _resultController.isQuorumReached,
+            totalVotes: totalVotes,
           ),
           const SizedBox(height: 24),
           Text(
@@ -331,8 +270,15 @@ class _PollDetailPageState extends State<PollDetailPage> {
             ),
           ),
           const SizedBox(height: 8),
-          ...poll.options.map(
-            (option) => _buildOptionTile(context, poll, option),
+          PollOptionsSection(
+            poll: poll,
+            selectedOptionIds: _voteController.selectedOptionIds,
+            onToggleOption: (optionId, allowMultiple) {
+              _voteController.toggleOption(
+                optionId,
+                allowMultiple: allowMultiple,
+              );
+            },
           ),
           const SizedBox(height: 24),
           if (poll.status != PollStatus.open) ...[
@@ -378,55 +324,15 @@ class _PollDetailPageState extends State<PollDetailPage> {
                 : Text(l10n.pollDetail_voteButton),
           ),
           const SizedBox(height: 32),
-          if (_resultController.canShowResults) ...[
-            Text(
-              l10n.pollDetail_resultsTitle,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            if (_resultController.hasOutcome) ...[
-              Text(
-                l10n.pollDetail_outcomePrefix(
-                  _mapOutcomeLabel(l10n, _resultController.outcome),
-                ),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-            if (_resultController.isLoading) ...[
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16.0),
-                  child: CircularProgressIndicator(),
-                ),
-              ),
-            ] else if (_resultController.error != null) ...[
-              Text(
-                _resultController.error!,
-                style: TextStyle(color: theme.colorScheme.error),
-              ),
-            ] else if (_resultController.result != null) ...[
-              PollResultChart(result: _resultController.result!),
-            ] else ...[
-              Text(
-                l10n.pollDetail_noResults,
-                style: theme.textTheme.bodySmall,
-              ),
-            ],
-          ] else ...[
-            Text(
-              visibilityMode == ResultsVisibilityMode.afterVote
-                  ? l10n.pollDetail_resultsAfterVote
-                  : l10n.pollDetail_resultsWhenClosed,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
+          PollResultsSection(
+            canShowResults: _resultController.canShowResults,
+            isLoading: _resultController.isLoading,
+            error: _resultController.error,
+            result: _resultController.result,
+            hasOutcome: _resultController.hasOutcome,
+            outcome: _resultController.outcome,
+            visibilityMode: visibilityMode,
+          ),
           const SizedBox(height: 32),
           CommentSection(
             userId: currentUserForComments,
@@ -434,119 +340,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
         ],
       ),
     );
-  }
-
-  Widget _buildMetaRow(BuildContext context, Poll poll) {
-    final l10n = AppLocalizations.of(context)!;
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 4,
-      children: [
-        _buildChip(context, _mapTypeToLabel(l10n, poll.type)),
-        _buildChip(context, _mapStatusToLabel(l10n, poll.status)),
-        _buildChip(context, _mapGeoLabel(l10n, poll)),
-      ],
-    );
-  }
-
-  Widget _buildChip(BuildContext context, String label) {
-    return Chip(label: Text(label));
-  }
-
-  Widget _buildOptionTile(
-    BuildContext context,
-    Poll poll,
-    PollOption option,
-  ) {
-    final isSingleChoice =
-        poll.type == PollType.singleChoice || poll.type == PollType.yesNo;
-
-    final isSelected =
-        _voteController.selectedOptionIds.contains(option.id);
-
-    return ListTile(
-      title: Text(option.label),
-      leading: isSingleChoice
-          ? Icon(
-              isSelected
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_unchecked,
-            )
-          : Icon(
-              isSelected ? Icons.check_box : Icons.check_box_outline_blank,
-            ),
-      onTap: poll.status == PollStatus.open
-          ? () {
-              _voteController.toggleOption(
-                option.id,
-                allowMultiple: !isSingleChoice,
-              );
-            }
-          : null,
-    );
-  }
-
-  String _enumName(Object e) {
-    final text = e.toString();
-    final dotIndex = text.indexOf('.');
-    if (dotIndex == -1) return text;
-    return text.substring(dotIndex + 1);
-  }
-
-  String _mapTypeToLabel(AppLocalizations l10n, PollType type) {
-  switch (type) {
-    case PollType.yesNo:
-      return l10n.pollType_yesNo;
-    case PollType.singleChoice:
-      return l10n.pollType_singleChoice;
-    case PollType.multipleChoice:
-      return l10n.pollType_multipleChoice;
-    case PollType.approval:
-      return l10n.pollType_approval;
-    case PollType.ranked:
-      return l10n.pollType_ranked;
-    case PollType.score:
-      return l10n.pollType_score;
-  }
-}
-
-  String _mapStatusToLabel(AppLocalizations l10n, PollStatus status) {
-    switch (status) {
-      case PollStatus.draft:
-        return l10n.pollStatus_draft;
-      case PollStatus.open:
-        return l10n.pollStatus_open;
-      case PollStatus.closed:
-        return l10n.pollStatus_closed;
-      case PollStatus.scheduled:
-        return l10n.pollStatus_scheduled;
-    }
-  }
-
-  String _mapGeoLabel(AppLocalizations l10n, Poll poll) {
-    final country = poll.countryCode;
-    final city = poll.cityId;
-
-    if (country == null && city == null) return l10n.pollGeo_global;
-    if (country != null && city == null) return country;
-    if (country != null && city != null) return '$city ($country)';
-    return l10n.pollGeo_local;
-  }
-
-  String _mapOutcomeLabel(AppLocalizations l10n, PollOutcome outcome) {
-    switch (outcome) {
-      case PollOutcome.approved:
-        return l10n.pollOutcome_approved;
-      case PollOutcome.rejected:
-        return l10n.pollOutcome_rejected;
-      case PollOutcome.tie:
-        return l10n.pollOutcome_tie;
-      case PollOutcome.noMajority:
-        return l10n.pollOutcome_noMajority;
-      case PollOutcome.notApplicable:
-        return l10n.pollOutcome_notApplicable;
-    }
   }
 
   String? _mapVoteErrorToText(AppLocalizations l10n) {
