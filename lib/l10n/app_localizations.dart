@@ -1028,7 +1028,7 @@ abstract class AppLocalizations {
   /// No description provided for @pollType_score.
   ///
   /// In en, this message translates to:
-  /// **'Score / Rating'**
+  /// **'Score voting'**
   String get pollType_score;
 
   /// No description provided for @pollVisibility_whileOpen.

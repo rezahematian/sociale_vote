@@ -12,8 +12,6 @@ import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_status.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
 import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
-import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
-import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_outcome.dart';
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
 import 'package:sociale_vote/features/discussion/presentation/widgets/comment_section.dart';
@@ -56,7 +54,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
     _voteController = di.createVoteController();
     _resultController = di.createPollResultController();
 
-    // Passiamo anche l'userId così il dettaglio conosce già userReaction.
     final userId = di.currentUserId;
     _controller.loadPoll(widget.pollId, userId: userId);
   }
@@ -96,7 +93,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
   }
 
   Future<void> _onFavoritePressed(Poll poll) async {
-    // Usa la stessa policy delle reazioni per ora.
     final allowed = await AuthGuard.ensureCanPerformAction(
       context,
       ParticipationAction.react,
@@ -138,7 +134,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
           }
 
           if (state is PollDetailError) {
-            // state.message si assume già localizzato a monte oppure tecnico
             return Center(child: Text(state.message));
           }
 
@@ -154,20 +149,16 @@ class _PollDetailPageState extends State<PollDetailPage> {
               );
             }
 
-            // Init stato preferito solo una volta, se l'utente è loggato.
             if (AppDI.instance.currentUserId != null &&
                 !_favoriteInitialized) {
               _favoriteInitialized = true;
               _initFavoriteStatus(poll);
             }
 
-            // === DiscussionController per questo poll (TargetRef.poll) ===
             return ChangeNotifierProvider<DiscussionController>(
-              create: (_) => AppDI.instance
-                  .createDiscussionController(
-                    TargetRef.poll(poll.id.value),
-                  )
-                ..loadComments(),
+              create: (_) => AppDI.instance.createDiscussionController(
+                TargetRef.poll(poll.id.value),
+              )..loadComments(),
               child: AnimatedBuilder(
                 animation: Listenable.merge([
                   _voteController,
@@ -190,7 +181,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
     if (poll.status != PollStatus.open) return;
     if (!_canVote(poll)) return;
 
-    // 🔐 Controllo permessi: per votare bisogna essere loggati.
     final allowed = await AuthGuard.ensureCanPerformAction(
       context,
       ParticipationAction.vote,
@@ -201,11 +191,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
     final userId = AppDI.instance.currentUserId;
     if (userId == null) {
-      // Se succede, significa che policy/guard non sono coerenti.
       return;
     }
 
-    // v1: non abbiamo ancora country utente → passiamo solo userId.
     await _voteController.submitVote(
       poll: poll,
       userId: userId,
@@ -237,7 +225,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
     final int iceCount = _controller.dislikeCount();
     final userReaction = _controller.userReaction;
 
-    // Per la sezione commenti usiamo l'utente corrente per etichettare i propri commenti.
     final String currentUserForComments =
         AppDI.instance.currentUserId ?? 'guest';
 
@@ -273,23 +260,19 @@ class _PollDetailPageState extends State<PollDetailPage> {
             ],
           ),
           const SizedBox(height: 8),
-
           if (poll.description != null && poll.description!.isNotEmpty)
-            Text(poll.description!, style: theme.textTheme.bodyMedium),
-
+            Text(
+              poll.description!,
+              style: theme.textTheme.bodyMedium,
+            ),
           const SizedBox(height: 16),
-
           _buildMetaRow(context, poll),
-
           const SizedBox(height: 12),
-
-          // ===== ENGAGEMENT BAR (🔥 / ❄) =====
           EngagementBar(
             fireCount: fireCount,
             iceCount: iceCount,
             userReaction: userReaction,
             onFireTap: () async {
-              // 🔐 Reazione protetta: guest non può usare 🔥/❄
               final allowed = await AuthGuard.ensureCanPerformAction(
                 context,
                 ParticipationAction.react,
@@ -314,9 +297,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
               await _controller.toggleIce(userId: userId);
             },
           ),
-
           const SizedBox(height: 16),
-
           Wrap(
             spacing: 8,
             runSpacing: 4,
@@ -342,9 +323,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
                 ),
             ],
           ),
-
           const SizedBox(height: 24),
-
           Text(
             l10n.pollDetail_optionsTitle,
             style: theme.textTheme.titleMedium?.copyWith(
@@ -352,13 +331,10 @@ class _PollDetailPageState extends State<PollDetailPage> {
             ),
           ),
           const SizedBox(height: 8),
-
           ...poll.options.map(
             (option) => _buildOptionTile(context, poll, option),
           ),
-
           const SizedBox(height: 24),
-
           if (poll.status != PollStatus.open) ...[
             Text(
               poll.status == PollStatus.closed
@@ -372,7 +348,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
             ),
             const SizedBox(height: 12),
           ],
-
           if (voteErrorText != null) ...[
             Text(
               voteErrorText,
@@ -380,7 +355,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
             ),
             const SizedBox(height: 12),
           ],
-
           if (_voteController.submittedSuccessfully) ...[
             Text(
               l10n.pollDetail_voteSubmitted,
@@ -391,7 +365,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
             ),
             const SizedBox(height: 12),
           ],
-
           FilledButton(
             onPressed: _canVote(poll)
                 ? () => _onVotePressed(context, poll)
@@ -404,9 +377,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
                   )
                 : Text(l10n.pollDetail_voteButton),
           ),
-
           const SizedBox(height: 32),
-
           if (_resultController.canShowResults) ...[
             Text(
               l10n.pollDetail_resultsTitle,
@@ -415,8 +386,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
               ),
             ),
             const SizedBox(height: 8),
-
-            // ===== OUTCOME UFFICIALE (MAJORITY) =====
             if (_resultController.hasOutcome) ...[
               Text(
                 l10n.pollDetail_outcomePrefix(
@@ -428,7 +397,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
               ),
               const SizedBox(height: 8),
             ],
-
             if (_resultController.isLoading) ...[
               const Center(
                 child: Padding(
@@ -459,10 +427,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
               ),
             ),
           ],
-
           const SizedBox(height: 32),
-
-          // ===== COMMENT SECTION (DISCUSSION UNIFICATO) =====
           CommentSection(
             userId: currentUserForComments,
           ),
@@ -490,7 +455,10 @@ class _PollDetailPageState extends State<PollDetailPage> {
   }
 
   Widget _buildOptionTile(
-      BuildContext context, Poll poll, PollOption option) {
+    BuildContext context,
+    Poll poll,
+    PollOption option,
+  ) {
     final isSingleChoice =
         poll.type == PollType.singleChoice || poll.type == PollType.yesNo;
 
@@ -500,12 +468,14 @@ class _PollDetailPageState extends State<PollDetailPage> {
     return ListTile(
       title: Text(option.label),
       leading: isSingleChoice
-          ? Icon(isSelected
-              ? Icons.radio_button_checked
-              : Icons.radio_button_unchecked)
-          : Icon(isSelected
-              ? Icons.check_box
-              : Icons.check_box_outline_blank),
+          ? Icon(
+              isSelected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
+            )
+          : Icon(
+              isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+            ),
       onTap: poll.status == PollStatus.open
           ? () {
               _voteController.toggleOption(
@@ -525,19 +495,21 @@ class _PollDetailPageState extends State<PollDetailPage> {
   }
 
   String _mapTypeToLabel(AppLocalizations l10n, PollType type) {
-    switch (type) {
-      case PollType.yesNo:
-        return l10n.pollType_yesNo;
-      case PollType.singleChoice:
-        return l10n.pollType_singleChoice;
-      case PollType.multipleChoice:
-        return l10n.pollType_multipleChoice;
-      case PollType.approval:
-        return l10n.pollType_approval;
-      default:
-        return _enumName(type);
-    }
+  switch (type) {
+    case PollType.yesNo:
+      return l10n.pollType_yesNo;
+    case PollType.singleChoice:
+      return l10n.pollType_singleChoice;
+    case PollType.multipleChoice:
+      return l10n.pollType_multipleChoice;
+    case PollType.approval:
+      return l10n.pollType_approval;
+    case PollType.ranked:
+      return l10n.pollType_ranked;
+    case PollType.score:
+      return l10n.pollType_score;
   }
+}
 
   String _mapStatusToLabel(AppLocalizations l10n, PollStatus status) {
     switch (status) {
@@ -549,8 +521,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
         return l10n.pollStatus_closed;
       case PollStatus.scheduled:
         return l10n.pollStatus_scheduled;
-      default:
-        return _enumName(status);
     }
   }
 
@@ -588,7 +558,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
       case VoteErrorType.unauthorized:
         return l10n.voteError_unauthorized;
       case VoteErrorType.closed:
-        // Riutilizziamo il messaggio standard di sondaggio chiuso.
         return l10n.pollDetail_statusClosedMessage;
       case VoteErrorType.generic:
         return l10n.voteError_generic;

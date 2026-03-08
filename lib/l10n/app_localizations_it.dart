@@ -500,10 +500,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get pollList_emptyMessage => 'Nessun sondaggio che corrisponde a questo filtro per quest’area.';
 
   @override
-  String get pollType_ranked => 'Voto a graduatoria';
+  String get pollType_ranked => 'Voto a classifica';
 
   @override
-  String get pollType_score => 'Punteggio / Valutazione';
+  String get pollType_score => 'Voto a punteggio';
 
   @override
   String get pollVisibility_whileOpen => 'Risultati visibili durante l\'apertura';

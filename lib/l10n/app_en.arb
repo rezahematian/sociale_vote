@@ -385,6 +385,9 @@
   "newsTopic_sports": "Sports",
   "newsTopic_entertainment": "Entertainment",
 
+  "pollType_ranked": "Ranked choice",
+  "pollType_score": "Score voting",
+
   "newsDetail_openSource": "Open source article",
   "@newsDetail_openSource": {
   "description": "Button to open the original article from the source website"

@@ -503,7 +503,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollType_ranked => 'Ranked choice';
 
   @override
-  String get pollType_score => 'Score / Rating';
+  String get pollType_score => 'Score voting';
 
   @override
   String get pollVisibility_whileOpen => 'Results visible while open';

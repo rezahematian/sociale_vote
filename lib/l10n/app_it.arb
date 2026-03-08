@@ -408,6 +408,9 @@
   "newsTopic_health": "Salute",
   "newsTopic_sports": "Sport",
   "newsTopic_entertainment": "Intrattenimento",
+  
+  "pollType_ranked": "Voto a classifica",
+  "pollType_score": "Voto a punteggio",
 
   "newsDetail_openSource": "Apri fonte",
   "@newsDetail_openSource": {
