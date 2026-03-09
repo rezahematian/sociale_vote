@@ -249,7 +249,7 @@ class NewsController extends ChangeNotifier {
       countryCode: countryCode,
       cityId: cityId,
       topic: _selectedTopic.apiValue,
-      language: _languageApiValue(_selectedLanguage), // ✅ language filter (safe)
+      language: _languageApiValue(_selectedLanguage),
       limit: _pageSize,
       offset: _currentOffset,
     );

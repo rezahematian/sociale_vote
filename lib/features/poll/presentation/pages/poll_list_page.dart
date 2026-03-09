@@ -3,16 +3,19 @@ import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
-import 'package:sociale_vote/app/theme/spacing.dart';
+import 'package:sociale_vote/app/theme/colors.dart';
 import 'package:sociale_vote/app/theme/radius.dart';
+import 'package:sociale_vote/app/theme/spacing.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 import 'package:sociale_vote/features/poll/application/poll_list_controller.dart';
 import 'package:sociale_vote/features/poll/presentation/widgets/poll_card.dart';
-import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/services/auth_guard.dart';
+import 'package:sociale_vote/shared/ui/app_card.dart';
+import 'package:sociale_vote/shared/ui/loading_indicator.dart';
 
 class PollListPage extends StatefulWidget {
   const PollListPage({super.key});
@@ -61,7 +64,6 @@ class _PollListPageState extends State<PollListPage> {
       case GeoScopeLevel.country:
         return scope.countryCode ?? l10n.pollList_scopeCountryFallback;
       case GeoScopeLevel.city:
-        // Se hai cityName in futuro, puoi mostrarlo qui.
         return scope.cityId ?? l10n.pollList_scopeCityFallback;
     }
   }
@@ -116,7 +118,6 @@ class _PollListPageState extends State<PollListPage> {
       value: _pollListController,
       child: Builder(
         builder: (context) {
-          final theme = Theme.of(context);
           final l10n = AppLocalizations.of(context)!;
 
           return Scaffold(
@@ -141,7 +142,6 @@ class _PollListPageState extends State<PollListPage> {
                     controller: _scrollController,
                     padding: AppSpacing.page,
                     children: [
-                      // ===== HEADER COMPATTO (MODELLO A) =====
                       _buildScopeHeader(
                         context,
                         l10n: l10n,
@@ -151,24 +151,17 @@ class _PollListPageState extends State<PollListPage> {
                       ),
                       const SizedBox(height: AppSpacing.unitS),
 
-                      // ===== FILTRI COMPATTATI IN UN'UNICA FASCIA =====
                       _buildFiltersRow(context, controller),
                       const SizedBox(height: AppSpacing.unitL),
 
-                      // ===== LOADING INIZIALE =====
                       if (controller.isLoading && visiblePolls.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 24),
-                          child: Center(
-                            child: CircularProgressIndicator(),
-                          ),
+                        const LoadingIndicator(
+                          padding: EdgeInsets.only(top: AppSpacing.l),
                         ),
 
-                      // ===== EMPTY STATE =====
                       if (!controller.isLoading && visiblePolls.isEmpty)
                         _buildEmptyStateCard(context),
 
-                      // ===== LISTA POLL FILTRATA + ORDINATA DAL CONTROLLER =====
                       if (visiblePolls.isNotEmpty)
                         ...visiblePolls.map(
                           (poll) {
@@ -187,10 +180,7 @@ class _PollListPageState extends State<PollListPage> {
                                   arguments: poll.id,
                                 );
 
-                                // Quando torniamo dal dettaglio, ricarichiamo i poll
-                                // includendo la userReaction.
-                                final userId =
-                                    AppDI.instance.currentUserId;
+                                final userId = AppDI.instance.currentUserId;
                                 await pollListController.loadPolls(
                                   userId: userId,
                                 );
@@ -208,8 +198,7 @@ class _PollListPageState extends State<PollListPage> {
                                   );
                                   if (!allowed) return;
 
-                                  final userId =
-                                      AppDI.instance.currentUserId;
+                                  final userId = AppDI.instance.currentUserId;
                                   if (userId == null || userId.isEmpty) {
                                     return;
                                   }
@@ -227,8 +216,7 @@ class _PollListPageState extends State<PollListPage> {
                                   );
                                   if (!allowed) return;
 
-                                  final userId =
-                                      AppDI.instance.currentUserId;
+                                  final userId = AppDI.instance.currentUserId;
                                   if (userId == null || userId.isEmpty) {
                                     return;
                                   }
@@ -243,12 +231,13 @@ class _PollListPageState extends State<PollListPage> {
                           },
                         ),
 
-                      // Hint di paginazione (se ci sono ancora pagine lato sorgente).
                       if (hasMore &&
                           !controller.isLoading &&
                           visiblePolls.isNotEmpty)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.xs,
+                          ),
                           child: Center(
                             child: Text(
                               l10n.pollList_paginationHint,
@@ -257,12 +246,10 @@ class _PollListPageState extends State<PollListPage> {
                           ),
                         ),
 
-                      // Loading bottom mentre carichiamo altre pagine.
                       if (controller.isLoading && visiblePolls.isNotEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          child: Center(
-                            child: CircularProgressIndicator(),
+                        const LoadingIndicator.inline(
+                          padding: EdgeInsets.symmetric(
+                            vertical: AppSpacing.s,
                           ),
                         ),
                     ],
@@ -276,7 +263,6 @@ class _PollListPageState extends State<PollListPage> {
     );
   }
 
-  /// Fascia filtri compatta (scope + status + sort) su una sola riga scrollabile.
   Widget _buildFiltersRow(
     BuildContext context,
     PollListController controller,
@@ -451,7 +437,6 @@ class _PollListPageState extends State<PollListPage> {
     );
   }
 
-  /// Header compatto in stile "product-focused" (modello A).
   Widget _buildScopeHeader(
     BuildContext context, {
     required AppLocalizations l10n,
@@ -474,7 +459,6 @@ class _PollListPageState extends State<PollListPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Riga unica: "World · X poll(s) found"
               Text(
                 l10n.pollList_headerTitle(scopeLabel, pollCount),
                 style: theme.textTheme.titleMedium?.copyWith(
@@ -484,7 +468,6 @@ class _PollListPageState extends State<PollListPage> {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: AppSpacing.unitXS),
-              // Descrizione area molto leggera
               Text(
                 scopeDescription,
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -513,8 +496,6 @@ class _PollListPageState extends State<PollListPage> {
             final pollListController = context.read<PollListController>();
             final userId = AppDI.instance.currentUserId;
 
-            // Se CreatePoll ritorna un PollId,
-            // ricarichiamo i poll e apriamo subito il dettaglio.
             if (result is PollId) {
               await pollListController.loadPolls(userId: userId);
 
@@ -523,7 +504,6 @@ class _PollListPageState extends State<PollListPage> {
                 arguments: result,
               );
             } else if (result == true) {
-              // Fallback per eventuali vecchi flussi (retrocompatibilità)
               await pollListController.loadPolls(userId: userId);
             }
           },
@@ -551,31 +531,23 @@ class _PollListPageState extends State<PollListPage> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppRadius.cardRadius,
-      ),
-      color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
-      child: Padding(
-        padding: AppSpacing.card,
-        child: Column(
-          children: [
-            Icon(
-              Icons.inbox_outlined,
-              size: 32,
-              color: theme.colorScheme.onSurface.withOpacity(0.6),
+    return AppCard(
+      child: Column(
+        children: [
+          Icon(
+            Icons.inbox_outlined,
+            size: 32,
+            color: AppColors.textMuted,
+          ),
+          const SizedBox(height: AppSpacing.unitS),
+          Text(
+            l10n.pollList_emptyMessage,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(height: AppSpacing.unitS),
-            Text(
-              l10n.pollList_emptyMessage,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

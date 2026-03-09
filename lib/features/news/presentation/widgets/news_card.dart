@@ -10,6 +10,7 @@ import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/shared/ui/app_card.dart';
+import 'package:sociale_vote/shared/ui/loading_indicator.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
 /// Card visuale per una singola news.
@@ -47,6 +48,7 @@ class NewsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
     VoidCallback? wrapReactCallback(VoidCallback? original) {
@@ -80,15 +82,15 @@ class NewsCard extends StatelessWidget {
         (n.imageUrl is String && (n.imageUrl as String).trim().isNotEmpty)
             ? (n.imageUrl as String).trim()
             : (n.image is String && (n.image as String).trim().isNotEmpty)
-            ? (n.image as String).trim()
-            : null;
+                ? (n.image as String).trim()
+                : null;
 
     final String? sourceName =
         (n.sourceName is String && (n.sourceName as String).trim().isNotEmpty)
             ? (n.sourceName as String).trim()
             : (n.source is String && (n.source as String).trim().isNotEmpty)
-            ? (n.source as String).trim()
-            : null;
+                ? (n.source as String).trim()
+                : null;
 
     final String? url = (n.url is String && (n.url as String).trim().isNotEmpty)
         ? (n.url as String).trim()
@@ -153,8 +155,8 @@ class NewsCard extends StatelessWidget {
                   url: faviconUrl,
                   fallbackLetter:
                       (sourceName != null && sourceName.isNotEmpty)
-                      ? sourceName[0].toUpperCase()
-                      : 'N',
+                          ? sourceName[0].toUpperCase()
+                          : 'N',
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -169,16 +171,18 @@ class NewsCard extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        timeAgo,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(0.65),
-                          fontWeight: FontWeight.w500,
+                      if (timeAgo.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          timeAgo,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurface.withOpacity(0.65),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -188,7 +192,7 @@ class NewsCard extends StatelessWidget {
                   icon: Icon(
                     Icons.open_in_new,
                     size: 20,
-                    color: theme.colorScheme.onSurface.withOpacity(0.75),
+                    color: colorScheme.onSurface.withOpacity(0.75),
                   ),
                 ),
               ],
@@ -210,7 +214,7 @@ class NewsCard extends StatelessWidget {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.78),
+                  color: colorScheme.onSurface.withOpacity(0.78),
                   height: 1.25,
                 ),
               ),
@@ -225,29 +229,23 @@ class NewsCard extends StatelessWidget {
                     imageUrl,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
-                      color: theme.colorScheme.onSurface.withOpacity(0.06),
+                      color: colorScheme.onSurface.withOpacity(0.06),
                       alignment: Alignment.center,
                       child: Icon(
                         Icons.image_not_supported_outlined,
                         size: 22,
-                        color: theme.colorScheme.onSurface.withOpacity(0.35),
+                        color: colorScheme.onSurface.withOpacity(0.35),
                       ),
                     ),
                     loadingBuilder: (context, child, progress) {
                       if (progress == null) return child;
                       return Container(
-                        color: theme.colorScheme.onSurface.withOpacity(0.06),
+                        color: colorScheme.onSurface.withOpacity(0.06),
                         alignment: Alignment.center,
-                        child: SizedBox(
+                        child: const SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            value: progress.expectedTotalBytes == null
-                                ? null
-                                : progress.cumulativeBytesLoaded /
-                                      (progress.expectedTotalBytes ?? 1),
-                          ),
+                          child: LoadingIndicator(),
                         ),
                       );
                     },
@@ -320,6 +318,7 @@ class _Favicon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     Widget fallback() {
       return Container(
@@ -327,14 +326,14 @@ class _Favicon extends StatelessWidget {
         height: 22,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: theme.colorScheme.onSurface.withOpacity(0.08),
+          color: colorScheme.onSurface.withOpacity(0.08),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
           fallbackLetter,
           style: theme.textTheme.labelSmall?.copyWith(
             fontWeight: FontWeight.w800,
-            color: theme.colorScheme.onSurface.withOpacity(0.75),
+            color: colorScheme.onSurface.withOpacity(0.75),
           ),
         ),
       );
@@ -363,6 +362,7 @@ class _CommentCountBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return FutureBuilder(
       future: AppDI.instance.getCommentsForTarget(TargetRef.news(news.id.value)),
@@ -388,13 +388,13 @@ class _CommentCountBadge extends StatelessWidget {
             Icon(
               Icons.comment_outlined,
               size: 14,
-              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              color: colorScheme.onSurface.withOpacity(0.7),
             ),
             const SizedBox(width: 4),
             Text(
               '$count',
               style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.8),
+                color: colorScheme.onSurface.withOpacity(0.8),
                 fontWeight: FontWeight.w500,
               ),
             ),

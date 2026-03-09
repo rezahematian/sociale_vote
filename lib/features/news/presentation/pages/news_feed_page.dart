@@ -11,6 +11,8 @@ import 'package:sociale_vote/features/news/domain/news_language.dart';
 import 'package:sociale_vote/features/news/domain/news_topic.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
+import 'package:sociale_vote/shared/ui/app_card.dart';
+import 'package:sociale_vote/shared/ui/loading_indicator.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api.dart';
@@ -315,7 +317,11 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
             // 1) Stato di loading iniziale
             if (controller.isLoading && allNews.isEmpty) {
               return const Center(
-                child: CircularProgressIndicator(),
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: LoadingIndicator(),
+                ),
               );
             }
 
@@ -383,7 +389,11 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                       return const Padding(
                         padding: EdgeInsets.symmetric(vertical: 12),
                         child: Center(
-                          child: CircularProgressIndicator(),
+                          child: SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: LoadingIndicator(),
+                          ),
                         ),
                       );
                     }
@@ -460,12 +470,8 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+    return AppCard(
+      elevated: true,
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
@@ -522,12 +528,8 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+    return AppCard(
+      elevated: false,
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Column(
@@ -579,37 +581,43 @@ class _NewsErrorView extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 40,
-              color: theme.colorScheme.error,
+        child: AppCard(
+          elevated: true,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 40,
+                  color: theme.colorScheme.error,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  l10n.newsFeed_errorTitle,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.hintColor,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () => onRetry(),
+                  icon: const Icon(Icons.refresh),
+                  label: Text(l10n.newsFeed_retryButton),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              l10n.newsFeed_errorTitle,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.hintColor,
-              ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () => onRetry(),
-              icon: const Icon(Icons.refresh),
-              label: Text(l10n.newsFeed_retryButton),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -698,7 +706,7 @@ class _NewsCard extends StatelessWidget {
                             child: const SizedBox(
                               width: 22,
                               height: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: LoadingIndicator(),
                             ),
                           );
                         },

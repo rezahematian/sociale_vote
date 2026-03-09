@@ -5,7 +5,9 @@ import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
+import 'package:sociale_vote/domain/poll/entities/poll_result.dart';
 import 'package:sociale_vote/features/poll/application/poll_list_controller.dart';
+import 'package:sociale_vote/features/poll/application/poll_result_controller.dart';
 import 'package:sociale_vote/features/poll/presentation/widgets/poll_card.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
@@ -39,10 +41,12 @@ class HomePollSection extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          l10n.homePollsTitle(scopeShortLabel),
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+        Expanded(
+          child: Text(
+            l10n.homePollsTitle(scopeShortLabel),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],
@@ -54,7 +58,7 @@ class HomePollSection extends StatelessWidget {
 
     if (controller.isLoading && allPolls.isEmpty) {
       content = const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
+        padding: EdgeInsets.symmetric(vertical: 20),
         child: Center(
           child: CircularProgressIndicator(),
         ),
@@ -83,56 +87,10 @@ class HomePollSection extends StatelessWidget {
         children: polls
             .map(
               (poll) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: GestureDetector(
-                  onTap: () async {
-                    await Navigator.pushNamed(
-                      context,
-                      AppRouter.pollDetail,
-                      arguments: poll.id,
-                    );
-
-                    final userId = AppDI.instance.currentUserId;
-                    await controller.loadPolls(userId: userId);
-                  },
-                  child: PollCard(
-                    poll: poll,
-                    fireCount: controller.likeCountForPoll(poll),
-                    iceCount: controller.dislikeCountForPoll(poll),
-                    userReaction: controller.userReactionForPoll(poll),
-                    onFireTap: () async {
-                      final allowed =
-                          await AuthGuard.ensureCanPerformAction(
-                        context,
-                        ParticipationAction.react,
-                      );
-                      if (!allowed) return;
-
-                      final userId = AppDI.instance.currentUserId;
-                      if (userId == null || userId.isEmpty) return;
-
-                      await controller.toggleFireForPoll(
-                        userId: userId,
-                        poll: poll,
-                      );
-                    },
-                    onIceTap: () async {
-                      final allowed =
-                          await AuthGuard.ensureCanPerformAction(
-                        context,
-                        ParticipationAction.react,
-                      );
-                      if (!allowed) return;
-
-                      final userId = AppDI.instance.currentUserId;
-                      if (userId == null || userId.isEmpty) return;
-
-                      await controller.toggleIceForPoll(
-                        userId: userId,
-                        poll: poll,
-                      );
-                    },
-                  ),
+                padding: const EdgeInsets.only(bottom: 14),
+                child: _HomePollCardTile(
+                  key: ValueKey(poll.id.value),
+                  poll: poll,
                 ),
               ),
             )
@@ -144,7 +102,7 @@ class HomePollSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         header,
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         content,
         const SizedBox(height: 8),
         Align(
@@ -161,6 +119,121 @@ class HomePollSection extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _HomePollCardTile extends StatefulWidget {
+  final Poll poll;
+
+  const _HomePollCardTile({
+    super.key,
+    required this.poll,
+  });
+
+  @override
+  State<_HomePollCardTile> createState() => _HomePollCardTileState();
+}
+
+class _HomePollCardTileState extends State<_HomePollCardTile> {
+  late final PollResultController _resultController;
+
+  @override
+  void initState() {
+    super.initState();
+    _resultController = AppDI.instance.createPollResultController();
+    _loadResults();
+  }
+
+  @override
+  void didUpdateWidget(covariant _HomePollCardTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.poll.id.value != widget.poll.id.value) {
+      _resultController.reset();
+      _loadResults();
+    }
+  }
+
+  Future<void> _loadResults() async {
+    await _resultController.loadResults(
+      poll: widget.poll,
+      userHasVoted: false,
+    );
+  }
+
+  Future<void> _openDetailAndRefresh() async {
+    final controller = context.read<PollListController>();
+
+    await Navigator.pushNamed(
+      context,
+      AppRouter.pollDetail,
+      arguments: widget.poll.id,
+    );
+
+    final userId = AppDI.instance.currentUserId;
+
+    await controller.loadPolls(userId: userId);
+    await _loadResults();
+  }
+
+  @override
+  void dispose() {
+    _resultController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = context.watch<PollListController>();
+
+    return AnimatedBuilder(
+      animation: _resultController,
+      builder: (context, _) {
+        final PollResult? result = _resultController.canShowResults
+            ? _resultController.result
+            : null;
+
+        return GestureDetector(
+          onTap: _openDetailAndRefresh,
+          child: PollCard(
+            poll: widget.poll,
+            result: result,
+            fireCount: controller.likeCountForPoll(widget.poll),
+            iceCount: controller.dislikeCountForPoll(widget.poll),
+            userReaction: controller.userReactionForPoll(widget.poll),
+            onFireTap: () async {
+              final allowed = await AuthGuard.ensureCanPerformAction(
+                context,
+                ParticipationAction.react,
+              );
+              if (!allowed) return;
+
+              final userId = AppDI.instance.currentUserId;
+              if (userId == null || userId.isEmpty) return;
+
+              await controller.toggleFireForPoll(
+                userId: userId,
+                poll: widget.poll,
+              );
+            },
+            onIceTap: () async {
+              final allowed = await AuthGuard.ensureCanPerformAction(
+                context,
+                ParticipationAction.react,
+              );
+              if (!allowed) return;
+
+              final userId = AppDI.instance.currentUserId;
+              if (userId == null || userId.isEmpty) return;
+
+              await controller.toggleIceForPoll(
+                userId: userId,
+                poll: widget.poll,
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
@@ -187,7 +260,7 @@ class HomePollsPlaceholderCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -197,7 +270,7 @@ class HomePollsPlaceholderCard extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
               subtitle,
               style: theme.textTheme.bodyMedium?.copyWith(

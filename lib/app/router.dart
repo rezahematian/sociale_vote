@@ -1,31 +1,26 @@
 import 'package:flutter/material.dart';
+
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 
 import 'package:sociale_vote/features/home/presentation/pages/public_home_screen.dart';
-
-import 'package:sociale_vote/features/poll/presentation/pages/poll_list_page.dart';
-import 'package:sociale_vote/features/poll/presentation/pages/poll_detail_page.dart';
-import 'package:sociale_vote/features/poll/presentation/pages/create_poll_page.dart';
-
 import 'package:sociale_vote/features/news/presentation/pages/news_feed_page.dart';
-
-import 'package:sociale_vote/features/social/presentation/pages/social_feed_page.dart';
-import 'package:sociale_vote/features/social/presentation/pages/post_detail_page.dart';
-
+import 'package:sociale_vote/features/poll/presentation/pages/create_poll_page.dart';
+import 'package:sociale_vote/features/poll/presentation/pages/poll_detail_page.dart';
+import 'package:sociale_vote/features/poll/presentation/pages/poll_list_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_profile_page.dart';
+import 'package:sociale_vote/features/social/presentation/pages/post_detail_page.dart';
+import 'package:sociale_vote/features/social/presentation/pages/social_feed_page.dart';
 
 class AppRouter {
+  AppRouter._();
+
   static const String home = '/';
   static const String polls = '/polls';
   static const String pollDetail = '/polls/detail';
   static const String createPoll = '/polls/create';
   static const String news = '/news';
-
-  // 🔹 SOCIAL
   static const String social = '/social';
   static const String socialDetail = '/social/detail';
-
-  // 🔹 PROFILE
   static const String profile = '/profile';
 
   static const String initialRoute = home;
@@ -66,14 +61,12 @@ class AppRouter {
           settings: settings,
         );
 
-      // 🔹 SOCIAL FEED
       case social:
         return MaterialPageRoute<void>(
           builder: (_) => const SocialFeedPage(),
           settings: settings,
         );
 
-      // 🔹 POST DETAIL
       case socialDetail:
         final args = settings.arguments;
         if (args is String) {
@@ -84,18 +77,13 @@ class AppRouter {
         }
         break;
 
-      // 🔹 PROFILE
       case profile:
         return MaterialPageRoute<void>(
           builder: (_) => const MyProfilePage(),
           settings: settings,
         );
-
-      default:
-        break;
     }
 
-    // Fallback sicuro
     return MaterialPageRoute<void>(
       builder: (_) => const PublicHomeScreen(),
       settings: settings,

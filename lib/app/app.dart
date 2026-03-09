@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/app/theme/app_theme.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/services/navigation_service.dart';
 
 class SocialeVoteApp extends StatelessWidget {
   const SocialeVoteApp({super.key});
@@ -11,6 +12,7 @@ class SocialeVoteApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: NavigationService.navigatorKey,
       title: 'Sociale Vote',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
