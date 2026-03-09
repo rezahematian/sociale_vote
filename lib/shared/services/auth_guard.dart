@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/app/theme/radius.dart';
+import 'package:sociale_vote/app/theme/spacing.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
+import 'package:sociale_vote/shared/ui/ui.dart';
 
 enum _AuthGuardResult {
   loggedIn,
@@ -27,19 +30,16 @@ class AuthGuard {
   ) async {
     final userId = AppDI.instance.currentUserId;
 
-    // 1️⃣ Controllo policy
     if (_policy.canPerform(userId: userId, action: action)) {
       return true;
     }
 
-    // 2️⃣ Guest → mostra login sheet
     final result = await _showLoginRequiredSheet(context, action);
 
     if (result != _AuthGuardResult.loggedIn) {
       return false;
     }
 
-    // 3️⃣ Dopo login, ricontrolliamo
     final newUserId = AppDI.instance.currentUserId;
     return _policy.canPerform(userId: newUserId, action: action);
   }
@@ -52,39 +52,19 @@ class AuthGuard {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: AppRadius.sheetRadius,
       ),
       builder: (sheetContext) {
         final theme = Theme.of(sheetContext);
-
-        String actionLabel;
-        switch (action) {
-          case ParticipationAction.vote:
-            actionLabel = 'votare';
-            break;
-          case ParticipationAction.createPoll:
-            actionLabel = 'creare una votazione';
-            break;
-          case ParticipationAction.react:
-            actionLabel = 'reagire con 🔥 o ❄';
-            break;
-          case ParticipationAction.comment:
-            actionLabel = 'commentare';
-            break;
-          case ParticipationAction.createPost:
-            actionLabel = 'creare un post';
-            break;
-          case ParticipationAction.followScope:
-            actionLabel = 'seguire quest\'area geografica';
-            break;
-        }
+        final actionLabel = _actionLabel(action);
 
         return Padding(
           padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
-            top: 16,
+            left: AppSpacing.m,
+            right: AppSpacing.m,
+            top: AppSpacing.m,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom +
+                AppSpacing.m,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -92,31 +72,30 @@ class AuthGuard {
               Container(
                 width: 40,
                 height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
+                margin: const EdgeInsets.only(bottom: AppSpacing.s),
                 decoration: BoxDecoration(
                   color: theme.dividerColor,
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: AppRadius.pillRadius,
                 ),
               ),
               Text(
                 'Vuoi partecipare?',
                 style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 'Per $actionLabel devi accedere o registrarti. '
                 'Come ospite puoi solo visualizzare contenuti.',
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
-
-              // LOGIN
+              const SizedBox(height: AppSpacing.m),
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: AppButton.secondary(
+                      label: 'Accedi',
                       onPressed: () async {
                         await AppDI.instance.sessionRepository
                             .saveCurrentUserId('user-1');
@@ -124,12 +103,12 @@ class AuthGuard {
                         Navigator.of(sheetContext)
                             .pop(_AuthGuardResult.loggedIn);
                       },
-                      child: const Text('Accedi'),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.xs),
                   Expanded(
-                    child: ElevatedButton(
+                    child: AppButton.primary(
+                      label: 'Registrati',
                       onPressed: () async {
                         final newUserId =
                             'user-${DateTime.now().millisecondsSinceEpoch}';
@@ -139,25 +118,39 @@ class AuthGuard {
                         Navigator.of(sheetContext)
                             .pop(_AuthGuardResult.loggedIn);
                       },
-                      child: const Text('Registrati'),
                     ),
                   ),
                 ],
               ),
-
-              const SizedBox(height: 8),
-
-              TextButton(
+              const SizedBox(height: AppSpacing.xs),
+              AppButton.text(
+                label: 'Continua come ospite',
                 onPressed: () {
                   Navigator.of(sheetContext)
                       .pop(_AuthGuardResult.cancelled);
                 },
-                child: const Text('Continua come ospite'),
               ),
             ],
           ),
         );
       },
     );
+  }
+
+  static String _actionLabel(ParticipationAction action) {
+    switch (action) {
+      case ParticipationAction.vote:
+        return 'votare';
+      case ParticipationAction.createPoll:
+        return 'creare una votazione';
+      case ParticipationAction.react:
+        return 'reagire con 🔥 o ❄';
+      case ParticipationAction.comment:
+        return 'commentare';
+      case ParticipationAction.createPost:
+        return 'creare un post';
+      case ParticipationAction.followScope:
+        return 'seguire quest\'area geografica';
+    }
   }
 }

@@ -22,11 +22,10 @@ class CountrySelectorField extends StatelessWidget {
     final countries = data.Countries.all;
     final effectiveLabel = required ? '$label *' : label;
 
-    // Trova il paese selezionato (se esiste)
     final selected = countries.firstWhere(
       (c) =>
           c.code.toUpperCase() == (selectedCountryCode ?? '').toUpperCase(),
-      orElse: () => data.Country(code: '', name: ''),
+      orElse: () => const data.Country(code: '', name: ''),
     );
 
     final hasSelected =
@@ -40,13 +39,12 @@ class CountrySelectorField extends StatelessWidget {
       child: AbsorbPointer(
         child: TextFormField(
           readOnly: true,
+          initialValue: textValue,
           decoration: InputDecoration(
             labelText: effectiveLabel,
-            border: const OutlineInputBorder(),
             helperText: 'Tap to search and choose a country.',
             suffixIcon: const Icon(Icons.arrow_drop_down),
           ),
-          controller: TextEditingController(text: textValue),
         ),
       ),
     );
@@ -56,7 +54,7 @@ class CountrySelectorField extends StatelessWidget {
     final countries = data.Countries.all;
 
     String query = '';
-    String? resultCode = await showDialog<String>(
+    final String? resultCode = await showDialog<String>(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
@@ -65,7 +63,6 @@ class CountrySelectorField extends StatelessWidget {
               if (query.isEmpty) return true;
               final q = query.toLowerCase();
 
-              // 🔹 FILTRO: solo paesi che COMINCIANO con la query
               return c.name.toLowerCase().startsWith(q) ||
                   c.code.toLowerCase().startsWith(q);
             }).toList();
@@ -82,7 +79,6 @@ class CountrySelectorField extends StatelessWidget {
                       decoration: const InputDecoration(
                         prefixIcon: Icon(Icons.search),
                         hintText: 'Type to filter countries...',
-                        border: OutlineInputBorder(),
                       ),
                       onChanged: (value) {
                         setState(() {
@@ -101,8 +97,7 @@ class CountrySelectorField extends StatelessWidget {
                               title: Text(country.name),
                               subtitle: Text(country.code),
                               onTap: () {
-                                Navigator.of(dialogContext)
-                                    .pop(country.code);
+                                Navigator.of(dialogContext).pop(country.code);
                               },
                             );
                           },

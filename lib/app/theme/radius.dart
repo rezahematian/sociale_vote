@@ -19,8 +19,8 @@ class AppRadius {
   // VALORI GREZZI
   // =========================================================
 
-  /// Radius per card (contenitori principali).
-  static const double card = 16.0;
+  /// Radius molto piccolo (icone container, mini badge).
+  static const double small = 8.0;
 
   /// Radius per button (primary/secondary/outlined).
   static const double button = 12.0;
@@ -28,34 +28,54 @@ class AppRadius {
   /// Radius per campi di input.
   static const double input = 12.0;
 
-  /// Radius per sheet / modali top-rounded.
+  /// Radius per card standard.
+  static const double card = 16.0;
+
+  /// Radius card più grandi (hero container / panels).
+  static const double cardLarge = 20.0;
+
+  /// Radius per sheet / modali.
   static const double sheet = 20.0;
 
-  /// Radius "pill" (chip, badge, label arrotondate).
+  /// Radius per dialog.
+  static const double dialog = 18.0;
+
+  /// Radius "pill" (chip, badge).
   static const double pill = 999.0;
 
   // =========================================================
   // BORDER RADIUS COMODI
   // =========================================================
 
-  /// BorderRadius per card standard.
-  static BorderRadius get cardRadius =>
-      BorderRadius.circular(card);
+  /// BorderRadius piccolo.
+  static const BorderRadius smallRadius =
+      BorderRadius.all(Radius.circular(small));
 
-  /// BorderRadius per button standard.
-  static BorderRadius get buttonRadius =>
-      BorderRadius.circular(button);
+  /// BorderRadius per button.
+  static const BorderRadius buttonRadius =
+      BorderRadius.all(Radius.circular(button));
 
-  /// BorderRadius per input standard.
-  static BorderRadius get inputRadius =>
-      BorderRadius.circular(input);
+  /// BorderRadius per input.
+  static const BorderRadius inputRadius =
+      BorderRadius.all(Radius.circular(input));
 
-  /// BorderRadius per bottom sheet / dialog top-rounded.
-  static const BorderRadius sheetRadius = BorderRadius.vertical(
-    top: Radius.circular(sheet),
-  );
+  /// BorderRadius per card.
+  static const BorderRadius cardRadius =
+      BorderRadius.all(Radius.circular(card));
 
-  /// BorderRadius per pill / chip full-rounded.
-  static BorderRadius get pillRadius =>
-      BorderRadius.circular(pill);
+  /// BorderRadius card grandi.
+  static const BorderRadius cardLargeRadius =
+      BorderRadius.all(Radius.circular(cardLarge));
+
+  /// BorderRadius per dialog.
+  static const BorderRadius dialogRadius =
+      BorderRadius.all(Radius.circular(dialog));
+
+  /// BorderRadius per bottom sheet.
+  static const BorderRadius sheetRadius =
+      BorderRadius.vertical(top: Radius.circular(sheet));
+
+  /// BorderRadius pill.
+  static const BorderRadius pillRadius =
+      BorderRadius.all(Radius.circular(pill));
 }

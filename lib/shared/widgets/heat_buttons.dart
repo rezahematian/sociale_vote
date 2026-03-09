@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:sociale_vote/app/theme/colors.dart';
+import 'package:sociale_vote/app/theme/radius.dart';
+import 'package:sociale_vote/app/theme/spacing.dart';
+
 enum HeatState {
   none,
   hot,
@@ -53,16 +57,18 @@ class CivicHeatButtons extends StatelessWidget {
           icon: Icons.local_fire_department,
           label: hotCount.toString(),
           active: isHot,
-          activeColor: Colors.deepOrange,
-          onTap: _handleHot,
+          activeColor: AppColors.heat,
+          softColor: AppColors.heatSoftBackground,
+          onTap: onHot != null ? _handleHot : null,
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: AppSpacing.xs),
         _HeatButton(
           icon: Icons.ac_unit,
           label: coldCount.toString(),
           active: isCold,
-          activeColor: Colors.lightBlue,
-          onTap: _handleCold,
+          activeColor: AppColors.cool,
+          softColor: AppColors.coolSoftBackground,
+          onTap: onCold != null ? _handleCold : null,
         ),
       ],
     );
@@ -74,38 +80,45 @@ class _HeatButton extends StatelessWidget {
   final String label;
   final bool active;
   final Color activeColor;
-  final VoidCallback onTap;
+  final Color softColor;
+  final VoidCallback? onTap;
 
   const _HeatButton({
     required this.icon,
     required this.label,
     required this.active,
     required this.activeColor,
+    required this.softColor,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? activeColor : Colors.grey.shade600;
+    final Color color = active ? activeColor : AppColors.icon;
+    final Color background = active ? softColor : Colors.transparent;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: AppRadius.pillRadius,
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xs,
+          vertical: AppSpacing.xxs,
+        ),
         decoration: BoxDecoration(
-          color: active ? activeColor.withOpacity(0.15) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+          color: background,
+          borderRadius: AppRadius.pillRadius,
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 18, color: color),
-            const SizedBox(width: 4),
+            const SizedBox(width: AppSpacing.xxs),
             Text(
               label,
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: color,
               ),
             ),

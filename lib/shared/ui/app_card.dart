@@ -53,12 +53,10 @@ class AppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final EdgeInsetsGeometry effectivePadding =
-        padding ?? AppSpacing.card;
+    final EdgeInsetsGeometry effectivePadding = padding ?? AppSpacing.card;
 
-    // Colore di base della surface
     Color backgroundColor = theme.cardColor;
-    BorderSide? borderSide;
+    final BorderSide borderSide;
 
     if (selected) {
       backgroundColor = AppColors.primarySoftBackground;
@@ -73,30 +71,35 @@ class AppCard extends StatelessWidget {
       );
     }
 
-    final ShapeBorder shape = RoundedRectangleBorder(
+    final shape = RoundedRectangleBorder(
       borderRadius: AppRadius.cardRadius,
       side: borderSide,
     );
 
     final double elevationValue = elevated ? 3.0 : 0.0;
 
-    Widget content = Material(
-      color: backgroundColor,
-      elevation: elevationValue,
-      shadowColor: elevated
-          ? Colors.black.withOpacity(0.08)
-          : Colors.transparent,
-      shape: shape,
-      child: InkWell(
+    Widget cardChild = Padding(
+      padding: effectivePadding,
+      child: child,
+    );
+
+    if (onTap != null) {
+      cardChild = InkWell(
         onTap: onTap,
         borderRadius: AppRadius.cardRadius,
         splashColor: AppColors.primarySoftBackground,
         highlightColor: AppColors.primarySoftBackground.withOpacity(0.4),
-        child: Padding(
-          padding: effectivePadding,
-          child: child,
-        ),
-      ),
+        child: cardChild,
+      );
+    }
+
+    Widget content = Material(
+      color: backgroundColor,
+      elevation: elevationValue,
+      shadowColor: elevated ? AppColors.shadow : Colors.transparent,
+      shape: shape,
+      clipBehavior: Clip.antiAlias,
+      child: cardChild,
     );
 
     if (margin != null) {

@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 /// Sistema di spacing centrale di Sociale_Vote.
 ///
 /// Regole:
-/// - Grid base 4/8px (4 come sotto-unità, 8 come step principale)
+/// - Grid base 4/8px
 /// - Padding card = 16
 /// - Spaziatura sezione = 24
 /// - Niente numeri magici sparsi: usare sempre [AppSpacing].
@@ -11,60 +11,87 @@ class AppSpacing {
   AppSpacing._();
 
   // =========================================================
-  // UNITÀ BASE
+  // SCALE BASE
   // =========================================================
 
-  /// Unità base di spacing (grid fine): 4px.
-  static const double unitXS = 4.0;
-
-  /// Unità base principale (grid): 8px.
-  static const double unitS = 8.0;
-
-  /// Unità media: 12px (usata raramente).
-  static const double unitM = 12.0;
-
-  /// Unità grande: 16px (padding card, contenitori principali).
-  static const double unitL = 16.0;
-
-  /// Unità extra: 24px (spaziatura tra sezioni).
-  static const double unitXL = 24.0;
-
-  /// Unità enorme: 32px (hero / separatori forti).
-  static const double unitXXL = 32.0;
-
-  // Alias più semantici (opzionali, ma leggibili):
-
-  static const double cardPadding = unitL; // 16
-  static const double sectionSpacing = unitXL; // 24
-  static const double pagePadding = unitL; // 16
+  static const double xxs = 4.0;
+  static const double xs = 8.0;
+  static const double s = 12.0;
+  static const double m = 16.0;
+  static const double l = 24.0;
+  static const double xl = 32.0;
+  static const double xxl = 40.0;
+  static const double xxxl = 48.0;
 
   // =========================================================
-  // EDGEINSETS COMUNI
+  // COMPATIBILITÀ RETRO
+  // =========================================================
+  // Manteniamo i vecchi nomi usati già nel progetto
+  // per non rompere i file esistenti.
+
+  static const double unitXS = xxs;   // 4
+  static const double unitS = xs;     // 8
+  static const double unitM = s;      // 12
+  static const double unitL = m;      // 16
+  static const double unitXL = l;     // 24
+  static const double unitXXL = xl;   // 32
+
+  // =========================================================
+  // ALIAS SEMANTICI
   // =========================================================
 
-  /// Padding standard per una pagina (left/right/top/bottom).
+  /// Padding principale delle pagine.
+  static const double pagePadding = m;
+
+  /// Padding interno delle card.
+  static const double cardPadding = m;
+
+  /// Spaziatura tra sezioni principali.
+  static const double sectionSpacing = l;
+
+  /// Spaziatura tra blocchi importanti.
+  static const double blockSpacing = xl;
+
+  // =========================================================
+  // EDGE INSETS PREDEFINITI
+  // =========================================================
+
+  /// Padding pagina completo.
   static const EdgeInsets page = EdgeInsets.all(pagePadding);
 
-  /// Padding orizzontale pagina (es. ListView padding).
+  /// Padding orizzontale pagina.
   static const EdgeInsets pageHorizontal =
       EdgeInsets.symmetric(horizontal: pagePadding);
 
-  /// Padding verticale pagina (per blocchi in colonna).
+  /// Padding verticale pagina.
   static const EdgeInsets pageVertical =
-      EdgeInsets.symmetric(vertical: unitS);
+      EdgeInsets.symmetric(vertical: xs);
 
   /// Padding standard per card.
   static const EdgeInsets card = EdgeInsets.all(cardPadding);
 
-  /// Padding verticale per card (quando l’orizzontale è gestito dal layout).
+  /// Padding verticale card.
   static const EdgeInsets cardVertical =
-      EdgeInsets.symmetric(vertical: unitS);
+      EdgeInsets.symmetric(vertical: xs);
 
-  /// Spaziatura standard tra sezioni (solo top).
+  /// Padding interno contenitori grandi.
+  static const EdgeInsets block = EdgeInsets.all(m);
+
+  /// Spazio sopra una sezione.
   static const EdgeInsets sectionTop =
       EdgeInsets.only(top: sectionSpacing);
 
-  /// Spaziatura tra elementi di lista (es. tra card).
+  /// Spazio tra elementi di lista.
   static const EdgeInsets listItemSpacing =
-      EdgeInsets.only(top: unitS);
+      EdgeInsets.only(top: xs);
+
+  // =========================================================
+  // GAPS RAPIDI
+  // =========================================================
+
+  static const SizedBox gapXS = SizedBox(height: xs);
+  static const SizedBox gapS = SizedBox(height: s);
+  static const SizedBox gapM = SizedBox(height: m);
+  static const SizedBox gapL = SizedBox(height: l);
+  static const SizedBox gapXL = SizedBox(height: xl);
 }

@@ -9,7 +9,7 @@ import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
-import 'package:sociale_vote/shared/widgets/app_card.dart';
+import 'package:sociale_vote/shared/ui/app_card.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
 /// Card visuale per una singola news.

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+
+import 'package:sociale_vote/app/theme/colors.dart';
+import 'package:sociale_vote/app/theme/radius.dart';
+import 'package:sociale_vote/app/theme/spacing.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 
 /// Barra di engagement riutilizzabile con icone:
@@ -9,9 +13,9 @@ import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart'
 /// - usata per post social, poll, news
 /// - evidenzia la reazione selezionata dall’utente tramite [userReaction]
 /// - colore:
-///   - nessuna reazione → grigio
-///   - 🔥 selezionato → arancione
-///   - ❄ selezionato → blu
+///   - nessuna reazione → neutro
+///   - 🔥 selezionato → heat
+///   - ❄ selezionato → cool
 class EngagementBar extends StatelessWidget {
   final int fireCount;
   final int iceCount;
@@ -19,7 +23,7 @@ class EngagementBar extends StatelessWidget {
   /// Reazione corrente dell’utente su questo target.
   /// - [ReactionType.like]    → 🔥 evidenziato
   /// - [ReactionType.dislike] → ❄ evidenziato
-  /// - null → nessun evidenziato (entrambi grigi)
+  /// - null → nessun evidenziato
   final ReactionType? userReaction;
 
   final VoidCallback? onFireTap;
@@ -41,10 +45,6 @@ class EngagementBar extends StatelessWidget {
     final isFireSelected = userReaction == ReactionType.like;
     final isIceSelected = userReaction == ReactionType.dislike;
 
-    // Colori fissi per coerenza in tutta l’app
-    const fireActiveColor = Colors.orange; // 🔥
-    const iceActiveColor = Colors.blue; // ❄
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
@@ -53,16 +53,18 @@ class EngagementBar extends StatelessWidget {
           count: fireCount,
           onTap: onFireTap,
           isSelected: isFireSelected,
-          activeColor: fireActiveColor,
+          activeColor: AppColors.heat,
+          softColor: AppColors.heatSoftBackground,
           textStyle: textStyle,
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: AppSpacing.m),
         _EngagementButton(
           emoji: '❄',
           count: iceCount,
           onTap: onIceTap,
           isSelected: isIceSelected,
-          activeColor: iceActiveColor,
+          activeColor: AppColors.cool,
+          softColor: AppColors.coolSoftBackground,
           textStyle: textStyle,
         ),
       ],
@@ -75,11 +77,15 @@ class _EngagementButton extends StatelessWidget {
   final int count;
   final VoidCallback? onTap;
 
-  /// Colore “attivo” di questo tipo di reazione (es. arancione / blu).
+  /// Colore attivo del tipo di reazione.
   final Color activeColor;
+
+  /// Background soft del tipo di reazione.
+  final Color softColor;
+
   final TextStyle? textStyle;
 
-  /// Se true, il bottone è nello stato “selezionato” (utente ha reagito così).
+  /// Se true, il bottone è nello stato “selezionato”.
   final bool isSelected;
 
   const _EngagementButton({
@@ -87,6 +93,7 @@ class _EngagementButton extends StatelessWidget {
     required this.count,
     required this.onTap,
     required this.activeColor,
+    required this.softColor,
     required this.textStyle,
     required this.isSelected,
   });
@@ -95,49 +102,47 @@ class _EngagementButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final baseStyle = textStyle ?? const TextStyle();
 
-    // Grigio quando non selezionato, attivo (arancione/blu) quando selezionato
-    final Color inactiveColor = Colors.grey;
-
-    final effectiveTextColor = isSelected ? activeColor : inactiveColor;
+    final Color inactiveColor = AppColors.icon;
+    final Color effectiveTextColor = isSelected ? activeColor : inactiveColor;
 
     final effectiveStyle = baseStyle.copyWith(
       color: effectiveTextColor,
-      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
     );
 
-    final backgroundColor =
-        isSelected ? activeColor.withOpacity(0.12) : Colors.transparent;
+    final Color backgroundColor =
+        isSelected ? softColor : Colors.transparent;
 
-    final borderColor = isSelected
-        ? activeColor.withOpacity(0.5)
-        : inactiveColor.withOpacity(0.4);
+    final Color borderColor = isSelected
+        ? activeColor.withOpacity(0.45)
+        : AppColors.borderSoft;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(999),
+      borderRadius: AppRadius.pillRadius,
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: AppRadius.pillRadius,
           border: Border.all(
             color: borderColor,
             width: 1,
           ),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xs,
+          vertical: AppSpacing.xxs,
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               emoji,
               style: effectiveStyle.copyWith(
-                fontSize: (effectiveStyle.fontSize != null
-                        ? effectiveStyle.fontSize!
-                        : 14) +
-                    2,
+                fontSize: (effectiveStyle.fontSize ?? 14) + 2,
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: AppSpacing.xxs),
             Text(
               count.toString(),
               style: effectiveStyle,

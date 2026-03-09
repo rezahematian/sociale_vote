@@ -20,11 +20,17 @@ class AppColors {
   /// Sfondo principale dell'app (dietro le card).
   static const Color background = Color(0xFFF7F8FC);
 
+  /// Variante alternativa di background per layering leggero.
+  static const Color backgroundAlt = Color(0xFFF1F5F9);
+
   /// Superficie principale (card, fogli, pannelli).
   static const Color surface = Color(0xFFFFFFFF);
 
-  /// Variante di surface leggermente distinta (es. toolbar leggera).
+  /// Variante di surface leggermente distinta.
   static const Color surfaceAlt = Color(0xFFFDFEFF);
+
+  /// Surface variant per contenitori secondari, placeholder, box informativi.
+  static const Color surfaceVariant = Color(0xFFF8FAFC);
 
   // =========================================================
   // BORDI / DIVIDER
@@ -51,6 +57,9 @@ class AppColors {
 
   /// Variante più scura di primary (pressed state, hover).
   static const Color primaryDark = Color(0xFF1D4ED8);
+
+  /// Variante più chiara di primary.
+  static const Color primaryLight = Color(0xFF60A5FA);
 
   /// Soft background per pill, badge, highlight di primary.
   static const Color primarySoftBackground = Color(0xFFEFF6FF);
@@ -109,7 +118,7 @@ class AppColors {
   static const Color textInverted = Color(0xFFFFFFFF);
 
   // =========================================================
-  // ICON / MISC
+  // ICON / DISABLED
   // =========================================================
 
   /// Icone di default (stato neutro).
@@ -118,15 +127,31 @@ class AppColors {
   /// Icone disabilitate / elementi disattivati.
   static const Color iconDisabled = Color(0xFFCBD5E1);
 
+  /// Colore generico per elementi disabled.
+  static const Color disabled = Color(0xFFD1D5DB);
+
+  // =========================================================
+  // FEEDBACK VISUAL / EFFECTS
+  // =========================================================
+
+  /// Ombra standard molto leggera per card e overlay.
+  static const Color shadow = Color(0x14000000);
+
+  /// Base per skeleton loading.
+  static const Color skeletonBase = Color(0xFFE5E7EB);
+
+  /// Highlight per skeleton loading.
+  static const Color skeletonHighlight = Color(0xFFF3F4F6);
+
   // =========================================================
   // OVERLAY / SCRIM
   // =========================================================
 
   /// Scrim per dialog, bottom sheet, overlay.
-  static const Color scrim = Color(0x99000000); // 60% nero
+  static const Color scrim = Color(0x99000000);
 
   // =========================================================
-  // HELPER: MATERIAL COLOR PRIMARY SWATCH (SE SERVE)
+  // HELPER: MATERIAL COLOR PRIMARY SWATCH
   // =========================================================
 
   /// Swatch Material per compatibilità con vecchie API.

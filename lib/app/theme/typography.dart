@@ -14,21 +14,26 @@ class AppTypography {
 
   /// TextTheme principale da agganciare a ThemeData.
   static const TextTheme textTheme = TextTheme(
-    // Page / App bar titles
-    headlineMedium: _h1,
-    headlineSmall: _h2,
+    // Hero / grandi titoli
+    displayLarge: _heroTitle,
+
+    // Page / app bar titles
+    headlineLarge: _h1,
+    headlineMedium: _h2,
+    headlineSmall: _h3,
 
     // Sezioni / card titles
-    titleLarge: _cardTitle,
-    titleMedium: _sectionTitle,
+    titleLarge: _sectionTitle,
+    titleMedium: _cardTitle,
     titleSmall: _sectionSubtitle,
 
     // Body
-    bodyLarge: _body,
+    bodyLarge: _bodyLarge,
     bodyMedium: _body,
     bodySmall: _meta,
 
-    // Caption / badge
+    // Buttons / labels / caption
+    labelLarge: _buttonLabel,
     labelMedium: _meta,
     labelSmall: _caption,
   );
@@ -37,45 +42,75 @@ class AppTypography {
   // STILI BASE (privati)
   // =========================================================
 
-  /// H1 — Page title / grandi titoli.
+  /// Hero title — grandi titoli introduttivi.
+  static const TextStyle _heroTitle = TextStyle(
+    fontSize: 28,
+    fontWeight: FontWeight.w600,
+    height: 1.1,
+    color: AppColors.textPrimary,
+  );
+
+  /// H1 — Page title / titoli pagina.
   static const TextStyle _h1 = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.w600,
+    height: 1.2,
     color: AppColors.textPrimary,
   );
 
-  /// H2 — Sezioni principali, header importanti.
+  /// H2 — Titoli sezione principali.
   static const TextStyle _h2 = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.w600,
+    height: 1.25,
     color: AppColors.textPrimary,
   );
 
-  /// Card title — Titoli di card / item (Poll, News, Post).
-  static const TextStyle _cardTitle = TextStyle(
-    fontSize: 16,
+  /// H3 — Header minori o sottosezioni.
+  static const TextStyle _h3 = TextStyle(
+    fontSize: 18,
     fontWeight: FontWeight.w500,
+    height: 1.3,
     color: AppColors.textPrimary,
   );
 
-  /// Section title — Titoli secondari / header sezione.
+  /// Section title — titoli sezione.
   static const TextStyle _sectionTitle = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w600,
+    height: 1.3,
     color: AppColors.textPrimary,
   );
 
-  /// Section subtitle — eventuale descrizione sotto il titolo.
+  /// Card title — titoli di card / item (Poll, News, Post).
+  static const TextStyle _cardTitle = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    height: 1.35,
+    color: AppColors.textPrimary,
+  );
+
+  /// Section subtitle — descrizione sotto il titolo.
   static const TextStyle _sectionSubtitle = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w400,
+    height: 1.4,
     color: AppColors.textSecondary,
   );
 
-  /// Body — testo principale (paragrafi, contenuto card).
+  /// Body large — testo leggermente più importante.
+  static const TextStyle _bodyLarge = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w400,
+    height: 1.45,
+    color: AppColors.textPrimary,
+  );
+
+  /// Body — testo principale.
   static const TextStyle _body = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w400,
+    height: 1.45,
     color: AppColors.textPrimary,
   );
 
@@ -83,13 +118,23 @@ class AppTypography {
   static const TextStyle _meta = TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w400,
+    height: 1.35,
     color: AppColors.textSecondary,
   );
 
-  /// Caption — testo molto piccolo (badge, helper, hint).
+  /// Button label — testo bottoni.
+  static const TextStyle _buttonLabel = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    height: 1.2,
+    color: AppColors.textPrimary,
+  );
+
+  /// Caption — testo piccolo (badge, helper, hint).
   static const TextStyle _caption = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w400,
+    height: 1.3,
     color: AppColors.textMuted,
   );
 }

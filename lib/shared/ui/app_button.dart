@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
+import 'package:sociale_vote/app/theme/spacing.dart';
+
 /// Sistema centralizzato per i bottoni di Sociale_Vote.
 ///
 /// Obiettivi:
 /// - Nessun ElevatedButton/OutlinedButton/TextButton sparso nel codice
 /// - Stati coerenti (normal / disabled / loading)
-/// - Radius coerente (10)
-/// - Altezza minima coerente (44)
+/// - Radius coerente
+/// - Altezza minima coerente
 ///
 /// Variante:
 /// - primary
@@ -21,6 +23,7 @@ class AppButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
   final bool isLoading;
+  final bool expanded;
   final _AppButtonVariant variant;
   final IconData? icon;
 
@@ -29,15 +32,15 @@ class AppButton extends StatelessWidget {
     required this.variant,
     this.onPressed,
     this.isLoading = false,
+    this.expanded = false,
     this.icon,
   });
-
-  // ================= PRIMARY =================
 
   factory AppButton.primary({
     required String label,
     VoidCallback? onPressed,
     bool isLoading = false,
+    bool expanded = false,
     IconData? icon,
   }) {
     return AppButton._(
@@ -45,16 +48,16 @@ class AppButton extends StatelessWidget {
       variant: _AppButtonVariant.primary,
       onPressed: onPressed,
       isLoading: isLoading,
+      expanded: expanded,
       icon: icon,
     );
   }
-
-  // ================= SECONDARY =================
 
   factory AppButton.secondary({
     required String label,
     VoidCallback? onPressed,
     bool isLoading = false,
+    bool expanded = false,
     IconData? icon,
   }) {
     return AppButton._(
@@ -62,16 +65,16 @@ class AppButton extends StatelessWidget {
       variant: _AppButtonVariant.secondary,
       onPressed: onPressed,
       isLoading: isLoading,
+      expanded: expanded,
       icon: icon,
     );
   }
-
-  // ================= TEXT =================
 
   factory AppButton.text({
     required String label,
     VoidCallback? onPressed,
     bool isLoading = false,
+    bool expanded = false,
     IconData? icon,
   }) {
     return AppButton._(
@@ -79,6 +82,7 @@ class AppButton extends StatelessWidget {
       variant: _AppButtonVariant.text,
       onPressed: onPressed,
       isLoading: isLoading,
+      expanded: expanded,
       icon: icon,
     );
   }
@@ -86,7 +90,6 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     final bool disabled = onPressed == null || isLoading;
 
     Widget child;
@@ -110,7 +113,7 @@ class AppButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, size: 18),
-          const SizedBox(width: 6),
+          const SizedBox(width: AppSpacing.xs),
           Text(label),
         ],
       );
@@ -118,34 +121,39 @@ class AppButton extends StatelessWidget {
       child = Text(label);
     }
 
+    final double height =
+        variant == _AppButtonVariant.text ? 40 : 44;
+
+    Widget button;
+
     switch (variant) {
       case _AppButtonVariant.primary:
-        return SizedBox(
-          height: 44,
-          child: ElevatedButton(
-            onPressed: disabled ? null : onPressed,
-            child: child,
-          ),
+        button = ElevatedButton(
+          onPressed: disabled ? null : onPressed,
+          child: child,
         );
+        break;
 
       case _AppButtonVariant.secondary:
-        return SizedBox(
-          height: 44,
-          child: OutlinedButton(
-            onPressed: disabled ? null : onPressed,
-            child: child,
-          ),
+        button = OutlinedButton(
+          onPressed: disabled ? null : onPressed,
+          child: child,
         );
+        break;
 
       case _AppButtonVariant.text:
-        return SizedBox(
-          height: 40,
-          child: TextButton(
-            onPressed: disabled ? null : onPressed,
-            child: child,
-          ),
+        button = TextButton(
+          onPressed: disabled ? null : onPressed,
+          child: child,
         );
+        break;
     }
+
+    return SizedBox(
+      height: height,
+      width: expanded ? double.infinity : null,
+      child: button,
+    );
   }
 }
 

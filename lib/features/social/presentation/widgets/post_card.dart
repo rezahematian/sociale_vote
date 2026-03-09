@@ -8,7 +8,7 @@ import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
-import 'package:sociale_vote/shared/widgets/app_card.dart';
+import 'package:sociale_vote/shared/ui/app_card.dart';
 
 /// Card visuale per un singolo post social.
 ///
