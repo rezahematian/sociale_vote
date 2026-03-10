@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
+import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 import 'package:sociale_vote/features/discovery/application/for_you_feed_controller.dart';
 import 'package:sociale_vote/features/home/presentation/widgets/home_post_preview_card.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/services/auth_guard.dart';
 
 class HomeForYouSection extends StatelessWidget {
   final String scopeShortLabel;
@@ -86,14 +90,55 @@ class HomeForYouSection extends StatelessWidget {
           posts.length <= 3 ? posts : posts.take(3).toList(growable: false);
 
       content = Column(
-        children: topPosts
-            .map(
-              (post) => Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: HomePostPreviewCard(post: post),
-              ),
-            )
-            .toList(),
+        children: topPosts.map((post) {
+          final fire = controller.likeCountForPost(post);
+          final ice = controller.dislikeCountForPost(post);
+          final commentCount = controller.commentCountForPost(post);
+          final previewPost = post.copyWith(commentCount: commentCount);
+          final ReactionType? userReaction =
+              controller.userReactionForPost(post);
+
+          return Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: HomePostPreviewCard(
+              post: previewPost,
+              fireCount: fire,
+              iceCount: ice,
+              userReaction: userReaction,
+              onReturnedFromDetail: () {
+                controller.load(
+                  userId: AppDI.instance.currentUserId,
+                );
+              },
+              onFireTap: () async {
+                final allowed = await AuthGuard.ensureCanPerformAction(
+                  context,
+                  ParticipationAction.react,
+                );
+                if (!allowed) return;
+
+                final userId = AppDI.instance.currentUserId!;
+                controller.toggleFireForPost(
+                  userId: userId,
+                  post: post,
+                );
+              },
+              onIceTap: () async {
+                final allowed = await AuthGuard.ensureCanPerformAction(
+                  context,
+                  ParticipationAction.react,
+                );
+                if (!allowed) return;
+
+                final userId = AppDI.instance.currentUserId!;
+                controller.toggleIceForPost(
+                  userId: userId,
+                  post: post,
+                );
+              },
+            ),
+          );
+        }).toList(),
       );
     }
 

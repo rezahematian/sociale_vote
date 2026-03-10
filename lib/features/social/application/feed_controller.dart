@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/content/social/usecases/get_feed.dart';
+import 'package:sociale_vote/domain/discussion/usecases/get_comment_count_for_target.dart';
 import 'package:sociale_vote/domain/engagement/entities/reaction_summary.dart';
 import 'package:sociale_vote/domain/engagement/usecases/get_reaction_summary.dart';
 import 'package:sociale_vote/domain/engagement/usecases/toggle_reaction.dart';
@@ -26,6 +27,7 @@ enum FeedSortMode {
 /// - chiamare il use case [GetFeed] con paginazione (limit/offset)
 /// - gestire reazioni (🔥 / ❄) tramite [ToggleReaction]
 /// - esporre summary delle reazioni per ogni post (conteggi + userReaction)
+/// - esporre conteggio commenti per ogni post
 /// - esporre stato semplice per la UI (loading / error / lista post)
 /// - gestire paginazione reale (loadMorePosts)
 ///
@@ -37,16 +39,19 @@ class FeedController extends ChangeNotifier {
   final GeoScopeController _geoScopeController;
   final ToggleReaction _toggleReaction;
   final GetReactionSummary _getReactionSummary;
+  final GetCommentCountForTarget _getCommentCountForTarget;
 
   FeedController({
     required GetFeed getFeed,
     required GeoScopeController geoScopeController,
     required ToggleReaction toggleReaction,
     required GetReactionSummary getReactionSummary,
+    required GetCommentCountForTarget getCommentCountForTarget,
   })  : _getFeed = getFeed,
         _geoScopeController = geoScopeController,
         _toggleReaction = toggleReaction,
-        _getReactionSummary = getReactionSummary;
+        _getReactionSummary = getReactionSummary,
+        _getCommentCountForTarget = getCommentCountForTarget;
 
   bool _isLoading = false;
   bool _hasError = false;
@@ -58,6 +63,9 @@ class FeedController extends ChangeNotifier {
   /// Reaction summary per postId.
   final Map<String, ReactionSummary> _reactionSummaries =
       <String, ReactionSummary>{};
+
+  /// Comment count per postId.
+  final Map<String, int> _commentCounts = <String, int>{};
 
   /// Paging reale (Fase 4.3).
   static const int _pageSize = 10;
@@ -109,6 +117,10 @@ class FeedController extends ChangeNotifier {
     return summaryForPost(post)?.dislikeCount ?? 0;
   }
 
+  int commentCountForPost(Post post) {
+    return _commentCounts[_postId(post)] ?? post.commentCount;
+  }
+
   ReactionType? userReactionForPost(Post post) {
     return summaryForPost(post)?.userReaction;
   }
@@ -135,6 +147,7 @@ class FeedController extends ChangeNotifier {
     // Reset stato paging + lista corrente
     _posts.clear();
     _reactionSummaries.clear();
+    _commentCounts.clear();
     _currentOffset = 0;
     _hasMoreFromSource = true;
     _lastKnownUserId = userId ?? _lastKnownUserId;
@@ -146,6 +159,7 @@ class FeedController extends ChangeNotifier {
       _errorMessage = 'Impossibile caricare il feed.';
       _posts.clear();
       _reactionSummaries.clear();
+      _commentCounts.clear();
       _currentOffset = 0;
       _hasMoreFromSource = false;
 
@@ -226,6 +240,8 @@ class FeedController extends ChangeNotifier {
       userId: _lastKnownUserId,
     );
 
+    await _loadCommentCountsForPosts(result);
+
     _sortPosts();
   }
 
@@ -246,6 +262,17 @@ class FeedController extends ChangeNotifier {
 
     for (final summary in summaries) {
       _reactionSummaries[summary.target.id] = summary;
+    }
+  }
+
+  Future<void> _loadCommentCountsForPosts(List<Post> posts) async {
+    if (posts.isEmpty) {
+      return;
+    }
+
+    for (final post in posts) {
+      final count = await _getCommentCountForTarget(_targetForPost(post));
+      _commentCounts[_postId(post)] = count;
     }
   }
 

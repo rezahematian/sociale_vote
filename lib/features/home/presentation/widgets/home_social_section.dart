@@ -40,24 +40,42 @@ class HomeSocialSection extends StatelessWidget {
         sorted.length <= 3 ? sorted : sorted.take(3).toList(growable: false);
 
     final header = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: theme.colorScheme.primary.withOpacity(0.08),
           ),
-          padding: const EdgeInsets.all(6),
+          padding: const EdgeInsets.all(8),
           child: Icon(
-            Icons.forum,
+            Icons.forum_rounded,
             size: 18,
             color: theme.colorScheme.primary,
           ),
         ),
-        const SizedBox(width: 8),
-        Text(
-          l10n.homeSocialTitle(scopeShortLabel),
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.homeSocialTitle(scopeShortLabel),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                scopeShortLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -66,9 +84,17 @@ class HomeSocialSection extends StatelessWidget {
     Widget content;
 
     if (controller.isLoading && topPosts.isEmpty) {
-      content = const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
-        child: Center(
+      content = Container(
+        margin: const EdgeInsets.only(top: 4),
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceVariant.withOpacity(0.18),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: theme.colorScheme.outline.withOpacity(0.08),
+          ),
+        ),
+        child: const Center(
           child: CircularProgressIndicator(),
         ),
       );
@@ -91,16 +117,23 @@ class HomeSocialSection extends StatelessWidget {
               (post) {
                 final fire = controller.likeCountForPost(post);
                 final ice = controller.dislikeCountForPost(post);
+                final commentCount = controller.commentCountForPost(post);
+                final previewPost = post.copyWith(commentCount: commentCount);
                 final ReactionType? userReaction =
                     controller.userReactionForPost(post);
 
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.only(bottom: 10),
                   child: HomePostPreviewCard(
-                    post: post,
+                    post: previewPost,
                     fireCount: fire,
                     iceCount: ice,
                     userReaction: userReaction,
+                    onReturnedFromDetail: () {
+                      controller.refresh(
+                        userId: AppDI.instance.currentUserId,
+                      );
+                    },
                     onFireTap: () async {
                       final allowed = await AuthGuard.ensureCanPerformAction(
                         context,
@@ -139,11 +172,11 @@ class HomeSocialSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         header,
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         content,
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Align(
-          alignment: Alignment.centerLeft,
+          alignment: Alignment.centerRight,
           child: TextButton.icon(
             onPressed: () {
               Navigator.pushNamed(
@@ -151,7 +184,7 @@ class HomeSocialSection extends StatelessWidget {
                 AppRouter.social,
               );
             },
-            icon: const Icon(Icons.arrow_forward),
+            icon: const Icon(Icons.arrow_outward_rounded, size: 18),
             label: Text(l10n.homeSocialViewFeedButton),
           ),
         ),
@@ -166,29 +199,33 @@ class HomeSocialSection extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
 
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(top: 8),
-      color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 4),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant.withOpacity(0.22),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.08),
+        ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
               style: theme.textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
               subtitle,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
+                color: theme.colorScheme.onSurfaceVariant,
+                height: 1.35,
               ),
             ),
           ],

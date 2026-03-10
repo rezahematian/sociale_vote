@@ -14,11 +14,13 @@ class DiscussionController extends ChangeNotifier {
   final TargetRef target;
   final AddComment _addComment;
   final GetCommentsForTarget _getCommentsForTarget;
+  final VoidCallback? onCommentsChanged;
 
   DiscussionController({
     required this.target,
     required AddComment addComment,
     required GetCommentsForTarget getCommentsForTarget,
+    this.onCommentsChanged,
   })  : _addComment = addComment,
         _getCommentsForTarget = getCommentsForTarget;
 
@@ -59,9 +61,7 @@ class DiscussionController extends ChangeNotifier {
   }
 
   List<Comment> repliesFor(String parentId) {
-    final replies = _comments
-        .where((c) => c.parentId == parentId)
-        .toList()
+    final replies = _comments.where((c) => c.parentId == parentId).toList()
       ..sort(_compareByCreatedAt);
     return replies;
   }
@@ -76,16 +76,16 @@ class DiscussionController extends ChangeNotifier {
   }
 
   List<Comment> _allRootCommentsSorted() {
-    return _comments
-        .where((c) => c.parentId == null || c.depth == 0)
-        .toList()
+    return _comments.where((c) => c.parentId == null || c.depth == 0).toList()
       ..sort(_compareByCreatedAt);
   }
 
   int _allRootCommentsCount() {
-    return _comments
-        .where((c) => c.parentId == null || c.depth == 0)
-        .length;
+    return _comments.where((c) => c.parentId == null || c.depth == 0).length;
+  }
+
+  void _notifyCommentsChanged() {
+    onCommentsChanged?.call();
   }
 
   Future<void> loadComments() async {
@@ -97,12 +97,10 @@ class DiscussionController extends ChangeNotifier {
 
     try {
       final result = await _getCommentsForTarget(target);
-      _comments = List<Comment>.from(result)
-        ..sort(_compareByCreatedAt);
+      _comments = List<Comment>.from(result)..sort(_compareByCreatedAt);
 
       final totalRoots = _allRootCommentsCount();
-      _visibleRootCount =
-          totalRoots < _pageSize ? totalRoots : _pageSize;
+      _visibleRootCount = totalRoots < _pageSize ? totalRoots : _pageSize;
     } catch (e) {
       _errorMessage = 'Impossibile caricare i commenti.';
     } finally {
@@ -115,8 +113,7 @@ class DiscussionController extends ChangeNotifier {
     final totalRoots = _allRootCommentsCount();
     if (_visibleRootCount >= totalRoots) return;
 
-    _visibleRootCount =
-        (_visibleRootCount + _pageSize).clamp(0, totalRoots);
+    _visibleRootCount = (_visibleRootCount + _pageSize).clamp(0, totalRoots);
     notifyListeners();
   }
 
@@ -148,12 +145,12 @@ class DiscussionController extends ChangeNotifier {
 
       final totalRoots = _allRootCommentsCount();
       if (_visibleRootCount < _pageSize) {
-        _visibleRootCount =
-            totalRoots < _pageSize ? totalRoots : _pageSize;
+        _visibleRootCount = totalRoots < _pageSize ? totalRoots : _pageSize;
       } else {
-        _visibleRootCount =
-            _visibleRootCount.clamp(0, totalRoots);
+        _visibleRootCount = _visibleRootCount.clamp(0, totalRoots);
       }
+
+      _notifyCommentsChanged();
     } catch (e) {
       _errorMessage = 'Impossibile aggiungere il commento.';
     } finally {
@@ -195,6 +192,8 @@ class DiscussionController extends ChangeNotifier {
 
       _comments = List<Comment>.from(_comments)..add(reply);
       _comments.sort(_compareByCreatedAt);
+
+      _notifyCommentsChanged();
     } catch (e) {
       _errorMessage = 'Impossibile aggiungere la risposta.';
     } finally {
@@ -213,14 +212,13 @@ class DiscussionController extends ChangeNotifier {
     try {
       final id = comment.id;
 
-      _comments = _comments
-          .where((c) => c.id != id && c.parentId != id)
-          .toList()
+      _comments = _comments.where((c) => c.id != id && c.parentId != id).toList()
         ..sort(_compareByCreatedAt);
 
       final totalRoots = _allRootCommentsCount();
-      _visibleRootCount =
-          _visibleRootCount.clamp(0, totalRoots);
+      _visibleRootCount = _visibleRootCount.clamp(0, totalRoots);
+
+      _notifyCommentsChanged();
     } catch (e) {
       _errorMessage = 'Impossibile eliminare il commento.';
     } finally {

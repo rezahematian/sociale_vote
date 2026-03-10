@@ -12,6 +12,8 @@ abstract class CommentRepository {
 
   Future<List<Comment>> getCommentsForTarget(TargetRef target);
 
+  Future<int> countCommentsForTarget(TargetRef target);
+
   /// Nuovo metodo per My Comments
   Future<List<Comment>> getCommentsByUser(String userId);
 

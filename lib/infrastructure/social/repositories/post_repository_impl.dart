@@ -27,6 +27,7 @@ class PostRepositoryImpl implements PostRepository {
         content:
             'We should coordinate globally to reduce emissions and support renewable energy initiatives.',
         createdAt: now.subtract(const Duration(days: 1)),
+        commentCount: 0,
       ),
       Post(
         id: const EntityId('post_global_2'),
@@ -35,6 +36,7 @@ class PostRepositoryImpl implements PostRepository {
         content:
             'Education systems worldwide need modernization and equal access to digital tools.',
         createdAt: now.subtract(const Duration(days: 2)),
+        commentCount: 0,
       ),
 
       // 🇮🇹 Italy
@@ -45,6 +47,7 @@ class PostRepositoryImpl implements PostRepository {
         content:
             'Dovremmo investire di più nella sanità territoriale e nella prevenzione.',
         createdAt: now.subtract(const Duration(hours: 10)),
+        commentCount: 0,
         countryCode: 'IT',
       ),
 
@@ -56,6 +59,7 @@ class PostRepositoryImpl implements PostRepository {
         content:
             'Il trasporto pubblico dovrebbe essere potenziato nelle ore serali.',
         createdAt: now.subtract(const Duration(hours: 3)),
+        commentCount: 0,
         countryCode: 'IT',
         cityId: 'TORINO',
       ),

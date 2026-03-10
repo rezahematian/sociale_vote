@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sociale_vote/core/http/api_client.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 
@@ -16,6 +17,7 @@ import 'package:sociale_vote/domain/discovery/usecases/get_trending_content.dart
 
 import 'package:sociale_vote/domain/discussion/repositories/comment_repository.dart';
 import 'package:sociale_vote/domain/discussion/usecases/add_comment.dart';
+import 'package:sociale_vote/domain/discussion/usecases/get_comment_count_for_target.dart';
 import 'package:sociale_vote/domain/discussion/usecases/get_comments_for_target.dart';
 
 import 'package:sociale_vote/domain/engagement/repositories/favorite_repository.dart';
@@ -346,6 +348,9 @@ class AppDI {
   GetCommentsForTarget get getCommentsForTarget =>
       GetCommentsForTarget(commentRepository);
 
+  GetCommentCountForTarget get getCommentCountForTarget =>
+      GetCommentCountForTarget(commentRepository);
+
   // ==========================================================
   // CONTROLLERS - AUTH
   // ==========================================================
@@ -417,6 +422,7 @@ class AppDI {
       geoScopeController: geoScopeController,
       toggleReaction: toggleReaction,
       getReactionSummary: getReactionSummary,
+      getCommentCountForTarget: getCommentCountForTarget,
     );
   }
 
@@ -445,6 +451,9 @@ class AppDI {
     return ForYouFeedController(
       getForYouFeed: getForYouFeed,
       geoScopeController: geoScopeController,
+      toggleReaction: toggleReaction,
+      getReactionSummary: getReactionSummary,
+      getCommentCountForTarget: getCommentCountForTarget,
     );
   }
 
@@ -463,11 +472,15 @@ class AppDI {
   // CONTROLLERS - DISCUSSION
   // ==========================================================
 
-  DiscussionController createDiscussionController(TargetRef target) {
+  DiscussionController createDiscussionController(
+    TargetRef target, {
+    VoidCallback? onCommentsChanged,
+  }) {
     return DiscussionController(
       target: target,
       addComment: addComment,
       getCommentsForTarget: getCommentsForTarget,
+      onCommentsChanged: onCommentsChanged,
     );
   }
 }

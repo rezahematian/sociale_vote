@@ -19,7 +19,7 @@ import 'package:sociale_vote/l10n/app_localizations.dart';
 /// - header: favicon + source + time ago + "open source"
 /// - title + description
 /// - image (se presente)
-/// - footer invariato: comment badge + engagement bar
+/// - footer unificato con engagement standard
 class NewsCard extends StatelessWidget {
   final NewsItem news;
 
@@ -256,17 +256,12 @@ class NewsCard extends StatelessWidget {
             const SizedBox(height: 12),
             const Divider(height: 1),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                _CommentCountBadge(news: news),
-                const Spacer(),
-                EngagementBar(
-                  fireCount: fireCount,
-                  iceCount: iceCount,
-                  onFireTap: wrapReactCallback(onFireTap),
-                  onIceTap: wrapReactCallback(onIceTap),
-                ),
-              ],
+            _NewsEngagementBar(
+              news: news,
+              fireCount: fireCount,
+              iceCount: iceCount,
+              onFireTap: wrapReactCallback(onFireTap),
+              onIceTap: wrapReactCallback(onIceTap),
             ),
           ],
         ),
@@ -354,51 +349,42 @@ class _Favicon extends StatelessWidget {
   }
 }
 
-class _CommentCountBadge extends StatelessWidget {
+class _NewsEngagementBar extends StatelessWidget {
   final NewsItem news;
+  final int fireCount;
+  final int iceCount;
+  final VoidCallback? onFireTap;
+  final VoidCallback? onIceTap;
 
-  const _CommentCountBadge({required this.news});
+  const _NewsEngagementBar({
+    required this.news,
+    required this.fireCount,
+    required this.iceCount,
+    required this.onFireTap,
+    required this.onIceTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return FutureBuilder(
       future: AppDI.instance.getCommentsForTarget(TargetRef.news(news.id.value)),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox.shrink();
-        }
-
-        if (snapshot.hasError) {
-          return const SizedBox.shrink();
-        }
-
         final comments = snapshot.data as List<dynamic>? ?? const [];
-        final count = comments.length;
+        final commentCount = snapshot.hasError ? 0 : comments.length;
 
-        if (count == 0) {
-          return const SizedBox.shrink();
-        }
-
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.comment_outlined,
-              size: 14,
-              color: colorScheme.onSurface.withOpacity(0.7),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '$count',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.8),
-                fontWeight: FontWeight.w500,
+        return EngagementBar(
+          fireCount: fireCount,
+          iceCount: iceCount,
+          commentCount: commentCount,
+          onFireTap: onFireTap,
+          onIceTap: onIceTap,
+          onCommentTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => NewsDetailPage(news: news),
               ),
-            ),
-          ],
+            );
+          },
         );
       },
     );

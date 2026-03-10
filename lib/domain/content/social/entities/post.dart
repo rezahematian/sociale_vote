@@ -31,6 +31,9 @@ class Post {
   /// Timestamp di creazione del post (UTC o locale coerente con il resto dell'app).
   final DateTime createdAt;
 
+  /// Numero commenti associati al post.
+  final int commentCount;
+
   /// Codice paese associato al post (es. 'IT').
   ///
   /// - null  => post globale (world)
@@ -52,6 +55,7 @@ class Post {
     required this.title,
     required this.content,
     required this.createdAt,
+    this.commentCount = 0,
     this.countryCode,
     this.cityId,
     this.createdByUserId,
@@ -102,6 +106,7 @@ class Post {
     String? title,
     String? content,
     DateTime? createdAt,
+    int? commentCount,
     String? countryCode,
     String? cityId,
     String? createdByUserId,
@@ -112,6 +117,7 @@ class Post {
       title: title ?? this.title,
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
+      commentCount: commentCount ?? this.commentCount,
       countryCode: countryCode ?? this.countryCode,
       cityId: cityId ?? this.cityId,
       createdByUserId: createdByUserId ?? this.createdByUserId,

@@ -37,11 +37,13 @@ class NewsDetailPage extends StatefulWidget {
 class _NewsDetailPageState extends State<NewsDetailPage> {
   bool _isFavorite = false;
   bool _favoriteInitialized = false;
+  int _commentCount = 0;
 
   @override
   void initState() {
     super.initState();
     _initFavoriteStatus();
+    _loadCommentCount();
   }
 
   Future<void> _initFavoriteStatus() async {
@@ -61,7 +63,6 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
         _favoriteInitialized = true;
       });
     } catch (_) {
-      // v1: nessun handling specifico per errori sui preferiti in-memory.
       if (!mounted) return;
       setState(() {
         _favoriteInitialized = true;
@@ -69,8 +70,24 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     }
   }
 
+  Future<void> _loadCommentCount() async {
+    try {
+      final count = await AppDI.instance.getCommentCountForTarget(
+        TargetRef.news(widget.news.id.value),
+      );
+      if (!mounted) return;
+      setState(() {
+        _commentCount = count;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _commentCount = 0;
+      });
+    }
+  }
+
   Future<void> _onFavoritePressed() async {
-    // Usiamo la stessa policy delle reazioni per ora.
     final allowed = await AuthGuard.ensureCanPerformAction(
       context,
       ParticipationAction.react,
@@ -90,7 +107,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
         _isFavorite = newState;
       });
     } catch (_) {
-      // v1: silenzioso; in futuro si può mostrare SnackBar.
+      // v1: silenzioso
     }
   }
 
@@ -102,8 +119,8 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
 
     return ChangeNotifierProvider<DiscussionController>(
       create: (_) => AppDI.instance.createDiscussionController(
-        // news.id è un EntityId, serve la String interna
         TargetRef.news(news.id.value),
+        onCommentsChanged: _loadCommentCount,
       )..loadComments(),
       child: Scaffold(
         appBar: AppBar(
@@ -140,8 +157,6 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     ),
                   ),
                 ],
-
-                // Titolo principale + ⭐ preferiti
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -168,8 +183,6 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-
-                // Meta info (data pubblicazione)
                 Row(
                   children: [
                     Icon(
@@ -186,10 +199,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 16),
-
-                // Divider editoriale
                 Row(
                   children: [
                     Expanded(
@@ -203,10 +213,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 20),
-
-                // Contenuto / summary come corpo principale
                 Card(
                   elevation: 0,
                   margin: EdgeInsets.zero,
@@ -229,10 +236,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
-                // Barra di engagement 🔥 / ❄ nel dettaglio.
                 Builder(
                   builder: (context) {
                     NewsController? newsController;
@@ -246,7 +250,6 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     }
 
                     if (newsController == null) {
-                      // Nessun NewsController trovato → niente barra, ma nessun crash.
                       return const SizedBox.shrink();
                     }
 
@@ -260,9 +263,9 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                       child: EngagementBar(
                         fireCount: fireCount,
                         iceCount: iceCount,
+                        commentCount: _commentCount,
                         userReaction: userReaction,
                         onFireTap: () async {
-                          // 🔐 Proteggiamo le reazioni come nel resto dell'app
                           final allowed =
                               await AuthGuard.ensureCanPerformAction(
                             context,
@@ -300,10 +303,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     );
                   },
                 ),
-
                 const SizedBox(height: 24),
-
-                // Placeholder per future meta: fonte, tag, scope, ecc.
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -313,16 +313,10 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 32),
-
-                // Sezione commenti (discussion/)
                 const Divider(),
                 const SizedBox(height: 16),
                 CommentSection(
-                  // Questo parametro è storicamente ignorato dalla logica interna,
-                  // l'utente corrente reale viene letto da AppDI.instance.currentUserId.
-                  // Usiamo un fallback neutro, NON "anonymous".
                   userId: AppDI.instance.currentUserId ?? 'guest',
                 ),
               ],
@@ -333,8 +327,6 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     );
   }
 
-  /// Per ora usiamo la summary come corpo principale.
-  /// In futuro possiamo collegare un campo "content" o testo completo.
   String _resolveBodyText(AppLocalizations l10n) {
     final s = widget.news.summary;
     if (s == null || s.trim().isEmpty) {
@@ -351,7 +343,6 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     final hour = local.hour.toString().padLeft(2, '0');
     final minute = local.minute.toString().padLeft(2, '0');
 
-    // Formato: 22/02/2026 14:35
     return '$day/$month/$year $hour:$minute';
   }
 }

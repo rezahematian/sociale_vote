@@ -43,6 +43,7 @@ class _PostDetailView extends StatefulWidget {
 class _PostDetailViewState extends State<_PostDetailView> {
   bool _isFavorite = false;
   bool _favoriteInitialized = false;
+  int _commentCount = 0;
 
   Future<void> _initFavoriteStatus(Post post) async {
     final userId = AppDI.instance.currentUserId;
@@ -61,6 +62,23 @@ class _PostDetailViewState extends State<_PostDetailView> {
       });
     } catch (_) {
       // v1: nessun handling specifico per errori sui preferiti in-memory.
+    }
+  }
+
+  Future<void> _loadCommentCount(Post post) async {
+    try {
+      final count = await AppDI.instance.getCommentCountForTarget(
+        TargetRef.post(post.id.value),
+      );
+      if (!mounted) return;
+      setState(() {
+        _commentCount = count;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _commentCount = 0;
+      });
     }
   }
 
@@ -120,11 +138,12 @@ class _PostDetailViewState extends State<_PostDetailView> {
           }
 
           // Inizializza stato preferito solo una volta se utente loggato.
-          if (AppDI.instance.currentUserId != null &&
-              !_favoriteInitialized) {
+          if (AppDI.instance.currentUserId != null && !_favoriteInitialized) {
             _favoriteInitialized = true;
             _initFavoriteStatus(post);
           }
+
+          _loadCommentCount(post);
 
           final fireCount = controller.likeCount;
           final iceCount = controller.dislikeCount;
@@ -134,6 +153,9 @@ class _PostDetailViewState extends State<_PostDetailView> {
             create: (_) => AppDI.instance
                 .createDiscussionController(
                   TargetRef.post(post.id.value),
+                  onCommentsChanged: () {
+                    _loadCommentCount(post);
+                  },
                 )
               ..loadComments(),
             child: SingleChildScrollView(
@@ -148,17 +170,14 @@ class _PostDetailViewState extends State<_PostDetailView> {
                       Expanded(
                         child: Text(
                           post.title,
-                          style:
-                              theme.textTheme.headlineSmall?.copyWith(
+                          style: theme.textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                       IconButton(
                         icon: Icon(
-                          _isFavorite
-                              ? Icons.star
-                              : Icons.star_border,
+                          _isFavorite ? Icons.star : Icons.star_border,
                           color: _isFavorite
                               ? theme.colorScheme.primary
                               : theme.iconTheme.color,
@@ -178,32 +197,26 @@ class _PostDetailViewState extends State<_PostDetailView> {
                       Icon(
                         Icons.person_outline,
                         size: 18,
-                        color: theme.colorScheme.onSurface
-                            .withOpacity(0.7),
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         post.authorName,
-                        style:
-                            theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withOpacity(0.8),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.8),
                         ),
                       ),
                       const SizedBox(width: 16),
                       Icon(
                         Icons.schedule,
                         size: 18,
-                        color: theme.colorScheme.onSurface
-                            .withOpacity(0.7),
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         _formatDate(post.createdAt),
-                        style:
-                            theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withOpacity(0.8),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.8),
                         ),
                       ),
                     ],
@@ -214,10 +227,8 @@ class _PostDetailViewState extends State<_PostDetailView> {
                   // Contenuto
                   Text(
                     post.content,
-                    style:
-                        theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurface
-                          .withOpacity(0.9),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.9),
                     ),
                   ),
 
@@ -225,21 +236,20 @@ class _PostDetailViewState extends State<_PostDetailView> {
                   const Divider(height: 1),
                   const SizedBox(height: 8),
 
-                  // ===== ENGAGEMENT BAR (🔥 / ❄) =====
+                  // ===== ENGAGEMENT BAR (🔥 / ❄ / 💬) =====
                   EngagementBar(
                     fireCount: fireCount,
                     iceCount: iceCount,
+                    commentCount: _commentCount,
                     userReaction: userReaction,
                     onFireTap: () async {
-                      final allowed =
-                          await AuthGuard.ensureCanPerformAction(
+                      final allowed = await AuthGuard.ensureCanPerformAction(
                         context,
                         ParticipationAction.react,
                       );
                       if (!allowed) return;
 
-                      final userId =
-                          AppDI.instance.currentUserId;
+                      final userId = AppDI.instance.currentUserId;
                       if (userId == null) return;
 
                       await context
@@ -247,15 +257,13 @@ class _PostDetailViewState extends State<_PostDetailView> {
                           .toggleFire(userId: userId);
                     },
                     onIceTap: () async {
-                      final allowed =
-                          await AuthGuard.ensureCanPerformAction(
+                      final allowed = await AuthGuard.ensureCanPerformAction(
                         context,
                         ParticipationAction.react,
                       );
                       if (!allowed) return;
 
-                      final userId =
-                          AppDI.instance.currentUserId;
+                      final userId = AppDI.instance.currentUserId;
                       if (userId == null) return;
 
                       await context
@@ -320,8 +328,7 @@ class _PostDetailError extends StatelessWidget {
             Text(
               message,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface
-                    .withOpacity(0.7),
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
               ),
               textAlign: TextAlign.center,
             ),

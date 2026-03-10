@@ -47,6 +47,13 @@ class CommentRepositoryImpl implements CommentRepository {
   }
 
   @override
+  Future<int> countCommentsForTarget(TargetRef target) async {
+    return _commentsById.values
+        .where((c) => c.target == target)
+        .length;
+  }
+
+  @override
   Future<List<Comment>> getCommentsByUser(String userId) async {
     final list = _commentsById.values
         .where((c) => c.userId == userId)

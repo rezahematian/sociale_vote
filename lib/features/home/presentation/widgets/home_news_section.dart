@@ -71,7 +71,8 @@ class HomeNewsSection extends StatelessWidget {
       );
     } else {
       final featured = newsList.first;
-      final secondary = newsList.length > 1 ? newsList.sublist(1) : const <NewsItem>[];
+      final secondary =
+          newsList.length > 1 ? newsList.sublist(1) : const <NewsItem>[];
 
       content = Column(
         children: [
@@ -87,7 +88,8 @@ class HomeNewsSection extends StatelessWidget {
                 return Expanded(
                   child: Padding(
                     padding: EdgeInsets.only(
-                      right: news == secondary.first && secondary.length > 1 ? 5 : 0,
+                      right:
+                          news == secondary.first && secondary.length > 1 ? 5 : 0,
                       left: news != secondary.first ? 5 : 0,
                     ),
                     child: _NewsCardBuilder(
@@ -297,6 +299,9 @@ class _NewsCardBuilder extends StatelessWidget {
       fireCount: fire,
       iceCount: ice,
       userReaction: userReaction,
+      onReturnedFromDetail: () {
+        controller.loadNews();
+      },
       onFireTap: () async {
         final allowed = await AuthGuard.ensureCanPerformAction(
           context,
@@ -380,6 +385,7 @@ class NewsPreviewCard extends StatelessWidget {
   final ReactionType? userReaction;
   final VoidCallback? onFireTap;
   final VoidCallback? onIceTap;
+  final VoidCallback? onReturnedFromDetail;
 
   const NewsPreviewCard({
     super.key,
@@ -390,6 +396,7 @@ class NewsPreviewCard extends StatelessWidget {
     this.userReaction,
     this.onFireTap,
     this.onIceTap,
+    this.onReturnedFromDetail,
   });
 
   @override
@@ -398,20 +405,24 @@ class NewsPreviewCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final source = _sourceLabel(news);
 
+    Future<void> openNewsDetail() async {
+      final newsController = context.read<NewsController>();
+
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ChangeNotifierProvider<NewsController>.value(
+            value: newsController,
+            child: NewsDetailPage(news: news),
+          ),
+        ),
+      );
+
+      onReturnedFromDetail?.call();
+    }
+
     return AppCard(
       elevated: true,
-      onTap: () {
-        final newsController = context.read<NewsController>();
-
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ChangeNotifierProvider<NewsController>.value(
-              value: newsController,
-              child: NewsDetailPage(news: news),
-            ),
-          ),
-        );
-      },
+      onTap: openNewsDetail,
       child: Padding(
         padding: EdgeInsets.all(compact ? 12 : 14),
         child: Column(
@@ -470,7 +481,8 @@ class NewsPreviewCard extends StatelessWidget {
                   child: Text(
                     _formatPublishedAt(news.publishedAt),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.72),
+                      color:
+                          theme.textTheme.bodySmall?.color?.withOpacity(0.72),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -481,23 +493,14 @@ class NewsPreviewCard extends StatelessWidget {
             SizedBox(height: compact ? 8 : 10),
             const Divider(height: 1),
             SizedBox(height: compact ? 6 : 8),
-            Row(
-              children: [
-                _CommentCountBadge(news: news),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: EngagementBar(
-                      fireCount: fireCount,
-                      iceCount: iceCount,
-                      userReaction: userReaction,
-                      onFireTap: onFireTap,
-                      onIceTap: onIceTap,
-                    ),
-                  ),
-                ),
-              ],
+            _NewsPreviewEngagementBar(
+              news: news,
+              fireCount: fireCount,
+              iceCount: iceCount,
+              userReaction: userReaction,
+              onFireTap: onFireTap,
+              onIceTap: onIceTap,
+              onCommentTap: openNewsDetail,
             ),
           ],
         ),
@@ -527,6 +530,47 @@ class NewsPreviewCard extends StatelessWidget {
     final minute = local.minute.toString().padLeft(2, '0');
 
     return '$day/$month/$year $hour:$minute';
+  }
+}
+
+class _NewsPreviewEngagementBar extends StatelessWidget {
+  final NewsItem news;
+  final int fireCount;
+  final int iceCount;
+  final ReactionType? userReaction;
+  final VoidCallback? onFireTap;
+  final VoidCallback? onIceTap;
+  final VoidCallback? onCommentTap;
+
+  const _NewsPreviewEngagementBar({
+    required this.news,
+    required this.fireCount,
+    required this.iceCount,
+    required this.userReaction,
+    required this.onFireTap,
+    required this.onIceTap,
+    required this.onCommentTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<int>(
+      future:
+          AppDI.instance.getCommentCountForTarget(TargetRef.news(news.id.value)),
+      builder: (context, snapshot) {
+        final commentCount = snapshot.hasData ? snapshot.data! : 0;
+
+        return EngagementBar(
+          fireCount: fireCount,
+          iceCount: iceCount,
+          commentCount: commentCount,
+          userReaction: userReaction,
+          onFireTap: onFireTap,
+          onIceTap: onIceTap,
+          onCommentTap: onCommentTap,
+        );
+      },
+    );
   }
 }
 
@@ -561,7 +605,9 @@ class _NewsCardTextBlock extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           news.title,
-          style: (compact ? theme.textTheme.bodyMedium : theme.textTheme.titleSmall)?.copyWith(
+          style:
+              (compact ? theme.textTheme.bodyMedium : theme.textTheme.titleSmall)
+                  ?.copyWith(
             fontWeight: FontWeight.w700,
             height: 1.15,
           ),
@@ -632,67 +678,6 @@ class _NewsThumbnail extends StatelessWidget {
           },
         ),
       ),
-    );
-  }
-}
-
-class _CommentCountBadge extends StatelessWidget {
-  final NewsItem news;
-
-  const _CommentCountBadge({
-    required this.news,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return FutureBuilder(
-      future: AppDI.instance.getCommentsForTarget(TargetRef.news(news.id.value)),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox(
-            width: 54,
-            height: 28,
-          );
-        }
-
-        if (snapshot.hasError) {
-          return const SizedBox.shrink();
-        }
-
-        final comments = snapshot.data as List<dynamic>? ?? const [];
-        final count = comments.length;
-
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceVariant.withOpacity(0.42),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: theme.dividerColor.withOpacity(0.30),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.mode_comment_outlined,
-                size: 14,
-                color: theme.colorScheme.onSurface.withOpacity(0.72),
-              ),
-              const SizedBox(width: 5),
-              Text(
-                '$count',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.82),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

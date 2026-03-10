@@ -64,11 +64,6 @@ class PollCard extends StatelessWidget {
     final hasDescription = description.trim().isNotEmpty;
     final hasResults = result != null && result!.optionResults.isNotEmpty;
 
-    final bool showEngagementBar =
-        fireCount != null &&
-        iceCount != null &&
-        (onFireTap != null || onIceTap != null);
-
     VoidCallback? wrapReactCallback(VoidCallback? original) {
       if (original == null) return null;
 
@@ -124,9 +119,7 @@ class PollCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.unitS),
-
           _buildStatusProgressBar(theme),
-
           if (hasDescription) ...[
             const SizedBox(height: AppSpacing.unitS),
             Text(
@@ -138,14 +131,11 @@ class PollCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ],
-
           const SizedBox(height: AppSpacing.unitM),
-
           if (hasResults) ...[
             _PollResultPreview(result: result!),
             const SizedBox(height: AppSpacing.unitM),
           ],
-
           Wrap(
             spacing: AppSpacing.unitS,
             runSpacing: AppSpacing.unitS,
@@ -158,41 +148,31 @@ class PollCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.unitM),
-
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (showEngagementBar) ...[
-                EngagementBar(
-                  fireCount: fireCount!,
-                  iceCount: iceCount!,
-                  userReaction: userReaction,
-                  onFireTap: wrapReactCallback(onFireTap),
-                  onIceTap: wrapReactCallback(onIceTap),
-                ),
-                const SizedBox(width: AppSpacing.unitS),
-              ],
-              _CommentCountBadge(poll: poll),
-              const Spacer(),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    l10n.pollCard_viewDetails,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.unitXS),
-                  Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 14,
+          _PollEngagementRow(
+            poll: poll,
+            fireCount: fireCount,
+            iceCount: iceCount,
+            userReaction: userReaction,
+            onFireTap: wrapReactCallback(onFireTap),
+            onIceTap: wrapReactCallback(onIceTap),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l10n.pollCard_viewDetails,
+                  style: theme.textTheme.labelMedium?.copyWith(
                     color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w500,
                   ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(width: AppSpacing.unitXS),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: theme.colorScheme.primary,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -458,6 +438,55 @@ class PollCard extends StatelessWidget {
   }
 }
 
+class _PollEngagementRow extends StatelessWidget {
+  final Poll poll;
+  final int? fireCount;
+  final int? iceCount;
+  final ReactionType? userReaction;
+  final VoidCallback? onFireTap;
+  final VoidCallback? onIceTap;
+  final Widget trailing;
+
+  const _PollEngagementRow({
+    required this.poll,
+    required this.fireCount,
+    required this.iceCount,
+    required this.userReaction,
+    required this.onFireTap,
+    required this.onIceTap,
+    required this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: AppDI.instance.getCommentsForTarget(TargetRef.poll(poll.id.value)),
+      builder: (context, snapshot) {
+        final comments = snapshot.data as List<dynamic>? ?? const [];
+        final commentCount = snapshot.hasError ? 0 : comments.length;
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: EngagementBar(
+                fireCount: fireCount ?? 0,
+                iceCount: iceCount ?? 0,
+                commentCount: commentCount,
+                userReaction: userReaction,
+                onFireTap: onFireTap,
+                onIceTap: onIceTap,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.unitS),
+            trailing,
+          ],
+        );
+      },
+    );
+  }
+}
+
 class _PollResultPreview extends StatelessWidget {
   final PollResult result;
 
@@ -653,78 +682,17 @@ List<PollOptionResult> _sortedVisibleOptionResults(PollResult result) {
 
 Color _pollResultColorForIndex(int index) {
   final colors = [
-    const Color(0xFF2563EB), // blu
-    const Color(0xFFEF4444), // rosso
-    const Color(0xFFF59E0B), // giallo/arancio
-    const Color(0xFF10B981), // verde
-    const Color(0xFF8B5CF6), // viola
-    const Color(0xFFEC4899), // rosa
-    const Color(0xFF14B8A6), // teal
-    const Color(0xFFF97316), // arancio forte
-    const Color(0xFF84CC16), // lime
-    const Color(0xFF6366F1), // indigo
+    const Color(0xFF2563EB),
+    const Color(0xFFEF4444),
+    const Color(0xFFF59E0B),
+    const Color(0xFF10B981),
+    const Color(0xFF8B5CF6),
+    const Color(0xFFEC4899),
+    const Color(0xFF14B8A6),
+    const Color(0xFFF97316),
+    const Color(0xFF84CC16),
+    const Color(0xFF6366F1),
   ];
 
   return colors[index % colors.length];
-}
-
-/// Badge che mostra il numero di commenti per questo poll usando il dominio `discussion/`.
-class _CommentCountBadge extends StatelessWidget {
-  final Poll poll;
-
-  const _CommentCountBadge({required this.poll});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return FutureBuilder(
-      future: AppDI.instance.getCommentsForTarget(TargetRef.poll(poll.id.value)),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox.shrink();
-        }
-
-        if (snapshot.hasError) {
-          return const SizedBox.shrink();
-        }
-
-        final comments = snapshot.data as List<dynamic>? ?? const [];
-        final count = comments.length;
-
-        if (count == 0) {
-          return const SizedBox.shrink();
-        }
-
-        return Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.unitS,
-            vertical: AppSpacing.unitXS,
-          ),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceVariant.withOpacity(0.7),
-            borderRadius: AppRadius.buttonRadius,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.comment_outlined,
-                size: 14,
-                color: theme.colorScheme.onSurface.withOpacity(0.75),
-              ),
-              const SizedBox(width: AppSpacing.unitXS),
-              Text(
-                '$count',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.9),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 }
