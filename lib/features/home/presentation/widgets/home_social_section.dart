@@ -128,6 +128,7 @@ class HomeSocialSection extends StatelessWidget {
                     post: previewPost,
                     fireCount: fire,
                     iceCount: ice,
+                    commentCount: commentCount,
                     userReaction: userReaction,
                     onReturnedFromDetail: () {
                       controller.refresh(
@@ -142,7 +143,7 @@ class HomeSocialSection extends StatelessWidget {
                       if (!allowed) return;
 
                       final userId = AppDI.instance.currentUserId!;
-                      controller.toggleFireForPost(
+                      await controller.toggleFireForPost(
                         userId: userId,
                         post: post,
                       );
@@ -155,7 +156,7 @@ class HomeSocialSection extends StatelessWidget {
                       if (!allowed) return;
 
                       final userId = AppDI.instance.currentUserId!;
-                      controller.toggleIceForPost(
+                      await controller.toggleIceForPost(
                         userId: userId,
                         post: post,
                       );

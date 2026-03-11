@@ -131,6 +131,11 @@ class FeedController extends ChangeNotifier {
     return TargetRef.post(_postId(post));
   }
 
+  bool _containsPost(Post post) {
+    final postId = _postId(post);
+    return _posts.any((item) => item.id.value == postId);
+  }
+
   // ===== CARICAMENTO FEED (PAGINAZIONE REALE) =====
 
   /// Carica la **prima pagina** di feed per lo scope corrente.
@@ -276,6 +281,77 @@ class FeedController extends ChangeNotifier {
     }
   }
 
+  Future<void> refreshCommentCountForPost(Post post) async {
+    if (!_containsPost(post)) {
+      return;
+    }
+
+    try {
+      final count = await _getCommentCountForTarget(_targetForPost(post));
+      _commentCounts[_postId(post)] = count;
+      notifyListeners();
+    } catch (_) {
+      // Refresh puntuale: manteniamo il valore corrente senza rompere il feed.
+    }
+  }
+
+  Future<void> refreshReactionSummaryForPost(Post post) async {
+    if (!_containsPost(post)) {
+      return;
+    }
+
+    try {
+      final summaries = await _getReactionSummary(
+        [_targetForPost(post)],
+        userId: _lastKnownUserId,
+      );
+
+      if (summaries.isNotEmpty) {
+        _reactionSummaries[_postId(post)] = summaries.first;
+
+        if (_sortMode == FeedSortMode.hottest) {
+          _sortPosts();
+        }
+
+        notifyListeners();
+      }
+    } catch (_) {
+      // Refresh puntuale: manteniamo lo stato corrente senza errori globali.
+    }
+  }
+
+  Future<void> refreshEngagementForPost(Post post) async {
+    if (!_containsPost(post)) {
+      return;
+    }
+
+    try {
+      final results = await Future.wait([
+        _getReactionSummary(
+          [_targetForPost(post)],
+          userId: _lastKnownUserId,
+        ),
+        _getCommentCountForTarget(_targetForPost(post)),
+      ]);
+
+      final summaries = results[0] as List<ReactionSummary>;
+      final commentCount = results[1] as int;
+
+      if (summaries.isNotEmpty) {
+        _reactionSummaries[_postId(post)] = summaries.first;
+      }
+      _commentCounts[_postId(post)] = commentCount;
+
+      if (_sortMode == FeedSortMode.hottest) {
+        _sortPosts();
+      }
+
+      notifyListeners();
+    } catch (_) {
+      // Nessun errore globale sul feed per refresh locale fallito.
+    }
+  }
+
   // ===== HEAT / SORTING =====
 
   /// Metrica di "calore" per un post, usata in modalità hottest.
@@ -325,6 +401,7 @@ class FeedController extends ChangeNotifier {
     );
 
     _reactionSummaries[_postId(post)] = summary;
+    _lastKnownUserId = userId;
 
     if (_sortMode == FeedSortMode.hottest) {
       _sortPosts();
@@ -349,6 +426,7 @@ class FeedController extends ChangeNotifier {
     );
 
     _reactionSummaries[_postId(post)] = summary;
+    _lastKnownUserId = userId;
 
     if (_sortMode == FeedSortMode.hottest) {
       _sortPosts();

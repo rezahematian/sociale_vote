@@ -90,6 +90,11 @@ class ForYouFeedController extends ChangeNotifier {
     return TargetRef.post(_postId(post));
   }
 
+  bool _containsPost(Post post) {
+    final postId = _postId(post);
+    return _posts.any((item) => item.id.value == postId);
+  }
+
   /// Carica il feed "For You" per l'utente corrente.
   ///
   /// - [userId]: può essere null (guest)
@@ -166,6 +171,68 @@ class ForYouFeedController extends ChangeNotifier {
     }
   }
 
+  Future<void> refreshCommentCountForPost(Post post) async {
+    if (!_containsPost(post)) {
+      return;
+    }
+
+    try {
+      final count = await _getCommentCountForTarget(_targetForPost(post));
+      _commentCounts[_postId(post)] = count;
+      notifyListeners();
+    } catch (_) {
+      // Refresh puntuale: manteniamo il valore corrente senza rompere il feed.
+    }
+  }
+
+  Future<void> refreshReactionSummaryForPost(Post post) async {
+    if (!_containsPost(post)) {
+      return;
+    }
+
+    try {
+      final summaries = await _getReactionSummary(
+        [_targetForPost(post)],
+        userId: _lastKnownUserId,
+      );
+
+      if (summaries.isNotEmpty) {
+        _reactionSummaries[_postId(post)] = summaries.first;
+        notifyListeners();
+      }
+    } catch (_) {
+      // Refresh puntuale: manteniamo lo stato corrente senza errori globali.
+    }
+  }
+
+  Future<void> refreshEngagementForPost(Post post) async {
+    if (!_containsPost(post)) {
+      return;
+    }
+
+    try {
+      final results = await Future.wait([
+        _getReactionSummary(
+          [_targetForPost(post)],
+          userId: _lastKnownUserId,
+        ),
+        _getCommentCountForTarget(_targetForPost(post)),
+      ]);
+
+      final summaries = results[0] as List<ReactionSummary>;
+      final commentCount = results[1] as int;
+
+      if (summaries.isNotEmpty) {
+        _reactionSummaries[_postId(post)] = summaries.first;
+      }
+      _commentCounts[_postId(post)] = commentCount;
+
+      notifyListeners();
+    } catch (_) {
+      // Nessun errore globale sul feed per refresh locale fallito.
+    }
+  }
+
   Future<void> toggleFireForPost({
     required String userId,
     required Post post,
@@ -182,6 +249,7 @@ class ForYouFeedController extends ChangeNotifier {
     );
 
     _reactionSummaries[_postId(post)] = summary;
+    _lastKnownUserId = userId;
     notifyListeners();
   }
 
@@ -201,6 +269,7 @@ class ForYouFeedController extends ChangeNotifier {
     );
 
     _reactionSummaries[_postId(post)] = summary;
+    _lastKnownUserId = userId;
     notifyListeners();
   }
 

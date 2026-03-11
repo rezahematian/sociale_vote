@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
-import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
@@ -12,6 +10,7 @@ class HomePostPreviewCard extends StatelessWidget {
 
   final int fireCount;
   final int iceCount;
+  final int commentCount;
   final ReactionType? userReaction;
 
   final VoidCallback? onFireTap;
@@ -23,6 +22,7 @@ class HomePostPreviewCard extends StatelessWidget {
     required this.post,
     this.fireCount = 0,
     this.iceCount = 0,
+    this.commentCount = 0,
     this.userReaction,
     this.onFireTap,
     this.onIceTap,
@@ -98,24 +98,14 @@ class HomePostPreviewCard extends StatelessWidget {
               const SizedBox(height: 8),
               const Divider(height: 1),
               const SizedBox(height: 8),
-              FutureBuilder(
-                future: AppDI.instance.getCommentsForTarget(
-                  TargetRef.post(post.id.value),
-                ),
-                builder: (context, snapshot) {
-                  final comments = snapshot.data as List<dynamic>? ?? const [];
-                  final commentCount = snapshot.hasError ? 0 : comments.length;
-
-                  return EngagementBar(
-                    fireCount: fireCount,
-                    iceCount: iceCount,
-                    commentCount: commentCount,
-                    userReaction: userReaction,
-                    onFireTap: onFireTap,
-                    onIceTap: onIceTap,
-                    onCommentTap: openPostDetail,
-                  );
-                },
+              EngagementBar(
+                fireCount: fireCount,
+                iceCount: iceCount,
+                commentCount: commentCount,
+                userReaction: userReaction,
+                onFireTap: onFireTap,
+                onIceTap: onIceTap,
+                onCommentTap: openPostDetail,
               ),
             ],
           ),

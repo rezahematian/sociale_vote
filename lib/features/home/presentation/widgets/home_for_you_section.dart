@@ -104,11 +104,10 @@ class HomeForYouSection extends StatelessWidget {
               post: previewPost,
               fireCount: fire,
               iceCount: ice,
+              commentCount: commentCount,
               userReaction: userReaction,
               onReturnedFromDetail: () {
-                controller.load(
-                  userId: AppDI.instance.currentUserId,
-                );
+                controller.refreshEngagementForPost(post);
               },
               onFireTap: () async {
                 final allowed = await AuthGuard.ensureCanPerformAction(
@@ -118,7 +117,7 @@ class HomeForYouSection extends StatelessWidget {
                 if (!allowed) return;
 
                 final userId = AppDI.instance.currentUserId!;
-                controller.toggleFireForPost(
+                await controller.toggleFireForPost(
                   userId: userId,
                   post: post,
                 );
@@ -131,7 +130,7 @@ class HomeForYouSection extends StatelessWidget {
                 if (!allowed) return;
 
                 final userId = AppDI.instance.currentUserId!;
-                controller.toggleIceForPost(
+                await controller.toggleIceForPost(
                   userId: userId,
                   post: post,
                 );

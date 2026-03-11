@@ -44,6 +44,7 @@ class _PostDetailViewState extends State<_PostDetailView> {
   bool _isFavorite = false;
   bool _favoriteInitialized = false;
   int _commentCount = 0;
+  String? _initializedPostId;
 
   Future<void> _initFavoriteStatus(Post post) async {
     final userId = AppDI.instance.currentUserId;
@@ -106,6 +107,28 @@ class _PostDetailViewState extends State<_PostDetailView> {
     }
   }
 
+  void _ensurePostInitialized(Post post) {
+    if (_initializedPostId == post.id.value) {
+      return;
+    }
+
+    _initializedPostId = post.id.value;
+    _favoriteInitialized = false;
+    _isFavorite = false;
+    _commentCount = 0;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      if (AppDI.instance.currentUserId != null && !_favoriteInitialized) {
+        _favoriteInitialized = true;
+        _initFavoriteStatus(post);
+      }
+
+      _loadCommentCount(post);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -137,19 +160,14 @@ class _PostDetailViewState extends State<_PostDetailView> {
             );
           }
 
-          // Inizializza stato preferito solo una volta se utente loggato.
-          if (AppDI.instance.currentUserId != null && !_favoriteInitialized) {
-            _favoriteInitialized = true;
-            _initFavoriteStatus(post);
-          }
-
-          _loadCommentCount(post);
+          _ensurePostInitialized(post);
 
           final fireCount = controller.likeCount;
           final iceCount = controller.dislikeCount;
           final userReaction = controller.userReaction;
 
           return ChangeNotifierProvider<DiscussionController>(
+            key: ValueKey('discussion-post-${post.id.value}'),
             create: (_) => AppDI.instance
                 .createDiscussionController(
                   TargetRef.post(post.id.value),
