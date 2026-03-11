@@ -1,15 +1,10 @@
+import 'package:sociale_vote/core/supabase/supabase_client.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/discussion/entities/comment.dart';
 import 'package:sociale_vote/domain/discussion/repositories/comment_repository.dart';
 
 class CommentRepositoryImpl implements CommentRepository {
-  final Map<String, Comment> _commentsById = {};
-  int _idCounter = 0;
-
-  String _nextId() {
-    _idCounter++;
-    return _idCounter.toString();
-  }
+  static const String _commentsTable = 'comments';
 
   @override
   Future<Comment> addComment({
@@ -19,52 +14,126 @@ class CommentRepositoryImpl implements CommentRepository {
     String? parentId,
     required DateTime createdAt,
   }) async {
-    final id = _nextId();
+    final depth = parentId == null ? 0 : 1;
 
-    final comment = Comment(
-      id: id,
-      userId: userId,
-      target: target,
-      content: content,
-      parentId: parentId,
-      depth: parentId == null ? 0 : 1,
-      createdAt: createdAt,
-    );
+    final rows = await AppSupabase.client
+        .from(_commentsTable)
+        .insert({
+          'target_type': _targetType(target),
+          'target_id': target.id,
+          'author_id': userId,
+          'content': content,
+          'parent_id': parentId,
+          'depth': depth,
+          'created_at': createdAt.toUtc().toIso8601String(),
+        })
+        .select()
+        .limit(1);
 
-    _commentsById[id] = comment;
+    if (rows.isEmpty) {
+      throw Exception('Creazione commento fallita.');
+    }
 
-    return comment;
+    final row = rows.first as Map<String, dynamic>;
+    return _mapComment(row);
   }
 
   @override
   Future<List<Comment>> getCommentsForTarget(TargetRef target) async {
-    final list = _commentsById.values
-        .where((c) => c.target == target)
-        .toList()
-      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    final rows = await AppSupabase.client
+        .from(_commentsTable)
+        .select()
+        .eq('target_type', _targetType(target))
+        .eq('target_id', target.id)
+        .order('created_at', ascending: true);
 
-    return list;
+    return rows
+        .whereType<Map<String, dynamic>>()
+        .map(_mapComment)
+        .toList(growable: false);
   }
 
   @override
   Future<int> countCommentsForTarget(TargetRef target) async {
-    return _commentsById.values
-        .where((c) => c.target == target)
-        .length;
+    final rows = await AppSupabase.client
+        .from(_commentsTable)
+        .select('id')
+        .eq('target_type', _targetType(target))
+        .eq('target_id', target.id);
+
+    return rows.length;
   }
 
   @override
   Future<List<Comment>> getCommentsByUser(String userId) async {
-    final list = _commentsById.values
-        .where((c) => c.userId == userId)
-        .toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final rows = await AppSupabase.client
+        .from(_commentsTable)
+        .select()
+        .eq('author_id', userId)
+        .order('created_at', ascending: false);
 
-    return list;
+    return rows
+        .whereType<Map<String, dynamic>>()
+        .map(_mapComment)
+        .toList(growable: false);
   }
 
   @override
   Future<void> deleteComment(String commentId) async {
-    _commentsById.remove(commentId);
+    await AppSupabase.client.from(_commentsTable).delete().eq('id', commentId);
+  }
+
+  Comment _mapComment(Map<String, dynamic> row) {
+    return Comment(
+      id: (row['id'] as String?) ?? '',
+      userId: (row['author_id'] as String?) ?? '',
+      target: _targetFromRow(row),
+      content: (row['content'] as String?) ?? '',
+      parentId: row['parent_id'] as String?,
+      depth: (row['depth'] as int?) ?? 0,
+      createdAt: _parseDateTime(row['created_at']),
+    );
+  }
+
+  TargetRef _targetFromRow(Map<String, dynamic> row) {
+    final type = (row['target_type'] as String?) ?? '';
+    final id = (row['target_id'] as String?) ?? '';
+
+    switch (type) {
+      case 'post':
+        return TargetRef.post(id);
+      case 'news':
+        return TargetRef.news(id);
+      case 'poll':
+        return TargetRef.poll(id);
+      case 'video':
+        return TargetRef.video(id);
+      default:
+        throw Exception('Tipo target comment non supportato: $type');
+    }
+  }
+
+  String _targetType(TargetRef target) {
+    switch (target.type) {
+      case TargetType.post:
+        return 'post';
+      case TargetType.news:
+        return 'news';
+      case TargetType.poll:
+        return 'poll';
+      case TargetType.video:
+        return 'video';
+      default:
+        throw Exception(
+          'Target type non supportato per commenti: ${target.type}',
+        );
+    }
+  }
+
+  DateTime _parseDateTime(dynamic value) {
+    if (value is String && value.trim().isNotEmpty) {
+      return DateTime.tryParse(value)?.toLocal() ?? DateTime.now();
+    }
+    return DateTime.now();
   }
 }

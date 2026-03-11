@@ -1,16 +1,20 @@
 import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
+import 'package:sociale_vote/domain/identity/repositories/user_repository.dart';
 
 /// Use case per autenticare un utente.
 ///
-/// V1:
-/// - Validazione minimale
-/// - Nessun backend reale
-/// - Genera userId semplice basato sull'email
-/// - Salva la sessione tramite [SessionRepository]
+/// V2:
+/// - chiama [UserRepository.login]
+/// - riceve una [AuthSession]
+/// - salva la sessione tramite [SessionRepository]
 class LoginUser {
+  final UserRepository _userRepository;
   final SessionRepository _sessionRepository;
 
-  LoginUser(this._sessionRepository);
+  LoginUser(
+    this._userRepository,
+    this._sessionRepository,
+  );
 
   Future<void> call({
     required String email,
@@ -23,14 +27,11 @@ class LoginUser {
       throw Exception('Invalid credentials.');
     }
 
-    // V1: generiamo un userId semplice e coerente
-    final userId = _generateUserIdFromEmail(trimmedEmail);
+    final session = await _userRepository.login(
+      email: trimmedEmail,
+      password: trimmedPassword,
+    );
 
-    await _sessionRepository.saveCurrentUserId(userId);
-  }
-
-  String _generateUserIdFromEmail(String email) {
-    // Versione semplice: lowercase e rimuove spazi
-    return email.toLowerCase();
+    await _sessionRepository.saveSession(session);
   }
 }

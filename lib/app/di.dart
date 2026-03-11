@@ -34,6 +34,7 @@ import 'package:sociale_vote/domain/geo/usecases/resolve_scope_from_point.dart';
 import 'package:sociale_vote/domain/geo/usecases/toggle_follow_scope.dart';
 
 import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
+import 'package:sociale_vote/domain/identity/repositories/user_repository.dart';
 import 'package:sociale_vote/domain/identity/usecases/login_user.dart';
 import 'package:sociale_vote/domain/identity/usecases/register_user.dart';
 
@@ -78,6 +79,7 @@ import 'package:sociale_vote/infrastructure/news/aggregator/news_api_org_provide
 import 'package:sociale_vote/infrastructure/news/aggregator/news_provider.dart';
 import 'package:sociale_vote/infrastructure/news/mappers/news_mapper.dart';
 import 'package:sociale_vote/infrastructure/news/repositories/news_repository_impl.dart';
+import 'package:sociale_vote/infrastructure/persistence/remote/rest/auth_api.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/mediastack_api.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api_org_api.dart';
@@ -85,6 +87,50 @@ import 'package:sociale_vote/infrastructure/poll/repositories/poll_repository_in
 import 'package:sociale_vote/infrastructure/poll/repositories/vote_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/search/repositories/search_repository_in_memory.dart';
 import 'package:sociale_vote/infrastructure/social/repositories/post_repository_impl.dart';
+
+/// Implementazione minima temporanea di [UserRepository].
+///
+/// In questa fase collega direttamente Supabase Auth tramite [AuthApi].
+class UserRepositoryImpl implements UserRepository {
+  final AuthApi _authApi;
+
+  UserRepositoryImpl(this._authApi);
+
+  @override
+  Future<AuthSession> login({
+    required String email,
+    required String password,
+  }) {
+    return _authApi.login(
+      email: email,
+      password: password,
+    );
+  }
+
+  @override
+  Future<AuthSession> register({
+    required String email,
+    required String password,
+    required String displayName,
+  }) {
+    return _authApi.register(
+      email: email,
+      password: password,
+      displayName: displayName,
+    );
+  }
+
+  @override
+  Future<AuthSession> getCurrentUser({
+    required String accessToken,
+  }) async {
+    final session = await _authApi.getCurrentSession();
+    if (session == null) {
+      throw Exception('Nessuna sessione utente disponibile.');
+    }
+    return session;
+  }
+}
 
 /// Contenitore molto semplice per la Dependency Injection
 /// dell'applicazione.
@@ -164,10 +210,17 @@ class AppDI {
   );
 
   // ==========================================================
+  // AUTH INFRA
+  // ==========================================================
+
+  late final AuthApi _authApi = const AuthApi();
+
+  // ==========================================================
   // REPOSITORIES (singleton)
   // ==========================================================
 
   late final SessionRepository _sessionRepository = SessionRepositoryImpl();
+  late final UserRepository _userRepository = UserRepositoryImpl(_authApi);
   late final GeoResolver _geoResolver = GeoResolverImpl();
   late final FollowScopeRepository _followScopeRepository =
       FollowScopeRepositoryInMemory();
@@ -188,6 +241,7 @@ class AppDI {
   String? _currentUserId;
 
   SessionRepository get sessionRepository => _sessionRepository;
+  UserRepository get userRepository => _userRepository;
   PollRepository get pollRepository => _pollRepository;
   VoteRepository get voteRepository => _voteRepository;
   NewsRepository get newsRepository => _newsRepository;
@@ -214,9 +268,15 @@ class AppDI {
   // USE CASES - AUTH
   // ==========================================================
 
-  LoginUser get loginUser => LoginUser(sessionRepository);
+  LoginUser get loginUser => LoginUser(
+        userRepository,
+        sessionRepository,
+      );
 
-  RegisterUser get registerUser => RegisterUser(sessionRepository);
+  RegisterUser get registerUser => RegisterUser(
+        userRepository,
+        sessionRepository,
+      );
 
   // ==========================================================
   // USE CASES - POLL
@@ -356,12 +416,13 @@ class AppDI {
   // ==========================================================
 
   AuthController createAuthController() {
-    return AuthController(
-      sessionRepository: sessionRepository,
-      loginUser: loginUser,
-      registerUser: registerUser,
-    );
-  }
+  return AuthController(
+    sessionRepository: sessionRepository,
+    loginUser: loginUser,
+    registerUser: registerUser,
+    authApi: _authApi,
+  );
+}
 
   // ==========================================================
   // CONTROLLERS - POLL

@@ -24,6 +24,7 @@ class _RegisterView extends StatefulWidget {
 }
 
 class _RegisterViewState extends State<_RegisterView> {
+  final TextEditingController _displayNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _passwordConfirmController =
@@ -31,6 +32,7 @@ class _RegisterViewState extends State<_RegisterView> {
 
   @override
   void dispose() {
+    _displayNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _passwordConfirmController.dispose();
@@ -64,10 +66,23 @@ class _RegisterViewState extends State<_RegisterView> {
                   ),
                   const SizedBox(height: 24),
 
+                  // Display name
+                  TextField(
+                    controller: _displayNameController,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Display name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
                   // Email
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
                     decoration: const InputDecoration(
                       labelText: 'Email',
                       border: OutlineInputBorder(),
@@ -80,6 +95,7 @@ class _RegisterViewState extends State<_RegisterView> {
                   TextField(
                     controller: _passwordController,
                     obscureText: true,
+                    textInputAction: TextInputAction.next,
                     decoration: const InputDecoration(
                       labelText: 'Password',
                       border: OutlineInputBorder(),
@@ -140,9 +156,19 @@ class _RegisterViewState extends State<_RegisterView> {
   Future<void> _submit(BuildContext context) async {
     final controller = context.read<AuthController>();
 
+    final displayName = _displayNameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final confirm = _passwordConfirmController.text.trim();
+
+    if (displayName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Display name is required.'),
+        ),
+      );
+      return;
+    }
 
     if (password != confirm) {
       // Validazione locale semplice
@@ -157,6 +183,7 @@ class _RegisterViewState extends State<_RegisterView> {
     await controller.register(
       email: email,
       password: password,
+      displayName: displayName,
     );
 
     if (controller.isAuthenticated && mounted) {

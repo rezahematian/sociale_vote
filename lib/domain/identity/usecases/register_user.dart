@@ -1,35 +1,43 @@
 import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
+import 'package:sociale_vote/domain/identity/repositories/user_repository.dart';
 
 /// Use case per registrare un nuovo utente.
 ///
-/// V1:
-/// - Validazione minima
-/// - Nessun backend reale
-/// - Auto-login dopo registrazione
-/// - Salva sessione tramite [SessionRepository]
+/// V2:
+/// - chiama [UserRepository.register]
+/// - riceve una [AuthSession]
+/// - salva la sessione tramite [SessionRepository]
+/// - l'utente risulta automaticamente loggato
 class RegisterUser {
+  final UserRepository _userRepository;
   final SessionRepository _sessionRepository;
 
-  RegisterUser(this._sessionRepository);
+  RegisterUser(
+    this._userRepository,
+    this._sessionRepository,
+  );
 
   Future<void> call({
     required String email,
     required String password,
+    required String displayName,
   }) async {
     final trimmedEmail = email.trim();
     final trimmedPassword = password.trim();
+    final trimmedDisplayName = displayName.trim();
 
-    if (trimmedEmail.isEmpty || trimmedPassword.isEmpty) {
+    if (trimmedEmail.isEmpty ||
+        trimmedPassword.isEmpty ||
+        trimmedDisplayName.isEmpty) {
       throw Exception('Invalid registration data.');
     }
 
-    // V1: generiamo userId semplice coerente con login
-    final userId = _generateUserIdFromEmail(trimmedEmail);
+    final session = await _userRepository.register(
+      email: trimmedEmail,
+      password: trimmedPassword,
+      displayName: trimmedDisplayName,
+    );
 
-    await _sessionRepository.saveCurrentUserId(userId);
-  }
-
-  String _generateUserIdFromEmail(String email) {
-    return email.toLowerCase();
+    await _sessionRepository.saveSession(session);
   }
 }
