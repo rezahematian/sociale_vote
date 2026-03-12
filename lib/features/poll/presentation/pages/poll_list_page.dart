@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -28,21 +30,40 @@ class _PollListPageState extends State<PollListPage> {
   final ScrollController _scrollController = ScrollController();
   late final PollListController _pollListController;
 
+  StreamSubscription<String?>? _sessionSub;
+
   @override
   void initState() {
     super.initState();
     _pollListController = AppDI.instance.createPollListController();
-    final userId = AppDI.instance.currentUserId;
-    _pollListController.loadPolls(userId: userId);
+
+    _reloadPolls();
+
     _scrollController.addListener(_onScroll);
+    AppDI.instance.geoScopeController.addListener(_onScopeChanged);
+    _sessionSub =
+        AppDI.instance.sessionRepository.watchCurrentUserId().listen((_) {
+      _reloadPolls();
+    });
   }
 
   @override
   void dispose() {
+    _sessionSub?.cancel();
+    AppDI.instance.geoScopeController.removeListener(_onScopeChanged);
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _pollListController.dispose();
     super.dispose();
+  }
+
+  Future<void> _reloadPolls() async {
+    final userId = AppDI.instance.currentUserId;
+    await _pollListController.loadPolls(userId: userId);
+  }
+
+  void _onScopeChanged() {
+    _reloadPolls();
   }
 
   void _onScroll() {
@@ -134,10 +155,7 @@ class _PollListPageState extends State<PollListPage> {
                 final hasMore = controller.hasMoreFromSource;
 
                 return RefreshIndicator(
-                  onRefresh: () {
-                    final userId = AppDI.instance.currentUserId;
-                    return controller.loadPolls(userId: userId);
-                  },
+                  onRefresh: _reloadPolls,
                   child: ListView(
                     controller: _scrollController,
                     padding: AppSpacing.page,
@@ -150,7 +168,6 @@ class _PollListPageState extends State<PollListPage> {
                         pollCount: visiblePolls.length,
                       ),
                       const SizedBox(height: AppSpacing.unitS),
-
                       _buildFiltersRow(context, controller),
                       const SizedBox(height: AppSpacing.unitL),
 
@@ -179,6 +196,8 @@ class _PollListPageState extends State<PollListPage> {
                                   AppRouter.pollDetail,
                                   arguments: poll.id,
                                 );
+
+                                if (!context.mounted) return;
 
                                 final userId = AppDI.instance.currentUserId;
                                 await pollListController.loadPolls(
@@ -498,6 +517,8 @@ class _PollListPageState extends State<PollListPage> {
 
             if (result is PollId) {
               await pollListController.loadPolls(userId: userId);
+
+              if (!context.mounted) return;
 
               Navigator.of(context).pushNamed(
                 AppRouter.pollDetail,

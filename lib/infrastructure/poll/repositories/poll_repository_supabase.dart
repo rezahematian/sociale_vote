@@ -12,7 +12,7 @@ import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
 ///
 /// Nota:
 /// questo file mantiene temporaneamente il vecchio path
-/// `poll_repository_in_memory.dart` per compatibilità,
+/// `poll_repository_supabase.dart` per compatibilità,
 /// ma l'implementazione è ormai backend reale.
 class PollRepositorySupabase implements PollRepository {
   static const String _pollsTable = 'polls';

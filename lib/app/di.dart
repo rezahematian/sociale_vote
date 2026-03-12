@@ -84,7 +84,7 @@ import 'package:sociale_vote/infrastructure/persistence/remote/rest/auth_api.dar
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/mediastack_api.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api_org_api.dart';
-import 'package:sociale_vote/infrastructure/poll/repositories/poll_repository_in_memory.dart';
+import 'package:sociale_vote/infrastructure/poll/repositories/poll_repository_supabase.dart';
 import 'package:sociale_vote/infrastructure/poll/repositories/vote_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/search/repositories/search_repository_in_memory.dart';
 import 'package:sociale_vote/infrastructure/social/repositories/post_repository_impl.dart';
