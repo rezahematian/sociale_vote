@@ -260,6 +260,11 @@ class AppDI {
 
   String? get currentUserId => _currentUserId;
 
+  Future<void> logoutCurrentUser() async {
+    await _authApi.logout();
+    await _sessionRepository.clearSession();
+  }
+
   // ==========================================================
   // SERVICES
   // ==========================================================

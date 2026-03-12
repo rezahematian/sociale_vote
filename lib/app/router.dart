@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 
+import 'package:sociale_vote/features/auth/presentation/pages/login_page.dart';
+import 'package:sociale_vote/features/auth/presentation/pages/register_page.dart';
 import 'package:sociale_vote/features/home/presentation/pages/public_home_screen.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_feed_page.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/create_poll_page.dart';
@@ -22,6 +24,8 @@ class AppRouter {
   static const String social = '/social';
   static const String socialDetail = '/social/detail';
   static const String profile = '/profile';
+  static const String login = '/login';
+  static const String register = '/register';
 
   static const String initialRoute = home;
 
@@ -80,6 +84,18 @@ class AppRouter {
       case profile:
         return MaterialPageRoute<void>(
           builder: (_) => const MyProfilePage(),
+          settings: settings,
+        );
+
+      case login:
+        return MaterialPageRoute<void>(
+          builder: (_) => const LoginPage(),
+          settings: settings,
+        );
+
+      case register:
+        return MaterialPageRoute<void>(
+          builder: (_) => const RegisterPage(),
           settings: settings,
         );
     }

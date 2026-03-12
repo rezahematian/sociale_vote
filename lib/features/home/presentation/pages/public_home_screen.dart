@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -42,6 +44,26 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
   FollowScopeController get _followScopeController =>
       AppDI.instance.followScopeController;
+
+  StreamSubscription<String?>? _sessionSub;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _sessionSub = AppDI.instance.sessionRepository.watchCurrentUserId().listen((
+      _,
+    ) {
+      if (!mounted) return;
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _sessionSub?.cancel();
+    super.dispose();
+  }
 
   void _setWorld() => _geoScopeController.setWorld();
 
@@ -111,7 +133,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   Future<void> _onLogoutPressed() async {
     final l10n = AppLocalizations.of(context)!;
 
-    await AppDI.instance.sessionRepository.clearSession();
+    await AppDI.instance.logoutCurrentUser();
     if (!mounted) return;
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
