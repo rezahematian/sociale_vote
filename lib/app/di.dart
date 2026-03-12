@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sociale_vote/core/http/api_client.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 
@@ -225,7 +226,8 @@ class AppDI {
   late final FollowScopeRepository _followScopeRepository =
       FollowScopeRepositoryInMemory();
   late final PollRepository _pollRepository = PollRepositoryInMemory();
-  final VoteRepository _voteRepository = VoteRepositoryImpl();
+  late final VoteRepository _voteRepository =
+      VoteRepositoryImpl(Supabase.instance.client);
   late final NewsRepository _newsRepository =
       NewsRepositoryImpl(_newsAggregator, _newsMapper);
   final PostRepository _postRepository = PostRepositoryImpl();
@@ -416,13 +418,13 @@ class AppDI {
   // ==========================================================
 
   AuthController createAuthController() {
-  return AuthController(
-    sessionRepository: sessionRepository,
-    loginUser: loginUser,
-    registerUser: registerUser,
-    authApi: _authApi,
-  );
-}
+    return AuthController(
+      sessionRepository: sessionRepository,
+      loginUser: loginUser,
+      registerUser: registerUser,
+      authApi: _authApi,
+    );
+  }
 
   // ==========================================================
   // CONTROLLERS - POLL

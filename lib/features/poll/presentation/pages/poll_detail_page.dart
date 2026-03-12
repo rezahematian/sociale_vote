@@ -347,13 +347,15 @@ class _PollDetailPageState extends State<PollDetailPage> {
       case VoteErrorType.none:
         return null;
       case VoteErrorType.noSelection:
-        return l10n.voteError_noSelection;
+        return "Seleziona almeno un'opzione";
       case VoteErrorType.unauthorized:
-        return l10n.voteError_unauthorized;
+        return 'Devi essere autenticato per votare';
       case VoteErrorType.closed:
-        return l10n.pollDetail_statusClosedMessage;
+        return 'Questo sondaggio è chiuso';
+      case VoteErrorType.alreadyVoted:
+        return 'Hai già votato in questo sondaggio';
       case VoteErrorType.generic:
-        return l10n.voteError_generic;
+        return 'Impossibile registrare il voto';
     }
   }
 }

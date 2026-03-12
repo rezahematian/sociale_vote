@@ -11,6 +11,7 @@ enum VoteErrorType {
   noSelection,
   unauthorized,
   closed,
+  alreadyVoted,
   generic,
 }
 
@@ -40,6 +41,8 @@ class VoteController extends ChangeNotifier {
 
   /// Seleziona/deseleziona un’opzione.
   void toggleOption(String optionId, {required bool allowMultiple}) {
+    if (_isSubmitting) return;
+
     _errorMessage = null;
     _errorType = VoteErrorType.none;
     _submittedSuccessfully = false;
@@ -79,6 +82,8 @@ class VoteController extends ChangeNotifier {
     required String? userId,
     String? userCountryCode,
   }) async {
+    if (_isSubmitting) return;
+
     if (_selectedOptionIds.isEmpty) {
       _errorType = VoteErrorType.noSelection;
       _errorMessage = null;
@@ -115,8 +120,19 @@ class VoteController extends ChangeNotifier {
       _errorType = VoteErrorType.closed;
       _errorMessage = null;
       _submittedSuccessfully = false;
-    } catch (_) {
-      _errorType = VoteErrorType.generic;
+    } catch (e) {
+      final message = e.toString().toLowerCase();
+
+      if (message.contains('duplicate') ||
+          message.contains('unique') ||
+          message.contains('already voted') ||
+          message.contains('unique_vote') ||
+          message.contains('unique_vote_per_poll_user')) {
+        _errorType = VoteErrorType.alreadyVoted;
+      } else {
+        _errorType = VoteErrorType.generic;
+      }
+
       _errorMessage = null;
       _submittedSuccessfully = false;
     } finally {

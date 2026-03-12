@@ -10,12 +10,7 @@ import 'package:sociale_vote/domain/identity/repositories/session_repository.dar
 /// - register email/password
 /// - lettura sessione corrente
 /// - logout
-///
-/// Nota importante:
-/// se in Supabase hai la conferma email attiva, `register()` potrebbe
-/// non restituire subito una sessione valida. In quel caso questo file
-/// lancia un errore esplicito, così in questa fase MVP il comportamento
-/// resta chiaro e prevedibile.
+/// - sincronizzazione utente in public.users
 class AuthApi {
   const AuthApi();
 
@@ -34,6 +29,8 @@ class AuthApi {
     if (session == null || user == null) {
       throw Exception('Login fallito: sessione non disponibile.');
     }
+
+    await _upsertUserProfile(user);
 
     return _mapToAuthSession(
       session: session,
@@ -68,6 +65,8 @@ class AuthApi {
       );
     }
 
+    await _upsertUserProfile(user);
+
     return _mapToAuthSession(
       session: session,
       user: user,
@@ -82,6 +81,8 @@ class AuthApi {
       return null;
     }
 
+    await _upsertUserProfile(user);
+
     return _mapToAuthSession(
       session: session,
       user: user,
@@ -90,6 +91,20 @@ class AuthApi {
 
   Future<void> logout() async {
     await AppSupabase.auth.signOut();
+  }
+
+  Future<void> _upsertUserProfile(User user) async {
+    final metadata = user.userMetadata ?? const <String, dynamic>{};
+    final displayName = _readDisplayName(metadata);
+
+    await Supabase.instance.client.from('users').upsert(
+      <String, dynamic>{
+        'id': user.id,
+        'email': user.email,
+        'display_name': displayName,
+      },
+      onConflict: 'id',
+    );
   }
 
   AuthSession _mapToAuthSession({
