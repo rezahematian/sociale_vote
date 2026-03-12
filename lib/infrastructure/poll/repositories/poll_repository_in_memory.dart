@@ -8,7 +8,13 @@ import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_status.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
 
-class PollRepositoryInMemory implements PollRepository {
+/// Repository reale Supabase per i poll.
+///
+/// Nota:
+/// questo file mantiene temporaneamente il vecchio path
+/// `poll_repository_in_memory.dart` per compatibilità,
+/// ma l'implementazione è ormai backend reale.
+class PollRepositorySupabase implements PollRepository {
   static const String _pollsTable = 'polls';
 
   @override
@@ -195,3 +201,7 @@ class PollRepositoryInMemory implements PollRepository {
     }
   }
 }
+
+/// Alias temporaneo per compatibilità con il vecchio nome.
+/// Da rimuovere quando tutto il progetto userà PollRepositorySupabase.
+typedef PollRepositoryInMemory = PollRepositorySupabase;

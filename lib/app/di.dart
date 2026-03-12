@@ -225,7 +225,7 @@ class AppDI {
   late final GeoResolver _geoResolver = GeoResolverImpl();
   late final FollowScopeRepository _followScopeRepository =
       FollowScopeRepositoryInMemory();
-  late final PollRepository _pollRepository = PollRepositoryInMemory();
+  late final PollRepository _pollRepository = PollRepositorySupabase();
   late final VoteRepository _voteRepository =
       VoteRepositoryImpl(Supabase.instance.client);
   late final NewsRepository _newsRepository =
@@ -457,7 +457,7 @@ class AppDI {
   }
 
   PollResultController createPollResultController() {
-    return PollResultController(getPollResults);
+    return PollResultController(getPollResults, voteRepository);
   }
 
   CreatePollController createCreatePollController() {

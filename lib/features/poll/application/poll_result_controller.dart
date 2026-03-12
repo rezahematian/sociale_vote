@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/poll_result.dart';
+import 'package:sociale_vote/domain/poll/repositories/vote_repository.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_poll_results.dart';
 import 'package:sociale_vote/domain/poll/value_objects/quorum_status.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_outcome.dart';
@@ -17,12 +20,17 @@ import 'package:sociale_vote/domain/poll/services/poll_results_visibility_resolv
 /// - visibilità risultati (governance completa)
 class PollResultController extends ChangeNotifier {
   final GetPollResults _getPollResults;
+  final VoteRepository _voteRepository;
   final PollQuorumEvaluator _quorumEvaluator;
   final PollOutcomeCalculator _outcomeCalculator;
   final PollResultsVisibilityResolver _visibilityResolver;
 
+  StreamSubscription<void>? _votesSubscription;
+  String? _subscribedPollId;
+
   PollResultController(
-    this._getPollResults, {
+    this._getPollResults,
+    this._voteRepository, {
     PollQuorumEvaluator? quorumEvaluator,
     PollOutcomeCalculator? outcomeCalculator,
     PollResultsVisibilityResolver? visibilityResolver,
@@ -38,6 +46,9 @@ class PollResultController extends ChangeNotifier {
   QuorumStatus _quorumStatus = QuorumStatus.notApplicable;
   PollOutcome _outcome = PollOutcome.notApplicable;
   bool _canShowResults = false;
+
+  Poll? _lastPoll;
+  bool? _lastUserHasVoted;
 
   bool get isLoading => _isLoading;
   PollResult? get result => _result;
@@ -55,6 +66,11 @@ class PollResultController extends ChangeNotifier {
     required Poll poll,
     required bool userHasVoted,
   }) async {
+    await _ensureRealtimeSubscription(poll);
+
+    _lastPoll = poll;
+    _lastUserHasVoted = userHasVoted;
+
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -78,7 +94,7 @@ class PollResultController extends ChangeNotifier {
         poll: poll,
         userHasVoted: userHasVoted,
       );
-    } catch (e) {
+    } catch (_) {
       _error = 'Failed to load results';
       _quorumStatus = QuorumStatus.notApplicable;
       _outcome = PollOutcome.notApplicable;
@@ -89,13 +105,65 @@ class PollResultController extends ChangeNotifier {
     }
   }
 
+  Future<void> _ensureRealtimeSubscription(Poll poll) async {
+    final pollId = poll.id.value;
+
+    if (_subscribedPollId == pollId) {
+      return;
+    }
+
+    await _votesSubscription?.cancel();
+
+    _votesSubscription = _voteRepository.watchVotesForPoll(poll.id).listen((_) {
+      reload();
+    });
+
+    _subscribedPollId = pollId;
+  }
+
+  Future<void> reload() async {
+    final poll = _lastPoll;
+    final userHasVoted = _lastUserHasVoted;
+
+    if (poll == null || userHasVoted == null) {
+      return;
+    }
+
+    await loadResults(
+      poll: poll,
+      userHasVoted: userHasVoted,
+    );
+  }
+
+  void markUserHasVoted() {
+    _lastUserHasVoted = true;
+    _canShowResults = _lastPoll != null
+        ? _visibilityResolver.canShowResults(
+            poll: _lastPoll!,
+            userHasVoted: true,
+          )
+        : _canShowResults;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _votesSubscription?.cancel();
+    super.dispose();
+  }
+
   void reset() {
+    _votesSubscription?.cancel();
+    _votesSubscription = null;
+    _subscribedPollId = null;
     _result = null;
     _error = null;
     _isLoading = false;
     _quorumStatus = QuorumStatus.notApplicable;
     _outcome = PollOutcome.notApplicable;
     _canShowResults = false;
+    _lastPoll = null;
+    _lastUserHasVoted = null;
     notifyListeners();
   }
 }

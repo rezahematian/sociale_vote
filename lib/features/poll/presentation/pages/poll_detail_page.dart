@@ -41,6 +41,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
   bool _isFavorite = false;
   bool _favoriteInitialized = false;
+  bool _resultsInitialized = false;
 
   @override
   void initState() {
@@ -138,9 +139,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
           if (state is PollDetailLoaded) {
             final poll = state.poll;
 
-            if (!_resultController.isLoading &&
-                _resultController.result == null &&
-                _resultController.error == null) {
+            if (!_resultsInitialized) {
+              _resultsInitialized = true;
               _resultController.loadResults(
                 poll: poll,
                 userHasVoted: _voteController.submittedSuccessfully,
@@ -199,10 +199,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
     );
 
     if (_voteController.submittedSuccessfully) {
-      await _resultController.loadResults(
-        poll: poll,
-        userHasVoted: true,
-      );
+      _resultController.markUserHasVoted();
+      await _resultController.reload();
     }
   }
 

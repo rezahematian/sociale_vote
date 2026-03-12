@@ -17,4 +17,10 @@ abstract class VoteRepository {
   ///
   /// Usato per calcolare risultati aggregati (percentuali, conteggi, ecc.).
   Future<List<Vote>> getVotesForPoll(PollId pollId);
+
+  /// 🔴 Stream realtime per notificare nuovi voti su un poll.
+  ///
+  /// Non restituisce i voti direttamente: serve solo come trigger
+  /// per ricaricare i risultati tramite [getVotesForPoll].
+  Stream<void> watchVotesForPoll(PollId pollId);
 }
