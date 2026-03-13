@@ -14,7 +14,7 @@ class CommentRepositoryImpl implements CommentRepository {
     String? parentId,
     required DateTime createdAt,
   }) async {
-    final depth = parentId == null ? 0 : 1;
+    final depth = await _resolveDepth(parentId);
 
     final rows = await AppSupabase.client
         .from(_commentsTable)
@@ -32,6 +32,28 @@ class CommentRepositoryImpl implements CommentRepository {
 
     if (rows.isEmpty) {
       throw Exception('Creazione commento fallita.');
+    }
+
+    final row = rows.first as Map<String, dynamic>;
+    return _mapComment(row);
+  }
+
+  @override
+  Future<Comment> updateComment({
+    required String commentId,
+    required String content,
+  }) async {
+    final rows = await AppSupabase.client
+        .from(_commentsTable)
+        .update({
+          'content': content,
+        })
+        .eq('id', commentId)
+        .select()
+        .limit(1);
+
+    if (rows.isEmpty) {
+      throw Exception('Aggiornamento commento fallito.');
     }
 
     final row = rows.first as Map<String, dynamic>;
@@ -81,6 +103,26 @@ class CommentRepositoryImpl implements CommentRepository {
   @override
   Future<void> deleteComment(String commentId) async {
     await AppSupabase.client.from(_commentsTable).delete().eq('id', commentId);
+  }
+
+  Future<int> _resolveDepth(String? parentId) async {
+    if (parentId == null || parentId.trim().isEmpty) {
+      return 0;
+    }
+
+    final rows = await AppSupabase.client
+        .from(_commentsTable)
+        .select('depth')
+        .eq('id', parentId)
+        .limit(1);
+
+    if (rows.isEmpty) {
+      throw Exception('Commento padre non trovato.');
+    }
+
+    final row = rows.first as Map<String, dynamic>;
+    final parentDepth = (row['depth'] as int?) ?? 0;
+    return parentDepth + 1;
   }
 
   Comment _mapComment(Map<String, dynamic> row) {

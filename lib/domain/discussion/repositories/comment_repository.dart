@@ -17,5 +17,10 @@ abstract class CommentRepository {
   /// Nuovo metodo per My Comments
   Future<List<Comment>> getCommentsByUser(String userId);
 
+  Future<Comment> updateComment({
+    required String commentId,
+    required String content,
+  });
+
   Future<void> deleteComment(String commentId);
 }

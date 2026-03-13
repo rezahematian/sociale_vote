@@ -36,6 +36,7 @@ class CommentSection extends StatefulWidget {
 class _CommentSectionState extends State<CommentSection> {
   final TextEditingController _inputController = TextEditingController();
   Comment? _replyParent;
+  Comment? _editingComment;
 
   @override
   void dispose() {
@@ -216,6 +217,12 @@ class _CommentSectionState extends State<CommentSection> {
                       isCurrentUser:
                           currentUserId != null && root.userId == currentUserId,
                       onReplyTap: () => _startReply(root),
+                      canEdit:
+                          currentUserId != null && root.userId == currentUserId,
+                      onEditTap: (currentUserId != null &&
+                              root.userId == currentUserId)
+                          ? () => _startEdit(root)
+                          : null,
                       canDelete:
                           currentUserId != null && root.userId == currentUserId,
                       onDeleteTap: (currentUserId != null &&
@@ -233,6 +240,12 @@ class _CommentSectionState extends State<CommentSection> {
                           isCurrentUser: currentUserId != null &&
                               reply.userId == currentUserId,
                           onReplyTap: () => _startReply(root),
+                          canEdit: currentUserId != null &&
+                              reply.userId == currentUserId,
+                          onEditTap: (currentUserId != null &&
+                                  reply.userId == currentUserId)
+                              ? () => _startEdit(reply)
+                              : null,
                           canDelete: currentUserId != null &&
                               reply.userId == currentUserId,
                           onDeleteTap: (currentUserId != null &&
@@ -266,8 +279,53 @@ class _CommentSectionState extends State<CommentSection> {
             const SizedBox(height: 12),
             const Divider(height: 24),
 
+            // Stato edit (banner sopra l'input)
+            if (_editingComment != null) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.edit_outlined,
+                      size: 16,
+                      color: theme.colorScheme.secondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Stai modificando: ${_shorten(_editingComment!.content)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.secondary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: _cancelEdit,
+                      child: Text(
+                        'Annulla',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.secondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             // Stato reply (banner sopra l'input)
-            if (_replyParent != null) ...[
+            if (_replyParent != null && _editingComment == null) ...[
               Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.symmetric(
@@ -313,7 +371,7 @@ class _CommentSectionState extends State<CommentSection> {
               ),
             ],
 
-            // Input nuovo commento / reply
+            // Input nuovo commento / reply / edit
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -324,9 +382,11 @@ class _CommentSectionState extends State<CommentSection> {
                     minLines: 1,
                     textInputAction: TextInputAction.newline,
                     decoration: InputDecoration(
-                      hintText: _replyParent == null
-                          ? l10n.commentSection_inputHintRoot
-                          : l10n.commentSection_inputHintReply,
+                      hintText: _editingComment != null
+                          ? 'Modifica il tuo commento'
+                          : _replyParent == null
+                              ? l10n.commentSection_inputHintRoot
+                              : l10n.commentSection_inputHintReply,
                       isDense: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -348,7 +408,7 @@ class _CommentSectionState extends State<CommentSection> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : Icon(
-                          Icons.send,
+                          _editingComment != null ? Icons.check : Icons.send,
                           color: theme.colorScheme.primary,
                         ),
                   onPressed: isSubmitting ? null : () => _submit(context),
@@ -363,13 +423,33 @@ class _CommentSectionState extends State<CommentSection> {
 
   void _startReply(Comment parent) {
     setState(() {
+      _editingComment = null;
       _replyParent = parent;
+      _inputController.clear();
     });
   }
 
   void _cancelReply() {
     setState(() {
       _replyParent = null;
+    });
+  }
+
+  void _startEdit(Comment comment) {
+    setState(() {
+      _replyParent = null;
+      _editingComment = comment;
+      _inputController.text = comment.content;
+      _inputController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _inputController.text.length),
+      );
+    });
+  }
+
+  void _cancelEdit() {
+    setState(() {
+      _editingComment = null;
+      _inputController.clear();
     });
   }
 
@@ -398,7 +478,12 @@ class _CommentSectionState extends State<CommentSection> {
 
     final controller = context.read<DiscussionController>();
 
-    if (_replyParent == null) {
+    if (_editingComment != null) {
+      await controller.editComment(
+        comment: _editingComment!,
+        content: text,
+      );
+    } else if (_replyParent == null) {
       await controller.addRootComment(
         userId: userId,
         content: text,
@@ -411,15 +496,15 @@ class _CommentSectionState extends State<CommentSection> {
       );
     }
 
-    // Se non c'è errore, pulisco input + stato reply
+    // Se non c'è errore, pulisco input + stato reply/edit
     if (controller.errorMessage == null) {
       _inputController.clear();
-      if (_replyParent != null) {
+      if (_replyParent != null || _editingComment != null) {
         setState(() {
           _replyParent = null;
+          _editingComment = null;
         });
       }
-      // Chiudo la tastiera dopo submit riuscito
       FocusScope.of(context).unfocus();
     }
   }
@@ -436,6 +521,8 @@ class _CommentTile extends StatelessWidget {
   final bool isReply;
   final bool isCurrentUser;
   final VoidCallback onReplyTap;
+  final bool canEdit;
+  final VoidCallback? onEditTap;
   final bool canDelete;
   final VoidCallback? onDeleteTap;
 
@@ -444,6 +531,8 @@ class _CommentTile extends StatelessWidget {
     required this.isReply,
     required this.isCurrentUser,
     required this.onReplyTap,
+    required this.canEdit,
+    this.onEditTap,
     required this.canDelete,
     this.onDeleteTap,
   });
@@ -519,19 +608,29 @@ class _CommentTile extends StatelessWidget {
                   fontSize: 10,
                 ),
               ),
-              if (canDelete && onDeleteTap != null) ...[
+              if ((canEdit && onEditTap != null) ||
+                  (canDelete && onDeleteTap != null)) ...[
                 const SizedBox(width: 4),
                 PopupMenuButton<String>(
                   onSelected: (value) {
+                    if (value == 'edit') {
+                      onEditTap?.call();
+                    }
                     if (value == 'delete') {
-                      onDeleteTap!();
+                      onDeleteTap?.call();
                     }
                   },
                   itemBuilder: (context) => [
-                    PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Text(l10n.commentSection_deleteAction),
-                    ),
+                    if (canEdit && onEditTap != null)
+                      const PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Text('Modifica'),
+                      ),
+                    if (canDelete && onDeleteTap != null)
+                      PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Text(l10n.commentSection_deleteAction),
+                      ),
                   ],
                   icon: Icon(
                     Icons.more_vert,

@@ -4,6 +4,7 @@ import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/discussion/entities/comment.dart';
 import 'package:sociale_vote/domain/discussion/usecases/add_comment.dart';
 import 'package:sociale_vote/domain/discussion/usecases/get_comments_for_target.dart';
+import 'package:sociale_vote/domain/discussion/usecases/update_comment.dart';
 
 enum CommentSortOrder {
   oldestFirst,
@@ -14,15 +15,18 @@ class DiscussionController extends ChangeNotifier {
   final TargetRef target;
   final AddComment _addComment;
   final GetCommentsForTarget _getCommentsForTarget;
+  final UpdateComment _updateComment;
   final VoidCallback? onCommentsChanged;
 
   DiscussionController({
     required this.target,
     required AddComment addComment,
     required GetCommentsForTarget getCommentsForTarget,
+    required UpdateComment updateComment,
     this.onCommentsChanged,
   })  : _addComment = addComment,
-        _getCommentsForTarget = getCommentsForTarget;
+        _getCommentsForTarget = getCommentsForTarget,
+        _updateComment = updateComment;
 
   List<Comment> _comments = [];
   bool _isLoading = false;
@@ -121,7 +125,7 @@ class DiscussionController extends ChangeNotifier {
     required String userId,
     required String content,
   }) async {
-    if (_isSubmitting) return; // 🔒 HARDENING
+    if (_isSubmitting) return;
 
     final trimmed = content.trim();
     if (trimmed.isEmpty) {
@@ -164,7 +168,7 @@ class DiscussionController extends ChangeNotifier {
     required Comment parent,
     required String content,
   }) async {
-    if (_isSubmitting) return; // 🔒 HARDENING
+    if (_isSubmitting) return;
 
     final trimmed = content.trim();
     if (trimmed.isEmpty) {
@@ -202,8 +206,43 @@ class DiscussionController extends ChangeNotifier {
     }
   }
 
+  Future<void> editComment({
+    required Comment comment,
+    required String content,
+  }) async {
+    if (_isSubmitting) return;
+
+    final trimmed = content.trim();
+    if (trimmed.isEmpty) {
+      return;
+    }
+
+    _isSubmitting = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final updatedComment = await _updateComment(
+        commentId: comment.id,
+        content: trimmed,
+      );
+
+      _comments = _comments
+          .map((c) => c.id == updatedComment.id ? updatedComment : c)
+          .toList()
+        ..sort(_compareByCreatedAt);
+
+      _notifyCommentsChanged();
+    } catch (e) {
+      _errorMessage = 'Impossibile modificare il commento.';
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> deleteComment(Comment comment) async {
-    if (_isSubmitting) return; // 🔒 HARDENING
+    if (_isSubmitting) return;
 
     _isSubmitting = true;
     _errorMessage = null;

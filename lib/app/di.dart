@@ -21,6 +21,7 @@ import 'package:sociale_vote/domain/discussion/repositories/comment_repository.d
 import 'package:sociale_vote/domain/discussion/usecases/add_comment.dart';
 import 'package:sociale_vote/domain/discussion/usecases/get_comment_count_for_target.dart';
 import 'package:sociale_vote/domain/discussion/usecases/get_comments_for_target.dart';
+import 'package:sociale_vote/domain/discussion/usecases/update_comment.dart';
 
 import 'package:sociale_vote/domain/engagement/repositories/favorite_repository.dart';
 import 'package:sociale_vote/domain/engagement/repositories/reaction_repository.dart';
@@ -422,6 +423,8 @@ class AppDI {
   GetCommentCountForTarget get getCommentCountForTarget =>
       GetCommentCountForTarget(commentRepository);
 
+  UpdateComment get updateComment => UpdateComment(commentRepository);
+
   // ==========================================================
   // CONTROLLERS - AUTH
   // ==========================================================
@@ -575,6 +578,7 @@ class AppDI {
       target: target,
       addComment: addComment,
       getCommentsForTarget: getCommentsForTarget,
+      updateComment: updateComment,
       onCommentsChanged: onCommentsChanged,
     );
   }
