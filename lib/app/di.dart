@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sociale_vote/core/http/api_client.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 
+import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/content/news/repositories/news_repository.dart';
 import 'package:sociale_vote/domain/content/news/usecases/get_news_detail.dart';
 import 'package:sociale_vote/domain/content/news/usecases/get_news_feed.dart';
@@ -33,12 +34,14 @@ import 'package:sociale_vote/domain/geo/repositories/geo_resolver.dart';
 import 'package:sociale_vote/domain/geo/usecases/get_followed_scopes_for_user.dart';
 import 'package:sociale_vote/domain/geo/usecases/resolve_scope_from_point.dart';
 import 'package:sociale_vote/domain/geo/usecases/toggle_follow_scope.dart';
+import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 
 import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
 import 'package:sociale_vote/domain/identity/repositories/user_repository.dart';
 import 'package:sociale_vote/domain/identity/usecases/login_user.dart';
 import 'package:sociale_vote/domain/identity/usecases/register_user.dart';
 
+import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/repositories/poll_repository.dart';
 import 'package:sociale_vote/domain/poll/repositories/vote_repository.dart';
 import 'package:sociale_vote/domain/poll/services/vote_aggregator.dart';
@@ -57,6 +60,7 @@ import 'package:sociale_vote/features/discovery/application/trending_controller.
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
 import 'package:sociale_vote/features/geo/application/follow_scope_controller.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
+import 'package:sociale_vote/features/home/application/civic_feed_controller.dart';
 import 'package:sociale_vote/features/news/application/news_controller.dart';
 import 'package:sociale_vote/features/poll/application/create_poll_controller.dart';
 import 'package:sociale_vote/features/poll/application/poll_detail_controller.dart';
@@ -504,6 +508,29 @@ class AppDI {
   }
 
   // ==========================================================
+  // CONTROLLERS - HOME / CIVIC FEED
+  // ==========================================================
+
+  CivicFeedController createCivicFeedController() {
+    return CivicFeedController(
+      loadPolls: _loadPollsForScope,
+      loadNews: _loadNewsForScope,
+      loadPosts: _loadPostsForScope,
+      readPollId: _readPollId,
+      readNewsId: _readNewsId,
+      readPostId: _readPostId,
+      readPollCreatedAt: _readPollCreatedAt,
+      readNewsCreatedAt: _readNewsCreatedAt,
+      readPostCreatedAt: _readPostCreatedAt,
+      readPollTargetRef: _readPollTargetRef,
+      readNewsTargetRef: _readNewsTargetRef,
+      readPostTargetRef: _readPostTargetRef,
+      loadReactionCount: _loadReactionCountForTarget,
+      loadCommentCount: _loadCommentCountForTarget,
+    );
+  }
+
+  // ==========================================================
   // CONTROLLERS - DISCOVERY
   // ==========================================================
 
@@ -550,5 +577,286 @@ class AppDI {
       getCommentsForTarget: getCommentsForTarget,
       onCommentsChanged: onCommentsChanged,
     );
+  }
+
+  // ==========================================================
+  // CIVIC FEED HELPERS
+  // ==========================================================
+
+  Future<List<Poll>> _loadPollsForScope(GeoScope? scope) async {
+    final countryCode = _readScopeCountryCode(scope);
+    final cityId = _readScopeCityId(scope);
+    final dynamic useCase = getPolls;
+
+    return _tryLoadList<Poll>([
+      () => useCase(countryCode: countryCode, cityId: cityId),
+      () => useCase(countryCode: countryCode, cityId: cityId, limit: 20),
+      () => useCase(
+            countryCode: countryCode,
+            cityId: cityId,
+            limit: 20,
+            offset: 0,
+          ),
+      () => useCase(),
+    ]);
+  }
+
+  Future<List<NewsItem>> _loadNewsForScope(GeoScope? scope) async {
+    final countryCode = _readScopeCountryCode(scope);
+    final cityId = _readScopeCityId(scope);
+    final dynamic useCase = getNewsFeed;
+
+    return _tryLoadList<NewsItem>([
+      () => useCase(countryCode: countryCode, cityId: cityId),
+      () => useCase(countryCode: countryCode, cityId: cityId, limit: 20),
+      () => useCase(
+            countryCode: countryCode,
+            cityId: cityId,
+            limit: 20,
+            offset: 0,
+          ),
+      () => useCase(),
+    ]);
+  }
+
+  Future<List<Post>> _loadPostsForScope(GeoScope? scope) async {
+    final countryCode = _readScopeCountryCode(scope);
+    final cityId = _readScopeCityId(scope);
+    final dynamic useCase = getFeed;
+
+    return _tryLoadList<Post>([
+      () => useCase(countryCode: countryCode, cityId: cityId),
+      () => useCase(countryCode: countryCode, cityId: cityId, limit: 20),
+      () => useCase(
+            countryCode: countryCode,
+            cityId: cityId,
+            limit: 20,
+            offset: 0,
+          ),
+      () => useCase(),
+    ]);
+  }
+
+  Future<List<T>> _tryLoadList<T>(
+    List<Future<dynamic> Function()> attempts,
+  ) async {
+    Object? lastError;
+
+    for (final attempt in attempts) {
+      try {
+        final dynamic result = await attempt();
+
+        if (result is List<T>) {
+          return result;
+        }
+        if (result is List) {
+          return result.cast<T>();
+        }
+        if (result is Iterable) {
+          return result.cast<T>().toList();
+        }
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw StateError(
+      'Impossibile caricare la lista richiesta: ${lastError ?? 'errore sconosciuto'}',
+    );
+  }
+
+  String? _readScopeCountryCode(GeoScope? scope) {
+    if (scope == null) {
+      return null;
+    }
+
+    try {
+      final dynamic value = (scope as dynamic).countryCode;
+      if (value == null) {
+        return null;
+      }
+      return value.toString();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String? _readScopeCityId(GeoScope? scope) {
+    if (scope == null) {
+      return null;
+    }
+
+    try {
+      final dynamic value = (scope as dynamic).cityId;
+      if (value == null) {
+        return null;
+      }
+      return value.toString();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _readPollId(Poll poll) => _readEntityId(poll);
+  String _readNewsId(NewsItem news) => _readEntityId(news);
+  String _readPostId(Post post) => _readEntityId(post);
+
+  DateTime _readPollCreatedAt(Poll poll) => _readEntityCreatedAt(poll);
+  DateTime _readNewsCreatedAt(NewsItem news) => _readEntityCreatedAt(news);
+  DateTime _readPostCreatedAt(Post post) => _readEntityCreatedAt(post);
+
+  TargetRef _readPollTargetRef(Poll poll) => TargetRef.poll(_readPollId(poll));
+  TargetRef _readNewsTargetRef(NewsItem news) => TargetRef.news(_readNewsId(news));
+  TargetRef _readPostTargetRef(Post post) => TargetRef.post(_readPostId(post));
+
+  String _readEntityId(dynamic entity) {
+    try {
+      final dynamic id = entity.id;
+      return _stringFromUnknownId(id);
+    } catch (_) {}
+
+    try {
+      final dynamic id = entity.pollId;
+      return _stringFromUnknownId(id);
+    } catch (_) {}
+
+    try {
+      final dynamic id = entity.newsId;
+      return _stringFromUnknownId(id);
+    } catch (_) {}
+
+    try {
+      final dynamic id = entity.postId;
+      return _stringFromUnknownId(id);
+    } catch (_) {}
+
+    throw StateError('Impossibile leggere id da ${entity.runtimeType}');
+  }
+
+  String _stringFromUnknownId(dynamic id) {
+    if (id == null) {
+      throw StateError('Id nullo');
+    }
+
+    try {
+      final dynamic value = id.value;
+      if (value != null) {
+        return value.toString();
+      }
+    } catch (_) {}
+
+    return id.toString();
+  }
+
+  DateTime _readEntityCreatedAt(dynamic entity) {
+    try {
+      final dynamic value = entity.createdAt;
+      final parsed = _parseDateTime(value);
+      if (parsed != null) {
+        return parsed;
+      }
+    } catch (_) {}
+
+    try {
+      final dynamic value = entity.publishedAt;
+      final parsed = _parseDateTime(value);
+      if (parsed != null) {
+        return parsed;
+      }
+    } catch (_) {}
+
+    try {
+      final dynamic value = entity.updatedAt;
+      final parsed = _parseDateTime(value);
+      if (parsed != null) {
+        return parsed;
+      }
+    } catch (_) {}
+
+    try {
+      final dynamic value = entity.date;
+      final parsed = _parseDateTime(value);
+      if (parsed != null) {
+        return parsed;
+      }
+    } catch (_) {}
+
+    return DateTime.now();
+  }
+
+  DateTime? _parseDateTime(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+    if (value is DateTime) {
+      return value;
+    }
+    return DateTime.tryParse(value.toString());
+  }
+
+  Future<int> _loadReactionCountForTarget(TargetRef targetRef) async {
+    try {
+      final dynamic useCase = getReactionSummary;
+      final dynamic summary = await useCase(target: targetRef);
+
+      try {
+        final dynamic totalCount = summary.totalCount;
+        if (totalCount is num) {
+          return totalCount.toInt();
+        }
+      } catch (_) {}
+
+      num total = 0;
+
+      try {
+        final dynamic fireCount = summary.fireCount;
+        if (fireCount is num) {
+          total += fireCount;
+        }
+      } catch (_) {}
+
+      try {
+        final dynamic iceCount = summary.iceCount;
+        if (iceCount is num) {
+          total += iceCount;
+        }
+      } catch (_) {}
+
+      try {
+        final dynamic upCount = summary.upCount;
+        if (upCount is num) {
+          total += upCount;
+        }
+      } catch (_) {}
+
+      try {
+        final dynamic downCount = summary.downCount;
+        if (downCount is num) {
+          total += downCount;
+        }
+      } catch (_) {}
+
+      return total.toInt();
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  Future<int> _loadCommentCountForTarget(TargetRef targetRef) async {
+    try {
+      final dynamic useCase = getCommentCountForTarget;
+      final dynamic result = await useCase(target: targetRef);
+
+      if (result is int) {
+        return result;
+      }
+      if (result is num) {
+        return result.toInt();
+      }
+
+      return int.tryParse(result.toString()) ?? 0;
+    } catch (_) {
+      return 0;
+    }
   }
 }

@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
-import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 import 'package:sociale_vote/features/news/application/news_controller.dart';
@@ -31,20 +30,8 @@ class HomeNewsSection extends StatelessWidget {
     final controller = context.watch<NewsController>();
 
     final allNews = controller.news;
-
-    final sorted = List<NewsItem>.from(allNews);
-    sorted.sort((a, b) {
-      final summaryA = controller.summaryForNews(a);
-      final summaryB = controller.summaryForNews(b);
-
-      final heatA = (summaryA?.likeCount ?? 0) - (summaryA?.dislikeCount ?? 0);
-      final heatB = (summaryB?.likeCount ?? 0) - (summaryB?.dislikeCount ?? 0);
-
-      return heatB.compareTo(heatA);
-    });
-
     final newsList =
-        sorted.length <= 3 ? sorted : sorted.take(3).toList(growable: false);
+        allNews.length <= 3 ? allNews : allNews.take(3).toList(growable: false);
 
     Widget content;
 
@@ -291,6 +278,7 @@ class _NewsCardBuilder extends StatelessWidget {
 
     final fire = summary?.likeCount ?? 0;
     final ice = summary?.dislikeCount ?? 0;
+    final commentCount = controller.commentCountForNews(news);
     final userReaction = summary?.userReaction;
 
     return NewsPreviewCard(
@@ -298,6 +286,7 @@ class _NewsCardBuilder extends StatelessWidget {
       compact: compact,
       fireCount: fire,
       iceCount: ice,
+      commentCount: commentCount,
       userReaction: userReaction,
       onReturnedFromDetail: () {
         controller.loadNews();
@@ -382,6 +371,7 @@ class NewsPreviewCard extends StatelessWidget {
   final bool compact;
   final int fireCount;
   final int iceCount;
+  final int commentCount;
   final ReactionType? userReaction;
   final VoidCallback? onFireTap;
   final VoidCallback? onIceTap;
@@ -393,6 +383,7 @@ class NewsPreviewCard extends StatelessWidget {
     required this.compact,
     this.fireCount = 0,
     this.iceCount = 0,
+    this.commentCount = 0,
     this.userReaction,
     this.onFireTap,
     this.onIceTap,
@@ -494,9 +485,9 @@ class NewsPreviewCard extends StatelessWidget {
             const Divider(height: 1),
             SizedBox(height: compact ? 6 : 8),
             _NewsPreviewEngagementBar(
-              news: news,
               fireCount: fireCount,
               iceCount: iceCount,
+              commentCount: commentCount,
               userReaction: userReaction,
               onFireTap: onFireTap,
               onIceTap: onIceTap,
@@ -534,18 +525,18 @@ class NewsPreviewCard extends StatelessWidget {
 }
 
 class _NewsPreviewEngagementBar extends StatelessWidget {
-  final NewsItem news;
   final int fireCount;
   final int iceCount;
+  final int commentCount;
   final ReactionType? userReaction;
   final VoidCallback? onFireTap;
   final VoidCallback? onIceTap;
   final VoidCallback? onCommentTap;
 
   const _NewsPreviewEngagementBar({
-    required this.news,
     required this.fireCount,
     required this.iceCount,
+    required this.commentCount,
     required this.userReaction,
     required this.onFireTap,
     required this.onIceTap,
@@ -554,22 +545,14 @@ class _NewsPreviewEngagementBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<int>(
-      future:
-          AppDI.instance.getCommentCountForTarget(TargetRef.news(news.id.value)),
-      builder: (context, snapshot) {
-        final commentCount = snapshot.hasData ? snapshot.data! : 0;
-
-        return EngagementBar(
-          fireCount: fireCount,
-          iceCount: iceCount,
-          commentCount: commentCount,
-          userReaction: userReaction,
-          onFireTap: onFireTap,
-          onIceTap: onIceTap,
-          onCommentTap: onCommentTap,
-        );
-      },
+    return EngagementBar(
+      fireCount: fireCount,
+      iceCount: iceCount,
+      commentCount: commentCount,
+      userReaction: userReaction,
+      onFireTap: onFireTap,
+      onIceTap: onIceTap,
+      onCommentTap: onCommentTap,
     );
   }
 }

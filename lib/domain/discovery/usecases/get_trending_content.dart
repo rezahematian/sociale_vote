@@ -1,19 +1,21 @@
+import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/content/social/repositories/post_repository.dart';
 import 'package:sociale_vote/domain/discussion/usecases/get_comments_for_target.dart';
+import 'package:sociale_vote/domain/engagement/entities/reaction_summary.dart';
 import 'package:sociale_vote/domain/engagement/usecases/get_reaction_summary.dart';
 import 'package:sociale_vote/domain/geo/repositories/follow_scope_repository.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
-import 'package:sociale_vote/domain/discovery/value_objects/trending_score.dart';
-import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
-import 'package:sociale_vote/domain/engagement/entities/reaction_summary.dart';
 
 /// Use case: restituisce contenuti "trending"
 /// filtrati per scope seguiti dall'utente (se loggato).
 ///
 /// V1:
 /// - Solo Post
-/// - Score = TrendingScore v1 (heat + commentCount + recency decay)
+/// - Ordine:
+///   1. fire
+///   2. commentCount
+///   3. recency
 class GetTrendingContent {
   final PostRepository _postRepository;
   final GetReactionSummary _getReactionSummary;
@@ -56,16 +58,12 @@ class GetTrendingContent {
       }
     }
 
-    // 3️⃣ Calcolo TrendingScore per ogni post
+    // 3️⃣ Calcolo priorità trending per ogni post
     final scored = <_ScoredPost>[];
-    final now = DateTime.now();
 
     for (final post in posts) {
       final target = TargetRef.post(post.id.value);
 
-      // GetReactionSummary:
-      // - primo argomento: List<TargetRef>
-      // - ritorno: List<ReactionSummary>
       final List<ReactionSummary> summaries = await _getReactionSummary(
         [target],
         userId: userId,
@@ -74,25 +72,37 @@ class GetTrendingContent {
       final ReactionSummary? summary =
           summaries.isNotEmpty ? summaries.first : null;
 
-      final heat =
-          (summary?.likeCount ?? 0) - (summary?.dislikeCount ?? 0);
+      final fireCount = summary?.likeCount ?? 0;
 
-      // GetCommentsForTarget: un solo TargetRef, ritorna List<Comment>
       final comments = await _getCommentsForTarget(target);
       final commentCount = comments.length;
 
-      final score = TrendingScore.fromTimeBasedMetrics(
-        heat: heat,
-        commentCount: commentCount,
-        createdAt: post.createdAt,
-        now: now,
+      scored.add(
+        _ScoredPost(
+          post: post,
+          fireCount: fireCount,
+          commentCount: commentCount,
+        ),
       );
-
-      scored.add(_ScoredPost(post: post, score: score));
     }
 
-    // 4️⃣ Ordina per score desc
-    scored.sort((a, b) => TrendingScore.compareDesc(a.score, b.score));
+    // 4️⃣ Ordine:
+    //    1. fire desc
+    //    2. commentCount desc
+    //    3. createdAt desc
+    scored.sort((a, b) {
+      final fireCompare = b.fireCount.compareTo(a.fireCount);
+      if (fireCompare != 0) {
+        return fireCompare;
+      }
+
+      final commentCompare = b.commentCount.compareTo(a.commentCount);
+      if (commentCompare != 0) {
+        return commentCompare;
+      }
+
+      return b.post.createdAt.compareTo(a.post.createdAt);
+    });
 
     // 5️⃣ Restituisci solo i post ordinati
     return scored
@@ -104,10 +114,12 @@ class GetTrendingContent {
 
 class _ScoredPost {
   final Post post;
-  final TrendingScore score;
+  final int fireCount;
+  final int commentCount;
 
   _ScoredPost({
     required this.post,
-    required this.score,
+    required this.fireCount,
+    required this.commentCount,
   });
 }

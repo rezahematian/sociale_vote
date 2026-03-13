@@ -41,7 +41,7 @@ class PollListController extends ChangeNotifier {
   bool _isDisposed = false;
 
   // ===== Filtri / ordinamento =====
-  PollSortMode _sortMode = PollSortMode.latest;
+  PollSortMode _sortMode = PollSortMode.hottest;
   PollScopeFilter _scopeFilter = PollScopeFilter.currentScope;
   PollStatusFilter _statusFilter = PollStatusFilter.all;
 
@@ -223,10 +223,32 @@ class PollListController extends ChangeNotifier {
   ReactionType? userReactionForPoll(Poll poll) =>
       _summaryForPoll(poll)?.userReaction;
 
-  double _heatForPoll(Poll poll) {
+  int _fireCountForPoll(Poll poll) {
     final summary = _summaryForPoll(poll);
     if (summary == null) return 0;
-    return (summary.likeCount - summary.dislikeCount).toDouble();
+    return summary.likeCount;
+  }
+
+  int _sourceIndexForPoll(Poll poll) {
+    final index = _allPolls.indexWhere((p) => p.id.value == poll.id.value);
+    return index < 0 ? 1 << 30 : index;
+  }
+
+  int _comparePollPriority(Poll a, Poll b) {
+    final voteCompare = b.voteCount.compareTo(a.voteCount);
+    if (voteCompare != 0) {
+      return voteCompare;
+    }
+
+    final fireCompare = _fireCountForPoll(b).compareTo(_fireCountForPoll(a));
+    if (fireCompare != 0) {
+      return fireCompare;
+    }
+
+    // Tie-break finale: manteniamo l'ordine sorgente del backend.
+    // Il repository già restituisce vote_count desc + created_at desc,
+    // quindi qui ereditiamo la recency a parità di vote_count e fire.
+    return _sourceIndexForPoll(a).compareTo(_sourceIndexForPoll(b));
   }
 
   // ===== Filtri + ordinamento =====
@@ -272,13 +294,12 @@ class PollListController extends ChangeNotifier {
   void _sortPolls(List<Poll> list) {
     switch (_sortMode) {
       case PollSortMode.latest:
-        // V1: manteniamo l'ordine di arrivo dal repository
-        // (considerato già "latest" lato sorgente).
+        list.sort(
+          (a, b) => _sourceIndexForPoll(a).compareTo(_sourceIndexForPoll(b)),
+        );
         break;
       case PollSortMode.hottest:
-        list.sort(
-          (a, b) => _heatForPoll(b).compareTo(_heatForPoll(a)),
-        );
+        list.sort(_comparePollPriority);
         break;
     }
   }

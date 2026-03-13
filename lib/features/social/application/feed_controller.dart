@@ -76,7 +76,7 @@ class FeedController extends ChangeNotifier {
   String? _lastKnownUserId;
 
   /// Modalità di ordinamento corrente per il feed.
-  FeedSortMode _sortMode = FeedSortMode.latest;
+  FeedSortMode _sortMode = FeedSortMode.hottest;
 
   // ===== GETTER STATO PUBBLICO =====
 
@@ -134,6 +134,34 @@ class FeedController extends ChangeNotifier {
   bool _containsPost(Post post) {
     final postId = _postId(post);
     return _posts.any((item) => item.id.value == postId);
+  }
+
+  int _fireCountForPost(Post post) {
+    final summary = summaryForPost(post);
+    if (summary == null) return 0;
+    return summary.likeCount;
+  }
+
+  int _sourceIndexForPost(Post post) {
+    final index = _posts.indexWhere((item) => item.id.value == post.id.value);
+    return index < 0 ? 1 << 30 : index;
+  }
+
+  int _comparePostPriority(Post a, Post b) {
+    final fireCompare = _fireCountForPost(b).compareTo(_fireCountForPost(a));
+    if (fireCompare != 0) {
+      return fireCompare;
+    }
+
+    final commentCompare =
+        commentCountForPost(b).compareTo(commentCountForPost(a));
+    if (commentCompare != 0) {
+      return commentCompare;
+    }
+
+    // Tie-break finale: manteniamo l'ordine sorgente del backend,
+    // che assumiamo già in recency desc.
+    return _sourceIndexForPost(a).compareTo(_sourceIndexForPost(b));
   }
 
   // ===== CARICAMENTO FEED (PAGINAZIONE REALE) =====
@@ -289,6 +317,11 @@ class FeedController extends ChangeNotifier {
     try {
       final count = await _getCommentCountForTarget(_targetForPost(post));
       _commentCounts[_postId(post)] = count;
+
+      if (_sortMode == FeedSortMode.hottest) {
+        _sortPosts();
+      }
+
       notifyListeners();
     } catch (_) {
       // Refresh puntuale: manteniamo il valore corrente senza rompere il feed.
@@ -352,19 +385,7 @@ class FeedController extends ChangeNotifier {
     }
   }
 
-  // ===== HEAT / SORTING =====
-
-  /// Metrica di "calore" per un post, usata in modalità hottest.
-  ///
-  /// v1: differenza semplice like - dislike.
-  /// In futuro qui puoi sostituire con un vero HeatScore (ReactionSummary.heat).
-  double _heatForPost(Post post) {
-    final summary = summaryForPost(post);
-    if (summary == null) return 0;
-    final likes = summary.likeCount;
-    final dislikes = summary.dislikeCount;
-    return (likes - dislikes).toDouble();
-  }
+  // ===== SORTING =====
 
   /// Ordina la lista interna _posts in base a [_sortMode].
   void _sortPosts() {
@@ -376,9 +397,7 @@ class FeedController extends ChangeNotifier {
         // di recency (createdAt desc). Non forziamo sort extra.
         break;
       case FeedSortMode.hottest:
-        _posts.sort(
-          (a, b) => _heatForPost(b).compareTo(_heatForPost(a)),
-        );
+        _posts.sort(_comparePostPriority);
         break;
     }
   }

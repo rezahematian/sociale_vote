@@ -69,19 +69,9 @@ class HomePollSection extends StatelessWidget {
         subtitle: l10n.homePollsEmptySubtitle,
       );
     } else {
-      final sorted = List<Poll>.from(allPolls);
-
-      sorted.sort((a, b) {
-        final heatA =
-            controller.likeCountForPoll(a) - controller.dislikeCountForPoll(a);
-        final heatB =
-            controller.likeCountForPoll(b) - controller.dislikeCountForPoll(b);
-        return heatB.compareTo(heatA);
-      });
-
-      final polls = sorted.length <= 3
-          ? sorted
-          : sorted.take(3).toList(growable: false);
+      final polls = allPolls.length <= 3
+          ? allPolls
+          : allPolls.take(3).toList(growable: false);
 
       content = Column(
         children: polls

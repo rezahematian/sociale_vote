@@ -38,6 +38,9 @@ class Poll {
   /// Utente che ha creato il poll.
   final String? createdByUserId;
 
+  /// Numero totale di partecipanti (aggregato backend).
+  final int voteCount;
+
   const Poll({
     required this.id,
     required this.title,
@@ -51,6 +54,7 @@ class Poll {
     this.countryCode,
     this.cityId,
     this.createdByUserId,
+    this.voteCount = 0,
   });
 
   bool get isOpen => status == PollStatus.open;
@@ -83,6 +87,7 @@ class Poll {
     String? countryCode,
     String? cityId,
     String? createdByUserId,
+    int? voteCount,
   }) {
     return Poll(
       id: id ?? this.id,
@@ -97,11 +102,12 @@ class Poll {
       countryCode: countryCode ?? this.countryCode,
       cityId: cityId ?? this.cityId,
       createdByUserId: createdByUserId ?? this.createdByUserId,
+      voteCount: voteCount ?? this.voteCount,
     );
   }
 
   @override
   String toString() {
-    return 'Poll(id: $id, title: $title, type: $type, status: $status, options: ${options.length}, createdBy: $createdByUserId)';
+    return 'Poll(id: $id, title: $title, votes: $voteCount, type: $type, status: $status, options: ${options.length}, createdBy: $createdByUserId)';
   }
 }

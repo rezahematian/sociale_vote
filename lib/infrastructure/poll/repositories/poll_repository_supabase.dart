@@ -15,7 +15,8 @@ import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
 /// `poll_repository_supabase.dart` per compatibilità,
 /// ma l'implementazione è ormai backend reale.
 class PollRepositorySupabase implements PollRepository {
-  static const String _pollsTable = 'polls';
+  static const String _pollsTable = 'polls_with_vote_count';
+  static const String _pollsInsertTable = 'polls';
 
   @override
   Future<List<Poll>> getPolls({
@@ -34,6 +35,7 @@ class PollRepositorySupabase implements PollRepository {
       query = query.eq('city_id', cityId);
     }
 
+    query = query.order('vote_count', ascending: false);
     query = query.order('created_at', ascending: false);
 
     if (offset != null && limit != null) {
@@ -78,7 +80,7 @@ class PollRepositorySupabase implements PollRepository {
     }
 
     final rawRows = await AppSupabase.client
-        .from(_pollsTable)
+        .from(_pollsInsertTable)
         .insert({
           'author_id': currentUser.id,
           'title': poll.title,
@@ -152,6 +154,7 @@ class PollRepositorySupabase implements PollRepository {
       ),
       countryCode: countryCode,
       cityId: cityId,
+      voteCount: (row['vote_count'] as int?) ?? 0,
     );
   }
 
