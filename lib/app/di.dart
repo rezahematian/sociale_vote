@@ -38,9 +38,12 @@ import 'package:sociale_vote/domain/geo/usecases/toggle_follow_scope.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 
 import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
+import 'package:sociale_vote/domain/identity/repositories/user_profile_repository.dart';
 import 'package:sociale_vote/domain/identity/repositories/user_repository.dart';
+import 'package:sociale_vote/domain/identity/usecases/get_user_profile.dart';
 import 'package:sociale_vote/domain/identity/usecases/login_user.dart';
 import 'package:sociale_vote/domain/identity/usecases/register_user.dart';
+import 'package:sociale_vote/domain/identity/usecases/update_user_profile.dart';
 
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/repositories/poll_repository.dart';
@@ -74,10 +77,11 @@ import 'package:sociale_vote/features/social/application/post_detail_controller.
 
 import 'package:sociale_vote/infrastructure/auth/session_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/discussion/repositories/comment_repository_impl.dart';
-import 'package:sociale_vote/infrastructure/engagement/repositories/favorite_repository_in_memory.dart';
+import 'package:sociale_vote/infrastructure/engagement/repositories/favorite_repository_supabase.dart';
 import 'package:sociale_vote/infrastructure/engagement/repositories/reaction_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/geo/geo_resolver_impl.dart';
 import 'package:sociale_vote/infrastructure/geo/repositories/follow_scope_repository_in_memory.dart';
+import 'package:sociale_vote/infrastructure/identity/repositories/user_profile_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/gnews_provider.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/mediastack_provider.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/news_aggregator.dart';
@@ -227,6 +231,8 @@ class AppDI {
 
   late final SessionRepository _sessionRepository = SessionRepositoryImpl();
   late final UserRepository _userRepository = UserRepositoryImpl(_authApi);
+  late final UserProfileRepository _userProfileRepository =
+      UserProfileRepositoryImpl();
   late final GeoResolver _geoResolver = GeoResolverImpl();
   late final FollowScopeRepository _followScopeRepository =
       FollowScopeRepositoryInMemory();
@@ -236,7 +242,7 @@ class AppDI {
   late final NewsRepository _newsRepository =
       NewsRepositoryImpl(_newsAggregator, _newsMapper);
   final PostRepository _postRepository = PostRepositoryImpl();
-  final FavoriteRepository _favoriteRepository = FavoriteRepositoryInMemory();
+  final FavoriteRepository _favoriteRepository = FavoriteRepositorySupabase();
   final ReactionRepository _reactionRepository = ReactionRepositoryImpl();
   final CommentRepository _commentRepository = CommentRepositoryImpl();
   late final SearchRepository _searchRepository = SearchRepositoryInMemory(
@@ -249,6 +255,7 @@ class AppDI {
 
   SessionRepository get sessionRepository => _sessionRepository;
   UserRepository get userRepository => _userRepository;
+  UserProfileRepository get userProfileRepository => _userProfileRepository;
   PollRepository get pollRepository => _pollRepository;
   VoteRepository get voteRepository => _voteRepository;
   NewsRepository get newsRepository => _newsRepository;
@@ -289,6 +296,11 @@ class AppDI {
         userRepository,
         sessionRepository,
       );
+
+  GetUserProfile get getUserProfile => GetUserProfile(userProfileRepository);
+
+  UpdateUserProfile get updateUserProfile =>
+      UpdateUserProfile(userProfileRepository);
 
   // ==========================================================
   // USE CASES - POLL
@@ -710,7 +722,8 @@ class AppDI {
   DateTime _readPostCreatedAt(Post post) => _readEntityCreatedAt(post);
 
   TargetRef _readPollTargetRef(Poll poll) => TargetRef.poll(_readPollId(poll));
-  TargetRef _readNewsTargetRef(NewsItem news) => TargetRef.news(_readNewsId(news));
+  TargetRef _readNewsTargetRef(NewsItem news) =>
+      TargetRef.news(_readNewsId(news));
   TargetRef _readPostTargetRef(Post post) => TargetRef.post(_readPostId(post));
 
   String _readEntityId(dynamic entity) {
