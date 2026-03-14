@@ -13,7 +13,20 @@ class UpdateUserProfile {
     String? bio,
     String? country,
     String? city,
-  }) {
+  }) async {
+    final existing = await _repository.getUserProfile(userId);
+
+    if (existing == null) {
+      return _repository.createUserProfile(
+        userId: userId,
+        displayName: displayName,
+        avatarUrl: avatarUrl,
+        bio: bio,
+        country: country,
+        city: city,
+      );
+    }
+
     return _repository.updateUserProfile(
       userId: userId,
       displayName: displayName,

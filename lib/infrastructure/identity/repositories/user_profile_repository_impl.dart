@@ -22,6 +22,44 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
   }
 
   @override
+  Future<UserProfile> createUserProfile({
+    required String userId,
+    String? displayName,
+    String? avatarUrl,
+    String? bio,
+    String? country,
+    String? city,
+  }) async {
+    final now = DateTime.now().toUtc().toIso8601String();
+
+    final payload = <String, dynamic>{
+      'id': userId,
+      'display_name': displayName,
+      'avatar_url': avatarUrl,
+      'bio': bio,
+      'country': country,
+      'city': city,
+      'account_type': 'citizen',
+      'is_verified': false,
+      'created_at': now,
+      'updated_at': now,
+    };
+
+    final rows = await AppSupabase.client
+        .from(_table)
+        .insert(payload)
+        .select()
+        .limit(1);
+
+    if (rows.isEmpty) {
+      throw Exception('Creazione profilo fallita.');
+    }
+
+    final row = rows.first as Map<String, dynamic>;
+    return _mapProfile(row);
+  }
+
+  @override
   Future<UserProfile> updateUserProfile({
     required String userId,
     String? displayName,
@@ -74,6 +112,11 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     if (value is String && value.trim().isNotEmpty) {
       return DateTime.tryParse(value)?.toLocal() ?? DateTime.now();
     }
+
+    if (value is DateTime) {
+      return value.toLocal();
+    }
+
     return DateTime.now();
   }
 }

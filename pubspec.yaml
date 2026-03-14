@@ -53,6 +53,11 @@ dependencies:
   url_launcher: ^6.2.6
 
   # =========================
+  # IMAGE PICKER (AVATAR UPLOAD)
+  # =========================
+  image_picker: ^1.1.2
+
+  # =========================
   # SUPABASE
   # =========================
   supabase_flutter: ^2.8.0

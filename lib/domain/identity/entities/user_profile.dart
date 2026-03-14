@@ -29,6 +29,10 @@ class UserProfile {
     String? bio,
     String? country,
     String? city,
+    String? accountType,
+    bool? isVerified,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return UserProfile(
       id: id,
@@ -37,10 +41,10 @@ class UserProfile {
       bio: bio ?? this.bio,
       country: country ?? this.country,
       city: city ?? this.city,
-      accountType: accountType,
-      isVerified: isVerified,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
+      accountType: accountType ?? this.accountType,
+      isVerified: isVerified ?? this.isVerified,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

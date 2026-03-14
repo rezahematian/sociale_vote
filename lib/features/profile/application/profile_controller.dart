@@ -34,7 +34,7 @@ class ProfileController extends ChangeNotifier {
 
     try {
       _profile = await _getUserProfile(userId);
-    } catch (_) {
+    } catch (e) {
       _errorMessage = 'Impossibile caricare il profilo.';
     } finally {
       _isLoading = false;
@@ -65,7 +65,7 @@ class ProfileController extends ChangeNotifier {
         country: country,
         city: city,
       );
-    } catch (_) {
+    } catch (e) {
       _errorMessage = 'Impossibile aggiornare il profilo.';
     } finally {
       _isSaving = false;
@@ -74,6 +74,7 @@ class ProfileController extends ChangeNotifier {
   }
 
   void clearError() {
+    if (_errorMessage == null) return;
     _errorMessage = null;
     notifyListeners();
   }
