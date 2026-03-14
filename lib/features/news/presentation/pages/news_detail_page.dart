@@ -37,18 +37,45 @@ class NewsDetailPage extends StatefulWidget {
 class _NewsDetailPageState extends State<NewsDetailPage> {
   bool _isFavorite = false;
   bool _favoriteInitialized = false;
+  bool _favoriteLoading = false;
   int _commentCount = 0;
+  String? _initializedNewsId;
 
   @override
   void initState() {
     super.initState();
+    _initializeForCurrentNews();
+  }
+
+  @override
+  void didUpdateWidget(covariant NewsDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.news.id.value != widget.news.id.value) {
+      _isFavorite = false;
+      _favoriteInitialized = false;
+      _favoriteLoading = false;
+      _commentCount = 0;
+      _initializedNewsId = null;
+      _initializeForCurrentNews();
+    }
+  }
+
+  void _initializeForCurrentNews() {
+    _initializedNewsId = widget.news.id.value;
     _initFavoriteStatus();
     _loadCommentCount();
   }
 
   Future<void> _initFavoriteStatus() async {
     final userId = AppDI.instance.currentUserId;
+
     if (userId == null) {
+      if (!mounted) return;
+      setState(() {
+        _isFavorite = false;
+        _favoriteInitialized = true;
+      });
       return;
     }
 
@@ -88,6 +115,10 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
   }
 
   Future<void> _onFavoritePressed() async {
+    if (_favoriteLoading) {
+      return;
+    }
+
     final allowed = await AuthGuard.ensureCanPerformAction(
       context,
       ParticipationAction.react,
@@ -96,6 +127,10 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
 
     final userId = AppDI.instance.currentUserId;
     if (userId == null) return;
+
+    setState(() {
+      _favoriteLoading = true;
+    });
 
     try {
       final newState = await AppDI.instance.toggleFavorite(
@@ -107,7 +142,15 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
         _isFavorite = newState;
       });
     } catch (_) {
-      // v1: silenzioso
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossibile aggiornare i preferiti')),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _favoriteLoading = false;
+      });
     }
   }
 
@@ -116,6 +159,20 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final news = widget.news;
+
+    if (_initializedNewsId != news.id.value) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _isFavorite = false;
+          _favoriteInitialized = false;
+          _favoriteLoading = false;
+          _commentCount = 0;
+          _initializedNewsId = news.id.value;
+        });
+        _initializeForCurrentNews();
+      });
+    }
 
     return ChangeNotifierProvider<DiscussionController>(
       create: (_) => AppDI.instance.createDiscussionController(
@@ -169,16 +226,24 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(
-                        _isFavorite ? Icons.star : Icons.star_border,
-                        color: _isFavorite
-                            ? theme.colorScheme.primary
-                            : theme.iconTheme.color,
-                      ),
+                      icon: _favoriteLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Icon(
+                              _isFavorite ? Icons.star : Icons.star_border,
+                              color: _isFavorite
+                                  ? theme.colorScheme.primary
+                                  : theme.iconTheme.color,
+                            ),
                       tooltip: _isFavorite
                           ? l10n.newsDetail_removeFromFavoritesTooltip
                           : l10n.newsDetail_addToFavoritesTooltip,
-                      onPressed: _onFavoritePressed,
+                      onPressed: _favoriteLoading ? null : _onFavoritePressed,
                     ),
                   ],
                 ),
@@ -273,8 +338,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                           );
                           if (!allowed) return;
 
-                          final String? userId =
-                              AppDI.instance.currentUserId;
+                          final String? userId = AppDI.instance.currentUserId;
                           if (userId == null) return;
 
                           newsController!.toggleFireForNews(
@@ -290,8 +354,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                           );
                           if (!allowed) return;
 
-                          final String? userId =
-                              AppDI.instance.currentUserId;
+                          final String? userId = AppDI.instance.currentUserId;
                           if (userId == null) return;
 
                           newsController!.toggleIceForNews(

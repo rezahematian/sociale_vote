@@ -206,6 +206,7 @@ class _PollListPageState extends State<PollListPage> {
                               },
                               child: PollCard(
                                 poll: poll,
+                                result: controller.resultForPoll(poll),
                                 fireCount: fire,
                                 iceCount: ice,
                                 userReaction: userReaction,

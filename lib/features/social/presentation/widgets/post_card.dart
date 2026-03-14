@@ -21,7 +21,7 @@ import 'package:sociale_vote/shared/ui/app_card.dart';
 /// NOTA:
 /// Questo widget NON deve mai gestire direttamente userId.
 /// I controller devono già passare callback corrette.
-class PostCard extends StatelessWidget {
+class PostCard extends StatefulWidget {
   final Post post;
 
   final int fireCount;
@@ -43,6 +43,105 @@ class PostCard extends StatelessWidget {
     this.onFireTap,
     this.onIceTap,
   });
+
+  @override
+  State<PostCard> createState() => _PostCardState();
+}
+
+class _PostCardState extends State<PostCard> {
+  bool _isFavorite = false;
+  bool _favoriteLoading = false;
+  String? _initializedPostId;
+
+  Post get post => widget.post;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeFavorite();
+  }
+
+  @override
+  void didUpdateWidget(covariant PostCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.post.id.value != widget.post.id.value) {
+      _isFavorite = false;
+      _favoriteLoading = false;
+      _initializedPostId = null;
+      _initializeFavorite();
+    }
+  }
+
+  void _initializeFavorite() {
+    _initializedPostId = post.id.value;
+    _initFavoriteStatus();
+  }
+
+  Future<void> _initFavoriteStatus() async {
+    final userId = AppDI.instance.currentUserId;
+
+    if (userId == null) {
+      if (!mounted) return;
+      setState(() {
+        _isFavorite = false;
+      });
+      return;
+    }
+
+    try {
+      final isFav = await AppDI.instance.isFavorite(
+        userId: userId,
+        target: TargetRef.post(post.id.value),
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _isFavorite = isFav;
+      });
+    } catch (_) {
+      // Nessun blocco UI se fallisce il check favorite.
+    }
+  }
+
+  Future<void> _onFavoritePressed() async {
+    if (_favoriteLoading) return;
+
+    final allowed = await AuthGuard.ensureCanPerformAction(
+      context,
+      ParticipationAction.react,
+    );
+    if (!allowed) return;
+
+    final userId = AppDI.instance.currentUserId;
+    if (userId == null) return;
+
+    setState(() {
+      _favoriteLoading = true;
+    });
+
+    try {
+      final newState = await AppDI.instance.toggleFavorite(
+        userId: userId,
+        target: TargetRef.post(post.id.value),
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _isFavorite = newState;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossibile aggiornare i preferiti')),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _favoriteLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,14 +172,36 @@ class PostCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header placeholder (in futuro autore, avatar, data)
-          Text(
-            'Post',
-            style: theme.textTheme.titleMedium,
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Post',
+                  style: theme.textTheme.titleMedium,
+                ),
+              ),
+              IconButton(
+                tooltip: _isFavorite
+                    ? 'Remove from favorites'
+                    : 'Add to favorites',
+                onPressed: _favoriteLoading ? null : _onFavoritePressed,
+                icon: _favoriteLoading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        _isFavorite ? Icons.star : Icons.star_border,
+                        color: _isFavorite
+                            ? theme.colorScheme.primary
+                            : theme.iconTheme.color,
+                      ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
 
-          // Contenuto post (placeholder sicuro)
           Text(
             post.toString(),
             style: theme.textTheme.bodyMedium,
@@ -90,17 +211,16 @@ class PostCard extends StatelessWidget {
           const Divider(height: 1),
           const SizedBox(height: 8),
 
-          // ===== FOOTER =====
           Row(
             children: [
               _CommentCountBadge(post: post),
               const Spacer(),
               EngagementBar(
-                fireCount: fireCount,
-                iceCount: iceCount,
-                userReaction: userReaction,
-                onFireTap: _wrapReactCallback(onFireTap),
-                onIceTap: _wrapReactCallback(onIceTap),
+                fireCount: widget.fireCount,
+                iceCount: widget.iceCount,
+                userReaction: widget.userReaction,
+                onFireTap: _wrapReactCallback(widget.onFireTap),
+                onIceTap: _wrapReactCallback(widget.onIceTap),
               ),
             ],
           ),
@@ -121,8 +241,7 @@ class _CommentCountBadge extends StatelessWidget {
     final theme = Theme.of(context);
 
     return FutureBuilder(
-      future: AppDI.instance
-          .getCommentsForTarget(TargetRef.post(post.id.value)),
+      future: AppDI.instance.getCommentsForTarget(TargetRef.post(post.id.value)),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox.shrink();

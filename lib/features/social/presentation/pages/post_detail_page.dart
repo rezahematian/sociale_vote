@@ -26,8 +26,7 @@ class PostDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<PostDetailController>(
-      create: (_) =>
-          AppDI.instance.createPostDetailController(postId)..load(),
+      create: (_) => AppDI.instance.createPostDetailController(postId)..load(),
       child: const _PostDetailView(),
     );
   }
@@ -43,12 +42,18 @@ class _PostDetailView extends StatefulWidget {
 class _PostDetailViewState extends State<_PostDetailView> {
   bool _isFavorite = false;
   bool _favoriteInitialized = false;
+  bool _favoriteLoading = false;
   int _commentCount = 0;
   String? _initializedPostId;
 
   Future<void> _initFavoriteStatus(Post post) async {
     final userId = AppDI.instance.currentUserId;
     if (userId == null) {
+      if (!mounted) return;
+      setState(() {
+        _isFavorite = false;
+        _favoriteInitialized = true;
+      });
       return;
     }
 
@@ -60,9 +65,13 @@ class _PostDetailViewState extends State<_PostDetailView> {
       if (!mounted) return;
       setState(() {
         _isFavorite = isFav;
+        _favoriteInitialized = true;
       });
     } catch (_) {
-      // v1: nessun handling specifico per errori sui preferiti in-memory.
+      if (!mounted) return;
+      setState(() {
+        _favoriteInitialized = true;
+      });
     }
   }
 
@@ -84,6 +93,10 @@ class _PostDetailViewState extends State<_PostDetailView> {
   }
 
   Future<void> _onFavoritePressed(Post post) async {
+    if (_favoriteLoading) {
+      return;
+    }
+
     final allowed = await AuthGuard.ensureCanPerformAction(
       context,
       ParticipationAction.react,
@@ -92,6 +105,10 @@ class _PostDetailViewState extends State<_PostDetailView> {
 
     final userId = AppDI.instance.currentUserId;
     if (userId == null) return;
+
+    setState(() {
+      _favoriteLoading = true;
+    });
 
     try {
       final newState = await AppDI.instance.toggleFavorite(
@@ -103,7 +120,15 @@ class _PostDetailViewState extends State<_PostDetailView> {
         _isFavorite = newState;
       });
     } catch (_) {
-      // v1: silenzioso; in futuro si può mostrare SnackBar.
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossibile aggiornare i preferiti')),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _favoriteLoading = false;
+      });
     }
   }
 
@@ -114,14 +139,14 @@ class _PostDetailViewState extends State<_PostDetailView> {
 
     _initializedPostId = post.id.value;
     _favoriteInitialized = false;
+    _favoriteLoading = false;
     _isFavorite = false;
     _commentCount = 0;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
-      if (AppDI.instance.currentUserId != null && !_favoriteInitialized) {
-        _favoriteInitialized = true;
+      if (!_favoriteInitialized) {
         _initFavoriteStatus(post);
       }
 
@@ -154,7 +179,6 @@ class _PostDetailViewState extends State<_PostDetailView> {
 
           final Post? post = controller.post;
           if (post == null) {
-            // Per sicurezza: se non c'è post ma non è settato hasError.
             return const _PostDetailError(
               message: 'Post non trovato.',
             );
@@ -181,7 +205,6 @@ class _PostDetailViewState extends State<_PostDetailView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Titolo + ⭐ preferiti
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -194,22 +217,31 @@ class _PostDetailViewState extends State<_PostDetailView> {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(
-                          _isFavorite ? Icons.star : Icons.star_border,
-                          color: _isFavorite
-                              ? theme.colorScheme.primary
-                              : theme.iconTheme.color,
-                        ),
+                        icon: _favoriteLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Icon(
+                                _isFavorite ? Icons.star : Icons.star_border,
+                                color: _isFavorite
+                                    ? theme.colorScheme.primary
+                                    : theme.iconTheme.color,
+                              ),
                         tooltip: _isFavorite
                             ? 'Remove from favorites'
                             : 'Add to favorites',
-                        onPressed: () => _onFavoritePressed(post),
+                        onPressed: _favoriteLoading
+                            ? null
+                            : () => _onFavoritePressed(post),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
 
-                  // Autore + data
                   Row(
                     children: [
                       Icon(
@@ -242,7 +274,6 @@ class _PostDetailViewState extends State<_PostDetailView> {
 
                   const SizedBox(height: 16),
 
-                  // Contenuto
                   Text(
                     post.content,
                     style: theme.textTheme.bodyLarge?.copyWith(
@@ -254,7 +285,6 @@ class _PostDetailViewState extends State<_PostDetailView> {
                   const Divider(height: 1),
                   const SizedBox(height: 8),
 
-                  // ===== ENGAGEMENT BAR (🔥 / ❄ / 💬) =====
                   EngagementBar(
                     fireCount: fireCount,
                     iceCount: iceCount,
@@ -292,10 +322,8 @@ class _PostDetailViewState extends State<_PostDetailView> {
 
                   const SizedBox(height: 32),
 
-                  // ===== COMMENT SECTION (DISCUSSION UNIFICATO) =====
                   CommentSection(
-                    userId: AppDI.instance.currentUserId ??
-                        'guest', // solo per UI, non per permessi
+                    userId: AppDI.instance.currentUserId ?? 'guest',
                   ),
                 ],
               ),

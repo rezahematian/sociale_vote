@@ -21,7 +21,7 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/ui/app_card.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 
-class PollCard extends StatelessWidget {
+class PollCard extends StatefulWidget {
   final Poll poll;
   final VoidCallback? onTap;
 
@@ -51,9 +51,115 @@ class PollCard extends StatelessWidget {
     this.onIceTap,
   });
 
+  @override
+  State<PollCard> createState() => _PollCardState();
+}
+
+class _PollCardState extends State<PollCard> {
+  bool _isFavorite = false;
+  bool _favoriteInitialized = false;
+  bool _favoriteLoading = false;
+  String? _initializedPollId;
+
+  Poll get poll => widget.poll;
+
   bool get _hasGeoRestriction =>
       poll.configuration.participationRules.scope ==
       ParticipationScope.geoScopeOnly;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeFavorite();
+  }
+
+  @override
+  void didUpdateWidget(covariant PollCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.poll.id.value != widget.poll.id.value) {
+      _isFavorite = false;
+      _favoriteInitialized = false;
+      _favoriteLoading = false;
+      _initializedPollId = null;
+      _initializeFavorite();
+    }
+  }
+
+  void _initializeFavorite() {
+    _initializedPollId = poll.id.value;
+    _initFavoriteStatus();
+  }
+
+  Future<void> _initFavoriteStatus() async {
+    final userId = AppDI.instance.currentUserId;
+
+    if (userId == null) {
+      if (!mounted) return;
+      setState(() {
+        _isFavorite = false;
+        _favoriteInitialized = true;
+      });
+      return;
+    }
+
+    try {
+      final isFav = await AppDI.instance.isFavorite(
+        userId: userId,
+        target: TargetRef.poll(poll.id.value),
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _isFavorite = isFav;
+        _favoriteInitialized = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _favoriteInitialized = true;
+      });
+    }
+  }
+
+  Future<void> _onFavoritePressed() async {
+    if (_favoriteLoading) return;
+
+    final allowed = await AuthGuard.ensureCanPerformAction(
+      context,
+      ParticipationAction.react,
+    );
+    if (!allowed) return;
+
+    final userId = AppDI.instance.currentUserId;
+    if (userId == null) return;
+
+    setState(() {
+      _favoriteLoading = true;
+    });
+
+    try {
+      final newState = await AppDI.instance.toggleFavorite(
+        userId: userId,
+        target: TargetRef.poll(poll.id.value),
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _isFavorite = newState;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossibile aggiornare i preferiti')),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _favoriteLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +168,8 @@ class PollCard extends StatelessWidget {
 
     final description = poll.description ?? '';
     final hasDescription = description.trim().isNotEmpty;
-    final hasResults = result != null && result!.optionResults.isNotEmpty;
+    final hasResults =
+        widget.result != null && widget.result!.optionResults.isNotEmpty;
 
     VoidCallback? wrapReactCallback(VoidCallback? original) {
       if (original == null) return null;
@@ -81,7 +188,7 @@ class PollCard extends StatelessWidget {
     return AppCard(
       margin: const EdgeInsets.only(bottom: AppSpacing.unitM),
       elevated: true,
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -105,7 +212,26 @@ class PollCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: AppSpacing.unitS),
+              const SizedBox(width: AppSpacing.unitXS),
+              IconButton(
+                tooltip: _isFavorite
+                    ? 'Remove from favorites'
+                    : 'Add to favorites',
+                onPressed: _favoriteLoading ? null : _onFavoritePressed,
+                icon: _favoriteLoading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        _isFavorite ? Icons.star : Icons.star_border,
+                        color: _isFavorite
+                            ? theme.colorScheme.primary
+                            : theme.iconTheme.color,
+                      ),
+              ),
+              const SizedBox(width: AppSpacing.unitXS),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -133,7 +259,7 @@ class PollCard extends StatelessWidget {
           ],
           const SizedBox(height: AppSpacing.unitM),
           if (hasResults) ...[
-            _PollResultPreview(result: result!),
+            _PollResultPreview(result: widget.result!),
             const SizedBox(height: AppSpacing.unitM),
           ],
           Wrap(
@@ -150,11 +276,11 @@ class PollCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.unitM),
           _PollEngagementRow(
             poll: poll,
-            fireCount: fireCount,
-            iceCount: iceCount,
-            userReaction: userReaction,
-            onFireTap: wrapReactCallback(onFireTap),
-            onIceTap: wrapReactCallback(onIceTap),
+            fireCount: widget.fireCount,
+            iceCount: widget.iceCount,
+            userReaction: widget.userReaction,
+            onFireTap: wrapReactCallback(widget.onFireTap),
+            onIceTap: wrapReactCallback(widget.onIceTap),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

@@ -41,7 +41,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
   bool _isFavorite = false;
   bool _favoriteInitialized = false;
+  bool _favoriteLoading = false;
   bool _resultsInitialized = false;
+  String? _initializedFavoritePollId;
 
   @override
   void initState() {
@@ -55,6 +57,22 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
     final userId = di.currentUserId;
     _controller.loadPoll(widget.pollId, userId: userId);
+  }
+
+  @override
+  void didUpdateWidget(covariant PollDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.pollId.value != widget.pollId.value) {
+      _isFavorite = false;
+      _favoriteInitialized = false;
+      _favoriteLoading = false;
+      _resultsInitialized = false;
+      _initializedFavoritePollId = null;
+
+      final userId = AppDI.instance.currentUserId;
+      _controller.loadPoll(widget.pollId, userId: userId);
+    }
   }
 
   @override
@@ -74,6 +92,12 @@ class _PollDetailPageState extends State<PollDetailPage> {
   Future<void> _initFavoriteStatus(Poll poll) async {
     final userId = AppDI.instance.currentUserId;
     if (userId == null) {
+      if (!mounted) return;
+      setState(() {
+        _isFavorite = false;
+        _favoriteInitialized = true;
+        _initializedFavoritePollId = poll.id.value;
+      });
       return;
     }
 
@@ -85,13 +109,23 @@ class _PollDetailPageState extends State<PollDetailPage> {
       if (!mounted) return;
       setState(() {
         _isFavorite = isFav;
+        _favoriteInitialized = true;
+        _initializedFavoritePollId = poll.id.value;
       });
     } catch (_) {
-      // v1: nessun handling specifico per errori sui preferiti in-memory.
+      if (!mounted) return;
+      setState(() {
+        _favoriteInitialized = true;
+        _initializedFavoritePollId = poll.id.value;
+      });
     }
   }
 
   Future<void> _onFavoritePressed(Poll poll) async {
+    if (_favoriteLoading) {
+      return;
+    }
+
     final allowed = await AuthGuard.ensureCanPerformAction(
       context,
       ParticipationAction.react,
@@ -100,6 +134,10 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
     final userId = AppDI.instance.currentUserId;
     if (userId == null) return;
+
+    setState(() {
+      _favoriteLoading = true;
+    });
 
     try {
       final newState = await AppDI.instance.toggleFavorite(
@@ -111,7 +149,15 @@ class _PollDetailPageState extends State<PollDetailPage> {
         _isFavorite = newState;
       });
     } catch (_) {
-      // v1: silenzioso; in futuro si può mostrare SnackBar.
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossibile aggiornare i preferiti')),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _favoriteLoading = false;
+      });
     }
   }
 
@@ -147,9 +193,14 @@ class _PollDetailPageState extends State<PollDetailPage> {
               );
             }
 
-            if (AppDI.instance.currentUserId != null &&
-                !_favoriteInitialized) {
-              _favoriteInitialized = true;
+            final shouldInitFavorite =
+                AppDI.instance.currentUserId != null &&
+                (!_favoriteInitialized ||
+                    _initializedFavoritePollId != poll.id.value);
+
+            if (shouldInitFavorite) {
+              _favoriteInitialized = false;
+              _initializedFavoritePollId = poll.id.value;
               _initFavoriteStatus(poll);
             }
 
@@ -228,7 +279,10 @@ class _PollDetailPageState extends State<PollDetailPage> {
           PollDetailHeader(
             poll: poll,
             isFavorite: _isFavorite,
-            onFavoritePressed: () => _onFavoritePressed(poll),
+            onFavoritePressed: () {
+              if (_favoriteLoading) return;
+              _onFavoritePressed(poll);
+            },
             fireCount: fireCount,
             iceCount: iceCount,
             userReaction: userReaction,

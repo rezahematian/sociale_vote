@@ -1,14 +1,27 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/app/theme/colors.dart';
+import 'package:sociale_vote/app/theme/radius.dart';
+import 'package:sociale_vote/app/theme/spacing.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
+import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
+import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
+import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
+import 'package:sociale_vote/features/poll/application/poll_list_controller.dart';
+import 'package:sociale_vote/features/poll/presentation/widgets/poll_card.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
+import 'package:sociale_vote/shared/ui/app_card.dart';
+import 'package:sociale_vote/shared/ui/loading_indicator.dart';
 
 import 'package:sociale_vote/features/social/application/feed_controller.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/features/social/presentation/pages/create_post_page.dart';
-import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 
 class SocialFeedPage extends StatelessWidget {
@@ -130,7 +143,6 @@ class _SocialFeedViewState extends State<_SocialFeedView> {
         ),
       ),
 
-      // 🔒 Create post protetto da AuthGuard + ParticipationAction.createPost
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           final allowed = await AuthGuard.ensureCanPerformAction(
@@ -139,7 +151,6 @@ class _SocialFeedViewState extends State<_SocialFeedView> {
           );
           if (!allowed) return;
 
-          // Prendiamo il controller PRIMA dell'await del Navigator.
           final feedController = context.read<FeedController>();
 
           final result = await Navigator.of(context).push<bool>(
@@ -250,12 +261,109 @@ class _SocialErrorState extends StatelessWidget {
   }
 }
 
-class _PostCard extends StatelessWidget {
+class _PostCard extends StatefulWidget {
   final Post post;
 
   const _PostCard({
     required this.post,
   });
+
+  @override
+  State<_PostCard> createState() => _PostCardState();
+}
+
+class _PostCardState extends State<_PostCard> {
+  bool _isFavorite = false;
+  bool _favoriteLoading = false;
+  String? _initializedPostId;
+
+  Post get post => widget.post;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeFavorite();
+  }
+
+  @override
+  void didUpdateWidget(covariant _PostCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.post.id.value != widget.post.id.value) {
+      _isFavorite = false;
+      _favoriteLoading = false;
+      _initializedPostId = null;
+      _initializeFavorite();
+    }
+  }
+
+  void _initializeFavorite() {
+    _initializedPostId = post.id.value;
+    _initFavoriteStatus();
+  }
+
+  Future<void> _initFavoriteStatus() async {
+    final userId = AppDI.instance.currentUserId;
+
+    if (userId == null) {
+      if (!mounted) return;
+      setState(() {
+        _isFavorite = false;
+      });
+      return;
+    }
+
+    try {
+      final isFav = await AppDI.instance.isFavorite(
+        userId: userId,
+        target: TargetRef.post(post.id.value),
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _isFavorite = isFav;
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _onFavoritePressed() async {
+    if (_favoriteLoading) return;
+
+    final allowed = await AuthGuard.ensureCanPerformAction(
+      context,
+      ParticipationAction.react,
+    );
+    if (!allowed) return;
+
+    final userId = AppDI.instance.currentUserId;
+    if (userId == null) return;
+
+    setState(() {
+      _favoriteLoading = true;
+    });
+
+    try {
+      final newState = await AppDI.instance.toggleFavorite(
+        userId: userId,
+        target: TargetRef.post(post.id.value),
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _isFavorite = newState;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossibile aggiornare i preferiti')),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _favoriteLoading = false;
+      });
+    }
+  }
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/'
@@ -279,8 +387,6 @@ class _PostCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () async {
-          // Andiamo al dettaglio e, quando torniamo, ricarichiamo
-          // i summary includendo la userReaction.
           final controller = context.read<FeedController>();
 
           await Navigator.of(context).pushNamed(
@@ -290,6 +396,9 @@ class _PostCard extends StatelessWidget {
 
           final userId = AppDI.instance.currentUserId;
           await controller.refresh(userId: userId);
+
+          if (!mounted) return;
+          await _initFavoriteStatus();
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -297,15 +406,39 @@ class _PostCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Titolo
-              Text(
-                post.title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      post.title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    tooltip: _isFavorite
+                        ? 'Remove from favorites'
+                        : 'Add to favorites',
+                    onPressed: _favoriteLoading ? null : _onFavoritePressed,
+                    icon: _favoriteLoading
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            _isFavorite ? Icons.star : Icons.star_border,
+                            color: _isFavorite
+                                ? theme.colorScheme.primary
+                                : theme.iconTheme.color,
+                          ),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
-              // Autore + data
               Row(
                 children: [
                   Icon(
@@ -336,7 +469,6 @@ class _PostCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              // Contenuto (snippet)
               Text(
                 post.content,
                 maxLines: 3,
@@ -345,12 +477,9 @@ class _PostCard extends StatelessWidget {
                   color: theme.colorScheme.onSurface.withOpacity(0.8),
                 ),
               ),
-
               const SizedBox(height: 12),
               const Divider(height: 1),
               const SizedBox(height: 8),
-
-              // Barra di engagement 🔥 / ❄
               EngagementBar(
                 fireCount: fireCount,
                 iceCount: iceCount,

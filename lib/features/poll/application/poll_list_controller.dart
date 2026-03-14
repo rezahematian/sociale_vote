@@ -6,6 +6,8 @@ import 'package:sociale_vote/domain/engagement/usecases/toggle_reaction.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
+import 'package:sociale_vote/domain/poll/entities/poll_result.dart';
+import 'package:sociale_vote/domain/poll/usecases/get_poll_results.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_polls.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_status.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
@@ -31,6 +33,7 @@ enum PollStatusFilter {
 
 class PollListController extends ChangeNotifier {
   final GetPolls getPollsUseCase;
+  final GetPollResults getPollResults;
   final GeoScopeController geoScopeController;
   final ToggleReaction toggleReaction;
   final GetReactionSummary getReactionSummary;
@@ -59,9 +62,11 @@ class PollListController extends ChangeNotifier {
   final List<Poll> _visiblePolls = [];
 
   final Map<String, ReactionSummary> _reactionSummaries = {};
+  final Map<String, PollResult> _pollResults = {};
 
   PollListController({
     required this.getPollsUseCase,
+    required this.getPollResults,
     required this.geoScopeController,
     required this.toggleReaction,
     required this.getReactionSummary,
@@ -84,6 +89,8 @@ class PollListController extends ChangeNotifier {
   PollSortMode get sortMode => _sortMode;
   PollScopeFilter get scopeFilter => _scopeFilter;
   PollStatusFilter get statusFilter => _statusFilter;
+
+  PollResult? resultForPoll(Poll poll) => _pollResults[poll.id.value];
 
   void _safeNotifyListeners() {
     if (_isDisposed) return;
@@ -126,6 +133,7 @@ class PollListController extends ChangeNotifier {
     _allPolls.clear();
     _visiblePolls.clear();
     _reactionSummaries.clear();
+    _pollResults.clear();
     _currentOffset = 0;
     _hasMoreFromSource = true;
 
@@ -189,6 +197,9 @@ class PollListController extends ChangeNotifier {
     await _loadReactionSummariesForPolls(result);
     if (_isDisposed) return;
 
+    await _loadPollResultsForPolls(result);
+    if (_isDisposed) return;
+
     _recomputeVisiblePolls();
   }
 
@@ -206,6 +217,21 @@ class PollListController extends ChangeNotifier {
 
     for (final summary in summaries) {
       _reactionSummaries[summary.target.id] = summary;
+    }
+  }
+
+  Future<void> _loadPollResultsForPolls(List<Poll> newPolls) async {
+    if (_isDisposed) return;
+    if (newPolls.isEmpty) return;
+
+    for (final poll in newPolls) {
+      try {
+        final pollResult = await getPollResults(poll);
+        if (_isDisposed) return;
+        _pollResults[poll.id.value] = pollResult;
+      } catch (_) {
+        // Se un poll fallisce, non blocchiamo tutta la lista.
+      }
     }
   }
 
@@ -245,25 +271,16 @@ class PollListController extends ChangeNotifier {
       return fireCompare;
     }
 
-    // Tie-break finale: manteniamo l'ordine sorgente del backend.
-    // Il repository già restituisce vote_count desc + created_at desc,
-    // quindi qui ereditiamo la recency a parità di vote_count e fire.
     return _sourceIndexForPoll(a).compareTo(_sourceIndexForPoll(b));
   }
 
   // ===== Filtri + ordinamento =====
 
   void _recomputeVisiblePolls() {
-    // Partiamo sempre da tutti i poll dello scope corrente.
     var tmp = List<Poll>.from(_allPolls);
 
-    // 1) Filtro di scope logico (V1: currentScope → nessun cambio).
     tmp = _applyScopeFilter(tmp);
-
-    // 2) Filtro di stato (open/closed/all).
     tmp = _applyStatusFilter(tmp);
-
-    // 3) Ordinamento Latest / Hottest.
     _sortPolls(tmp);
 
     _visiblePolls
@@ -274,8 +291,6 @@ class PollListController extends ChangeNotifier {
   List<Poll> _applyScopeFilter(List<Poll> input) {
     switch (_scopeFilter) {
       case PollScopeFilter.currentScope:
-        // V1: i poll sono già filtrati per scope lato use case (GeoScopeController),
-        // quindi non modifichiamo la lista.
         return input;
     }
   }

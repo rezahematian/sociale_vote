@@ -457,6 +457,7 @@ class AppDI {
   PollListController createPollListController() {
     return PollListController(
       getPollsUseCase: getPolls,
+      getPollResults: getPollResults,
       geoScopeController: geoScopeController,
       toggleReaction: toggleReaction,
       getReactionSummary: getReactionSummary,
