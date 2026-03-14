@@ -7,6 +7,8 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
+import 'package:sociale_vote/domain/moderation/entities/report.dart';
+import 'package:sociale_vote/domain/moderation/repositories/moderation_repository.dart';
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
 import 'package:sociale_vote/features/discussion/presentation/widgets/comment_section.dart';
 import 'package:sociale_vote/features/social/application/post_detail_controller.dart';
@@ -40,6 +42,15 @@ class _PostDetailView extends StatefulWidget {
 }
 
 class _PostDetailViewState extends State<_PostDetailView> {
+  static const List<String> _reportReasons = [
+    'spam',
+    'harassment',
+    'hate_speech',
+    'misinformation',
+    'violence',
+    'other',
+  ];
+
   bool _isFavorite = false;
   bool _favoriteInitialized = false;
   bool _favoriteLoading = false;
@@ -132,6 +143,118 @@ class _PostDetailViewState extends State<_PostDetailView> {
     }
   }
 
+  Future<void> _onReportPressed(Post post) async {
+    final allowed = await AuthGuard.ensureCanPerformAction(
+      context,
+      ParticipationAction.reportContent,
+    );
+    if (!allowed) return;
+
+    final userId = AppDI.instance.currentUserId;
+    if (userId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Devi essere autenticato per segnalare')),
+      );
+      return;
+    }
+
+    final reason = await _showReportReasonDialog(context);
+    if (!mounted || reason == null) return;
+
+    try {
+      final result = await AppDI.instance.reportContent(
+        Report(
+          target: TargetRef.post(post.id.value),
+          userId: userId,
+          reason: reason,
+          createdAt: DateTime.now(),
+        ),
+      );
+
+      if (!mounted) return;
+
+      final message = switch (result) {
+        SubmitReportResult.submitted => 'Segnalazione inviata',
+        SubmitReportResult.alreadyReported =>
+          'Hai già segnalato questo contenuto',
+      };
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossibile inviare la segnalazione')),
+      );
+    }
+  }
+
+  Future<String?> _showReportReasonDialog(BuildContext context) async {
+    String selectedReason = _reportReasons.first;
+
+    return showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Segnala contenuto'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: _reportReasons.map((reason) {
+                  return RadioListTile<String>(
+                    value: reason,
+                    groupValue: selectedReason,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(_reportReasonLabel(reason)),
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setDialogState(() {
+                        selectedReason = value;
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Annulla'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop(selectedReason);
+                  },
+                  child: const Text('Invia'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _reportReasonLabel(String reason) {
+    switch (reason) {
+      case 'spam':
+        return 'Spam';
+      case 'harassment':
+        return 'Molestie o abuso';
+      case 'hate_speech':
+        return 'Incitamento all’odio';
+      case 'misinformation':
+        return 'Disinformazione';
+      case 'violence':
+        return 'Violenza';
+      case 'other':
+        return 'Altro';
+    }
+    return reason;
+  }
+
   void _ensurePostInitialized(Post post) {
     if (_initializedPostId == post.id.value) {
       return;
@@ -161,6 +284,30 @@ class _PostDetailViewState extends State<_PostDetailView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dettaglio post'),
+        actions: [
+          Consumer<PostDetailController>(
+            builder: (context, controller, _) {
+              final post = controller.post;
+              if (post == null) {
+                return const SizedBox.shrink();
+              }
+
+              return PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'report') {
+                    _onReportPressed(post);
+                  }
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem<String>(
+                    value: 'report',
+                    child: Text('Report content'),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
       body: Consumer<PostDetailController>(
         builder: (context, controller, _) {
@@ -241,7 +388,6 @@ class _PostDetailViewState extends State<_PostDetailView> {
                     ],
                   ),
                   const SizedBox(height: 12),
-
                   Row(
                     children: [
                       Icon(
@@ -271,20 +417,16 @@ class _PostDetailViewState extends State<_PostDetailView> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
-
                   Text(
                     post.content,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onSurface.withOpacity(0.9),
                     ),
                   ),
-
                   const SizedBox(height: 24),
                   const Divider(height: 1),
                   const SizedBox(height: 8),
-
                   EngagementBar(
                     fireCount: fireCount,
                     iceCount: iceCount,
@@ -319,9 +461,7 @@ class _PostDetailViewState extends State<_PostDetailView> {
                           .toggleIce(userId: userId);
                     },
                   ),
-
                   const SizedBox(height: 32),
-
                   CommentSection(
                     userId: AppDI.instance.currentUserId ?? 'guest',
                   ),

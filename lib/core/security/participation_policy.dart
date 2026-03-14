@@ -4,12 +4,13 @@ import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart'
 ///
 /// Tutto ciò che NON è semplice lettura dovrebbe passare da qui.
 enum ParticipationAction {
-  vote,        // Votare un poll
-  createPoll,  // Creare una nuova votazione
-  react,       // Reagire con 🔥 / ❄
-  comment,     // Aggiungere un commento
-  createPost,  // Creare un post nel social feed
-  followScope, // Seguire / smettere di seguire uno scope geografico
+  vote,          // Votare un poll
+  createPoll,    // Creare una nuova votazione
+  react,         // Reagire con 🔥 / ❄
+  comment,       // Aggiungere un commento
+  createPost,    // Creare un post nel social feed
+  followScope,   // Seguire / smettere di seguire uno scope geografico
+  reportContent, // Segnalare un contenuto
 }
 
 /// Policy centralizzata per decidere se un utente

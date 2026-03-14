@@ -45,6 +45,9 @@ import 'package:sociale_vote/domain/identity/usecases/login_user.dart';
 import 'package:sociale_vote/domain/identity/usecases/register_user.dart';
 import 'package:sociale_vote/domain/identity/usecases/update_user_profile.dart';
 
+import 'package:sociale_vote/domain/moderation/repositories/moderation_repository.dart';
+import 'package:sociale_vote/domain/moderation/usecases/report_content.dart';
+
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/repositories/poll_repository.dart';
 import 'package:sociale_vote/domain/poll/repositories/vote_repository.dart';
@@ -82,6 +85,7 @@ import 'package:sociale_vote/infrastructure/engagement/repositories/reaction_rep
 import 'package:sociale_vote/infrastructure/geo/geo_resolver_impl.dart';
 import 'package:sociale_vote/infrastructure/geo/repositories/follow_scope_repository_in_memory.dart';
 import 'package:sociale_vote/infrastructure/identity/repositories/user_profile_repository_impl.dart';
+import 'package:sociale_vote/infrastructure/moderation/repositories/moderation_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/gnews_provider.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/mediastack_provider.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/news_aggregator.dart';
@@ -245,6 +249,8 @@ class AppDI {
   final FavoriteRepository _favoriteRepository = FavoriteRepositorySupabase();
   final ReactionRepository _reactionRepository = ReactionRepositoryImpl();
   final CommentRepository _commentRepository = CommentRepositoryImpl();
+  late final ModerationRepository _moderationRepository =
+      ModerationRepositoryImpl(Supabase.instance.client);
   late final SearchRepository _searchRepository = SearchRepositoryInMemory(
     pollRepository: pollRepository,
     newsRepository: newsRepository,
@@ -263,6 +269,7 @@ class AppDI {
   FavoriteRepository get favoriteRepository => _favoriteRepository;
   ReactionRepository get reactionRepository => _reactionRepository;
   CommentRepository get commentRepository => _commentRepository;
+  ModerationRepository get moderationRepository => _moderationRepository;
   FollowScopeRepository get followScopeRepository => _followScopeRepository;
   SearchRepository get searchRepository => _searchRepository;
 
@@ -386,6 +393,12 @@ class AppDI {
       target: target,
     );
   }
+
+  // ==========================================================
+  // USE CASES - MODERATION
+  // ==========================================================
+
+  ReportContent get reportContent => ReportContent(moderationRepository);
 
   // ==========================================================
   // USE CASES - GEO

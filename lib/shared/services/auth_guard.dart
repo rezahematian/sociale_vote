@@ -133,6 +133,8 @@ class AuthGuard {
         return 'creare un post';
       case ParticipationAction.followScope:
         return 'seguire quest\'area geografica';
+      case ParticipationAction.reportContent:
+        return 'segnalare un contenuto';
     }
   }
 }
