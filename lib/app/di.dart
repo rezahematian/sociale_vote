@@ -93,14 +93,14 @@ import 'package:sociale_vote/infrastructure/geo/repositories/geocoding_repositor
 import 'package:sociale_vote/infrastructure/identity/repositories/user_profile_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/moderation/repositories/moderation_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/gnews_provider.dart';
-import 'package:sociale_vote/infrastructure/news/aggregator/mediastack_provider.dart';
+import 'package:sociale_vote/infrastructure/news/aggregator/guardian_provider.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/news_aggregator.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/news_api_org_provider.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/news_provider.dart';
 import 'package:sociale_vote/infrastructure/news/mappers/news_mapper.dart';
 import 'package:sociale_vote/infrastructure/news/repositories/news_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/auth_api.dart';
-import 'package:sociale_vote/infrastructure/persistence/remote/rest/mediastack_api.dart';
+import 'package:sociale_vote/infrastructure/persistence/remote/rest/guardian_api.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api_org_api.dart';
 import 'package:sociale_vote/infrastructure/poll/repositories/poll_repository_supabase.dart';
@@ -180,35 +180,34 @@ class AppDI {
     return _followScopeController!;
   }
 
-  final ApiClient _gnewsClient = ApiClient(
-    baseUrl: 'https://gnews.io/api/v4',
+  final ApiClient _guardianClient = ApiClient(
+    baseUrl: 'https://content.guardianapis.com',
   );
 
   final ApiClient _newsApiOrgClient = ApiClient(
     baseUrl: 'https://newsapi.org/v2',
   );
 
-  final ApiClient _mediaStackClient = ApiClient(
-    baseUrl: 'http://api.mediastack.com/v1',
+  final ApiClient _gnewsClient = ApiClient(
+    baseUrl: 'https://gnews.io/api/v4',
   );
 
-  late final NewsApi _newsApi = NewsApi(_gnewsClient);
+  late final GuardianApi _guardianApi = GuardianApi(_guardianClient);
   late final NewsApiOrgApi _newsApiOrgApi = NewsApiOrgApi(_newsApiOrgClient);
-  late final MediaStackApi _mediaStackApi = MediaStackApi(_mediaStackClient);
+  late final NewsApi _newsApi = NewsApi(_gnewsClient);
 
   late final NewsMapper _newsMapper = NewsMapper();
 
-  late final NewsProvider _gnewsProvider = GNewsProvider(_newsApi);
+  late final NewsProvider _guardianProvider = GuardianProvider(_guardianApi);
   late final NewsProvider _newsApiOrgProvider =
       NewsApiOrgProvider(_newsApiOrgApi);
-  late final NewsProvider _mediaStackProvider =
-      MediaStackProvider(_mediaStackApi);
+  late final NewsProvider _gnewsProvider = GNewsProvider(_newsApi);
 
   late final NewsAggregator _newsAggregator = NewsAggregator(
     providers: <NewsProvider>[
-      _gnewsProvider,
+      _guardianProvider,
       _newsApiOrgProvider,
-      _mediaStackProvider,
+      _gnewsProvider,
     ],
   );
 
