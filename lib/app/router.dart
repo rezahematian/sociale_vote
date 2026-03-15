@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 
 import 'package:sociale_vote/features/auth/presentation/pages/login_page.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/register_page.dart';
 import 'package:sociale_vote/features/home/presentation/pages/public_home_screen.dart';
+import 'package:sociale_vote/features/map/presentation/pages/civic_map_page.dart';
+import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_feed_page.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/create_poll_page.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/poll_detail_page.dart';
@@ -21,8 +24,10 @@ class AppRouter {
   static const String pollDetail = '/polls/detail';
   static const String createPoll = '/polls/create';
   static const String news = '/news';
+  static const String newsDetail = '/news/detail';
   static const String social = '/social';
   static const String socialDetail = '/social/detail';
+  static const String civicMap = '/map';
   static const String profile = '/profile';
   static const String login = '/login';
   static const String register = '/register';
@@ -45,9 +50,19 @@ class AppRouter {
 
       case pollDetail:
         final args = settings.arguments;
+
         if (args is PollId) {
           return MaterialPageRoute<void>(
             builder: (_) => PollDetailPage(pollId: args),
+            settings: settings,
+          );
+        }
+
+        if (args is String && args.trim().isNotEmpty) {
+          return MaterialPageRoute<void>(
+            builder: (_) => PollDetailPage(
+              pollId: PollId(args.trim()),
+            ),
             settings: settings,
           );
         }
@@ -65,6 +80,16 @@ class AppRouter {
           settings: settings,
         );
 
+      case newsDetail:
+        final args = settings.arguments;
+        if (args is NewsItem) {
+          return MaterialPageRoute<void>(
+            builder: (_) => NewsDetailPage(news: args),
+            settings: settings,
+          );
+        }
+        break;
+
       case social:
         return MaterialPageRoute<void>(
           builder: (_) => const SocialFeedPage(),
@@ -73,13 +98,19 @@ class AppRouter {
 
       case socialDetail:
         final args = settings.arguments;
-        if (args is String) {
+        if (args is String && args.trim().isNotEmpty) {
           return MaterialPageRoute<void>(
             builder: (_) => PostDetailPage(postId: args),
             settings: settings,
           );
         }
         break;
+
+      case civicMap:
+        return MaterialPageRoute<void>(
+          builder: (_) => const CivicMapPage(),
+          settings: settings,
+        );
 
       case profile:
         return MaterialPageRoute<void>(

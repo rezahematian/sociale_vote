@@ -1,4 +1,5 @@
 import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 
 /// Entity di dominio per un post del social feed.
 ///
@@ -44,6 +45,9 @@ class Post {
   /// Identificatore città associato al post (es. 'TORINO').
   final String? cityId;
 
+  /// Località completa del contenuto.
+  final ContentLocation? contentLocation;
+
   /// Utente che ha creato il post.
   /// Per i post esistenti può essere null.
   final String? createdByUserId;
@@ -58,6 +62,7 @@ class Post {
     this.commentCount = 0,
     this.countryCode,
     this.cityId,
+    this.contentLocation,
     this.createdByUserId,
   });
 
@@ -80,22 +85,18 @@ class Post {
     String? countryCode,
     String? cityId,
   }) {
-    // World → accettiamo solo post globali.
     if (countryCode == null && cityId == null) {
       return isGlobal;
     }
 
-    // Country → stesso countryCode, nessuna cityId.
     if (countryCode != null && cityId == null) {
       return this.countryCode == countryCode && this.cityId == null;
     }
 
-    // City → stesso countryCode + stessa cityId.
     if (countryCode != null && cityId != null) {
       return this.countryCode == countryCode && this.cityId == cityId;
     }
 
-    // Qualsiasi altro caso strano → non matcha.
     return false;
   }
 
@@ -109,6 +110,7 @@ class Post {
     int? commentCount,
     String? countryCode,
     String? cityId,
+    ContentLocation? contentLocation,
     String? createdByUserId,
   }) {
     return Post(
@@ -120,6 +122,7 @@ class Post {
       commentCount: commentCount ?? this.commentCount,
       countryCode: countryCode ?? this.countryCode,
       cityId: cityId ?? this.cityId,
+      contentLocation: contentLocation ?? this.contentLocation,
       createdByUserId: createdByUserId ?? this.createdByUserId,
     );
   }

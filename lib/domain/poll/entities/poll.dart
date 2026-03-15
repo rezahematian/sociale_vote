@@ -1,3 +1,5 @@
+import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
+
 import '../value_objects/poll_configuration.dart';
 import '../value_objects/poll_id.dart';
 import '../value_objects/poll_status.dart';
@@ -31,9 +33,12 @@ class Poll {
   /// Data/ora di fine (opzionale).
   final DateTime? endAt;
 
-  /// Informazioni geografiche di alto livello (es. codice paese, città).
+  /// Informazioni geografiche legacy / compatibilità.
   final String? countryCode;
   final String? cityId;
+
+  /// Località completa del contenuto.
+  final ContentLocation? contentLocation;
 
   /// Utente che ha creato il poll.
   final String? createdByUserId;
@@ -53,6 +58,7 @@ class Poll {
     this.endAt,
     this.countryCode,
     this.cityId,
+    this.contentLocation,
     this.createdByUserId,
     this.voteCount = 0,
   });
@@ -86,6 +92,7 @@ class Poll {
     DateTime? endAt,
     String? countryCode,
     String? cityId,
+    ContentLocation? contentLocation,
     String? createdByUserId,
     int? voteCount,
   }) {
@@ -101,6 +108,7 @@ class Poll {
       endAt: endAt ?? this.endAt,
       countryCode: countryCode ?? this.countryCode,
       cityId: cityId ?? this.cityId,
+      contentLocation: contentLocation ?? this.contentLocation,
       createdByUserId: createdByUserId ?? this.createdByUserId,
       voteCount: voteCount ?? this.voteCount,
     );
@@ -108,6 +116,6 @@ class Poll {
 
   @override
   String toString() {
-    return 'Poll(id: $id, title: $title, votes: $voteCount, type: $type, status: $status, options: ${options.length}, createdBy: $createdByUserId)';
+    return 'Poll(id: $id, title: $title, votes: $voteCount, type: $type, status: $status, options: ${options.length}, countryCode: $countryCode, cityId: $cityId, contentLocation: $contentLocation, createdBy: $createdByUserId)';
   }
 }

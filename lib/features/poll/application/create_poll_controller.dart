@@ -1,67 +1,67 @@
 import 'package:flutter/foundation.dart';
+import 'package:sociale_vote/domain/geo/repositories/device_location_repository.dart';
+import 'package:sociale_vote/domain/geo/repositories/geocoding_repository.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/poll_option.dart';
 import 'package:sociale_vote/domain/poll/usecases/create_poll.dart';
+import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
+import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_configuration.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_status.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
-import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
-import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
-import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/quorum_rules.dart';
+import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 
 class CreatePollController extends ChangeNotifier {
   final CreatePoll _createPollUseCase;
   final GeoScopeController _geoScopeController;
+  final DeviceLocationRepository? _deviceLocationRepository;
+  final GeocodingRepository? _geocodingRepository;
 
-  /// Utente che sta creando il poll.
-  /// Può essere null in teoria, ma in pratica la UI dovrebbe bloccare i guest.
   final String? _createdByUserId;
 
   CreatePollController({
     required CreatePoll createPollUseCase,
     required GeoScopeController geoScopeController,
     required String? createdByUserId,
+    DeviceLocationRepository? deviceLocationRepository,
+    GeocodingRepository? geocodingRepository,
   })  : _createPollUseCase = createPollUseCase,
         _geoScopeController = geoScopeController,
-        _createdByUserId = createdByUserId;
+        _createdByUserId = createdByUserId,
+        _deviceLocationRepository = deviceLocationRepository,
+        _geocodingRepository = geocodingRepository;
 
-  // ===== BASIC =====
   String _title = '';
   String _description = '';
-  final List<String> _options = ['', '']; // almeno 2
+  final List<String> _options = ['', ''];
 
-  // ===== MODELLO DI VOTO =====
   PollType _type = PollType.singleChoice;
   int _minSelections = 1;
   int _maxSelections = 1;
   bool _allowVoteChange = false;
 
-  // ===== TEMPI =====
   DateTime _startAt = DateTime.now();
   DateTime _endAt = DateTime.now().add(const Duration(days: 7));
 
-  // ===== REGOLE AVANZATE =====
   ParticipationScope _participationScope = ParticipationScope.everyone;
   AnonymityLevel _anonymityLevel = AnonymityLevel.anonymous;
   ResultsVisibilityMode _resultsVisibility = ResultsVisibilityMode.always;
   int? _minQuorumVotes;
 
-  /// Country code scelto esplicitamente in UI per la partecipazione
-  /// (campo "Country for this poll").
-  ///
-  /// - viene usato solo se [_participationScope] == geoScopeOnly;
-  /// - se null, possiamo eventualmente fallback al country del [GeoScope].
   String? _countryCodeForParticipation;
 
-  // ===== STATO UI =====
+  ContentLocation? _contentLocation;
+  bool _isResolvingContentLocation = false;
+
   bool _isSubmitting = false;
   String? _errorMessage;
 
-  // ===== GETTER =====
   String get title => _title;
   String get description => _description;
   List<String> get options => List.unmodifiable(_options);
@@ -81,6 +81,10 @@ class CreatePollController extends ChangeNotifier {
 
   String? get countryCodeForParticipation => _countryCodeForParticipation;
 
+  ContentLocation? get contentLocation => _contentLocation;
+  bool get hasExplicitContentLocation => _contentLocation != null;
+  bool get isResolvingContentLocation => _isResolvingContentLocation;
+
   bool get isSubmitting => _isSubmitting;
   String? get errorMessage => _errorMessage;
 
@@ -95,7 +99,14 @@ class CreatePollController extends ChangeNotifier {
       _validNonEmptyOptionsCount >= 2 &&
       _hasValidDates;
 
-  // ===== MUTATORI BASE =====
+  ContentLocation get effectiveContentLocation {
+    if (_contentLocation != null && !_contentLocation!.isEmpty) {
+      return _contentLocation!;
+    }
+
+    return _locationFromScope(_geoScopeController.scope);
+  }
+
   void setTitle(String value) {
     _title = value;
     _errorMessage = null;
@@ -122,7 +133,6 @@ class CreatePollController extends ChangeNotifier {
 
   void removeOption(int index) {
     if (_options.length <= 2) {
-      // mai meno di 2 opzioni
       return;
     }
     if (index < 0 || index >= _options.length) return;
@@ -130,12 +140,9 @@ class CreatePollController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ===== MODELLO DI VOTO =====
-
   void setType(PollType type) {
     _type = type;
 
-    // default sensati per min/max in base al tipo
     switch (type) {
       case PollType.yesNo:
       case PollType.singleChoice:
@@ -187,15 +194,12 @@ class CreatePollController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ===== REGOLE AVANZATE =====
   void setParticipationScope(ParticipationScope scope) {
     _participationScope = scope;
     _errorMessage = null;
     notifyListeners();
   }
 
-  /// Impostato dalla UI quando l'utente seleziona un paese nel
-  /// [CountrySelectorField] in CreatePollPage.
   void setCountryCodeForParticipation(String? code) {
     _countryCodeForParticipation = code;
     _errorMessage = null;
@@ -224,7 +228,6 @@ class CreatePollController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ===== TEMPI =====
   void setStartAt(DateTime value) {
     _startAt = value;
     _errorMessage = null;
@@ -237,9 +240,120 @@ class CreatePollController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ===== SUBMIT =====
-  /// Ritorna il [PollId] del poll creato se va tutto bene,
-  /// altrimenti `null` in caso di errore o validazione fallita.
+  void setManualContentLocation({
+    required String? countryCode,
+    String? cityId,
+    String? cityName,
+    double? centerLat,
+    double? centerLng,
+    double? latitude,
+    double? longitude,
+  }) {
+    _contentLocation = ContentLocation(
+      source: ContentLocationSource.manual,
+      countryCode: _normalizeString(countryCode),
+      cityId: _normalizeString(cityId),
+      cityName: _normalizeString(cityName),
+      centerLat: centerLat,
+      centerLng: centerLng,
+      latitude: latitude,
+      longitude: longitude,
+    );
+
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  void setContentLocation(ContentLocation? location) {
+    _contentLocation = location;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  void clearContentLocation() {
+    _contentLocation = null;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  void useGeoScopeAsContentLocation() {
+    _contentLocation = _locationFromScope(_geoScopeController.scope);
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  Future<bool> useCurrentDeviceLocation() async {
+    if (_isResolvingContentLocation) {
+      return false;
+    }
+
+    if (_deviceLocationRepository == null) {
+      _errorMessage = 'Device location is not available.';
+      notifyListeners();
+      return false;
+    }
+
+    _isResolvingContentLocation = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final location =
+          await _deviceLocationRepository!.getCurrentContentLocation();
+
+      if (location == null || location.isEmpty) {
+        _isResolvingContentLocation = false;
+        _errorMessage = 'Unable to read current device location.';
+        notifyListeners();
+        return false;
+      }
+
+      _contentLocation = location;
+      _isResolvingContentLocation = false;
+      notifyListeners();
+      return true;
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('Error resolving device location: $e');
+        debugPrint('$stackTrace');
+      }
+
+      _isResolvingContentLocation = false;
+      _errorMessage = 'Unable to access device location.';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<ContentLocation> _resolveLocationBeforeSubmit() async {
+    final rawLocation = effectiveContentLocation;
+
+    if (rawLocation.source != ContentLocationSource.manual) {
+      return rawLocation;
+    }
+
+    if (rawLocation.hasExactPoint || rawLocation.hasCenter) {
+      return rawLocation;
+    }
+
+    if (_geocodingRepository == null) {
+      return rawLocation;
+    }
+
+    final hasEnoughData = rawLocation.hasCountry || rawLocation.hasCityName;
+    if (!hasEnoughData) {
+      return rawLocation;
+    }
+
+    try {
+      final geocoded =
+          await _geocodingRepository!.geocodeContentLocation(rawLocation);
+      return geocoded ?? rawLocation;
+    } catch (_) {
+      return rawLocation;
+    }
+  }
+
   Future<PollId?> submit() async {
     if (_isSubmitting) return null;
 
@@ -271,26 +385,29 @@ class CreatePollController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // GeoScope → country / city
       final scope = _geoScopeController.scope;
-      String? geoCountryCode;
-      String? cityId;
+      final effectiveLocation = await _resolveLocationBeforeSubmit();
 
-      if (scope.level == GeoScopeLevel.country) {
-        geoCountryCode = scope.countryCode;
-      } else if (scope.level == GeoScopeLevel.city) {
-        geoCountryCode = scope.countryCode;
+      String? geoCountryCode = effectiveLocation.countryCode;
+      String? cityId = effectiveLocation.cityId;
+
+      if (geoCountryCode == null || geoCountryCode.trim().isEmpty) {
+        if (scope.level == GeoScopeLevel.country ||
+            scope.level == GeoScopeLevel.city) {
+          geoCountryCode = scope.countryCode;
+        }
+      }
+
+      if ((cityId == null || cityId.trim().isEmpty) &&
+          scope.level == GeoScopeLevel.city) {
         cityId = scope.cityId;
       }
 
-      // Country effettivo per le regole di partecipazione
       final effectiveParticipationCountry =
           _participationScope == ParticipationScope.geoScopeOnly
               ? (_countryCodeForParticipation ?? geoCountryCode)
               : null;
 
-      // Validazione rigorosa: se la partecipazione è limitata a uno specifico
-      // paese, dobbiamo avere un country effettivo.
       if (_participationScope == ParticipationScope.geoScopeOnly &&
           effectiveParticipationCountry == null) {
         _isSubmitting = false;
@@ -299,10 +416,10 @@ class CreatePollController extends ChangeNotifier {
         return null;
       }
 
-      // ID mock
-      final id = PollId(DateTime.now().millisecondsSinceEpoch.toString());
+      final temporaryId = PollId(
+        DateTime.now().millisecondsSinceEpoch.toString(),
+      );
 
-      // Opzioni
       final pollOptions = <PollOption>[];
       for (var i = 0; i < nonEmptyOptions.length; i++) {
         pollOptions.add(
@@ -313,13 +430,11 @@ class CreatePollController extends ChangeNotifier {
         );
       }
 
-      // Participation rules con country opzionale:
       final participationRules = ParticipationRules(
         scope: _participationScope,
         countryCode: effectiveParticipationCountry,
       );
 
-      // Configurazione completa
       final configuration = PollConfiguration(
         minSelections: _minSelections,
         maxSelections: _maxSelections,
@@ -331,7 +446,6 @@ class CreatePollController extends ChangeNotifier {
         quorumRules: QuorumRules(minAbsoluteVotes: _minQuorumVotes),
       );
 
-      // Status iniziale
       final now = DateTime.now();
       late PollStatus status;
 
@@ -344,7 +458,7 @@ class CreatePollController extends ChangeNotifier {
       }
 
       final poll = Poll(
-        id: id,
+        id: temporaryId,
         title: trimmedTitle,
         description: trimmedDescription.isEmpty ? null : trimmedDescription,
         type: _type,
@@ -355,14 +469,15 @@ class CreatePollController extends ChangeNotifier {
         endAt: _endAt,
         countryCode: geoCountryCode,
         cityId: cityId,
+        contentLocation: effectiveLocation,
         createdByUserId: _createdByUserId,
       );
 
-      await _createPollUseCase(poll);
+      final createdPoll = await _createPollUseCase(poll);
 
       _isSubmitting = false;
       notifyListeners();
-      return id;
+      return createdPoll.id;
     } catch (e, stackTrace) {
       if (kDebugMode) {
         debugPrint('Error creating poll: $e');
@@ -370,9 +485,46 @@ class CreatePollController extends ChangeNotifier {
       }
 
       _isSubmitting = false;
-      _errorMessage = 'Unable to create poll at the moment.';
+      _errorMessage = kDebugMode
+          ? 'Create poll failed: $e'
+          : 'Unable to create poll at the moment.';
       notifyListeners();
       return null;
     }
+  }
+
+  ContentLocation _locationFromScope(GeoScope scope) {
+    switch (scope.level) {
+      case GeoScopeLevel.world:
+        return ContentLocation(
+          source: ContentLocationSource.geoScopeFallback,
+          centerLat: scope.centerLat ?? 20.0,
+          centerLng: scope.centerLng ?? 0.0,
+        );
+
+      case GeoScopeLevel.country:
+        return ContentLocation(
+          source: ContentLocationSource.geoScopeFallback,
+          countryCode: scope.countryCode,
+          centerLat: scope.centerLat,
+          centerLng: scope.centerLng,
+        );
+
+      case GeoScopeLevel.city:
+        return ContentLocation(
+          source: ContentLocationSource.geoScopeFallback,
+          countryCode: scope.countryCode,
+          cityId: scope.cityId,
+          centerLat: scope.centerLat,
+          centerLng: scope.centerLng,
+        );
+    }
+  }
+
+  String? _normalizeString(String? value) {
+    if (value == null) return null;
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+    return trimmed;
   }
 }

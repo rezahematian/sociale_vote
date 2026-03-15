@@ -30,11 +30,14 @@ import 'package:sociale_vote/domain/engagement/usecases/is_favorite.dart';
 import 'package:sociale_vote/domain/engagement/usecases/toggle_favorite.dart';
 import 'package:sociale_vote/domain/engagement/usecases/toggle_reaction.dart';
 
+import 'package:sociale_vote/domain/geo/repositories/device_location_repository.dart';
 import 'package:sociale_vote/domain/geo/repositories/follow_scope_repository.dart';
+import 'package:sociale_vote/domain/geo/repositories/geocoding_repository.dart';
 import 'package:sociale_vote/domain/geo/repositories/geo_resolver.dart';
 import 'package:sociale_vote/domain/geo/usecases/get_followed_scopes_for_user.dart';
 import 'package:sociale_vote/domain/geo/usecases/resolve_scope_from_point.dart';
 import 'package:sociale_vote/domain/geo/usecases/toggle_follow_scope.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 
 import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
@@ -68,6 +71,7 @@ import 'package:sociale_vote/features/discussion/application/discussion_controll
 import 'package:sociale_vote/features/geo/application/follow_scope_controller.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 import 'package:sociale_vote/features/home/application/civic_feed_controller.dart';
+import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/features/news/application/news_controller.dart';
 import 'package:sociale_vote/features/poll/application/create_poll_controller.dart';
 import 'package:sociale_vote/features/poll/application/poll_detail_controller.dart';
@@ -83,7 +87,9 @@ import 'package:sociale_vote/infrastructure/discussion/repositories/comment_repo
 import 'package:sociale_vote/infrastructure/engagement/repositories/favorite_repository_supabase.dart';
 import 'package:sociale_vote/infrastructure/engagement/repositories/reaction_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/geo/geo_resolver_impl.dart';
+import 'package:sociale_vote/infrastructure/geo/repositories/device_location_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/geo/repositories/follow_scope_repository_in_memory.dart';
+import 'package:sociale_vote/infrastructure/geo/repositories/geocoding_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/identity/repositories/user_profile_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/moderation/repositories/moderation_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/gnews_provider.dart';
@@ -102,9 +108,6 @@ import 'package:sociale_vote/infrastructure/poll/repositories/vote_repository_im
 import 'package:sociale_vote/infrastructure/search/repositories/search_repository_in_memory.dart';
 import 'package:sociale_vote/infrastructure/social/repositories/post_repository_impl.dart';
 
-/// Implementazione minima temporanea di [UserRepository].
-///
-/// In questa fase collega direttamente Supabase Auth tramite [AuthApi].
 class UserRepositoryImpl implements UserRepository {
   final AuthApi _authApi;
 
@@ -146,8 +149,6 @@ class UserRepositoryImpl implements UserRepository {
   }
 }
 
-/// Contenitore molto semplice per la Dependency Injection
-/// dell'applicazione.
 class AppDI {
   AppDI._internal() {
     _sessionRepository.watchCurrentUserId().listen((userId) {
@@ -156,10 +157,6 @@ class AppDI {
   }
 
   static final AppDI instance = AppDI._internal();
-
-  // ==========================================================
-  // CONTROLLERS GLOBALI
-  // ==========================================================
 
   final GeoScopeController _geoScopeController = GeoScopeController();
 
@@ -183,10 +180,6 @@ class AppDI {
     return _followScopeController!;
   }
 
-  // ==========================================================
-  // HTTP CLIENTS
-  // ==========================================================
-
   final ApiClient _gnewsClient = ApiClient(
     baseUrl: 'https://gnews.io/api/v4',
   );
@@ -198,10 +191,6 @@ class AppDI {
   final ApiClient _mediaStackClient = ApiClient(
     baseUrl: 'http://api.mediastack.com/v1',
   );
-
-  // ==========================================================
-  // NEWS INFRA
-  // ==========================================================
 
   late final NewsApi _newsApi = NewsApi(_gnewsClient);
   late final NewsApiOrgApi _newsApiOrgApi = NewsApiOrgApi(_newsApiOrgClient);
@@ -223,21 +212,17 @@ class AppDI {
     ],
   );
 
-  // ==========================================================
-  // AUTH INFRA
-  // ==========================================================
-
   late final AuthApi _authApi = const AuthApi();
-
-  // ==========================================================
-  // REPOSITORIES (singleton)
-  // ==========================================================
 
   late final SessionRepository _sessionRepository = SessionRepositoryImpl();
   late final UserRepository _userRepository = UserRepositoryImpl(_authApi);
   late final UserProfileRepository _userProfileRepository =
       UserProfileRepositoryImpl();
   late final GeoResolver _geoResolver = GeoResolverImpl();
+  late final DeviceLocationRepository _deviceLocationRepository =
+      const DeviceLocationRepositoryImpl();
+  late final GeocodingRepository _geocodingRepository =
+      const GeocodingRepositoryImpl();
   late final FollowScopeRepository _followScopeRepository =
       FollowScopeRepositoryInMemory();
   late final PollRepository _pollRepository = PollRepositorySupabase();
@@ -270,12 +255,11 @@ class AppDI {
   ReactionRepository get reactionRepository => _reactionRepository;
   CommentRepository get commentRepository => _commentRepository;
   ModerationRepository get moderationRepository => _moderationRepository;
+  DeviceLocationRepository get deviceLocationRepository =>
+      _deviceLocationRepository;
+  GeocodingRepository get geocodingRepository => _geocodingRepository;
   FollowScopeRepository get followScopeRepository => _followScopeRepository;
   SearchRepository get searchRepository => _searchRepository;
-
-  // ==========================================================
-  // IDENTITY / SESSION
-  // ==========================================================
 
   String? get currentUserId => _currentUserId;
 
@@ -284,15 +268,7 @@ class AppDI {
     await _sessionRepository.clearSession();
   }
 
-  // ==========================================================
-  // SERVICES
-  // ==========================================================
-
   VoteAggregator get voteAggregator => VoteAggregator();
-
-  // ==========================================================
-  // USE CASES - AUTH
-  // ==========================================================
 
   LoginUser get loginUser => LoginUser(
         userRepository,
@@ -309,10 +285,6 @@ class AppDI {
   UpdateUserProfile get updateUserProfile =>
       UpdateUserProfile(userProfileRepository);
 
-  // ==========================================================
-  // USE CASES - POLL
-  // ==========================================================
-
   GetPolls get getPolls => GetPolls(pollRepository);
 
   GetPollDetail get getPollDetail => GetPollDetail(pollRepository);
@@ -324,17 +296,9 @@ class AppDI {
 
   CreatePoll get createPoll => CreatePoll(pollRepository);
 
-  // ==========================================================
-  // USE CASES - NEWS
-  // ==========================================================
-
   GetNewsFeed get getNewsFeed => GetNewsFeed(newsRepository);
 
   GetNewsDetail get getNewsDetail => GetNewsDetail(newsRepository);
-
-  // ==========================================================
-  // USE CASES - SOCIAL
-  // ==========================================================
 
   GetFeed get getFeed => GetFeed(postRepository);
 
@@ -349,6 +313,7 @@ class AppDI {
     required String content,
     String? countryCode,
     String? cityId,
+    ContentLocation? contentLocation,
   }) {
     return createPostUseCase(
       authorId: authorId,
@@ -357,12 +322,9 @@ class AppDI {
       content: content,
       countryCode: countryCode,
       cityId: cityId,
+      contentLocation: contentLocation,
     );
   }
-
-  // ==========================================================
-  // USE CASES - ENGAGEMENT
-  // ==========================================================
 
   IsFavorite get isFavoriteUseCase => IsFavorite(favoriteRepository);
 
@@ -394,15 +356,7 @@ class AppDI {
     );
   }
 
-  // ==========================================================
-  // USE CASES - MODERATION
-  // ==========================================================
-
   ReportContent get reportContent => ReportContent(moderationRepository);
-
-  // ==========================================================
-  // USE CASES - GEO
-  // ==========================================================
 
   ResolveScopeFromPoint get resolveScopeFromPoint =>
       ResolveScopeFromPoint(_geoResolver);
@@ -412,10 +366,6 @@ class AppDI {
 
   ToggleFollowScope get toggleFollowScope =>
       ToggleFollowScope(followScopeRepository);
-
-  // ==========================================================
-  // USE CASES - DISCOVERY
-  // ==========================================================
 
   GetTrendingContent get getTrendingContent => GetTrendingContent(
         postRepository: postRepository,
@@ -430,15 +380,7 @@ class AppDI {
         followScopeRepository: followScopeRepository,
       );
 
-  // ==========================================================
-  // USE CASES - SEARCH
-  // ==========================================================
-
   SearchContent get searchContent => SearchContent(searchRepository);
-
-  // ==========================================================
-  // USE CASES - DISCUSSION (commenti)
-  // ==========================================================
 
   AddComment get addComment => AddComment(commentRepository);
 
@@ -450,10 +392,6 @@ class AppDI {
 
   UpdateComment get updateComment => UpdateComment(commentRepository);
 
-  // ==========================================================
-  // CONTROLLERS - AUTH
-  // ==========================================================
-
   AuthController createAuthController() {
     return AuthController(
       sessionRepository: sessionRepository,
@@ -462,10 +400,6 @@ class AppDI {
       authApi: _authApi,
     );
   }
-
-  // ==========================================================
-  // CONTROLLERS - POLL
-  // ==========================================================
 
   PollListController createPollListController() {
     return PollListController(
@@ -498,12 +432,10 @@ class AppDI {
       createPollUseCase: createPoll,
       geoScopeController: geoScopeController,
       createdByUserId: currentUserId ?? 'guest',
+      deviceLocationRepository: deviceLocationRepository,
+      geocodingRepository: geocodingRepository,
     );
   }
-
-  // ==========================================================
-  // CONTROLLERS - NEWS
-  // ==========================================================
 
   NewsController createNewsController() {
     return NewsController(
@@ -512,10 +444,6 @@ class AppDI {
       getReactionSummary,
     );
   }
-
-  // ==========================================================
-  // CONTROLLERS - SOCIAL
-  // ==========================================================
 
   FeedController createFeedController() {
     return FeedController(
@@ -536,10 +464,6 @@ class AppDI {
     );
   }
 
-  // ==========================================================
-  // CONTROLLERS - HOME / CIVIC FEED
-  // ==========================================================
-
   CivicFeedController createCivicFeedController() {
     return CivicFeedController(
       loadPolls: _loadPollsForScope,
@@ -559,9 +483,13 @@ class AppDI {
     );
   }
 
-  // ==========================================================
-  // CONTROLLERS - DISCOVERY
-  // ==========================================================
+  CivicMapController createCivicMapController() {
+    return CivicMapController(
+      loadPollItems: _loadPollMapItemsForScope,
+      loadPostItems: _loadPostMapItemsForScope,
+      loadNewsItems: _loadNewsMapItemsForScope,
+    );
+  }
 
   TrendingController createTrendingController() {
     return TrendingController(
@@ -581,20 +509,12 @@ class AppDI {
     );
   }
 
-  // ==========================================================
-  // CONTROLLERS - SEARCH
-  // ==========================================================
-
   SearchController createSearchController() {
     return SearchController(
       searchContent: searchContent,
       geoScopeController: geoScopeController,
     );
   }
-
-  // ==========================================================
-  // CONTROLLERS - DISCUSSION
-  // ==========================================================
 
   DiscussionController createDiscussionController(
     TargetRef target, {
@@ -609,16 +529,12 @@ class AppDI {
     );
   }
 
-  // ==========================================================
-  // CIVIC FEED HELPERS
-  // ==========================================================
-
   Future<List<Poll>> _loadPollsForScope(GeoScope? scope) async {
     final countryCode = _readScopeCountryCode(scope);
     final cityId = _readScopeCityId(scope);
     final dynamic useCase = getPolls;
 
-    return _tryLoadList<Poll>([
+    final scoped = await _tryLoadListOrEmpty<Poll>([
       () => useCase(countryCode: countryCode, cityId: cityId),
       () => useCase(countryCode: countryCode, cityId: cityId, limit: 20),
       () => useCase(
@@ -627,7 +543,16 @@ class AppDI {
             limit: 20,
             offset: 0,
           ),
+    ]);
+
+    if (scoped.isNotEmpty) {
+      return scoped;
+    }
+
+    return _tryLoadList<Poll>([
       () => useCase(),
+      () => useCase(limit: 20),
+      () => useCase(limit: 20, offset: 0),
     ]);
   }
 
@@ -636,7 +561,7 @@ class AppDI {
     final cityId = _readScopeCityId(scope);
     final dynamic useCase = getNewsFeed;
 
-    return _tryLoadList<NewsItem>([
+    final scoped = await _tryLoadListOrEmpty<NewsItem>([
       () => useCase(countryCode: countryCode, cityId: cityId),
       () => useCase(countryCode: countryCode, cityId: cityId, limit: 20),
       () => useCase(
@@ -645,7 +570,16 @@ class AppDI {
             limit: 20,
             offset: 0,
           ),
+    ]);
+
+    if (scoped.isNotEmpty) {
+      return scoped;
+    }
+
+    return _tryLoadList<NewsItem>([
       () => useCase(),
+      () => useCase(limit: 20),
+      () => useCase(limit: 20, offset: 0),
     ]);
   }
 
@@ -654,7 +588,7 @@ class AppDI {
     final cityId = _readScopeCityId(scope);
     final dynamic useCase = getFeed;
 
-    return _tryLoadList<Post>([
+    final scoped = await _tryLoadListOrEmpty<Post>([
       () => useCase(countryCode: countryCode, cityId: cityId),
       () => useCase(countryCode: countryCode, cityId: cityId, limit: 20),
       () => useCase(
@@ -663,8 +597,344 @@ class AppDI {
             limit: 20,
             offset: 0,
           ),
-      () => useCase(),
     ]);
+
+    if (scoped.isNotEmpty) {
+      return scoped;
+    }
+
+    return _tryLoadList<Post>([
+      () => useCase(),
+      () => useCase(limit: 20),
+      () => useCase(limit: 20, offset: 0),
+    ]);
+  }
+
+  Future<List<CivicMapItem>> _loadPollMapItemsForScope(GeoScope scope) async {
+    final polls = await _loadPollsForScope(scope);
+    return _buildMapItemsFromEntities<Poll>(
+      entities: polls,
+      scope: scope,
+      type: CivicMapItemType.poll,
+      readTargetRef: _readPollTargetRef,
+    );
+  }
+
+  Future<List<CivicMapItem>> _loadPostMapItemsForScope(GeoScope scope) async {
+    final posts = await _loadPostsForScope(scope);
+    return _buildMapItemsFromEntities<Post>(
+      entities: posts,
+      scope: scope,
+      type: CivicMapItemType.post,
+      readTargetRef: _readPostTargetRef,
+    );
+  }
+
+  Future<List<CivicMapItem>> _loadNewsMapItemsForScope(GeoScope scope) async {
+    final news = await _loadNewsForScope(scope);
+    return _buildMapItemsFromEntities<NewsItem>(
+      entities: news,
+      scope: scope,
+      type: CivicMapItemType.news,
+      readTargetRef: _readNewsTargetRef,
+    );
+  }
+
+  Future<List<CivicMapItem>> _buildMapItemsFromEntities<T>({
+    required List<T> entities,
+    required GeoScope scope,
+    required CivicMapItemType type,
+    required TargetRef Function(T entity) readTargetRef,
+  }) async {
+    final List<CivicMapItem> items = <CivicMapItem>[];
+
+    for (final entity in entities) {
+      final targetRef = readTargetRef(entity);
+      final point = _readEntityMapPoint(entity, fallbackScope: scope);
+
+      if (point == null) {
+        continue;
+      }
+
+      final heat = await _loadReactionCountForTarget(targetRef);
+      final commentCount = await _loadCommentCountForTarget(targetRef);
+
+      items.add(
+        CivicMapItem(
+          id: _readEntityId(entity),
+          targetRef: targetRef,
+          type: type,
+          title: _readEntityTitle(entity),
+          subtitle: _readEntitySubtitle(entity),
+          geoScope: scope,
+          contentLocation: _readEntityContentLocation(entity),
+          latitude: point.$1,
+          longitude: point.$2,
+          heat: heat.toDouble(),
+          commentCount: commentCount,
+          createdAt: _readEntityCreatedAt(entity),
+        ),
+      );
+    }
+
+    return items;
+  }
+
+  ContentLocation? _readEntityContentLocation(dynamic entity) {
+    try {
+      final dynamic value = entity.contentLocation;
+      return _tryReadContentLocation(value);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  ContentLocation? _tryReadContentLocation(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+    if (value is ContentLocation) {
+      return value;
+    }
+    if (value is Map<String, dynamic>) {
+      return ContentLocation.fromJson(value);
+    }
+    if (value is Map) {
+      return ContentLocation.fromJson(
+        value.map(
+          (key, val) => MapEntry(key.toString(), val),
+        ),
+      );
+    }
+    return null;
+  }
+
+  (double, double)? _readEntityMapPoint(
+    dynamic entity, {
+    required GeoScope fallbackScope,
+  }) {
+    final direct = _tryReadLatLng(entity);
+    if (direct != null) {
+      return direct;
+    }
+
+    final contentLocationPoint = _tryReadContentLocationPoint(entity);
+    if (contentLocationPoint != null) {
+      return contentLocationPoint;
+    }
+
+    final nestedScope = _tryReadScopeLatLng(entity);
+    if (nestedScope != null) {
+      return nestedScope;
+    }
+
+    if (fallbackScope.centerLat != null &&
+        fallbackScope.centerLng != null &&
+        _isValidLatLng(fallbackScope.centerLat, fallbackScope.centerLng)) {
+      return (fallbackScope.centerLat!, fallbackScope.centerLng!);
+    }
+
+    switch (fallbackScope.level) {
+      case GeoScopeLevel.world:
+        return (20.0, 0.0);
+      case GeoScopeLevel.country:
+        return (45.0, 10.0);
+      case GeoScopeLevel.city:
+        return (45.4642, 9.1900);
+    }
+  }
+
+  (double, double)? _tryReadContentLocationPoint(dynamic entity) {
+    final location = _readEntityContentLocation(entity);
+    if (location == null) {
+      return null;
+    }
+
+    if (_isValidLatLng(location.latitude, location.longitude)) {
+      return (location.latitude!, location.longitude!);
+    }
+
+    if (_isValidLatLng(location.centerLat, location.centerLng)) {
+      return (location.centerLat!, location.centerLng!);
+    }
+
+    return null;
+  }
+
+  (double, double)? _tryReadLatLng(dynamic entity) {
+    final lat = _readDoubleFromDynamicCandidates(entity, const [
+      'latitude',
+      'lat',
+      'centerLat',
+    ]);
+
+    final lng = _readDoubleFromDynamicCandidates(entity, const [
+      'longitude',
+      'lng',
+      'lon',
+      'centerLng',
+    ]);
+
+    if (!_isValidLatLng(lat, lng)) {
+      return null;
+    }
+
+    return (lat!, lng!);
+  }
+
+  (double, double)? _tryReadScopeLatLng(dynamic entity) {
+    try {
+      final dynamic scope = entity.geoScope;
+      if (scope == null) return null;
+
+      final lat = _readDoubleFromDynamicCandidates(scope, const [
+        'centerLat',
+        'latitude',
+        'lat',
+      ]);
+      final lng = _readDoubleFromDynamicCandidates(scope, const [
+        'centerLng',
+        'longitude',
+        'lng',
+        'lon',
+      ]);
+
+      if (!_isValidLatLng(lat, lng)) {
+        return null;
+      }
+
+      return (lat!, lng!);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  double? _readDoubleFromDynamicCandidates(
+    dynamic object,
+    List<String> fields,
+  ) {
+    for (final field in fields) {
+      try {
+        final dynamic value = _readDynamicField(object, field);
+        final parsed = _toDouble(value);
+        if (parsed != null) {
+          return parsed;
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  dynamic _readDynamicField(dynamic object, String field) {
+    switch (field) {
+      case 'latitude':
+        return object.latitude;
+      case 'lat':
+        return object.lat;
+      case 'centerLat':
+        return object.centerLat;
+      case 'longitude':
+        return object.longitude;
+      case 'lng':
+        return object.lng;
+      case 'lon':
+        return object.lon;
+      case 'centerLng':
+        return object.centerLng;
+      default:
+        throw StateError('Campo non supportato: $field');
+    }
+  }
+
+  bool _isValidLatLng(double? lat, double? lng) {
+    if (lat == null || lng == null) return false;
+    if (!lat.isFinite || !lng.isFinite) return false;
+    if (lat < -90 || lat > 90) return false;
+    if (lng < -180 || lng > 180) return false;
+    return true;
+  }
+
+  double? _toDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString());
+  }
+
+  String _readEntityTitle(dynamic entity) {
+    final title = _readStringCandidate(entity, const [
+      'title',
+      'question',
+      'headline',
+      'name',
+    ]);
+    if (title != null && title.trim().isNotEmpty) {
+      return title.trim();
+    }
+    return entity.runtimeType.toString();
+  }
+
+  String? _readEntitySubtitle(dynamic entity) {
+    final subtitle = _readStringCandidate(entity, const [
+      'description',
+      'summary',
+      'content',
+      'body',
+      'sourceName',
+      'authorName',
+    ]);
+    if (subtitle == null) {
+      return null;
+    }
+    final normalized = subtitle.trim();
+    if (normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
+  }
+
+  String? _readStringCandidate(dynamic object, List<String> fields) {
+    for (final field in fields) {
+      try {
+        final dynamic value = _readStringField(object, field);
+        if (value == null) {
+          continue;
+        }
+        final text = value.toString().trim();
+        if (text.isNotEmpty) {
+          return text;
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  dynamic _readStringField(dynamic object, String field) {
+    switch (field) {
+      case 'title':
+        return object.title;
+      case 'question':
+        return object.question;
+      case 'headline':
+        return object.headline;
+      case 'name':
+        return object.name;
+      case 'description':
+        return object.description;
+      case 'summary':
+        return object.summary;
+      case 'content':
+        return object.content;
+      case 'body':
+        return object.body;
+      case 'sourceName':
+        return object.sourceName;
+      case 'authorName':
+        return object.authorName;
+      default:
+        throw StateError('Campo stringa non supportato: $field');
+    }
   }
 
   Future<List<T>> _tryLoadList<T>(
@@ -693,6 +963,28 @@ class AppDI {
     throw StateError(
       'Impossibile caricare la lista richiesta: ${lastError ?? 'errore sconosciuto'}',
     );
+  }
+
+  Future<List<T>> _tryLoadListOrEmpty<T>(
+    List<Future<dynamic> Function()> attempts,
+  ) async {
+    for (final attempt in attempts) {
+      try {
+        final dynamic result = await attempt();
+
+        if (result is List<T>) {
+          return result;
+        }
+        if (result is List) {
+          return result.cast<T>();
+        }
+        if (result is Iterable) {
+          return result.cast<T>().toList();
+        }
+      } catch (_) {}
+    }
+
+    return <T>[];
   }
 
   String? _readScopeCountryCode(GeoScope? scope) {

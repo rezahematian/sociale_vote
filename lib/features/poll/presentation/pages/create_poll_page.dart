@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
-import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
-import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
+import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
+import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 import 'package:sociale_vote/features/poll/application/create_poll_controller.dart';
-import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
 
 class CreatePollPage extends StatelessWidget {
   const CreatePollPage({super.key});
@@ -31,6 +33,14 @@ class _CreatePollView extends StatefulWidget {
 
 class _CreatePollViewState extends State<_CreatePollView> {
   String? _selectedCountryCode;
+  String? _selectedContentCountryCode;
+  final TextEditingController _contentCityController = TextEditingController();
+
+  @override
+  void dispose() {
+    _contentCityController.dispose();
+    super.dispose();
+  }
 
   String _pollTypeLabel(PollType type) {
     final l10n = AppLocalizations.of(context)!;
@@ -52,7 +62,6 @@ class _CreatePollViewState extends State<_CreatePollView> {
   }
 
   String _formatDate(DateTime dt) {
-    // formato semplice: dd/MM/yyyy
     return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
   }
 
@@ -89,6 +98,223 @@ class _CreatePollViewState extends State<_CreatePollView> {
       case ResultsVisibilityMode.afterClose:
         return l10n.createPollResultsVisibilityAfterCloseLabel;
     }
+  }
+
+  String _contentLocationSourceLabel(ContentLocationSource source) {
+    switch (source) {
+      case ContentLocationSource.manual:
+        return 'Manuale';
+      case ContentLocationSource.device:
+        return 'Posizione attuale';
+      case ContentLocationSource.profile:
+        return 'Profilo';
+      case ContentLocationSource.geoScopeFallback:
+        return 'Scope corrente';
+    }
+  }
+
+  String _contentLocationSummary(ContentLocation location) {
+    final parts = <String>[];
+
+    if (location.cityName != null && location.cityName!.trim().isNotEmpty) {
+      parts.add(location.cityName!.trim());
+    }
+
+    if (location.countryCode != null &&
+        location.countryCode!.trim().isNotEmpty) {
+      parts.add(location.countryCode!.trim().toUpperCase());
+    }
+
+    if (parts.isEmpty) {
+      if (location.hasCenter) {
+        return 'Coordinate scope disponibili';
+      }
+      return 'Località non definita';
+    }
+
+    return parts.join(', ');
+  }
+
+  void _applyManualContentLocation(CreatePollController controller) {
+    controller.setManualContentLocation(
+      countryCode: _selectedContentCountryCode,
+      cityName: _contentCityController.text.trim().isEmpty
+          ? null
+          : _contentCityController.text.trim(),
+    );
+  }
+
+  Widget _buildContentLocationCard(
+    BuildContext context,
+    CreatePollController controller,
+    bool isSubmitting,
+  ) {
+    final theme = Theme.of(context);
+    final effectiveLocation = controller.effectiveContentLocation;
+    final explicitLocation = controller.contentLocation;
+
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Località contenuto',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Definisce dove appartiene il poll sulla mappa. Puoi usare lo scope corrente, la posizione attuale oppure impostare manualmente paese e città.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.textTheme.bodySmall?.color?.withOpacity(0.8),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.35),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withOpacity(0.15),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Località attiva',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _contentLocationSummary(effectiveLocation),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Origine: ${_contentLocationSourceLabel(effectiveLocation.source)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: isSubmitting
+                      ? null
+                      : () {
+                          controller.useGeoScopeAsContentLocation();
+                          final location = controller.contentLocation;
+                          setState(() {
+                            _selectedContentCountryCode = location?.countryCode;
+                            _contentCityController.text = location?.cityName ?? '';
+                          });
+                        },
+                  icon: const Icon(Icons.public),
+                  label: const Text('Usa scope corrente'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: isSubmitting || controller.isResolvingContentLocation
+                      ? null
+                      : () async {
+                          final success =
+                              await controller.useCurrentDeviceLocation();
+                          if (!mounted) return;
+
+                          if (success) {
+                            final location = controller.contentLocation;
+                            setState(() {
+                              _selectedContentCountryCode =
+                                  location?.countryCode;
+                              _contentCityController.text =
+                                  location?.cityName ?? '';
+                            });
+                          }
+                        },
+                  icon: controller.isResolvingContentLocation
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.my_location),
+                  label: Text(
+                    controller.isResolvingContentLocation
+                        ? 'Ricavo posizione...'
+                        : 'Usa posizione attuale',
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: isSubmitting
+                      ? null
+                      : () {
+                          controller.clearContentLocation();
+                          setState(() {
+                            _selectedContentCountryCode = null;
+                            _contentCityController.clear();
+                          });
+                        },
+                  icon: const Icon(Icons.restart_alt),
+                  label: const Text('Reset'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            CountrySelectorField(
+              selectedCountryCode: _selectedContentCountryCode,
+              onCountrySelected: (code) {
+                setState(() {
+                  _selectedContentCountryCode = code;
+                });
+                _applyManualContentLocation(controller);
+              },
+              label: 'Paese del contenuto',
+              required: false,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _contentCityController,
+              enabled: !isSubmitting,
+              decoration: const InputDecoration(
+                labelText: 'Città del contenuto',
+                border: OutlineInputBorder(),
+                helperText: 'Facoltativo. Serve per posizionare meglio il poll.',
+              ),
+              onChanged: (_) => _applyManualContentLocation(controller),
+            ),
+            if (explicitLocation != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Località personalizzata pronta per il submit.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -222,6 +448,14 @@ class _CreatePollViewState extends State<_CreatePollView> {
 
                         const SizedBox(height: 16),
 
+                        _buildContentLocationCard(
+                          context,
+                          controller,
+                          isSubmitting,
+                        ),
+
+                        const SizedBox(height: 16),
+
                         // ===== VOTING MODEL CARD =====
                         Card(
                           elevation: 1,
@@ -298,8 +532,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                         ),
                                         style: theme.textTheme.bodySmall
                                             ?.copyWith(
-                                          color: theme.textTheme.bodySmall
-                                              ?.color
+                                          color: theme.textTheme.bodySmall?.color
                                               ?.withOpacity(0.8),
                                         ),
                                       ),
@@ -310,14 +543,11 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 SwitchListTile.adaptive(
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(
-                                    l10n
-                                        .createPollAllowVoteChangeTitle,
+                                    l10n.createPollAllowVoteChangeTitle,
                                   ),
                                   subtitle: Text(
-                                    l10n
-                                        .createPollAllowVoteChangeSubtitle,
-                                    style: theme.textTheme.bodySmall
-                                        ?.copyWith(
+                                    l10n.createPollAllowVoteChangeSubtitle,
+                                    style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.textTheme.bodySmall?.color
                                           ?.withOpacity(0.8),
                                     ),
@@ -375,8 +605,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                           controller.options.length > 2;
 
                                       return Padding(
-                                        padding: const EdgeInsets.only(
-                                            bottom: 8),
+                                        padding:
+                                            const EdgeInsets.only(bottom: 8),
                                         child: Row(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
@@ -391,7 +621,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                                 ),
                                                 onChanged: (value) =>
                                                     controller.setOptionText(
-                                                        index, value),
+                                                  index,
+                                                  value,
+                                                ),
                                               ),
                                             ),
                                             const SizedBox(width: 8),
@@ -403,8 +635,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                                     ? null
                                                     : () => controller
                                                         .removeOption(index),
-                                                icon: const Icon(Icons
-                                                    .remove_circle_outline),
+                                                icon: const Icon(
+                                                  Icons.remove_circle_outline,
+                                                ),
                                               ),
                                           ],
                                         ),
@@ -495,7 +728,6 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                             });
                                             controller
                                                 .setParticipationScope(value);
-                                            // azzera anche il vincolo di country a livello di dominio
                                             controller
                                                 .setCountryCodeForParticipation(
                                               null,
@@ -527,8 +759,6 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                           if (value != null) {
                                             controller
                                                 .setParticipationScope(value);
-                                            // se c'è già un paese selezionato in UI,
-                                            // sincronizzalo nel controller
                                             controller
                                                 .setCountryCodeForParticipation(
                                               _selectedCountryCode,
@@ -536,8 +766,6 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                           }
                                         },
                                 ),
-
-                                // 🔹 Country picker visibile solo se scegliamo geoScopeOnly
                                 if (controller.participationScope ==
                                     ParticipationScope.geoScopeOnly) ...[
                                   const SizedBox(height: 12),
@@ -548,7 +776,6 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                       setState(() {
                                         _selectedCountryCode = code;
                                       });
-                                      // collega il paese selezionato al controller/dominio
                                       controller
                                           .setCountryCodeForParticipation(
                                         code,
@@ -568,7 +795,6 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     ),
                                   ),
                                 ],
-
                                 const Divider(height: 24),
                                 Text(
                                   l10n.createPollVoteAnonymityTitle,
@@ -582,7 +808,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(
                                     _anonymityLabel(
-                                        AnonymityLevel.anonymous),
+                                      AnonymityLevel.anonymous,
+                                    ),
                                   ),
                                   subtitle: Text(
                                     l10n
@@ -607,8 +834,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 RadioListTile<AnonymityLevel>(
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(
-                                    _anonymityLabel(
-                                        AnonymityLevel.public),
+                                    _anonymityLabel(AnonymityLevel.public),
                                   ),
                                   subtitle: Text(
                                     l10n
@@ -682,7 +908,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                               if (value != null) {
                                                 controller
                                                     .setResultsVisibility(
-                                                        value);
+                                                  value,
+                                                );
                                               }
                                             },
                                       items: ResultsVisibilityMode.values
@@ -690,8 +917,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                             (mode) => DropdownMenuItem(
                                               value: mode,
                                               child: Text(
-                                                _resultsVisibilityLabel(
-                                                    mode),
+                                                _resultsVisibilityLabel(mode),
                                               ),
                                             ),
                                           )
@@ -719,9 +945,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 const SizedBox(height: 8),
                                 TextFormField(
                                   enabled: !isSubmitting,
-                                  initialValue: controller
-                                              .minQuorumVotes
-                                              ?.toString() ??
+                                  initialValue:
+                                      controller.minQuorumVotes?.toString() ??
                                           '',
                                   keyboardType: TextInputType.number,
                                   decoration: InputDecoration(
@@ -735,8 +960,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     } else {
                                       final parsed =
                                           int.tryParse(value.trim());
-                                      controller
-                                          .setMinQuorumVotes(parsed);
+                                      controller.setMinQuorumVotes(parsed);
                                     }
                                   },
                                 ),
@@ -834,9 +1058,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 ),
                                 ListTile(
                                   contentPadding: EdgeInsets.zero,
-                                  leading: const Icon(
-                                    Icons.stop_circle_outlined,
-                                  ),
+                                  leading:
+                                      const Icon(Icons.stop_circle_outlined),
                                   title: Text(
                                     l10n.createPollEndDateLabel,
                                   ),
@@ -924,8 +1147,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                           behavior:
                                               SnackBarBehavior.floating,
                                           content: Text(
-                                            l10n
-                                                .createPollSuccessMessage,
+                                            l10n.createPollSuccessMessage,
                                           ),
                                         ),
                                       );

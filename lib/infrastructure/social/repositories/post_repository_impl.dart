@@ -2,19 +2,9 @@ import 'package:sociale_vote/core/supabase/supabase_client.dart';
 import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/content/social/repositories/post_repository.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 
-/// Implementazione Supabase del [PostRepository].
-///
-/// V2:
-/// - legge i post reali dalla tabella `public.posts`
-/// - legge il dettaglio di un post reale
-/// - crea un post reale su Supabase
-/// - elimina un post reale
-///
-/// Nota:
-/// per mantenere compatibilità con il dominio attuale,
-/// il filtraggio scope viene fatto in Dart dopo il fetch.
-/// In una fase successiva potremo ottimizzare la query lato database.
 class PostRepositoryImpl implements PostRepository {
   static const String _postsTable = 'posts';
   static const String _usersTable = 'users';
@@ -35,7 +25,8 @@ class PostRepositoryImpl implements PostRepository {
 
     final scoped = mapped
         .where(
-          (post) => post.matchesScope(
+          (post) => _matchesRequestedScope(
+            post: post,
             countryCode: countryCode,
             cityId: cityId,
           ),
@@ -54,6 +45,42 @@ class PostRepositoryImpl implements PostRepository {
     }
 
     return List<Post>.unmodifiable(scoped.sublist(start, end));
+  }
+
+  bool _matchesRequestedScope({
+    required Post post,
+    String? countryCode,
+    String? cityId,
+  }) {
+    final requestedCountry = _normalize(countryCode);
+    final requestedCity = _normalize(cityId);
+
+    final postCountry = _normalize(post.countryCode);
+    final postCity = _normalize(post.cityId);
+
+    // WORLD -> mostra tutto
+    if (requestedCountry == null && requestedCity == null) {
+      return true;
+    }
+
+    // COUNTRY -> mostra tutto ciò che appartiene a quel paese
+    if (requestedCountry != null && requestedCity == null) {
+      return postCountry == requestedCountry;
+    }
+
+    // CITY -> match esatto città + paese
+    if (requestedCountry != null && requestedCity != null) {
+      return postCountry == requestedCountry && postCity == requestedCity;
+    }
+
+    return false;
+  }
+
+  String? _normalize(String? value) {
+    if (value == null) return null;
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+    return trimmed;
   }
 
   @override
@@ -85,17 +112,33 @@ class PostRepositoryImpl implements PostRepository {
 
     await _ensureCurrentUserRow();
 
-    final insertedRows = await AppSupabase.client
-        .from(_postsTable)
-        .insert({
-          'author_id': currentUser.id,
-          'title': post.title,
-          'content': post.content,
-          'country_code': post.countryCode,
-          'city_id': post.cityId,
-        })
-        .select()
-        .limit(1);
+    List<dynamic> insertedRows;
+
+    try {
+      insertedRows = await AppSupabase.client
+          .from(_postsTable)
+          .insert(
+            _buildInsertPayload(
+              post: post,
+              authorId: currentUser.id,
+              includeContentLocation: true,
+            ),
+          )
+          .select()
+          .limit(1);
+    } catch (_) {
+      insertedRows = await AppSupabase.client
+          .from(_postsTable)
+          .insert(
+            _buildInsertPayload(
+              post: post,
+              authorId: currentUser.id,
+              includeContentLocation: false,
+            ),
+          )
+          .select()
+          .limit(1);
+    }
 
     if (insertedRows.isEmpty) {
       throw Exception('Creazione post fallita.');
@@ -109,12 +152,29 @@ class PostRepositoryImpl implements PostRepository {
     return mapped.first;
   }
 
+  Map<String, dynamic> _buildInsertPayload({
+    required Post post,
+    required String authorId,
+    required bool includeContentLocation,
+  }) {
+    final payload = <String, dynamic>{
+      'author_id': authorId,
+      'title': post.title,
+      'content': post.content,
+      'country_code': post.countryCode,
+      'city_id': post.cityId,
+    };
+
+    if (includeContentLocation && post.contentLocation != null) {
+      payload['content_location'] = post.contentLocation!.toJson();
+    }
+
+    return payload;
+  }
+
   @override
   Future<void> deletePost(String postId) async {
-    await AppSupabase.client
-        .from(_postsTable)
-        .delete()
-        .eq('id', postId);
+    await AppSupabase.client.from(_postsTable).delete().eq('id', postId);
   }
 
   Future<List<Post>> _mapPosts(List<dynamic> rows) async {
@@ -142,6 +202,9 @@ class PostRepositoryImpl implements PostRepository {
     return normalizedRows.map((row) {
       final authorId = row['author_id'] as String?;
       final createdAtRaw = row['created_at'];
+      final countryCode = row['country_code'] as String?;
+      final cityId = row['city_id'] as String?;
+      final contentLocation = _mapContentLocation(row, countryCode, cityId);
 
       return Post(
         id: EntityId(row['id'] as String),
@@ -150,10 +213,57 @@ class PostRepositoryImpl implements PostRepository {
         content: (row['content'] as String?) ?? '',
         createdAt: _parseDateTime(createdAtRaw),
         commentCount: 0,
-        countryCode: row['country_code'] as String?,
-        cityId: row['city_id'] as String?,
+        countryCode: countryCode,
+        cityId: cityId,
+        contentLocation: contentLocation,
+        createdByUserId: authorId,
       );
     }).toList(growable: false);
+  }
+
+  ContentLocation? _mapContentLocation(
+    Map<String, dynamic> row,
+    String? countryCode,
+    String? cityId,
+  ) {
+    final raw = row['content_location'];
+
+    if (raw is Map<String, dynamic>) {
+      return ContentLocation.fromJson(raw);
+    }
+
+    if (raw is Map) {
+      return ContentLocation.fromJson(
+        raw.map(
+          (key, value) => MapEntry(key.toString(), value),
+        ),
+      );
+    }
+
+    final centerLat = _toDouble(row['center_lat']);
+    final centerLng = _toDouble(row['center_lng']);
+    final latitude = _toDouble(row['latitude']);
+    final longitude = _toDouble(row['longitude']);
+
+    final fallback = ContentLocation(
+      source: ContentLocationSource.geoScopeFallback,
+      countryCode: countryCode,
+      cityId: cityId,
+      centerLat: centerLat,
+      centerLng: centerLng,
+      latitude: latitude,
+      longitude: longitude,
+    );
+
+    return fallback.isEmpty ? null : fallback;
+  }
+
+  double? _toDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString());
   }
 
   Future<Map<String, String>> _loadAuthorsById(List<String> authorIds) async {
@@ -223,6 +333,9 @@ class PostRepositoryImpl implements PostRepository {
   DateTime _parseDateTime(dynamic value) {
     if (value is String && value.trim().isNotEmpty) {
       return DateTime.tryParse(value)?.toLocal() ?? DateTime.now();
+    }
+    if (value is DateTime) {
+      return value.toLocal();
     }
     return DateTime.now();
   }
