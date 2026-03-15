@@ -76,93 +76,38 @@ class PollRepositorySupabase implements PollRepository {
       throw Exception('Utente non autenticato.');
     }
 
-    final attempts = <({String label, Map<String, dynamic> payload})>[
-      (
-        label: 'full',
-        payload: _buildInsertPayload(
-          poll: poll,
-          authorId: currentUser.id,
-          includeTiming: true,
-          includeContentLocation: true,
-        ),
-      ),
-      (
-        label: 'without_content_location',
-        payload: _buildInsertPayload(
-          poll: poll,
-          authorId: currentUser.id,
-          includeTiming: true,
-          includeContentLocation: false,
-        ),
-      ),
-      (
-        label: 'without_timing',
-        payload: _buildInsertPayload(
-          poll: poll,
-          authorId: currentUser.id,
-          includeTiming: false,
-          includeContentLocation: true,
-        ),
-      ),
-      (
-        label: 'legacy_minimal',
-        payload: _buildInsertPayload(
-          poll: poll,
-          authorId: currentUser.id,
-          includeTiming: false,
-          includeContentLocation: false,
-        ),
-      ),
-    ];
+    final payload = _buildInsertPayload(
+      poll: poll,
+      authorId: currentUser.id,
+    );
 
-    Object? lastError;
-
-    for (final attempt in attempts) {
-      try {
-        if (kDebugMode) {
-          debugPrint('POLL INSERT attempt [${attempt.label}]');
-          debugPrint('POLL INSERT payload: ${attempt.payload}');
-        }
-
-        final rawRows = await AppSupabase.client
-            .from(_pollsInsertTable)
-            .insert(attempt.payload)
-            .select()
-            .limit(1) as List<dynamic>;
-
-        if (rawRows.isEmpty) {
-          throw Exception(
-            'Creazione poll fallita: risposta vuota da Supabase.',
-          );
-        }
-
-        final row = rawRows.first;
-        if (row is! Map<String, dynamic>) {
-          throw Exception(
-            'Creazione poll fallita: risposta non valida.',
-          );
-        }
-
-        return _mapPoll(row);
-      } catch (e, st) {
-        lastError = e;
-        if (kDebugMode) {
-          debugPrint('POLL INSERT failed [${attempt.label}]: $e');
-          debugPrint('$st');
-        }
-      }
+    if (kDebugMode) {
+      debugPrint('POLL INSERT payload: $payload');
     }
 
-    throw Exception('Creazione poll fallita: $lastError');
+    final rawRows = await AppSupabase.client
+        .from(_pollsInsertTable)
+        .insert(payload)
+        .select()
+        .limit(1) as List<dynamic>;
+
+    if (rawRows.isEmpty) {
+      throw Exception('Creazione poll fallita.');
+    }
+
+    final row = rawRows.first;
+    if (row is! Map<String, dynamic>) {
+      throw Exception('Creazione poll fallita.');
+    }
+
+    return _mapPoll(row);
   }
 
   Map<String, dynamic> _buildInsertPayload({
     required Poll poll,
     required String authorId,
-    required bool includeTiming,
-    required bool includeContentLocation,
   }) {
-    final payload = <String, dynamic>{
+    return <String, dynamic>{
       'author_id': authorId,
       'title': poll.title,
       'description': poll.description,
@@ -183,21 +128,10 @@ class PollRepositorySupabase implements PollRepository {
       ),
       'country_code': poll.countryCode,
       'city_id': poll.cityId,
+      'start_at': poll.startAt?.toIso8601String(),
+      'end_at': poll.endAt?.toIso8601String(),
+      'content_location': poll.contentLocation?.toJson(),
     };
-
-    if (includeTiming && poll.startAt != null) {
-      payload['start_at'] = poll.startAt!.toIso8601String();
-    }
-
-    if (includeTiming && poll.endAt != null) {
-      payload['end_at'] = poll.endAt!.toIso8601String();
-    }
-
-    if (includeContentLocation && poll.contentLocation != null) {
-      payload['content_location'] = poll.contentLocation!.toJson();
-    }
-
-    return payload;
   }
 
   Poll _mapPoll(Map<String, dynamic> row) {

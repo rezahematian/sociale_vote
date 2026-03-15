@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 
 import '../models/news_dto.dart';
 
@@ -9,17 +10,17 @@ class NewsMapper {
   /// Converte un [NewsDto] in [NewsItem] di dominio.
   ///
   /// Importante:
-  /// gli ID dei provider news non sono affidabili come UUID Supabase.
-  /// Qui generiamo un UUID deterministico e stabile partendo da url/id articolo.
+  /// - gli ID dei provider news non sono affidabili come UUID Supabase
+  /// - [countryCode]/[cityId] rappresentano il contesto feed
+  /// - [contentLocation] rappresenta il luogo reale di cui parla la news
   NewsItem toDomain(
     NewsDto dto, {
     String? countryCode,
     String? cityId,
+    ContentLocation? contentLocation,
   }) {
     final effectiveContent = dto.content ?? dto.description ?? '';
-
     final effectiveAuthor = dto.sourceName ?? dto.sourceId ?? 'news';
-
     final breaking = _computeBreaking(dto);
 
     return NewsItem(
@@ -30,6 +31,7 @@ class NewsMapper {
       imageUrl: dto.image,
       countryCode: countryCode,
       cityId: cityId,
+      contentLocation: contentLocation,
       authorId: effectiveAuthor,
       publishedAt: dto.publishedAt,
       isBreaking: breaking,
@@ -89,7 +91,6 @@ class NewsMapper {
       ..._u32ToBytes(h4),
     ];
 
-    // RFC 4122 variant + versione 5-like
     data[6] = (data[6] & 0x0F) | 0x50;
     data[8] = (data[8] & 0x3F) | 0x80;
 
@@ -125,11 +126,6 @@ class NewsMapper {
     ];
   }
 
-  /// Heuristica semplice e deterministica per "breaking news".
-  ///
-  /// Regole:
-  /// - pubblicata nelle ultime 2 ore
-  /// - oppure titolo contiene keyword tipiche
   bool _computeBreaking(NewsDto dto) {
     final now = DateTime.now().toUtc();
     final published = dto.publishedAt.toUtc();

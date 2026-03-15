@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sociale_vote/core/supabase/supabase_client.dart';
 import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
@@ -58,17 +59,14 @@ class PostRepositoryImpl implements PostRepository {
     final postCountry = _normalize(post.countryCode);
     final postCity = _normalize(post.cityId);
 
-    // WORLD -> mostra tutto
     if (requestedCountry == null && requestedCity == null) {
       return true;
     }
 
-    // COUNTRY -> mostra tutto ciò che appartiene a quel paese
     if (requestedCountry != null && requestedCity == null) {
       return postCountry == requestedCountry;
     }
 
-    // CITY -> match esatto città + paese
     if (requestedCountry != null && requestedCity != null) {
       return postCountry == requestedCountry && postCity == requestedCity;
     }
@@ -112,33 +110,16 @@ class PostRepositoryImpl implements PostRepository {
 
     await _ensureCurrentUserRow();
 
-    List<dynamic> insertedRows;
-
-    try {
-      insertedRows = await AppSupabase.client
-          .from(_postsTable)
-          .insert(
-            _buildInsertPayload(
-              post: post,
-              authorId: currentUser.id,
-              includeContentLocation: true,
-            ),
-          )
-          .select()
-          .limit(1);
-    } catch (_) {
-      insertedRows = await AppSupabase.client
-          .from(_postsTable)
-          .insert(
-            _buildInsertPayload(
-              post: post,
-              authorId: currentUser.id,
-              includeContentLocation: false,
-            ),
-          )
-          .select()
-          .limit(1);
-    }
+    final insertedRows = await AppSupabase.client
+        .from(_postsTable)
+        .insert(
+          _buildInsertPayload(
+            post: post,
+            authorId: currentUser.id,
+          ),
+        )
+        .select()
+        .limit(1);
 
     if (insertedRows.isEmpty) {
       throw Exception('Creazione post fallita.');
@@ -155,7 +136,6 @@ class PostRepositoryImpl implements PostRepository {
   Map<String, dynamic> _buildInsertPayload({
     required Post post,
     required String authorId,
-    required bool includeContentLocation,
   }) {
     final payload = <String, dynamic>{
       'author_id': authorId,
@@ -163,10 +143,11 @@ class PostRepositoryImpl implements PostRepository {
       'content': post.content,
       'country_code': post.countryCode,
       'city_id': post.cityId,
+      'content_location': post.contentLocation?.toJson(),
     };
 
-    if (includeContentLocation && post.contentLocation != null) {
-      payload['content_location'] = post.contentLocation!.toJson();
+    if (kDebugMode) {
+      debugPrint('Post insert payload: $payload');
     }
 
     return payload;

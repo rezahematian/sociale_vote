@@ -37,10 +37,14 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
       return location;
     }
 
-    final queries = _buildQueries(location);
+    final requests = _buildRequests(location);
 
-    for (final query in queries) {
-      final resolved = await _search(query: query, seed: location);
+    for (final request in requests) {
+      final resolved = await _search(
+        queryParameters: request,
+        seed: location,
+      );
+
       if (resolved != null) {
         return resolved;
       }
@@ -49,38 +53,81 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
     return null;
   }
 
-  List<String> _buildQueries(ContentLocation location) {
+  List<Map<String, String>> _buildRequests(ContentLocation location) {
     final cityName = _normalize(location.cityName);
-    final countryCode = _normalize(location.countryCode)?.toUpperCase();
+    final countryCode = _normalize(location.countryCode)?.toLowerCase();
+    final countryName = _countryNameFromCode(countryCode);
 
-    final queries = <String>[];
+    final requests = <Map<String, String>>[];
 
-    if (cityName != null && countryCode != null) {
-      queries.add('$cityName, $countryCode');
-    }
-
-    if (cityName != null) {
-      queries.add(cityName);
-    }
-
-    if (countryCode != null) {
-      queries.add(countryCode);
-    }
-
-    return queries.toSet().toList(growable: false);
-  }
-
-  Future<ContentLocation?> _search({
-    required String query,
-    required ContentLocation seed,
-  }) async {
-    final uri = Uri.parse('$_baseUrl/search').replace(
-      queryParameters: <String, String>{
-        'q': query,
+    Map<String, String> baseParams() {
+      return <String, String>{
         'format': 'jsonv2',
         'limit': '1',
         'addressdetails': '1',
-      },
+        'accept-language': 'it,en',
+      };
+    }
+
+    if (cityName != null && countryCode != null) {
+      final structured = baseParams()
+        ..['city'] = cityName
+        ..['countrycodes'] = countryCode;
+      requests.add(structured);
+
+      final freeFormWithCountryName = baseParams()
+        ..['q'] = countryName != null ? '$cityName, $countryName' : '$cityName, ${countryCode.toUpperCase()}'
+        ..['countrycodes'] = countryCode;
+      requests.add(freeFormWithCountryName);
+
+      final freeFormCityOnlyWithCountryFilter = baseParams()
+        ..['q'] = cityName
+        ..['countrycodes'] = countryCode;
+      requests.add(freeFormCityOnlyWithCountryFilter);
+    }
+
+    if (cityName != null && countryCode == null) {
+      final freeFormCityOnly = baseParams()..['q'] = cityName;
+      requests.add(freeFormCityOnly);
+    }
+
+    if (countryCode != null) {
+      final countrySearch = baseParams()
+        ..['featureType'] = 'country'
+        ..['countrycodes'] = countryCode
+        ..['q'] = countryName ?? countryCode.toUpperCase();
+      requests.add(countrySearch);
+    }
+
+    return _dedupeRequests(requests);
+  }
+
+  List<Map<String, String>> _dedupeRequests(
+    List<Map<String, String>> requests,
+  ) {
+    final seen = <String>{};
+    final output = <Map<String, String>>[];
+
+    for (final request in requests) {
+      final sortedKeys = request.keys.toList()..sort();
+      final signature = sortedKeys
+          .map((key) => '$key=${request[key]}')
+          .join('&');
+
+      if (seen.add(signature)) {
+        output.add(request);
+      }
+    }
+
+    return output;
+  }
+
+  Future<ContentLocation?> _search({
+    required Map<String, String> queryParameters,
+    required ContentLocation seed,
+  }) async {
+    final uri = Uri.parse('$_baseUrl/search').replace(
+      queryParameters: queryParameters,
     );
 
     final response = await _httpClient
@@ -122,12 +169,14 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
       resolvedCountryCode =
           _normalize(address['country_code']?.toString())?.toUpperCase() ??
               seed.countryCode;
+
       resolvedCityName = _firstNonEmpty([
             address['city']?.toString(),
             address['town']?.toString(),
             address['village']?.toString(),
             address['municipality']?.toString(),
             address['county']?.toString(),
+            address['state_district']?.toString(),
           ]) ??
           seed.cityName;
     }
@@ -140,6 +189,44 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
       latitude: lat,
       longitude: lon,
     );
+  }
+
+  String? _countryNameFromCode(String? countryCode) {
+    if (countryCode == null || countryCode.isEmpty) {
+      return null;
+    }
+
+    switch (countryCode.toUpperCase()) {
+      case 'IT':
+        return 'Italy';
+      case 'US':
+        return 'United States';
+      case 'GB':
+      case 'UK':
+        return 'United Kingdom';
+      case 'FR':
+        return 'France';
+      case 'DE':
+        return 'Germany';
+      case 'ES':
+        return 'Spain';
+      case 'PT':
+        return 'Portugal';
+      case 'NL':
+        return 'Netherlands';
+      case 'BE':
+        return 'Belgium';
+      case 'CH':
+        return 'Switzerland';
+      case 'AT':
+        return 'Austria';
+      case 'AU':
+        return 'Australia';
+      case 'CA':
+        return 'Canada';
+      default:
+        return null;
+    }
   }
 
   String? _normalize(String? value) {

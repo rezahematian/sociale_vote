@@ -228,7 +228,7 @@ class AppDI {
   late final VoteRepository _voteRepository =
       VoteRepositoryImpl(Supabase.instance.client);
   late final NewsRepository _newsRepository =
-      NewsRepositoryImpl(_newsAggregator, _newsMapper);
+      NewsRepositoryImpl(_newsAggregator, _newsMapper, _geocodingRepository);
   final PostRepository _postRepository = PostRepositoryImpl();
   final FavoriteRepository _favoriteRepository = FavoriteRepositorySupabase();
   final ReactionRepository _reactionRepository = ReactionRepositoryImpl();
