@@ -15,12 +15,75 @@ class NewsRepositoryImpl implements NewsRepository {
   static const String _cacheTable = 'news_feed_cache';
   static const Duration _cacheTtl = Duration(minutes: 30);
 
-  static const int _providerWarmupBatchSize = 50;
+  static const int _providerWarmupBatchSize = 80;
 
   /// Non geocodifichiamo tutti gli articoli di ogni refresh,
   /// per evitare costi/lentezza eccessivi.
-  static const int _maxArticlesToGeocodePerRefresh = 15;
-  static const int _maxLocationCandidatesPerArticle = 3;
+  static const int _maxArticlesToGeocodePerRefresh = 50;
+  static const int _maxLocationCandidatesPerArticle = 8;
+
+  /// Timeout per singolo articolo: abbastanza alto da non tagliare troppo presto,
+  /// ma non infinito.
+  static const Duration _perArticleGeocodeTimeout = Duration(seconds: 6);
+
+  /// Limite di geocoding in parallelo per non saturare Nominatim.
+  static const int _maxParallelGeocodeJobs = 4;
+
+  static const Map<String, String> _countryAliases = <String, String>{
+    'italy': 'IT',
+    'france': 'FR',
+    'germany': 'DE',
+    'spain': 'ES',
+    'portugal': 'PT',
+    'netherlands': 'NL',
+    'belgium': 'BE',
+    'switzerland': 'CH',
+    'austria': 'AT',
+    'united states': 'US',
+    'us': 'US',
+    'usa': 'US',
+    'u.s.': 'US',
+    'u.s': 'US',
+    'america': 'US',
+    'united kingdom': 'GB',
+    'uk': 'GB',
+    'u.k.': 'GB',
+    'u.k': 'GB',
+    'england': 'GB',
+    'canada': 'CA',
+    'australia': 'AU',
+    'iran': 'IR',
+    'iraq': 'IQ',
+    'israel': 'IL',
+    'palestine': 'PS',
+    'ukraine': 'UA',
+    'russia': 'RU',
+    'china': 'CN',
+    'taiwan': 'TW',
+    'japan': 'JP',
+    'india': 'IN',
+    'pakistan': 'PK',
+    'turkey': 'TR',
+    'türkiye': 'TR',
+    'greece': 'GR',
+    'egypt': 'EG',
+    'libya': 'LY',
+    'syria': 'SY',
+    'lebanon': 'LB',
+    'saudi arabia': 'SA',
+    'qatar': 'QA',
+    'united arab emirates': 'AE',
+    'uae': 'AE',
+    'sudan': 'SD',
+    'ethiopia': 'ET',
+    'somalia': 'SO',
+    'kenya': 'KE',
+    'nigeria': 'NG',
+    'south africa': 'ZA',
+    'brazil': 'BR',
+    'argentina': 'AR',
+    'mexico': 'MX',
+  };
 
   final NewsAggregator _aggregator;
   final NewsMapper _mapper;
@@ -136,8 +199,6 @@ class NewsRepositoryImpl implements NewsRepository {
       return cached;
     }
 
-    // Fallback legacy: può funzionare solo se l'id coincide con quello provider.
-    // Nella pratica il path migliore resta la cache.
     final json = await _aggregator.fetchNewsDetail(id.value);
     final dto = NewsDto.fromJson(json);
 
@@ -179,37 +240,58 @@ class NewsRepositoryImpl implements NewsRepository {
       return const <Map<String, dynamic>>[];
     }
 
-    final output = <Map<String, dynamic>>[];
-    var geocodedArticles = 0;
+    final output = items
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList(growable: false);
 
-    for (final item in items) {
-      final enriched = Map<String, dynamic>.from(item);
+    final pendingJobs = <Future<void>>[];
+    var scheduled = 0;
+
+    Future<void> flushJobs() async {
+      if (pendingJobs.isEmpty) return;
+      await Future.wait(pendingJobs);
+      pendingJobs.clear();
+    }
+
+    for (int i = 0; i < output.length; i++) {
+      final enriched = output[i];
 
       final existingLocation = _readEmbeddedContentLocation(enriched);
-      if (existingLocation != null) {
-        output.add(enriched);
+      if (existingLocation != null &&
+          (existingLocation.hasExactPoint || existingLocation.hasCenter)) {
         continue;
       }
 
-      if (geocodedArticles >= _maxArticlesToGeocodePerRefresh) {
-        output.add(enriched);
+      if (scheduled >= _maxArticlesToGeocodePerRefresh) {
         continue;
       }
 
       final dto = _tryParseDto(enriched);
       if (dto == null) {
-        output.add(enriched);
         continue;
       }
 
-      final detectedLocation = await _detectContentLocationForDto(dto);
-      if (detectedLocation != null) {
-        enriched['_sv_content_location'] = detectedLocation.toJson();
-        geocodedArticles += 1;
-      }
+      scheduled += 1;
 
-      output.add(enriched);
+      pendingJobs.add(() async {
+        try {
+          final detectedLocation = await _detectContentLocationForDto(dto)
+              .timeout(_perArticleGeocodeTimeout);
+
+          if (detectedLocation != null) {
+            enriched['_sv_content_location'] = detectedLocation.toJson();
+          }
+        } catch (_) {
+          // best effort: timeout o singolo errore non devono bloccare tutto
+        }
+      }());
+
+      if (pendingJobs.length >= _maxParallelGeocodeJobs) {
+        await flushJobs();
+      }
     }
+
+    await flushJobs();
 
     return List<Map<String, dynamic>>.unmodifiable(output);
   }
@@ -219,56 +301,201 @@ class NewsRepositoryImpl implements NewsRepository {
 
     for (final candidate in candidates.take(_maxLocationCandidatesPerArticle)) {
       try {
-        final resolved = await _geocodingRepository.geocodeContentLocation(
-          ContentLocation(
-            source: ContentLocationSource.manual,
-            cityName: candidate,
-          ),
+        final seed = ContentLocation(
+          source: ContentLocationSource.manual,
+          countryCode: candidate.countryCode,
+          cityName: candidate.isCountryOnly ? null : candidate.query,
         );
+
+        final resolved = await _geocodingRepository.geocodeContentLocation(seed);
 
         if (resolved != null && (resolved.hasExactPoint || resolved.hasCenter)) {
           return resolved;
         }
       } catch (_) {
-        // best effort: ignoriamo singolo fallimento geocoding
+        // best effort
       }
     }
 
     return null;
   }
 
-  List<String> _extractLocationCandidates(NewsDto dto) {
-    final ordered = <String>[];
+  List<_LocationCandidate> _extractLocationCandidates(NewsDto dto) {
+    final scored = <String, _LocationCandidateAccumulator>{};
+
+    void addCandidate(
+      String query, {
+      String? countryCode,
+      required bool isCountryOnly,
+      required int score,
+    }) {
+      final normalizedQuery = query.trim();
+      if (normalizedQuery.isEmpty && countryCode == null) {
+        return;
+      }
+
+      final key = isCountryOnly && countryCode != null
+          ? 'country:$countryCode'
+          : 'place:${normalizedQuery.toLowerCase()}|${countryCode ?? ''}';
+
+      final existing = scored[key];
+      if (existing == null) {
+        scored[key] = _LocationCandidateAccumulator(
+          query: normalizedQuery,
+          countryCode: countryCode,
+          isCountryOnly: isCountryOnly,
+          score: score,
+        );
+        return;
+      }
+
+      existing.score += score;
+
+      if (!existing.isCountryOnly && countryCode != null) {
+        existing.countryCode ??= countryCode;
+      }
+    }
+
+    void scanText(
+      String? text, {
+      required int phraseScore,
+      required int leadPhraseBonus,
+      required int countryScore,
+      required int maxPhrases,
+    }) {
+      final cleaned = _stripHtml(text);
+      if (cleaned.isEmpty) {
+        return;
+      }
+
+      final countryHits = _extractCountryHits(cleaned);
+      for (final hit in countryHits) {
+        addCandidate(
+          hit.label,
+          countryCode: hit.countryCode,
+          isCountryOnly: true,
+          score: countryScore,
+        );
+      }
+
+      final leadPhrases = _extractLeadLocationPhrases(cleaned);
+      for (final phrase in leadPhrases.take(maxPhrases)) {
+        final countryCode = _countryCodeForAlias(phrase);
+        addCandidate(
+          phrase,
+          countryCode: countryCode,
+          isCountryOnly: countryCode != null,
+          score: phraseScore + leadPhraseBonus,
+        );
+      }
+
+      final properNouns = _extractProperNounPhrases(cleaned);
+      for (final phrase in properNouns.take(maxPhrases)) {
+        final countryCode = _countryCodeForAlias(phrase);
+        addCandidate(
+          phrase,
+          countryCode: countryCode,
+          isCountryOnly: countryCode != null,
+          score: phraseScore,
+        );
+      }
+    }
+
+    scanText(
+      dto.title,
+      phraseScore: 100,
+      leadPhraseBonus: 25,
+      countryScore: 110,
+      maxPhrases: 8,
+    );
+    scanText(
+      dto.description,
+      phraseScore: 55,
+      leadPhraseBonus: 20,
+      countryScore: 70,
+      maxPhrases: 5,
+    );
+    scanText(
+      dto.content,
+      phraseScore: 25,
+      leadPhraseBonus: 10,
+      countryScore: 35,
+      maxPhrases: 4,
+    );
+
+    final blockedSources = <String>{};
+    final normalizedSourceName = _normalizePhrase(dto.sourceName);
+    final normalizedSourceId = _normalizePhrase(dto.sourceId);
+
+    if (normalizedSourceName != null) {
+      blockedSources.add(normalizedSourceName);
+    }
+    if (normalizedSourceId != null) {
+      blockedSources.add(normalizedSourceId);
+    }
+
+    final candidates = scored.values
+        .map(
+          (item) => _LocationCandidate(
+            query: item.query,
+            countryCode: item.countryCode,
+            isCountryOnly: item.isCountryOnly,
+            score: item.score,
+          ),
+        )
+        .where(
+          (candidate) =>
+              !blockedSources.contains(_normalizePhrase(candidate.query)),
+        )
+        .toList();
+
+    candidates.sort((a, b) {
+      final byScore = b.score.compareTo(a.score);
+      if (byScore != 0) return byScore;
+
+      if (a.isCountryOnly != b.isCountryOnly) {
+        return a.isCountryOnly ? 1 : -1;
+      }
+
+      return a.query.length.compareTo(b.query.length);
+    });
+
+    return candidates;
+  }
+
+  List<String> _extractLeadLocationPhrases(String text) {
+    final cleaned = text
+        .replaceAll(RegExp(r'<[^>]*>'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    if (cleaned.isEmpty) {
+      return const <String>[];
+    }
+
+    final regex = RegExp(
+      r"\b(?:in|at|from|near|inside|outside|around|across)\s+((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})\b",
+    );
+
+    final output = <String>[];
     final seen = <String>{};
 
-    void addCandidate(String value) {
-      final normalized = value.trim();
-      if (normalized.isEmpty) {
-        return;
+    for (final match in regex.allMatches(cleaned)) {
+      final phrase = match.group(1);
+      if (phrase == null) continue;
+
+      final candidate = phrase.trim();
+      if (!_looksLikeLocationPhrase(candidate)) {
+        continue;
       }
 
-      final signature = normalized.toLowerCase();
+      final signature = candidate.toLowerCase();
       if (seen.add(signature)) {
-        ordered.add(normalized);
+        output.add(candidate);
       }
     }
 
-    void addFromText(String? text, {required int maxItems}) {
-      if (text == null || text.trim().isEmpty) {
-        return;
-      }
-
-      final phrases = _extractProperNounPhrases(text);
-      for (final phrase in phrases.take(maxItems)) {
-        addCandidate(phrase);
-      }
-    }
-
-    addFromText(dto.title, maxItems: 6);
-    addFromText(dto.description, maxItems: 4);
-    addFromText(_stripHtml(dto.content), maxItems: 3);
-
-    return ordered;
+    return output;
   }
 
   List<String> _extractProperNounPhrases(String text) {
@@ -282,7 +509,7 @@ class NewsRepositoryImpl implements NewsRepository {
     }
 
     final regex = RegExp(
-      r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})\b',
+      r"\b((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})\b",
     );
 
     final matches = regex.allMatches(cleaned);
@@ -307,8 +534,42 @@ class NewsRepositoryImpl implements NewsRepository {
     return output;
   }
 
+  List<_CountryHit> _extractCountryHits(String text) {
+    final normalizedText = text.toLowerCase();
+    final output = <_CountryHit>[];
+    final seen = <String>{};
+
+    final aliases = _countryAliases.entries.toList()
+      ..sort((a, b) => b.key.length.compareTo(a.key.length));
+
+    for (final entry in aliases) {
+      final pattern = RegExp(
+        '(^|[^a-z])${RegExp.escape(entry.key)}([^a-z]|\$)',
+      );
+
+      if (!pattern.hasMatch(normalizedText)) {
+        continue;
+      }
+
+      if (seen.add(entry.value)) {
+        output.add(
+          _CountryHit(
+            label: entry.key,
+            countryCode: entry.value,
+          ),
+        );
+      }
+    }
+
+    return output;
+  }
+
+  String? _countryCodeForAlias(String phrase) {
+    return _countryAliases[phrase.trim().toLowerCase()];
+  }
+
   bool _looksLikeLocationPhrase(String phrase) {
-    if (phrase.length < 3 || phrase.length > 40) {
+    if (phrase.length < 2 || phrase.length > 50) {
       return false;
     }
 
@@ -364,10 +625,51 @@ class NewsRepositoryImpl implements NewsRepository {
       'That',
       'These',
       'Those',
+      'Reuters',
+      'Guardian',
+      'Bloomberg',
+      'CNN',
+      'BBC',
+      'Google',
+      'Apple',
+      'Microsoft',
+      'Meta',
+      'TikTok',
+    };
+
+    const blockedExactPhrases = <String>{
+      'Associated Press',
+      'Al Jazeera',
+      'New York Times',
+      'Washington Post',
+      'Wall Street Journal',
+      'Financial Times',
+      'Fox News',
+      'BBC News',
+    };
+
+    const blockedSuffixes = <String>{
+      'Times',
+      'News',
+      'Post',
+      'Journal',
+      'Herald',
+      'Media',
+      'TV',
+      'Today',
+      'Online',
     };
 
     final parts = phrase.split(RegExp(r'\s+'));
     if (parts.length == 1 && blockedSingleWords.contains(parts.first)) {
+      return false;
+    }
+
+    if (blockedExactPhrases.contains(phrase)) {
+      return false;
+    }
+
+    if (parts.length >= 2 && blockedSuffixes.contains(parts.last)) {
       return false;
     }
 
@@ -599,7 +901,7 @@ class NewsRepositoryImpl implements NewsRepository {
     required String? topic,
     required String? language,
   }) {
-    final candidates = <_NewsFeedCandidate>[
+    return <_NewsFeedCandidate>[
       _NewsFeedCandidate(
         countryCode: countryCode,
         cityId: cityId,
@@ -607,28 +909,6 @@ class NewsRepositoryImpl implements NewsRepository {
         language: language,
       ),
     ];
-
-    if (cityId != null) {
-      candidates.add(
-        _NewsFeedCandidate(
-          countryCode: countryCode,
-          cityId: null,
-          topic: topic,
-          language: language,
-        ),
-      );
-
-      candidates.add(
-        _NewsFeedCandidate(
-          countryCode: null,
-          cityId: null,
-          topic: topic,
-          language: language,
-        ),
-      );
-    }
-
-    return candidates;
   }
 
   int _resolveProviderFetchLimit(int? limit, int? offset) {
@@ -646,6 +926,13 @@ class NewsRepositoryImpl implements NewsRepository {
   String? _normalize(String? value) {
     if (value == null) return null;
     final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+    return trimmed.toLowerCase();
+  }
+
+  String? _normalizePhrase(String? value) {
+    if (value == null) return null;
+    final trimmed = value.trim().toLowerCase();
     if (trimmed.isEmpty) return null;
     return trimmed;
   }
@@ -708,4 +995,42 @@ class _CachedNewsFeed {
     final now = DateTime.now().toUtc();
     return now.difference(refreshedAt) < NewsRepositoryImpl._cacheTtl;
   }
+}
+
+class _LocationCandidate {
+  final String query;
+  final String? countryCode;
+  final bool isCountryOnly;
+  final int score;
+
+  const _LocationCandidate({
+    required this.query,
+    required this.countryCode,
+    required this.isCountryOnly,
+    required this.score,
+  });
+}
+
+class _LocationCandidateAccumulator {
+  final String query;
+  String? countryCode;
+  final bool isCountryOnly;
+  int score;
+
+  _LocationCandidateAccumulator({
+    required this.query,
+    required this.countryCode,
+    required this.isCountryOnly,
+    required this.score,
+  });
+}
+
+class _CountryHit {
+  final String label;
+  final String countryCode;
+
+  const _CountryHit({
+    required this.label,
+    required this.countryCode,
+  });
 }

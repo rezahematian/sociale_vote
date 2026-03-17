@@ -56,8 +56,14 @@ class PostRepositoryImpl implements PostRepository {
     final requestedCountry = _normalize(countryCode);
     final requestedCity = _normalize(cityId);
 
-    final postCountry = _normalize(post.countryCode);
-    final postCity = _normalize(post.cityId);
+    final location = post.contentLocation;
+
+    final postCountry = _normalize(
+      post.countryCode ?? location?.countryCode,
+    );
+    final postCity = _normalize(
+      post.cityId ?? location?.cityId,
+    );
 
     if (requestedCountry == null && requestedCity == null) {
       return true;
@@ -78,7 +84,7 @@ class PostRepositoryImpl implements PostRepository {
     if (value == null) return null;
     final trimmed = value.trim();
     if (trimmed.isEmpty) return null;
-    return trimmed;
+    return trimmed.toLowerCase();
   }
 
   @override
@@ -141,8 +147,8 @@ class PostRepositoryImpl implements PostRepository {
       'author_id': authorId,
       'title': post.title,
       'content': post.content,
-      'country_code': post.countryCode,
-      'city_id': post.cityId,
+      'country_code': post.countryCode ?? post.contentLocation?.countryCode,
+      'city_id': post.cityId ?? post.contentLocation?.cityId,
       'content_location': post.contentLocation?.toJson(),
     };
 
@@ -183,9 +189,17 @@ class PostRepositoryImpl implements PostRepository {
     return normalizedRows.map((row) {
       final authorId = row['author_id'] as String?;
       final createdAtRaw = row['created_at'];
-      final countryCode = row['country_code'] as String?;
-      final cityId = row['city_id'] as String?;
-      final contentLocation = _mapContentLocation(row, countryCode, cityId);
+      final rowCountryCode = row['country_code'] as String?;
+      final rowCityId = row['city_id'] as String?;
+      final contentLocation = _mapContentLocation(
+        row,
+        rowCountryCode,
+        rowCityId,
+      );
+
+      final effectiveCountryCode =
+          rowCountryCode ?? contentLocation?.countryCode;
+      final effectiveCityId = rowCityId ?? contentLocation?.cityId;
 
       return Post(
         id: EntityId(row['id'] as String),
@@ -194,8 +208,8 @@ class PostRepositoryImpl implements PostRepository {
         content: (row['content'] as String?) ?? '',
         createdAt: _parseDateTime(createdAtRaw),
         commentCount: 0,
-        countryCode: countryCode,
-        cityId: cityId,
+        countryCode: effectiveCountryCode,
+        cityId: effectiveCityId,
         contentLocation: contentLocation,
         createdByUserId: authorId,
       );

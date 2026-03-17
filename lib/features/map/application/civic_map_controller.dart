@@ -131,6 +131,10 @@ class CivicMapController extends ChangeNotifier {
   String? _selectedItemId;
   String? get selectedItemId => _selectedItemId;
 
+  int _loadRequestId = 0;
+  Future<void>? _activeLoadFuture;
+  String? _activeLoadScopeKey;
+
   CivicMapItem? get selectedItem {
     if (_selectedItemId == null) return null;
 
@@ -157,11 +161,97 @@ class CivicMapController extends ChangeNotifier {
   bool get hasData => _status == CivicMapStatus.loaded;
   bool get hasSelection => selectedItem != null;
 
-  Future<void> loadForScope(GeoScope scope) async {
+  Future<void> syncScope(
+    GeoScope? scope, {
+    bool forceReload = false,
+    bool clearSelection = true,
+  }) async {
+    if (scope == null) return;
+
+    final sameScope = _isSameScope(_currentScope, scope);
+    final shouldSkip =
+        !forceReload &&
+        sameScope &&
+        _status != CivicMapStatus.initial &&
+        !_shouldRetryCurrentScope();
+
+    if (shouldSkip) {
+      return;
+    }
+
+    await _queueLoadForScope(
+      scope,
+      clearSelection: clearSelection && !sameScope,
+    );
+  }
+
+  Future<void> loadForScope(
+    GeoScope scope, {
+    bool clearSelection = true,
+  }) {
+    return _queueLoadForScope(
+      scope,
+      clearSelection: clearSelection,
+    );
+  }
+
+  Future<void> refresh() async {
+    final scope = _currentScope;
+    if (scope == null) return;
+
+    await _queueLoadForScope(
+      scope,
+      clearSelection: false,
+    );
+  }
+
+  Future<void> _queueLoadForScope(
+    GeoScope scope, {
+    required bool clearSelection,
+  }) {
+    final scopeKey = _scopeKey(scope);
+
+    if (_activeLoadFuture != null && _activeLoadScopeKey == scopeKey) {
+      return _activeLoadFuture!;
+    }
+
+    final future = _performLoadForScope(
+      scope,
+      clearSelection: clearSelection,
+    );
+
+    _activeLoadFuture = future;
+    _activeLoadScopeKey = scopeKey;
+
+    future.whenComplete(() {
+      if (identical(_activeLoadFuture, future)) {
+        _activeLoadFuture = null;
+        _activeLoadScopeKey = null;
+      }
+    });
+
+    return future;
+  }
+
+  Future<void> _performLoadForScope(
+    GeoScope scope, {
+    required bool clearSelection,
+  }) async {
+    final requestId = ++_loadRequestId;
+    final scopeChanged = !_isSameScope(_currentScope, scope);
+
     _currentScope = scope;
     _setStatus(CivicMapStatus.loading);
     _errorMessage = null;
-    _selectedItemId = null;
+
+    if (clearSelection || scopeChanged) {
+      _selectedItemId = null;
+    }
+
+    if (scopeChanged) {
+      _allItems.clear();
+    }
+
     notifyListeners();
 
     final results = await Future.wait<_CivicMapLoadResult>([
@@ -182,6 +272,10 @@ class CivicMapController extends ChangeNotifier {
       ),
     ]);
 
+    if (!_isLatestRequest(requestId, scope)) {
+      return;
+    }
+
     final merged = <CivicMapItem>[];
     final errors = <String>[];
 
@@ -193,6 +287,10 @@ class CivicMapController extends ChangeNotifier {
     }
 
     final normalized = _normalizeAndSpreadItems(merged, scope);
+
+    if (!_isLatestRequest(requestId, scope)) {
+      return;
+    }
 
     _allItems
       ..clear()
@@ -215,12 +313,6 @@ class CivicMapController extends ChangeNotifier {
     _setStatus(CivicMapStatus.empty);
     _errorMessage = null;
     notifyListeners();
-  }
-
-  Future<void> refresh() async {
-    final scope = _currentScope;
-    if (scope == null) return;
-    await loadForScope(scope);
   }
 
   void setVisibleTypes(Set<CivicMapItemType> types) {
@@ -465,6 +557,60 @@ class CivicMapController extends ChangeNotifier {
     final lng = (baseLng + math.cos(angle) * radiusDeg).clamp(-180.0, 180.0);
 
     return (lat.toDouble(), lng.toDouble());
+  }
+
+  bool _shouldRetryCurrentScope() {
+    return _status == CivicMapStatus.error || _status == CivicMapStatus.empty;
+  }
+
+  bool _isLatestRequest(int requestId, GeoScope scope) {
+    return requestId == _loadRequestId && _isSameScope(_currentScope, scope);
+  }
+
+  bool _isSameScope(GeoScope? a, GeoScope? b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null) return false;
+    if (a == b) return true;
+
+    return _scopeKey(a) == _scopeKey(b);
+  }
+
+  String _scopeKey(GeoScope scope) {
+    final dynamic dynamicScope = scope;
+
+    Object? readSafely(Object? Function() reader) {
+      try {
+        return reader();
+      } catch (_) {
+        return null;
+      }
+    }
+
+    String normalizeText(Object? value) {
+      return (value ?? '').toString().trim().toLowerCase();
+    }
+
+    String normalizeNum(Object? value) {
+      if (value is num) {
+        return value.toStringAsFixed(6);
+      }
+      return '';
+    }
+
+    return <String>[
+      normalizeText(readSafely(() => dynamicScope.level) ?? scope.level),
+      normalizeText(readSafely(() => dynamicScope.id)),
+      normalizeText(readSafely(() => dynamicScope.code)),
+      normalizeText(readSafely(() => dynamicScope.slug)),
+      normalizeText(readSafely(() => dynamicScope.name)),
+      normalizeText(readSafely(() => dynamicScope.countryCode)),
+      normalizeText(readSafely(() => dynamicScope.countryName)),
+      normalizeText(readSafely(() => dynamicScope.cityId)),
+      normalizeText(readSafely(() => dynamicScope.cityName)),
+      normalizeNum(readSafely(() => dynamicScope.centerLat) ?? scope.centerLat),
+      normalizeNum(readSafely(() => dynamicScope.centerLng) ?? scope.centerLng),
+      normalizeNum(readSafely(() => dynamicScope.radiusKm)),
+    ].join('|');
   }
 
   bool _isFinite(double? value) {

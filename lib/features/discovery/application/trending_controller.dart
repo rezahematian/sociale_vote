@@ -29,15 +29,19 @@ class TrendingController extends ChangeNotifier {
   final List<Post> _posts = [];
   bool _isLoading = false;
   bool _hasError = false;
+  bool _isDisposed = false;
+  int _requestId = 0;
 
   List<Post> get posts => List.unmodifiable(_posts);
   bool get isLoading => _isLoading;
   bool get hasError => _hasError;
 
   Future<void> loadTrending() async {
+    final requestId = ++_requestId;
+
     _isLoading = true;
     _hasError = false;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final scope = _geoScopeController.scope;
@@ -47,14 +51,25 @@ class TrendingController extends ChangeNotifier {
         currentScope: scope,
       );
 
+      if (!_isRequestStillValid(requestId)) {
+        return;
+      }
+
       _posts
         ..clear()
         ..addAll(result);
     } catch (_) {
+      if (!_isRequestStillValid(requestId)) {
+        return;
+      }
       _hasError = true;
     } finally {
+      if (!_isRequestStillValid(requestId)) {
+        return;
+      }
+
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -62,8 +77,18 @@ class TrendingController extends ChangeNotifier {
     loadTrending();
   }
 
+  bool _isRequestStillValid(int requestId) {
+    return !_isDisposed && requestId == _requestId;
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) return;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
+    _isDisposed = true;
     _geoScopeController.removeListener(_onScopeChanged);
     super.dispose();
   }

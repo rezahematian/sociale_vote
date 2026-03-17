@@ -54,7 +54,7 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
   }
 
   List<Map<String, String>> _buildRequests(ContentLocation location) {
-    final cityName = _normalize(location.cityName);
+    final placeName = _normalize(location.cityName);
     final countryCode = _normalize(location.countryCode)?.toLowerCase();
     final countryName = _countryNameFromCode(countryCode);
 
@@ -63,32 +63,34 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
     Map<String, String> baseParams() {
       return <String, String>{
         'format': 'jsonv2',
-        'limit': '1',
+        'limit': '3',
         'addressdetails': '1',
         'accept-language': 'it,en',
       };
     }
 
-    if (cityName != null && countryCode != null) {
+    if (placeName != null && countryCode != null) {
       final structured = baseParams()
-        ..['city'] = cityName
+        ..['city'] = placeName
         ..['countrycodes'] = countryCode;
       requests.add(structured);
 
       final freeFormWithCountryName = baseParams()
-        ..['q'] = countryName != null ? '$cityName, $countryName' : '$cityName, ${countryCode.toUpperCase()}'
+        ..['q'] = countryName != null
+            ? '$placeName, $countryName'
+            : '$placeName, ${countryCode.toUpperCase()}'
         ..['countrycodes'] = countryCode;
       requests.add(freeFormWithCountryName);
 
-      final freeFormCityOnlyWithCountryFilter = baseParams()
-        ..['q'] = cityName
+      final freeFormPlaceOnlyWithCountryFilter = baseParams()
+        ..['q'] = placeName
         ..['countrycodes'] = countryCode;
-      requests.add(freeFormCityOnlyWithCountryFilter);
+      requests.add(freeFormPlaceOnlyWithCountryFilter);
     }
 
-    if (cityName != null && countryCode == null) {
-      final freeFormCityOnly = baseParams()..['q'] = cityName;
-      requests.add(freeFormCityOnly);
+    if (placeName != null && countryCode == null) {
+      final freeFormPlaceOnly = baseParams()..['q'] = placeName;
+      requests.add(freeFormPlaceOnly);
     }
 
     if (countryCode != null) {
@@ -149,37 +151,36 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
       return null;
     }
 
-    final first = decoded.first;
-    if (first is! Map<String, dynamic>) {
+    final selected = _selectBestResult(
+      decoded: decoded,
+      seed: seed,
+    );
+    if (selected == null) {
       return null;
     }
 
-    final lat = _toDouble(first['lat']);
-    final lon = _toDouble(first['lon']);
+    final lat = _toDouble(selected['lat']);
+    final lon = _toDouble(selected['lon']);
 
     if (!_isValidLatLng(lat, lon)) {
       return null;
     }
 
-    final address = first['address'];
-    String? resolvedCountryCode = seed.countryCode;
-    String? resolvedCityName = seed.cityName;
+    final address = _readAddress(selected);
 
-    if (address is Map<String, dynamic>) {
-      resolvedCountryCode =
-          _normalize(address['country_code']?.toString())?.toUpperCase() ??
-              seed.countryCode;
+    final resolvedCountryCode =
+        _normalize(address?['country_code']?.toString())?.toUpperCase() ??
+            seed.countryCode;
 
-      resolvedCityName = _firstNonEmpty([
-            address['city']?.toString(),
-            address['town']?.toString(),
-            address['village']?.toString(),
-            address['municipality']?.toString(),
-            address['county']?.toString(),
-            address['state_district']?.toString(),
-          ]) ??
-          seed.cityName;
-    }
+    final resolvedCityName = _firstNonEmpty([
+          address?['city']?.toString(),
+          address?['town']?.toString(),
+          address?['village']?.toString(),
+          address?['municipality']?.toString(),
+          address?['county']?.toString(),
+          address?['state_district']?.toString(),
+        ]) ??
+        seed.cityName;
 
     return seed.copyWith(
       countryCode: resolvedCountryCode,
@@ -189,6 +190,114 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
       latitude: lat,
       longitude: lon,
     );
+  }
+
+  Map<String, dynamic>? _selectBestResult({
+    required List<dynamic> decoded,
+    required ContentLocation seed,
+  }) {
+    final candidates = decoded
+        .whereType<Map>()
+        .map(
+          (row) => row.map(
+            (key, value) => MapEntry(key.toString(), value),
+          ),
+        )
+        .toList(growable: false);
+
+    if (candidates.isEmpty) {
+      return null;
+    }
+
+    Map<String, dynamic>? best;
+    int? bestScore;
+
+    for (final candidate in candidates) {
+      final score = _scoreResult(
+        candidate: candidate,
+        seed: seed,
+      );
+
+      if (best == null || score > (bestScore ?? -999999)) {
+        best = candidate;
+        bestScore = score;
+      }
+    }
+
+    if (best == null) {
+      return null;
+    }
+
+    if ((bestScore ?? 0) <= 0) {
+      return null;
+    }
+
+    return best;
+  }
+
+  int _scoreResult({
+    required Map<String, dynamic> candidate,
+    required ContentLocation seed,
+  }) {
+    var score = 0;
+
+    final seedCountryCode = _normalize(seed.countryCode)?.toLowerCase();
+    final seedPlaceName = _normalize(seed.cityName)?.toLowerCase();
+
+    final address = _readAddress(candidate);
+    final candidateCountryCode =
+        _normalize(address?['country_code']?.toString())?.toLowerCase();
+    final candidateLocality = _extractLocality(address)?.toLowerCase();
+    final displayName = _normalize(candidate['display_name']?.toString())
+        ?.toLowerCase();
+
+    if (seedCountryCode != null) {
+      if (candidateCountryCode == seedCountryCode) {
+        score += 120;
+      } else {
+        score -= 150;
+      }
+    }
+
+    if (seedPlaceName != null) {
+      if (candidateLocality == seedPlaceName) {
+        score += 100;
+      } else if (displayName != null && displayName.contains(seedPlaceName)) {
+        score += 40;
+      } else {
+        score -= 20;
+      }
+    }
+
+    return score;
+  }
+
+  Map<String, dynamic>? _readAddress(Map<String, dynamic> row) {
+    final address = row['address'];
+    if (address is Map<String, dynamic>) {
+      return address;
+    }
+    if (address is Map) {
+      return address.map(
+        (key, value) => MapEntry(key.toString(), value),
+      );
+    }
+    return null;
+  }
+
+  String? _extractLocality(Map<String, dynamic>? address) {
+    if (address == null) {
+      return null;
+    }
+
+    return _firstNonEmpty([
+      address['city']?.toString(),
+      address['town']?.toString(),
+      address['village']?.toString(),
+      address['municipality']?.toString(),
+      address['county']?.toString(),
+      address['state_district']?.toString(),
+    ]);
   }
 
   String? _countryNameFromCode(String? countryCode) {
@@ -224,6 +333,42 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
         return 'Australia';
       case 'CA':
         return 'Canada';
+      case 'IR':
+        return 'Iran';
+      case 'IQ':
+        return 'Iraq';
+      case 'IL':
+        return 'Israel';
+      case 'PS':
+        return 'Palestine';
+      case 'UA':
+        return 'Ukraine';
+      case 'RU':
+        return 'Russia';
+      case 'CN':
+        return 'China';
+      case 'JP':
+        return 'Japan';
+      case 'IN':
+        return 'India';
+      case 'PK':
+        return 'Pakistan';
+      case 'TR':
+        return 'Turkey';
+      case 'EG':
+        return 'Egypt';
+      case 'SA':
+        return 'Saudi Arabia';
+      case 'AE':
+        return 'United Arab Emirates';
+      case 'BR':
+        return 'Brazil';
+      case 'MX':
+        return 'Mexico';
+      case 'AR':
+        return 'Argentina';
+      case 'ZA':
+        return 'South Africa';
       default:
         return null;
     }

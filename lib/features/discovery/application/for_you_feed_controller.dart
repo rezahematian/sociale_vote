@@ -11,15 +11,6 @@ import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart'
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 
-/// Controller applicativo per il feed "For You".
-///
-/// Responsabilità:
-/// - leggere lo scope corrente da [GeoScopeController]
-/// - chiamare il use case [GetForYouFeed]
-/// - esporre lo stato (lista post + loading + eventuale errore)
-/// - gestire reaction summary per i post
-/// - gestire conteggio commenti per i post
-/// - gestire toggle reazioni 🔥 / ❄
 class ForYouFeedController extends ChangeNotifier {
   final GetForYouFeed _getForYouFeed;
   final GeoScopeController _geoScopeController;
@@ -39,30 +30,25 @@ class ForYouFeedController extends ChangeNotifier {
         _getReactionSummary = getReactionSummary,
         _getCommentCountForTarget = getCommentCountForTarget;
 
-  /// Lista dei post nel feed "For You".
   List<Post> _posts = [];
   List<Post> get posts => List.unmodifiable(_posts);
 
-  /// Stato di caricamento.
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  /// Eventuale messaggio di errore (solo per debug/logging UI).
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  /// Comodo per la UI: true se c'è un errore significativo.
   bool get hasError => _errorMessage != null && _errorMessage!.isNotEmpty;
 
-  /// Reaction summary per postId.
   final Map<String, ReactionSummary> _reactionSummaries =
       <String, ReactionSummary>{};
 
-  /// Comment count per postId.
   final Map<String, int> _commentCounts = <String, int>{};
 
-  /// Ultimo userId usato per caricare i ReactionSummary.
   String? _lastKnownUserId;
+  bool _isDisposed = false;
+  int _requestId = 0;
 
   ReactionSummary? summaryForPost(Post post) {
     return _reactionSummaries[_postId(post)];
@@ -95,20 +81,16 @@ class ForYouFeedController extends ChangeNotifier {
     return _posts.any((item) => item.id.value == postId);
   }
 
-  /// Carica il feed "For You" per l'utente corrente.
-  ///
-  /// - [userId]: può essere null (guest)
-  /// - usa sempre lo [GeoScope] corrente letto dal [GeoScopeController]
-  /// - [limit]: massimo numero di post da restituire
   Future<void> load({
     required String? userId,
     int limit = 10,
   }) async {
+    final int requestId = ++_requestId;
     final GeoScope scope = _geoScopeController.scope;
 
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     _lastKnownUserId = userId ?? _lastKnownUserId;
     _reactionSummaries.clear();
@@ -121,28 +103,49 @@ class ForYouFeedController extends ChangeNotifier {
         limit: limit,
       );
 
+      if (!_isRequestStillValid(requestId)) {
+        return;
+      }
+
       _posts = result;
 
       await _loadReactionSummariesForPosts(
         result,
         userId: _lastKnownUserId,
+        requestId: requestId,
       );
 
-      await _loadCommentCountsForPosts(result);
-    } catch (e, _) {
+      if (!_isRequestStillValid(requestId)) {
+        return;
+      }
+
+      await _loadCommentCountsForPosts(
+        result,
+        requestId: requestId,
+      );
+    } catch (e) {
+      if (!_isRequestStillValid(requestId)) {
+        return;
+      }
+
       _errorMessage = e.toString();
       _posts = [];
       _reactionSummaries.clear();
       _commentCounts.clear();
     } finally {
+      if (!_isRequestStillValid(requestId)) {
+        return;
+      }
+
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
   Future<void> _loadReactionSummariesForPosts(
     List<Post> posts, {
-    String? userId,
+    required String? userId,
+    required int requestId,
   }) async {
     if (posts.isEmpty) {
       return;
@@ -155,18 +158,30 @@ class ForYouFeedController extends ChangeNotifier {
       userId: userId,
     );
 
+    if (!_isRequestStillValid(requestId)) {
+      return;
+    }
+
     for (final summary in summaries) {
       _reactionSummaries[summary.target.id] = summary;
     }
   }
 
-  Future<void> _loadCommentCountsForPosts(List<Post> posts) async {
+  Future<void> _loadCommentCountsForPosts(
+    List<Post> posts, {
+    required int requestId,
+  }) async {
     if (posts.isEmpty) {
       return;
     }
 
     for (final post in posts) {
       final count = await _getCommentCountForTarget(_targetForPost(post));
+
+      if (!_isRequestStillValid(requestId)) {
+        return;
+      }
+
       _commentCounts[_postId(post)] = count;
     }
   }
@@ -178,11 +193,11 @@ class ForYouFeedController extends ChangeNotifier {
 
     try {
       final count = await _getCommentCountForTarget(_targetForPost(post));
+      if (_isDisposed || !_containsPost(post)) return;
+
       _commentCounts[_postId(post)] = count;
-      notifyListeners();
-    } catch (_) {
-      // Refresh puntuale: manteniamo il valore corrente senza rompere il feed.
-    }
+      _safeNotifyListeners();
+    } catch (_) {}
   }
 
   Future<void> refreshReactionSummaryForPost(Post post) async {
@@ -196,13 +211,13 @@ class ForYouFeedController extends ChangeNotifier {
         userId: _lastKnownUserId,
       );
 
+      if (_isDisposed || !_containsPost(post)) return;
+
       if (summaries.isNotEmpty) {
         _reactionSummaries[_postId(post)] = summaries.first;
-        notifyListeners();
+        _safeNotifyListeners();
       }
-    } catch (_) {
-      // Refresh puntuale: manteniamo lo stato corrente senza errori globali.
-    }
+    } catch (_) {}
   }
 
   Future<void> refreshEngagementForPost(Post post) async {
@@ -219,6 +234,8 @@ class ForYouFeedController extends ChangeNotifier {
         _getCommentCountForTarget(_targetForPost(post)),
       ]);
 
+      if (_isDisposed || !_containsPost(post)) return;
+
       final summaries = results[0] as List<ReactionSummary>;
       final commentCount = results[1] as int;
 
@@ -227,18 +244,15 @@ class ForYouFeedController extends ChangeNotifier {
       }
       _commentCounts[_postId(post)] = commentCount;
 
-      notifyListeners();
-    } catch (_) {
-      // Nessun errore globale sul feed per refresh locale fallito.
-    }
+      _safeNotifyListeners();
+    } catch (_) {}
   }
 
   Future<void> toggleFireForPost({
     required String userId,
     required Post post,
   }) async {
-    assert(userId.isNotEmpty,
-        'toggleFireForPost richiede userId valido.');
+    assert(userId.isNotEmpty, 'toggleFireForPost richiede userId valido.');
 
     final target = _targetForPost(post);
 
@@ -248,17 +262,18 @@ class ForYouFeedController extends ChangeNotifier {
       type: ReactionType.like,
     );
 
+    if (_isDisposed || !_containsPost(post)) return;
+
     _reactionSummaries[_postId(post)] = summary;
     _lastKnownUserId = userId;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> toggleIceForPost({
     required String userId,
     required Post post,
   }) async {
-    assert(userId.isNotEmpty,
-        'toggleIceForPost richiede userId valido.');
+    assert(userId.isNotEmpty, 'toggleIceForPost richiede userId valido.');
 
     final target = _targetForPost(post);
 
@@ -268,18 +283,34 @@ class ForYouFeedController extends ChangeNotifier {
       type: ReactionType.dislike,
     );
 
+    if (_isDisposed || !_containsPost(post)) return;
+
     _reactionSummaries[_postId(post)] = summary;
     _lastKnownUserId = userId;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
-  /// Svuota lo stato corrente (utile in caso di logout o reset esplicito).
   void clear() {
     _posts = [];
     _isLoading = false;
     _errorMessage = null;
     _reactionSummaries.clear();
     _commentCounts.clear();
+    _safeNotifyListeners();
+  }
+
+  bool _isRequestStillValid(int requestId) {
+    return !_isDisposed && requestId == _requestId;
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) return;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 }

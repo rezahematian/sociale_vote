@@ -609,8 +609,119 @@ class AppDI {
     ]);
   }
 
+  Future<List<Poll>> _loadPollsForMapScope(GeoScope scope) async {
+    final dynamic useCase = getPolls;
+
+    if (_isWorldScope(scope)) {
+      return _tryLoadList<Poll>([
+        () => useCase(),
+        () => useCase(limit: 20),
+        () => useCase(limit: 20, offset: 0),
+      ]);
+    }
+
+    if (!_hasStrictScopeParams(scope)) {
+      return <Poll>[];
+    }
+
+    final countryCode = _readScopeCountryCode(scope);
+    final cityId = _readScopeCityId(scope);
+
+    return _tryLoadListOrEmpty<Poll>([
+      () => useCase(countryCode: countryCode, cityId: cityId),
+      () => useCase(countryCode: countryCode, cityId: cityId, limit: 20),
+      () => useCase(
+            countryCode: countryCode,
+            cityId: cityId,
+            limit: 20,
+            offset: 0,
+          ),
+    ]);
+  }
+
+  Future<List<NewsItem>> _loadNewsForMapScope(GeoScope scope) async {
+    final dynamic useCase = getNewsFeed;
+
+    if (_isWorldScope(scope)) {
+      return _tryLoadList<NewsItem>([
+        () => useCase(),
+        () => useCase(limit: 80),
+        () => useCase(limit: 80, offset: 0),
+      ]);
+    }
+
+    if (!_hasStrictScopeParams(scope)) {
+      return <NewsItem>[];
+    }
+
+    final countryCode = _readScopeCountryCode(scope);
+    final cityId = _readScopeCityId(scope);
+
+    return _tryLoadListOrEmpty<NewsItem>([
+      () => useCase(countryCode: countryCode, cityId: cityId),
+      () => useCase(countryCode: countryCode, cityId: cityId, limit: 80),
+      () => useCase(
+            countryCode: countryCode,
+            cityId: cityId,
+            limit: 80,
+            offset: 0,
+          ),
+    ]);
+  }
+
+  Future<List<Post>> _loadPostsForMapScope(GeoScope scope) async {
+    final dynamic useCase = getFeed;
+
+    if (_isWorldScope(scope)) {
+      return _tryLoadList<Post>([
+        () => useCase(),
+        () => useCase(limit: 80),
+        () => useCase(limit: 80, offset: 0),
+      ]);
+    }
+
+    if (!_hasStrictScopeParams(scope)) {
+      return <Post>[];
+    }
+
+    final countryCode = _readScopeCountryCode(scope);
+    final cityId = _readScopeCityId(scope);
+
+    return _tryLoadListOrEmpty<Post>([
+      () => useCase(countryCode: countryCode, cityId: cityId),
+      () => useCase(countryCode: countryCode, cityId: cityId, limit: 20),
+      () => useCase(
+            countryCode: countryCode,
+            cityId: cityId,
+            limit: 80,
+            offset: 0,
+          ),
+    ]);
+  }
+
+  bool _isWorldScope(GeoScope? scope) {
+    return scope == null || scope.level == GeoScopeLevel.world;
+  }
+
+  bool _hasStrictScopeParams(GeoScope scope) {
+    final countryCode = _readScopeCountryCode(scope)?.trim();
+    final cityId = _readScopeCityId(scope)?.trim();
+
+    switch (scope.level) {
+      case GeoScopeLevel.world:
+        return true;
+      case GeoScopeLevel.country:
+        return countryCode != null && countryCode.isNotEmpty;
+      case GeoScopeLevel.city:
+        return countryCode != null &&
+            countryCode.isNotEmpty &&
+            cityId != null &&
+            cityId.isNotEmpty;
+    }
+  }
+
   Future<List<CivicMapItem>> _loadPollMapItemsForScope(GeoScope scope) async {
-    final polls = await _loadPollsForScope(scope);
+    final polls = await _loadPollsForMapScope(scope);
     return _buildMapItemsFromEntities<Poll>(
       entities: polls,
       scope: scope,
@@ -620,7 +731,7 @@ class AppDI {
   }
 
   Future<List<CivicMapItem>> _loadPostMapItemsForScope(GeoScope scope) async {
-    final posts = await _loadPostsForScope(scope);
+    final posts = await _loadPostsForMapScope(scope);
     return _buildMapItemsFromEntities<Post>(
       entities: posts,
       scope: scope,
@@ -630,7 +741,7 @@ class AppDI {
   }
 
   Future<List<CivicMapItem>> _loadNewsMapItemsForScope(GeoScope scope) async {
-    final news = await _loadNewsForScope(scope);
+    final news = await _loadNewsForMapScope(scope);
     return _buildMapItemsFromEntities<NewsItem>(
       entities: news,
       scope: scope,
@@ -649,7 +760,11 @@ class AppDI {
 
     for (final entity in entities) {
       final targetRef = readTargetRef(entity);
-      final point = _readEntityMapPoint(entity, fallbackScope: scope);
+      final point = _readEntityMapPoint(
+        entity,
+        fallbackScope: scope,
+        type: type,
+      );
 
       if (point == null) {
         continue;
@@ -711,6 +826,7 @@ class AppDI {
   (double, double)? _readEntityMapPoint(
     dynamic entity, {
     required GeoScope fallbackScope,
+    required CivicMapItemType type,
   }) {
     final direct = _tryReadLatLng(entity);
     if (direct != null) {
@@ -725,6 +841,10 @@ class AppDI {
     final nestedScope = _tryReadScopeLatLng(entity);
     if (nestedScope != null) {
       return nestedScope;
+    }
+
+    if (type == CivicMapItemType.news) {
+      return null;
     }
 
     if (fallbackScope.centerLat != null &&

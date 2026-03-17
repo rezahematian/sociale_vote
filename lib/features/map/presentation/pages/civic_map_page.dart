@@ -3,9 +3,12 @@ import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
+import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
+import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/civic_map_widget.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
@@ -22,17 +25,50 @@ class CivicMapPage extends StatelessWidget {
   }
 }
 
-class _CivicMapPageView extends StatelessWidget {
+class _CivicMapPageView extends StatefulWidget {
   const _CivicMapPageView();
+
+  @override
+  State<_CivicMapPageView> createState() => _CivicMapPageViewState();
+}
+
+class _CivicMapPageViewState extends State<_CivicMapPageView> {
+  String? _lastSyncedScopeKey;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final controller = context.watch<CivicMapController>();
+    final geoScopeController = context.watch<GeoScopeController?>();
+    final activeScope = _readActiveScope(geoScopeController);
+    final activeScopeKey = activeScope == null ? null : _scopeKey(activeScope);
+
+    _scheduleScopeSyncIfNeeded(
+      controller: controller,
+      scope: activeScope,
+      scopeKey: activeScopeKey,
+    );
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Civic Map'),
+        actions: [
+          IconButton(
+            tooltip: 'Refresh',
+            onPressed: controller.isLoading
+                ? null
+                : () {
+                    controller.refresh();
+                  },
+            icon: controller.isLoading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.refresh),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Padding(
@@ -65,6 +101,126 @@ class _CivicMapPageView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _scheduleScopeSyncIfNeeded({
+    required CivicMapController controller,
+    required GeoScope? scope,
+    required String? scopeKey,
+  }) {
+    if (scope == null || scopeKey == null) {
+      return;
+    }
+
+    if (_lastSyncedScopeKey == scopeKey) {
+      return;
+    }
+
+    _lastSyncedScopeKey = scopeKey;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      controller.syncScope(scope);
+    });
+  }
+
+  GeoScope? _readActiveScope(GeoScopeController? controller) {
+    if (controller == null) return null;
+
+    try {
+      final dynamic dynamicController = controller;
+
+      final dynamic currentScope = dynamicController.currentScope;
+      if (currentScope is GeoScope) {
+        return currentScope;
+      }
+    } catch (_) {}
+
+    try {
+      final dynamic dynamicController = controller;
+
+      final dynamic selectedScope = dynamicController.selectedScope;
+      if (selectedScope is GeoScope) {
+        return selectedScope;
+      }
+    } catch (_) {}
+
+    try {
+      final dynamic dynamicController = controller;
+
+      final dynamic scope = dynamicController.scope;
+      if (scope is GeoScope) {
+        return scope;
+      }
+    } catch (_) {}
+
+    try {
+      final dynamic dynamicController = controller;
+      final dynamic state = dynamicController.state;
+
+      if (state != null) {
+        try {
+          final dynamic currentScope = state.currentScope;
+          if (currentScope is GeoScope) {
+            return currentScope;
+          }
+        } catch (_) {}
+
+        try {
+          final dynamic selectedScope = state.selectedScope;
+          if (selectedScope is GeoScope) {
+            return selectedScope;
+          }
+        } catch (_) {}
+
+        try {
+          final dynamic scope = state.scope;
+          if (scope is GeoScope) {
+            return scope;
+          }
+        } catch (_) {}
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  String _scopeKey(GeoScope scope) {
+    final dynamic dynamicScope = scope;
+
+    Object? readSafely(Object? Function() reader) {
+      try {
+        return reader();
+      } catch (_) {
+        return null;
+      }
+    }
+
+    String normalizeText(Object? value) {
+      return (value ?? '').toString().trim().toLowerCase();
+    }
+
+    String normalizeNum(Object? value) {
+      if (value is num) {
+        return value.toStringAsFixed(6);
+      }
+      return '';
+    }
+
+    return <String>[
+      normalizeText(readSafely(() => dynamicScope.level) ?? scope.level),
+      normalizeText(readSafely(() => dynamicScope.id)),
+      normalizeText(readSafely(() => dynamicScope.code)),
+      normalizeText(readSafely(() => dynamicScope.slug)),
+      normalizeText(readSafely(() => dynamicScope.name)),
+      normalizeText(readSafely(() => dynamicScope.countryCode)),
+      normalizeText(readSafely(() => dynamicScope.countryName)),
+      normalizeText(readSafely(() => dynamicScope.cityId)),
+      normalizeText(readSafely(() => dynamicScope.cityName)),
+      normalizeNum(readSafely(() => dynamicScope.centerLat) ?? scope.centerLat),
+      normalizeNum(readSafely(() => dynamicScope.centerLng) ?? scope.centerLng),
+      normalizeNum(readSafely(() => dynamicScope.radiusKm)),
+    ].join('|');
   }
 
   Future<void> _openTarget(BuildContext context, TargetRef targetRef) async {
@@ -127,8 +283,44 @@ class _CivicMapPageView extends StatelessWidget {
       }
     } catch (_) {}
 
+    final currentScope = appDi.geoScopeController.scope;
+
+    String? countryCode;
+    String? cityId;
+
+    switch (currentScope.level) {
+      case GeoScopeLevel.world:
+        break;
+      case GeoScopeLevel.country:
+        countryCode = currentScope.countryCode;
+        break;
+      case GeoScopeLevel.city:
+        countryCode = currentScope.countryCode;
+        cityId = currentScope.cityId;
+        break;
+    }
+
     try {
-      final items = await appDi.getNewsFeed();
+      final items = await appDi.getNewsFeed(
+        countryCode: countryCode,
+        cityId: cityId,
+        limit: 50,
+        offset: 0,
+      );
+
+      for (final item in items) {
+        if (item.id.value == newsId) {
+          return item;
+        }
+      }
+    } catch (_) {}
+
+    try {
+      final items = await appDi.getNewsFeed(
+        limit: 50,
+        offset: 0,
+      );
+
       for (final item in items) {
         if (item.id.value == newsId) {
           return item;
@@ -147,6 +339,8 @@ class _CivicMapPageView extends StatelessWidget {
       () => useCase(newsId: newsId),
       () => useCase(id: newsId),
       () => useCase(newsId),
+      () => useCase(id: EntityId(newsId)),
+      () => useCase(EntityId(newsId)),
     ];
 
     Object? lastError;

@@ -15,10 +15,6 @@ import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api.dar
 import 'package:sociale_vote/features/news/domain/news_language.dart';
 import 'package:sociale_vote/features/news/domain/news_topic.dart';
 
-/// Modalità di ordinamento per il feed news.
-///
-/// - [latest]  → usa l'ordine restituito da GetNewsFeed (tipicamente per data)
-/// - [hottest] → per importanza / engagement / rilevanza
 enum NewsSortMode {
   latest,
   hottest,
@@ -37,96 +33,63 @@ class NewsController extends ChangeNotifier {
 
   bool _isLoading = false;
   String? _errorMessage;
-
-  /// Tipologia errore “machine-friendly” (per localizzazione in UI).
   NewsApiErrorKind? _errorKind;
 
-  /// News caricate finora (aggregato delle pagine).
   final List<NewsItem> _news = [];
-
-  /// Reaction summary per newsId.
   final Map<String, ReactionSummary> _reactionSummaries =
       <String, ReactionSummary>{};
-
-  /// Comment count per newsId.
   final Map<String, int> _commentCounts = <String, int>{};
 
-  /// Paging reale (Fase 4.3)
   static const int _pageSize = 10;
   int _currentOffset = 0;
   bool _hasMoreFromSource = true;
 
-  /// Ultimo userId usato per caricare i ReactionSummary.
   String? _lastKnownUserId;
-
-  /// Modalità di ordinamento corrente per il feed.
   NewsSortMode _sortMode = NewsSortMode.hottest;
-
-  /// Topic selezionato (enterprise): filtra lato use case/repository/api.
   NewsTopic _selectedTopic = NewsTopic.all;
-
-  /// Lingua selezionata per le news (enterprise language filter).
   NewsLanguage _selectedLanguage = NewsLanguage.auto;
 
-  // ===== GETTER STATO PUBBLICO =====
+  bool _isDisposed = false;
+  int _requestId = 0;
 
   bool get isLoading => _isLoading;
-
   String? get errorMessage => _errorMessage;
   bool get hasError => _errorMessage != null;
-
   NewsApiErrorKind? get errorKind => _errorKind;
-
   List<NewsItem> get news => List<NewsItem>.unmodifiable(_news);
-
   bool get hasMoreFromSource => _hasMoreFromSource;
-
   NewsSortMode get sortMode => _sortMode;
-
   NewsTopic get selectedTopic => _selectedTopic;
-
-  /// Lingua corrente esposta alla UI.
   NewsLanguage get selectedLanguage => _selectedLanguage;
-
-  // ===== TOPIC =====
 
   Future<void> setTopic(NewsTopic topic, {String? userId}) async {
     if (_selectedTopic == topic) return;
 
     _selectedTopic = topic;
-
     _errorMessage = null;
     _errorKind = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     await loadNews(userId: userId ?? _lastKnownUserId);
   }
 
-  // ===== LANGUAGE =====
-
-  /// Imposta la lingua delle news e ricarica dalla prima pagina.
   Future<void> setLanguage(NewsLanguage language, {String? userId}) async {
     if (_selectedLanguage == language) return;
 
     _selectedLanguage = language;
-
     _errorMessage = null;
     _errorKind = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     await loadNews(userId: userId ?? _lastKnownUserId);
   }
-
-  // ===== ORDINAMENTO =====
 
   void setSortMode(NewsSortMode mode) {
     if (_sortMode == mode) return;
     _sortMode = mode;
     _sortNews();
-    notifyListeners();
+    _safeNotifyListeners();
   }
-
-  // ===== REACTION SUMMARY / COMMENTS =====
 
   ReactionSummary? summaryForNews(NewsItem newsItem) {
     final id = _newsId(newsItem);
@@ -153,8 +116,6 @@ class NewsController extends ChangeNotifier {
     return TargetRef.news(_newsId(newsItem));
   }
 
-  /// Mapping esplicito e “safe” della lingua verso i codici attesi dalla API (GNews).
-  /// Evita che un apiValue errato (es. "fa-IR" o "NewsLanguage.fa") faccia ricadere su AUTO.
   String? _languageApiValue(NewsLanguage language) {
     switch (language) {
       case NewsLanguage.auto:
@@ -176,13 +137,13 @@ class NewsController extends ChangeNotifier {
     }
   }
 
-  // ===== CARICAMENTO FEED =====
-
   Future<void> loadNews({String? userId}) async {
+    final requestId = ++_requestId;
+
     _isLoading = true;
     _errorMessage = null;
     _errorKind = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     _news.clear();
     _reactionSummaries.clear();
@@ -192,8 +153,12 @@ class NewsController extends ChangeNotifier {
     _lastKnownUserId = userId ?? _lastKnownUserId;
 
     try {
-      await _loadNextPage();
+      await _loadNextPage(requestId: requestId);
     } catch (e, stackTrace) {
+      if (!_isRequestStillValid(requestId)) {
+        return;
+      }
+
       if (kDebugMode) {
         debugPrint('Error loading news: $e');
         debugPrint('$stackTrace');
@@ -207,8 +172,12 @@ class NewsController extends ChangeNotifier {
 
       _applyError(e, fallbackMessage: 'Unable to load news at the moment.');
     } finally {
+      if (!_isRequestStillValid(requestId)) {
+        return;
+      }
+
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -216,27 +185,36 @@ class NewsController extends ChangeNotifier {
     if (_isLoading) return;
     if (!_hasMoreFromSource) return;
 
+    final requestId = _requestId;
+
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
-      await _loadNextPage();
+      await _loadNextPage(requestId: requestId);
     } catch (e, stackTrace) {
+      if (!_isRequestStillValid(requestId)) {
+        return;
+      }
+
       if (kDebugMode) {
         debugPrint('Error loading more news: $e');
         debugPrint('$stackTrace');
       }
 
       _hasMoreFromSource = false;
-
       _applyError(e, fallbackMessage: 'Unable to load more news.');
     } finally {
+      if (!_isRequestStillValid(requestId)) {
+        return;
+      }
+
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
-  Future<void> _loadNextPage() async {
+  Future<void> _loadNextPage({required int requestId}) async {
     final geoScope = AppDI.instance.geoScopeController.scope;
 
     String? countryCode;
@@ -263,6 +241,10 @@ class NewsController extends ChangeNotifier {
       offset: _currentOffset,
     );
 
+    if (!_isRequestStillValid(requestId)) {
+      return;
+    }
+
     if (result.length < _pageSize) {
       _hasMoreFromSource = false;
     }
@@ -270,15 +252,32 @@ class NewsController extends ChangeNotifier {
     _currentOffset += result.length;
     _news.addAll(result);
 
-    await _loadReactionSummariesForNews(result, userId: _lastKnownUserId);
-    await _loadCommentCountsForNews(result);
+    await _loadReactionSummariesForNews(
+      result,
+      userId: _lastKnownUserId,
+      requestId: requestId,
+    );
+
+    if (!_isRequestStillValid(requestId)) {
+      return;
+    }
+
+    await _loadCommentCountsForNews(
+      result,
+      requestId: requestId,
+    );
+
+    if (!_isRequestStillValid(requestId)) {
+      return;
+    }
 
     _sortNews();
   }
 
   Future<void> _loadReactionSummariesForNews(
     List<NewsItem> items, {
-    String? userId,
+    required String? userId,
+    required int requestId,
   }) async {
     if (items.isEmpty) return;
 
@@ -289,17 +288,29 @@ class NewsController extends ChangeNotifier {
       userId: userId,
     );
 
+    if (!_isRequestStillValid(requestId)) {
+      return;
+    }
+
     for (final summary in summaries) {
       _reactionSummaries[summary.target.id] = summary;
     }
   }
 
-  Future<void> _loadCommentCountsForNews(List<NewsItem> items) async {
+  Future<void> _loadCommentCountsForNews(
+    List<NewsItem> items, {
+    required int requestId,
+  }) async {
     if (items.isEmpty) return;
 
     for (final item in items) {
       final count =
           await AppDI.instance.getCommentCountForTarget(_targetForNews(item));
+
+      if (!_isRequestStillValid(requestId)) {
+        return;
+      }
+
       _commentCounts[_newsId(item)] = count;
     }
   }
@@ -309,16 +320,17 @@ class NewsController extends ChangeNotifier {
       final count = await AppDI.instance.getCommentCountForTarget(
         _targetForNews(newsItem),
       );
+
+      if (_isDisposed) return;
+
       _commentCounts[_newsId(newsItem)] = count;
 
       if (_sortMode == NewsSortMode.hottest) {
         _sortNews();
       }
 
-      notifyListeners();
-    } catch (_) {
-      // refresh locale silenzioso
-    }
+      _safeNotifyListeners();
+    } catch (_) {}
   }
 
   double _heatForNews(NewsItem item) {
@@ -437,9 +449,7 @@ class NewsController extends ChangeNotifier {
           case 'updatedAt':
             return entity.updatedAt;
         }
-      } catch (_) {
-        // continua
-      }
+      } catch (_) {}
     }
 
     return null;
@@ -637,13 +647,15 @@ class NewsController extends ChangeNotifier {
       type: ReactionType.like,
     );
 
+    if (_isDisposed) return;
+
     _reactionSummaries[_newsId(newsItem)] = summary;
 
     if (_sortMode == NewsSortMode.hottest) {
       _sortNews();
     }
 
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> toggleIceForNews({
@@ -660,19 +672,21 @@ class NewsController extends ChangeNotifier {
       type: ReactionType.dislike,
     );
 
+    if (_isDisposed) return;
+
     _reactionSummaries[_newsId(newsItem)] = summary;
 
     if (_sortMode == NewsSortMode.hottest) {
       _sortNews();
     }
 
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void clearError() {
     _errorMessage = null;
     _errorKind = null;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void _applyError(Object error, {required String fallbackMessage}) {
@@ -683,5 +697,20 @@ class NewsController extends ChangeNotifier {
     }
 
     _errorMessage ??= fallbackMessage;
+  }
+
+  bool _isRequestStillValid(int requestId) {
+    return !_isDisposed && requestId == _requestId;
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) return;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 }
