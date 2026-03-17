@@ -17,17 +17,13 @@ class NewsRepositoryImpl implements NewsRepository {
 
   static const int _providerWarmupBatchSize = 80;
 
-  /// Non geocodifichiamo tutti gli articoli di ogni refresh,
-  /// per evitare costi/lentezza eccessivi.
-  static const int _maxArticlesToGeocodePerRefresh = 50;
-  static const int _maxLocationCandidatesPerArticle = 8;
+  /// Budget più aggressivo per evitare attese troppo lunghe in mappa.
+  static const int _maxArticlesToGeocodePerRefresh = 8;
+  static const int _maxLocationCandidatesPerArticle = 3;
+  static const int _targetResolvedLocationsPerRefresh = 8;
 
-  /// Timeout per singolo articolo: abbastanza alto da non tagliare troppo presto,
-  /// ma non infinito.
-  static const Duration _perArticleGeocodeTimeout = Duration(seconds: 6);
-
-  /// Limite di geocoding in parallelo per non saturare Nominatim.
-  static const int _maxParallelGeocodeJobs = 4;
+  static const Duration _perArticleGeocodeTimeout = Duration(seconds: 2);
+  static const int _maxParallelGeocodeJobs = 6;
 
   static const Map<String, String> _countryAliases = <String, String>{
     'italy': 'IT',
@@ -119,21 +115,63 @@ class NewsRepositoryImpl implements NewsRepository {
     Object? lastRefreshError;
 
     for (final candidate in candidates) {
+      /// 1) prova cache fresca
       final freshCache = await _readCache(
         cacheKey: candidate.cacheKey,
         acceptStale: false,
       );
 
       if (freshCache != null && freshCache.items.isNotEmpty) {
-        return _mapAndPaginate(
-          jsonList: freshCache.items,
-          countryCode: candidate.countryCode,
-          cityId: candidate.cityId,
-          limit: limit,
-          offset: offset,
-        );
+        if (_cacheHasResolvedLocations(freshCache.items)) {
+          return _mapAndPaginate(
+            jsonList: freshCache.items,
+            countryCode: candidate.countryCode,
+            cityId: candidate.cityId,
+            limit: limit,
+            offset: offset,
+          );
+        }
+
+        if (kDebugMode) {
+          debugPrint(
+            'NewsRepositoryImpl fresh cache found for ${candidate.cacheKey} '
+            'but it has no resolved locations, trying live refresh.',
+          );
+        }
       }
 
+      /// 2) prova cache stale
+      final staleCache = await _readCache(
+        cacheKey: candidate.cacheKey,
+        acceptStale: true,
+      );
+
+      if (staleCache != null && staleCache.items.isNotEmpty) {
+        if (_cacheHasResolvedLocations(staleCache.items)) {
+          if (kDebugMode) {
+            debugPrint(
+              'NewsRepositoryImpl using stale cache for ${candidate.cacheKey}',
+            );
+          }
+
+          return _mapAndPaginate(
+            jsonList: staleCache.items,
+            countryCode: candidate.countryCode,
+            cityId: candidate.cityId,
+            limit: limit,
+            offset: offset,
+          );
+        }
+
+        if (kDebugMode) {
+          debugPrint(
+            'NewsRepositoryImpl stale cache found for ${candidate.cacheKey} '
+            'but it has no resolved locations, trying live refresh.',
+          );
+        }
+      }
+
+      /// 3) se la cache non è mappa-ready, prova refresh live
       try {
         final refreshedItems = await _refreshCacheForCandidate(
           candidate,
@@ -160,15 +198,29 @@ class NewsRepositoryImpl implements NewsRepository {
         }
       }
 
-      final staleCache = await _readCache(
-        cacheKey: candidate.cacheKey,
-        acceptStale: true,
-      );
+      /// 4) fallback finale: se refresh non migliora, usa comunque la cache
+      if (freshCache != null && freshCache.items.isNotEmpty) {
+        if (kDebugMode) {
+          debugPrint(
+            'NewsRepositoryImpl fallback to fresh cache for '
+            '${candidate.cacheKey} after refresh attempt.',
+          );
+        }
+
+        return _mapAndPaginate(
+          jsonList: freshCache.items,
+          countryCode: candidate.countryCode,
+          cityId: candidate.cityId,
+          limit: limit,
+          offset: offset,
+        );
+      }
 
       if (staleCache != null && staleCache.items.isNotEmpty) {
         if (kDebugMode) {
           debugPrint(
-            'NewsRepositoryImpl using stale cache for ${candidate.cacheKey}',
+            'NewsRepositoryImpl fallback to stale cache for '
+            '${candidate.cacheKey} after refresh attempt.',
           );
         }
 
@@ -184,7 +236,7 @@ class NewsRepositoryImpl implements NewsRepository {
 
     if (kDebugMode && lastRefreshError != null) {
       debugPrint(
-        'NewsRepositoryImpl: no usable cache and all refresh attempts failed: '
+        'NewsRepositoryImpl: no usable cache and refresh failed: '
         '$lastRefreshError',
       );
     }
@@ -209,6 +261,11 @@ class NewsRepositoryImpl implements NewsRepository {
     _NewsFeedCandidate candidate, {
     required int providerLimit,
   }) async {
+    final previousCache = await _readCache(
+      cacheKey: candidate.cacheKey,
+      acceptStale: true,
+    );
+
     final jsonList = await _aggregator.fetchNews(
       countryCode: candidate.countryCode,
       cityId: candidate.cityId,
@@ -219,7 +276,18 @@ class NewsRepositoryImpl implements NewsRepository {
     );
 
     final normalized = _normalizeJsonList(jsonList);
-    final enriched = await _enrichItemsForCache(normalized);
+
+    final seeded = _seedLocationsFromPreviousCache(
+      normalized,
+      previousCache?.items ?? const <Map<String, dynamic>>[],
+    );
+
+    final enriched = await _enrichItemsForCache(seeded);
+
+    final stabilized = _preferStablePayload(
+      refreshedItems: enriched,
+      previousItems: previousCache?.items ?? const <Map<String, dynamic>>[],
+    );
 
     await _writeCache(
       cacheKey: candidate.cacheKey,
@@ -227,10 +295,10 @@ class NewsRepositoryImpl implements NewsRepository {
       cityId: candidate.cityId,
       topic: candidate.topic,
       language: candidate.language,
-      items: enriched,
+      items: stabilized,
     );
 
-    return enriched;
+    return stabilized;
   }
 
   Future<List<Map<String, dynamic>>> _enrichItemsForCache(
@@ -244,13 +312,28 @@ class NewsRepositoryImpl implements NewsRepository {
         .map((item) => Map<String, dynamic>.from(item))
         .toList(growable: false);
 
+    var resolvedCount = 0;
+    for (final item in output) {
+      final existingLocation = _readEmbeddedContentLocation(item);
+      if (existingLocation != null &&
+          (existingLocation.hasExactPoint || existingLocation.hasCenter)) {
+        resolvedCount += 1;
+      }
+    }
+
+    if (resolvedCount >= _targetResolvedLocationsPerRefresh) {
+      return List<Map<String, dynamic>>.unmodifiable(output);
+    }
+
     final pendingJobs = <Future<void>>[];
     var scheduled = 0;
+    var scheduledPotentialResolved = 0;
 
     Future<void> flushJobs() async {
       if (pendingJobs.isEmpty) return;
       await Future.wait(pendingJobs);
       pendingJobs.clear();
+      scheduledPotentialResolved = 0;
     }
 
     for (int i = 0; i < output.length; i++) {
@@ -266,12 +349,18 @@ class NewsRepositoryImpl implements NewsRepository {
         continue;
       }
 
+      if (resolvedCount + scheduledPotentialResolved >=
+          _targetResolvedLocationsPerRefresh) {
+        break;
+      }
+
       final dto = _tryParseDto(enriched);
       if (dto == null) {
         continue;
       }
 
       scheduled += 1;
+      scheduledPotentialResolved += 1;
 
       pendingJobs.add(() async {
         try {
@@ -280,14 +369,21 @@ class NewsRepositoryImpl implements NewsRepository {
 
           if (detectedLocation != null) {
             enriched['_sv_content_location'] = detectedLocation.toJson();
+            resolvedCount += 1;
           }
         } catch (_) {
-          // best effort: timeout o singolo errore non devono bloccare tutto
+          // best effort
         }
       }());
 
-      if (pendingJobs.length >= _maxParallelGeocodeJobs) {
+      if (pendingJobs.length >= _maxParallelGeocodeJobs ||
+          resolvedCount + scheduledPotentialResolved >=
+              _targetResolvedLocationsPerRefresh) {
         await flushJobs();
+
+        if (resolvedCount >= _targetResolvedLocationsPerRefresh) {
+          break;
+        }
       }
     }
 
@@ -893,6 +989,134 @@ class NewsRepositoryImpl implements NewsRepository {
           ),
         )
         .toList(growable: false);
+  }
+
+  List<Map<String, dynamic>> _seedLocationsFromPreviousCache(
+    List<Map<String, dynamic>> items,
+    List<Map<String, dynamic>> previousItems,
+  ) {
+    if (items.isEmpty || previousItems.isEmpty) {
+      return List<Map<String, dynamic>>.unmodifiable(
+        items.map((item) => Map<String, dynamic>.from(item)).toList(),
+      );
+    }
+
+    final previousLocationsByKey = <String, Map<String, dynamic>>{};
+
+    for (final item in previousItems) {
+      final key = _buildStableArticleKeyFromJson(item);
+      final location = _readEmbeddedContentLocation(item);
+
+      if (key == null || location == null) {
+        continue;
+      }
+
+      if (!_hasResolvedLocation(location)) {
+        continue;
+      }
+
+      previousLocationsByKey[key] = location.toJson();
+    }
+
+    final output = <Map<String, dynamic>>[];
+
+    for (final item in items) {
+      final copy = Map<String, dynamic>.from(item);
+      final currentLocation = _readEmbeddedContentLocation(copy);
+
+      if (currentLocation == null || !_hasResolvedLocation(currentLocation)) {
+        final key = _buildStableArticleKeyFromJson(copy);
+        final previousLocationJson =
+            key == null ? null : previousLocationsByKey[key];
+
+        if (previousLocationJson != null) {
+          copy['_sv_content_location'] = previousLocationJson;
+        }
+      }
+
+      output.add(copy);
+    }
+
+    return List<Map<String, dynamic>>.unmodifiable(output);
+  }
+
+  List<Map<String, dynamic>> _preferStablePayload({
+    required List<Map<String, dynamic>> refreshedItems,
+    required List<Map<String, dynamic>> previousItems,
+  }) {
+    final refreshedLocated = _countItemsWithResolvedLocation(refreshedItems);
+    final previousLocated = _countItemsWithResolvedLocation(previousItems);
+
+    if (refreshedLocated > 0) {
+      return refreshedItems;
+    }
+
+    if (refreshedItems.isNotEmpty && previousLocated == 0) {
+      return refreshedItems;
+    }
+
+    if (refreshedLocated == 0 && previousLocated > 0) {
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl keeping previous cache payload because refreshed '
+          'payload has no resolved locations.',
+        );
+      }
+
+      return List<Map<String, dynamic>>.unmodifiable(
+        previousItems
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList(growable: false),
+      );
+    }
+
+    return refreshedItems;
+  }
+
+  int _countItemsWithResolvedLocation(List<Map<String, dynamic>> items) {
+    var count = 0;
+
+    for (final item in items) {
+      final location = _readEmbeddedContentLocation(item);
+      if (location != null && _hasResolvedLocation(location)) {
+        count += 1;
+      }
+    }
+
+    return count;
+  }
+
+  bool _cacheHasResolvedLocations(List<Map<String, dynamic>> items) {
+    return _countItemsWithResolvedLocation(items) > 0;
+  }
+
+  bool _hasResolvedLocation(ContentLocation location) {
+    return location.hasExactPoint || location.hasCenter;
+  }
+
+  String? _buildStableArticleKeyFromJson(Map<String, dynamic> json) {
+    final dto = _tryParseDto(json);
+    if (dto == null) {
+      return null;
+    }
+
+    return _buildStableArticleKeyFromDto(dto);
+  }
+
+  String _buildStableArticleKeyFromDto(NewsDto dto) {
+    final url = dto.url.trim();
+    if (url.isNotEmpty) {
+      return 'url:${url.toLowerCase()}';
+    }
+
+    final rawId = dto.id.trim();
+    if (rawId.isNotEmpty) {
+      final source = (dto.sourceName ?? dto.sourceId ?? 'unknown').trim();
+      return 'id:${source.toLowerCase()}:${rawId.toLowerCase()}';
+    }
+
+    final source = (dto.sourceName ?? dto.sourceId ?? 'unknown').trim();
+    return 'title:${source.toLowerCase()}:${dto.title.trim().toLowerCase()}:${dto.publishedAt.toUtc().toIso8601String()}';
   }
 
   List<_NewsFeedCandidate> _buildCandidates({

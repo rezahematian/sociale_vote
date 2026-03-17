@@ -80,8 +80,23 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
               Expanded(
                 child: CivicMapWidget(
                   controller: controller,
-                  onItemTap: (item) => _openTarget(context, item.targetRef),
                 ),
+              ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: controller.selectedItem == null
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: _MarkerPreviewCard(
+                          item: controller.selectedItem!,
+                          onClose: controller.clearSelection,
+                          onOpen: () => _openTarget(
+                            context,
+                            controller.selectedItem!.targetRef,
+                          ),
+                        ),
+                      ),
               ),
               if (controller.hasData || controller.isEmpty) ...[
                 const SizedBox(height: 10),
@@ -388,6 +403,179 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
     } catch (_) {}
 
     return null;
+  }
+}
+
+class _MarkerPreviewCard extends StatelessWidget {
+  final CivicMapItem item;
+  final VoidCallback onClose;
+  final VoidCallback onOpen;
+
+  const _MarkerPreviewCard({
+    required this.item,
+    required this.onClose,
+    required this.onOpen,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final title = item.title.trim();
+    final previewText = _buildPreviewText(item);
+    final metaText = _buildMetaText(item);
+
+    return Material(
+      color: theme.colorScheme.surface,
+      elevation: 6,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: theme.colorScheme.outline.withOpacity(0.14),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title.isEmpty ? 'Contenuto' : title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Chiudi',
+                  onPressed: onClose,
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            if (metaText != null) ...[
+              const SizedBox(height: 4),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  metaText,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+            if (previewText != null) ...[
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  previewText,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.86),
+                    height: 1.3,
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 14),
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton(
+                onPressed: onOpen,
+                child: const Text('Apri dettaglio'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String? _buildPreviewText(CivicMapItem item) {
+    final raw = item.subtitle?.trim();
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+
+    return raw.replaceAll(RegExp(r'\s+'), ' ');
+  }
+
+  String? _buildMetaText(CivicMapItem item) {
+    final parts = <String>[];
+
+    switch (item.type) {
+      case CivicMapItemType.poll:
+        if (item.heat > 0) {
+          parts.add('${item.heat.toInt()} interazioni');
+        }
+        if (item.commentCount > 0) {
+          parts.add('${item.commentCount} commenti');
+        }
+        break;
+
+      case CivicMapItemType.post:
+        if (item.commentCount > 0) {
+          parts.add('${item.commentCount} commenti');
+        }
+        if (item.heat > 0) {
+          parts.add('${item.heat.toInt()} interazioni');
+        }
+        break;
+
+      case CivicMapItemType.news:
+        final timeText = _formatRelativeTime(item.createdAt);
+        if (timeText != null) {
+          parts.add(timeText);
+        }
+        break;
+    }
+
+    if (parts.isEmpty) {
+      final fallbackTime = _formatRelativeTime(item.createdAt);
+      if (fallbackTime != null) {
+        parts.add(fallbackTime);
+      }
+    }
+
+    if (parts.isEmpty) {
+      return null;
+    }
+
+    return parts.join(' • ');
+  }
+
+  String? _formatRelativeTime(DateTime? value) {
+    if (value == null) {
+      return null;
+    }
+
+    final now = DateTime.now();
+    final date = value.toLocal();
+    final diff = now.difference(date);
+
+    if (diff.inSeconds < 60) {
+      return 'ora';
+    }
+    if (diff.inMinutes < 60) {
+      return '${diff.inMinutes} min fa';
+    }
+    if (diff.inHours < 24) {
+      return '${diff.inHours} h fa';
+    }
+    if (diff.inDays < 7) {
+      return '${diff.inDays} g fa';
+    }
+    return '${date.day}/${date.month}/${date.year}';
   }
 }
 
