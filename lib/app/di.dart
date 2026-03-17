@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sociale_vote/core/http/api_client.dart';
@@ -157,6 +159,10 @@ class AppDI {
   }
 
   static final AppDI instance = AppDI._internal();
+
+  static const int _pollMapBatchSize = 120;
+  static const int _postMapBatchSize = 120;
+  static const int _newsMapBatchSize = 80;
 
   final GeoScopeController _geoScopeController = GeoScopeController();
 
@@ -610,114 +616,299 @@ class AppDI {
   }
 
   Future<List<Poll>> _loadPollsForMapScope(GeoScope scope) async {
-    final dynamic useCase = getPolls;
+    final polls = await _loadEntitiesForMapScope<Poll>(
+      scope: scope,
+      useCase: getPolls,
+      batchSize: _pollMapBatchSize,
+    );
 
-    if (_isWorldScope(scope)) {
-      return _tryLoadList<Poll>([
-        () => useCase(),
-        () => useCase(limit: 20),
-        () => useCase(limit: 20, offset: 0),
-      ]);
-    }
-
-    if (!_hasStrictScopeParams(scope)) {
-      return <Poll>[];
-    }
-
-    final countryCode = _readScopeCountryCode(scope);
-    final cityId = _readScopeCityId(scope);
-
-    return _tryLoadListOrEmpty<Poll>([
-      () => useCase(countryCode: countryCode, cityId: cityId),
-      () => useCase(countryCode: countryCode, cityId: cityId, limit: 20),
-      () => useCase(
-            countryCode: countryCode,
-            cityId: cityId,
-            limit: 20,
-            offset: 0,
-          ),
-    ]);
+    return _filterEntitiesForGeoScope(polls, scope);
   }
 
   Future<List<NewsItem>> _loadNewsForMapScope(GeoScope scope) async {
-    final dynamic useCase = getNewsFeed;
+    final news = await _loadEntitiesForMapScope<NewsItem>(
+      scope: scope,
+      useCase: getNewsFeed,
+      batchSize: _newsMapBatchSize,
+    );
 
-    if (_isWorldScope(scope)) {
-      return _tryLoadList<NewsItem>([
-        () => useCase(),
-        () => useCase(limit: 80),
-        () => useCase(limit: 80, offset: 0),
-      ]);
-    }
-
-    if (!_hasStrictScopeParams(scope)) {
-      return <NewsItem>[];
-    }
-
-    final countryCode = _readScopeCountryCode(scope);
-    final cityId = _readScopeCityId(scope);
-
-    return _tryLoadListOrEmpty<NewsItem>([
-      () => useCase(countryCode: countryCode, cityId: cityId),
-      () => useCase(countryCode: countryCode, cityId: cityId, limit: 80),
-      () => useCase(
-            countryCode: countryCode,
-            cityId: cityId,
-            limit: 80,
-            offset: 0,
-          ),
-    ]);
+    return _filterEntitiesForGeoScope(news, scope);
   }
 
   Future<List<Post>> _loadPostsForMapScope(GeoScope scope) async {
-    final dynamic useCase = getFeed;
+    final posts = await _loadEntitiesForMapScope<Post>(
+      scope: scope,
+      useCase: getFeed,
+      batchSize: _postMapBatchSize,
+    );
 
-    if (_isWorldScope(scope)) {
-      return _tryLoadList<Post>([
-        () => useCase(),
-        () => useCase(limit: 80),
-        () => useCase(limit: 80, offset: 0),
-      ]);
-    }
+    return _filterEntitiesForGeoScope(posts, scope);
+  }
 
-    if (!_hasStrictScopeParams(scope)) {
-      return <Post>[];
-    }
-
+  Future<List<T>> _loadEntitiesForMapScope<T>({
+    required GeoScope scope,
+    required dynamic useCase,
+    required int batchSize,
+  }) async {
+    final levelName = _readScopeLevelName(scope);
     final countryCode = _readScopeCountryCode(scope);
     final cityId = _readScopeCityId(scope);
 
-    return _tryLoadListOrEmpty<Post>([
-      () => useCase(countryCode: countryCode, cityId: cityId),
-      () => useCase(countryCode: countryCode, cityId: cityId, limit: 20),
-      () => useCase(
-            countryCode: countryCode,
-            cityId: cityId,
-            limit: 80,
-            offset: 0,
-          ),
+    if (levelName == 'world') {
+      return _tryLoadList<T>([
+        () => useCase(limit: batchSize),
+        () => useCase(limit: batchSize, offset: 0),
+        () => useCase(),
+      ]);
+    }
+
+    if (levelName == 'country') {
+      if (!_hasText(countryCode)) {
+        return <T>[];
+      }
+
+      return _tryLoadListOrEmpty<T>([
+        () => useCase(countryCode: countryCode, limit: batchSize),
+        () => useCase(
+              countryCode: countryCode,
+              limit: batchSize,
+              offset: 0,
+            ),
+        () => useCase(countryCode: countryCode),
+      ]);
+    }
+
+    if (levelName == 'city') {
+      if (!_hasText(countryCode) || !_hasText(cityId)) {
+        return <T>[];
+      }
+
+      return _tryLoadListOrEmpty<T>([
+        () => useCase(
+              countryCode: countryCode,
+              cityId: cityId,
+              limit: batchSize,
+            ),
+        () => useCase(
+              countryCode: countryCode,
+              cityId: cityId,
+              limit: batchSize,
+              offset: 0,
+            ),
+        () => useCase(
+              countryCode: countryCode,
+              cityId: cityId,
+            ),
+      ]);
+    }
+
+    if (levelName == 'area') {
+      if (_hasText(countryCode) && _hasText(cityId)) {
+        final byCity = await _tryLoadListOrEmpty<T>([
+          () => useCase(
+                countryCode: countryCode,
+                cityId: cityId,
+                limit: batchSize,
+              ),
+          () => useCase(
+                countryCode: countryCode,
+                cityId: cityId,
+                limit: batchSize,
+                offset: 0,
+              ),
+          () => useCase(
+                countryCode: countryCode,
+                cityId: cityId,
+              ),
+        ]);
+
+        if (byCity.isNotEmpty) {
+          return byCity;
+        }
+      }
+
+      if (_hasText(countryCode)) {
+        final byCountry = await _tryLoadListOrEmpty<T>([
+          () => useCase(countryCode: countryCode, limit: batchSize),
+          () => useCase(
+                countryCode: countryCode,
+                limit: batchSize,
+                offset: 0,
+              ),
+          () => useCase(countryCode: countryCode),
+        ]);
+
+        if (byCountry.isNotEmpty) {
+          return byCountry;
+        }
+      }
+
+      return _tryLoadListOrEmpty<T>([
+        () => useCase(limit: batchSize),
+        () => useCase(limit: batchSize, offset: 0),
+        () => useCase(),
+      ]);
+    }
+
+    return _tryLoadListOrEmpty<T>([
+      () => useCase(limit: batchSize),
+      () => useCase(limit: batchSize, offset: 0),
+      () => useCase(),
     ]);
   }
 
-  bool _isWorldScope(GeoScope? scope) {
-    return scope == null || scope.level == GeoScopeLevel.world;
+  List<T> _filterEntitiesForGeoScope<T>(List<T> entities, GeoScope scope) {
+    if (entities.isEmpty) {
+      return <T>[];
+    }
+
+    final filtered = entities
+        .where((entity) => _matchesEntityGeoScope(entity, scope))
+        .toList(growable: false);
+
+    return List<T>.unmodifiable(filtered);
   }
 
-  bool _hasStrictScopeParams(GeoScope scope) {
-    final countryCode = _readScopeCountryCode(scope)?.trim();
-    final cityId = _readScopeCityId(scope)?.trim();
+  bool _matchesEntityGeoScope(
+    dynamic entity,
+    GeoScope scope,
+  ) {
+    final levelName = _readScopeLevelName(scope);
 
-    switch (scope.level) {
-      case GeoScopeLevel.world:
-        return true;
-      case GeoScopeLevel.country:
-        return countryCode != null && countryCode.isNotEmpty;
-      case GeoScopeLevel.city:
-        return countryCode != null &&
-            countryCode.isNotEmpty &&
-            cityId != null &&
-            cityId.isNotEmpty;
+    if (levelName == null || levelName == 'world') {
+      return true;
     }
+
+    final scopeCountryCode = _normalizeGeoValue(_readScopeCountryCode(scope));
+    final scopeCityId = _normalizeGeoValue(_readScopeCityId(scope));
+
+    final entityCountryCode = _normalizeGeoValue(_readEntityCountryCode(entity));
+    final entityCityId = _normalizeGeoValue(_readEntityCityId(entity));
+
+    if (levelName == 'country') {
+      return scopeCountryCode != null && entityCountryCode == scopeCountryCode;
+    }
+
+    if (levelName == 'city') {
+      return scopeCityId != null && entityCityId == scopeCityId;
+    }
+
+    if (levelName == 'area') {
+      return _matchesAreaRadiusScope(
+        entity,
+        scope,
+        scopeCountryCode: scopeCountryCode,
+        scopeCityId: scopeCityId,
+      );
+    }
+
+    return true;
+  }
+
+  bool _matchesAreaRadiusScope(
+    dynamic entity,
+    GeoScope scope, {
+    required String? scopeCountryCode,
+    required String? scopeCityId,
+  }) {
+    final scopePoint = _readScopeCenterPoint(scope);
+    final radiusKm = _readScopeRadiusKm(scope);
+    final entityPoint = _readEntityGeoFilterPoint(entity);
+
+    if (scopePoint != null &&
+        radiusKm != null &&
+        radiusKm > 0 &&
+        entityPoint != null) {
+      final distanceKm = _distanceKm(
+        scopePoint.$1,
+        scopePoint.$2,
+        entityPoint.$1,
+        entityPoint.$2,
+      );
+
+      return distanceKm <= radiusKm;
+    }
+
+    if (scopeCityId != null) {
+      final entityCityId = _normalizeGeoValue(_readEntityCityId(entity));
+      if (entityCityId != null) {
+        return entityCityId == scopeCityId;
+      }
+    }
+
+    if (scopeCountryCode != null) {
+      final entityCountryCode = _normalizeGeoValue(_readEntityCountryCode(entity));
+      if (entityCountryCode != null) {
+        return entityCountryCode == scopeCountryCode;
+      }
+    }
+
+    return false;
+  }
+
+  (double, double)? _readScopeCenterPoint(GeoScope scope) {
+    final lat = _readDoubleFromDynamicCandidates(scope, const [
+      'centerLat',
+      'latitude',
+      'lat',
+    ]);
+    final lng = _readDoubleFromDynamicCandidates(scope, const [
+      'centerLng',
+      'longitude',
+      'lng',
+      'lon',
+    ]);
+
+    if (!_isValidLatLng(lat, lng)) {
+      return null;
+    }
+
+    return (lat!, lng!);
+  }
+
+  double? _readScopeRadiusKm(GeoScope scope) {
+    return _readDoubleFromDynamicCandidates(scope, const [
+      'radiusKm',
+      'radius',
+    ]);
+  }
+
+  String? _readScopeLevelName(GeoScope? scope) {
+    if (scope == null) {
+      return null;
+    }
+
+    try {
+      final dynamic level = (scope as dynamic).level;
+      if (level == null) {
+        return null;
+      }
+
+      final raw = level.toString().trim();
+      if (raw.isEmpty) {
+        return null;
+      }
+
+      final last = raw.split('.').last.trim().toLowerCase();
+      return last.isEmpty ? null : last;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool _hasText(String? value) {
+    return value != null && value.trim().isNotEmpty;
+  }
+
+  String? _normalizeGeoValue(String? value) {
+    if (value == null) {
+      return null;
+    }
+    final trimmed = value.trim().toLowerCase();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+    return trimmed;
   }
 
   Future<List<CivicMapItem>> _loadPollMapItemsForScope(GeoScope scope) async {
@@ -803,6 +994,40 @@ class AppDI {
     }
   }
 
+  String? _readEntityCountryCode(dynamic entity) {
+    final contentLocation = _readEntityContentLocation(entity);
+    final fromLocation = _normalizeGeoValue(contentLocation?.countryCode);
+    if (fromLocation != null) {
+      return fromLocation;
+    }
+
+    try {
+      final dynamic value = entity.countryCode;
+      if (value != null) {
+        return _normalizeGeoValue(value.toString());
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  String? _readEntityCityId(dynamic entity) {
+    final contentLocation = _readEntityContentLocation(entity);
+    final fromLocation = _normalizeGeoValue(contentLocation?.cityId);
+    if (fromLocation != null) {
+      return fromLocation;
+    }
+
+    try {
+      final dynamic value = entity.cityId;
+      if (value != null) {
+        return _normalizeGeoValue(value.toString());
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
   ContentLocation? _tryReadContentLocation(dynamic value) {
     if (value == null) {
       return null;
@@ -853,14 +1078,44 @@ class AppDI {
       return (fallbackScope.centerLat!, fallbackScope.centerLng!);
     }
 
-    switch (fallbackScope.level) {
-      case GeoScopeLevel.world:
-        return (20.0, 0.0);
-      case GeoScopeLevel.country:
-        return (45.0, 10.0);
-      case GeoScopeLevel.city:
-        return (45.4642, 9.1900);
+    final levelName = _readScopeLevelName(fallbackScope);
+
+    if (levelName == 'world') {
+      return (20.0, 0.0);
     }
+
+    if (levelName == 'country') {
+      return (45.0, 10.0);
+    }
+
+    if (levelName == 'city') {
+      return (45.4642, 9.1900);
+    }
+
+    if (levelName == 'area') {
+      return null;
+    }
+
+    return null;
+  }
+
+  (double, double)? _readEntityGeoFilterPoint(dynamic entity) {
+    final contentLocationPoint = _tryReadContentLocationPoint(entity);
+    if (contentLocationPoint != null) {
+      return contentLocationPoint;
+    }
+
+    final direct = _tryReadLatLng(entity);
+    if (direct != null) {
+      return direct;
+    }
+
+    final nestedScope = _tryReadScopeLatLng(entity);
+    if (nestedScope != null) {
+      return nestedScope;
+    }
+
+    return null;
   }
 
   (double, double)? _tryReadContentLocationPoint(dynamic entity) {
@@ -960,6 +1215,10 @@ class AppDI {
         return object.lon;
       case 'centerLng':
         return object.centerLng;
+      case 'radiusKm':
+        return object.radiusKm;
+      case 'radius':
+        return object.radius;
       default:
         throw StateError('Campo non supportato: $field');
     }
@@ -971,6 +1230,31 @@ class AppDI {
     if (lat < -90 || lat > 90) return false;
     if (lng < -180 || lng > 180) return false;
     return true;
+  }
+
+  double _distanceKm(
+    double startLat,
+    double startLng,
+    double endLat,
+    double endLng,
+  ) {
+    const earthRadiusKm = 6371.0;
+
+    final dLat = _degreesToRadians(endLat - startLat);
+    final dLng = _degreesToRadians(endLng - startLng);
+
+    final a = math.pow(math.sin(dLat / 2), 2) +
+        math.cos(_degreesToRadians(startLat)) *
+            math.cos(_degreesToRadians(endLat)) *
+            math.pow(math.sin(dLng / 2), 2);
+
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+
+    return earthRadiusKm * c;
+  }
+
+  double _degreesToRadians(double degrees) {
+    return degrees * (math.pi / 180.0);
   }
 
   double? _toDouble(dynamic value) {

@@ -29,8 +29,7 @@ class CivicMapWidget extends StatefulWidget {
 class _CivicMapWidgetState extends State<CivicMapWidget> {
   final MapController _mapController = MapController();
 
-  static const lat_lng.LatLng _defaultCenter =
-      lat_lng.LatLng(20.0, 0.0);
+  static const lat_lng.LatLng _defaultCenter = lat_lng.LatLng(20.0, 0.0);
   static const double _defaultZoom = 2.0;
   static const double _focusZoom = 7.0;
 
@@ -140,6 +139,30 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     }
   }
 
+  double _markerDiameter({
+    required CivicMapItem item,
+    required bool selected,
+  }) {
+    double size;
+    switch (item.heatTier) {
+      case CivicMapHeatTier.normal:
+        size = 38;
+        break;
+      case CivicMapHeatTier.active:
+        size = 46;
+        break;
+      case CivicMapHeatTier.hot:
+        size = 54;
+        break;
+    }
+
+    if (selected) {
+      size += 8;
+    }
+
+    return size;
+  }
+
   List<Marker> _buildMarkers() {
     final controller = widget.controller;
     if (controller == null) return const <Marker>[];
@@ -148,37 +171,28 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
       final selected = controller.selectedItemId == item.id;
       final point = _pointForItem(item);
       final color = _colorForType(item.type);
+      final markerSize = _markerDiameter(
+        item: item,
+        selected: selected,
+      );
+      final badgeText = item.heatBadgeLabel;
+
+      final markerBoxSize =
+          markerSize + (selected ? 28 : 18) + (badgeText != null ? 22 : 8);
 
       return Marker(
         point: point,
-        width: selected ? 56 : 44,
-        height: selected ? 56 : 44,
+        width: markerBoxSize,
+        height: markerBoxSize,
         child: GestureDetector(
           onTap: () => _handleMarkerTap(item),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            width: selected ? 48 : 38,
-            height: selected ? 48 : 38,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white,
-                width: selected ? 3 : 2,
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 8,
-                  offset: Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Icon(
-              _iconForType(item.type),
-              color: Colors.white,
-              size: selected ? 22 : 18,
-            ),
+          child: _MapMarkerVisual(
+            size: markerSize,
+            color: color,
+            icon: _iconForType(item.type),
+            selected: selected,
+            tier: item.heatTier,
+            badgeText: badgeText,
           ),
         ),
       );
@@ -228,5 +242,267 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
         );
       },
     );
+  }
+}
+
+class _MapMarkerVisual extends StatelessWidget {
+  final double size;
+  final Color color;
+  final IconData icon;
+  final bool selected;
+  final CivicMapHeatTier tier;
+  final String? badgeText;
+
+  const _MapMarkerVisual({
+    required this.size,
+    required this.color,
+    required this.icon,
+    required this.selected,
+    required this.tier,
+    required this.badgeText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final haloSize = size + (selected ? 22 : 12);
+    final accentRingSize = size + _accentRingExtraSize();
+
+    return Center(
+      child: SizedBox(
+        width: haloSize + 8,
+        height: haloSize + 8,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            if (selected)
+              Container(
+                width: size + 18,
+                height: size + 18,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFF1F2937).withOpacity(0.92),
+                    width: 3,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF111827).withOpacity(0.20),
+                      blurRadius: 14,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+              ),
+            if (tier != CivicMapHeatTier.normal)
+              Container(
+                width: accentRingSize,
+                height: accentRingSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: _accentRingColor(),
+                    width: _accentRingWidth(),
+                  ),
+                ),
+              ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: _glowColor(),
+                    blurRadius: _glowBlurRadius(),
+                    spreadRadius: _glowSpreadRadius(),
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white,
+                  width: selected ? 4.5 : _borderWidth(),
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 8,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: _iconSize(),
+              ),
+            ),
+            if (badgeText != null)
+              Positioned(
+                top: -6,
+                right: -8,
+                child: _MarkerBadge(
+                  text: badgeText!,
+                  tier: tier,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  double _borderWidth() {
+    switch (tier) {
+      case CivicMapHeatTier.normal:
+        return 2;
+      case CivicMapHeatTier.active:
+        return 3;
+      case CivicMapHeatTier.hot:
+        return 3.5;
+    }
+  }
+
+  double _iconSize() {
+    if (size >= 60) return 25;
+    if (size >= 52) return 23;
+    if (size >= 46) return 21;
+    return 18;
+  }
+
+  double _accentRingExtraSize() {
+    switch (tier) {
+      case CivicMapHeatTier.normal:
+        return 0;
+      case CivicMapHeatTier.active:
+        return 8;
+      case CivicMapHeatTier.hot:
+        return 12;
+    }
+  }
+
+  double _accentRingWidth() {
+    switch (tier) {
+      case CivicMapHeatTier.normal:
+        return 0;
+      case CivicMapHeatTier.active:
+        return 2;
+      case CivicMapHeatTier.hot:
+        return 2.5;
+    }
+  }
+
+  Color _accentRingColor() {
+    switch (tier) {
+      case CivicMapHeatTier.normal:
+        return Colors.transparent;
+      case CivicMapHeatTier.active:
+        return Colors.amber.shade700.withOpacity(0.70);
+      case CivicMapHeatTier.hot:
+        return Colors.deepOrangeAccent.withOpacity(0.82);
+    }
+  }
+
+  Color _glowColor() {
+    switch (tier) {
+      case CivicMapHeatTier.normal:
+        return color.withOpacity(selected ? 0.26 : 0.18);
+      case CivicMapHeatTier.active:
+        return Colors.amber.withOpacity(selected ? 0.38 : 0.30);
+      case CivicMapHeatTier.hot:
+        return Colors.deepOrange.withOpacity(selected ? 0.46 : 0.38);
+    }
+  }
+
+  double _glowBlurRadius() {
+    switch (tier) {
+      case CivicMapHeatTier.normal:
+        return selected ? 16 : 12;
+      case CivicMapHeatTier.active:
+        return selected ? 20 : 16;
+      case CivicMapHeatTier.hot:
+        return selected ? 24 : 20;
+    }
+  }
+
+  double _glowSpreadRadius() {
+    switch (tier) {
+      case CivicMapHeatTier.normal:
+        return selected ? 2 : 1;
+      case CivicMapHeatTier.active:
+        return selected ? 3 : 2;
+      case CivicMapHeatTier.hot:
+        return selected ? 4 : 3;
+    }
+  }
+}
+
+class _MarkerBadge extends StatelessWidget {
+  final String text;
+  final CivicMapHeatTier tier;
+
+  const _MarkerBadge({
+    required this.text,
+    required this.tier,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundColor = _backgroundColor();
+    const foregroundColor = Colors.white;
+
+    return Container(
+      constraints: const BoxConstraints(
+        minWidth: 22,
+        minHeight: 22,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: Colors.white,
+          width: 1.5,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: foregroundColor,
+              fontWeight: FontWeight.w800,
+              fontSize: text == 'HOT' ? 9 : 10,
+              height: 1,
+            ),
+      ),
+    );
+  }
+
+  Color _backgroundColor() {
+    switch (tier) {
+      case CivicMapHeatTier.normal:
+        return Colors.grey;
+      case CivicMapHeatTier.active:
+        return Colors.amber.shade800;
+      case CivicMapHeatTier.hot:
+        return Colors.deepOrange;
+    }
   }
 }

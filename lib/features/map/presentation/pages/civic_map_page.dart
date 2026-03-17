@@ -89,6 +89,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                     : Padding(
                         padding: const EdgeInsets.only(top: 12),
                         child: _MarkerPreviewCard(
+                          key: ValueKey<String>(controller.selectedItem!.id),
                           item: controller.selectedItem!,
                           onClose: controller.clearSelection,
                           onOpen: () => _openTarget(
@@ -234,7 +235,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
       normalizeText(readSafely(() => dynamicScope.cityName)),
       normalizeNum(readSafely(() => dynamicScope.centerLat) ?? scope.centerLat),
       normalizeNum(readSafely(() => dynamicScope.centerLng) ?? scope.centerLng),
-      normalizeNum(readSafely(() => dynamicScope.radiusKm)),
+      normalizeNum(readSafely(() => dynamicScope.radiusKm) ?? scope.radiusKm),
     ].join('|');
   }
 
@@ -412,6 +413,7 @@ class _MarkerPreviewCard extends StatelessWidget {
   final VoidCallback onOpen;
 
   const _MarkerPreviewCard({
+    super.key,
     required this.item,
     required this.onClose,
     required this.onOpen,
@@ -420,18 +422,22 @@ class _MarkerPreviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final title = item.title.trim();
+    final title = item.title.trim().isEmpty ? 'Contenuto' : item.title.trim();
     final previewText = _buildPreviewText(item);
-    final metaText = _buildMetaText(item);
+    final typeColor = _typeColor(item.type);
+    final hasMeta = item.normalizedHeat.toInt() > 0 ||
+        item.normalizedCommentCount > 0 ||
+        item.createdAt != null;
 
     return Material(
       color: theme.colorScheme.surface,
-      elevation: 6,
+      elevation: 3,
       borderRadius: BorderRadius.circular(18),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
         decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: theme.colorScheme.outline.withOpacity(0.14),
@@ -439,61 +445,95 @@ class _MarkerPreviewCard extends StatelessWidget {
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title.isEmpty ? 'Contenuto' : title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+              decoration: BoxDecoration(
+                color: typeColor.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: typeColor.withOpacity(0.16),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _CompactBadge(
+                          label: _typeLabel(item.type),
+                          icon: _typeIcon(item.type),
+                          backgroundColor: typeColor.withOpacity(0.12),
+                          foregroundColor: typeColor,
+                        ),
+                        if (item.heatTier != CivicMapHeatTier.normal)
+                          _CompactBadge(
+                            label: _activityLabel(item.heatTier),
+                            icon: _activityIcon(item.heatTier),
+                            backgroundColor:
+                                _activityColor(item.heatTier).withOpacity(0.12),
+                            foregroundColor: _activityColor(item.heatTier),
+                          ),
+                      ],
                     ),
                   ),
+                  IconButton(
+                    tooltip: 'Chiudi',
+                    visualDensity: VisualDensity.compact,
+                    splashRadius: 18,
+                    onPressed: onClose,
+                    icon: Icon(
+                      Icons.close,
+                      color: theme.colorScheme.onSurface.withOpacity(0.72),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+              ),
+            ),
+            if (previewText != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                previewText,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.86),
+                  height: 1.35,
                 ),
-                IconButton(
-                  tooltip: 'Chiudi',
-                  onPressed: onClose,
-                  icon: const Icon(Icons.close),
+              ),
+            ],
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: hasMeta
+                      ? _PreviewMetaRow(item: item)
+                      : const SizedBox.shrink(),
+                ),
+                const SizedBox(width: 12),
+                FilledButton.icon(
+                  onPressed: onOpen,
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text('Apri dettaglio'),
                 ),
               ],
-            ),
-            if (metaText != null) ...[
-              const SizedBox(height: 4),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  metaText,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-            if (previewText != null) ...[
-              const SizedBox(height: 10),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  previewText,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.86),
-                    height: 1.3,
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(height: 14),
-            Align(
-              alignment: Alignment.centerRight,
-              child: FilledButton(
-                onPressed: onOpen,
-                child: const Text('Apri dettaglio'),
-              ),
             ),
           ],
         ),
@@ -510,48 +550,132 @@ class _MarkerPreviewCard extends StatelessWidget {
     return raw.replaceAll(RegExp(r'\s+'), ' ');
   }
 
-  String? _buildMetaText(CivicMapItem item) {
-    final parts = <String>[];
-
-    switch (item.type) {
+  Color _typeColor(CivicMapItemType type) {
+    switch (type) {
       case CivicMapItemType.poll:
-        if (item.heat > 0) {
-          parts.add('${item.heat.toInt()} interazioni');
-        }
-        if (item.commentCount > 0) {
-          parts.add('${item.commentCount} commenti');
-        }
-        break;
-
+        return Colors.green;
       case CivicMapItemType.post:
-        if (item.commentCount > 0) {
-          parts.add('${item.commentCount} commenti');
-        }
-        if (item.heat > 0) {
-          parts.add('${item.heat.toInt()} interazioni');
-        }
-        break;
-
+        return Colors.blue;
       case CivicMapItemType.news:
-        final timeText = _formatRelativeTime(item.createdAt);
-        if (timeText != null) {
-          parts.add(timeText);
-        }
-        break;
+        return Colors.red;
+    }
+  }
+
+  IconData _typeIcon(CivicMapItemType type) {
+    switch (type) {
+      case CivicMapItemType.poll:
+        return Icons.poll_outlined;
+      case CivicMapItemType.post:
+        return Icons.forum_outlined;
+      case CivicMapItemType.news:
+        return Icons.newspaper_outlined;
+    }
+  }
+
+  String _typeLabel(CivicMapItemType type) {
+    switch (type) {
+      case CivicMapItemType.poll:
+        return 'Poll';
+      case CivicMapItemType.post:
+        return 'Post';
+      case CivicMapItemType.news:
+        return 'News';
+    }
+  }
+
+  String _activityLabel(CivicMapHeatTier tier) {
+    switch (tier) {
+      case CivicMapHeatTier.hot:
+        return 'Hot';
+      case CivicMapHeatTier.active:
+        return 'Attivo';
+      case CivicMapHeatTier.normal:
+        return 'Normale';
+    }
+  }
+
+  IconData _activityIcon(CivicMapHeatTier tier) {
+    switch (tier) {
+      case CivicMapHeatTier.hot:
+        return Icons.local_fire_department;
+      case CivicMapHeatTier.active:
+        return Icons.trending_up;
+      case CivicMapHeatTier.normal:
+        return Icons.adjust;
+    }
+  }
+
+  Color _activityColor(CivicMapHeatTier tier) {
+    switch (tier) {
+      case CivicMapHeatTier.hot:
+        return Colors.deepOrange;
+      case CivicMapHeatTier.active:
+        return Colors.amber.shade800;
+      case CivicMapHeatTier.normal:
+        return Colors.grey;
+    }
+  }
+}
+
+class _PreviewMetaRow extends StatelessWidget {
+  final CivicMapItem item;
+
+  const _PreviewMetaRow({
+    required this.item,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final entries = <Widget>[];
+
+    final heat = item.normalizedHeat.toInt();
+    final comments = item.normalizedCommentCount;
+    final timeText = _formatRelativeTime(item.createdAt);
+
+    if (heat > 0) {
+      entries.add(
+        _MetaInlineItem(
+          icon: Icons.local_fire_department_outlined,
+          text: '$heat',
+        ),
+      );
     }
 
-    if (parts.isEmpty) {
-      final fallbackTime = _formatRelativeTime(item.createdAt);
-      if (fallbackTime != null) {
-        parts.add(fallbackTime);
-      }
+    if (comments > 0) {
+      entries.add(
+        _MetaInlineItem(
+          icon: Icons.mode_comment_outlined,
+          text: '$comments',
+        ),
+      );
     }
 
-    if (parts.isEmpty) {
-      return null;
+    if (timeText != null) {
+      entries.add(
+        _MetaInlineItem(
+          icon: Icons.schedule_outlined,
+          text: timeText,
+        ),
+      );
     }
 
-    return parts.join(' • ');
+    if (entries.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return DefaultTextStyle(
+      style: theme.textTheme.bodySmall!.copyWith(
+        color: theme.colorScheme.onSurface.withOpacity(0.72),
+        fontWeight: FontWeight.w600,
+      ),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 6,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: entries,
+      ),
+    );
   }
 
   String? _formatRelativeTime(DateTime? value) {
@@ -567,15 +691,87 @@ class _MarkerPreviewCard extends StatelessWidget {
       return 'ora';
     }
     if (diff.inMinutes < 60) {
-      return '${diff.inMinutes} min fa';
+      return '${diff.inMinutes} min';
     }
     if (diff.inHours < 24) {
-      return '${diff.inHours} h fa';
+      return '${diff.inHours} h';
     }
     if (diff.inDays < 7) {
-      return '${diff.inDays} g fa';
+      return '${diff.inDays} g';
     }
     return '${date.day}/${date.month}/${date.year}';
+  }
+}
+
+class _MetaInlineItem extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _MetaInlineItem({
+    required this.icon,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurface.withOpacity(0.72);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: 15,
+          color: color,
+        ),
+        const SizedBox(width: 5),
+        Text(text),
+      ],
+    );
+  }
+}
+
+class _CompactBadge extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color backgroundColor;
+  final Color foregroundColor;
+
+  const _CompactBadge({
+    required this.label,
+    required this.icon,
+    required this.backgroundColor,
+    required this.foregroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 15,
+            color: foregroundColor,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: foregroundColor,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -20,6 +20,98 @@ enum CivicMapItemType {
   news,
 }
 
+enum CivicMapHeatTier {
+  normal,
+  active,
+  hot,
+}
+
+/// Regole uniche di heat per tutta la Civic Map.
+///
+/// Nota importante:
+/// - `heat` del contenuto = valore reale già esistente nell'app
+/// - la mappa NON inventa un secondo heat
+/// - la mappa deriva solo un punteggio unico per ranking/stile
+class CivicMapHeatRules {
+  static const double commentWeight = 1.5;
+
+  static const double activeThreshold = 8.0;
+  static const double hotThreshold = 20.0;
+
+  const CivicMapHeatRules._();
+
+  static double normalizeHeat(double value) {
+    if (!value.isFinite || value < 0) {
+      return 0;
+    }
+    return value;
+  }
+
+  static int normalizeCommentCount(int value) {
+    if (value < 0) {
+      return 0;
+    }
+    return value;
+  }
+
+  static double computeScore({
+    required double heat,
+    required int commentCount,
+  }) {
+    final normalizedHeat = normalizeHeat(heat);
+    final normalizedComments = normalizeCommentCount(commentCount);
+
+    return normalizedHeat + (normalizedComments * commentWeight);
+  }
+
+  static CivicMapHeatTier resolveTierFromScore(double score) {
+    if (score >= hotThreshold) {
+      return CivicMapHeatTier.hot;
+    }
+    if (score >= activeThreshold) {
+      return CivicMapHeatTier.active;
+    }
+    return CivicMapHeatTier.normal;
+  }
+
+  static CivicMapHeatTier resolveTier({
+    required double heat,
+    required int commentCount,
+  }) {
+    return resolveTierFromScore(
+      computeScore(
+        heat: heat,
+        commentCount: commentCount,
+      ),
+    );
+  }
+
+  static String? buildBadgeLabel({
+    required double heat,
+    required int commentCount,
+  }) {
+    final score = computeScore(
+      heat: heat,
+      commentCount: commentCount,
+    );
+    final tier = resolveTierFromScore(score);
+
+    if (tier == CivicMapHeatTier.hot) {
+      return 'HOT';
+    }
+
+    if (tier == CivicMapHeatTier.active) {
+      final total = normalizeHeat(heat).toInt() + normalizeCommentCount(commentCount);
+      if (total <= 0) {
+        return null;
+      }
+      return total > 99 ? '99+' : '$total';
+    }
+
+    return null;
+  }
+}
+
 class CivicMapItem {
   final String id;
   final TargetRef targetRef;
@@ -30,7 +122,10 @@ class CivicMapItem {
   final ContentLocation? contentLocation;
   final double latitude;
   final double longitude;
+
+  /// Heat reale del contenuto già esistente nel sistema.
   final double heat;
+
   final int commentCount;
   final DateTime? createdAt;
 
@@ -48,6 +143,37 @@ class CivicMapItem {
     this.commentCount = 0,
     this.createdAt,
   });
+
+  double get normalizedHeat => CivicMapHeatRules.normalizeHeat(heat);
+
+  int get normalizedCommentCount =>
+      CivicMapHeatRules.normalizeCommentCount(commentCount);
+
+  /// Punteggio unico usato dalla mappa per:
+  /// - ordinamento
+  /// - styling
+  /// - badge/hot marker
+  double get mapHeatScore {
+    return CivicMapHeatRules.computeScore(
+      heat: normalizedHeat,
+      commentCount: normalizedCommentCount,
+    );
+  }
+
+  CivicMapHeatTier get heatTier {
+    return CivicMapHeatRules.resolveTierFromScore(mapHeatScore);
+  }
+
+  bool get isHot => heatTier == CivicMapHeatTier.hot;
+
+  bool get isActive => heatTier != CivicMapHeatTier.normal;
+
+  String? get heatBadgeLabel {
+    return CivicMapHeatRules.buildBadgeLabel(
+      heat: normalizedHeat,
+      commentCount: normalizedCommentCount,
+    );
+  }
 
   CivicMapItem copyWith({
     String? id,
@@ -409,10 +535,27 @@ class CivicMapController extends ChangeNotifier {
     final items = await loader(scope);
     final sanitized = items
         .where((item) => _isFinite(item.latitude) && _isFinite(item.longitude))
+        .map(_sanitizeItemMetrics)
         .toList();
 
     sanitized.sort(_sortItems);
     return sanitized;
+  }
+
+  CivicMapItem _sanitizeItemMetrics(CivicMapItem item) {
+    final normalizedHeat = CivicMapHeatRules.normalizeHeat(item.heat);
+    final normalizedCommentCount =
+        CivicMapHeatRules.normalizeCommentCount(item.commentCount);
+
+    if (normalizedHeat == item.heat &&
+        normalizedCommentCount == item.commentCount) {
+      return item;
+    }
+
+    return item.copyWith(
+      heat: normalizedHeat,
+      commentCount: normalizedCommentCount,
+    );
   }
 
   List<CivicMapItem> _normalizeAndSpreadItems(
@@ -609,7 +752,7 @@ class CivicMapController extends ChangeNotifier {
       normalizeText(readSafely(() => dynamicScope.cityName)),
       normalizeNum(readSafely(() => dynamicScope.centerLat) ?? scope.centerLat),
       normalizeNum(readSafely(() => dynamicScope.centerLng) ?? scope.centerLng),
-      normalizeNum(readSafely(() => dynamicScope.radiusKm)),
+      normalizeNum(readSafely(() => dynamicScope.radiusKm) ?? scope.radiusKm),
     ].join('|');
   }
 
@@ -625,10 +768,14 @@ class CivicMapController extends ChangeNotifier {
   }
 
   int _sortItems(CivicMapItem a, CivicMapItem b) {
-    final heatCompare = b.heat.compareTo(a.heat);
+    final scoreCompare = b.mapHeatScore.compareTo(a.mapHeatScore);
+    if (scoreCompare != 0) return scoreCompare;
+
+    final heatCompare = b.normalizedHeat.compareTo(a.normalizedHeat);
     if (heatCompare != 0) return heatCompare;
 
-    final commentsCompare = b.commentCount.compareTo(a.commentCount);
+    final commentsCompare =
+        b.normalizedCommentCount.compareTo(a.normalizedCommentCount);
     if (commentsCompare != 0) return commentsCompare;
 
     final aTime = a.createdAt?.millisecondsSinceEpoch ?? 0;
