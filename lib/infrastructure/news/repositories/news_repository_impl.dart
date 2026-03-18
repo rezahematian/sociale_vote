@@ -8,8 +8,8 @@ import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 
 import 'package:sociale_vote/infrastructure/news/aggregator/news_aggregator.dart';
-import 'package:sociale_vote/infrastructure/news/models/news_dto.dart';
 import 'package:sociale_vote/infrastructure/news/mappers/news_mapper.dart';
+import 'package:sociale_vote/infrastructure/news/models/news_dto.dart';
 
 class NewsRepositoryImpl implements NewsRepository {
   static const String _cacheTable = 'news_feed_cache';
@@ -115,7 +115,6 @@ class NewsRepositoryImpl implements NewsRepository {
     Object? lastRefreshError;
 
     for (final candidate in candidates) {
-      /// 1) prova cache fresca
       final freshCache = await _readCache(
         cacheKey: candidate.cacheKey,
         acceptStale: false,
@@ -140,38 +139,21 @@ class NewsRepositoryImpl implements NewsRepository {
         }
       }
 
-      /// 2) prova cache stale
       final staleCache = await _readCache(
         cacheKey: candidate.cacheKey,
         acceptStale: true,
       );
 
-      if (staleCache != null && staleCache.items.isNotEmpty) {
-        if (_cacheHasResolvedLocations(staleCache.items)) {
-          if (kDebugMode) {
-            debugPrint(
-              'NewsRepositoryImpl using stale cache for ${candidate.cacheKey}',
-            );
-          }
-
-          return _mapAndPaginate(
-            jsonList: staleCache.items,
-            countryCode: candidate.countryCode,
-            cityId: candidate.cityId,
-            limit: limit,
-            offset: offset,
-          );
-        }
-
-        if (kDebugMode) {
-          debugPrint(
-            'NewsRepositoryImpl stale cache found for ${candidate.cacheKey} '
-            'but it has no resolved locations, trying live refresh.',
-          );
-        }
+      if (staleCache != null &&
+          staleCache.items.isNotEmpty &&
+          _cacheHasResolvedLocations(staleCache.items) &&
+          kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl stale cache available for ${candidate.cacheKey}, '
+          'trying live refresh before fallback.',
+        );
       }
 
-      /// 3) se la cache non è mappa-ready, prova refresh live
       try {
         final refreshedItems = await _refreshCacheForCandidate(
           candidate,
@@ -198,7 +180,6 @@ class NewsRepositoryImpl implements NewsRepository {
         }
       }
 
-      /// 4) fallback finale: se refresh non migliora, usa comunque la cache
       if (freshCache != null && freshCache.items.isNotEmpty) {
         if (kDebugMode) {
           debugPrint(
@@ -364,8 +345,10 @@ class NewsRepositoryImpl implements NewsRepository {
 
       pendingJobs.add(() async {
         try {
-          final detectedLocation = await _detectContentLocationForDto(dto)
-              .timeout(_perArticleGeocodeTimeout);
+          final detectedLocation = await _detectContentLocationForDto(
+            dto,
+            rawJson: enriched,
+          ).timeout(_perArticleGeocodeTimeout);
 
           if (detectedLocation != null) {
             enriched['_sv_content_location'] = detectedLocation.toJson();
@@ -392,24 +375,158 @@ class NewsRepositoryImpl implements NewsRepository {
     return List<Map<String, dynamic>>.unmodifiable(output);
   }
 
-  Future<ContentLocation?> _detectContentLocationForDto(NewsDto dto) async {
+  Future<ContentLocation?> _detectContentLocationForDto(
+    NewsDto dto, {
+    Map<String, dynamic>? rawJson,
+  }) async {
+    final preferredSeed = rawJson == null
+        ? null
+        : _buildPreferredSeedContentLocationFromJson(rawJson);
+
+    if (preferredSeed != null) {
+      final resolvedFromSeed = await _tryResolveContentLocationSeed(
+        preferredSeed,
+      );
+      if (resolvedFromSeed != null) {
+        return resolvedFromSeed;
+      }
+    }
+
     final candidates = _extractLocationCandidates(dto);
 
     for (final candidate in candidates.take(_maxLocationCandidatesPerArticle)) {
-      try {
-        final seed = ContentLocation(
+      final cityOrCountrySeed = ContentLocation(
+        source: ContentLocationSource.manual,
+        countryCode: candidate.countryCode,
+        cityName: candidate.isCountryOnly ? null : candidate.query,
+      );
+
+      final resolvedCandidate = await _tryResolveContentLocationSeed(
+        cityOrCountrySeed,
+      );
+
+      if (resolvedCandidate != null) {
+        return resolvedCandidate;
+      }
+
+      if (!candidate.isCountryOnly && candidate.countryCode != null) {
+        final countryFallback = ContentLocation(
           source: ContentLocationSource.manual,
           countryCode: candidate.countryCode,
-          cityName: candidate.isCountryOnly ? null : candidate.query,
+          cityName: null,
         );
 
-        final resolved = await _geocodingRepository.geocodeContentLocation(seed);
+        final resolvedCountryFallback = await _tryResolveContentLocationSeed(
+          countryFallback,
+        );
 
-        if (resolved != null && (resolved.hasExactPoint || resolved.hasCenter)) {
-          return resolved;
+        if (resolvedCountryFallback != null) {
+          return resolvedCountryFallback;
         }
-      } catch (_) {
-        // best effort
+      }
+    }
+
+    return null;
+  }
+
+  Future<ContentLocation?> _tryResolveContentLocationSeed(
+    ContentLocation seed,
+  ) async {
+    try {
+      final resolved = await _geocodingRepository.geocodeContentLocation(seed);
+
+      if (resolved != null && (resolved.hasExactPoint || resolved.hasCenter)) {
+        return resolved;
+      }
+    } catch (_) {
+      // best effort
+    }
+
+    return null;
+  }
+
+  ContentLocation? _buildPreferredSeedContentLocationFromJson(
+    Map<String, dynamic> json,
+  ) {
+    final direct = _contentLocationFromRaw(json['_sv_content_location']);
+    if (direct != null) {
+      return direct;
+    }
+
+    final legacyDirect = _contentLocationFromRaw(json['content_location']);
+    if (legacyDirect != null) {
+      return legacyDirect;
+    }
+
+    final camelCaseLegacy = _contentLocationFromRaw(json['contentLocation']);
+    if (camelCaseLegacy != null) {
+      return camelCaseLegacy;
+    }
+
+    final underscoredLegacy = _contentLocationFromRaw(json['_content_location']);
+    if (underscoredLegacy != null) {
+      return underscoredLegacy;
+    }
+
+    return _buildFlatSeedContentLocationFromJson(json);
+  }
+
+  ContentLocation? _buildFlatSeedContentLocationFromJson(
+    Map<String, dynamic> json,
+  ) {
+    final countryCode = _firstNonEmptyString(
+      json,
+      const <String>[
+        'country_code',
+        'countryCode',
+        'country',
+        'country_name',
+        'countryName',
+      ],
+    );
+
+    final cityName = _firstNonEmptyString(
+      json,
+      const <String>[
+        'city',
+        'city_name',
+        'cityName',
+        'location_name',
+        'locationName',
+      ],
+    );
+
+    final normalizedCountryCode = countryCode == null
+        ? null
+        : (_countryCodeForAlias(countryCode) ?? countryCode.toUpperCase());
+
+    final normalizedCityName = cityName?.trim();
+
+    if ((normalizedCountryCode == null || normalizedCountryCode.isEmpty) &&
+        (normalizedCityName == null || normalizedCityName.isEmpty)) {
+      return null;
+    }
+
+    return ContentLocation(
+      source: ContentLocationSource.manual,
+      countryCode: normalizedCountryCode,
+      cityName: normalizedCityName,
+    );
+  }
+
+  String? _firstNonEmptyString(
+    Map<String, dynamic> json,
+    List<String> keys,
+  ) {
+    for (final key in keys) {
+      final value = json[key];
+      if (value == null) {
+        continue;
+      }
+
+      final text = value.toString().trim();
+      if (text.isNotEmpty) {
+        return text;
       }
     }
 
@@ -458,10 +575,41 @@ class NewsRepositoryImpl implements NewsRepository {
       required int leadPhraseBonus,
       required int countryScore,
       required int maxPhrases,
+      required bool prioritizePrimaryLead,
     }) {
       final cleaned = _stripHtml(text);
       if (cleaned.isEmpty) {
         return;
+      }
+
+      final datelinePair = _extractDatelineLocationPair(cleaned);
+      if (datelinePair != null) {
+        addCandidate(
+          datelinePair.cityName,
+          countryCode: datelinePair.countryCode,
+          isCountryOnly: false,
+          score: prioritizePrimaryLead ? phraseScore + 120 : phraseScore + 70,
+        );
+
+        addCandidate(
+          datelinePair.countryName,
+          countryCode: datelinePair.countryCode,
+          isCountryOnly: true,
+          score: prioritizePrimaryLead ? countryScore + 20 : countryScore,
+        );
+      }
+
+      final primaryLeadPhrases = _extractPrimaryLocationPhrases(cleaned);
+      for (final phrase in primaryLeadPhrases.take(3)) {
+        final countryCode = _countryCodeForAlias(phrase);
+        addCandidate(
+          phrase,
+          countryCode: countryCode,
+          isCountryOnly: countryCode != null,
+          score: prioritizePrimaryLead
+              ? phraseScore + leadPhraseBonus + 80
+              : phraseScore + leadPhraseBonus + 35,
+        );
       }
 
       final countryHits = _extractCountryHits(cleaned);
@@ -503,6 +651,7 @@ class NewsRepositoryImpl implements NewsRepository {
       leadPhraseBonus: 25,
       countryScore: 110,
       maxPhrases: 8,
+      prioritizePrimaryLead: true,
     );
     scanText(
       dto.description,
@@ -510,6 +659,7 @@ class NewsRepositoryImpl implements NewsRepository {
       leadPhraseBonus: 20,
       countryScore: 70,
       maxPhrases: 5,
+      prioritizePrimaryLead: false,
     );
     scanText(
       dto.content,
@@ -517,6 +667,7 @@ class NewsRepositoryImpl implements NewsRepository {
       leadPhraseBonus: 10,
       countryScore: 35,
       maxPhrases: 4,
+      prioritizePrimaryLead: false,
     );
 
     final blockedSources = <String>{};
@@ -530,7 +681,7 @@ class NewsRepositoryImpl implements NewsRepository {
       blockedSources.add(normalizedSourceId);
     }
 
-    final candidates = scored.values
+    var candidates = scored.values
         .map(
           (item) => _LocationCandidate(
             query: item.query,
@@ -545,6 +696,8 @@ class NewsRepositoryImpl implements NewsRepository {
         )
         .toList();
 
+    candidates = _rebalanceCountryVsCityCandidates(candidates);
+
     candidates.sort((a, b) {
       final byScore = b.score.compareTo(a.score);
       if (byScore != 0) return byScore;
@@ -553,10 +706,160 @@ class NewsRepositoryImpl implements NewsRepository {
         return a.isCountryOnly ? 1 : -1;
       }
 
+      final aHasCountryHint = a.countryCode != null && !a.isCountryOnly;
+      final bHasCountryHint = b.countryCode != null && !b.isCountryOnly;
+      if (aHasCountryHint != bHasCountryHint) {
+        return aHasCountryHint ? -1 : 1;
+      }
+
       return a.query.length.compareTo(b.query.length);
     });
 
     return candidates;
+  }
+
+  List<_LocationCandidate> _rebalanceCountryVsCityCandidates(
+    List<_LocationCandidate> candidates,
+  ) {
+    if (candidates.isEmpty) {
+      return const <_LocationCandidate>[];
+    }
+
+    return candidates.map((candidate) {
+      if (!candidate.isCountryOnly || candidate.countryCode == null) {
+        return candidate;
+      }
+
+      final hasCityCandidateForSameCountry = candidates.any(
+        (other) =>
+            !other.isCountryOnly &&
+            other.countryCode != null &&
+            other.countryCode == candidate.countryCode,
+      );
+
+      if (!hasCityCandidateForSameCountry) {
+        return candidate;
+      }
+
+      return _LocationCandidate(
+        query: candidate.query,
+        countryCode: candidate.countryCode,
+        isCountryOnly: candidate.isCountryOnly,
+        score: candidate.score - 35,
+      );
+    }).toList(growable: false);
+  }
+
+  _DatelineLocationPair? _extractDatelineLocationPair(String text) {
+    final cleaned = text
+        .replaceAll(RegExp(r'<[^>]*>'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    if (cleaned.isEmpty) {
+      return null;
+    }
+
+    final openingWindow = cleaned.length <= 120
+        ? cleaned
+        : cleaned.substring(0, 120);
+
+    final regex = RegExp(
+      r"^\s*((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})\s*,\s*((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})\s*(?:-|—|:)",
+    );
+
+    final match = regex.firstMatch(openingWindow);
+    if (match == null) {
+      return null;
+    }
+
+    final cityName = match.group(1)?.trim();
+    final countryName = match.group(2)?.trim();
+
+    if (cityName == null ||
+        countryName == null ||
+        !_looksLikeLocationPhrase(cityName) ||
+        !_looksLikeLocationPhrase(countryName)) {
+      return null;
+    }
+
+    final countryCode = _countryCodeForAlias(countryName);
+    if (countryCode == null) {
+      return null;
+    }
+
+    return _DatelineLocationPair(
+      cityName: cityName,
+      countryName: countryName,
+      countryCode: countryCode,
+    );
+  }
+
+  List<String> _extractPrimaryLocationPhrases(String text) {
+    final cleaned = text
+        .replaceAll(RegExp(r'<[^>]*>'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    if (cleaned.isEmpty) {
+      return const <String>[];
+    }
+
+    final output = <String>[];
+    final seen = <String>{};
+
+    void addIfValid(String? phrase) {
+      if (phrase == null) return;
+      final candidate = phrase.trim();
+      if (!_looksLikeLocationPhrase(candidate)) {
+        return;
+      }
+
+      final signature = candidate.toLowerCase();
+      if (seen.add(signature)) {
+        output.add(candidate);
+      }
+    }
+
+    final openingWindow = cleaned.length <= 160
+        ? cleaned
+        : cleaned.substring(0, 160);
+
+    final datelineRegex = RegExp(
+      r"^\s*((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})(?:,\s*((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2}))?\s*(?:-|—|:)",
+    );
+
+    final datelineMatch = datelineRegex.firstMatch(openingWindow);
+    if (datelineMatch != null) {
+      addIfValid(datelineMatch.group(1));
+      addIfValid(datelineMatch.group(2));
+    }
+
+    final segmentRegex = RegExp(r'^(.{0,80}?)(?:\s[-—:]\s|,\s)');
+    final segmentMatch = segmentRegex.firstMatch(openingWindow);
+    if (segmentMatch != null) {
+      final segment = segmentMatch.group(1)?.trim();
+      if (segment != null && segment.isNotEmpty) {
+        for (final phrase in _extractLeadLocationPhrases(segment)) {
+          addIfValid(phrase);
+        }
+        for (final phrase in _extractProperNounPhrases(segment).take(2)) {
+          addIfValid(phrase);
+        }
+      }
+    }
+
+    final openingPrepositionRegex = RegExp(
+      r"^(?:in|at|from|near|inside|outside|around|across)\s+((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})\b",
+    );
+
+    final openingPrepositionMatch =
+        openingPrepositionRegex.firstMatch(openingWindow);
+    if (openingPrepositionMatch != null) {
+      addIfValid(openingPrepositionMatch.group(1));
+    }
+
+    return output;
   }
 
   List<String> _extractLeadLocationPhrases(String text) {
@@ -673,99 +976,163 @@ class NewsRepositoryImpl implements NewsRepository {
       return false;
     }
 
+    final normalized = phrase.trim().toLowerCase();
+    if (_countryAliases.containsKey(normalized)) {
+      return true;
+    }
+
+    if (RegExp(r'^[A-Z]{2,4}$').hasMatch(phrase)) {
+      return false;
+    }
+
     const blockedSingleWords = <String>{
-      'The',
-      'Breaking',
-      'Live',
-      'Watch',
-      'Video',
-      'Opinion',
-      'Analysis',
-      'Explainer',
-      'Update',
-      'Updated',
-      'Review',
-      'News',
-      'World',
-      'Business',
-      'Technology',
-      'Sport',
-      'Sports',
-      'Politics',
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-      'How',
-      'Why',
-      'What',
-      'When',
-      'Where',
-      'Who',
-      'This',
-      'That',
-      'These',
-      'Those',
-      'Reuters',
-      'Guardian',
-      'Bloomberg',
-      'CNN',
-      'BBC',
-      'Google',
-      'Apple',
-      'Microsoft',
-      'Meta',
-      'TikTok',
+      'the',
+      'breaking',
+      'live',
+      'watch',
+      'video',
+      'opinion',
+      'analysis',
+      'explainer',
+      'update',
+      'updated',
+      'review',
+      'news',
+      'world',
+      'business',
+      'technology',
+      'sport',
+      'sports',
+      'politics',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
+      'january',
+      'february',
+      'march',
+      'april',
+      'may',
+      'june',
+      'july',
+      'august',
+      'september',
+      'october',
+      'november',
+      'december',
+      'how',
+      'why',
+      'what',
+      'when',
+      'where',
+      'who',
+      'this',
+      'that',
+      'these',
+      'those',
+      'reuters',
+      'guardian',
+      'bloomberg',
+      'cnn',
+      'bbc',
+      'google',
+      'apple',
+      'microsoft',
+      'meta',
+      'tiktok',
+      'president',
+      'prime',
+      'minister',
+      'government',
+      'officials',
+      'official',
+      'police',
+      'army',
+      'military',
+      'border',
+      'market',
+      'court',
+      'congress',
+      'parliament',
+      'senate',
+      'house',
+      'state',
+      'nation',
+      'regional',
+      'global',
+      'international',
+      'exclusive',
+      'editorial',
+      'podcast',
+      'newsletter',
+      'photo',
+      'photos',
+      'image',
+      'images',
+      'gallery',
+      'commentary',
+      'interview',
+      'briefing',
+      'report',
+      'reports',
     };
 
     const blockedExactPhrases = <String>{
-      'Associated Press',
-      'Al Jazeera',
-      'New York Times',
-      'Washington Post',
-      'Wall Street Journal',
-      'Financial Times',
-      'Fox News',
-      'BBC News',
+      'associated press',
+      'al jazeera',
+      'new york times',
+      'washington post',
+      'wall street journal',
+      'financial times',
+      'fox news',
+      'bbc news',
+      'prime minister',
+      'white house',
+      'european union',
+      'united nations',
+      'breaking news',
+      'live updates',
     };
 
     const blockedSuffixes = <String>{
-      'Times',
-      'News',
-      'Post',
-      'Journal',
-      'Herald',
-      'Media',
-      'TV',
-      'Today',
-      'Online',
+      'times',
+      'news',
+      'post',
+      'journal',
+      'herald',
+      'media',
+      'tv',
+      'today',
+      'online',
+      'group',
+      'agency',
+      'committee',
+      'office',
+      'ministry',
+      'department',
+      'network',
     };
 
     final parts = phrase.split(RegExp(r'\s+'));
-    if (parts.length == 1 && blockedSingleWords.contains(parts.first)) {
+    final normalizedParts = parts.map((part) => part.toLowerCase()).toList();
+
+    if (parts.length == 1 &&
+        blockedSingleWords.contains(normalizedParts.first)) {
       return false;
     }
 
-    if (blockedExactPhrases.contains(phrase)) {
+    if (blockedExactPhrases.contains(normalized)) {
       return false;
     }
 
-    if (parts.length >= 2 && blockedSuffixes.contains(parts.last)) {
+    if (parts.length >= 2 && blockedSuffixes.contains(normalizedParts.last)) {
+      return false;
+    }
+
+    if (normalizedParts.every(blockedSingleWords.contains)) {
       return false;
     }
 
@@ -955,8 +1322,30 @@ class NewsRepositoryImpl implements NewsRepository {
   }
 
   ContentLocation? _readEmbeddedContentLocation(Map<String, dynamic> json) {
-    final raw = json['_sv_content_location'];
+    final direct = _contentLocationFromRaw(json['_sv_content_location']);
+    if (direct != null) {
+      return direct;
+    }
 
+    final legacyDirect = _contentLocationFromRaw(json['content_location']);
+    if (legacyDirect != null) {
+      return legacyDirect;
+    }
+
+    final camelCaseLegacy = _contentLocationFromRaw(json['contentLocation']);
+    if (camelCaseLegacy != null) {
+      return camelCaseLegacy;
+    }
+
+    final underscoredLegacy = _contentLocationFromRaw(json['_content_location']);
+    if (underscoredLegacy != null) {
+      return underscoredLegacy;
+    }
+
+    return _buildFlatSeedContentLocationFromJson(json);
+  }
+
+  ContentLocation? _contentLocationFromRaw(dynamic raw) {
     if (raw is Map<String, dynamic>) {
       return ContentLocation.fromJson(raw);
     }
@@ -1255,6 +1644,18 @@ class _CountryHit {
 
   const _CountryHit({
     required this.label,
+    required this.countryCode,
+  });
+}
+
+class _DatelineLocationPair {
+  final String cityName;
+  final String countryName;
+  final String countryCode;
+
+  const _DatelineLocationPair({
+    required this.cityName,
+    required this.countryName,
     required this.countryCode,
   });
 }

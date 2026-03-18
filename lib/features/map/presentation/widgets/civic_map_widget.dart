@@ -157,7 +157,7 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     }
 
     if (selected) {
-      size += 8;
+      size += 10;
     }
 
     return size;
@@ -178,7 +178,7 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
       final badgeText = item.heatBadgeLabel;
 
       final markerBoxSize =
-          markerSize + (selected ? 28 : 18) + (badgeText != null ? 22 : 8);
+          markerSize + (selected ? 34 : 20) + (badgeText != null ? 24 : 8);
 
       return Marker(
         point: point,
@@ -264,31 +264,31 @@ class _MapMarkerVisual extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final haloSize = size + (selected ? 22 : 12);
     final accentRingSize = size + _accentRingExtraSize();
+    final selectedRingSize = size + 20;
 
     return Center(
       child: SizedBox(
-        width: haloSize + 8,
-        height: haloSize + 8,
+        width: selected ? size + 36 : size + 18,
+        height: selected ? size + 36 : size + 18,
         child: Stack(
           clipBehavior: Clip.none,
           alignment: Alignment.center,
           children: [
             if (selected)
               Container(
-                width: size + 18,
-                height: size + 18,
+                width: selectedRingSize,
+                height: selectedRingSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: const Color(0xFF1F2937).withOpacity(0.92),
-                    width: 3,
+                    color: const Color(0xFF111827),
+                    width: 3.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF111827).withOpacity(0.20),
-                      blurRadius: 14,
+                      color: const Color(0xFF111827).withOpacity(0.24),
+                      blurRadius: 16,
                       spreadRadius: 1,
                     ),
                   ],
@@ -374,8 +374,8 @@ class _MapMarkerVisual extends StatelessWidget {
   }
 
   double _iconSize() {
-    if (size >= 60) return 25;
-    if (size >= 52) return 23;
+    if (size >= 62) return 25;
+    if (size >= 54) return 23;
     if (size >= 46) return 21;
     return 18;
   }
@@ -385,9 +385,9 @@ class _MapMarkerVisual extends StatelessWidget {
       case CivicMapHeatTier.normal:
         return 0;
       case CivicMapHeatTier.active:
-        return 8;
+        return 10;
       case CivicMapHeatTier.hot:
-        return 12;
+        return 14;
     }
   }
 
@@ -396,9 +396,9 @@ class _MapMarkerVisual extends StatelessWidget {
       case CivicMapHeatTier.normal:
         return 0;
       case CivicMapHeatTier.active:
-        return 2;
+        return 2.2;
       case CivicMapHeatTier.hot:
-        return 2.5;
+        return 3;
     }
   }
 
@@ -407,31 +407,31 @@ class _MapMarkerVisual extends StatelessWidget {
       case CivicMapHeatTier.normal:
         return Colors.transparent;
       case CivicMapHeatTier.active:
-        return Colors.amber.shade700.withOpacity(0.70);
+        return Colors.amber.shade700.withOpacity(0.78);
       case CivicMapHeatTier.hot:
-        return Colors.deepOrangeAccent.withOpacity(0.82);
+        return Colors.deepOrangeAccent.withOpacity(0.90);
     }
   }
 
   Color _glowColor() {
     switch (tier) {
       case CivicMapHeatTier.normal:
-        return color.withOpacity(selected ? 0.26 : 0.18);
+        return color.withOpacity(selected ? 0.26 : 0.16);
       case CivicMapHeatTier.active:
-        return Colors.amber.withOpacity(selected ? 0.38 : 0.30);
+        return Colors.amber.withOpacity(selected ? 0.42 : 0.30);
       case CivicMapHeatTier.hot:
-        return Colors.deepOrange.withOpacity(selected ? 0.46 : 0.38);
+        return Colors.deepOrange.withOpacity(selected ? 0.52 : 0.40);
     }
   }
 
   double _glowBlurRadius() {
     switch (tier) {
       case CivicMapHeatTier.normal:
-        return selected ? 16 : 12;
+        return selected ? 16 : 11;
       case CivicMapHeatTier.active:
-        return selected ? 20 : 16;
+        return selected ? 22 : 16;
       case CivicMapHeatTier.hot:
-        return selected ? 24 : 20;
+        return selected ? 28 : 21;
     }
   }
 

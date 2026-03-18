@@ -246,6 +246,10 @@ class CivicMapController extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   final List<CivicMapItem> _allItems = <CivicMapItem>[];
+  final List<CivicMapItem> _pollItems = <CivicMapItem>[];
+  final List<CivicMapItem> _postItems = <CivicMapItem>[];
+  final List<CivicMapItem> _newsItems = <CivicMapItem>[];
+
   List<CivicMapItem> get allItems => List.unmodifiable(_allItems);
 
   Set<CivicMapItemType> _visibleTypes = <CivicMapItemType>{
@@ -346,15 +350,10 @@ class CivicMapController extends ChangeNotifier {
     );
   }
 
-  /// Refresh esplicito per aggiornare heat/commenti mantenendo il contenuto
-  /// selezionato, se ancora presente nello stesso scope.
   Future<void> refreshMetrics() async {
     await refresh();
   }
 
-  /// Patch locale dei contatori per uno specifico item già presente in mappa.
-  /// Utile quando una detail page restituisce valori aggiornati e si vuole
-  /// rifletterli subito senza aspettare un reload completo.
   void patchItemMetrics({
     required TargetRef targetRef,
     double? heat,
@@ -365,39 +364,48 @@ class CivicMapController extends ChangeNotifier {
 
     var changed = false;
 
-    for (var i = 0; i < _allItems.length; i++) {
-      final item = _allItems[i];
-      if (_targetRefKey(item.targetRef) != targetKey) {
-        continue;
+    bool patchList(List<CivicMapItem> items) {
+      var localChanged = false;
+
+      for (var i = 0; i < items.length; i++) {
+        final item = items[i];
+        if (_targetRefKey(item.targetRef) != targetKey) {
+          continue;
+        }
+
+        final nextHeat =
+            heat == null ? item.heat : CivicMapHeatRules.normalizeHeat(heat);
+        final nextCommentCount = commentCount == null
+            ? item.commentCount
+            : CivicMapHeatRules.normalizeCommentCount(commentCount);
+
+        if (nextHeat == item.heat && nextCommentCount == item.commentCount) {
+          continue;
+        }
+
+        items[i] = item.copyWith(
+          heat: nextHeat,
+          commentCount: nextCommentCount,
+        );
+        localChanged = true;
       }
 
-      final nextHeat =
-          heat == null ? item.heat : CivicMapHeatRules.normalizeHeat(heat);
-      final nextCommentCount = commentCount == null
-          ? item.commentCount
-          : CivicMapHeatRules.normalizeCommentCount(commentCount);
-
-      if (nextHeat == item.heat && nextCommentCount == item.commentCount) {
-        continue;
-      }
-
-      _allItems[i] = item.copyWith(
-        heat: nextHeat,
-        commentCount: nextCommentCount,
-      );
-      changed = true;
+      return localChanged;
     }
+
+    changed = patchList(_pollItems) || changed;
+    changed = patchList(_postItems) || changed;
+    changed = patchList(_newsItems) || changed;
 
     if (!changed) {
       return;
     }
 
-    _allItems.sort(_sortItems);
+    _rebuildMergedItems();
     _reconcileSelectionAfterDataChange();
     notifyListeners();
   }
 
-  /// Patch locale applicata all'item attualmente selezionato.
   void patchSelectedItemMetrics({
     double? heat,
     int? commentCount,
@@ -446,6 +454,7 @@ class CivicMapController extends ChangeNotifier {
   }) async {
     final requestId = ++_loadRequestId;
     final scopeChanged = !_isSameScope(_currentScope, scope);
+    final sameScope = !scopeChanged;
 
     _currentScope = scope;
     _setStatus(CivicMapStatus.loading);
@@ -458,6 +467,9 @@ class CivicMapController extends ChangeNotifier {
 
     if (scopeChanged) {
       _allItems.clear();
+      _pollItems.clear();
+      _postItems.clear();
+      _newsItems.clear();
     }
 
     notifyListeners();
@@ -484,26 +496,38 @@ class CivicMapController extends ChangeNotifier {
       return;
     }
 
-    final merged = <CivicMapItem>[];
     final errors = <String>[];
 
+    final pollResult = results[0];
+    final postResult = results[1];
+    final newsResult = results[2];
+
+    _applySourceResult(
+      store: _pollItems,
+      result: pollResult,
+      preservePreviousOnError: sameScope,
+      preservePreviousOnEmpty: sameScope,
+    );
+    _applySourceResult(
+      store: _postItems,
+      result: postResult,
+      preservePreviousOnError: sameScope,
+      preservePreviousOnEmpty: sameScope,
+    );
+    _applySourceResult(
+      store: _newsItems,
+      result: newsResult,
+      preservePreviousOnError: sameScope,
+      preservePreviousOnEmpty: sameScope,
+    );
+
     for (final result in results) {
-      merged.addAll(result.items);
       if (result.hasError) {
         errors.add('${result.sourceName}: ${result.error}');
       }
     }
 
-    final normalized = _normalizeAndSpreadItems(merged, scope);
-
-    if (!_isLatestRequest(requestId, scope)) {
-      return;
-    }
-
-    _allItems
-      ..clear()
-      ..addAll(normalized);
-
+    _rebuildMergedItems();
     _reconcileSelectionAfterReload();
 
     if (_allItems.isNotEmpty) {
@@ -523,6 +547,38 @@ class CivicMapController extends ChangeNotifier {
     _setStatus(CivicMapStatus.empty);
     _errorMessage = null;
     notifyListeners();
+  }
+
+  void _applySourceResult({
+    required List<CivicMapItem> store,
+    required _CivicMapLoadResult result,
+    required bool preservePreviousOnError,
+    required bool preservePreviousOnEmpty,
+  }) {
+    if (result.hasError && preservePreviousOnError) {
+      return;
+    }
+
+    final hasPreviousData = store.isNotEmpty;
+    final incomingIsEmpty = result.items.isEmpty;
+
+    if (preservePreviousOnEmpty && hasPreviousData && incomingIsEmpty) {
+      return;
+    }
+
+    store
+      ..clear()
+      ..addAll(result.items);
+  }
+
+  void _rebuildMergedItems() {
+    _allItems
+      ..clear()
+      ..addAll(_pollItems)
+      ..addAll(_postItems)
+      ..addAll(_newsItems);
+
+    _allItems.sort(_sortItems);
   }
 
   void setVisibleTypes(Set<CivicMapItemType> types) {
@@ -587,7 +643,8 @@ class CivicMapController extends ChangeNotifier {
   void selectItem(CivicMapItem item) {
     final nextTargetRefKey = _targetRefKey(item.targetRef);
 
-    if (_selectedItemId == item.id && _selectedTargetRefKey == nextTargetRefKey) {
+    if (_selectedItemId == item.id &&
+        _selectedTargetRefKey == nextTargetRefKey) {
       return;
     }
 
@@ -885,13 +942,6 @@ class CivicMapController extends ChangeNotifier {
       return (value ?? '').toString().trim().toLowerCase();
     }
 
-    String normalizeNum(Object? value) {
-      if (value is num) {
-        return value.toStringAsFixed(6);
-      }
-      return '';
-    }
-
     return <String>[
       normalizeText(readSafely(() => dynamicScope.level) ?? scope.level),
       normalizeText(readSafely(() => dynamicScope.id)),
@@ -902,9 +952,6 @@ class CivicMapController extends ChangeNotifier {
       normalizeText(readSafely(() => dynamicScope.countryName)),
       normalizeText(readSafely(() => dynamicScope.cityId)),
       normalizeText(readSafely(() => dynamicScope.cityName)),
-      normalizeNum(readSafely(() => dynamicScope.centerLat) ?? scope.centerLat),
-      normalizeNum(readSafely(() => dynamicScope.centerLng) ?? scope.centerLng),
-      normalizeNum(readSafely(() => dynamicScope.radiusKm) ?? scope.radiusKm),
     ].join('|');
   }
 
