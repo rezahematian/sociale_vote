@@ -58,7 +58,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
             onPressed: controller.isLoading
                 ? null
                 : () {
-                    controller.refresh();
+                    controller.refreshMetrics();
                   },
             icon: controller.isLoading
                 ? const SizedBox(
@@ -94,6 +94,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                           onClose: controller.clearSelection,
                           onOpen: () => _openTarget(
                             context,
+                            controller,
                             controller.selectedItem!.targetRef,
                           ),
                         ),
@@ -239,7 +240,11 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
     ].join('|');
   }
 
-  Future<void> _openTarget(BuildContext context, TargetRef targetRef) async {
+  Future<void> _openTarget(
+    BuildContext context,
+    CivicMapController controller,
+    TargetRef targetRef,
+  ) async {
     final targetId = _readTargetRefId(targetRef);
     if (targetId == null || targetId.trim().isEmpty) {
       return;
@@ -247,17 +252,21 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
 
     switch (targetRef.type) {
       case TargetType.poll:
-        Navigator.of(context).pushNamed(
+        await Navigator.of(context).pushNamed(
           AppRouter.pollDetail,
           arguments: PollId(targetId),
         );
+        if (!context.mounted) return;
+        await controller.refreshMetrics();
         return;
 
       case TargetType.post:
-        Navigator.of(context).pushNamed(
+        await Navigator.of(context).pushNamed(
           AppRouter.socialDetail,
           arguments: targetId,
         );
+        if (!context.mounted) return;
+        await controller.refreshMetrics();
         return;
 
       case TargetType.news:
@@ -273,11 +282,13 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
           return;
         }
 
-        Navigator.of(context).push(
+        await Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => NewsDetailPage(news: newsItem),
           ),
         );
+        if (!context.mounted) return;
+        await controller.refreshMetrics();
         return;
 
       default:
@@ -425,9 +436,6 @@ class _MarkerPreviewCard extends StatelessWidget {
     final title = item.title.trim().isEmpty ? 'Contenuto' : item.title.trim();
     final previewText = _buildPreviewText(item);
     final typeColor = _typeColor(item.type);
-    final hasMeta = item.normalizedHeat.toInt() > 0 ||
-        item.normalizedCommentCount > 0 ||
-        item.createdAt != null;
 
     return Material(
       color: theme.colorScheme.surface,
@@ -523,9 +531,7 @@ class _MarkerPreviewCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
-                  child: hasMeta
-                      ? _PreviewMetaRow(item: item)
-                      : const SizedBox.shrink(),
+                  child: _PreviewMetaRow(item: item),
                 ),
                 const SizedBox(width: 12),
                 FilledButton.icon(
@@ -627,42 +633,10 @@ class _PreviewMetaRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final entries = <Widget>[];
 
     final heat = item.normalizedHeat.toInt();
     final comments = item.normalizedCommentCount;
-    final timeText = _formatRelativeTime(item.createdAt);
-
-    if (heat > 0) {
-      entries.add(
-        _MetaInlineItem(
-          icon: Icons.local_fire_department_outlined,
-          text: '$heat',
-        ),
-      );
-    }
-
-    if (comments > 0) {
-      entries.add(
-        _MetaInlineItem(
-          icon: Icons.mode_comment_outlined,
-          text: '$comments',
-        ),
-      );
-    }
-
-    if (timeText != null) {
-      entries.add(
-        _MetaInlineItem(
-          icon: Icons.schedule_outlined,
-          text: timeText,
-        ),
-      );
-    }
-
-    if (entries.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    final timeText = _formatRelativeTime(item.createdAt) ?? '—';
 
     return DefaultTextStyle(
       style: theme.textTheme.bodySmall!.copyWith(
@@ -673,7 +647,20 @@ class _PreviewMetaRow extends StatelessWidget {
         spacing: 12,
         runSpacing: 6,
         crossAxisAlignment: WrapCrossAlignment.center,
-        children: entries,
+        children: [
+          _MetaInlineItem(
+            icon: Icons.local_fire_department_outlined,
+            text: '$heat',
+          ),
+          _MetaInlineItem(
+            icon: Icons.mode_comment_outlined,
+            text: '$comments',
+          ),
+          _MetaInlineItem(
+            icon: Icons.schedule_outlined,
+            text: timeText,
+          ),
+        ],
       ),
     );
   }

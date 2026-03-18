@@ -151,6 +151,16 @@ class UserRepositoryImpl implements UserRepository {
   }
 }
 
+class _TargetEngagementSnapshot {
+  final int heat;
+  final int commentCount;
+
+  const _TargetEngagementSnapshot({
+    required this.heat,
+    required this.commentCount,
+  });
+}
+
 class AppDI {
   AppDI._internal() {
     _sessionRepository.watchCurrentUserId().listen((userId) {
@@ -837,7 +847,8 @@ class AppDI {
     }
 
     if (scopeCountryCode != null) {
-      final entityCountryCode = _normalizeGeoValue(_readEntityCountryCode(entity));
+      final entityCountryCode =
+          _normalizeGeoValue(_readEntityCountryCode(entity));
       if (entityCountryCode != null) {
         return entityCountryCode == scopeCountryCode;
       }
@@ -961,8 +972,7 @@ class AppDI {
         continue;
       }
 
-      final heat = await _loadReactionCountForTarget(targetRef);
-      final commentCount = await _loadCommentCountForTarget(targetRef);
+      final engagement = await _loadEngagementSnapshotForTarget(targetRef);
 
       items.add(
         CivicMapItem(
@@ -975,8 +985,8 @@ class AppDI {
           contentLocation: _readEntityContentLocation(entity),
           latitude: point.$1,
           longitude: point.$2,
-          heat: heat.toDouble(),
-          commentCount: commentCount,
+          heat: engagement.heat.toDouble(),
+          commentCount: engagement.commentCount,
           createdAt: _readEntityCreatedAt(entity),
         ),
       );
@@ -1520,58 +1530,90 @@ class AppDI {
     return DateTime.tryParse(value.toString());
   }
 
+  Future<_TargetEngagementSnapshot> _loadEngagementSnapshotForTarget(
+    TargetRef targetRef,
+  ) async {
+    final values = await Future.wait<int>([
+      _loadReactionCountForTarget(targetRef),
+      _loadCommentCountForTarget(targetRef),
+    ]);
+
+    return _TargetEngagementSnapshot(
+      heat: values[0],
+      commentCount: values[1],
+    );
+  }
+
   Future<int> _loadReactionCountForTarget(TargetRef targetRef) async {
     try {
-      final dynamic useCase = getReactionSummary;
-      final dynamic summary = await useCase(target: targetRef);
+      final summaries = await getReactionSummary([targetRef]);
 
-      try {
-        final dynamic totalCount = summary.totalCount;
-        if (totalCount is num) {
-          return totalCount.toInt();
-        }
-      } catch (_) {}
+      if (summaries.isEmpty) {
+        return 0;
+      }
 
-      num total = 0;
-
-      try {
-        final dynamic fireCount = summary.fireCount;
-        if (fireCount is num) {
-          total += fireCount;
-        }
-      } catch (_) {}
-
-      try {
-        final dynamic iceCount = summary.iceCount;
-        if (iceCount is num) {
-          total += iceCount;
-        }
-      } catch (_) {}
-
-      try {
-        final dynamic upCount = summary.upCount;
-        if (upCount is num) {
-          total += upCount;
-        }
-      } catch (_) {}
-
-      try {
-        final dynamic downCount = summary.downCount;
-        if (downCount is num) {
-          total += downCount;
-        }
-      } catch (_) {}
-
-      return total.toInt();
+      return _extractReactionTotal(summaries.first);
     } catch (_) {
       return 0;
     }
   }
 
+  int _extractReactionTotal(dynamic summary) {
+    if (summary == null) {
+      return 0;
+    }
+
+    num total = 0;
+    bool hasBreakdown = false;
+
+    void addIfNum(dynamic value) {
+      if (value is num) {
+        total += value;
+        hasBreakdown = true;
+      }
+    }
+
+    try {
+      addIfNum(summary.likeCount);
+    } catch (_) {}
+
+    try {
+      addIfNum(summary.dislikeCount);
+    } catch (_) {}
+
+    try {
+      addIfNum(summary.fireCount);
+    } catch (_) {}
+
+    try {
+      addIfNum(summary.iceCount);
+    } catch (_) {}
+
+    try {
+      addIfNum(summary.upCount);
+    } catch (_) {}
+
+    try {
+      addIfNum(summary.downCount);
+    } catch (_) {}
+
+    if (hasBreakdown) {
+      return total.toInt();
+    }
+
+    try {
+      final dynamic totalCount = summary.totalCount;
+      if (totalCount is num) {
+        return totalCount.toInt();
+      }
+    } catch (_) {}
+
+    return 0;
+  }
+
   Future<int> _loadCommentCountForTarget(TargetRef targetRef) async {
     try {
-      final dynamic useCase = getCommentCountForTarget;
-      final dynamic result = await useCase(target: targetRef);
+      final dynamic result = await getCommentCountForTarget(targetRef);
 
       if (result is int) {
         return result;

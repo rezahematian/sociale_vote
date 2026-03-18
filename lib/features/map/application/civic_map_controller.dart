@@ -101,7 +101,8 @@ class CivicMapHeatRules {
     }
 
     if (tier == CivicMapHeatTier.active) {
-      final total = normalizeHeat(heat).toInt() + normalizeCommentCount(commentCount);
+      final total =
+          normalizeHeat(heat).toInt() + normalizeCommentCount(commentCount);
       if (total <= 0) {
         return null;
       }
@@ -257,18 +258,32 @@ class CivicMapController extends ChangeNotifier {
   String? _selectedItemId;
   String? get selectedItemId => _selectedItemId;
 
+  String? _selectedTargetRefKey;
+  String? get selectedTargetRefKey => _selectedTargetRefKey;
+
   int _loadRequestId = 0;
   Future<void>? _activeLoadFuture;
   String? _activeLoadScopeKey;
 
   CivicMapItem? get selectedItem {
-    if (_selectedItemId == null) return null;
+    if (_selectedItemId == null && _selectedTargetRefKey == null) {
+      return null;
+    }
 
     for (final item in visibleItems) {
-      if (item.id == _selectedItemId) {
+      if (_selectedItemId != null && item.id == _selectedItemId) {
         return item;
       }
     }
+
+    if (_selectedTargetRefKey != null) {
+      for (final item in visibleItems) {
+        if (_targetRefKey(item.targetRef) == _selectedTargetRefKey) {
+          return item;
+        }
+      }
+    }
+
     return null;
   }
 
@@ -331,6 +346,72 @@ class CivicMapController extends ChangeNotifier {
     );
   }
 
+  /// Refresh esplicito per aggiornare heat/commenti mantenendo il contenuto
+  /// selezionato, se ancora presente nello stesso scope.
+  Future<void> refreshMetrics() async {
+    await refresh();
+  }
+
+  /// Patch locale dei contatori per uno specifico item già presente in mappa.
+  /// Utile quando una detail page restituisce valori aggiornati e si vuole
+  /// rifletterli subito senza aspettare un reload completo.
+  void patchItemMetrics({
+    required TargetRef targetRef,
+    double? heat,
+    int? commentCount,
+  }) {
+    final targetKey = _targetRefKey(targetRef);
+    if (targetKey == null) return;
+
+    var changed = false;
+
+    for (var i = 0; i < _allItems.length; i++) {
+      final item = _allItems[i];
+      if (_targetRefKey(item.targetRef) != targetKey) {
+        continue;
+      }
+
+      final nextHeat =
+          heat == null ? item.heat : CivicMapHeatRules.normalizeHeat(heat);
+      final nextCommentCount = commentCount == null
+          ? item.commentCount
+          : CivicMapHeatRules.normalizeCommentCount(commentCount);
+
+      if (nextHeat == item.heat && nextCommentCount == item.commentCount) {
+        continue;
+      }
+
+      _allItems[i] = item.copyWith(
+        heat: nextHeat,
+        commentCount: nextCommentCount,
+      );
+      changed = true;
+    }
+
+    if (!changed) {
+      return;
+    }
+
+    _allItems.sort(_sortItems);
+    _reconcileSelectionAfterDataChange();
+    notifyListeners();
+  }
+
+  /// Patch locale applicata all'item attualmente selezionato.
+  void patchSelectedItemMetrics({
+    double? heat,
+    int? commentCount,
+  }) {
+    final item = selectedItem;
+    if (item == null) return;
+
+    patchItemMetrics(
+      targetRef: item.targetRef,
+      heat: heat,
+      commentCount: commentCount,
+    );
+  }
+
   Future<void> _queueLoadForScope(
     GeoScope scope, {
     required bool clearSelection,
@@ -372,6 +453,7 @@ class CivicMapController extends ChangeNotifier {
 
     if (clearSelection || scopeChanged) {
       _selectedItemId = null;
+      _selectedTargetRefKey = null;
     }
 
     if (scopeChanged) {
@@ -422,6 +504,8 @@ class CivicMapController extends ChangeNotifier {
       ..clear()
       ..addAll(normalized);
 
+    _reconcileSelectionAfterReload();
+
     if (_allItems.isNotEmpty) {
       _setStatus(CivicMapStatus.loaded);
       _errorMessage = errors.isEmpty ? null : errors.join(' | ');
@@ -452,7 +536,11 @@ class CivicMapController extends ChangeNotifier {
 
     if (_selectedItemId != null &&
         !visibleItems.any((item) => item.id == _selectedItemId)) {
-      _selectedItemId = null;
+      final selected = selectedItem;
+      if (selected == null) {
+        _selectedItemId = null;
+        _selectedTargetRefKey = null;
+      }
     }
 
     notifyListeners();
@@ -475,18 +563,43 @@ class CivicMapController extends ChangeNotifier {
   }
 
   void selectMarker(String itemId) {
-    if (_selectedItemId == itemId) return;
+    CivicMapItem? matchedItem;
+
+    for (final item in _allItems) {
+      if (item.id == itemId) {
+        matchedItem = item;
+        break;
+      }
+    }
+
+    if (_selectedItemId == itemId &&
+        (matchedItem == null ||
+            _selectedTargetRefKey == _targetRefKey(matchedItem.targetRef))) {
+      return;
+    }
+
     _selectedItemId = itemId;
+    _selectedTargetRefKey =
+        matchedItem == null ? null : _targetRefKey(matchedItem.targetRef);
     notifyListeners();
   }
 
   void selectItem(CivicMapItem item) {
-    selectMarker(item.id);
+    final nextTargetRefKey = _targetRefKey(item.targetRef);
+
+    if (_selectedItemId == item.id && _selectedTargetRefKey == nextTargetRefKey) {
+      return;
+    }
+
+    _selectedItemId = item.id;
+    _selectedTargetRefKey = nextTargetRefKey;
+    notifyListeners();
   }
 
   void clearSelection() {
-    if (_selectedItemId == null) return;
+    if (_selectedItemId == null && _selectedTargetRefKey == null) return;
     _selectedItemId = null;
+    _selectedTargetRefKey = null;
     notifyListeners();
   }
 
@@ -702,6 +815,45 @@ class CivicMapController extends ChangeNotifier {
     return (lat.toDouble(), lng.toDouble());
   }
 
+  void _reconcileSelectionAfterReload() {
+    if (_selectedItemId == null && _selectedTargetRefKey == null) {
+      return;
+    }
+
+    CivicMapItem? matched;
+
+    if (_selectedItemId != null) {
+      for (final item in _allItems) {
+        if (item.id == _selectedItemId) {
+          matched = item;
+          break;
+        }
+      }
+    }
+
+    if (matched == null && _selectedTargetRefKey != null) {
+      for (final item in _allItems) {
+        if (_targetRefKey(item.targetRef) == _selectedTargetRefKey) {
+          matched = item;
+          break;
+        }
+      }
+    }
+
+    if (matched == null) {
+      _selectedItemId = null;
+      _selectedTargetRefKey = null;
+      return;
+    }
+
+    _selectedItemId = matched.id;
+    _selectedTargetRefKey = _targetRefKey(matched.targetRef);
+  }
+
+  void _reconcileSelectionAfterDataChange() {
+    _reconcileSelectionAfterReload();
+  }
+
   bool _shouldRetryCurrentScope() {
     return _status == CivicMapStatus.error || _status == CivicMapStatus.empty;
   }
@@ -754,6 +906,47 @@ class CivicMapController extends ChangeNotifier {
       normalizeNum(readSafely(() => dynamicScope.centerLng) ?? scope.centerLng),
       normalizeNum(readSafely(() => dynamicScope.radiusKm) ?? scope.radiusKm),
     ].join('|');
+  }
+
+  String? _targetRefKey(TargetRef targetRef) {
+    final id = _readTargetRefId(targetRef);
+    if (id == null || id.trim().isEmpty) {
+      return null;
+    }
+
+    return '${targetRef.type.name}|${id.trim()}';
+  }
+
+  String? _readTargetRefId(TargetRef targetRef) {
+    try {
+      final dynamic value = (targetRef as dynamic).targetId;
+      if (value != null) {
+        return value.toString();
+      }
+    } catch (_) {}
+
+    try {
+      final dynamic value = (targetRef as dynamic).id;
+      if (value != null) {
+        return value.toString();
+      }
+    } catch (_) {}
+
+    try {
+      final dynamic value = (targetRef as dynamic).value;
+      if (value != null) {
+        return value.toString();
+      }
+    } catch (_) {}
+
+    try {
+      final dynamic value = (targetRef as dynamic).target;
+      if (value != null) {
+        return value.toString();
+      }
+    } catch (_) {}
+
+    return null;
   }
 
   bool _isFinite(double? value) {
