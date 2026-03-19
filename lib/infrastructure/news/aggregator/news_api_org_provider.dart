@@ -9,7 +9,7 @@ class NewsApiOrgProvider implements NewsProvider {
   NewsApiOrgProvider(this._api);
 
   @override
-  String get id => 'newsapi_org';
+  String get id => 'newsapi';
 
   @override
   Future<ProviderFetchResult> fetchNews({
@@ -25,11 +25,11 @@ class NewsApiOrgProvider implements NewsProvider {
       final pageSize = (limit == null || limit <= 0) ? 10 : limit;
       final page = (offset == null || offset < 0) ? 1 : (offset ~/ pageSize) + 1;
 
-      // Query strategy (minimal):
+      // Query strategy:
       // - se cityId presente: q=cityId
-      // - altrimenti topic come category (se compatibile), altrimenti null
+      // - altrimenti topic come category solo se supportata da NewsAPI
       final q = (cityId != null && cityId.trim().isNotEmpty) ? cityId : null;
-      final category = (topic != null && topic.trim().isNotEmpty) ? topic : null;
+      final category = _mapTopicToCategory(topic);
 
       final json = await _api.fetchTopHeadlines(
         countryCode: countryCode,
@@ -46,7 +46,8 @@ class NewsApiOrgProvider implements NewsProvider {
       final rateLimited =
           status == 'error' && code.toLowerCase().contains('rate');
 
-      final articles = (json['articles'] is List) ? (json['articles'] as List) : const [];
+      final articles =
+          (json['articles'] is List) ? (json['articles'] as List) : const [];
 
       final items = <Map<String, dynamic>>[];
       for (final a in articles) {
@@ -70,18 +71,18 @@ class NewsApiOrgProvider implements NewsProvider {
 
         // Normalizzazione compatibile con NewsDto.fromJson (schema GNews-like)
         items.add(<String, dynamic>{
-          'id': url, // ✅ richiesto da NewsDto
+          'id': url,
           'title': m['title'],
           'description': m['description'],
           'content': m['content'],
           'url': url,
           'image': m['urlToImage'],
-          'publishedAt': publishedAt, // ✅ richiesto da NewsDto
-          'lang': language, // best-effort fallback
+          'publishedAt': publishedAt,
+          'lang': language,
           'source': <String, dynamic>{
-            'id': source['id'], // spesso null in NewsAPI
+            'id': source['id'],
             'name': source['name'],
-            'url': null, // NewsAPI non fornisce source url in modo consistente
+            'url': null,
           },
         });
       }
@@ -102,7 +103,25 @@ class NewsApiOrgProvider implements NewsProvider {
 
   @override
   Future<Map<String, dynamic>> fetchNewsDetail(String id) async {
-    // NewsAPI non ha "detail by id" standard.
     throw UnsupportedError('NewsApiOrgProvider: fetchNewsDetail not supported');
+  }
+
+  String? _mapTopicToCategory(String? topic) {
+    if (topic == null) return null;
+
+    final normalized = topic.trim().toLowerCase();
+    if (normalized.isEmpty) return null;
+
+    switch (normalized) {
+      case 'business':
+      case 'entertainment':
+      case 'health':
+      case 'science':
+      case 'sports':
+      case 'technology':
+        return normalized;
+      default:
+        return null;
+    }
   }
 }

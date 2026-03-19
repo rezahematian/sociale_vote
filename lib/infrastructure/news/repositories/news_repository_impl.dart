@@ -105,114 +105,112 @@ class NewsRepositoryImpl implements NewsRepository {
     final requestedTopic = _normalize(topic);
     final requestedLanguage = _normalize(language);
 
-    final candidates = _buildCandidates(
+    final candidate = _NewsFeedCandidate(
       countryCode: requestedCountryCode,
       cityId: requestedCityId,
       topic: requestedTopic,
       language: requestedLanguage,
     );
 
+    final allowStaleCache = _shouldAllowStaleCache(requestedLanguage);
     Object? lastRefreshError;
 
-    for (final candidate in candidates) {
-      final freshCache = await _readCache(
-        cacheKey: candidate.cacheKey,
-        acceptStale: false,
-      );
+    final freshCache = await _readCache(
+      cacheKey: candidate.cacheKey,
+      acceptStale: false,
+    );
 
-      if (freshCache != null && freshCache.items.isNotEmpty) {
-        if (_cacheHasResolvedLocations(freshCache.items)) {
-          return _mapAndPaginate(
-            jsonList: freshCache.items,
-            countryCode: candidate.countryCode,
-            cityId: candidate.cityId,
-            limit: limit,
-            offset: offset,
-          );
-        }
-
-        if (kDebugMode) {
-          debugPrint(
-            'NewsRepositoryImpl fresh cache found for ${candidate.cacheKey} '
-            'but it has no resolved locations, trying live refresh.',
-          );
-        }
-      }
-
-      final staleCache = await _readCache(
-        cacheKey: candidate.cacheKey,
-        acceptStale: true,
-      );
-
-      if (staleCache != null &&
-          staleCache.items.isNotEmpty &&
-          _cacheHasResolvedLocations(staleCache.items) &&
-          kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl stale cache available for ${candidate.cacheKey}, '
-          'trying live refresh before fallback.',
-        );
-      }
-
-      try {
-        final refreshedItems = await _refreshCacheForCandidate(
+    if (freshCache != null && freshCache.items.isNotEmpty) {
+      if (_cacheHasResolvedLocations(freshCache.items)) {
+        return _mapCandidatePage(
           candidate,
-          providerLimit: _resolveProviderFetchLimit(limit, offset),
-        );
-
-        if (refreshedItems.isNotEmpty) {
-          return _mapAndPaginate(
-            jsonList: refreshedItems,
-            countryCode: candidate.countryCode,
-            cityId: candidate.cityId,
-            limit: limit,
-            offset: offset,
-          );
-        }
-      } catch (e, st) {
-        lastRefreshError = e;
-
-        if (kDebugMode) {
-          debugPrint(
-            'NewsRepositoryImpl refresh failed for ${candidate.cacheKey}: $e',
-          );
-          debugPrint('$st');
-        }
-      }
-
-      if (freshCache != null && freshCache.items.isNotEmpty) {
-        if (kDebugMode) {
-          debugPrint(
-            'NewsRepositoryImpl fallback to fresh cache for '
-            '${candidate.cacheKey} after refresh attempt.',
-          );
-        }
-
-        return _mapAndPaginate(
-          jsonList: freshCache.items,
-          countryCode: candidate.countryCode,
-          cityId: candidate.cityId,
+          freshCache.items,
           limit: limit,
           offset: offset,
         );
       }
 
-      if (staleCache != null && staleCache.items.isNotEmpty) {
-        if (kDebugMode) {
-          debugPrint(
-            'NewsRepositoryImpl fallback to stale cache for '
-            '${candidate.cacheKey} after refresh attempt.',
-          );
-        }
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl fresh cache found for ${candidate.cacheKey} '
+          'but it has no resolved locations, trying live refresh.',
+        );
+      }
+    }
 
-        return _mapAndPaginate(
-          jsonList: staleCache.items,
-          countryCode: candidate.countryCode,
-          cityId: candidate.cityId,
+    final staleCache = allowStaleCache
+        ? await _readCache(
+            cacheKey: candidate.cacheKey,
+            acceptStale: true,
+          )
+        : null;
+
+    if (staleCache != null &&
+        staleCache.items.isNotEmpty &&
+        _cacheHasResolvedLocations(staleCache.items) &&
+        kDebugMode) {
+      debugPrint(
+        'NewsRepositoryImpl stale cache available for ${candidate.cacheKey}, '
+        'trying live refresh before fallback.',
+      );
+    }
+
+    try {
+      final refreshedItems = await _refreshCacheForCandidate(
+        candidate,
+        providerLimit: _resolveProviderFetchLimit(limit, offset),
+        allowStalePreviousCache: allowStaleCache,
+      );
+
+      if (refreshedItems.isNotEmpty) {
+        return _mapCandidatePage(
+          candidate,
+          refreshedItems,
           limit: limit,
           offset: offset,
         );
       }
+    } catch (e, st) {
+      lastRefreshError = e;
+
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl refresh failed for ${candidate.cacheKey}: $e',
+        );
+        debugPrint('$st');
+      }
+    }
+
+    if (freshCache != null && freshCache.items.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl fallback to fresh cache for '
+          '${candidate.cacheKey} after refresh attempt.',
+        );
+      }
+
+      return _mapCandidatePage(
+        candidate,
+        freshCache.items,
+        limit: limit,
+        offset: offset,
+      );
+    }
+
+    if (staleCache != null && staleCache.items.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl fallback to stale cache for '
+          '${candidate.cacheKey} after refresh attempt.',
+        );
+      }
+
+      return _mapCandidatePage(
+        candidate,
+        staleCache.items,
+        limit: limit,
+        offset: offset,
+      );
     }
 
     if (kDebugMode && lastRefreshError != null) {
@@ -241,10 +239,11 @@ class NewsRepositoryImpl implements NewsRepository {
   Future<List<Map<String, dynamic>>> _refreshCacheForCandidate(
     _NewsFeedCandidate candidate, {
     required int providerLimit,
+    required bool allowStalePreviousCache,
   }) async {
     final previousCache = await _readCache(
       cacheKey: candidate.cacheKey,
-      acceptStale: true,
+      acceptStale: allowStalePreviousCache,
     );
 
     final jsonList = await _aggregator.fetchNews(
@@ -448,24 +447,9 @@ class NewsRepositoryImpl implements NewsRepository {
   ContentLocation? _buildPreferredSeedContentLocationFromJson(
     Map<String, dynamic> json,
   ) {
-    final direct = _contentLocationFromRaw(json['_sv_content_location']);
-    if (direct != null) {
-      return direct;
-    }
-
-    final legacyDirect = _contentLocationFromRaw(json['content_location']);
-    if (legacyDirect != null) {
-      return legacyDirect;
-    }
-
-    final camelCaseLegacy = _contentLocationFromRaw(json['contentLocation']);
-    if (camelCaseLegacy != null) {
-      return camelCaseLegacy;
-    }
-
-    final underscoredLegacy = _contentLocationFromRaw(json['_content_location']);
-    if (underscoredLegacy != null) {
-      return underscoredLegacy;
+    final embedded = _readKnownContentLocation(json);
+    if (embedded != null) {
+      return embedded;
     }
 
     return _buildFlatSeedContentLocationFromJson(json);
@@ -1289,6 +1273,21 @@ class NewsRepositoryImpl implements NewsRepository {
     return List<NewsItem>.unmodifiable(mapped.sublist(safeOffset, end));
   }
 
+  List<NewsItem> _mapCandidatePage(
+    _NewsFeedCandidate candidate,
+    List<Map<String, dynamic>> jsonList, {
+    int? limit,
+    int? offset,
+  }) {
+    return _mapAndPaginate(
+      jsonList: jsonList,
+      countryCode: candidate.countryCode,
+      cityId: candidate.cityId,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
   List<NewsItem> _mapJsonToDomainList(
     List<Map<String, dynamic>> jsonList, {
     required String? countryCode,
@@ -1322,27 +1321,24 @@ class NewsRepositoryImpl implements NewsRepository {
   }
 
   ContentLocation? _readEmbeddedContentLocation(Map<String, dynamic> json) {
-    final direct = _contentLocationFromRaw(json['_sv_content_location']);
-    if (direct != null) {
-      return direct;
+    return _readKnownContentLocation(json) ??
+        _buildFlatSeedContentLocationFromJson(json);
+  }
+
+  ContentLocation? _readKnownContentLocation(Map<String, dynamic> json) {
+    for (final key in const <String>[
+      '_sv_content_location',
+      'content_location',
+      'contentLocation',
+      '_content_location',
+    ]) {
+      final location = _contentLocationFromRaw(json[key]);
+      if (location != null) {
+        return location;
+      }
     }
 
-    final legacyDirect = _contentLocationFromRaw(json['content_location']);
-    if (legacyDirect != null) {
-      return legacyDirect;
-    }
-
-    final camelCaseLegacy = _contentLocationFromRaw(json['contentLocation']);
-    if (camelCaseLegacy != null) {
-      return camelCaseLegacy;
-    }
-
-    final underscoredLegacy = _contentLocationFromRaw(json['_content_location']);
-    if (underscoredLegacy != null) {
-      return underscoredLegacy;
-    }
-
-    return _buildFlatSeedContentLocationFromJson(json);
+    return null;
   }
 
   ContentLocation? _contentLocationFromRaw(dynamic raw) {
@@ -1508,22 +1504,6 @@ class NewsRepositoryImpl implements NewsRepository {
     return 'title:${source.toLowerCase()}:${dto.title.trim().toLowerCase()}:${dto.publishedAt.toUtc().toIso8601String()}';
   }
 
-  List<_NewsFeedCandidate> _buildCandidates({
-    required String? countryCode,
-    required String? cityId,
-    required String? topic,
-    required String? language,
-  }) {
-    return <_NewsFeedCandidate>[
-      _NewsFeedCandidate(
-        countryCode: countryCode,
-        cityId: cityId,
-        topic: topic,
-        language: language,
-      ),
-    ];
-  }
-
   int _resolveProviderFetchLimit(int? limit, int? offset) {
     final requestedLimit = limit ?? 20;
     final requestedOffset = offset ?? 0;
@@ -1534,6 +1514,11 @@ class NewsRepositoryImpl implements NewsRepository {
     }
 
     return _providerWarmupBatchSize;
+  }
+
+  bool _shouldAllowStaleCache(String? language) {
+    final normalizedLanguage = _normalize(language);
+    return normalizedLanguage != 'ar' && normalizedLanguage != 'fa';
   }
 
   String? _normalize(String? value) {
