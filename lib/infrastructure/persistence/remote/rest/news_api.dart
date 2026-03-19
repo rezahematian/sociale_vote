@@ -28,16 +28,13 @@ class NewsApi {
     String? countryCode,
     String? cityId,
     String? topic, // ✅ NEW: GNews topic (world/nation/business/...)
-    String? language, // ✅ NEW: override lingua (it/en/es/fr/de/ar/fa). null => AUTO
+    String? language, // ✅ NEW: override lingua (it/en/es/fr/de/ar). null => AUTO
     int? limit,
     int? offset,
   }) async {
-    // clamp ritorna num → gestiamo in due step per rimanere type-safe
     final int rawLimit = limit ?? 10;
-    final int effectiveLimit =
-        rawLimit.clamp(1, 100).toInt(); // (min 1, max 100)
+    final int effectiveLimit = rawLimit.clamp(1, 100).toInt();
 
-    // offset → page (normalizzazione: evitiamo salti se offset non è multiplo di limit)
     final int? effectiveOffset =
         (offset != null && limit != null && limit > 0)
             ? (offset - (offset % limit))
@@ -47,8 +44,18 @@ class NewsApi {
     final String autoLang =
         (countryCode?.toUpperCase() == 'IT') ? 'it' : 'en';
 
-    // language override (se valorizzato) + normalizzazione safe
-    final String? effectiveLanguage = _normalizeLanguage(language);
+    final String? requestedLanguage = _extractLanguageCode(language);
+    final bool hasExplicitLanguage = requestedLanguage != null;
+
+    // GNews non supporta tutte le lingue dell'app.
+    // Se l'utente chiede una lingua esplicita non supportata (es. fa),
+    // NON facciamo fallback silenzioso a en/it: meglio risposta vuota,
+    // così l'aggregator può tentare altri provider senza mostrare lingua sbagliata.
+    if (hasExplicitLanguage && !_isSupportedLanguageByGNews(requestedLanguage)) {
+      return const <dynamic>[];
+    }
+
+    final String? effectiveLanguage = requestedLanguage;
 
     final query = <String, String>{
       'apikey': _apiKey,
@@ -61,19 +68,16 @@ class NewsApi {
       query['country'] = countryCode.toLowerCase();
     }
 
-    // ✅ Topic filter (solo se diverso da null/vuoto)
     final effectiveTopic = topic?.trim();
     if (effectiveTopic != null && effectiveTopic.isNotEmpty) {
       query['topic'] = effectiveTopic;
     }
 
-    // City-level (PRO): query più robusta rispetto a q=<cityId>
     if (cityId != null) {
       query['q'] = _buildCityQuery(cityId: cityId, countryCode: countryCode);
       query['in'] = 'title,description';
     }
 
-    // effectiveOffset → page
     if (effectiveOffset != null && limit != null && limit > 0) {
       final page = (effectiveOffset ~/ limit) + 1;
       query['page'] = page.toString();
@@ -87,9 +91,29 @@ class NewsApi {
     if (result is Map<String, dynamic>) {
       final articles = result['articles'];
       if (articles is List) {
-        // ✅ NO strict filter: lasciamo al provider il best-effort sul parametro lang.
-        // In particolare FA/AR possono avere dataset ridotto: meglio non svuotare il feed.
-        return articles;
+        final normalizedArticles = articles
+            .whereType<Map>()
+            .map(
+              (article) => article.map(
+                (key, value) => MapEntry(key.toString(), value),
+              ),
+            )
+            .toList(growable: false);
+
+        // Se la lingua è stata chiesta esplicitamente e GNews la supporta,
+        // teniamo solo articoli che dichiarano davvero quella lingua.
+        // Questo evita che contenuti inglesi passino come "ar".
+        if (effectiveLanguage != null) {
+          return normalizedArticles.where((article) {
+            final rawArticleLang = article['lang'];
+            final articleLanguage = _extractLanguageCode(
+              rawArticleLang?.toString(),
+            );
+            return articleLanguage == effectiveLanguage;
+          }).toList(growable: false);
+        }
+
+        return normalizedArticles;
       }
     }
 
@@ -130,11 +154,11 @@ class NewsApi {
   // Helpers
   // ============================================================
 
-  /// Normalizza e valida la lingua per GNews.
+  /// Estrae e normalizza un language code in formato ISO-639-1.
   ///
-  /// Gestisce anche stringhe tipo "NewsLanguage.fa" (capita se qualcuno passa .toString()).
-  /// Se non riconosciuta → null (quindi AUTO a valle).
-  String? _normalizeLanguage(String? language) {
+  /// Gestisce anche stringhe tipo "NewsLanguage.fa" nel caso qualcuno
+  /// passi .toString() di un enum.
+  String? _extractLanguageCode(String? language) {
     if (language == null) return null;
 
     var v = language.trim();
@@ -142,13 +166,20 @@ class NewsApi {
 
     v = v.toLowerCase();
 
-    // caso: "NewsLanguage.fa" → "fa"
     final dotIndex = v.lastIndexOf('.');
     if (dotIndex != -1 && dotIndex < v.length - 1) {
       v = v.substring(dotIndex + 1);
     }
 
-    // whitelist (solo quelle che supportiamo in app)
+    return v;
+  }
+
+  /// Sottoinsieme delle lingue app supportate che GNews supporta davvero.
+  bool _isSupportedLanguageByGNews(String? language) {
+    if (language == null || language.isEmpty) {
+      return false;
+    }
+
     const allowed = <String>{
       'it',
       'en',
@@ -156,11 +187,9 @@ class NewsApi {
       'fr',
       'de',
       'ar',
-      'fa',
     };
 
-    if (!allowed.contains(v)) return null;
-    return v;
+    return allowed.contains(language);
   }
 
   // ============================================================
@@ -174,8 +203,6 @@ class NewsApi {
     final cleanedCity = cityId.trim();
     if (cleanedCity.isEmpty) return cityId;
 
-    // Esempio: "Bologna IT" / "Paris FR"
-    // Se in futuro avremo countryName, potremo usare "Bologna Italy" qui senza toccare altro.
     final suffix = (countryCode != null && countryCode.trim().isNotEmpty)
         ? ' ${countryCode.trim().toUpperCase()}'
         : '';
@@ -201,7 +228,6 @@ class NewsApi {
       } on ApiException catch (e) {
         final kind = _mapErrorKind(e);
 
-        // Retry minimo: 429 (rate-limit) e 5xx (transienti)
         final canRetry = (kind == NewsApiErrorKind.rateLimited ||
                 kind == NewsApiErrorKind.serverError ||
                 kind == NewsApiErrorKind.timeout ||
@@ -210,7 +236,6 @@ class NewsApi {
 
         if (canRetry) {
           attempt += 1;
-          // Backoff leggero e deterministico (senza refactor)
           final delayMs = kind == NewsApiErrorKind.rateLimited ? 900 : 450;
           await Future.delayed(Duration(milliseconds: delayMs));
           continue;
@@ -223,7 +248,6 @@ class NewsApi {
           debugMessage: e.message,
         );
       } catch (e) {
-        // Qualsiasi altro errore non previsto: normalizziamo comunque
         throw NewsApiException(
           kind: NewsApiErrorKind.unknown,
           statusCode: null,
@@ -247,8 +271,6 @@ class NewsApi {
       return NewsApiErrorKind.serverError;
     }
 
-    // ApiException spesso copre anche rete/timeout; se ApiException espone
-    // dettagli migliori in futuro, possiamo migliorare qui senza toccare altro.
     final msg = (e.message ?? '').toLowerCase();
     if (msg.contains('timeout')) return NewsApiErrorKind.timeout;
     if (msg.contains('socket') || msg.contains('network')) {
