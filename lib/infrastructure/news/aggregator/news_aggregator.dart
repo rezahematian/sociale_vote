@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/foundation.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/news_provider.dart';
 
@@ -44,14 +46,16 @@ class NewsAggregator {
     ProviderFetchResult? lastResult;
     Object? lastThrownError;
 
+    final effectiveLanguage = _effectiveLanguage(language);
+
     final orderedProviders = _orderProvidersForRequest(
-      language: language,
+      language: effectiveLanguage,
       topic: topic,
     );
 
     if (kDebugMode) {
       debugPrint(
-        'NewsAggregator language=${_normalizeLanguage(language) ?? 'auto'} '
+        'NewsAggregator language=${effectiveLanguage ?? 'en'} '
         'topic=${_normalizeTopic(topic) ?? 'all'} '
         'providerOrder=${orderedProviders.map((p) => p.id).join(' > ')}',
       );
@@ -63,7 +67,7 @@ class NewsAggregator {
           countryCode: countryCode,
           cityId: cityId,
           topic: topic,
-          language: language,
+          language: effectiveLanguage,
           limit: limit,
           offset: offset,
         );
@@ -182,7 +186,7 @@ class NewsAggregator {
   }) {
     final normalizedProviderId = providerId.trim().toLowerCase();
 
-    // AUTO / EN -> Guardian prima, poi NewsAPI, poi GNews
+    // AUTO/system fallback / EN -> Guardian prima, poi NewsAPI, poi GNews
     if (language == null || language == 'auto' || language == 'en') {
       switch (normalizedProviderId) {
         case 'guardian':
@@ -272,12 +276,46 @@ class NewsAggregator {
     }
   }
 
+  String? _effectiveLanguage(String? language) {
+    final normalized = _normalizeLanguage(language);
+
+    if (normalized != null && normalized != 'auto') {
+      return normalized;
+    }
+
+    return _systemSupportedLanguage();
+  }
+
+  String _systemSupportedLanguage() {
+    try {
+      final systemLanguage =
+          ui.PlatformDispatcher.instance.locale.toLanguageTag();
+      final normalized = _normalizeLanguage(systemLanguage);
+
+      switch (normalized) {
+        case 'it':
+        case 'en':
+        case 'es':
+        case 'fr':
+        case 'de':
+        case 'ar':
+        case 'fa':
+          return normalized!;
+        default:
+          return 'en';
+      }
+    } catch (_) {
+      return 'en';
+    }
+  }
+
   String? _normalizeLanguage(String? language) {
     if (language == null) {
       return null;
     }
 
-    final normalized = language.trim().toLowerCase();
+    final normalized =
+        language.trim().toLowerCase().replaceAll('_', '-').split('-').first;
     if (normalized.isEmpty) {
       return null;
     }

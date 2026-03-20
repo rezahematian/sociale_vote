@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/foundation.dart';
 
 import 'package:sociale_vote/app/di.dart';
@@ -29,7 +31,10 @@ class NewsController extends ChangeNotifier {
     this._getNewsFeed,
     this._toggleReaction,
     this._getReactionSummary,
-  );
+  ) {
+    _restoreLanguagePreferenceFuture =
+        Future<void>.microtask(_restoreSavedLanguagePreferenceIfNeeded);
+  }
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -51,6 +56,10 @@ class NewsController extends ChangeNotifier {
 
   bool _isDisposed = false;
   int _requestId = 0;
+
+  bool _languagePreferenceHydrated = false;
+  int _languagePreferenceVersion = 0;
+  Future<void>? _restoreLanguagePreferenceFuture;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -76,11 +85,16 @@ class NewsController extends ChangeNotifier {
   Future<void> setLanguage(NewsLanguage language, {String? userId}) async {
     if (_selectedLanguage == language) return;
 
+    _languagePreferenceVersion += 1;
+    _languagePreferenceHydrated = true;
+    _restoreLanguagePreferenceFuture = null;
+
     _selectedLanguage = language;
     _errorMessage = null;
     _errorKind = null;
     _safeNotifyListeners();
 
+    await _persistSelectedLanguage(language);
     await loadNews(userId: userId ?? _lastKnownUserId);
   }
 
@@ -116,28 +130,99 @@ class NewsController extends ChangeNotifier {
     return TargetRef.news(_newsId(newsItem));
   }
 
-  String? _languageApiValue(NewsLanguage language) {
-    switch (language) {
-      case NewsLanguage.auto:
-        return null;
-      case NewsLanguage.it:
-        return 'it';
-      case NewsLanguage.en:
-        return 'en';
-      case NewsLanguage.es:
-        return 'es';
-      case NewsLanguage.fr:
-        return 'fr';
-      case NewsLanguage.de:
-        return 'de';
-      case NewsLanguage.ar:
-        return 'ar';
-      case NewsLanguage.fa:
-        return 'fa';
+  String? _systemLanguageCode() {
+    try {
+      return ui.PlatformDispatcher.instance.locale.toLanguageTag();
+    } catch (_) {
+      return null;
     }
   }
 
+  String _effectiveLanguageApiValue() {
+    return _selectedLanguage.effectiveApiValue(
+      systemLanguageCode: _systemLanguageCode(),
+    );
+  }
+
+  Future<void> _ensureLanguagePreferenceHydrated() {
+    if (_languagePreferenceHydrated) {
+      return Future<void>.value();
+    }
+
+    return _restoreLanguagePreferenceFuture ??=
+        _restoreSavedLanguagePreferenceIfNeeded();
+  }
+
+  Future<void> _restoreSavedLanguagePreferenceIfNeeded() async {
+    if (_languagePreferenceHydrated) {
+      return;
+    }
+
+    final versionAtStart = _languagePreferenceVersion;
+
+    try {
+      final storedValue = await AppDI.instance.getContentLanguagePreference();
+      final restoredLanguage = _newsLanguageFromStoredValue(storedValue);
+
+      if (_languagePreferenceVersion != versionAtStart) {
+        return;
+      }
+
+      if (restoredLanguage != null && restoredLanguage != _selectedLanguage) {
+        _selectedLanguage = restoredLanguage;
+        _safeNotifyListeners();
+      }
+    } catch (_) {
+      // best effort
+    } finally {
+      _languagePreferenceHydrated = true;
+      _restoreLanguagePreferenceFuture = null;
+    }
+  }
+
+  Future<void> _persistSelectedLanguage(NewsLanguage language) async {
+    try {
+      if (language == NewsLanguage.auto) {
+        await AppDI.instance.clearContentLanguagePreference();
+        return;
+      }
+
+      await AppDI.instance.setContentLanguagePreference(language.name);
+    } catch (_) {
+      // best effort
+    }
+  }
+
+  NewsLanguage? _newsLanguageFromStoredValue(String? value) {
+    if (value == null) {
+      return null;
+    }
+
+    switch (value.trim().toLowerCase()) {
+      case 'auto':
+        return NewsLanguage.auto;
+      case 'it':
+        return NewsLanguage.it;
+      case 'en':
+        return NewsLanguage.en;
+      case 'es':
+        return NewsLanguage.es;
+      case 'fr':
+        return NewsLanguage.fr;
+      case 'de':
+        return NewsLanguage.de;
+      case 'ar':
+        return NewsLanguage.ar;
+      case 'fa':
+        return NewsLanguage.fa;
+    }
+
+    return null;
+  }
+
   Future<void> loadNews({String? userId}) async {
+    await _ensureLanguagePreferenceHydrated();
+
     final requestId = ++_requestId;
 
     _isLoading = true;
@@ -182,6 +267,8 @@ class NewsController extends ChangeNotifier {
   }
 
   Future<void> loadMoreNews() async {
+    await _ensureLanguagePreferenceHydrated();
+
     if (_isLoading) return;
     if (!_hasMoreFromSource) return;
 
@@ -236,7 +323,7 @@ class NewsController extends ChangeNotifier {
       countryCode: countryCode,
       cityId: cityId,
       topic: _selectedTopic.apiValue,
-      language: _languageApiValue(_selectedLanguage),
+      language: _effectiveLanguageApiValue(),
       limit: _pageSize,
       offset: _currentOffset,
     );

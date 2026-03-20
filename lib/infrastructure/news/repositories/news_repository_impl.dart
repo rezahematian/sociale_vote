@@ -25,6 +25,9 @@ class NewsRepositoryImpl implements NewsRepository {
   static const Duration _perArticleGeocodeTimeout = Duration(seconds: 2);
   static const int _maxParallelGeocodeJobs = 6;
 
+  static const String _locationLeadPrepositionPattern =
+      r'(?:in|at|from|near|inside|outside|around|across|a|ad|da|nel|nella|nelle|nei|presso)';
+
   static const Map<String, String> _countryAliases = <String, String>{
     'italy': 'IT',
     'france': 'FR',
@@ -293,15 +296,24 @@ class NewsRepositoryImpl implements NewsRepository {
         .toList(growable: false);
 
     var resolvedCount = 0;
+    var hasReevaluationCandidates = false;
+
     for (final item in output) {
       final existingLocation = _readEmbeddedContentLocation(item);
       if (existingLocation != null &&
           (existingLocation.hasExactPoint || existingLocation.hasCenter)) {
         resolvedCount += 1;
+
+        final dto = _tryParseDto(item);
+        if (dto != null &&
+            _shouldReevaluateExistingLocation(dto, existingLocation)) {
+          hasReevaluationCandidates = true;
+        }
       }
     }
 
-    if (resolvedCount >= _targetResolvedLocationsPerRefresh) {
+    if (resolvedCount >= _targetResolvedLocationsPerRefresh &&
+        !hasReevaluationCandidates) {
       return List<Map<String, dynamic>>.unmodifiable(output);
     }
 
@@ -318,10 +330,19 @@ class NewsRepositoryImpl implements NewsRepository {
 
     for (int i = 0; i < output.length; i++) {
       final enriched = output[i];
+      final dto = _tryParseDto(enriched);
+      if (dto == null) {
+        continue;
+      }
 
       final existingLocation = _readEmbeddedContentLocation(enriched);
-      if (existingLocation != null &&
-          (existingLocation.hasExactPoint || existingLocation.hasCenter)) {
+      final hasResolvedLocation = existingLocation != null &&
+          (existingLocation.hasExactPoint || existingLocation.hasCenter);
+
+      final shouldReevaluate = hasResolvedLocation &&
+          _shouldReevaluateExistingLocation(dto, existingLocation);
+
+      if (hasResolvedLocation && !shouldReevaluate) {
         continue;
       }
 
@@ -329,29 +350,31 @@ class NewsRepositoryImpl implements NewsRepository {
         continue;
       }
 
-      if (resolvedCount + scheduledPotentialResolved >=
-          _targetResolvedLocationsPerRefresh) {
+      if (!hasResolvedLocation &&
+          resolvedCount + scheduledPotentialResolved >=
+              _targetResolvedLocationsPerRefresh) {
         break;
       }
 
-      final dto = _tryParseDto(enriched);
-      if (dto == null) {
-        continue;
-      }
-
       scheduled += 1;
-      scheduledPotentialResolved += 1;
+      if (!hasResolvedLocation) {
+        scheduledPotentialResolved += 1;
+      }
 
       pendingJobs.add(() async {
         try {
           final detectedLocation = await _detectContentLocationForDto(
             dto,
             rawJson: enriched,
+            ignorePreferredSeed: shouldReevaluate,
           ).timeout(_perArticleGeocodeTimeout);
 
           if (detectedLocation != null) {
             enriched['_sv_content_location'] = detectedLocation.toJson();
-            resolvedCount += 1;
+
+            if (!hasResolvedLocation) {
+              resolvedCount += 1;
+            }
           }
         } catch (_) {
           // best effort
@@ -362,10 +385,6 @@ class NewsRepositoryImpl implements NewsRepository {
           resolvedCount + scheduledPotentialResolved >=
               _targetResolvedLocationsPerRefresh) {
         await flushJobs();
-
-        if (resolvedCount >= _targetResolvedLocationsPerRefresh) {
-          break;
-        }
       }
     }
 
@@ -377,8 +396,9 @@ class NewsRepositoryImpl implements NewsRepository {
   Future<ContentLocation?> _detectContentLocationForDto(
     NewsDto dto, {
     Map<String, dynamic>? rawJson,
+    bool ignorePreferredSeed = false,
   }) async {
-    final preferredSeed = rawJson == null
+    final preferredSeed = ignorePreferredSeed || rawJson == null
         ? null
         : _buildPreferredSeedContentLocationFromJson(rawJson);
 
@@ -834,7 +854,7 @@ class NewsRepositoryImpl implements NewsRepository {
     }
 
     final openingPrepositionRegex = RegExp(
-      r"^(?:in|at|from|near|inside|outside|around|across)\s+((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})\b",
+      '^(?:$_locationLeadPrepositionPattern)\\s+((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ\'’\\-]+|[A-Z]{2,})(?:\\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ\'’\\-]+|[A-Z]{2,})){0,2})\\b',
     );
 
     final openingPrepositionMatch =
@@ -857,7 +877,7 @@ class NewsRepositoryImpl implements NewsRepository {
     }
 
     final regex = RegExp(
-      r"\b(?:in|at|from|near|inside|outside|around|across)\s+((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})\b",
+      '\\b$_locationLeadPrepositionPattern\\s+((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ\'’\\-]+|[A-Z]{2,})(?:\\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ\'’\\-]+|[A-Z]{2,})){0,2})\\b',
     );
 
     final output = <String>[];
@@ -900,6 +920,10 @@ class NewsRepositoryImpl implements NewsRepository {
     final seen = <String>{};
 
     for (final match in matches) {
+      if (_hasStreetLikePrefixBeforeMatch(cleaned, match.start)) {
+        continue;
+      }
+
       final phrase = match.group(1);
       if (phrase == null) continue;
 
@@ -915,6 +939,51 @@ class NewsRepositoryImpl implements NewsRepository {
     }
 
     return output;
+  }
+
+  bool _hasStreetLikePrefixBeforeMatch(String text, int matchStart) {
+    if (matchStart <= 0) {
+      return false;
+    }
+
+    final prefix = text.substring(0, matchStart).trimRight();
+    if (prefix.isEmpty) {
+      return false;
+    }
+
+    final parts = prefix.split(RegExp(r'\s+'));
+    if (parts.isEmpty) {
+      return false;
+    }
+
+    final lastToken = parts.last.toLowerCase();
+
+    const streetPrefixes = <String>{
+      'via',
+      'viale',
+      'piazza',
+      'corso',
+      'largo',
+      'vicolo',
+      'strada',
+      'street',
+      'st',
+      'road',
+      'rd',
+      'avenue',
+      'ave',
+      'boulevard',
+      'blvd',
+      'rue',
+      'calle',
+      'avenida',
+      'av',
+      'praca',
+      'praça',
+      'platz',
+    };
+
+    return streetPrefixes.contains(lastToken);
   }
 
   List<_CountryHit> _extractCountryHits(String text) {
@@ -1121,6 +1190,60 @@ class NewsRepositoryImpl implements NewsRepository {
     }
 
     return true;
+  }
+
+  bool _shouldReevaluateExistingLocation(
+    NewsDto dto,
+    ContentLocation existingLocation,
+  ) {
+    final strongPhrases = _extractStrongPrimaryLocationPhrases(dto);
+    if (strongPhrases.isEmpty) {
+      return false;
+    }
+
+    final normalizedExistingCity = _normalizePhrase(existingLocation.cityName);
+    final normalizedExistingCountry = _normalize(existingLocation.countryCode);
+
+    for (final phrase in strongPhrases) {
+      final normalizedPhrase = _normalizePhrase(phrase);
+      if (normalizedPhrase == null) {
+        continue;
+      }
+
+      if (normalizedExistingCity != null &&
+          normalizedPhrase == normalizedExistingCity) {
+        return false;
+      }
+
+      final phraseCountryCode = _countryCodeForAlias(phrase);
+      if (phraseCountryCode != null &&
+          normalizedExistingCountry != null &&
+          phraseCountryCode.toLowerCase() == normalizedExistingCountry) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  List<String> _extractStrongPrimaryLocationPhrases(NewsDto dto) {
+    final output = <String>[];
+    final seen = <String>{};
+
+    void addAll(Iterable<String> phrases) {
+      for (final phrase in phrases) {
+        final normalized = _normalizePhrase(phrase);
+        if (normalized == null || !seen.add(normalized)) {
+          continue;
+        }
+        output.add(phrase);
+      }
+    }
+
+    addAll(_extractPrimaryLocationPhrases(dto.title).take(3));
+    addAll(_extractLeadLocationPhrases(dto.title).take(3));
+
+    return output;
   }
 
   Future<_CachedNewsFeed?> _readCache({

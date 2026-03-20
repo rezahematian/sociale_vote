@@ -3,7 +3,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as lat_lng;
 
 import 'package:sociale_vote/app/di.dart';
-import 'package:sociale_vote/domain/geo/entities/geo_point.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 
 class CivicMapWidget extends StatefulWidget {
@@ -90,20 +89,9 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     return _defaultCenter;
   }
 
-  Future<void> _handleMapTap(lat_lng.LatLng point) async {
+  void _handleMapTap() {
     if (!widget.interactive) return;
-
-    try {
-      final result = await AppDI.instance.resolveScopeFromPoint(
-        GeoPoint(
-          latitude: point.latitude,
-          longitude: point.longitude,
-        ),
-      );
-
-      AppDI.instance.geoScopeController.setScope(result.scope);
-    } catch (_) {}
-
+    widget.controller?.clearSelection();
     widget.onTap?.call();
   }
 
@@ -223,8 +211,7 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
                     : InteractiveFlag.none,
               ),
               onTap: (tapPosition, point) {
-                controller?.clearSelection();
-                _handleMapTap(point);
+                _handleMapTap();
               },
             ),
             children: [

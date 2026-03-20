@@ -6,6 +6,9 @@ import 'package:sociale_vote/core/storage/key_value_storage.dart';
 /// - evitare chiamate sparse dirette allo storage
 /// - avere un punto unico per chiavi comuni e helper futuri
 class StorageService {
+  static const String contentLanguagePreferenceKey =
+      'content_language_preference';
+
   final KeyValueStorage _storage;
 
   const StorageService(this._storage);
@@ -32,6 +35,18 @@ class StorageService {
 
   Future<int?> readInt(String key) {
     return _storage.readInt(key);
+  }
+
+  Future<void> writeContentLanguagePreference(String value) {
+    return writeString(contentLanguagePreferenceKey, value);
+  }
+
+  Future<String?> readContentLanguagePreference() {
+    return readString(contentLanguagePreferenceKey);
+  }
+
+  Future<void> clearContentLanguagePreference() {
+    return remove(contentLanguagePreferenceKey);
   }
 
   Future<void> remove(String key) {

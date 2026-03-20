@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sociale_vote/core/http/api_client.dart';
+import 'package:sociale_vote/core/storage/key_value_storage.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
@@ -109,6 +110,7 @@ import 'package:sociale_vote/infrastructure/poll/repositories/poll_repository_su
 import 'package:sociale_vote/infrastructure/poll/repositories/vote_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/search/repositories/search_repository_in_memory.dart';
 import 'package:sociale_vote/infrastructure/social/repositories/post_repository_impl.dart';
+import 'package:sociale_vote/shared/services/storage_service.dart';
 
 class UserRepositoryImpl implements UserRepository {
   final AuthApi _authApi;
@@ -256,6 +258,9 @@ class AppDI {
     newsRepository: newsRepository,
     postRepository: postRepository,
   );
+  late final StorageService _storageService = StorageService(
+    const SharedPreferencesKeyValueStorage(),
+  );
 
   String? _currentUserId;
 
@@ -275,8 +280,21 @@ class AppDI {
   GeocodingRepository get geocodingRepository => _geocodingRepository;
   FollowScopeRepository get followScopeRepository => _followScopeRepository;
   SearchRepository get searchRepository => _searchRepository;
+  StorageService get storageService => _storageService;
 
   String? get currentUserId => _currentUserId;
+
+  Future<void> setContentLanguagePreference(String value) {
+    return _storageService.writeContentLanguagePreference(value);
+  }
+
+  Future<String?> getContentLanguagePreference() {
+    return _storageService.readContentLanguagePreference();
+  }
+
+  Future<void> clearContentLanguagePreference() {
+    return _storageService.clearContentLanguagePreference();
+  }
 
   Future<void> logoutCurrentUser() async {
     await _authApi.logout();
