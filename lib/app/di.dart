@@ -296,6 +296,31 @@ class AppDI {
     return _storageService.clearContentLanguagePreference();
   }
 
+  Future<String?> _readStoredContentLanguageApiValue() async {
+    try {
+      final storedValue = await getContentLanguagePreference();
+      if (storedValue == null) {
+        return null;
+      }
+
+      final normalized = storedValue.trim().toLowerCase();
+      switch (normalized) {
+        case 'it':
+        case 'en':
+        case 'es':
+        case 'fr':
+        case 'de':
+        case 'ar':
+        case 'fa':
+          return normalized;
+        default:
+          return null;
+      }
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> logoutCurrentUser() async {
     await _authApi.logout();
     await _sessionRepository.clearSession();
@@ -592,14 +617,25 @@ class AppDI {
   Future<List<NewsItem>> _loadNewsForScope(GeoScope? scope) async {
     final countryCode = _readScopeCountryCode(scope);
     final cityId = _readScopeCityId(scope);
+    final language = await _readStoredContentLanguageApiValue();
     final dynamic useCase = getNewsFeed;
 
     final scoped = await _tryLoadListOrEmpty<NewsItem>([
-      () => useCase(countryCode: countryCode, cityId: cityId),
-      () => useCase(countryCode: countryCode, cityId: cityId, limit: 20),
       () => useCase(
             countryCode: countryCode,
             cityId: cityId,
+            language: language,
+          ),
+      () => useCase(
+            countryCode: countryCode,
+            cityId: cityId,
+            language: language,
+            limit: 20,
+          ),
+      () => useCase(
+            countryCode: countryCode,
+            cityId: cityId,
+            language: language,
             limit: 20,
             offset: 0,
           ),
@@ -610,9 +646,9 @@ class AppDI {
     }
 
     return _tryLoadList<NewsItem>([
-      () => useCase(),
-      () => useCase(limit: 20),
-      () => useCase(limit: 20, offset: 0),
+      () => useCase(language: language),
+      () => useCase(language: language, limit: 20),
+      () => useCase(language: language, limit: 20, offset: 0),
     ]);
   }
 
@@ -654,13 +690,156 @@ class AppDI {
   }
 
   Future<List<NewsItem>> _loadNewsForMapScope(GeoScope scope) async {
-    final news = await _loadEntitiesForMapScope<NewsItem>(
-      scope: scope,
-      useCase: getNewsFeed,
-      batchSize: _newsMapBatchSize,
-    );
+    final levelName = _readScopeLevelName(scope);
+    final countryCode = _readScopeCountryCode(scope);
+    final cityId = _readScopeCityId(scope);
+    final language = await _readStoredContentLanguageApiValue();
+    final dynamic useCase = getNewsFeed;
 
-    return _filterEntitiesForGeoScope(news, scope);
+    if (levelName == 'world') {
+      final news = await _tryLoadList<NewsItem>([
+        () => useCase(language: language, limit: _newsMapBatchSize),
+        () => useCase(
+              language: language,
+              limit: _newsMapBatchSize,
+              offset: 0,
+            ),
+        () => useCase(language: language),
+      ]);
+      return _filterEntitiesForGeoScope(news, scope);
+    }
+
+    if (levelName == 'country') {
+      if (!_hasText(countryCode)) {
+        return <NewsItem>[];
+      }
+
+      final news = await _tryLoadListOrEmpty<NewsItem>([
+        () => useCase(
+              countryCode: countryCode,
+              language: language,
+              limit: _newsMapBatchSize,
+            ),
+        () => useCase(
+              countryCode: countryCode,
+              language: language,
+              limit: _newsMapBatchSize,
+              offset: 0,
+            ),
+        () => useCase(
+              countryCode: countryCode,
+              language: language,
+            ),
+      ]);
+
+      return _filterEntitiesForGeoScope(news, scope);
+    }
+
+    if (levelName == 'city') {
+      if (!_hasText(countryCode) || !_hasText(cityId)) {
+        return <NewsItem>[];
+      }
+
+      final news = await _tryLoadListOrEmpty<NewsItem>([
+        () => useCase(
+              countryCode: countryCode,
+              cityId: cityId,
+              language: language,
+              limit: _newsMapBatchSize,
+            ),
+        () => useCase(
+              countryCode: countryCode,
+              cityId: cityId,
+              language: language,
+              limit: _newsMapBatchSize,
+              offset: 0,
+            ),
+        () => useCase(
+              countryCode: countryCode,
+              cityId: cityId,
+              language: language,
+            ),
+      ]);
+
+      return _filterEntitiesForGeoScope(news, scope);
+    }
+
+    if (levelName == 'area') {
+      if (_hasText(countryCode) && _hasText(cityId)) {
+        final byCity = await _tryLoadListOrEmpty<NewsItem>([
+          () => useCase(
+                countryCode: countryCode,
+                cityId: cityId,
+                language: language,
+                limit: _newsMapBatchSize,
+              ),
+          () => useCase(
+                countryCode: countryCode,
+                cityId: cityId,
+                language: language,
+                limit: _newsMapBatchSize,
+                offset: 0,
+              ),
+          () => useCase(
+                countryCode: countryCode,
+                cityId: cityId,
+                language: language,
+              ),
+        ]);
+
+        if (byCity.isNotEmpty) {
+          return _filterEntitiesForGeoScope(byCity, scope);
+        }
+      }
+
+      if (_hasText(countryCode)) {
+        final byCountry = await _tryLoadListOrEmpty<NewsItem>([
+          () => useCase(
+                countryCode: countryCode,
+                language: language,
+                limit: _newsMapBatchSize,
+              ),
+          () => useCase(
+                countryCode: countryCode,
+                language: language,
+                limit: _newsMapBatchSize,
+                offset: 0,
+              ),
+          () => useCase(
+                countryCode: countryCode,
+                language: language,
+              ),
+        ]);
+
+        if (byCountry.isNotEmpty) {
+          return _filterEntitiesForGeoScope(byCountry, scope);
+        }
+      }
+
+      final worldFallback = await _tryLoadListOrEmpty<NewsItem>([
+        () => useCase(language: language, limit: _newsMapBatchSize),
+        () => useCase(
+              language: language,
+              limit: _newsMapBatchSize,
+              offset: 0,
+            ),
+        () => useCase(language: language),
+      ]);
+
+      return _filterEntitiesForGeoScope(worldFallback, scope);
+    }
+
+    final fallback = await _tryLoadListOrEmpty<NewsItem>([
+      () => useCase(language: language, limit: _newsMapBatchSize),
+      () => useCase(
+            language: language,
+            limit: _newsMapBatchSize,
+            offset: 0,
+          ),
+      () => useCase(language: language),
+    ]);
+
+    return _filterEntitiesForGeoScope(fallback, scope);
   }
 
   Future<List<Post>> _loadPostsForMapScope(GeoScope scope) async {

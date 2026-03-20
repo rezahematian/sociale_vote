@@ -11,6 +11,7 @@ import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/civic_map_widget.dart';
+import 'package:sociale_vote/features/news/domain/news_language.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
 
 class CivicMapPage extends StatelessWidget {
@@ -34,6 +35,14 @@ class _CivicMapPageView extends StatefulWidget {
 
 class _CivicMapPageViewState extends State<_CivicMapPageView> {
   String? _lastSyncedScopeKey;
+  NewsLanguage _selectedLanguage = NewsLanguage.auto;
+  bool _isChangingLanguage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreSavedLanguagePreference();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +58,8 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
       scopeKey: activeScopeKey,
     );
 
+    final selectorBusy = _isChangingLanguage || controller.isLoading;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Civic Map'),
@@ -58,7 +69,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
             onPressed: controller.isLoading
                 ? null
                 : () {
-                    controller.refreshMetrics();
+                    controller.refresh();
                   },
             icon: controller.isLoading
                 ? const SizedBox(
@@ -75,7 +86,15 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              _MapTypeFilters(controller: controller),
+              _MapTopControls(
+                controller: controller,
+                selectedLanguage: _selectedLanguage,
+                languageSelectorEnabled: !selectorBusy,
+                onLanguageChanged: (value) => _handleLanguageChanged(
+                  value,
+                  controller: controller,
+                ),
+              ),
               const SizedBox(height: 12),
               Expanded(
                 child: CivicMapWidget(
@@ -118,6 +137,80 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
         ),
       ),
     );
+  }
+
+  Future<void> _restoreSavedLanguagePreference() async {
+    try {
+      final storedValue = await AppDI.instance.getContentLanguagePreference();
+      final restored = _newsLanguageFromStoredValue(storedValue);
+
+      if (!mounted || restored == null) {
+        return;
+      }
+
+      setState(() {
+        _selectedLanguage = restored;
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _handleLanguageChanged(
+    NewsLanguage language, {
+    required CivicMapController controller,
+  }) async {
+    if (_selectedLanguage == language || _isChangingLanguage) {
+      return;
+    }
+
+    setState(() {
+      _selectedLanguage = language;
+      _isChangingLanguage = true;
+    });
+
+    try {
+      if (language == NewsLanguage.auto) {
+        await AppDI.instance.clearContentLanguagePreference();
+      } else {
+        await AppDI.instance.setContentLanguagePreference(language.name);
+      }
+
+      await controller.refresh();
+    } finally {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isChangingLanguage = false;
+      });
+    }
+  }
+
+  NewsLanguage? _newsLanguageFromStoredValue(String? value) {
+    if (value == null) {
+      return NewsLanguage.auto;
+    }
+
+    switch (value.trim().toLowerCase()) {
+      case 'auto':
+        return NewsLanguage.auto;
+      case 'it':
+        return NewsLanguage.it;
+      case 'en':
+        return NewsLanguage.en;
+      case 'es':
+        return NewsLanguage.es;
+      case 'fr':
+        return NewsLanguage.fr;
+      case 'de':
+        return NewsLanguage.de;
+      case 'ar':
+        return NewsLanguage.ar;
+      case 'fa':
+        return NewsLanguage.fa;
+      default:
+        return NewsLanguage.auto;
+    }
   }
 
   void _scheduleScopeSyncIfNeeded({
@@ -327,10 +420,15 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
         break;
     }
 
+    final language = _selectedLanguage == NewsLanguage.auto
+        ? null
+        : _selectedLanguage.apiValue;
+
     try {
       final items = await appDi.getNewsFeed(
         countryCode: countryCode,
         cityId: cityId,
+        language: language,
         limit: 50,
         offset: 0,
       );
@@ -344,6 +442,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
 
     try {
       final items = await appDi.getNewsFeed(
+        language: language,
         limit: 50,
         offset: 0,
       );
@@ -415,6 +514,129 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
     } catch (_) {}
 
     return null;
+  }
+}
+
+class _MapTopControls extends StatelessWidget {
+  final CivicMapController controller;
+  final NewsLanguage selectedLanguage;
+  final bool languageSelectorEnabled;
+  final ValueChanged<NewsLanguage> onLanguageChanged;
+
+  const _MapTopControls({
+    required this.controller,
+    required this.selectedLanguage,
+    required this.languageSelectorEnabled,
+    required this.onLanguageChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final languageSelector = SizedBox(
+          width: 250,
+          child: _MapLanguageSelector(
+            selectedLanguage: selectedLanguage,
+            enabled: languageSelectorEnabled,
+            onChanged: onLanguageChanged,
+          ),
+        );
+
+        if (constraints.maxWidth >= 900) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: _MapTypeFilters(controller: controller),
+                ),
+              ),
+              const SizedBox(width: 12),
+              languageSelector,
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _MapTypeFilters(controller: controller),
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: languageSelector,
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _MapLanguageSelector extends StatelessWidget {
+  final NewsLanguage selectedLanguage;
+  final bool enabled;
+  final ValueChanged<NewsLanguage> onChanged;
+
+  const _MapLanguageSelector({
+    required this.selectedLanguage,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<NewsLanguage>(
+      value: selectedLanguage,
+      isExpanded: true,
+      decoration: InputDecoration(
+        isDense: true,
+        prefixIcon: const Icon(Icons.language, size: 18),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 10,
+        ),
+      ),
+      items: NewsLanguage.values.map((language) {
+        return DropdownMenuItem<NewsLanguage>(
+          value: language,
+          child: Text(_labelForLanguage(language)),
+        );
+      }).toList(growable: false),
+      onChanged: enabled
+          ? (value) {
+              if (value != null) {
+                onChanged(value);
+              }
+            }
+          : null,
+    );
+  }
+
+  String _labelForLanguage(NewsLanguage language) {
+    switch (language) {
+      case NewsLanguage.auto:
+        return 'Auto';
+      case NewsLanguage.it:
+        return 'Italiano (IT)';
+      case NewsLanguage.en:
+        return 'English (EN)';
+      case NewsLanguage.es:
+        return 'Español (ES)';
+      case NewsLanguage.fr:
+        return 'Français (FR)';
+      case NewsLanguage.de:
+        return 'Deutsch (DE)';
+      case NewsLanguage.ar:
+        return 'العربية (AR)';
+      case NewsLanguage.fa:
+        return 'فارسی (FA)';
+    }
   }
 }
 
