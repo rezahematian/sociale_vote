@@ -14,6 +14,7 @@ import 'package:sociale_vote/infrastructure/news/models/news_dto.dart';
 class NewsRepositoryImpl implements NewsRepository {
   static const String _cacheTable = 'news_feed_cache';
   static const Duration _cacheTtl = Duration(minutes: 30);
+  static const int _cachePayloadVersion = 2;
 
   static const int _providerWarmupBatchSize = 80;
 
@@ -106,7 +107,7 @@ class NewsRepositoryImpl implements NewsRepository {
     final requestedCountryCode = _normalize(countryCode);
     final requestedCityId = _normalize(cityId);
     final requestedTopic = _normalize(topic);
-    final requestedLanguage = _normalize(language);
+    final requestedLanguage = _normalizeLanguageCode(language);
 
     final candidate = _NewsFeedCandidate(
       countryCode: requestedCountryCode,
@@ -121,6 +122,7 @@ class NewsRepositoryImpl implements NewsRepository {
     final freshCache = await _readCache(
       cacheKey: candidate.cacheKey,
       acceptStale: false,
+      requestedLanguage: candidate.language,
     );
 
     if (freshCache != null && freshCache.items.isNotEmpty) {
@@ -145,12 +147,29 @@ class NewsRepositoryImpl implements NewsRepository {
         ? await _readCache(
             cacheKey: candidate.cacheKey,
             acceptStale: true,
+            requestedLanguage: candidate.language,
           )
         : null;
 
-    if (staleCache != null &&
-        staleCache.items.isNotEmpty &&
-        _cacheHasResolvedLocations(staleCache.items) &&
+    final usableStaleCache =
+        staleCache != null &&
+            _canUseStaleFallbackCache(
+              staleCache,
+              requestedLanguage: candidate.language,
+            )
+        ? staleCache
+        : null;
+
+    if (staleCache != null && usableStaleCache == null && kDebugMode) {
+      debugPrint(
+        'NewsRepositoryImpl stale cache rejected for ${candidate.cacheKey} '
+        'because language/provider coherence is not reliable.',
+      );
+    }
+
+    if (usableStaleCache != null &&
+        usableStaleCache.items.isNotEmpty &&
+        _cacheHasResolvedLocations(usableStaleCache.items) &&
         kDebugMode) {
       debugPrint(
         'NewsRepositoryImpl stale cache available for ${candidate.cacheKey}, '
@@ -200,7 +219,7 @@ class NewsRepositoryImpl implements NewsRepository {
       );
     }
 
-    if (staleCache != null && staleCache.items.isNotEmpty) {
+    if (usableStaleCache != null && usableStaleCache.items.isNotEmpty) {
       if (kDebugMode) {
         debugPrint(
           'NewsRepositoryImpl fallback to stale cache for '
@@ -210,7 +229,7 @@ class NewsRepositoryImpl implements NewsRepository {
 
       return _mapCandidatePage(
         candidate,
-        staleCache.items,
+        usableStaleCache.items,
         limit: limit,
         offset: offset,
       );
@@ -247,6 +266,7 @@ class NewsRepositoryImpl implements NewsRepository {
     final previousCache = await _readCache(
       cacheKey: candidate.cacheKey,
       acceptStale: allowStalePreviousCache,
+      requestedLanguage: candidate.language,
     );
 
     final jsonList = await _aggregator.fetchNews(
@@ -258,7 +278,12 @@ class NewsRepositoryImpl implements NewsRepository {
       offset: 0,
     );
 
-    final normalized = _normalizeJsonList(jsonList);
+    final normalized = _deduplicateJsonListByStableIdentity(
+      _filterItemsForRequestedLanguage(
+        _normalizeJsonList(jsonList),
+        candidate.language,
+      ),
+    );
 
     final seeded = _seedLocationsFromPreviousCache(
       normalized,
@@ -586,7 +611,14 @@ class NewsRepositoryImpl implements NewsRepository {
         return;
       }
 
-      final datelinePair = _extractDatelineLocationPair(cleaned);
+      final openingWindow = _extractPrimaryLocationWindow(
+        cleaned,
+        maxLength: prioritizePrimaryLead ? 180 : 220,
+      );
+
+      final analysisText = openingWindow.isEmpty ? cleaned : openingWindow;
+
+      final datelinePair = _extractDatelineLocationPair(analysisText);
       if (datelinePair != null) {
         addCandidate(
           datelinePair.cityName,
@@ -603,7 +635,26 @@ class NewsRepositoryImpl implements NewsRepository {
         );
       }
 
-      final primaryLeadPhrases = _extractPrimaryLocationPhrases(cleaned);
+      final pairedLocations = _extractCityCountryPairs(analysisText);
+      for (final pair in pairedLocations.take(prioritizePrimaryLead ? 3 : 2)) {
+        addCandidate(
+          pair.cityName,
+          countryCode: pair.countryCode,
+          isCountryOnly: false,
+          score: prioritizePrimaryLead
+              ? phraseScore + leadPhraseBonus + 70
+              : phraseScore + leadPhraseBonus + 30,
+        );
+
+        addCandidate(
+          pair.countryName,
+          countryCode: pair.countryCode,
+          isCountryOnly: true,
+          score: prioritizePrimaryLead ? countryScore + 20 : countryScore,
+        );
+      }
+
+      final primaryLeadPhrases = _extractPrimaryLocationPhrases(analysisText);
       for (final phrase in primaryLeadPhrases.take(3)) {
         final countryCode = _countryCodeForAlias(phrase);
         addCandidate(
@@ -616,7 +667,7 @@ class NewsRepositoryImpl implements NewsRepository {
         );
       }
 
-      final countryHits = _extractCountryHits(cleaned);
+      final countryHits = _extractCountryHits(analysisText);
       for (final hit in countryHits) {
         addCandidate(
           hit.label,
@@ -626,7 +677,7 @@ class NewsRepositoryImpl implements NewsRepository {
         );
       }
 
-      final leadPhrases = _extractLeadLocationPhrases(cleaned);
+      final leadPhrases = _extractLeadLocationPhrases(analysisText);
       for (final phrase in leadPhrases.take(maxPhrases)) {
         final countryCode = _countryCodeForAlias(phrase);
         addCandidate(
@@ -637,7 +688,7 @@ class NewsRepositoryImpl implements NewsRepository {
         );
       }
 
-      final properNouns = _extractProperNounPhrases(cleaned);
+      final properNouns = _extractProperNounPhrases(analysisText);
       for (final phrase in properNouns.take(maxPhrases)) {
         final countryCode = _countryCodeForAlias(phrase);
         addCandidate(
@@ -722,6 +773,28 @@ class NewsRepositoryImpl implements NewsRepository {
     return candidates;
   }
 
+  String _extractPrimaryLocationWindow(
+    String text, {
+    required int maxLength,
+  }) {
+    final cleaned = _stripHtml(text);
+    if (cleaned.isEmpty) {
+      return '';
+    }
+
+    final window = cleaned.length <= maxLength
+        ? cleaned
+        : cleaned.substring(0, maxLength);
+
+    for (final match in RegExp(r'[.!?;]').allMatches(window)) {
+      if (match.start >= 40) {
+        return window.substring(0, match.start).trim();
+      }
+    }
+
+    return window.trim();
+  }
+
   List<_LocationCandidate> _rebalanceCountryVsCityCandidates(
     List<_LocationCandidate> candidates,
   ) {
@@ -729,27 +802,42 @@ class NewsRepositoryImpl implements NewsRepository {
       return const <_LocationCandidate>[];
     }
 
+    final bestCityScoreByCountry = <String, int>{};
+
+    for (final candidate in candidates) {
+      if (candidate.isCountryOnly || candidate.countryCode == null) {
+        continue;
+      }
+
+      final countryCode = candidate.countryCode!;
+      final currentBest = bestCityScoreByCountry[countryCode];
+
+      if (currentBest == null || candidate.score > currentBest) {
+        bestCityScoreByCountry[countryCode] = candidate.score;
+      }
+    }
+
     return candidates.map((candidate) {
       if (!candidate.isCountryOnly || candidate.countryCode == null) {
         return candidate;
       }
 
-      final hasCityCandidateForSameCountry = candidates.any(
-        (other) =>
-            !other.isCountryOnly &&
-            other.countryCode != null &&
-            other.countryCode == candidate.countryCode,
-      );
-
-      if (!hasCityCandidateForSameCountry) {
+      final bestCityScore = bestCityScoreByCountry[candidate.countryCode!];
+      if (bestCityScore == null) {
         return candidate;
+      }
+
+      var adjustedScore = candidate.score - 40;
+
+      if (bestCityScore >= candidate.score - 10) {
+        adjustedScore -= 20;
       }
 
       return _LocationCandidate(
         query: candidate.query,
         countryCode: candidate.countryCode,
         isCountryOnly: candidate.isCountryOnly,
-        score: candidate.score - 35,
+        score: adjustedScore,
       );
     }).toList(growable: false);
   }
@@ -797,6 +885,60 @@ class NewsRepositoryImpl implements NewsRepository {
       countryName: countryName,
       countryCode: countryCode,
     );
+  }
+
+  List<_DatelineLocationPair> _extractCityCountryPairs(String text) {
+    final cleaned = text
+        .replaceAll(RegExp(r'<[^>]*>'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    if (cleaned.isEmpty) {
+      return const <_DatelineLocationPair>[];
+    }
+
+    final regex = RegExp(
+      r"\b((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})\s*,\s*((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})\b",
+    );
+
+    final output = <_DatelineLocationPair>[];
+    final seen = <String>{};
+
+    for (final match in regex.allMatches(cleaned)) {
+      final cityName = match.group(1)?.trim();
+      final countryName = match.group(2)?.trim();
+
+      if (cityName == null ||
+          countryName == null ||
+          !_looksLikeLocationPhrase(cityName) ||
+          !_looksLikeLocationPhrase(countryName)) {
+        continue;
+      }
+
+      final countryCode = _countryCodeForAlias(countryName);
+      if (countryCode == null) {
+        continue;
+      }
+
+      if (_countryCodeForAlias(cityName) != null) {
+        continue;
+      }
+
+      final signature = '${cityName.toLowerCase()}|$countryCode';
+      if (!seen.add(signature)) {
+        continue;
+      }
+
+      output.add(
+        _DatelineLocationPair(
+          cityName: cityName,
+          countryName: countryName,
+          countryCode: countryCode,
+        ),
+      );
+    }
+
+    return output;
   }
 
   List<String> _extractPrimaryLocationPhrases(String text) {
@@ -1131,6 +1273,10 @@ class NewsRepositoryImpl implements NewsRepository {
       'briefing',
       'report',
       'reports',
+      'alert',
+      'alerts',
+      'latest',
+      'homepage',
     };
 
     const blockedExactPhrases = <String>{
@@ -1167,6 +1313,16 @@ class NewsRepositoryImpl implements NewsRepository {
       'ministry',
       'department',
       'network',
+      'official',
+      'officials',
+      'president',
+      'minister',
+      'government',
+      'leader',
+      'leaders',
+      'police',
+      'army',
+      'military',
     };
 
     final parts = phrase.split(RegExp(r'\s+'));
@@ -1185,7 +1341,21 @@ class NewsRepositoryImpl implements NewsRepository {
       return false;
     }
 
+    if (parts.length >= 2 &&
+        !_countryAliases.containsKey(normalized) &&
+        (blockedSingleWords.contains(normalizedParts.first) ||
+            blockedSingleWords.contains(normalizedParts.last))) {
+      return false;
+    }
+
     if (normalizedParts.every(blockedSingleWords.contains)) {
+      return false;
+    }
+
+    final isAllCapsPhrase = phrase == phrase.toUpperCase();
+    if (isAllCapsPhrase &&
+        !_countryAliases.containsKey(normalized) &&
+        normalizedParts.any(blockedSingleWords.contains)) {
       return false;
     }
 
@@ -1196,29 +1366,27 @@ class NewsRepositoryImpl implements NewsRepository {
     NewsDto dto,
     ContentLocation existingLocation,
   ) {
-    final strongPhrases = _extractStrongPrimaryLocationPhrases(dto);
-    if (strongPhrases.isEmpty) {
+    final candidates = _extractLocationCandidates(dto);
+    if (candidates.isEmpty) {
       return false;
     }
 
-    final normalizedExistingCity = _normalizePhrase(existingLocation.cityName);
-    final normalizedExistingCountry = _normalize(existingLocation.countryCode);
+    final topCandidate = candidates.first;
+    if (!_isStrongPrimaryLocationCandidate(topCandidate)) {
+      return false;
+    }
 
-    for (final phrase in strongPhrases) {
-      final normalizedPhrase = _normalizePhrase(phrase);
-      if (normalizedPhrase == null) {
-        continue;
-      }
+    if (_candidateMatchesExistingLocation(topCandidate, existingLocation)) {
+      return false;
+    }
 
-      if (normalizedExistingCity != null &&
-          normalizedPhrase == normalizedExistingCity) {
-        return false;
-      }
-
-      final phraseCountryCode = _countryCodeForAlias(phrase);
-      if (phraseCountryCode != null &&
-          normalizedExistingCountry != null &&
-          phraseCountryCode.toLowerCase() == normalizedExistingCountry) {
+    if (candidates.length >= 2) {
+      final secondCandidate = candidates[1];
+      if (secondCandidate.score >= topCandidate.score - 15 &&
+          _candidateMatchesExistingLocation(
+            secondCandidate,
+            existingLocation,
+          )) {
         return false;
       }
     }
@@ -1226,34 +1394,45 @@ class NewsRepositoryImpl implements NewsRepository {
     return true;
   }
 
-  List<String> _extractStrongPrimaryLocationPhrases(NewsDto dto) {
-    final output = <String>[];
-    final seen = <String>{};
+  bool _isStrongPrimaryLocationCandidate(_LocationCandidate candidate) {
+    final minimumScore = candidate.isCountryOnly ? 160 : 170;
+    return candidate.score >= minimumScore;
+  }
 
-    void addAll(Iterable<String> phrases) {
-      for (final phrase in phrases) {
-        final normalized = _normalizePhrase(phrase);
-        if (normalized == null || !seen.add(normalized)) {
-          continue;
-        }
-        output.add(phrase);
-      }
+  bool _candidateMatchesExistingLocation(
+    _LocationCandidate candidate,
+    ContentLocation existingLocation,
+  ) {
+    final normalizedExistingCity = _normalizePhrase(existingLocation.cityName);
+    final normalizedExistingCountry = _normalize(existingLocation.countryCode);
+
+    if (!candidate.isCountryOnly) {
+      final normalizedCandidateQuery = _normalizePhrase(candidate.query);
+      return normalizedCandidateQuery != null &&
+          normalizedExistingCity != null &&
+          normalizedCandidateQuery == normalizedExistingCity;
     }
 
-    addAll(_extractPrimaryLocationPhrases(dto.title).take(3));
-    addAll(_extractLeadLocationPhrases(dto.title).take(3));
+    if (candidate.countryCode == null || normalizedExistingCountry == null) {
+      return false;
+    }
 
-    return output;
+    return candidate.countryCode!.toLowerCase() == normalizedExistingCountry;
   }
 
   Future<_CachedNewsFeed?> _readCache({
     required String cacheKey,
     required bool acceptStale,
+    required String? requestedLanguage,
   }) async {
     try {
       final rows = await AppSupabase.client
           .from(_cacheTable)
-          .select('cache_key, payload, refreshed_at')
+          .select(
+            'cache_key, payload, refreshed_at, item_count, '
+            'resolved_location_count, provider_signatures, '
+            'languages_present, payload_version',
+          )
           .eq('cache_key', cacheKey)
           .limit(1);
 
@@ -1272,11 +1451,24 @@ class NewsRepositoryImpl implements NewsRepository {
       }
 
       final payload = row['payload'];
-      final items = _normalizeJsonList(payload is List ? payload : const []);
+      final items = _filterItemsForRequestedLanguage(
+        _normalizeJsonList(payload is List ? payload : const []),
+        requestedLanguage,
+      );
+
+      if (items.isEmpty) {
+        return null;
+      }
+
+      final metadata = _readCacheMetadataFromRow(
+        row,
+        fallbackItems: items,
+      );
 
       final cache = _CachedNewsFeed(
         items: items,
         refreshedAt: refreshedAt,
+        metadata: metadata,
       );
 
       if (!acceptStale && !cache.isFresh) {
@@ -1302,6 +1494,8 @@ class NewsRepositoryImpl implements NewsRepository {
     required List<Map<String, dynamic>> items,
   }) async {
     try {
+      final metadata = _buildCacheMetadata(items);
+
       await AppSupabase.client.from(_cacheTable).upsert(
         {
           'cache_key': cacheKey,
@@ -1310,6 +1504,11 @@ class NewsRepositoryImpl implements NewsRepository {
           'topic': topic,
           'language': language,
           'payload': items,
+          'item_count': metadata.itemCount,
+          'resolved_location_count': metadata.resolvedLocationCount,
+          'provider_signatures': metadata.providerSignatures,
+          'languages_present': metadata.languagesPresent,
+          'payload_version': metadata.payloadVersion,
           'refreshed_at': DateTime.now().toUtc().toIso8601String(),
         },
         onConflict: 'cache_key',
@@ -1342,9 +1541,30 @@ class NewsRepositoryImpl implements NewsRepository {
 
         final countryCode = _normalize(row['country_code']?.toString());
         final cityId = _normalize(row['city_id']?.toString());
+        final normalizedPayload = _normalizeJsonList(payload);
+
+        for (final json in normalizedPayload) {
+          if (!_matchesRequestedNewsId(json, newsId)) {
+            continue;
+          }
+
+          final dto = _tryParseDto(json);
+          if (dto == null) {
+            continue;
+          }
+
+          final contentLocation = _readEmbeddedContentLocation(json);
+
+          return _mapper.toDomain(
+            dto,
+            countryCode: countryCode,
+            cityId: cityId,
+            contentLocation: contentLocation,
+          );
+        }
 
         final mapped = _mapJsonToDomainList(
-          _normalizeJsonList(payload),
+          normalizedPayload,
           countryCode: countryCode,
           cityId: cityId,
         );
@@ -1416,7 +1636,9 @@ class NewsRepositoryImpl implements NewsRepository {
     required String? countryCode,
     required String? cityId,
   }) {
-    final items = jsonList.map((json) {
+    final stableJsonList = _deduplicateJsonListByStableIdentity(jsonList);
+
+    final items = stableJsonList.map((json) {
       final dto = NewsDto.fromJson(json);
       final contentLocation = _readEmbeddedContentLocation(json);
 
@@ -1499,6 +1721,392 @@ class NewsRepositoryImpl implements NewsRepository {
         .toList(growable: false);
   }
 
+  List<Map<String, dynamic>> _filterItemsForRequestedLanguage(
+    List<Map<String, dynamic>> items,
+    String? requestedLanguage,
+  ) {
+    final normalizedRequestedLanguage = _normalizeLanguageCode(
+      requestedLanguage,
+    );
+    if (normalizedRequestedLanguage == null || items.isEmpty) {
+      return List<Map<String, dynamic>>.unmodifiable(
+        items.map((item) => Map<String, dynamic>.from(item)).toList(),
+      );
+    }
+
+    final explicitMatches = <Map<String, dynamic>>[];
+    final unknownLanguage = <Map<String, dynamic>>[];
+    var explicitMismatchCount = 0;
+
+    for (final item in items) {
+      final itemLanguage = _extractItemLanguage(item);
+
+      if (itemLanguage == null) {
+        unknownLanguage.add(Map<String, dynamic>.from(item));
+        continue;
+      }
+
+      if (itemLanguage == normalizedRequestedLanguage) {
+        explicitMatches.add(Map<String, dynamic>.from(item));
+      } else {
+        explicitMismatchCount += 1;
+      }
+    }
+
+    if (explicitMatches.isEmpty) {
+      if (unknownLanguage.isEmpty && explicitMismatchCount > 0) {
+        return const <Map<String, dynamic>>[];
+      }
+
+      return List<Map<String, dynamic>>.unmodifiable(
+        items.map((item) => Map<String, dynamic>.from(item)).toList(),
+      );
+    }
+
+    return List<Map<String, dynamic>>.unmodifiable(
+      <Map<String, dynamic>>[
+        ...explicitMatches,
+        ...unknownLanguage,
+      ],
+    );
+  }
+
+  String? _extractItemLanguage(Map<String, dynamic> json) {
+    final rawLanguage = _firstNonEmptyString(
+      json,
+      const <String>[
+        'language',
+        'lang',
+        'locale',
+        'content_language',
+        'contentLanguage',
+        'feed_language',
+        'feedLanguage',
+      ],
+    );
+
+    return _normalizeLanguageCode(rawLanguage);
+  }
+
+  bool _canUseStaleFallbackCache(
+    _CachedNewsFeed cache, {
+    required String? requestedLanguage,
+  }) {
+    if (cache.items.isEmpty) {
+      return false;
+    }
+
+    final normalizedRequestedLanguage = _normalizeLanguageCode(
+      requestedLanguage,
+    );
+    if (normalizedRequestedLanguage == null) {
+      return true;
+    }
+
+    if (cache.metadata.languagesPresent.isNotEmpty &&
+        !cache.metadata.languagesPresent.contains(normalizedRequestedLanguage)) {
+      return false;
+    }
+
+    if (cache.metadata.providerSignatures.isNotEmpty) {
+      return true;
+    }
+
+    final filtered = _filterItemsForRequestedLanguage(
+      cache.items,
+      requestedLanguage,
+    );
+
+    if (filtered.isEmpty) {
+      return false;
+    }
+
+    return filtered.any((item) => _extractProviderSignature(item) != null);
+  }
+
+  String? _extractProviderSignature(Map<String, dynamic> json) {
+    final rawProvider = _firstNonEmptyString(
+      json,
+      const <String>[
+        'provider',
+        'provider_id',
+        'providerId',
+        'provider_name',
+        'providerName',
+        'source',
+        'source_id',
+        'sourceId',
+        'source_name',
+        'sourceName',
+      ],
+    );
+
+    if (rawProvider != null) {
+      return _normalizePhrase(rawProvider);
+    }
+
+    final dto = _tryParseDto(json);
+    return _normalizePhrase(dto?.sourceId) ?? _normalizePhrase(dto?.sourceName);
+  }
+
+  _CachePayloadMetadata _buildCacheMetadata(
+    List<Map<String, dynamic>> items,
+  ) {
+    final providerSignatures = <String>{};
+    final languagesPresent = <String>{};
+
+    for (final item in items) {
+      final providerSignature = _extractProviderSignature(item);
+      if (providerSignature != null) {
+        providerSignatures.add(providerSignature);
+      }
+
+      final language = _extractItemLanguage(item);
+      if (language != null) {
+        languagesPresent.add(language);
+      }
+    }
+
+    return _CachePayloadMetadata(
+      itemCount: items.length,
+      resolvedLocationCount: _countItemsWithResolvedLocation(items),
+      providerSignatures: providerSignatures.toList()..sort(),
+      languagesPresent: languagesPresent.toList()..sort(),
+      payloadVersion: _cachePayloadVersion,
+    );
+  }
+
+  _CachePayloadMetadata _readCacheMetadataFromRow(
+    Map<String, dynamic> row, {
+    required List<Map<String, dynamic>> fallbackItems,
+  }) {
+    final fallback = _buildCacheMetadata(fallbackItems);
+
+    return _CachePayloadMetadata(
+      itemCount: _readInt(row['item_count']) ?? fallback.itemCount,
+      resolvedLocationCount:
+          _readInt(row['resolved_location_count']) ??
+          fallback.resolvedLocationCount,
+      providerSignatures:
+          _readStringList(row['provider_signatures']) ??
+          fallback.providerSignatures,
+      languagesPresent:
+          _readStringList(row['languages_present']) ?? fallback.languagesPresent,
+      payloadVersion:
+          _readInt(row['payload_version']) ?? fallback.payloadVersion,
+    );
+  }
+
+  int? _readInt(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+
+    return int.tryParse(value?.toString() ?? '');
+  }
+
+  List<String>? _readStringList(dynamic value) {
+    if (value is! List) {
+      return null;
+    }
+
+    final output = <String>{};
+
+    for (final item in value) {
+      final normalized = _normalizePhrase(item?.toString());
+      if (normalized != null) {
+        output.add(normalized);
+      }
+    }
+
+    return output.toList()..sort();
+  }
+
+  List<String> _buildStableArticleKeysFromJson(Map<String, dynamic> json) {
+    final dto = _tryParseDto(json);
+    final keys = <String>{};
+
+    void addKey(String? value) {
+      if (value == null) return;
+      final trimmed = value.trim();
+      if (trimmed.isEmpty) return;
+      keys.add(trimmed);
+    }
+
+    final sourceHint = _normalizeIdentitySource(
+      _firstNonEmptyString(
+            json,
+            const <String>[
+              'source_id',
+              'sourceId',
+              'source_name',
+              'sourceName',
+              'provider',
+              'provider_id',
+              'providerId',
+              'provider_name',
+              'providerName',
+            ],
+          ) ??
+          dto?.sourceId ??
+          dto?.sourceName,
+    );
+
+    final normalizedUrl = _normalizeArticleUrl(
+      _firstNonEmptyString(
+            json,
+            const <String>[
+              'url',
+              'link',
+              'article_url',
+              'articleUrl',
+              'canonical_url',
+              'canonicalUrl',
+            ],
+          ) ??
+          dto?.url,
+    );
+
+    if (normalizedUrl != null) {
+      addKey('url:$normalizedUrl');
+    }
+
+    final externalId = _firstNonEmptyString(
+      json,
+      const <String>[
+        'external_id',
+        'externalId',
+        'guid',
+        'uuid',
+        'provider_article_id',
+        'providerArticleId',
+        'article_id',
+        'articleId',
+      ],
+    );
+
+    if (externalId != null) {
+      addKey('external:$sourceHint:${externalId.toLowerCase()}');
+    }
+
+    final rawId =
+        dto?.id.trim() ??
+        _firstNonEmptyString(json, const <String>['id'])?.trim() ??
+        '';
+
+    if (rawId.isNotEmpty) {
+      addKey('id:$sourceHint:${rawId.toLowerCase()}');
+    }
+
+    final title =
+        (dto?.title ??
+                _firstNonEmptyString(json, const <String>['title', 'headline']))
+            ?.trim();
+
+    final publishedAt = dto?.publishedAt ?? _extractPublishedAtFromJson(json);
+
+    if (title != null && title.isNotEmpty && publishedAt != null) {
+      addKey(
+        'title:$sourceHint:${title.toLowerCase()}:${publishedAt.toUtc().toIso8601String()}',
+      );
+    }
+
+    return keys.toList(growable: false);
+  }
+
+  DateTime? _extractPublishedAtFromJson(Map<String, dynamic> json) {
+    return _parseDateTime(
+      json['published_at'] ??
+          json['publishedAt'] ??
+          json['pubDate'] ??
+          json['date'] ??
+          json['created_at'] ??
+          json['createdAt'],
+    );
+  }
+
+  List<Map<String, dynamic>> _deduplicateJsonListByStableIdentity(
+    List<Map<String, dynamic>> items,
+  ) {
+    if (items.length <= 1) {
+      return List<Map<String, dynamic>>.unmodifiable(
+        items.map((item) => Map<String, dynamic>.from(item)).toList(),
+      );
+    }
+
+    final seenKeys = <String>{};
+    final output = <Map<String, dynamic>>[];
+
+    for (final item in items) {
+      final copy = Map<String, dynamic>.from(item);
+      final identityKeys = _buildStableArticleKeysFromJson(copy);
+
+      if (identityKeys.isNotEmpty &&
+          identityKeys.any((key) => seenKeys.contains(key))) {
+        continue;
+      }
+
+      output.add(copy);
+      seenKeys.addAll(identityKeys);
+    }
+
+    return List<Map<String, dynamic>>.unmodifiable(output);
+  }
+
+  bool _matchesRequestedNewsId(
+    Map<String, dynamic> json,
+    String requestedId,
+  ) {
+    final normalizedRequestedId = requestedId.trim();
+    if (normalizedRequestedId.isEmpty) {
+      return false;
+    }
+
+    final requestedIdLower = normalizedRequestedId.toLowerCase();
+    final requestedUrl = _normalizeArticleUrl(normalizedRequestedId);
+
+    final dto = _tryParseDto(json);
+    if (dto != null && dto.id.trim().toLowerCase() == requestedIdLower) {
+      return true;
+    }
+
+    for (final key in const <String>[
+      'id',
+      'external_id',
+      'externalId',
+      'guid',
+      'uuid',
+      'article_id',
+      'articleId',
+    ]) {
+      final rawValue = json[key]?.toString().trim();
+      if (rawValue != null &&
+          rawValue.isNotEmpty &&
+          rawValue.toLowerCase() == requestedIdLower) {
+        return true;
+      }
+    }
+
+    final itemUrl = _normalizeArticleUrl(
+      _firstNonEmptyString(
+            json,
+            const <String>[
+              'url',
+              'link',
+              'article_url',
+              'articleUrl',
+              'canonical_url',
+              'canonicalUrl',
+            ],
+          ) ??
+          dto?.url,
+    );
+
+    return requestedUrl != null &&
+        itemUrl != null &&
+        requestedUrl == itemUrl;
+  }
+
   List<Map<String, dynamic>> _seedLocationsFromPreviousCache(
     List<Map<String, dynamic>> items,
     List<Map<String, dynamic>> previousItems,
@@ -1512,10 +2120,10 @@ class NewsRepositoryImpl implements NewsRepository {
     final previousLocationsByKey = <String, Map<String, dynamic>>{};
 
     for (final item in previousItems) {
-      final key = _buildStableArticleKeyFromJson(item);
+      final keys = _buildStableArticleKeysFromJson(item);
       final location = _readEmbeddedContentLocation(item);
 
-      if (key == null || location == null) {
+      if (keys.isEmpty || location == null) {
         continue;
       }
 
@@ -1523,7 +2131,10 @@ class NewsRepositoryImpl implements NewsRepository {
         continue;
       }
 
-      previousLocationsByKey[key] = location.toJson();
+      final locationJson = location.toJson();
+      for (final key in keys) {
+        previousLocationsByKey[key] = locationJson;
+      }
     }
 
     final output = <Map<String, dynamic>>[];
@@ -1533,9 +2144,16 @@ class NewsRepositoryImpl implements NewsRepository {
       final currentLocation = _readEmbeddedContentLocation(copy);
 
       if (currentLocation == null || !_hasResolvedLocation(currentLocation)) {
-        final key = _buildStableArticleKeyFromJson(copy);
-        final previousLocationJson =
-            key == null ? null : previousLocationsByKey[key];
+        final keys = _buildStableArticleKeysFromJson(copy);
+        Map<String, dynamic>? previousLocationJson;
+
+        for (final key in keys) {
+          final matched = previousLocationsByKey[key];
+          if (matched != null) {
+            previousLocationJson = matched;
+            break;
+          }
+        }
 
         if (previousLocationJson != null) {
           copy['_sv_content_location'] = previousLocationJson;
@@ -1603,6 +2221,11 @@ class NewsRepositoryImpl implements NewsRepository {
   }
 
   String? _buildStableArticleKeyFromJson(Map<String, dynamic> json) {
+    final keys = _buildStableArticleKeysFromJson(json);
+    if (keys.isNotEmpty) {
+      return keys.first;
+    }
+
     final dto = _tryParseDto(json);
     if (dto == null) {
       return null;
@@ -1612,19 +2235,50 @@ class NewsRepositoryImpl implements NewsRepository {
   }
 
   String _buildStableArticleKeyFromDto(NewsDto dto) {
-    final url = dto.url.trim();
-    if (url.isNotEmpty) {
-      return 'url:${url.toLowerCase()}';
+    final normalizedUrl = _normalizeArticleUrl(dto.url);
+    if (normalizedUrl != null) {
+      return 'url:$normalizedUrl';
     }
 
     final rawId = dto.id.trim();
     if (rawId.isNotEmpty) {
-      final source = (dto.sourceName ?? dto.sourceId ?? 'unknown').trim();
-      return 'id:${source.toLowerCase()}:${rawId.toLowerCase()}';
+      final source = _normalizeIdentitySource(dto.sourceName ?? dto.sourceId);
+      return 'id:$source:${rawId.toLowerCase()}';
     }
 
-    final source = (dto.sourceName ?? dto.sourceId ?? 'unknown').trim();
-    return 'title:${source.toLowerCase()}:${dto.title.trim().toLowerCase()}:${dto.publishedAt.toUtc().toIso8601String()}';
+    final source = _normalizeIdentitySource(dto.sourceName ?? dto.sourceId);
+    return 'title:$source:${dto.title.trim().toLowerCase()}:${dto.publishedAt.toUtc().toIso8601String()}';
+  }
+
+  String _normalizeIdentitySource(String? value) {
+    return _normalizePhrase(value) ?? 'unknown';
+  }
+
+  String? _normalizeArticleUrl(String? rawUrl) {
+    if (rawUrl == null) {
+      return null;
+    }
+
+    final trimmed = rawUrl.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    final parsed = Uri.tryParse(trimmed);
+    if (parsed == null || !parsed.hasScheme || parsed.host.isEmpty) {
+      return trimmed.toLowerCase();
+    }
+
+    final normalizedPath = parsed.path.isEmpty
+        ? '/'
+        : parsed.path.replaceFirst(RegExp(r'/$'), '');
+
+    return Uri(
+      scheme: parsed.scheme.toLowerCase(),
+      host: parsed.host.toLowerCase(),
+      port: parsed.hasPort ? parsed.port : null,
+      path: normalizedPath.isEmpty ? '/' : normalizedPath,
+    ).toString().toLowerCase();
   }
 
   int _resolveProviderFetchLimit(int? limit, int? offset) {
@@ -1640,7 +2294,7 @@ class NewsRepositoryImpl implements NewsRepository {
   }
 
   bool _shouldAllowStaleCache(String? language) {
-    final normalizedLanguage = _normalize(language);
+    final normalizedLanguage = _normalizeLanguageCode(language);
     return normalizedLanguage != 'ar' && normalizedLanguage != 'fa';
   }
 
@@ -1656,6 +2310,22 @@ class NewsRepositoryImpl implements NewsRepository {
     final trimmed = value.trim().toLowerCase();
     if (trimmed.isEmpty) return null;
     return trimmed;
+  }
+
+  String? _normalizeLanguageCode(String? value) {
+    final normalized = _normalize(value);
+    if (normalized == null) {
+      return null;
+    }
+
+    final compact = normalized.replaceAll('_', '-');
+    final primary = compact.split('-').first.trim();
+
+    if (primary.isEmpty) {
+      return null;
+    }
+
+    return primary;
   }
 
   String _stripHtml(String? value) {
@@ -1706,16 +2376,34 @@ class _NewsFeedCandidate {
 class _CachedNewsFeed {
   final List<Map<String, dynamic>> items;
   final DateTime refreshedAt;
+  final _CachePayloadMetadata metadata;
 
   const _CachedNewsFeed({
     required this.items,
     required this.refreshedAt,
+    required this.metadata,
   });
 
   bool get isFresh {
     final now = DateTime.now().toUtc();
     return now.difference(refreshedAt) < NewsRepositoryImpl._cacheTtl;
   }
+}
+
+class _CachePayloadMetadata {
+  final int itemCount;
+  final int resolvedLocationCount;
+  final List<String> providerSignatures;
+  final List<String> languagesPresent;
+  final int payloadVersion;
+
+  const _CachePayloadMetadata({
+    required this.itemCount,
+    required this.resolvedLocationCount,
+    required this.providerSignatures,
+    required this.languagesPresent,
+    required this.payloadVersion,
+  });
 }
 
 class _LocationCandidate {
