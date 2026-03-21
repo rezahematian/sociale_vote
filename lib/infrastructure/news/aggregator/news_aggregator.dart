@@ -1,29 +1,15 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/foundation.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/news_provider.dart';
 
-/// NewsAggregator (Phase 2)
-///
-/// - combina più provider
-/// - fallback automatico se errore / rate limit / zero risultati
-/// - tollera provider che lanciano eccezioni runtime
-/// - normalizza l'output in "json-like" compatibile con NewsDto.fromJson
-///
-/// F7.9:
-/// - priorità provider language-aware
-/// - Guardian primo solo per AUTO/EN
-/// - per IT/FR/ES/DE si preferiscono provider più adatti a contenuti locali
-/// - per AR:
-///   - filtro "tutte" / topic assente => GNews prima
-///   - categoria specifica => NewsAPI prima
-/// - per FA si mantiene GNews prima, poi NewsAPI, Guardian in coda
 class NewsAggregator {
   final List<NewsProvider> _providers;
+  final String? Function()? _systemLanguageResolver;
 
   NewsAggregator({
     required List<NewsProvider> providers,
-  }) : _providers = List<NewsProvider>.unmodifiable(providers);
+    String? Function()? systemLanguageResolver,
+  })  : _providers = List<NewsProvider>.unmodifiable(providers),
+        _systemLanguageResolver = systemLanguageResolver;
 
   /// Recupera il feed news con fallback tra provider.
   ///
@@ -84,12 +70,10 @@ class NewsAggregator {
           );
         }
 
-        // SUCCESS: risultati non vuoti
         if (!res.isEmpty) {
           return res.items;
         }
 
-        // FALLBACK: rate limit / errore / zero risultati
         continue;
       } catch (e, st) {
         lastThrownError = e;
@@ -106,8 +90,6 @@ class NewsAggregator {
       }
     }
 
-    // Nessun provider ha dato risultati utili.
-    // Comportamento safe: non rompiamo la UI, ritorniamo lista vuota.
     if (kDebugMode) {
       debugPrint(
         'NewsAggregator: no provider returned usable news. '
@@ -186,7 +168,6 @@ class NewsAggregator {
   }) {
     final normalizedProviderId = providerId.trim().toLowerCase();
 
-    // AUTO/system fallback / EN -> Guardian prima, poi NewsAPI, poi GNews
     if (language == null || language == 'auto' || language == 'en') {
       switch (normalizedProviderId) {
         case 'guardian':
@@ -200,7 +181,6 @@ class NewsAggregator {
       }
     }
 
-    // IT / FR / ES / DE -> NewsAPI prima, poi GNews, Guardian in coda
     if (language == 'it' ||
         language == 'fr' ||
         language == 'es' ||
@@ -217,9 +197,6 @@ class NewsAggregator {
       }
     }
 
-    // AR:
-    // - "tutte"/topic assente -> GNews prima
-    // - categoria specifica -> NewsAPI prima
     if (language == 'ar') {
       final isAllTopic = topic == null || topic == 'all' || topic == 'tutte';
 
@@ -248,7 +225,6 @@ class NewsAggregator {
       }
     }
 
-    // FA -> GNews prima, poi NewsAPI, Guardian in coda
     if (language == 'fa') {
       switch (normalizedProviderId) {
         case 'gnews':
@@ -262,8 +238,6 @@ class NewsAggregator {
       }
     }
 
-    // Default per lingua esplicita non inglese:
-    // evitiamo di dare priorità a Guardian.
     switch (normalizedProviderId) {
       case 'newsapi':
         return 0;
@@ -288,11 +262,9 @@ class NewsAggregator {
 
   String _systemSupportedLanguage() {
     try {
-      final systemLanguage =
-          ui.PlatformDispatcher.instance.locale.toLanguageTag();
-      final normalized = _normalizeLanguage(systemLanguage);
+      final resolved = _normalizeLanguage(_systemLanguageResolver?.call());
 
-      switch (normalized) {
+      switch (resolved) {
         case 'it':
         case 'en':
         case 'es':
@@ -300,7 +272,7 @@ class NewsAggregator {
         case 'de':
         case 'ar':
         case 'fa':
-          return normalized!;
+          return resolved!;
         default:
           return 'en';
       }

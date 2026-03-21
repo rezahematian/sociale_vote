@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -227,6 +228,7 @@ class AppDI {
       _newsApiOrgProvider,
       _gnewsProvider,
     ],
+    systemLanguageResolver: _readSystemContentLanguageApiValue,
   );
 
   late final AuthApi _authApi = const AuthApi();
@@ -245,8 +247,9 @@ class AppDI {
   late final PollRepository _pollRepository = PollRepositorySupabase();
   late final VoteRepository _voteRepository =
       VoteRepositoryImpl(Supabase.instance.client);
-  late final NewsRepository _newsRepository =
+  late final NewsRepositoryImpl _newsRepositoryImpl =
       NewsRepositoryImpl(_newsAggregator, _newsMapper, _geocodingRepository);
+  late final NewsRepository _newsRepository = _newsRepositoryImpl;
   final PostRepository _postRepository = PostRepositoryImpl();
   final FavoriteRepository _favoriteRepository = FavoriteRepositorySupabase();
   final ReactionRepository _reactionRepository = ReactionRepositoryImpl();
@@ -319,6 +322,50 @@ class AppDI {
     } catch (_) {
       return null;
     }
+  }
+
+  String? _readSystemContentLanguageApiValue() {
+    try {
+      final systemLanguage =
+          ui.PlatformDispatcher.instance.locale.toLanguageTag();
+      final normalized = systemLanguage
+          .trim()
+          .toLowerCase()
+          .replaceAll('_', '-')
+          .split('-')
+          .first;
+
+      switch (normalized) {
+        case 'it':
+        case 'en':
+        case 'es':
+        case 'fr':
+        case 'de':
+        case 'ar':
+        case 'fa':
+          return normalized;
+        default:
+          return 'en';
+      }
+    } catch (_) {
+      return 'en';
+    }
+  }
+
+  Future<int> refreshNewsFeedCache({
+    String? countryCode,
+    String? cityId,
+    String? topic,
+    String? language,
+    int? providerLimit,
+  }) {
+    return _newsRepositoryImpl.refreshNewsFeedCache(
+      countryCode: countryCode,
+      cityId: cityId,
+      topic: topic,
+      language: language,
+      providerLimit: providerLimit,
+    );
   }
 
   Future<void> logoutCurrentUser() async {

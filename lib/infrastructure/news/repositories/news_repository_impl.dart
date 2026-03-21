@@ -95,6 +95,34 @@ class NewsRepositoryImpl implements NewsRepository {
     this._geocodingRepository,
   );
 
+  Future<int> refreshNewsFeedCache({
+    String? countryCode,
+    String? cityId,
+    String? topic,
+    String? language,
+    int? providerLimit,
+  }) async {
+    final requestedCountryCode = _normalize(countryCode);
+    final requestedCityId = _normalize(cityId);
+    final requestedTopic = _normalize(topic);
+    final requestedLanguage = _normalizeLanguageCode(language);
+
+    final candidate = _NewsFeedCandidate(
+      countryCode: requestedCountryCode,
+      cityId: requestedCityId,
+      topic: requestedTopic,
+      language: requestedLanguage,
+    );
+
+    final refreshedItems = await _refreshCacheForCandidate(
+      candidate,
+      providerLimit: _resolveProviderFetchLimit(providerLimit, 0),
+      allowStalePreviousCache: _shouldAllowStaleCache(candidate.language),
+    );
+
+    return refreshedItems.length;
+  }
+
   @override
   Future<List<NewsItem>> getNewsFeed({
     String? countryCode,
