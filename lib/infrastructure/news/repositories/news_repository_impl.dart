@@ -191,12 +191,12 @@ class NewsRepositoryImpl implements NewsRepository {
 
     final usableStaleCache =
         staleCache != null &&
-            _canUseStaleFallbackCache(
-              staleCache,
-              requestedLanguage: candidate.language,
-            )
-        ? staleCache
-        : null;
+                _canUseStaleFallbackCache(
+                  staleCache,
+                  requestedLanguage: candidate.language,
+                )
+            ? staleCache
+            : null;
 
     if (staleCache != null && usableStaleCache == null && kDebugMode) {
       debugPrint(
@@ -213,6 +213,54 @@ class NewsRepositoryImpl implements NewsRepository {
         'trying live refresh before stale fallback.',
       );
     }
+
+    final sameLanguageEquivalentCandidate =
+        _buildSameLanguageEquivalentCandidate(candidate);
+
+    final sameLanguageEquivalentFreshCache =
+        sameLanguageEquivalentCandidate == null
+            ? null
+            : await _readCache(
+                cacheKey: sameLanguageEquivalentCandidate.cacheKey,
+                acceptStale: false,
+                requestedLanguage: candidate.language,
+              );
+
+    if (sameLanguageEquivalentFreshCache != null &&
+        sameLanguageEquivalentFreshCache.items.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl serving same-language equivalent fresh cache '
+          'from ${sameLanguageEquivalentCandidate!.cacheKey} for '
+          '${candidate.cacheKey}.',
+        );
+      }
+
+      return _mapCandidatePage(
+        candidate,
+        sameLanguageEquivalentFreshCache.items,
+        limit: limit,
+        offset: offset,
+      );
+    }
+
+    final sameLanguageEquivalentStaleCache =
+        allowStaleCache && sameLanguageEquivalentCandidate != null
+            ? await _readCache(
+                cacheKey: sameLanguageEquivalentCandidate.cacheKey,
+                acceptStale: true,
+                requestedLanguage: candidate.language,
+              )
+            : null;
+
+    final usableSameLanguageEquivalentStaleCache =
+        sameLanguageEquivalentStaleCache != null &&
+                _canUseStaleFallbackCache(
+                  sameLanguageEquivalentStaleCache,
+                  requestedLanguage: candidate.language,
+                )
+            ? sameLanguageEquivalentStaleCache
+            : null;
 
     if (_isRefreshCooldownActive(candidate.cacheKey)) {
       if (kDebugMode) {
@@ -235,6 +283,24 @@ class NewsRepositoryImpl implements NewsRepository {
         return _mapCandidatePage(
           candidate,
           usableStaleCache.items,
+          limit: limit,
+          offset: offset,
+        );
+      }
+
+      if (usableSameLanguageEquivalentStaleCache != null &&
+          usableSameLanguageEquivalentStaleCache.items.isNotEmpty) {
+        if (kDebugMode) {
+          debugPrint(
+            'NewsRepositoryImpl serving same-language equivalent stale cache '
+            'from ${sameLanguageEquivalentCandidate!.cacheKey} for '
+            '${candidate.cacheKey} while cooldown is active.',
+          );
+        }
+
+        return _mapCandidatePage(
+          candidate,
+          usableSameLanguageEquivalentStaleCache.items,
           limit: limit,
           offset: offset,
         );
@@ -315,6 +381,23 @@ class NewsRepositoryImpl implements NewsRepository {
       );
     }
 
+    if (usableSameLanguageEquivalentStaleCache != null &&
+        usableSameLanguageEquivalentStaleCache.items.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl fallback to same-language equivalent stale cache '
+          'from ${sameLanguageEquivalentCandidate!.cacheKey} for '
+          '${candidate.cacheKey} after refresh attempt.',
+        );
+      }
+
+      return _mapCandidatePage(
+        candidate,
+        usableSameLanguageEquivalentStaleCache.items,
+        limit: limit,
+        offset: offset,
+      );
+    }
     if (requestedLanguage != null && requestedLanguage != 'en') {
       final englishFallbackItems = await _tryEnglishFallbackPage(
         countryCode: requestedCountryCode,
@@ -403,12 +486,12 @@ class NewsRepositoryImpl implements NewsRepository {
 
     final usableStaleCache =
         staleCache != null &&
-            _canUseStaleFallbackCache(
-              staleCache,
-              requestedLanguage: fallbackCandidate.language,
-            )
-        ? staleCache
-        : null;
+                _canUseStaleFallbackCache(
+                  staleCache,
+                  requestedLanguage: fallbackCandidate.language,
+                )
+            ? staleCache
+            : null;
 
     if (_isRefreshCooldownActive(fallbackCandidate.cacheKey)) {
       if (kDebugMode) {
@@ -607,8 +690,8 @@ class NewsRepositoryImpl implements NewsRepository {
       final reason = livePayloadRejectedByLanguage
           ? 'live payload rejected by language coherence filter'
           : enriched.isEmpty
-          ? 'live payload empty after normalization'
-          : 'live payload lost resolved locations compared with previous cache';
+              ? 'live payload empty after normalization'
+              : 'live payload lost resolved locations compared with previous cache';
 
       _markRefreshCooldown(candidate.cacheKey, reason: reason);
     }
@@ -2154,6 +2237,26 @@ class NewsRepositoryImpl implements NewsRepository {
     return filtered.any((item) => _extractProviderSignature(item) != null);
   }
 
+  _NewsFeedCandidate? _buildSameLanguageEquivalentCandidate(
+    _NewsFeedCandidate candidate,
+  ) {
+    final isGlobalAllRequest = candidate.countryCode == null &&
+        candidate.cityId == null &&
+        candidate.topic == null &&
+        candidate.language != null;
+
+    if (!isGlobalAllRequest) {
+      return null;
+    }
+
+    return _NewsFeedCandidate(
+      countryCode: null,
+      cityId: null,
+      topic: 'world',
+      language: candidate.language,
+    );
+  }
+
   String? _extractProviderSignature(Map<String, dynamic> json) {
     final rawProvider = _firstNonEmptyString(
       json,
@@ -2216,10 +2319,10 @@ class NewsRepositoryImpl implements NewsRepository {
       itemCount: _readInt(row['item_count']) ?? fallback.itemCount,
       resolvedLocationCount:
           _readInt(row['resolved_location_count']) ??
-          fallback.resolvedLocationCount,
+              fallback.resolvedLocationCount,
       providerSignatures:
           _readStringList(row['provider_signatures']) ??
-          fallback.providerSignatures,
+              fallback.providerSignatures,
       languagesPresent:
           _readStringList(row['languages_present']) ?? fallback.languagesPresent,
       payloadVersion:

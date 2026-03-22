@@ -689,41 +689,43 @@ class AppDI {
   }
 
   Future<List<NewsItem>> _loadNewsForScope(GeoScope? scope) async {
+    final language = await _readEffectiveContentLanguageApiValue();
+    final levelName = _readScopeLevelName(scope);
     final countryCode = _readScopeCountryCode(scope);
     final cityId = _readScopeCityId(scope);
-    final language = await _readEffectiveContentLanguageApiValue();
-    final dynamic useCase = getNewsFeed;
 
-    final scoped = await _tryLoadListOrEmpty<NewsItem>([
-      () => useCase(
-            countryCode: countryCode,
-            cityId: cityId,
-            language: language,
-          ),
-      () => useCase(
-            countryCode: countryCode,
-            cityId: cityId,
-            language: language,
-            limit: 20,
-          ),
-      () => useCase(
-            countryCode: countryCode,
-            cityId: cityId,
-            language: language,
-            limit: 20,
-            offset: 0,
-          ),
-    ]);
+    if (levelName == 'country') {
+      if (!_hasText(countryCode)) {
+        return <NewsItem>[];
+      }
 
-    if (scoped.isNotEmpty) {
-      return scoped;
+      return _loadNewsBatch(
+        countryCode: countryCode,
+        cityId: null,
+        language: language,
+        limit: 20,
+      );
     }
 
-    return _tryLoadList<NewsItem>([
-      () => useCase(language: language),
-      () => useCase(language: language, limit: 20),
-      () => useCase(language: language, limit: 20, offset: 0),
-    ]);
+    if (levelName == 'city') {
+      if (!_hasText(countryCode) || !_hasText(cityId)) {
+        return <NewsItem>[];
+      }
+
+      return _loadNewsBatch(
+        countryCode: countryCode,
+        cityId: cityId,
+        language: language,
+        limit: 20,
+      );
+    }
+
+    return _loadNewsBatch(
+      countryCode: null,
+      cityId: null,
+      language: language,
+      limit: 20,
+    );
   }
 
   Future<List<Post>> _loadPostsForScope(GeoScope? scope) async {
@@ -768,18 +770,14 @@ class AppDI {
     final countryCode = _readScopeCountryCode(scope);
     final cityId = _readScopeCityId(scope);
     final language = await _readEffectiveContentLanguageApiValue();
-    final dynamic useCase = getNewsFeed;
 
     if (levelName == 'world') {
-      final news = await _tryLoadList<NewsItem>([
-        () => useCase(language: language, limit: _newsMapBatchSize),
-        () => useCase(
-              language: language,
-              limit: _newsMapBatchSize,
-              offset: 0,
-            ),
-        () => useCase(language: language),
-      ]);
+      final news = await _loadNewsBatch(
+        countryCode: null,
+        cityId: null,
+        language: language,
+        limit: _newsMapBatchSize,
+      );
       return _filterEntitiesForGeoScope(news, scope);
     }
 
@@ -788,23 +786,12 @@ class AppDI {
         return <NewsItem>[];
       }
 
-      final news = await _tryLoadListOrEmpty<NewsItem>([
-        () => useCase(
-              countryCode: countryCode,
-              language: language,
-              limit: _newsMapBatchSize,
-            ),
-        () => useCase(
-              countryCode: countryCode,
-              language: language,
-              limit: _newsMapBatchSize,
-              offset: 0,
-            ),
-        () => useCase(
-              countryCode: countryCode,
-              language: language,
-            ),
-      ]);
+      final news = await _loadNewsBatch(
+        countryCode: countryCode,
+        cityId: null,
+        language: language,
+        limit: _newsMapBatchSize,
+      );
 
       return _filterEntitiesForGeoScope(news, scope);
     }
@@ -814,106 +801,76 @@ class AppDI {
         return <NewsItem>[];
       }
 
-      final news = await _tryLoadListOrEmpty<NewsItem>([
-        () => useCase(
-              countryCode: countryCode,
-              cityId: cityId,
-              language: language,
-              limit: _newsMapBatchSize,
-            ),
-        () => useCase(
-              countryCode: countryCode,
-              cityId: cityId,
-              language: language,
-              limit: _newsMapBatchSize,
-              offset: 0,
-            ),
-        () => useCase(
-              countryCode: countryCode,
-              cityId: cityId,
-              language: language,
-            ),
-      ]);
+      final news = await _loadNewsBatch(
+        countryCode: countryCode,
+        cityId: cityId,
+        language: language,
+        limit: _newsMapBatchSize,
+      );
 
       return _filterEntitiesForGeoScope(news, scope);
     }
 
     if (levelName == 'area') {
       if (_hasText(countryCode) && _hasText(cityId)) {
-        final byCity = await _tryLoadListOrEmpty<NewsItem>([
-          () => useCase(
-                countryCode: countryCode,
-                cityId: cityId,
-                language: language,
-                limit: _newsMapBatchSize,
-              ),
-          () => useCase(
-                countryCode: countryCode,
-                cityId: cityId,
-                language: language,
-                limit: _newsMapBatchSize,
-                offset: 0,
-              ),
-          () => useCase(
-                countryCode: countryCode,
-                cityId: cityId,
-                language: language,
-              ),
-        ]);
+        final byCity = await _loadNewsBatch(
+          countryCode: countryCode,
+          cityId: cityId,
+          language: language,
+          limit: _newsMapBatchSize,
+        );
 
-        if (byCity.isNotEmpty) {
-          return _filterEntitiesForGeoScope(byCity, scope);
-        }
+        return _filterEntitiesForGeoScope(byCity, scope);
       }
 
       if (_hasText(countryCode)) {
-        final byCountry = await _tryLoadListOrEmpty<NewsItem>([
-          () => useCase(
-                countryCode: countryCode,
-                language: language,
-                limit: _newsMapBatchSize,
-              ),
-          () => useCase(
-                countryCode: countryCode,
-                language: language,
-                limit: _newsMapBatchSize,
-                offset: 0,
-              ),
-          () => useCase(
-                countryCode: countryCode,
-                language: language,
-              ),
-        ]);
+        final byCountry = await _loadNewsBatch(
+          countryCode: countryCode,
+          cityId: null,
+          language: language,
+          limit: _newsMapBatchSize,
+        );
 
-        if (byCountry.isNotEmpty) {
-          return _filterEntitiesForGeoScope(byCountry, scope);
-        }
+        return _filterEntitiesForGeoScope(byCountry, scope);
       }
 
-      final worldFallback = await _tryLoadListOrEmpty<NewsItem>([
-        () => useCase(language: language, limit: _newsMapBatchSize),
-        () => useCase(
-              language: language,
-              limit: _newsMapBatchSize,
-              offset: 0,
-            ),
-        () => useCase(language: language),
-      ]);
+      final worldFallback = await _loadNewsBatch(
+        countryCode: null,
+        cityId: null,
+        language: language,
+        limit: _newsMapBatchSize,
+      );
 
       return _filterEntitiesForGeoScope(worldFallback, scope);
     }
 
-    final fallback = await _tryLoadListOrEmpty<NewsItem>([
-      () => useCase(language: language, limit: _newsMapBatchSize),
-      () => useCase(
-            language: language,
-            limit: _newsMapBatchSize,
-            offset: 0,
-          ),
-      () => useCase(language: language),
-    ]);
+    final fallback = await _loadNewsBatch(
+      countryCode: null,
+      cityId: null,
+      language: language,
+      limit: _newsMapBatchSize,
+    );
 
     return _filterEntitiesForGeoScope(fallback, scope);
+  }
+
+  Future<List<NewsItem>> _loadNewsBatch({
+    required String? countryCode,
+    required String? cityId,
+    required String? language,
+    required int limit,
+  }) {
+    final dynamic useCase = getNewsFeed;
+
+    return _tryLoadListOrEmpty<NewsItem>([
+      () => useCase(
+            countryCode: countryCode,
+            cityId: cityId,
+            language: language,
+            limit: limit,
+            offset: 0,
+          ),
+    ]);
   }
 
   Future<List<Post>> _loadPostsForMapScope(GeoScope scope) async {
