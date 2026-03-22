@@ -94,34 +94,11 @@ class ReactionRepositoryImpl implements ReactionRepository {
 
   @override
   Future<ReactionSummary> getSummaryForTarget(TargetRef target) async {
-    final rows = await AppSupabase.client
-        .from(_reactionsTable)
-        .select('reaction_type')
-        .eq('target_type', _targetType(target))
-        .eq('target_id', target.id);
-
-    int likeCount = 0;
-    int dislikeCount = 0;
-
-    for (final row in rows) {
-      if (row is! Map<String, dynamic>) {
-        continue;
-      }
-
-      final reactionType = row['reaction_type'] as String?;
-      if (reactionType == 'like') {
-        likeCount++;
-      } else if (reactionType == 'dislike') {
-        dislikeCount++;
-      }
+    final summaries = await getSummariesForTargets([target]);
+    if (summaries.isEmpty) {
+      return _emptySummary(target);
     }
-
-    return ReactionSummary.fromCounts(
-      target: target,
-      likeCount: likeCount,
-      dislikeCount: dislikeCount,
-      userReaction: null,
-    );
+    return summaries.first;
   }
 
   @override
@@ -132,13 +109,86 @@ class ReactionRepositoryImpl implements ReactionRepository {
       return const [];
     }
 
-    final summaries = <ReactionSummary>[];
+    final groupedByType = <String, List<TargetRef>>{};
+    final countsByKey = <String, _ReactionCounts>{};
 
     for (final target in targets) {
-      summaries.add(await getSummaryForTarget(target));
+      final targetType = _targetType(target);
+      groupedByType.putIfAbsent(targetType, () => <TargetRef>[]).add(target);
+
+      final key = _summaryKey(target);
+      countsByKey.putIfAbsent(key, _ReactionCounts.new);
     }
 
-    return summaries;
+    for (final entry in groupedByType.entries) {
+      final targetType = entry.key;
+      final typeTargets = entry.value;
+
+      final targetIds = typeTargets
+          .map((target) => target.id.trim())
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList();
+
+      if (targetIds.isEmpty) {
+        continue;
+      }
+
+      final rows = await AppSupabase.client
+          .from(_reactionsTable)
+          .select('target_id, reaction_type')
+          .eq('target_type', targetType)
+          .inFilter('target_id', targetIds);
+
+      for (final row in rows) {
+        if (row is! Map<String, dynamic>) {
+          continue;
+        }
+
+        final targetId = (row['target_id'] as String?)?.trim();
+        if (targetId == null || targetId.isEmpty) {
+          continue;
+        }
+
+        final key = _summaryKeyFromParts(targetType, targetId);
+        final counts = countsByKey.putIfAbsent(key, _ReactionCounts.new);
+
+        final reactionType = row['reaction_type'] as String?;
+        if (reactionType == 'like') {
+          counts.likeCount++;
+        } else if (reactionType == 'dislike') {
+          counts.dislikeCount++;
+        }
+      }
+    }
+
+    return targets.map((target) {
+      final counts = countsByKey[_summaryKey(target)] ?? _ReactionCounts();
+
+      return ReactionSummary.fromCounts(
+        target: target,
+        likeCount: counts.likeCount,
+        dislikeCount: counts.dislikeCount,
+        userReaction: null,
+      );
+    }).toList();
+  }
+
+  ReactionSummary _emptySummary(TargetRef target) {
+    return ReactionSummary.fromCounts(
+      target: target,
+      likeCount: 0,
+      dislikeCount: 0,
+      userReaction: null,
+    );
+  }
+
+  String _summaryKey(TargetRef target) {
+    return _summaryKeyFromParts(_targetType(target), target.id);
+  }
+
+  String _summaryKeyFromParts(String targetType, String targetId) {
+    return '$targetType|${targetId.trim()}';
   }
 
   Reaction _mapReaction(Map<String, dynamic> row) {
@@ -212,4 +262,14 @@ class ReactionRepositoryImpl implements ReactionRepository {
     }
     return DateTime.now();
   }
+}
+
+class _ReactionCounts {
+  int likeCount;
+  int dislikeCount;
+
+  _ReactionCounts({
+    this.likeCount = 0,
+    this.dislikeCount = 0,
+  });
 }

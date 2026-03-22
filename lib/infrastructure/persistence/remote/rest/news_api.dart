@@ -245,7 +245,7 @@ class NewsApi {
           kind: kind,
           statusCode: e.statusCode,
           message: _defaultUserMessageFor(kind),
-          debugMessage: e.message,
+          debugMessage: _buildApiExceptionDebugMessage(e),
         );
       } catch (e) {
         throw NewsApiException(
@@ -258,11 +258,50 @@ class NewsApi {
     }
   }
 
+  String _buildApiExceptionDebugMessage(ApiException e) {
+    final baseMessage = (e.message ?? '').trim();
+    final details = e.details;
+
+    if (details == null) {
+      return baseMessage;
+    }
+
+    final detailsText = details.toString().trim();
+    if (detailsText.isEmpty) {
+      return baseMessage;
+    }
+
+    if (baseMessage.isEmpty) {
+      return detailsText;
+    }
+
+    return '$baseMessage | details=$detailsText';
+  }
+
+  bool _looksLikeRateLimitError(ApiException e) {
+    final combined = <String>[
+      e.message ?? '',
+      e.details?.toString() ?? '',
+    ].join(' | ').toLowerCase();
+
+    return combined.contains('rate limit') ||
+        combined.contains('too many requests') ||
+        combined.contains('request limit') ||
+        combined.contains('quota') ||
+        combined.contains('next reset') ||
+        combined.contains('reset will be');
+  }
+
   NewsApiErrorKind _mapErrorKind(ApiException e) {
     final status = e.statusCode;
 
-    if (status == 401 || status == 403) {
+    if (status == 401) {
       return NewsApiErrorKind.unauthorized;
+    }
+    if (status == 403) {
+      return _looksLikeRateLimitError(e)
+          ? NewsApiErrorKind.rateLimited
+          : NewsApiErrorKind.forbidden;
     }
     if (status == 429) {
       return NewsApiErrorKind.rateLimited;
@@ -284,6 +323,8 @@ class NewsApi {
     switch (kind) {
       case NewsApiErrorKind.unauthorized:
         return 'News service authentication failed.';
+      case NewsApiErrorKind.forbidden:
+        return 'News service rejected the request.';
       case NewsApiErrorKind.rateLimited:
         return 'Too many requests. Please try again shortly.';
       case NewsApiErrorKind.serverError:
@@ -302,6 +343,7 @@ class NewsApi {
 /// (UI/Controller potranno mappare questo a testi IT/EN senza usare HTTP codes)
 enum NewsApiErrorKind {
   unauthorized,
+  forbidden,
   rateLimited,
   serverError,
   timeout,
@@ -330,6 +372,12 @@ class NewsApiException implements Exception {
   });
 
   @override
-  String toString() =>
-      'NewsApiException(kind=$kind, statusCode=$statusCode, message=$message)';
+  String toString() {
+    final suffix =
+        (debugMessage != null && debugMessage!.trim().isNotEmpty)
+            ? ', debugMessage=${debugMessage!.trim()}'
+            : '';
+
+    return 'NewsApiException(kind=$kind, statusCode=$statusCode, message=$message$suffix)';
+  }
 }

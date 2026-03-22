@@ -95,7 +95,12 @@ class GuardianProvider implements NewsProvider {
           'url': webUrl ?? '',
           'image': fields['thumbnail']?.toString(),
           'publishedAt': publishedAt,
-          'lang': language,
+          'lang': 'en',
+          'provider': id,
+          'providerId': id,
+          'providerName': 'The Guardian',
+          'sourceId': 'the-guardian',
+          'sourceName': 'The Guardian',
           'source': <String, dynamic>{
             'id': 'the-guardian',
             'name': 'The Guardian',
@@ -161,7 +166,12 @@ class GuardianProvider implements NewsProvider {
       'image': fields['thumbnail']?.toString(),
       'publishedAt': content['webPublicationDate']?.toString() ??
           DateTime.now().toUtc().toIso8601String(),
-      'lang': null,
+      'lang': 'en',
+      'provider': this.id,
+      'providerId': this.id,
+      'providerName': 'The Guardian',
+      'sourceId': 'the-guardian',
+      'sourceName': 'The Guardian',
       'source': <String, dynamic>{
         'id': 'the-guardian',
         'name': 'The Guardian',

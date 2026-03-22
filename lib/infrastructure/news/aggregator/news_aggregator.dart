@@ -39,15 +39,20 @@ class NewsAggregator {
       topic: topic,
     );
 
+    final activeProviders = _filterProvidersForLiveRequest(
+      orderedProviders,
+      language: effectiveLanguage,
+    );
+
     if (kDebugMode) {
       debugPrint(
         'NewsAggregator language=${effectiveLanguage ?? 'en'} '
         'topic=${_normalizeTopic(topic) ?? 'all'} '
-        'providerOrder=${orderedProviders.map((p) => p.id).join(' > ')}',
+        'providerOrder=${activeProviders.map((p) => p.id).join(' > ')}',
       );
     }
 
-    for (final provider in orderedProviders) {
+    for (final provider in activeProviders) {
       try {
         final res = await provider.fetchNews(
           countryCode: countryCode,
@@ -158,6 +163,23 @@ class NewsAggregator {
 
     return indexedProviders
         .map((entry) => entry.value)
+        .toList(growable: false);
+  }
+
+  List<NewsProvider> _filterProvidersForLiveRequest(
+    List<NewsProvider> providers, {
+    required String? language,
+  }) {
+    final normalizedLanguage = _normalizeLanguage(language);
+
+    if (normalizedLanguage == null ||
+        normalizedLanguage == 'auto' ||
+        normalizedLanguage == 'en') {
+      return providers;
+    }
+
+    return providers
+        .where((provider) => provider.id.trim().toLowerCase() != 'guardian')
         .toList(growable: false);
   }
 

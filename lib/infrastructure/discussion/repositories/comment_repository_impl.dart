@@ -77,13 +77,66 @@ class CommentRepositoryImpl implements CommentRepository {
 
   @override
   Future<int> countCommentsForTarget(TargetRef target) async {
-    final rows = await AppSupabase.client
-        .from(_commentsTable)
-        .select('id')
-        .eq('target_type', _targetType(target))
-        .eq('target_id', target.id);
+    final counts = await countCommentsForTargets([target]);
+    return counts[_targetKey(target)] ?? 0;
+  }
 
-    return rows.length;
+  Future<Map<String, int>> countCommentsForTargets(
+    List<TargetRef> targets,
+  ) async {
+    if (targets.isEmpty) {
+      return const <String, int>{};
+    }
+
+    final groupedByType = <String, List<TargetRef>>{};
+    final countsByKey = <String, int>{};
+
+    for (final target in targets) {
+      final targetType = _targetType(target);
+      groupedByType.putIfAbsent(targetType, () => <TargetRef>[]).add(target);
+      countsByKey.putIfAbsent(_targetKey(target), () => 0);
+    }
+
+    for (final entry in groupedByType.entries) {
+      final targetType = entry.key;
+      final typeTargets = entry.value;
+
+      final targetIds = typeTargets
+          .map((target) => target.id.trim())
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList(growable: false);
+
+      if (targetIds.isEmpty) {
+        continue;
+      }
+
+      final rows = await AppSupabase.client
+          .from(_commentsTable)
+          .select('target_id')
+          .eq('target_type', targetType)
+          .inFilter('target_id', targetIds);
+
+      for (final row in rows) {
+        if (row is! Map<String, dynamic>) {
+          continue;
+        }
+
+        final targetId = (row['target_id'] as String?)?.trim();
+        if (targetId == null || targetId.isEmpty) {
+          continue;
+        }
+
+        final key = _targetKeyFromParts(targetType, targetId);
+        countsByKey.update(
+          key,
+          (value) => value + 1,
+          ifAbsent: () => 1,
+        );
+      }
+    }
+
+    return countsByKey;
   }
 
   @override
@@ -170,6 +223,14 @@ class CommentRepositoryImpl implements CommentRepository {
           'Target type non supportato per commenti: ${target.type}',
         );
     }
+  }
+
+  String _targetKey(TargetRef target) {
+    return _targetKeyFromParts(_targetType(target), target.id);
+  }
+
+  String _targetKeyFromParts(String targetType, String targetId) {
+    return '$targetType|${targetId.trim()}';
   }
 
   DateTime _parseDateTime(dynamic value) {

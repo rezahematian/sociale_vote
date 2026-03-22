@@ -215,11 +215,13 @@ class _CivicMapLoadResult {
   final String sourceName;
   final List<CivicMapItem> items;
   final String? error;
+  final int elapsedMs;
 
   const _CivicMapLoadResult({
     required this.sourceName,
     required this.items,
     required this.error,
+    required this.elapsedMs,
   });
 
   bool get hasError => error != null && error!.trim().isNotEmpty;
@@ -236,6 +238,8 @@ class CivicMapController extends ChangeNotifier {
     this.loadNewsItems,
   });
 
+  bool _isDisposed = false;
+
   CivicMapStatus _status = CivicMapStatus.initial;
   CivicMapStatus get status => _status;
 
@@ -245,12 +249,28 @@ class CivicMapController extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  bool _isRefreshing = false;
+  bool get isRefreshing => _isRefreshing;
+
+  Map<String, int> _lastLoadMetricsMs = <String, int>{};
+  Map<String, int> get lastLoadMetricsMs =>
+      Map.unmodifiable(_lastLoadMetricsMs);
+
+  Map<String, int> _lastLoadItemCounts = <String, int>{};
+  Map<String, int> get lastLoadItemCounts =>
+      Map.unmodifiable(_lastLoadItemCounts);
+
+  String? _lastLoadMetricsSummary;
+  String? get lastLoadMetricsSummary => _lastLoadMetricsSummary;
+
   final List<CivicMapItem> _allItems = <CivicMapItem>[];
+  final List<CivicMapItem> _visibleItems = <CivicMapItem>[];
   final List<CivicMapItem> _pollItems = <CivicMapItem>[];
   final List<CivicMapItem> _postItems = <CivicMapItem>[];
   final List<CivicMapItem> _newsItems = <CivicMapItem>[];
 
   List<CivicMapItem> get allItems => List.unmodifiable(_allItems);
+  List<CivicMapItem> get visibleItems => List.unmodifiable(_visibleItems);
 
   Set<CivicMapItemType> _visibleTypes = <CivicMapItemType>{
     CivicMapItemType.poll,
@@ -274,14 +294,14 @@ class CivicMapController extends ChangeNotifier {
       return null;
     }
 
-    for (final item in visibleItems) {
+    for (final item in _visibleItems) {
       if (_selectedItemId != null && item.id == _selectedItemId) {
         return item;
       }
     }
 
     if (_selectedTargetRefKey != null) {
-      for (final item in visibleItems) {
+      for (final item in _visibleItems) {
         if (_targetRefKey(item.targetRef) == _selectedTargetRefKey) {
           return item;
         }
@@ -291,20 +311,20 @@ class CivicMapController extends ChangeNotifier {
     return null;
   }
 
-  List<CivicMapItem> get visibleItems {
-    final filtered = _allItems
-        .where((item) => _visibleTypes.contains(item.type))
-        .toList();
-
-    filtered.sort(_sortItems);
-    return List.unmodifiable(filtered);
-  }
-
   bool get isLoading => _status == CivicMapStatus.loading;
   bool get hasError => _status == CivicMapStatus.error;
   bool get isEmpty => _status == CivicMapStatus.empty;
   bool get hasData => _status == CivicMapStatus.loaded;
   bool get hasSelection => selectedItem != null;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _loadRequestId++;
+    _activeLoadFuture = null;
+    _activeLoadScopeKey = null;
+    super.dispose();
+  }
 
   Future<void> syncScope(
     GeoScope? scope, {
@@ -403,7 +423,7 @@ class CivicMapController extends ChangeNotifier {
 
     _rebuildMergedItems();
     _reconcileSelectionAfterDataChange();
-    notifyListeners();
+    _notifySafely();
   }
 
   void patchSelectedItemMetrics({
@@ -452,13 +472,25 @@ class CivicMapController extends ChangeNotifier {
     GeoScope scope, {
     required bool clearSelection,
   }) async {
+    final totalStopwatch = Stopwatch()..start();
     final requestId = ++_loadRequestId;
     final scopeChanged = !_isSameScope(_currentScope, scope);
     final sameScope = !scopeChanged;
+    final hasExistingData = _allItems.isNotEmpty;
+    final isBackgroundRefresh = sameScope && hasExistingData;
+    final loadMode = isBackgroundRefresh ? 'background' : 'open';
 
     _currentScope = scope;
-    _setStatus(CivicMapStatus.loading);
     _errorMessage = null;
+    _isRefreshing = isBackgroundRefresh;
+
+    if (isBackgroundRefresh) {
+      if (_status != CivicMapStatus.loaded) {
+        _setStatus(CivicMapStatus.loaded);
+      }
+    } else {
+      _setStatus(CivicMapStatus.loading);
+    }
 
     if (clearSelection || scopeChanged) {
       _selectedItemId = null;
@@ -467,108 +499,196 @@ class CivicMapController extends ChangeNotifier {
 
     if (scopeChanged) {
       _allItems.clear();
+      _visibleItems.clear();
       _pollItems.clear();
       _postItems.clear();
       _newsItems.clear();
     }
 
-    notifyListeners();
+    _notifySafely();
 
-    final results = await Future.wait<_CivicMapLoadResult>([
-      _safeLoadWithResult(
-        loader: loadPollItems,
-        scope: scope,
-        sourceName: 'poll',
-      ),
-      _safeLoadWithResult(
-        loader: loadPostItems,
-        scope: scope,
-        sourceName: 'post',
-      ),
-      _safeLoadWithResult(
-        loader: loadNewsItems,
-        scope: scope,
-        sourceName: 'news',
-      ),
-    ]);
-
-    if (!_isLatestRequest(requestId, scope)) {
-      return;
-    }
+    _CivicMapLoadResult pollResult = const _CivicMapLoadResult(
+      sourceName: 'poll',
+      items: <CivicMapItem>[],
+      error: null,
+      elapsedMs: 0,
+    );
+    _CivicMapLoadResult postResult = const _CivicMapLoadResult(
+      sourceName: 'post',
+      items: <CivicMapItem>[],
+      error: null,
+      elapsedMs: 0,
+    );
+    _CivicMapLoadResult newsResult = const _CivicMapLoadResult(
+      sourceName: 'news',
+      items: <CivicMapItem>[],
+      error: null,
+      elapsedMs: 0,
+    );
 
     final errors = <String>[];
 
-    final pollResult = results[0];
-    final postResult = results[1];
-    final newsResult = results[2];
+    void upsertError(_CivicMapLoadResult result) {
+      errors.removeWhere(
+        (entry) => entry.startsWith('${result.sourceName}:'),
+      );
 
-    _applySourceResult(
-      store: _pollItems,
-      result: pollResult,
-      preservePreviousOnError: sameScope,
-      preservePreviousOnEmpty: sameScope,
-    );
-    _applySourceResult(
-      store: _postItems,
-      result: postResult,
-      preservePreviousOnError: sameScope,
-      preservePreviousOnEmpty: sameScope,
-    );
-    _applySourceResult(
-      store: _newsItems,
-      result: newsResult,
-      preservePreviousOnError: sameScope,
-      preservePreviousOnEmpty: sameScope,
-    );
-
-    for (final result in results) {
       if (result.hasError) {
         errors.add('${result.sourceName}: ${result.error}');
       }
     }
 
-    _rebuildMergedItems();
-    _reconcileSelectionAfterReload();
+    void applyIntermediateResult({
+      required List<CivicMapItem> store,
+      required _CivicMapLoadResult result,
+    }) {
+      if (!_isLatestRequest(requestId, scope)) {
+        return;
+      }
+
+      final storeChanged = _applySourceResult(
+        store: store,
+        result: result,
+        preservePreviousOnError: sameScope,
+        preservePreviousOnEmpty: sameScope,
+      );
+
+      upsertError(result);
+
+      if (!storeChanged) {
+        return;
+      }
+
+      _rebuildMergedItems();
+      _reconcileSelectionAfterReload();
+
+      final hasItems = _allItems.isNotEmpty;
+
+      if (!isBackgroundRefresh &&
+          _status == CivicMapStatus.loading &&
+          hasItems) {
+        _setStatus(CivicMapStatus.loaded);
+        _isRefreshing = true;
+      }
+
+      if (_status == CivicMapStatus.loaded) {
+        _errorMessage = errors.isEmpty ? null : errors.join(' | ');
+        _notifySafely();
+      }
+    }
+
+    final pollFuture = _safeLoadWithResult(
+      loader: loadPollItems,
+      scope: scope,
+      sourceName: 'poll',
+    ).then((result) {
+      pollResult = result;
+      applyIntermediateResult(
+        store: _pollItems,
+        result: result,
+      );
+    });
+
+    final postFuture = _safeLoadWithResult(
+      loader: loadPostItems,
+      scope: scope,
+      sourceName: 'post',
+    ).then((result) {
+      postResult = result;
+      applyIntermediateResult(
+        store: _postItems,
+        result: result,
+      );
+    });
+
+    final newsFuture = _safeLoadWithResult(
+      loader: loadNewsItems,
+      scope: scope,
+      sourceName: 'news',
+    ).then((result) {
+      newsResult = result;
+      applyIntermediateResult(
+        store: _newsItems,
+        result: result,
+      );
+    });
+
+    await Future.wait<void>([
+      pollFuture,
+      postFuture,
+      newsFuture,
+    ]);
+
+    if (!_isLatestRequest(requestId, scope)) {
+      totalStopwatch.stop();
+      return;
+    }
+
+    const rebuildMs = 0;
+    const selectionMs = 0;
+
+    final CivicMapStatus finalStatus;
+    final String? finalErrorMessage;
 
     if (_allItems.isNotEmpty) {
-      _setStatus(CivicMapStatus.loaded);
-      _errorMessage = errors.isEmpty ? null : errors.join(' | ');
-      notifyListeners();
-      return;
+      finalStatus = CivicMapStatus.loaded;
+      finalErrorMessage = errors.isEmpty ? null : errors.join(' | ');
+    } else if (errors.isNotEmpty) {
+      finalStatus = CivicMapStatus.error;
+      finalErrorMessage = errors.join(' | ');
+    } else {
+      finalStatus = CivicMapStatus.empty;
+      finalErrorMessage = null;
     }
 
-    if (errors.isNotEmpty) {
-      _setStatus(CivicMapStatus.error);
-      _errorMessage = errors.join(' | ');
-      notifyListeners();
-      return;
-    }
+    _isRefreshing = false;
+    _setStatus(finalStatus);
+    _errorMessage = finalErrorMessage;
 
-    _setStatus(CivicMapStatus.empty);
-    _errorMessage = null;
-    notifyListeners();
+    totalStopwatch.stop();
+
+    _storeLastLoadMetrics(
+      scope: scope,
+      pollResult: pollResult,
+      postResult: postResult,
+      newsResult: newsResult,
+      rebuildMs: rebuildMs,
+      selectionMs: selectionMs,
+      totalMs: totalStopwatch.elapsedMilliseconds,
+      finalStatus: finalStatus,
+      errors: errors,
+      loadMode: loadMode,
+    );
+
+    _notifySafely();
   }
 
-  void _applySourceResult({
+  bool _applySourceResult({
     required List<CivicMapItem> store,
     required _CivicMapLoadResult result,
     required bool preservePreviousOnError,
     required bool preservePreviousOnEmpty,
   }) {
     if (result.hasError && preservePreviousOnError) {
-      return;
+      return false;
     }
 
     final hasPreviousData = store.isNotEmpty;
     final incomingIsEmpty = result.items.isEmpty;
 
     if (preservePreviousOnEmpty && hasPreviousData && incomingIsEmpty) {
-      return;
+      return false;
+    }
+
+    if (!hasPreviousData && incomingIsEmpty) {
+      return false;
     }
 
     store
       ..clear()
       ..addAll(result.items);
+
+    return true;
   }
 
   void _rebuildMergedItems() {
@@ -579,10 +699,19 @@ class CivicMapController extends ChangeNotifier {
       ..addAll(_newsItems);
 
     _allItems.sort(_sortItems);
+    _rebuildVisibleItems();
+  }
+
+  void _rebuildVisibleItems() {
+    _visibleItems
+      ..clear()
+      ..addAll(
+        _allItems.where((item) => _visibleTypes.contains(item.type)),
+      );
   }
 
   void setVisibleTypes(Set<CivicMapItemType> types) {
-    _visibleTypes = types.isEmpty
+    final nextVisibleTypes = types.isEmpty
         ? <CivicMapItemType>{
             CivicMapItemType.poll,
             CivicMapItemType.post,
@@ -590,8 +719,16 @@ class CivicMapController extends ChangeNotifier {
           }
         : Set<CivicMapItemType>.from(types);
 
+    if (setEquals(_visibleTypes, nextVisibleTypes)) {
+      return;
+    }
+
+    _visibleTypes = nextVisibleTypes;
+
+    _rebuildVisibleItems();
+
     if (_selectedItemId != null &&
-        !visibleItems.any((item) => item.id == _selectedItemId)) {
+        !_visibleItems.any((item) => item.id == _selectedItemId)) {
       final selected = selectedItem;
       if (selected == null) {
         _selectedItemId = null;
@@ -599,7 +736,7 @@ class CivicMapController extends ChangeNotifier {
       }
     }
 
-    notifyListeners();
+    _notifySafely();
   }
 
   void toggleType(CivicMapItemType type) {
@@ -637,7 +774,7 @@ class CivicMapController extends ChangeNotifier {
     _selectedItemId = itemId;
     _selectedTargetRefKey =
         matchedItem == null ? null : _targetRefKey(matchedItem.targetRef);
-    notifyListeners();
+    _notifySafely();
   }
 
   void selectItem(CivicMapItem item) {
@@ -650,14 +787,14 @@ class CivicMapController extends ChangeNotifier {
 
     _selectedItemId = item.id;
     _selectedTargetRefKey = nextTargetRefKey;
-    notifyListeners();
+    _notifySafely();
   }
 
   void clearSelection() {
     if (_selectedItemId == null && _selectedTargetRefKey == null) return;
     _selectedItemId = null;
     _selectedTargetRefKey = null;
-    notifyListeners();
+    _notifySafely();
   }
 
   Future<_CivicMapLoadResult> _safeLoadWithResult({
@@ -670,17 +807,25 @@ class CivicMapController extends ChangeNotifier {
         sourceName: sourceName,
         items: const <CivicMapItem>[],
         error: null,
+        elapsedMs: 0,
       );
     }
 
+    final stopwatch = Stopwatch()..start();
+
     try {
       final items = await _safeLoad(loader, scope);
+      stopwatch.stop();
+
       return _CivicMapLoadResult(
         sourceName: sourceName,
         items: items,
         error: null,
+        elapsedMs: stopwatch.elapsedMilliseconds,
       );
     } catch (e, st) {
+      stopwatch.stop();
+
       if (kDebugMode) {
         debugPrint('CivicMap load failed [$sourceName]: $e');
         debugPrint('$st');
@@ -690,6 +835,7 @@ class CivicMapController extends ChangeNotifier {
         sourceName: sourceName,
         items: const <CivicMapItem>[],
         error: e.toString(),
+        elapsedMs: stopwatch.elapsedMilliseconds,
       );
     }
   }
@@ -916,7 +1062,9 @@ class CivicMapController extends ChangeNotifier {
   }
 
   bool _isLatestRequest(int requestId, GeoScope scope) {
-    return requestId == _loadRequestId && _isSameScope(_currentScope, scope);
+    return !_isDisposed &&
+        requestId == _loadRequestId &&
+        _isSameScope(_currentScope, scope);
   }
 
   bool _isSameScope(GeoScope? a, GeoScope? b) {
@@ -996,6 +1144,52 @@ class CivicMapController extends ChangeNotifier {
     return null;
   }
 
+  void _storeLastLoadMetrics({
+    required GeoScope scope,
+    required _CivicMapLoadResult pollResult,
+    required _CivicMapLoadResult postResult,
+    required _CivicMapLoadResult newsResult,
+    required int rebuildMs,
+    required int selectionMs,
+    required int totalMs,
+    required CivicMapStatus finalStatus,
+    required List<String> errors,
+    required String loadMode,
+  }) {
+    _lastLoadMetricsMs = <String, int>{
+      'pollLoadMs': pollResult.elapsedMs,
+      'postLoadMs': postResult.elapsedMs,
+      'newsLoadMs': newsResult.elapsedMs,
+      'rebuildMergedItemsMs': rebuildMs,
+      'reconcileSelectionMs': selectionMs,
+      'totalLoadMs': totalMs,
+    };
+
+    _lastLoadItemCounts = <String, int>{
+      'pollCount': pollResult.items.length,
+      'postCount': postResult.items.length,
+      'newsCount': newsResult.items.length,
+      'totalCount': _allItems.length,
+    };
+
+    _lastLoadMetricsSummary = <String>[
+      'scope=${_scopeKey(scope)}',
+      'status=${finalStatus.name}',
+      'mode=$loadMode',
+      'poll=${pollResult.elapsedMs}ms/${pollResult.items.length}',
+      'post=${postResult.elapsedMs}ms/${postResult.items.length}',
+      'news=${newsResult.elapsedMs}ms/${newsResult.items.length}',
+      'merge=${rebuildMs}ms',
+      'selection=${selectionMs}ms',
+      'total=${totalMs}ms',
+      if (errors.isNotEmpty) 'errors=${errors.length}',
+    ].join(' | ');
+
+    if (kDebugMode) {
+      debugPrint('CivicMap metrics -> $_lastLoadMetricsSummary');
+    }
+  }
+
   bool _isFinite(double? value) {
     return value != null && value.isFinite;
   }
@@ -1025,5 +1219,12 @@ class CivicMapController extends ChangeNotifier {
 
   void _setStatus(CivicMapStatus value) {
     _status = value;
+  }
+
+  void _notifySafely() {
+    if (_isDisposed) {
+      return;
+    }
+    notifyListeners();
   }
 }

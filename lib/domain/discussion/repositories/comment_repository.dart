@@ -14,6 +14,15 @@ abstract class CommentRepository {
 
   Future<int> countCommentsForTarget(TargetRef target);
 
+  /// Count batch per più target.
+  ///
+  /// La chiave restituita usa il formato:
+  /// `targetType|targetId`
+  /// per restare coerente con l'implementazione corrente.
+  Future<Map<String, int>> countCommentsForTargets(
+    List<TargetRef> targets,
+  );
+
   /// Nuovo metodo per My Comments
   Future<List<Comment>> getCommentsByUser(String userId);
 

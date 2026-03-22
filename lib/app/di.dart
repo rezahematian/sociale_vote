@@ -164,6 +164,16 @@ class _TargetEngagementSnapshot {
   });
 }
 
+class _CachedTargetEngagementSnapshot {
+  final _TargetEngagementSnapshot snapshot;
+  final DateTime cachedAt;
+
+  const _CachedTargetEngagementSnapshot({
+    required this.snapshot,
+    required this.cachedAt,
+  });
+}
+
 class AppDI {
   AppDI._internal() {
     _sessionRepository.watchCurrentUserId().listen((userId) {
@@ -176,11 +186,16 @@ class AppDI {
   static const int _pollMapBatchSize = 120;
   static const int _postMapBatchSize = 120;
   static const int _newsMapBatchSize = 80;
+  static const Duration _mapEngagementCacheTtl = Duration(seconds: 20);
 
   final GeoScopeController _geoScopeController = GeoScopeController();
 
   FollowScopeController? _followScopeController;
   String? _followScopeControllerUserId;
+
+  final Map<String, _CachedTargetEngagementSnapshot>
+      _mapEngagementSnapshotCache =
+      <String, _CachedTargetEngagementSnapshot>{};
 
   GeoScopeController get geoScopeController => _geoScopeController;
 
@@ -324,6 +339,15 @@ class AppDI {
     }
   }
 
+  Future<String?> _readEffectiveContentLanguageApiValue() async {
+    final stored = await _readStoredContentLanguageApiValue();
+    if (stored != null && stored.trim().isNotEmpty) {
+      return stored;
+    }
+
+    return _readSystemContentLanguageApiValue();
+  }
+
   String? _readSystemContentLanguageApiValue() {
     try {
       final systemLanguage =
@@ -358,12 +382,15 @@ class AppDI {
     String? topic,
     String? language,
     int? providerLimit,
-  }) {
+  }) async {
+    final effectiveLanguage =
+        language ?? await _readEffectiveContentLanguageApiValue();
+
     return _newsRepositoryImpl.refreshNewsFeedCache(
       countryCode: countryCode,
       cityId: cityId,
       topic: topic,
-      language: language,
+      language: effectiveLanguage,
       providerLimit: providerLimit,
     );
   }
@@ -664,7 +691,7 @@ class AppDI {
   Future<List<NewsItem>> _loadNewsForScope(GeoScope? scope) async {
     final countryCode = _readScopeCountryCode(scope);
     final cityId = _readScopeCityId(scope);
-    final language = await _readStoredContentLanguageApiValue();
+    final language = await _readEffectiveContentLanguageApiValue();
     final dynamic useCase = getNewsFeed;
 
     final scoped = await _tryLoadListOrEmpty<NewsItem>([
@@ -740,7 +767,7 @@ class AppDI {
     final levelName = _readScopeLevelName(scope);
     final countryCode = _readScopeCountryCode(scope);
     final cityId = _readScopeCityId(scope);
-    final language = await _readStoredContentLanguageApiValue();
+    final language = await _readEffectiveContentLanguageApiValue();
     final dynamic useCase = getNewsFeed;
 
     if (levelName == 'world') {
@@ -1202,10 +1229,16 @@ class AppDI {
     required CivicMapItemType type,
     required TargetRef Function(T entity) readTargetRef,
   }) async {
+    final targetRefs = entities.map(readTargetRef).toList(growable: false);
+
+    final engagementByTargetKey =
+        await _loadEngagementSnapshotsForTargets(targetRefs);
+
     final List<CivicMapItem> items = <CivicMapItem>[];
 
-    for (final entity in entities) {
-      final targetRef = readTargetRef(entity);
+    for (var i = 0; i < entities.length; i++) {
+      final entity = entities[i];
+      final targetRef = targetRefs[i];
       final point = _readEntityMapPoint(
         entity,
         fallbackScope: scope,
@@ -1216,7 +1249,11 @@ class AppDI {
         continue;
       }
 
-      final engagement = await _loadEngagementSnapshotForTarget(targetRef);
+      final engagement = engagementByTargetKey[_targetBatchKey(targetRef)] ??
+          const _TargetEngagementSnapshot(
+            heat: 0,
+            commentCount: 0,
+          );
 
       items.add(
         CivicMapItem(
@@ -1774,18 +1811,152 @@ class AppDI {
     return DateTime.tryParse(value.toString());
   }
 
-  Future<_TargetEngagementSnapshot> _loadEngagementSnapshotForTarget(
-    TargetRef targetRef,
+  Future<Map<String, _TargetEngagementSnapshot>>
+      _loadEngagementSnapshotsForTargets(
+    List<TargetRef> targets,
   ) async {
-    final values = await Future.wait<int>([
-      _loadReactionCountForTarget(targetRef),
-      _loadCommentCountForTarget(targetRef),
+    if (targets.isEmpty) {
+      return const <String, _TargetEngagementSnapshot>{};
+    }
+
+    final now = DateTime.now();
+    _pruneExpiredMapEngagementSnapshotCache(now);
+
+    final snapshots = <String, _TargetEngagementSnapshot>{};
+    final missingTargetsByKey = <String, TargetRef>{};
+
+    for (final target in targets) {
+      final key = _targetBatchKey(target);
+      final cached = _readCachedMapEngagementSnapshot(key, now);
+
+      if (cached != null) {
+        snapshots[key] = cached;
+        continue;
+      }
+
+      missingTargetsByKey.putIfAbsent(key, () => target);
+    }
+
+    if (missingTargetsByKey.isEmpty) {
+      return snapshots;
+    }
+
+    final missingTargets =
+        missingTargetsByKey.values.toList(growable: false);
+
+    final results = await Future.wait<dynamic>([
+      _loadReactionCountsForTargets(missingTargets),
+      _loadCommentCountsForTargets(missingTargets),
     ]);
 
-    return _TargetEngagementSnapshot(
-      heat: values[0],
-      commentCount: values[1],
+    final reactionCounts = results[0] as Map<String, int>;
+    final commentCounts = results[1] as Map<String, int>;
+
+    for (final target in missingTargets) {
+      final key = _targetBatchKey(target);
+      final snapshot = _TargetEngagementSnapshot(
+        heat: reactionCounts[key] ?? 0,
+        commentCount: commentCounts[key] ?? 0,
+      );
+
+      snapshots[key] = snapshot;
+      _writeCachedMapEngagementSnapshot(
+        key,
+        snapshot,
+        now,
+      );
+    }
+
+    return snapshots;
+  }
+
+  _TargetEngagementSnapshot? _readCachedMapEngagementSnapshot(
+    String key,
+    DateTime now,
+  ) {
+    final cached = _mapEngagementSnapshotCache[key];
+    if (cached == null) {
+      return null;
+    }
+
+    if (now.difference(cached.cachedAt) > _mapEngagementCacheTtl) {
+      _mapEngagementSnapshotCache.remove(key);
+      return null;
+    }
+
+    return cached.snapshot;
+  }
+
+  void _writeCachedMapEngagementSnapshot(
+    String key,
+    _TargetEngagementSnapshot snapshot,
+    DateTime now,
+  ) {
+    _mapEngagementSnapshotCache[key] = _CachedTargetEngagementSnapshot(
+      snapshot: snapshot,
+      cachedAt: now,
     );
+  }
+
+  void _pruneExpiredMapEngagementSnapshotCache(DateTime now) {
+    _mapEngagementSnapshotCache.removeWhere(
+      (_, cached) => now.difference(cached.cachedAt) > _mapEngagementCacheTtl,
+    );
+  }
+
+  Future<Map<String, int>> _loadReactionCountsForTargets(
+    List<TargetRef> targets,
+  ) async {
+    final counts = <String, int>{};
+
+    for (final target in targets) {
+      counts[_targetBatchKey(target)] = 0;
+    }
+
+    try {
+      final summaries = await reactionRepository.getSummariesForTargets(targets);
+
+      for (var i = 0; i < targets.length; i++) {
+        final summary = i < summaries.length ? summaries[i] : null;
+        counts[_targetBatchKey(targets[i])] = _extractReactionTotal(summary);
+      }
+    } catch (_) {}
+
+    return counts;
+  }
+
+  Future<Map<String, int>> _loadCommentCountsForTargets(
+    List<TargetRef> targets,
+  ) async {
+    final counts = <String, int>{};
+
+    for (final target in targets) {
+      counts[_targetBatchKey(target)] = 0;
+    }
+
+    try {
+      final batchCounts = await commentRepository.countCommentsForTargets(
+        targets,
+      );
+
+      for (final entry in batchCounts.entries) {
+        counts[entry.key] = entry.value;
+      }
+    } catch (_) {}
+
+    return counts;
+  }
+
+  String _targetBatchKey(TargetRef target) {
+    final type = switch (target.type) {
+      TargetType.post => 'post',
+      TargetType.news => 'news',
+      TargetType.poll => 'poll',
+      TargetType.video => 'video',
+      _ => target.type.name,
+    };
+
+    return '$type|${target.id.trim()}';
   }
 
   Future<int> _loadReactionCountForTarget(TargetRef targetRef) async {

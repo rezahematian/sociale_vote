@@ -47,6 +47,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
   StreamSubscription<String?>? _sessionSub;
 
+  String _homeNewsLanguageKey = 'auto';
+  bool _isRefreshingHomeNewsLanguageKey = false;
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +60,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       if (!mounted) return;
       setState(() {});
     });
+
+    _refreshHomeNewsLanguageKey();
   }
 
   @override
@@ -143,6 +148,12 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     );
   }
 
+  Future<void> _onOpenNewsPressed() async {
+    await Navigator.pushNamed(context, AppRouter.news);
+    if (!mounted) return;
+    _refreshHomeNewsLanguageKey();
+  }
+
   void _onProfilePressed() {
     Navigator.pushNamed(context, AppRouter.profile);
   }
@@ -187,6 +198,39 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     await _followScopeController.toggleFollowForScope(scope);
     if (!mounted) return;
     setState(() {});
+  }
+
+  String _normalizeHomeNewsLanguageKey(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    if (normalized == null || normalized.isEmpty) {
+      return 'auto';
+    }
+    return normalized;
+  }
+
+  void _refreshHomeNewsLanguageKey() {
+    if (_isRefreshingHomeNewsLanguageKey) {
+      return;
+    }
+
+    _isRefreshingHomeNewsLanguageKey = true;
+
+    AppDI.instance
+        .getContentLanguagePreference()
+        .then((value) {
+          if (!mounted) return;
+
+          final normalized = _normalizeHomeNewsLanguageKey(value);
+          if (_homeNewsLanguageKey != normalized) {
+            setState(() {
+              _homeNewsLanguageKey = normalized;
+            });
+          }
+        })
+        .catchError((_) {})
+        .whenComplete(() {
+          _isRefreshingHomeNewsLanguageKey = false;
+        });
   }
 
   @override
@@ -274,9 +318,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                         onOpenPolls: () {
                           Navigator.pushNamed(context, AppRouter.polls);
                         },
-                        onOpenNews: () {
-                          Navigator.pushNamed(context, AppRouter.news);
-                        },
+                        onOpenNews: _onOpenNewsPressed,
                       ),
                     ),
                     Padding(
@@ -357,7 +399,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                           const SizedBox(height: 24),
                           ChangeNotifierProvider<NewsController>(
                             key: ValueKey(
-                              'home_news_${scope.level}_${scope.countryCode}_${scope.cityId}',
+                              'home_news_${scope.level}_${scope.countryCode}_${scope.cityId}_$_homeNewsLanguageKey',
                             ),
                             create: (_) =>
                                 AppDI.instance.createNewsController()
