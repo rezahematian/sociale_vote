@@ -214,52 +214,49 @@ class NewsRepositoryImpl implements NewsRepository {
       );
     }
 
-    final sameLanguageEquivalentCandidate =
-        _buildSameLanguageEquivalentCandidate(candidate);
+    final sameLanguageEquivalentCandidates =
+        _buildSameLanguageEquivalentCandidates(candidate);
 
-    final sameLanguageEquivalentFreshCache =
-        sameLanguageEquivalentCandidate == null
-            ? null
-            : await _readCache(
-                cacheKey: sameLanguageEquivalentCandidate.cacheKey,
-                acceptStale: false,
-                requestedLanguage: candidate.language,
-              );
+    final sameLanguageEquivalentFreshHit =
+        await _readFirstSameLanguageEquivalentCache(
+      candidates: sameLanguageEquivalentCandidates,
+      acceptStale: false,
+      requestedLanguage: candidate.language,
+    );
 
-    if (sameLanguageEquivalentFreshCache != null &&
-        sameLanguageEquivalentFreshCache.items.isNotEmpty) {
+    if (sameLanguageEquivalentFreshHit != null &&
+        sameLanguageEquivalentFreshHit.cache.items.isNotEmpty) {
       if (kDebugMode) {
         debugPrint(
           'NewsRepositoryImpl serving same-language equivalent fresh cache '
-          'from ${sameLanguageEquivalentCandidate!.cacheKey} for '
+          'from ${sameLanguageEquivalentFreshHit.candidate.cacheKey} for '
           '${candidate.cacheKey}.',
         );
       }
 
       return _mapCandidatePage(
         candidate,
-        sameLanguageEquivalentFreshCache.items,
+        sameLanguageEquivalentFreshHit.cache.items,
         limit: limit,
         offset: offset,
       );
     }
 
-    final sameLanguageEquivalentStaleCache =
-        allowStaleCache && sameLanguageEquivalentCandidate != null
-            ? await _readCache(
-                cacheKey: sameLanguageEquivalentCandidate.cacheKey,
-                acceptStale: true,
-                requestedLanguage: candidate.language,
-              )
-            : null;
+    final sameLanguageEquivalentStaleHit = allowStaleCache
+        ? await _readFirstSameLanguageEquivalentCache(
+            candidates: sameLanguageEquivalentCandidates,
+            acceptStale: true,
+            requestedLanguage: candidate.language,
+          )
+        : null;
 
-    final usableSameLanguageEquivalentStaleCache =
-        sameLanguageEquivalentStaleCache != null &&
+    final usableSameLanguageEquivalentStaleHit =
+        sameLanguageEquivalentStaleHit != null &&
                 _canUseStaleFallbackCache(
-                  sameLanguageEquivalentStaleCache,
+                  sameLanguageEquivalentStaleHit.cache,
                   requestedLanguage: candidate.language,
                 )
-            ? sameLanguageEquivalentStaleCache
+            ? sameLanguageEquivalentStaleHit
             : null;
 
     if (_isRefreshCooldownActive(candidate.cacheKey)) {
@@ -288,19 +285,19 @@ class NewsRepositoryImpl implements NewsRepository {
         );
       }
 
-      if (usableSameLanguageEquivalentStaleCache != null &&
-          usableSameLanguageEquivalentStaleCache.items.isNotEmpty) {
+      if (usableSameLanguageEquivalentStaleHit != null &&
+          usableSameLanguageEquivalentStaleHit.cache.items.isNotEmpty) {
         if (kDebugMode) {
           debugPrint(
             'NewsRepositoryImpl serving same-language equivalent stale cache '
-            'from ${sameLanguageEquivalentCandidate!.cacheKey} for '
-            '${candidate.cacheKey} while cooldown is active.',
+            'from ${usableSameLanguageEquivalentStaleHit.candidate.cacheKey} '
+            'for ${candidate.cacheKey} while cooldown is active.',
           );
         }
 
         return _mapCandidatePage(
           candidate,
-          usableSameLanguageEquivalentStaleCache.items,
+          usableSameLanguageEquivalentStaleHit.cache.items,
           limit: limit,
           offset: offset,
         );
@@ -381,23 +378,24 @@ class NewsRepositoryImpl implements NewsRepository {
       );
     }
 
-    if (usableSameLanguageEquivalentStaleCache != null &&
-        usableSameLanguageEquivalentStaleCache.items.isNotEmpty) {
+    if (usableSameLanguageEquivalentStaleHit != null &&
+        usableSameLanguageEquivalentStaleHit.cache.items.isNotEmpty) {
       if (kDebugMode) {
         debugPrint(
           'NewsRepositoryImpl fallback to same-language equivalent stale cache '
-          'from ${sameLanguageEquivalentCandidate!.cacheKey} for '
-          '${candidate.cacheKey} after refresh attempt.',
+          'from ${usableSameLanguageEquivalentStaleHit.candidate.cacheKey} '
+          'for ${candidate.cacheKey} after refresh attempt.',
         );
       }
 
       return _mapCandidatePage(
         candidate,
-        usableSameLanguageEquivalentStaleCache.items,
+        usableSameLanguageEquivalentStaleHit.cache.items,
         limit: limit,
         offset: offset,
       );
     }
+
     if (requestedLanguage != null && requestedLanguage != 'en') {
       final englishFallbackItems = await _tryEnglishFallbackPage(
         countryCode: requestedCountryCode,
@@ -675,6 +673,11 @@ class NewsRepositoryImpl implements NewsRepository {
         cityId: candidate.cityId,
         topic: candidate.topic,
         language: candidate.language,
+        items: stabilized,
+      );
+
+      await _writeCanonicalGlobalAllAliasIfNeeded(
+        sourceCandidate: candidate,
         items: stabilized,
       );
 
@@ -2237,7 +2240,7 @@ class NewsRepositoryImpl implements NewsRepository {
     return filtered.any((item) => _extractProviderSignature(item) != null);
   }
 
-  _NewsFeedCandidate? _buildSameLanguageEquivalentCandidate(
+  List<_NewsFeedCandidate> _buildSameLanguageEquivalentCandidates(
     _NewsFeedCandidate candidate,
   ) {
     final isGlobalAllRequest = candidate.countryCode == null &&
@@ -2246,15 +2249,89 @@ class NewsRepositoryImpl implements NewsRepository {
         candidate.language != null;
 
     if (!isGlobalAllRequest) {
-      return null;
+      return const <_NewsFeedCandidate>[];
     }
 
-    return _NewsFeedCandidate(
+    return <_NewsFeedCandidate>[
+      _NewsFeedCandidate(
+        countryCode: null,
+        cityId: null,
+        topic: 'world',
+        language: candidate.language,
+      ),
+      _NewsFeedCandidate(
+        countryCode: null,
+        cityId: null,
+        topic: 'nation',
+        language: candidate.language,
+      ),
+    ];
+  }
+
+  Future<_EquivalentCacheHit?> _readFirstSameLanguageEquivalentCache({
+    required List<_NewsFeedCandidate> candidates,
+    required bool acceptStale,
+    required String? requestedLanguage,
+  }) async {
+    for (final equivalentCandidate in candidates) {
+      final cache = await _readCache(
+        cacheKey: equivalentCandidate.cacheKey,
+        acceptStale: acceptStale,
+        requestedLanguage: requestedLanguage,
+      );
+
+      if (cache == null || cache.items.isEmpty) {
+        continue;
+      }
+
+      return _EquivalentCacheHit(
+        candidate: equivalentCandidate,
+        cache: cache,
+      );
+    }
+
+    return null;
+  }
+
+  Future<void> _writeCanonicalGlobalAllAliasIfNeeded({
+    required _NewsFeedCandidate sourceCandidate,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    final isGlobalScoped =
+        sourceCandidate.countryCode == null && sourceCandidate.cityId == null;
+    final isCompatibleTopic =
+        sourceCandidate.topic == 'world' || sourceCandidate.topic == 'nation';
+    final hasLanguage =
+        sourceCandidate.language != null && sourceCandidate.language!.isNotEmpty;
+
+    if (!isGlobalScoped || !isCompatibleTopic || !hasLanguage || items.isEmpty) {
+      return;
+    }
+
+    final aliasCandidate = _NewsFeedCandidate(
       countryCode: null,
       cityId: null,
-      topic: 'world',
-      language: candidate.language,
+      topic: null,
+      language: sourceCandidate.language,
     );
+
+    await _writeCache(
+      cacheKey: aliasCandidate.cacheKey,
+      countryCode: aliasCandidate.countryCode,
+      cityId: aliasCandidate.cityId,
+      topic: aliasCandidate.topic,
+      language: aliasCandidate.language,
+      items: items,
+    );
+
+    _clearRefreshCooldown(aliasCandidate.cacheKey);
+
+    if (kDebugMode) {
+      debugPrint(
+        'NewsRepositoryImpl mirrored ${sourceCandidate.cacheKey} into '
+        '${aliasCandidate.cacheKey} to keep canonical global cache warm.',
+      );
+    }
   }
 
   String? _extractProviderSignature(Map<String, dynamic> json) {
@@ -2890,6 +2967,16 @@ class _CachePayloadMetadata {
     required this.providerSignatures,
     required this.languagesPresent,
     required this.payloadVersion,
+  });
+}
+
+class _EquivalentCacheHit {
+  final _NewsFeedCandidate candidate;
+  final _CachedNewsFeed cache;
+
+  const _EquivalentCacheHit({
+    required this.candidate,
+    required this.cache,
   });
 }
 
