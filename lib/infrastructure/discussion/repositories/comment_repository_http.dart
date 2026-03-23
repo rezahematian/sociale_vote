@@ -6,6 +6,10 @@ import 'package:sociale_vote/domain/discussion/entities/comment.dart';
 import 'package:sociale_vote/domain/discussion/repositories/comment_repository.dart';
 
 /// Implementazione HTTP di [CommentRepository].
+///
+/// Nota:
+/// - questo adapter oggi non è il path attivo in DI
+/// - viene tenuto allineato al contratto per evitare drift/rotture future
 class CommentRepositoryHttp implements CommentRepository {
   final ApiClient _apiClient;
 
@@ -44,6 +48,31 @@ class CommentRepositoryHttp implements CommentRepository {
   }
 
   @override
+  Future<Comment?> getCommentById(String commentId) async {
+    final normalizedId = commentId.trim();
+    if (normalizedId.isEmpty) {
+      return null;
+    }
+
+    final response = await _apiClient.getJson('/comments/$normalizedId');
+
+    if (response == null) {
+      return null;
+    }
+
+    if (response is! Map<String, dynamic>) {
+      throw ApiException(
+        message: 'Invalid response format while loading comment by id.',
+      );
+    }
+
+    final map = Map<String, dynamic>.from(response);
+    final target = _targetFromJson(map);
+
+    return _mapComment(map, target);
+  }
+
+  @override
   Future<List<Comment>> getCommentsForTarget(TargetRef target) async {
     final response = await _apiClient.getJson(
       '/comments',
@@ -66,7 +95,31 @@ class CommentRepositoryHttp implements CommentRepository {
             target,
           ),
         )
-        .toList();
+        .toList(growable: false);
+  }
+
+  @override
+  Future<int> countCommentsForTarget(TargetRef target) async {
+    final comments = await getCommentsForTarget(target);
+    return comments.length;
+  }
+
+  @override
+  Future<Map<String, int>> countCommentsForTargets(
+    List<TargetRef> targets,
+  ) async {
+    if (targets.isEmpty) {
+      return const <String, int>{};
+    }
+
+    final entries = await Future.wait(
+      targets.map((target) async {
+        final count = await countCommentsForTarget(target);
+        return MapEntry(_targetKey(target), count);
+      }),
+    );
+
+    return Map<String, int>.fromEntries(entries);
   }
 
   @override
@@ -86,28 +139,26 @@ class CommentRepositoryHttp implements CommentRepository {
 
     return response.map<Comment>((json) {
       final map = Map<String, dynamic>.from(json as Map);
-
-      final targetType = TargetType.values.firstWhere(
-        (t) => t.name == map['targetType'],
-      );
-
-      final target = TargetRef(
-        type: targetType,
-        id: map['targetId'] as String,
-      );
-
+      final target = _targetFromJson(map);
       return _mapComment(map, target);
-    }).toList();
+    }).toList(growable: false);
+  }
+
+  @override
+  Future<Comment> updateComment({
+    required String commentId,
+    required String content,
+  }) {
+    throw UnimplementedError(
+      'CommentRepositoryHttp.updateComment non implementato: '
+      'endpoint/metodo HTTP non confermati.',
+    );
   }
 
   @override
   Future<void> deleteComment(String commentId) async {
     await _apiClient.deleteJson('/comments/$commentId');
   }
-
-  // ==========================================================
-  // Mapping helpers
-  // ==========================================================
 
   String _mapTargetType(TargetRef target) {
     switch (target.type) {
@@ -134,18 +185,55 @@ class CommentRepositoryHttp implements CommentRepository {
     return target.id;
   }
 
+  String _targetKey(TargetRef target) {
+    return '${_mapTargetType(target)}|${target.id.trim()}';
+  }
+
+  TargetRef _targetFromJson(Map<String, dynamic> json) {
+    final rawType = (json['targetType'] ?? json['target_type'] ?? '')
+        .toString()
+        .trim()
+        .toLowerCase();
+    final rawId = (json['targetId'] ?? json['target_id'] ?? '')
+        .toString()
+        .trim();
+
+    switch (rawType) {
+      case 'post':
+        return TargetRef.post(rawId);
+      case 'news':
+        return TargetRef.news(rawId);
+      case 'poll':
+        return TargetRef.poll(rawId);
+      case 'video':
+        return TargetRef.video(rawId);
+      case 'city':
+        return TargetRef.city(rawId);
+      case 'country':
+        return TargetRef.country(rawId);
+      case 'topic':
+        return TargetRef.topic(rawId);
+      default:
+        throw ApiException(
+          message: 'Unsupported targetType while mapping comment: $rawType',
+        );
+    }
+  }
+
   Comment _mapComment(
     Map<String, dynamic> json,
     TargetRef target,
   ) {
     return Comment(
-      id: json['id'] as String,
-      userId: json['userId'] as String,
+      id: (json['id'] ?? '').toString(),
+      userId: (json['userId'] ?? json['user_id'] ?? '').toString(),
       target: target,
-      content: json['content'] as String,
-      parentId: json['parentId'] as String?,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      depth: json['depth'] as int? ?? 0,
+      content: (json['content'] ?? '').toString(),
+      parentId: (json['parentId'] ?? json['parent_id']) as String?,
+      createdAt: DateTime.parse(
+        (json['createdAt'] ?? json['created_at']).toString(),
+      ),
+      depth: (json['depth'] as int?) ?? 0,
     );
   }
 }

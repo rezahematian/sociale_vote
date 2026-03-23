@@ -23,6 +23,7 @@ import 'package:sociale_vote/domain/discovery/usecases/get_trending_content.dart
 
 import 'package:sociale_vote/domain/discussion/repositories/comment_repository.dart';
 import 'package:sociale_vote/domain/discussion/usecases/add_comment.dart';
+import 'package:sociale_vote/domain/discussion/usecases/add_comment_and_notify.dart';
 import 'package:sociale_vote/domain/discussion/usecases/get_comment_count_for_target.dart';
 import 'package:sociale_vote/domain/discussion/usecases/get_comments_for_target.dart';
 import 'package:sociale_vote/domain/discussion/usecases/update_comment.dart';
@@ -55,6 +56,12 @@ import 'package:sociale_vote/domain/identity/usecases/update_user_profile.dart';
 import 'package:sociale_vote/domain/moderation/repositories/moderation_repository.dart';
 import 'package:sociale_vote/domain/moderation/usecases/report_content.dart';
 
+import 'package:sociale_vote/domain/notifications/repositories/notification_repository.dart';
+import 'package:sociale_vote/domain/notifications/usecases/create_comment_reply_notification.dart';
+import 'package:sociale_vote/domain/notifications/usecases/get_notifications_for_user.dart';
+import 'package:sociale_vote/domain/notifications/usecases/get_unread_notifications_count.dart';
+import 'package:sociale_vote/domain/notifications/usecases/mark_notification_as_read.dart';
+
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/repositories/poll_repository.dart';
 import 'package:sociale_vote/domain/poll/repositories/vote_repository.dart';
@@ -77,6 +84,7 @@ import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart'
 import 'package:sociale_vote/features/home/application/civic_feed_controller.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/features/news/application/news_controller.dart';
+import 'package:sociale_vote/features/notifications/application/notifications_controller.dart';
 import 'package:sociale_vote/features/poll/application/create_poll_controller.dart';
 import 'package:sociale_vote/features/poll/application/poll_detail_controller.dart';
 import 'package:sociale_vote/features/poll/application/poll_list_controller.dart';
@@ -103,6 +111,7 @@ import 'package:sociale_vote/infrastructure/news/aggregator/news_api_org_provide
 import 'package:sociale_vote/infrastructure/news/aggregator/news_provider.dart';
 import 'package:sociale_vote/infrastructure/news/mappers/news_mapper.dart';
 import 'package:sociale_vote/infrastructure/news/repositories/news_repository_impl.dart';
+import 'package:sociale_vote/infrastructure/notifications/repositories/notification_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/auth_api.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/guardian_api.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api.dart';
@@ -269,6 +278,8 @@ class AppDI {
   final FavoriteRepository _favoriteRepository = FavoriteRepositorySupabase();
   final ReactionRepository _reactionRepository = ReactionRepositoryImpl();
   final CommentRepository _commentRepository = CommentRepositoryImpl();
+  final NotificationRepository _notificationRepository =
+      NotificationRepositoryImpl();
   late final ModerationRepository _moderationRepository =
       ModerationRepositoryImpl(Supabase.instance.client);
   late final SearchRepository _searchRepository = SearchRepositoryInMemory(
@@ -292,6 +303,7 @@ class AppDI {
   FavoriteRepository get favoriteRepository => _favoriteRepository;
   ReactionRepository get reactionRepository => _reactionRepository;
   CommentRepository get commentRepository => _commentRepository;
+  NotificationRepository get notificationRepository => _notificationRepository;
   ModerationRepository get moderationRepository => _moderationRepository;
   DeviceLocationRepository get deviceLocationRepository =>
       _deviceLocationRepository;
@@ -516,6 +528,17 @@ class AppDI {
 
   AddComment get addComment => AddComment(commentRepository);
 
+  CreateCommentReplyNotification get createCommentReplyNotification =>
+      CreateCommentReplyNotification(
+        commentRepository,
+        notificationRepository,
+      );
+
+  AddCommentAndNotify get addCommentAndNotify => AddCommentAndNotify(
+        addComment,
+        createCommentReplyNotification,
+      );
+
   GetCommentsForTarget get getCommentsForTarget =>
       GetCommentsForTarget(commentRepository);
 
@@ -523,6 +546,15 @@ class AppDI {
       GetCommentCountForTarget(commentRepository);
 
   UpdateComment get updateComment => UpdateComment(commentRepository);
+
+  GetNotificationsForUser get getNotificationsForUser =>
+      GetNotificationsForUser(notificationRepository);
+
+  GetUnreadNotificationsCount get getUnreadNotificationsCount =>
+      GetUnreadNotificationsCount(notificationRepository);
+
+  MarkNotificationAsRead get markNotificationAsRead =>
+      MarkNotificationAsRead(notificationRepository);
 
   AuthController createAuthController() {
     return AuthController(
@@ -596,6 +628,15 @@ class AppDI {
     );
   }
 
+  NotificationsController createNotificationsController() {
+    return NotificationsController(
+      userId: currentUserId ?? '',
+      getNotificationsForUser: getNotificationsForUser,
+      getUnreadNotificationsCount: getUnreadNotificationsCount,
+      markNotificationAsRead: markNotificationAsRead,
+    );
+  }
+
   CivicFeedController createCivicFeedController() {
     return CivicFeedController(
       loadPolls: _loadPollsForScope,
@@ -654,7 +695,7 @@ class AppDI {
   }) {
     return DiscussionController(
       target: target,
-      addComment: addComment,
+      addComment: addCommentAndNotify.call,
       getCommentsForTarget: getCommentsForTarget,
       updateComment: updateComment,
       onCommentsChanged: onCommentsChanged,

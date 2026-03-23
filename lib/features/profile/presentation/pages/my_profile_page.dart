@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/app/router.dart';
 
 import 'package:sociale_vote/features/profile/application/profile_controller.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/edit_profile_page.dart';
@@ -45,12 +46,37 @@ class MyProfilePage extends StatelessWidget {
   }
 }
 
-class _MyProfileView extends StatelessWidget {
+class _MyProfileView extends StatefulWidget {
   final String currentUserId;
 
   const _MyProfileView({
     required this.currentUserId,
   });
+
+  @override
+  State<_MyProfileView> createState() => _MyProfileViewState();
+}
+
+class _MyProfileViewState extends State<_MyProfileView> {
+  late Future<int> _unreadNotificationsFuture;
+
+  String get currentUserId => widget.currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _unreadNotificationsFuture = _loadUnreadNotificationsCount();
+  }
+
+  Future<int> _loadUnreadNotificationsCount() {
+    return AppDI.instance.getUnreadNotificationsCount(currentUserId);
+  }
+
+  void _refreshUnreadNotificationsCount() {
+    setState(() {
+      _unreadNotificationsFuture = _loadUnreadNotificationsCount();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +98,10 @@ class _MyProfileView extends StatelessWidget {
         title: const Text('My Profile'),
       ),
       body: RefreshIndicator(
-        onRefresh: () => context.read<ProfileController>().loadProfile(currentUserId),
+        onRefresh: () async {
+          await context.read<ProfileController>().loadProfile(currentUserId);
+          _refreshUnreadNotificationsCount();
+        },
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -93,8 +122,9 @@ class _MyProfileView extends StatelessWidget {
                             children: [
                               CircleAvatar(
                                 radius: 32,
-                                backgroundImage:
-                                    avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
+                                backgroundImage: avatarUrl.isNotEmpty
+                                    ? NetworkImage(avatarUrl)
+                                    : null,
                                 child: avatarUrl.isEmpty
                                     ? const Icon(Icons.person, size: 32)
                                     : null,
@@ -105,8 +135,11 @@ class _MyProfileView extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      displayName.isNotEmpty ? displayName : 'User',
-                                      style: theme.textTheme.titleMedium?.copyWith(
+                                      displayName.isNotEmpty
+                                          ? displayName
+                                          : 'User',
+                                      style:
+                                          theme.textTheme.titleMedium?.copyWith(
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -115,7 +148,8 @@ class _MyProfileView extends StatelessWidget {
                                       children: [
                                         Text(
                                           accountType,
-                                          style: theme.textTheme.labelMedium?.copyWith(
+                                          style:
+                                              theme.textTheme.labelMedium?.copyWith(
                                             color: theme.colorScheme.primary,
                                           ),
                                         ),
@@ -136,14 +170,20 @@ class _MyProfileView extends StatelessWidget {
                                         style: theme.textTheme.bodySmall,
                                       ),
                                     ],
-                                    finalLocation(city: city, country: country) != null
+                                    finalLocation(city: city, country: country) !=
+                                            null
                                         ? Padding(
-                                            padding: const EdgeInsets.only(top: 8),
+                                            padding:
+                                                const EdgeInsets.only(top: 8),
                                             child: Text(
-                                              finalLocation(city: city, country: country)!,
-                                              style:
-                                                  theme.textTheme.bodySmall?.copyWith(
-                                                color: theme.textTheme.bodySmall?.color
+                                              finalLocation(
+                                                city: city,
+                                                country: country,
+                                              )!,
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                color: theme
+                                                    .textTheme.bodySmall?.color
                                                     ?.withOpacity(0.8),
                                               ),
                                             ),
@@ -152,7 +192,8 @@ class _MyProfileView extends StatelessWidget {
                                     const SizedBox(height: 8),
                                     Text(
                                       currentUserId,
-                                      style: theme.textTheme.bodySmall?.copyWith(
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
                                         color: theme.textTheme.bodySmall?.color
                                             ?.withOpacity(0.7),
                                       ),
@@ -169,9 +210,11 @@ class _MyProfileView extends StatelessWidget {
                               onPressed: controller.isSaving
                                   ? null
                                   : () async {
-                                      final result = await Navigator.of(context).push(
+                                      final result =
+                                          await Navigator.of(context).push(
                                         MaterialPageRoute(
-                                          builder: (_) => const EditProfilePage(),
+                                          builder: (_) =>
+                                              const EditProfilePage(),
                                         ),
                                       );
 
@@ -185,7 +228,9 @@ class _MyProfileView extends StatelessWidget {
                                   ? const SizedBox(
                                       width: 16,
                                       height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
                                     )
                                   : const Icon(Icons.edit_outlined),
                               label: const Text('Edit Profile'),
@@ -243,6 +288,28 @@ class _MyProfileView extends StatelessWidget {
                 );
               },
             ),
+            FutureBuilder<int>(
+              future: _unreadNotificationsFuture,
+              builder: (context, snapshot) {
+                final unreadCount = snapshot.data ?? 0;
+
+                return _ProfileSectionTile(
+                  title: 'My Notifications',
+                  icon: Icons.notifications_none,
+                  trailing: _NotificationsTrailingBadge(
+                    unreadCount: unreadCount,
+                  ),
+                  onTap: () async {
+                    await Navigator.of(context).pushNamed(
+                      AppRouter.notifications,
+                    );
+
+                    if (!mounted) return;
+                    _refreshUnreadNotificationsCount();
+                  },
+                );
+              },
+            ),
             _ProfileSectionTile(
               title: 'My Favorites',
               icon: Icons.star,
@@ -292,11 +359,13 @@ class _ProfileSectionTile extends StatelessWidget {
   final String title;
   final IconData icon;
   final VoidCallback? onTap;
+  final Widget? trailing;
 
   const _ProfileSectionTile({
     required this.title,
     required this.icon,
     this.onTap,
+    this.trailing,
   });
 
   @override
@@ -305,9 +374,53 @@ class _ProfileSectionTile extends StatelessWidget {
       child: ListTile(
         leading: Icon(icon),
         title: Text(title),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: trailing ?? const Icon(Icons.chevron_right),
         onTap: onTap,
       ),
+    );
+  }
+}
+
+class _NotificationsTrailingBadge extends StatelessWidget {
+  final int unreadCount;
+
+  const _NotificationsTrailingBadge({
+    required this.unreadCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (unreadCount <= 0) {
+      return const Icon(Icons.chevron_right);
+    }
+
+    final label = unreadCount > 99 ? '99+' : unreadCount.toString();
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 4,
+          ),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        const Icon(Icons.chevron_right),
+      ],
     );
   }
 }

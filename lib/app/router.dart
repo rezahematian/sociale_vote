@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 
@@ -9,6 +10,7 @@ import 'package:sociale_vote/features/home/presentation/pages/public_home_screen
 import 'package:sociale_vote/features/map/presentation/pages/civic_map_page.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_feed_page.dart';
+import 'package:sociale_vote/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/create_poll_page.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/poll_detail_page.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/poll_list_page.dart';
@@ -29,6 +31,7 @@ class AppRouter {
   static const String socialDetail = '/social/detail';
   static const String civicMap = '/map';
   static const String profile = '/profile';
+  static const String notifications = '/notifications';
   static const String login = '/login';
   static const String register = '/register';
 
@@ -115,6 +118,14 @@ class AppRouter {
       case profile:
         return MaterialPageRoute<void>(
           builder: (_) => const MyProfilePage(),
+          settings: settings,
+        );
+
+      case notifications:
+        return MaterialPageRoute<void>(
+          builder: (_) => NotificationsPage(
+            controller: AppDI.instance.createNotificationsController(),
+          ),
           settings: settings,
         );
 

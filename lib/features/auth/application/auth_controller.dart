@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
@@ -23,6 +25,9 @@ class AuthController extends ChangeNotifier {
   String? _errorMessage;
   String? _currentUserId;
 
+  StreamSubscription<String?>? _currentUserIdSubscription;
+  bool _isDisposed = false;
+
   AuthController({
     required SessionRepository sessionRepository,
     required LoginUser loginUser,
@@ -41,12 +46,14 @@ class AuthController extends ChangeNotifier {
   bool get isAuthenticated => _status == AuthStatus.authenticated;
 
   void _initialize() {
-    _sessionRepository.watchCurrentUserId().listen((userId) {
+    _currentUserIdSubscription?.cancel();
+    _currentUserIdSubscription =
+        _sessionRepository.watchCurrentUserId().listen((userId) {
       _currentUserId = userId;
       _status = userId == null
           ? AuthStatus.unauthenticated
           : AuthStatus.authenticated;
-      notifyListeners();
+      _safeNotifyListeners();
     });
   }
 
@@ -56,7 +63,7 @@ class AuthController extends ChangeNotifier {
   }) async {
     _status = AuthStatus.loading;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       await _loginUser(
@@ -64,9 +71,10 @@ class AuthController extends ChangeNotifier {
         password: password,
       );
     } catch (e) {
+      if (_isDisposed) return;
       _status = AuthStatus.error;
       _errorMessage = e.toString();
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -77,7 +85,7 @@ class AuthController extends ChangeNotifier {
   }) async {
     _status = AuthStatus.loading;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       await _registerUser(
@@ -86,9 +94,10 @@ class AuthController extends ChangeNotifier {
         displayName: displayName,
       );
     } catch (e) {
+      if (_isDisposed) return;
       _status = AuthStatus.error;
       _errorMessage = e.toString();
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -99,6 +108,19 @@ class AuthController extends ChangeNotifier {
 
   void clearError() {
     _errorMessage = null;
+    _safeNotifyListeners();
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) return;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _currentUserIdSubscription?.cancel();
+    _currentUserIdSubscription = null;
+    super.dispose();
   }
 }

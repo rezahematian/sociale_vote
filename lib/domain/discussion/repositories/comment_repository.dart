@@ -10,6 +10,8 @@ abstract class CommentRepository {
     required DateTime createdAt,
   });
 
+  Future<Comment?> getCommentById(String commentId);
+
   Future<List<Comment>> getCommentsForTarget(TargetRef target);
 
   Future<int> countCommentsForTarget(TargetRef target);

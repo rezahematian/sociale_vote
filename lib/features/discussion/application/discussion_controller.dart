@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/discussion/entities/comment.dart';
-import 'package:sociale_vote/domain/discussion/usecases/add_comment.dart';
 import 'package:sociale_vote/domain/discussion/usecases/get_comments_for_target.dart';
 import 'package:sociale_vote/domain/discussion/usecases/update_comment.dart';
 
@@ -11,16 +10,23 @@ enum CommentSortOrder {
   newestFirst,
 }
 
+typedef SubmitComment = Future<Comment> Function({
+  required String userId,
+  required TargetRef target,
+  required String content,
+  String? parentId,
+});
+
 class DiscussionController extends ChangeNotifier {
   final TargetRef target;
-  final AddComment _addComment;
+  final SubmitComment _addComment;
   final GetCommentsForTarget _getCommentsForTarget;
   final UpdateComment _updateComment;
   final VoidCallback? onCommentsChanged;
 
   DiscussionController({
     required this.target,
-    required AddComment addComment,
+    required SubmitComment addComment,
     required GetCommentsForTarget getCommentsForTarget,
     required UpdateComment updateComment,
     this.onCommentsChanged,

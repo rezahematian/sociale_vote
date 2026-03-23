@@ -159,25 +159,13 @@ class NewsRepositoryImpl implements NewsRepository {
     );
 
     final hasFreshCache = freshCache != null && freshCache.items.isNotEmpty;
-    final freshCacheHasResolvedLocations =
-        hasFreshCache && _cacheHasResolvedLocations(freshCache.items);
-    final freshCacheIsDegraded =
-        hasFreshCache && !freshCacheHasResolvedLocations;
 
-    if (hasFreshCache && !freshCacheIsDegraded) {
+    if (hasFreshCache) {
       return _mapCandidatePage(
         candidate,
         freshCache.items,
         limit: limit,
         offset: offset,
-      );
-    }
-
-    if (freshCacheIsDegraded && kDebugMode) {
-      debugPrint(
-        'NewsRepositoryImpl bypassing fresh cache for ${candidate.cacheKey} '
-        'because payload has no resolved locations and should not block '
-        'recovery attempts.',
       );
     }
 
@@ -205,12 +193,19 @@ class NewsRepositoryImpl implements NewsRepository {
       );
     }
 
-    if (usableStaleCache != null &&
-        usableStaleCache.items.isNotEmpty &&
-        kDebugMode) {
-      debugPrint(
-        'NewsRepositoryImpl expired cache available for ${candidate.cacheKey}, '
-        'trying live refresh before stale fallback.',
+    if (usableStaleCache != null && usableStaleCache.items.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl serving same-language stale cache for '
+          '${candidate.cacheKey}.',
+        );
+      }
+
+      return _mapCandidatePage(
+        candidate,
+        usableStaleCache.items,
+        limit: limit,
+        offset: offset,
       );
     }
 
@@ -259,47 +254,29 @@ class NewsRepositoryImpl implements NewsRepository {
             ? sameLanguageEquivalentStaleHit
             : null;
 
+    if (usableSameLanguageEquivalentStaleHit != null &&
+        usableSameLanguageEquivalentStaleHit.cache.items.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl serving same-language equivalent stale cache '
+          'from ${usableSameLanguageEquivalentStaleHit.candidate.cacheKey} '
+          'for ${candidate.cacheKey}.',
+        );
+      }
+
+      return _mapCandidatePage(
+        candidate,
+        usableSameLanguageEquivalentStaleHit.cache.items,
+        limit: limit,
+        offset: offset,
+      );
+    }
+
     if (_isRefreshCooldownActive(candidate.cacheKey)) {
       if (kDebugMode) {
         debugPrint(
           'NewsRepositoryImpl skipping live refresh for ${candidate.cacheKey} '
           'because failure cooldown is active.',
-        );
-      }
-
-      if (hasFreshCache) {
-        return _mapCandidatePage(
-          candidate,
-          freshCache.items,
-          limit: limit,
-          offset: offset,
-        );
-      }
-
-      if (usableStaleCache != null && usableStaleCache.items.isNotEmpty) {
-        return _mapCandidatePage(
-          candidate,
-          usableStaleCache.items,
-          limit: limit,
-          offset: offset,
-        );
-      }
-
-      if (usableSameLanguageEquivalentStaleHit != null &&
-          usableSameLanguageEquivalentStaleHit.cache.items.isNotEmpty) {
-        if (kDebugMode) {
-          debugPrint(
-            'NewsRepositoryImpl serving same-language equivalent stale cache '
-            'from ${usableSameLanguageEquivalentStaleHit.candidate.cacheKey} '
-            'for ${candidate.cacheKey} while cooldown is active.',
-          );
-        }
-
-        return _mapCandidatePage(
-          candidate,
-          usableSameLanguageEquivalentStaleHit.cache.items,
-          limit: limit,
-          offset: offset,
         );
       }
 
@@ -344,56 +321,6 @@ class NewsRepositoryImpl implements NewsRepository {
         );
         debugPrint('$st');
       }
-    }
-
-    if (hasFreshCache) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl fallback to existing fresh cache for '
-          '${candidate.cacheKey} after refresh attempt.',
-        );
-      }
-
-      return _mapCandidatePage(
-        candidate,
-        freshCache.items,
-        limit: limit,
-        offset: offset,
-      );
-    }
-
-    if (usableStaleCache != null && usableStaleCache.items.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl fallback to stale cache for '
-          '${candidate.cacheKey} after refresh attempt.',
-        );
-      }
-
-      return _mapCandidatePage(
-        candidate,
-        usableStaleCache.items,
-        limit: limit,
-        offset: offset,
-      );
-    }
-
-    if (usableSameLanguageEquivalentStaleHit != null &&
-        usableSameLanguageEquivalentStaleHit.cache.items.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl fallback to same-language equivalent stale cache '
-          'from ${usableSameLanguageEquivalentStaleHit.candidate.cacheKey} '
-          'for ${candidate.cacheKey} after refresh attempt.',
-        );
-      }
-
-      return _mapCandidatePage(
-        candidate,
-        usableSameLanguageEquivalentStaleHit.cache.items,
-        limit: limit,
-        offset: offset,
-      );
     }
 
     if (requestedLanguage != null && requestedLanguage != 'en') {
@@ -490,58 +417,6 @@ class NewsRepositoryImpl implements NewsRepository {
                 )
             ? staleCache
             : null;
-
-    if (_isRefreshCooldownActive(fallbackCandidate.cacheKey)) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl skipping English fallback live refresh for '
-          '${fallbackCandidate.cacheKey} because failure cooldown is active.',
-        );
-      }
-
-      if (usableStaleCache != null && usableStaleCache.items.isNotEmpty) {
-        return _mapCandidatePage(
-          fallbackCandidate,
-          usableStaleCache.items,
-          limit: limit,
-          offset: offset,
-        );
-      }
-
-      return const <NewsItem>[];
-    }
-
-    try {
-      final refreshedItems = await _refreshCacheForCandidateDeduplicated(
-        fallbackCandidate,
-        providerLimit: _resolveProviderFetchLimit(limit, offset),
-        allowStalePreviousCache: true,
-      );
-
-      if (refreshedItems.isNotEmpty) {
-        if (kDebugMode) {
-          debugPrint(
-            'NewsRepositoryImpl serving explicit English fallback from live '
-            'refresh for ${fallbackCandidate.cacheKey}.',
-          );
-        }
-
-        return _mapCandidatePage(
-          fallbackCandidate,
-          refreshedItems,
-          limit: limit,
-          offset: offset,
-        );
-      }
-    } catch (e, st) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl English fallback refresh failed for '
-          '${fallbackCandidate.cacheKey}: $e',
-        );
-        debugPrint('$st');
-      }
-    }
 
     if (usableStaleCache != null && usableStaleCache.items.isNotEmpty) {
       if (kDebugMode) {
@@ -2171,12 +2046,7 @@ class NewsRepositoryImpl implements NewsRepository {
       return true;
     }
 
-    final providerSignature = _extractProviderSignature(item);
-    if (providerSignature == null) {
-      return true;
-    }
-
-    return !_isGuardianProviderSignature(providerSignature);
+    return false;
   }
 
   bool _isGuardianProviderSignature(String? value) {

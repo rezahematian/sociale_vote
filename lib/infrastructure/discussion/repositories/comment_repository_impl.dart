@@ -39,6 +39,27 @@ class CommentRepositoryImpl implements CommentRepository {
   }
 
   @override
+  Future<Comment?> getCommentById(String commentId) async {
+    final normalizedId = commentId.trim();
+    if (normalizedId.isEmpty) {
+      return null;
+    }
+
+    final rows = await AppSupabase.client
+        .from(_commentsTable)
+        .select()
+        .eq('id', normalizedId)
+        .limit(1);
+
+    if (rows.isEmpty) {
+      return null;
+    }
+
+    final row = rows.first as Map<String, dynamic>;
+    return _mapComment(row);
+  }
+
+  @override
   Future<Comment> updateComment({
     required String commentId,
     required String content,
@@ -81,6 +102,7 @@ class CommentRepositoryImpl implements CommentRepository {
     return counts[_targetKey(target)] ?? 0;
   }
 
+  @override
   Future<Map<String, int>> countCommentsForTargets(
     List<TargetRef> targets,
   ) async {
