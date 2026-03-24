@@ -1,6 +1,7 @@
 class UserProfile {
   final String id;
   final String? displayName;
+  final String? username;
   final String? avatarUrl;
   final String? bio;
   final String? country;
@@ -13,6 +14,7 @@ class UserProfile {
   const UserProfile({
     required this.id,
     this.displayName,
+    this.username,
     this.avatarUrl,
     this.bio,
     this.country,
@@ -25,6 +27,7 @@ class UserProfile {
 
   UserProfile copyWith({
     String? displayName,
+    String? username,
     String? avatarUrl,
     String? bio,
     String? country,
@@ -37,6 +40,7 @@ class UserProfile {
     return UserProfile(
       id: id,
       displayName: displayName ?? this.displayName,
+      username: username ?? this.username,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       bio: bio ?? this.bio,
       country: country ?? this.country,

@@ -22,9 +22,31 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
   }
 
   @override
+  Future<UserProfile?> getUserProfileByUsername(String username) async {
+    final normalizedUsername = _normalizeUsername(username);
+    if (normalizedUsername == null) {
+      return null;
+    }
+
+    final rows = await AppSupabase.client
+        .from(_table)
+        .select()
+        .eq('username', normalizedUsername)
+        .limit(1);
+
+    if (rows.isEmpty) {
+      return null;
+    }
+
+    final row = rows.first as Map<String, dynamic>;
+    return _mapProfile(row);
+  }
+
+  @override
   Future<UserProfile> createUserProfile({
     required String userId,
     String? displayName,
+    String? username,
     String? avatarUrl,
     String? bio,
     String? country,
@@ -35,6 +57,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     final payload = <String, dynamic>{
       'id': userId,
       'display_name': displayName,
+      'username': _normalizeUsername(username),
       'avatar_url': avatarUrl,
       'bio': bio,
       'country': country,
@@ -63,6 +86,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
   Future<UserProfile> updateUserProfile({
     required String userId,
     String? displayName,
+    String? username,
     String? avatarUrl,
     String? bio,
     String? country,
@@ -73,6 +97,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     };
 
     if (displayName != null) updates['display_name'] = displayName;
+    if (username != null) updates['username'] = _normalizeUsername(username);
     if (avatarUrl != null) updates['avatar_url'] = avatarUrl;
     if (bio != null) updates['bio'] = bio;
     if (country != null) updates['country'] = country;
@@ -97,6 +122,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     return UserProfile(
       id: (row['id'] as String?) ?? '',
       displayName: row['display_name'] as String?,
+      username: row['username'] as String?,
       avatarUrl: row['avatar_url'] as String?,
       bio: row['bio'] as String?,
       country: row['country'] as String?,
@@ -106,6 +132,23 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       createdAt: _parseDateTime(row['created_at']),
       updatedAt: _parseDateTime(row['updated_at']),
     );
+  }
+
+  String? _normalizeUsername(String? value) {
+    if (value == null) {
+      return null;
+    }
+
+    var normalized = value.trim().toLowerCase();
+    if (normalized.startsWith('@')) {
+      normalized = normalized.substring(1);
+    }
+
+    if (normalized.isEmpty) {
+      return null;
+    }
+
+    return normalized;
   }
 
   DateTime _parseDateTime(dynamic value) {

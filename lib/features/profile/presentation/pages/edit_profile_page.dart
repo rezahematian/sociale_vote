@@ -66,6 +66,7 @@ class _EditProfileView extends StatefulWidget {
 
 class _EditProfileViewState extends State<_EditProfileView> {
   final _displayNameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _avatarUrlController = TextEditingController();
   final _bioController = TextEditingController();
   final _countryController = TextEditingController();
@@ -76,10 +77,12 @@ class _EditProfileViewState extends State<_EditProfileView> {
   bool _didInitForm = false;
   bool _isUploadingAvatar = false;
   String? _avatarUploadError;
+  String? _usernameError;
 
   @override
   void dispose() {
     _displayNameController.dispose();
+    _usernameController.dispose();
     _avatarUrlController.dispose();
     _bioController.dispose();
     _countryController.dispose();
@@ -96,6 +99,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
         if (!_didInitForm && profile != null) {
           _didInitForm = true;
           _displayNameController.text = profile.displayName ?? '';
+          _usernameController.text = profile.username ?? '';
           _avatarUrlController.text = profile.avatarUrl ?? '';
           _bioController.text = profile.bio ?? '';
           _countryController.text = profile.country ?? '';
@@ -148,8 +152,9 @@ class _EditProfileViewState extends State<_EditProfileView> {
                         children: [
                           CircleAvatar(
                             radius: 40,
-                            backgroundImage:
-                                avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
+                            backgroundImage: avatarUrl.isNotEmpty
+                                ? NetworkImage(avatarUrl)
+                                : null,
                             child: avatarUrl.isEmpty
                                 ? const Icon(Icons.person, size: 40)
                                 : null,
@@ -184,6 +189,25 @@ class _EditProfileViewState extends State<_EditProfileView> {
                       decoration: const InputDecoration(
                         labelText: 'Display name',
                         border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _usernameController,
+                      textInputAction: TextInputAction.next,
+                      onChanged: (_) {
+                        if (_usernameError == null) return;
+                        setState(() {
+                          _usernameError = null;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Username',
+                        hintText: 'es. mario_roma',
+                        helperText: '3-20 caratteri: lettere, numeri, underscore',
+                        errorText: _usernameError,
+                        prefixText: '@',
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -231,17 +255,37 @@ class _EditProfileViewState extends State<_EditProfileView> {
                               controller.clearError();
                               setState(() {
                                 _avatarUploadError = null;
+                                _usernameError = null;
                               });
+
+                              final normalizedUsername =
+                                  _normalizeUsernameInput(
+                                _usernameController.text,
+                              );
+
+                              final usernameValidationError =
+                                  _validateUsername(normalizedUsername);
+
+                              if (usernameValidationError != null) {
+                                setState(() {
+                                  _usernameError = usernameValidationError;
+                                });
+                                return;
+                              }
 
                               await controller.updateProfile(
                                 userId: widget.currentUserId,
-                                displayName:
-                                    _normalizeNullable(_displayNameController.text),
-                                avatarUrl:
-                                    _normalizeNullable(_avatarUrlController.text),
+                                displayName: _normalizeNullable(
+                                  _displayNameController.text,
+                                ),
+                                username: normalizedUsername,
+                                avatarUrl: _normalizeNullable(
+                                  _avatarUrlController.text,
+                                ),
                                 bio: _normalizeNullable(_bioController.text),
-                                country:
-                                    _normalizeNullable(_countryController.text),
+                                country: _normalizeNullable(
+                                  _countryController.text,
+                                ),
                                 city: _normalizeNullable(_cityController.text),
                               );
 
@@ -323,5 +367,26 @@ class _EditProfileViewState extends State<_EditProfileView> {
   String? _normalizeNullable(String value) {
     final normalized = value.trim();
     return normalized.isEmpty ? null : normalized;
+  }
+
+  String? _normalizeUsernameInput(String value) {
+    var normalized = value.trim().toLowerCase();
+    if (normalized.startsWith('@')) {
+      normalized = normalized.substring(1);
+    }
+    return normalized.isEmpty ? null : normalized;
+  }
+
+  String? _validateUsername(String? username) {
+    if (username == null) {
+      return null;
+    }
+
+    final regex = RegExp(r'^[a-z0-9_]{3,20}$');
+    if (!regex.hasMatch(username)) {
+      return 'Username non valido. Usa 3-20 caratteri: lettere, numeri, underscore.';
+    }
+
+    return null;
   }
 }

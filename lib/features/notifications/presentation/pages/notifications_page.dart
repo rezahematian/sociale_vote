@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/domain/notifications/entities/app_notification.dart';
 import 'package:sociale_vote/features/notifications/application/notifications_controller.dart';
 
@@ -25,6 +26,51 @@ class _NotificationsPageState extends State<NotificationsPage> {
     });
   }
 
+  Future<void> _handleNotificationTap(AppNotification notification) async {
+    await _controller.markAsRead(notification.id);
+
+    if (!mounted) return;
+
+    final opened = await _openNotificationTarget(notification);
+    if (!mounted || opened) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Questa notifica non ha ancora una destinazione apribile.'),
+      ),
+    );
+  }
+
+  Future<bool> _openNotificationTarget(AppNotification notification) async {
+    final targetId = notification.target.id.trim();
+    if (targetId.isEmpty) {
+      return false;
+    }
+
+    switch (notification.target.type.name) {
+      case 'poll':
+        await Navigator.pushNamed(
+          context,
+          AppRouter.pollDetail,
+          arguments: targetId,
+        );
+        return true;
+
+      case 'post':
+        await Navigator.pushNamed(
+          context,
+          AppRouter.socialDetail,
+          arguments: targetId,
+        );
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -33,6 +79,24 @@ class _NotificationsPageState extends State<NotificationsPage> {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Notifiche'),
+            actions: [
+              if (_controller.isMarkingAllAsRead)
+                const Padding(
+                  padding: EdgeInsets.only(right: 16),
+                  child: Center(
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                )
+              else if (_controller.canMarkAllAsRead)
+                TextButton(
+                  onPressed: _controller.markAllAsRead,
+                  child: const Text('Segna tutte'),
+                ),
+            ],
           ),
           body: RefreshIndicator(
             onRefresh: _controller.refresh,
@@ -103,15 +167,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         final notification = _controller.notifications[index];
         return _NotificationTile(
           notification: notification,
-          onTap: () async {
-            await _controller.markAsRead(notification.id);
-
-            if (!context.mounted) return;
-
-            // F8.2 minima:
-            // per ora segniamo letta la notifica al tap.
-            // Navigazione al target da aggiungere dopo.
-          },
+          onTap: () => _handleNotificationTap(notification),
         );
       },
     );

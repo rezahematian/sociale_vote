@@ -9,6 +9,7 @@ class UpdateUserProfile {
   Future<UserProfile> call({
     required String userId,
     String? displayName,
+    String? username,
     String? avatarUrl,
     String? bio,
     String? country,
@@ -20,6 +21,7 @@ class UpdateUserProfile {
       return _repository.createUserProfile(
         userId: userId,
         displayName: displayName,
+        username: username,
         avatarUrl: avatarUrl,
         bio: bio,
         country: country,
@@ -30,6 +32,7 @@ class UpdateUserProfile {
     return _repository.updateUserProfile(
       userId: userId,
       displayName: displayName,
+      username: username,
       avatarUrl: avatarUrl,
       bio: bio,
       country: country,

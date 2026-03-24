@@ -25,6 +25,7 @@ import 'package:sociale_vote/features/home/presentation/widgets/home_top_bar.dar
 import 'package:sociale_vote/features/home/presentation/widgets/home_trending_section.dart';
 import 'package:sociale_vote/features/home/presentation/widgets/home_user_status.dart';
 import 'package:sociale_vote/features/news/application/news_controller.dart';
+import 'package:sociale_vote/features/notifications/application/notifications_controller.dart';
 import 'package:sociale_vote/features/poll/application/poll_list_controller.dart';
 import 'package:sociale_vote/features/search/presentation/pages/search_page.dart';
 import 'package:sociale_vote/features/social/application/feed_controller.dart';
@@ -46,6 +47,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       AppDI.instance.followScopeController;
 
   StreamSubscription<String?>? _sessionSub;
+  NotificationsController? _homeNotificationsController;
 
   String _homeNewsLanguageKey = 'auto';
   bool _isRefreshingHomeNewsLanguageKey = false;
@@ -55,19 +57,54 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     super.initState();
 
     _sessionSub = AppDI.instance.sessionRepository.watchCurrentUserId().listen((
-      _,
+      userId,
     ) {
+      _rebuildHomeNotificationsController(userId);
+
       if (!mounted) return;
       setState(() {});
     });
 
     _refreshHomeNewsLanguageKey();
+    _rebuildHomeNotificationsController(AppDI.instance.currentUserId);
   }
 
   @override
   void dispose() {
     _sessionSub?.cancel();
+    _disposeHomeNotificationsController();
     super.dispose();
+  }
+
+  void _handleHomeNotificationsChanged() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  void _disposeHomeNotificationsController() {
+    final controller = _homeNotificationsController;
+    if (controller == null) {
+      return;
+    }
+
+    controller.removeListener(_handleHomeNotificationsChanged);
+    controller.dispose();
+    _homeNotificationsController = null;
+  }
+
+  void _rebuildHomeNotificationsController(String? userId) {
+    _disposeHomeNotificationsController();
+
+    final normalizedUserId = userId?.trim();
+    if (normalizedUserId == null || normalizedUserId.isEmpty) {
+      return;
+    }
+
+    final controller =
+        AppDI.instance.createNotificationsControllerForUser(normalizedUserId);
+    controller.addListener(_handleHomeNotificationsChanged);
+    _homeNotificationsController = controller;
+    unawaited(controller.refreshUnreadCount());
   }
 
   void _setWorld() => _geoScopeController.setWorld();
@@ -154,6 +191,16 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     _refreshHomeNewsLanguageKey();
   }
 
+  Future<void> _onNotificationsPressed() async {
+    await Navigator.pushNamed(context, AppRouter.notifications);
+    if (!mounted) return;
+
+    final controller = _homeNotificationsController;
+    if (controller != null) {
+      unawaited(controller.refreshUnreadCount());
+    }
+  }
+
   void _onProfilePressed() {
     Navigator.pushNamed(context, AppRouter.profile);
   }
@@ -237,6 +284,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   Widget build(BuildContext context) {
     final String? currentUserId = AppDI.instance.currentUserId;
     final bool isLoggedIn = currentUserId != null;
+    final int unreadNotificationsCount = isLoggedIn
+        ? (_homeNotificationsController?.unreadCount ?? 0)
+        : 0;
 
     return AnimatedBuilder(
       animation: _geoScopeController,
@@ -256,10 +306,13 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
             title: HomeTopBar(
               scopeShortLabel: scopeShortLabel,
               isLoggedIn: isLoggedIn,
+              unreadNotificationsCount: unreadNotificationsCount,
               onLoginPressed: _onLoginPressed,
               onRegisterPressed: _onRegisterPressed,
               onProfilePressed: _onProfilePressed,
               onLogoutPressed: _onLogoutPressed,
+              onNotificationsPressed:
+                  isLoggedIn ? _onNotificationsPressed : null,
             ),
           ),
           body: Stack(

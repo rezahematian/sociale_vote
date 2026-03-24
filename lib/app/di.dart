@@ -57,9 +57,12 @@ import 'package:sociale_vote/domain/moderation/repositories/moderation_repositor
 import 'package:sociale_vote/domain/moderation/usecases/report_content.dart';
 
 import 'package:sociale_vote/domain/notifications/repositories/notification_repository.dart';
+import 'package:sociale_vote/domain/notifications/usecases/create_comment_mention_notifications.dart';
 import 'package:sociale_vote/domain/notifications/usecases/create_comment_reply_notification.dart';
+import 'package:sociale_vote/domain/notifications/usecases/create_poll_result_notification.dart';
 import 'package:sociale_vote/domain/notifications/usecases/get_notifications_for_user.dart';
 import 'package:sociale_vote/domain/notifications/usecases/get_unread_notifications_count.dart';
+import 'package:sociale_vote/domain/notifications/usecases/mark_all_notifications_as_read.dart';
 import 'package:sociale_vote/domain/notifications/usecases/mark_notification_as_read.dart';
 
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
@@ -71,6 +74,7 @@ import 'package:sociale_vote/domain/poll/usecases/get_poll_detail.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_poll_results.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_polls.dart';
 import 'package:sociale_vote/domain/poll/usecases/submit_vote.dart';
+import 'package:sociale_vote/domain/poll/usecases/submit_vote_and_notify.dart';
 
 import 'package:sociale_vote/domain/search/repositories/search_repository.dart';
 import 'package:sociale_vote/domain/search/usecases/search_content.dart';
@@ -435,6 +439,11 @@ class AppDI {
 
   SubmitVote get submitVote => SubmitVote(voteRepository);
 
+  SubmitVoteAndNotify get submitVoteAndNotify => SubmitVoteAndNotify(
+        submitVote,
+        createPollResultNotification,
+      );
+
   GetPollResults get getPollResults =>
       GetPollResults(voteRepository, voteAggregator);
 
@@ -534,9 +543,19 @@ class AppDI {
         notificationRepository,
       );
 
+  CreateCommentMentionNotifications get createCommentMentionNotifications =>
+      CreateCommentMentionNotifications(
+        userProfileRepository,
+        notificationRepository,
+      );
+
+  CreatePollResultNotification get createPollResultNotification =>
+      CreatePollResultNotification(notificationRepository);
+
   AddCommentAndNotify get addCommentAndNotify => AddCommentAndNotify(
         addComment,
         createCommentReplyNotification,
+        createCommentMentionNotifications,
       );
 
   GetCommentsForTarget get getCommentsForTarget =>
@@ -555,6 +574,9 @@ class AppDI {
 
   MarkNotificationAsRead get markNotificationAsRead =>
       MarkNotificationAsRead(notificationRepository);
+
+  MarkAllNotificationsAsRead get markAllNotificationsAsRead =>
+      MarkAllNotificationsAsRead(notificationRepository);
 
   AuthController createAuthController() {
     return AuthController(
@@ -584,7 +606,7 @@ class AppDI {
   }
 
   VoteController createVoteController() {
-    return VoteController(submitVote);
+    return VoteController(submitVoteAndNotify);
   }
 
   PollResultController createPollResultController() {
@@ -629,11 +651,16 @@ class AppDI {
   }
 
   NotificationsController createNotificationsController() {
+    return createNotificationsControllerForUser(currentUserId ?? '');
+  }
+
+  NotificationsController createNotificationsControllerForUser(String userId) {
     return NotificationsController(
-      userId: currentUserId ?? '',
+      userId: userId,
       getNotificationsForUser: getNotificationsForUser,
       getUnreadNotificationsCount: getUnreadNotificationsCount,
       markNotificationAsRead: markNotificationAsRead,
+      markAllNotificationsAsRead: markAllNotificationsAsRead,
     );
   }
 
@@ -1839,8 +1866,7 @@ class AppDI {
       return snapshots;
     }
 
-    final missingTargets =
-        missingTargetsByKey.values.toList(growable: false);
+    final missingTargets = missingTargetsByKey.values.toList(growable: false);
 
     final results = await Future.wait<dynamic>([
       _loadReactionCountsForTargets(missingTargets),

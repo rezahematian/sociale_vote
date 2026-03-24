@@ -3,7 +3,7 @@ import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/vote.dart';
 import 'package:sociale_vote/domain/poll/errors/poll_closed_exception.dart';
 import 'package:sociale_vote/domain/poll/errors/unauthorized_vote_exception.dart';
-import 'package:sociale_vote/domain/poll/usecases/submit_vote.dart';
+import 'package:sociale_vote/domain/poll/usecases/submit_vote_and_notify.dart';
 
 /// Tipologia di errore di voto (UI-agnostica).
 enum VoteErrorType {
@@ -16,7 +16,7 @@ enum VoteErrorType {
 }
 
 class VoteController extends ChangeNotifier {
-  final SubmitVote _submitVote;
+  final SubmitVoteAndNotify _submitVote;
 
   /// Id delle opzioni attualmente selezionate.
   final Set<String> _selectedOptionIds = {};

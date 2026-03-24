@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,6 +8,7 @@ import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 
 import 'package:sociale_vote/domain/discussion/entities/comment.dart';
+import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
@@ -35,6 +38,9 @@ class CommentSection extends StatefulWidget {
 
 class _CommentSectionState extends State<CommentSection> {
   final TextEditingController _inputController = TextEditingController();
+  final Map<String, String> _authorLabels = <String, String>{};
+  final Set<String> _loadingAuthorIds = <String>{};
+
   Comment? _replyParent;
   Comment? _editingComment;
 
@@ -55,6 +61,8 @@ class _CommentSectionState extends State<CommentSection> {
     final hasError = controller.errorMessage != null;
     final sortOrder = controller.sortOrder;
     final hasMore = controller.hasMoreRootComments;
+
+    _ensureAuthorLabelsLoaded(controller.comments);
 
     // Utente correntemente loggato (può essere null = guest)
     final String? currentUserId = AppDI.instance.currentUserId;
@@ -213,6 +221,7 @@ class _CommentSectionState extends State<CommentSection> {
                   for (final root in controller.rootComments) ...[
                     _CommentTile(
                       comment: root,
+                      authorLabel: _authorLabelFor(root),
                       isReply: false,
                       isCurrentUser:
                           currentUserId != null && root.userId == currentUserId,
@@ -236,6 +245,7 @@ class _CommentSectionState extends State<CommentSection> {
                         padding: const EdgeInsets.only(left: 16.0),
                         child: _CommentTile(
                           comment: reply,
+                          authorLabel: _authorLabelFor(reply),
                           isReply: true,
                           isCurrentUser: currentUserId != null &&
                               reply.userId == currentUserId,
@@ -421,6 +431,82 @@ class _CommentSectionState extends State<CommentSection> {
     );
   }
 
+  void _ensureAuthorLabelsLoaded(List<Comment> comments) {
+    final authorIds = comments
+        .map((comment) => comment.userId.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet();
+
+    for (final authorId in authorIds) {
+      if (_authorLabels.containsKey(authorId) ||
+          _loadingAuthorIds.contains(authorId)) {
+        continue;
+      }
+
+      _loadingAuthorIds.add(authorId);
+      unawaited(_loadAuthorLabel(authorId));
+    }
+  }
+
+  Future<void> _loadAuthorLabel(String userId) async {
+    try {
+      final profile =
+          await AppDI.instance.userProfileRepository.getUserProfile(userId);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _authorLabels[userId] = _buildAuthorLabel(profile, userId);
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _authorLabels[userId] = _shortUserId(userId);
+      });
+    } finally {
+      _loadingAuthorIds.remove(userId);
+    }
+  }
+
+  String _authorLabelFor(Comment comment) {
+    final userId = comment.userId.trim();
+    if (userId.isEmpty) {
+      return 'Utente';
+    }
+
+    return _authorLabels[userId] ?? _shortUserId(userId);
+  }
+
+  String _buildAuthorLabel(UserProfile? profile, String fallbackUserId) {
+    final displayName = profile?.displayName?.trim();
+    if (displayName != null && displayName.isNotEmpty) {
+      return displayName;
+    }
+
+    final username = profile?.username?.trim();
+    if (username != null && username.isNotEmpty) {
+      return '@$username';
+    }
+
+    return _shortUserId(fallbackUserId);
+  }
+
+  String _shortUserId(String value) {
+    final normalized = value.trim();
+    if (normalized.isEmpty) {
+      return 'Utente';
+    }
+    if (normalized.length <= 8) {
+      return normalized;
+    }
+    return normalized.substring(0, 8);
+  }
+
   void _startReply(Comment parent) {
     setState(() {
       _editingComment = null;
@@ -518,6 +604,7 @@ class _CommentSectionState extends State<CommentSection> {
 
 class _CommentTile extends StatelessWidget {
   final Comment comment;
+  final String authorLabel;
   final bool isReply;
   final bool isCurrentUser;
   final VoidCallback onReplyTap;
@@ -528,6 +615,7 @@ class _CommentTile extends StatelessWidget {
 
   const _CommentTile({
     required this.comment,
+    required this.authorLabel,
     required this.isReply,
     required this.isCurrentUser,
     required this.onReplyTap,
@@ -569,8 +657,7 @@ class _CommentTile extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        // Per ora usiamo userId come nome
-                        comment.userId,
+                        authorLabel,
                         style: theme.textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),

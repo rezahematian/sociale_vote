@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sociale_vote/domain/notifications/entities/app_notification.dart';
 import 'package:sociale_vote/domain/notifications/usecases/get_notifications_for_user.dart';
 import 'package:sociale_vote/domain/notifications/usecases/get_unread_notifications_count.dart';
+import 'package:sociale_vote/domain/notifications/usecases/mark_all_notifications_as_read.dart';
 import 'package:sociale_vote/domain/notifications/usecases/mark_notification_as_read.dart';
 
 class NotificationsController extends ChangeNotifier {
@@ -9,29 +10,36 @@ class NotificationsController extends ChangeNotifier {
   final GetNotificationsForUser _getNotificationsForUser;
   final GetUnreadNotificationsCount _getUnreadNotificationsCount;
   final MarkNotificationAsRead _markNotificationAsRead;
+  final MarkAllNotificationsAsRead _markAllNotificationsAsRead;
 
   NotificationsController({
     required this.userId,
     required GetNotificationsForUser getNotificationsForUser,
     required GetUnreadNotificationsCount getUnreadNotificationsCount,
     required MarkNotificationAsRead markNotificationAsRead,
+    required MarkAllNotificationsAsRead markAllNotificationsAsRead,
   })  : _getNotificationsForUser = getNotificationsForUser,
         _getUnreadNotificationsCount = getUnreadNotificationsCount,
-        _markNotificationAsRead = markNotificationAsRead;
+        _markNotificationAsRead = markNotificationAsRead,
+        _markAllNotificationsAsRead = markAllNotificationsAsRead;
 
   static const int _defaultPageSize = 20;
 
   List<AppNotification> _notifications = <AppNotification>[];
   bool _isLoading = false;
+  bool _isMarkingAllAsRead = false;
   String? _errorMessage;
   int _unreadCount = 0;
 
   List<AppNotification> get notifications => List.unmodifiable(_notifications);
   bool get isLoading => _isLoading;
+  bool get isMarkingAllAsRead => _isMarkingAllAsRead;
   String? get errorMessage => _errorMessage;
   bool get hasNotifications => _notifications.isNotEmpty;
   int get unreadCount => _unreadCount;
   bool get hasUnreadNotifications => _unreadCount > 0;
+  bool get canMarkAllAsRead =>
+      hasUnreadNotifications && !_isLoading && !_isMarkingAllAsRead;
 
   Future<void> loadNotifications({
     int limit = _defaultPageSize,
@@ -132,6 +140,39 @@ class NotificationsController extends ChangeNotifier {
         ..[index] = notification;
       _unreadCount = previousUnreadCount;
       _errorMessage = 'Impossibile aggiornare la notifica.';
+      notifyListeners();
+    }
+  }
+
+  Future<void> markAllAsRead() async {
+    final normalizedUserId = userId.trim();
+    if (normalizedUserId.isEmpty ||
+        _isMarkingAllAsRead ||
+        !hasUnreadNotifications) {
+      return;
+    }
+
+    final previousNotifications = List<AppNotification>.from(_notifications);
+    final previousUnreadCount = _unreadCount;
+
+    _isMarkingAllAsRead = true;
+    _errorMessage = null;
+    _notifications = _notifications
+        .map((notification) => notification.isRead
+            ? notification
+            : notification.copyWith(isRead: true))
+        .toList(growable: false);
+    _unreadCount = 0;
+    notifyListeners();
+
+    try {
+      await _markAllNotificationsAsRead(normalizedUserId);
+    } catch (_) {
+      _notifications = previousNotifications;
+      _unreadCount = previousUnreadCount;
+      _errorMessage = 'Impossibile aggiornare le notifiche.';
+    } finally {
+      _isMarkingAllAsRead = false;
       notifyListeners();
     }
   }

@@ -45,6 +45,7 @@ class ProfileController extends ChangeNotifier {
   Future<void> updateProfile({
     required String userId,
     String? displayName,
+    String? username,
     String? avatarUrl,
     String? bio,
     String? country,
@@ -60,6 +61,7 @@ class ProfileController extends ChangeNotifier {
       _profile = await _updateUserProfile(
         userId: userId,
         displayName: displayName,
+        username: username,
         avatarUrl: avatarUrl,
         bio: bio,
         country: country,
