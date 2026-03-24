@@ -8,6 +8,10 @@ import '../repositories/reaction_repository.dart';
 ///
 /// Se [userId] è valorizzato, il risultato include anche
 /// la reazione dell’utente corrente [userReaction] per ogni target.
+///
+/// Se [since] è valorizzato, il riepilogo viene limitato
+/// alle sole reaction create da quell’istante in poi.
+/// Questo serve per velocity / hot ranking.
 class GetReactionSummary {
   final ReactionRepository _repository;
 
@@ -16,13 +20,19 @@ class GetReactionSummary {
   Future<List<ReactionSummary>> call(
     List<TargetRef> targets, {
     String? userId,
+    DateTime? since,
   }) async {
     if (targets.isEmpty) {
       return const <ReactionSummary>[];
     }
 
     // Summary aggregati (like/dislike/heat) per tutti i target.
-    final baseSummaries = await _repository.getSummariesForTargets(targets);
+    final baseSummaries = since == null
+        ? await _repository.getSummariesForTargets(targets)
+        : await _repository.getSummariesForTargetsSince(
+            targets,
+            since: since,
+          );
 
     // Se non ci interessa la reazione dell'utente, possiamo restituire subito.
     if (userId == null) {

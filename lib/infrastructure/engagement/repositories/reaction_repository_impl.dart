@@ -11,6 +11,10 @@ import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart'
 /// - persistenza reale su tabella `public.reactions`
 /// - una sola reaction per user + target
 /// - summary aggregati calcolati leggendo il database
+///
+/// V3:
+/// - supporto a summary recenti tramite [since]
+///   per reaction velocity / hot ranking
 class ReactionRepositoryImpl implements ReactionRepository {
   static const String _reactionsTable = 'reactions';
 
@@ -86,10 +90,7 @@ class ReactionRepositoryImpl implements ReactionRepository {
 
   @override
   Future<void> delete(String reactionId) async {
-    await AppSupabase.client
-        .from(_reactionsTable)
-        .delete()
-        .eq('id', reactionId);
+    await AppSupabase.client.from(_reactionsTable).delete().eq('id', reactionId);
   }
 
   @override
@@ -105,6 +106,41 @@ class ReactionRepositoryImpl implements ReactionRepository {
   Future<List<ReactionSummary>> getSummariesForTargets(
     List<TargetRef> targets,
   ) async {
+    return _getSummariesForTargetsInternal(targets);
+  }
+
+  @override
+  Future<ReactionSummary> getSummaryForTargetSince(
+    TargetRef target, {
+    required DateTime since,
+  }) async {
+    final summaries = await getSummariesForTargetsSince(
+      [target],
+      since: since,
+    );
+
+    if (summaries.isEmpty) {
+      return _emptySummary(target);
+    }
+
+    return summaries.first;
+  }
+
+  @override
+  Future<List<ReactionSummary>> getSummariesForTargetsSince(
+    List<TargetRef> targets, {
+    required DateTime since,
+  }) async {
+    return _getSummariesForTargetsInternal(
+      targets,
+      since: since,
+    );
+  }
+
+  Future<List<ReactionSummary>> _getSummariesForTargetsInternal(
+    List<TargetRef> targets, {
+    DateTime? since,
+  }) async {
     if (targets.isEmpty) {
       return const [];
     }
@@ -134,11 +170,20 @@ class ReactionRepositoryImpl implements ReactionRepository {
         continue;
       }
 
-      final rows = await AppSupabase.client
+      dynamic query = AppSupabase.client
           .from(_reactionsTable)
-          .select('target_id, reaction_type')
+          .select('target_id, reaction_type, created_at')
           .eq('target_type', targetType)
           .inFilter('target_id', targetIds);
+
+      if (since != null) {
+        query = query.gte(
+          'created_at',
+          since.toUtc().toIso8601String(),
+        );
+      }
+
+      final rows = await query;
 
       for (final row in rows) {
         if (row is! Map<String, dynamic>) {

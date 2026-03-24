@@ -15,9 +15,10 @@ class FeedItem {
   final TargetRef targetRef;
   final DateTime createdAt;
 
-  /// Dati base per ranking iniziale Fase 2
+  /// Dati base per ranking discovery.
   final int reactionCount;
   final int commentCount;
+  final int voteCount;
   final double rankingScore;
 
   /// Payload tipizzato: solo uno dei tre deve essere valorizzato.
@@ -32,6 +33,7 @@ class FeedItem {
     required this.createdAt,
     required this.reactionCount,
     required this.commentCount,
+    required this.voteCount,
     required this.rankingScore,
     this.poll,
     this.news,
@@ -45,6 +47,7 @@ class FeedItem {
     required Poll poll,
     int reactionCount = 0,
     int commentCount = 0,
+    int voteCount = 0,
     double rankingScore = 0,
   }) {
     return FeedItem._(
@@ -54,6 +57,7 @@ class FeedItem {
       createdAt: createdAt,
       reactionCount: reactionCount,
       commentCount: commentCount,
+      voteCount: voteCount,
       rankingScore: rankingScore,
       poll: poll,
     );
@@ -66,6 +70,7 @@ class FeedItem {
     required NewsItem news,
     int reactionCount = 0,
     int commentCount = 0,
+    int voteCount = 0,
     double rankingScore = 0,
   }) {
     return FeedItem._(
@@ -75,6 +80,7 @@ class FeedItem {
       createdAt: createdAt,
       reactionCount: reactionCount,
       commentCount: commentCount,
+      voteCount: voteCount,
       rankingScore: rankingScore,
       news: news,
     );
@@ -87,6 +93,7 @@ class FeedItem {
     required Post post,
     int reactionCount = 0,
     int commentCount = 0,
+    int voteCount = 0,
     double rankingScore = 0,
   }) {
     return FeedItem._(
@@ -96,6 +103,7 @@ class FeedItem {
       createdAt: createdAt,
       reactionCount: reactionCount,
       commentCount: commentCount,
+      voteCount: voteCount,
       rankingScore: rankingScore,
       post: post,
     );
@@ -108,6 +116,7 @@ class FeedItem {
   FeedItem copyWith({
     int? reactionCount,
     int? commentCount,
+    int? voteCount,
     double? rankingScore,
   }) {
     return FeedItem._(
@@ -117,6 +126,7 @@ class FeedItem {
       createdAt: createdAt,
       reactionCount: reactionCount ?? this.reactionCount,
       commentCount: commentCount ?? this.commentCount,
+      voteCount: voteCount ?? this.voteCount,
       rankingScore: rankingScore ?? this.rankingScore,
       poll: poll,
       news: news,

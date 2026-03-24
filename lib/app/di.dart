@@ -522,6 +522,9 @@ class AppDI {
 
   GetTrendingContent get getTrendingContent => GetTrendingContent(
         postRepository: postRepository,
+        newsRepository: newsRepository,
+        pollRepository: pollRepository,
+        voteRepository: voteRepository,
         getReactionSummary: getReactionSummary,
         getCommentsForTarget: getCommentsForTarget,
         followScopeRepository: followScopeRepository,

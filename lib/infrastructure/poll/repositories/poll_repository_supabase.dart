@@ -193,6 +193,7 @@ class PollRepositorySupabase implements PollRepository {
           countryCode: countryCode,
         ),
       ),
+      createdAt: _parseDateTime(row['created_at']),
       startAt: _parseDateTime(row['start_at']),
       endAt: _parseDateTime(row['end_at']),
       countryCode: countryCode,

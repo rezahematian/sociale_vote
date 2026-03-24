@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/router.dart';
-import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/features/discovery/application/trending_controller.dart';
+import 'package:sociale_vote/features/home/application/feed_item.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class HomeTrendingSection extends StatelessWidget {
@@ -15,7 +15,7 @@ class HomeTrendingSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final controller = context.watch<TrendingController>();
 
-    final posts = controller.posts;
+    final items = controller.items;
 
     final header = Row(
       children: [
@@ -43,7 +43,7 @@ class HomeTrendingSection extends StatelessWidget {
 
     Widget content;
 
-    if (controller.isLoading && posts.isEmpty) {
+    if (controller.isLoading && items.isEmpty) {
       content = const Padding(
         padding: EdgeInsets.symmetric(vertical: 16),
         child: Center(
@@ -63,7 +63,7 @@ class HomeTrendingSection extends StatelessWidget {
           child: Text(l10n.homeTrendingError),
         ),
       );
-    } else if (posts.isEmpty) {
+    } else if (items.isEmpty) {
       content = Card(
         elevation: 0,
         margin: const EdgeInsets.only(top: 8),
@@ -77,15 +77,15 @@ class HomeTrendingSection extends StatelessWidget {
         ),
       );
     } else {
-      final topPosts =
-          posts.length <= 3 ? posts : posts.take(3).toList(growable: false);
+      final topItems =
+          items.length <= 3 ? items : items.take(3).toList(growable: false);
 
       content = Column(
-        children: topPosts
+        children: topItems
             .map(
-              (post) => Padding(
+              (item) => Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: TrendingPostCard(post: post),
+                child: TrendingFeedItemCard(item: item),
               ),
             )
             .toList(),
@@ -103,17 +103,23 @@ class HomeTrendingSection extends StatelessWidget {
   }
 }
 
-class TrendingPostCard extends StatelessWidget {
-  final Post post;
+class TrendingFeedItemCard extends StatelessWidget {
+  final FeedItem item;
 
-  const TrendingPostCard({
+  const TrendingFeedItemCard({
     super.key,
-    required this.post,
+    required this.item,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final title = _titleForItem(item);
+    final subtitle = _subtitleForItem(item);
+    final typeLabel = _typeLabel(item);
+    final typeIcon = _typeIcon(item);
+
+    final canOpen = item.isPost;
 
     return Card(
       elevation: 0,
@@ -122,32 +128,72 @@ class TrendingPostCard extends StatelessWidget {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          Navigator.pushNamed(context, AppRouter.social);
-        },
+        onTap: canOpen
+            ? () {
+                Navigator.pushNamed(context, AppRouter.social);
+              }
+            : null,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                children: [
+                  Icon(
+                    typeIcon,
+                    size: 16,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    typeLabel,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
               Text(
-                post.title,
+                title,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              if (post.content.trim().isNotEmpty) ...[
+              if (subtitle != null && subtitle.trim().isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
-                  post.content,
+                  subtitle,
                   style: theme.textTheme.bodyMedium,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 10,
+                runSpacing: 6,
+                children: [
+                  _MetricPill(
+                    icon: Icons.local_fire_department_outlined,
+                    value: item.reactionCount.toString(),
+                  ),
+                  _MetricPill(
+                    icon: Icons.mode_comment_outlined,
+                    value: item.commentCount.toString(),
+                  ),
+                  if (item.isPoll)
+                    _MetricPill(
+                      icon: Icons.how_to_vote_outlined,
+                      value: item.voteCount.toString(),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Icon(
@@ -156,10 +202,12 @@ class TrendingPostCard extends StatelessWidget {
                     color: theme.hintColor,
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    _formatPostCreatedAt(post.createdAt),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                  Expanded(
+                    child: Text(
+                      _formatItemCreatedAt(item.createdAt),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                      ),
                     ),
                   ),
                 ],
@@ -171,7 +219,49 @@ class TrendingPostCard extends StatelessWidget {
     );
   }
 
-  String _formatPostCreatedAt(DateTime dateTime) {
+  String _titleForItem(FeedItem item) {
+    if (item.isPost) {
+      return item.post?.title ?? '';
+    }
+    if (item.isNews) {
+      return item.news?.title ?? '';
+    }
+    return item.poll?.title ?? '';
+  }
+
+  String? _subtitleForItem(FeedItem item) {
+    if (item.isPost) {
+      final content = item.post?.content.trim();
+      return (content == null || content.isEmpty) ? null : content;
+    }
+
+    if (item.isNews) {
+      final summary = item.news?.summary?.trim();
+      if (summary != null && summary.isNotEmpty) {
+        return summary;
+      }
+
+      final content = item.news?.content.trim();
+      return (content == null || content.isEmpty) ? null : content;
+    }
+
+    final description = item.poll?.description?.trim();
+    return (description == null || description.isEmpty) ? null : description;
+  }
+
+  String _typeLabel(FeedItem item) {
+    if (item.isPost) return 'Post';
+    if (item.isNews) return 'News';
+    return 'Poll';
+  }
+
+  IconData _typeIcon(FeedItem item) {
+    if (item.isPost) return Icons.forum_outlined;
+    if (item.isNews) return Icons.newspaper_outlined;
+    return Icons.poll_outlined;
+  }
+
+  String _formatItemCreatedAt(DateTime dateTime) {
     final local = dateTime.toLocal();
     final day = local.day.toString().padLeft(2, '0');
     final month = local.month.toString().padLeft(2, '0');
@@ -180,5 +270,45 @@ class TrendingPostCard extends StatelessWidget {
     final minute = local.minute.toString().padLeft(2, '0');
 
     return '$day/$month/$year $hour:$minute';
+  }
+}
+
+class _MetricPill extends StatelessWidget {
+  final IconData icon;
+  final String value;
+
+  const _MetricPill({
+    required this.icon,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant.withOpacity(0.45),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: theme.hintColor,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            value,
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

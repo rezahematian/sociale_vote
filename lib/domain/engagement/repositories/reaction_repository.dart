@@ -40,4 +40,23 @@ abstract class ReactionRepository {
   Future<List<ReactionSummary>> getSummariesForTargets(
     List<TargetRef> targets,
   );
+
+  /// Restituisce il riepilogo reazioni per un singolo target
+  /// limitato alle reaction create da [since] in poi.
+  ///
+  /// Serve come foundation per reaction velocity / hot ranking.
+  Future<ReactionSummary> getSummaryForTargetSince(
+    TargetRef target, {
+    required DateTime since,
+  });
+
+  /// Restituisce i riepiloghi reazioni per più target
+  /// limitati alle reaction create da [since] in poi.
+  ///
+  /// Mantiene la stessa semantica di [getSummariesForTargets],
+  /// ma su finestra temporale recente.
+  Future<List<ReactionSummary>> getSummariesForTargetsSince(
+    List<TargetRef> targets, {
+    required DateTime since,
+  });
 }

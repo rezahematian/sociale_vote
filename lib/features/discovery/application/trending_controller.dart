@@ -1,14 +1,14 @@
 import 'package:flutter/foundation.dart';
-import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/discovery/usecases/get_trending_content.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
+import 'package:sociale_vote/features/home/application/feed_item.dart';
 
 /// Controller applicativo per la sezione Trending.
 ///
 /// Responsabilità:
 /// - leggere lo scope corrente dal GeoScopeController
 /// - usare GetTrendingContent
-/// - esporre lista post trending
+/// - esporre lista trending cross-content
 /// - gestire loading/error
 class TrendingController extends ChangeNotifier {
   final GetTrendingContent _getTrendingContent;
@@ -26,13 +26,13 @@ class TrendingController extends ChangeNotifier {
     loadTrending();
   }
 
-  final List<Post> _posts = [];
+  final List<FeedItem> _items = [];
   bool _isLoading = false;
   bool _hasError = false;
   bool _isDisposed = false;
   int _requestId = 0;
 
-  List<Post> get posts => List.unmodifiable(_posts);
+  List<FeedItem> get items => List.unmodifiable(_items);
   bool get isLoading => _isLoading;
   bool get hasError => _hasError;
 
@@ -55,7 +55,7 @@ class TrendingController extends ChangeNotifier {
         return;
       }
 
-      _posts
+      _items
         ..clear()
         ..addAll(result);
     } catch (_) {
