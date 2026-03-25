@@ -11,17 +11,26 @@ import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 /// - [topic] → categoria news (world, nation, business, technology, ecc.)
 /// - [language] → override lingua news (it/en/es/fr/de/ar/fa). Se null → AUTO.
 ///
-/// Implementazioni:
-/// - in-memory: possono simulare la paginazione con uno slice sulla lista.
-/// - HTTP: possono tradurre [limit]/[offset] in query parameter.
+/// Nota:
+/// - [getNewsFeed] resta il percorso del feed cronologico
+/// - [getTrendingCandidates] serve al ranking Trending e non deve applicare
+///   ordinamento/paginazione cronologica anticipata
 abstract class NewsRepository {
   Future<List<NewsItem>> getNewsFeed({
     String? countryCode,
     String? cityId,
     String? topic,
-    String? language, // ✅ NUOVO parametro opzionale
+    String? language,
     int? limit,
     int? offset,
+  });
+
+  Future<List<NewsItem>> getTrendingCandidates({
+    String? countryCode,
+    String? cityId,
+    String? topic,
+    String? language,
+    int? limit,
   });
 
   Future<NewsItem> getNewsDetail(EntityId id);

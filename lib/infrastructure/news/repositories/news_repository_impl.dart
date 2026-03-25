@@ -348,6 +348,212 @@ class NewsRepositoryImpl implements NewsRepository {
   }
 
   @override
+  Future<List<NewsItem>> getTrendingCandidates({
+    String? countryCode,
+    String? cityId,
+    String? topic,
+    String? language,
+    int? limit,
+  }) async {
+    final requestedCountryCode = _normalize(countryCode);
+    final requestedCityId = _normalize(cityId);
+    final requestedTopic = _normalize(topic);
+    final requestedLanguage = _normalizeLanguageCode(language);
+
+    final candidate = _NewsFeedCandidate(
+      countryCode: requestedCountryCode,
+      cityId: requestedCityId,
+      topic: requestedTopic,
+      language: requestedLanguage,
+    );
+
+    final allowStaleCache = _shouldAllowStaleCache(requestedLanguage);
+    Object? lastRefreshError;
+
+    final freshCache = await _readCache(
+      cacheKey: candidate.cacheKey,
+      acceptStale: false,
+      requestedLanguage: candidate.language,
+    );
+
+    final hasFreshCache = freshCache != null && freshCache.items.isNotEmpty;
+
+    if (hasFreshCache) {
+      return _mapTrendingCandidateList(
+        candidate,
+        freshCache.items,
+      );
+    }
+
+    final staleCache = allowStaleCache
+        ? await _readCache(
+            cacheKey: candidate.cacheKey,
+            acceptStale: true,
+            requestedLanguage: candidate.language,
+          )
+        : null;
+
+    final usableStaleCache =
+        staleCache != null &&
+                _canUseStaleFallbackCache(
+                  staleCache,
+                  requestedLanguage: candidate.language,
+                )
+            ? staleCache
+            : null;
+
+    if (staleCache != null && usableStaleCache == null && kDebugMode) {
+      debugPrint(
+        'NewsRepositoryImpl stale cache rejected for ${candidate.cacheKey} '
+        'because language/provider coherence is not reliable.',
+      );
+    }
+
+    if (usableStaleCache != null && usableStaleCache.items.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl serving same-language stale cache for '
+          '${candidate.cacheKey}.',
+        );
+      }
+
+      return _mapTrendingCandidateList(
+        candidate,
+        usableStaleCache.items,
+      );
+    }
+
+    final sameLanguageEquivalentCandidates =
+        _buildSameLanguageEquivalentCandidates(candidate);
+
+    final sameLanguageEquivalentFreshHit =
+        await _readFirstSameLanguageEquivalentCache(
+      candidates: sameLanguageEquivalentCandidates,
+      acceptStale: false,
+      requestedLanguage: candidate.language,
+    );
+
+    if (sameLanguageEquivalentFreshHit != null &&
+        sameLanguageEquivalentFreshHit.cache.items.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl serving same-language equivalent fresh cache '
+          'from ${sameLanguageEquivalentFreshHit.candidate.cacheKey} for '
+          '${candidate.cacheKey}.',
+        );
+      }
+
+      return _mapTrendingCandidateList(
+        candidate,
+        sameLanguageEquivalentFreshHit.cache.items,
+      );
+    }
+
+    final sameLanguageEquivalentStaleHit = allowStaleCache
+        ? await _readFirstSameLanguageEquivalentCache(
+            candidates: sameLanguageEquivalentCandidates,
+            acceptStale: true,
+            requestedLanguage: candidate.language,
+          )
+        : null;
+
+    final usableSameLanguageEquivalentStaleHit =
+        sameLanguageEquivalentStaleHit != null &&
+                _canUseStaleFallbackCache(
+                  sameLanguageEquivalentStaleHit.cache,
+                  requestedLanguage: candidate.language,
+                )
+            ? sameLanguageEquivalentStaleHit
+            : null;
+
+    if (usableSameLanguageEquivalentStaleHit != null &&
+        usableSameLanguageEquivalentStaleHit.cache.items.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl serving same-language equivalent stale cache '
+          'from ${usableSameLanguageEquivalentStaleHit.candidate.cacheKey} '
+          'for ${candidate.cacheKey}.',
+        );
+      }
+
+      return _mapTrendingCandidateList(
+        candidate,
+        usableSameLanguageEquivalentStaleHit.cache.items,
+      );
+    }
+
+    if (_isRefreshCooldownActive(candidate.cacheKey)) {
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl skipping live refresh for ${candidate.cacheKey} '
+          'because failure cooldown is active.',
+        );
+      }
+
+      if (requestedLanguage != null && requestedLanguage != 'en') {
+        final englishFallbackItems =
+            await _tryEnglishFallbackTrendingCandidates(
+          countryCode: requestedCountryCode,
+          cityId: requestedCityId,
+          topic: requestedTopic,
+        );
+
+        if (englishFallbackItems.isNotEmpty) {
+          return englishFallbackItems;
+        }
+      }
+
+      return const <NewsItem>[];
+    }
+
+    try {
+      final refreshedItems = await _refreshCacheForCandidateDeduplicated(
+        candidate,
+        providerLimit: _resolveProviderFetchLimit(limit, 0),
+        allowStalePreviousCache: allowStaleCache,
+      );
+
+      if (refreshedItems.isNotEmpty) {
+        return _mapTrendingCandidateList(
+          candidate,
+          refreshedItems,
+        );
+      }
+    } catch (e, st) {
+      lastRefreshError = e;
+
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl refresh failed for ${candidate.cacheKey}: $e',
+        );
+        debugPrint('$st');
+      }
+    }
+
+    if (requestedLanguage != null && requestedLanguage != 'en') {
+      final englishFallbackItems =
+          await _tryEnglishFallbackTrendingCandidates(
+        countryCode: requestedCountryCode,
+        cityId: requestedCityId,
+        topic: requestedTopic,
+      );
+
+      if (englishFallbackItems.isNotEmpty) {
+        return englishFallbackItems;
+      }
+    }
+
+    if (kDebugMode && lastRefreshError != null) {
+      debugPrint(
+        'NewsRepositoryImpl: no usable cache and refresh failed: '
+        '$lastRefreshError',
+      );
+    }
+
+    return const <NewsItem>[];
+  }
+
+  @override
   Future<NewsItem> getNewsDetail(EntityId id) async {
     final cached = await _findCachedNewsById(id.value);
     if (cached != null) {
@@ -431,6 +637,77 @@ class NewsRepositoryImpl implements NewsRepository {
         usableStaleCache.items,
         limit: limit,
         offset: offset,
+      );
+    }
+
+    return const <NewsItem>[];
+  }
+
+  Future<List<NewsItem>> _tryEnglishFallbackTrendingCandidates({
+    required String? countryCode,
+    required String? cityId,
+    required String? topic,
+  }) async {
+    final fallbackCandidate = _NewsFeedCandidate(
+      countryCode: countryCode,
+      cityId: cityId,
+      topic: topic,
+      language: 'en',
+    );
+
+    if (kDebugMode) {
+      debugPrint(
+        'NewsRepositoryImpl trying explicit English trending fallback via '
+        '${fallbackCandidate.cacheKey}.',
+      );
+    }
+
+    final freshCache = await _readCache(
+      cacheKey: fallbackCandidate.cacheKey,
+      acceptStale: false,
+      requestedLanguage: fallbackCandidate.language,
+    );
+
+    if (freshCache != null && freshCache.items.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl serving explicit English trending fallback '
+          'from fresh cache for ${fallbackCandidate.cacheKey}.',
+        );
+      }
+
+      return _mapTrendingCandidateList(
+        fallbackCandidate,
+        freshCache.items,
+      );
+    }
+
+    final staleCache = await _readCache(
+      cacheKey: fallbackCandidate.cacheKey,
+      acceptStale: true,
+      requestedLanguage: fallbackCandidate.language,
+    );
+
+    final usableStaleCache =
+        staleCache != null &&
+                _canUseStaleFallbackCache(
+                  staleCache,
+                  requestedLanguage: fallbackCandidate.language,
+                )
+            ? staleCache
+            : null;
+
+    if (usableStaleCache != null && usableStaleCache.items.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl serving explicit English trending fallback '
+          'from stale cache for ${fallbackCandidate.cacheKey}.',
+        );
+      }
+
+      return _mapTrendingCandidateList(
+        fallbackCandidate,
+        usableStaleCache.items,
       );
     }
 
@@ -1864,6 +2141,7 @@ class NewsRepositoryImpl implements NewsRepository {
       jsonList,
       countryCode: countryCode,
       cityId: cityId,
+      sortByPublishedAt: true,
     );
 
     if (mapped.isEmpty) {
@@ -1899,10 +2177,25 @@ class NewsRepositoryImpl implements NewsRepository {
     );
   }
 
+  List<NewsItem> _mapTrendingCandidateList(
+    _NewsFeedCandidate candidate,
+    List<Map<String, dynamic>> jsonList,
+  ) {
+    final mapped = _mapJsonToDomainList(
+      jsonList,
+      countryCode: candidate.countryCode,
+      cityId: candidate.cityId,
+      sortByPublishedAt: false,
+    );
+
+    return List<NewsItem>.unmodifiable(mapped);
+  }
+
   List<NewsItem> _mapJsonToDomainList(
     List<Map<String, dynamic>> jsonList, {
     required String? countryCode,
     required String? cityId,
+    bool sortByPublishedAt = true,
   }) {
     final stableJsonList = _deduplicateJsonListByStableIdentity(jsonList);
 
@@ -1918,7 +2211,9 @@ class NewsRepositoryImpl implements NewsRepository {
       );
     }).toList();
 
-    items.sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
+    if (sortByPublishedAt) {
+      items.sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
+    }
 
     final seen = <String>{};
     final unique = <NewsItem>[];
@@ -2150,7 +2445,7 @@ class NewsRepositoryImpl implements NewsRepository {
         requestedLanguage: requestedLanguage,
       );
 
-      if (cache == null || cache.items.isEmpty) {
+      if (cache == null || cache.items.isNotEmpty == false) {
         continue;
       }
 

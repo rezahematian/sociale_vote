@@ -459,7 +459,8 @@ class CivicMapController extends ChangeNotifier {
     _activeLoadScopeKey = scopeKey;
 
     future.whenComplete(() {
-      if (identical(_activeLoadFuture, future)) {
+      final current = _activeLoadFuture;
+      if (identical(current, future)) {
         _activeLoadFuture = null;
         _activeLoadScopeKey = null;
       }
@@ -849,13 +850,18 @@ class CivicMapController extends ChangeNotifier {
     }
 
     final items = await loader(scope);
-    final sanitized = items
-        .where((item) => _isFinite(item.latitude) && _isFinite(item.longitude))
-        .map(_sanitizeItemMetrics)
-        .toList();
 
-    sanitized.sort(_sortItems);
-    return sanitized;
+    final sanitized = items
+        .map(_sanitizeItemMetrics)
+        .toList(growable: false);
+
+    final normalized = _normalizeAndSpreadItems(sanitized, scope)
+        .where((item) => _isValidLatLng(item.latitude, item.longitude))
+        .map(_sanitizeItemMetrics)
+        .toList(growable: false);
+
+    normalized.sort(_sortItems);
+    return normalized;
   }
 
   CivicMapItem _sanitizeItemMetrics(CivicMapItem item) {
@@ -897,7 +903,7 @@ class CivicMapController extends ChangeNotifier {
         longitude: fallback.$2,
         geoScope: item.geoScope ?? scope,
       );
-    }).toList();
+    }).toList(growable: false);
 
     final Map<String, List<CivicMapItem>> groups =
         <String, List<CivicMapItem>>{};

@@ -16,44 +16,39 @@ import 'package:sociale_vote/domain/poll/repositories/vote_repository.dart';
 import 'package:sociale_vote/features/home/application/feed_item.dart';
 
 /// Use case: restituisce contenuti "trending" cross-content,
-/// ordinati con formula Hot v1.
+/// ordinati con formula Hot v1 tuned.
 ///
-/// Formula Hot v1 tuned:
-/// - base engagement score
-/// - reaction velocity
-/// - comment velocity
-/// - votes velocity
-/// - freshness decay
+/// Obiettivi di questa versione:
+/// - ranking hot cross-content credibile
+/// - niente quote forzate per tipo contenuto
+/// - meno dominanza dei poll dovuta ai soli voti accumulati
+/// - più peso al momentum reale (reaction/comment/vote recenti)
+/// - load ancora accettabile tramite shortlist preliminare
 ///
-/// Strategia tuned:
-///   base = heat * 1.0 + comments * 0.6 + votes * 0.45
-///   velocity = recentReactionHeat * 1.8
-///            + recentComments * 1.1
-///            + recentVotes * 0.9
+/// Formula finale tuned:
+///   base = heat * 1.0 + comments * 0.8 + scaledVotes * 0.55
+///   velocity = recentReactionHeat * 2.0
+///            + recentComments * 1.5
+///            + scaledRecentVotes * 1.0
 ///   final = (base + velocity) * freshnessMultiplier
 ///
-/// Dove freshnessMultiplier decresce nel tempo con half-life fissa.
-///
-/// Nota di tuning:
-/// - abbassiamo il peso dei voti per evitare che i poll dominino
-///   troppo facilmente il ranking cross-content
-/// - rendiamo il decay meno aggressivo passando da 18h a 24h
+/// Dove:
+/// - votes sono normalizzati con sqrt per evitare che volumi molto alti
+///   schiaccino sempre news e post
+/// - il ranking resta puro: nessun tipo entra "per forza"
 class GetTrendingContent {
   static const Duration _velocityWindow = Duration(hours: 12);
-
-  // Freshness tuning:
-  // prima 18h → troppo aggressivo per contenuti ancora validi
   static const double _freshnessHalfLifeHours = 24.0;
 
   // Base engagement weights
   static const double _heatWeight = 1.0;
-  static const double _commentWeight = 0.6;
-  static const double _voteWeight = 0.45;
+  static const double _commentWeight = 0.8;
+  static const double _voteWeight = 0.55;
 
   // Velocity weights
-  static const double _recentReactionHeatWeight = 1.8;
-  static const double _recentCommentWeight = 1.1;
-  static const double _recentVoteWeight = 0.9;
+  static const double _recentReactionHeatWeight = 2.0;
+  static const double _recentCommentWeight = 1.5;
+  static const double _recentVoteWeight = 1.0;
 
   final PostRepository _postRepository;
   final NewsRepository _newsRepository;
@@ -84,9 +79,6 @@ class GetTrendingContent {
     required GeoScope currentScope,
     int limit = 10,
   }) async {
-    // Manteniamo il gating attuale per compatibilità prodotto:
-    // se l'utente segue scope e quello corrente non è tra i seguiti,
-    // non produciamo trending personalizzato.
     if (userId != null) {
       final followed =
           await _followScopeRepository.getFollowedScopesForUser(userId);
@@ -115,11 +107,10 @@ class GetTrendingContent {
         limit: candidateLimit,
         offset: 0,
       ),
-      _newsRepository.getNewsFeed(
+      _newsRepository.getTrendingCandidates(
         countryCode: currentScope.countryCode,
         cityId: currentScope.cityId,
         limit: candidateLimit,
-        offset: 0,
       ),
     ]);
 
@@ -173,8 +164,23 @@ class GetTrendingContent {
       for (final summary in reactionResults[1]) summary.target.key: summary,
     };
 
+    final shortlist = _buildPreliminaryShortlist(
+      candidates: candidates,
+      totalReactionByTargetKey: totalReactionByTargetKey,
+      recentReactionByTargetKey: recentReactionByTargetKey,
+      now: now,
+      limit: limit,
+    );
+
+    if (shortlist.isEmpty) {
+      return const <FeedItem>[];
+    }
+
+    final shortlistTargets =
+        shortlist.map((item) => item.targetRef).toList(growable: false);
+
     final commentSignals = await Future.wait<_CommentSignal>(
-      targets.map(
+      shortlistTargets.map(
         (target) => _loadCommentSignal(
           target: target,
           since: since,
@@ -186,8 +192,13 @@ class GetTrendingContent {
       for (final signal in commentSignals) signal.target.key: signal,
     };
 
+    final shortlistPolls = shortlist
+        .where((item) => item.isPoll && item.poll != null)
+        .map((item) => item.poll!)
+        .toList(growable: false);
+
     final pollVoteSignals = await Future.wait<_PollVoteSignal>(
-      polls.map(
+      shortlistPolls.map(
         (poll) => _loadPollVoteSignal(
           poll: poll,
           since: since,
@@ -201,7 +212,7 @@ class GetTrendingContent {
 
     final scored = <FeedItem>[];
 
-    for (final item in candidates) {
+    for (final item in shortlist) {
       final totalReaction = totalReactionByTargetKey[item.targetRef.key];
       final recentReaction = recentReactionByTargetKey[item.targetRef.key];
       final commentSignal = commentSignalByTargetKey[item.targetRef.key];
@@ -248,6 +259,76 @@ class GetTrendingContent {
     return scored.take(limit).toList(growable: false);
   }
 
+  List<FeedItem> _buildPreliminaryShortlist({
+    required List<FeedItem> candidates,
+    required Map<String, ReactionSummary> totalReactionByTargetKey,
+    required Map<String, ReactionSummary> recentReactionByTargetKey,
+    required DateTime now,
+    required int limit,
+  }) {
+    final prelim = <FeedItem>[];
+
+    for (final item in candidates) {
+      final totalReaction = totalReactionByTargetKey[item.targetRef.key];
+      final recentReaction = recentReactionByTargetKey[item.targetRef.key];
+
+      final totalHeat = totalReaction?.heat.value ?? 0;
+      final recentHeat = recentReaction?.heat.value ?? 0;
+      final voteCount = item.isPoll ? item.voteCount : 0;
+
+      final score = _computePreliminaryScore(
+        createdAt: item.createdAt,
+        now: now,
+        totalHeat: totalHeat,
+        recentReactionHeat: recentHeat,
+        voteCount: voteCount,
+      );
+
+      prelim.add(
+        item.copyWith(
+          rankingScore: score,
+        ),
+      );
+    }
+
+    prelim.sort((a, b) {
+      final scoreCompare = b.rankingScore.compareTo(a.rankingScore);
+      if (scoreCompare != 0) {
+        return scoreCompare;
+      }
+
+      return b.createdAt.compareTo(a.createdAt);
+    });
+
+    final shortlistLimit = _resolveShortlistLimit(
+      requestedLimit: limit,
+      availableCount: prelim.length,
+    );
+
+    return prelim.take(shortlistLimit).toList(growable: false);
+  }
+
+  double _computePreliminaryScore({
+    required DateTime createdAt,
+    required DateTime now,
+    required num totalHeat,
+    required num recentReactionHeat,
+    required int voteCount,
+  }) {
+    final freshnessMultiplier = _computeFreshnessMultiplier(
+      createdAt: createdAt,
+      now: now,
+    );
+
+    final scaledVotes = _scaleVoteCount(voteCount);
+
+    final prelimBase = (totalHeat * 1.0) +
+        (recentReactionHeat * 1.7) +
+        (scaledVotes * 0.20);
+
+    return prelimBase * freshnessMultiplier;
+  }
+
   Future<_CommentSignal> _loadCommentSignal({
     required TargetRef target,
     required DateTime since,
@@ -285,20 +366,23 @@ class GetTrendingContent {
   double _computeHotScore({
     required DateTime createdAt,
     required DateTime now,
-    required int totalHeat,
+    required num totalHeat,
     required int commentCount,
     required int voteCount,
-    required int recentReactionHeat,
+    required num recentReactionHeat,
     required int recentCommentCount,
     required int recentVoteCount,
   }) {
+    final scaledVotes = _scaleVoteCount(voteCount);
+    final scaledRecentVotes = _scaleVoteCount(recentVoteCount);
+
     final baseEngagement = (totalHeat * _heatWeight) +
         (commentCount * _commentWeight) +
-        (voteCount * _voteWeight);
+        (scaledVotes * _voteWeight);
 
     final velocityScore = (recentReactionHeat * _recentReactionHeatWeight) +
         (recentCommentCount * _recentCommentWeight) +
-        (recentVoteCount * _recentVoteWeight);
+        (scaledRecentVotes * _recentVoteWeight);
 
     final freshnessMultiplier = _computeFreshnessMultiplier(
       createdAt: createdAt,
@@ -306,6 +390,14 @@ class GetTrendingContent {
     );
 
     return (baseEngagement + velocityScore) * freshnessMultiplier;
+  }
+
+  double _scaleVoteCount(int value) {
+    if (value <= 0) {
+      return 0.0;
+    }
+
+    return math.sqrt(value.toDouble());
   }
 
   double _computeFreshnessMultiplier({
@@ -334,6 +426,25 @@ class GetTrendingContent {
       return 60;
     }
     return warmed;
+  }
+
+  int _resolveShortlistLimit({
+    required int requestedLimit,
+    required int availableCount,
+  }) {
+    var shortlist = requestedLimit * 3;
+
+    if (shortlist < 15) {
+      shortlist = 15;
+    }
+    if (shortlist > 30) {
+      shortlist = 30;
+    }
+    if (shortlist > availableCount) {
+      shortlist = availableCount;
+    }
+
+    return shortlist;
   }
 }
 

@@ -13,6 +13,11 @@ class NewsMapper {
   /// - gli ID dei provider news non sono affidabili come UUID Supabase
   /// - [countryCode]/[cityId] rappresentano il contesto feed
   /// - [contentLocation] rappresenta il luogo reale di cui parla la news
+  ///
+  /// Fix F9.4:
+  /// - l'identità della news deve essere molto più stabile
+  /// - normalizziamo la URL prima di generare l'UUID
+  /// - evitiamo che query params / tracking / slash finali cambino id
   NewsItem toDomain(
     NewsDto dto, {
     String? countryCode,
@@ -50,19 +55,89 @@ class NewsMapper {
   }
 
   String _buildStableKey(NewsDto dto) {
-    final url = dto.url.trim();
-    if (url.isNotEmpty) {
-      return 'url:$url';
+    final normalizedUrl = _normalizeStableUrl(dto.url);
+    if (normalizedUrl != null && normalizedUrl.isNotEmpty) {
+      return 'url:$normalizedUrl';
     }
 
-    final rawId = dto.id.trim();
-    if (rawId.isNotEmpty) {
-      final source = (dto.sourceName ?? dto.sourceId ?? 'unknown').trim();
-      return 'id:$source:$rawId';
+    final normalizedRawId = _normalizeLooseToken(dto.id);
+    if (normalizedRawId != null && normalizedRawId.isNotEmpty) {
+      final source = _normalizeLooseToken(
+            dto.sourceId ?? dto.sourceName ?? 'unknown',
+          ) ??
+          'unknown';
+      return 'id:$source:$normalizedRawId';
     }
 
-    final source = (dto.sourceName ?? dto.sourceId ?? 'unknown').trim();
-    return 'title:$source:${dto.title.trim()}:${dto.publishedAt.toUtc().toIso8601String()}';
+    final source = _normalizeLooseToken(
+          dto.sourceId ?? dto.sourceName ?? 'unknown',
+        ) ??
+        'unknown';
+
+    final normalizedTitle = _normalizeTitle(dto.title);
+    final publishedAtUtc = dto.publishedAt.toUtc().toIso8601String();
+
+    return 'title:$source:$normalizedTitle:$publishedAtUtc';
+  }
+
+  String? _normalizeStableUrl(String rawUrl) {
+    final trimmed = rawUrl.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    final parsed = Uri.tryParse(trimmed);
+    if (parsed == null) {
+      return trimmed.toLowerCase();
+    }
+
+    if (!parsed.hasScheme || parsed.host.trim().isEmpty) {
+      return trimmed.toLowerCase();
+    }
+
+    final normalizedScheme = parsed.scheme.toLowerCase();
+    final normalizedHost = parsed.host.toLowerCase();
+
+    var normalizedPath = parsed.path.trim();
+    if (normalizedPath.isEmpty) {
+      normalizedPath = '/';
+    } else {
+      normalizedPath = normalizedPath.replaceFirst(RegExp(r'/+$'), '');
+      if (normalizedPath.isEmpty) {
+        normalizedPath = '/';
+      }
+    }
+
+    final normalizedUri = Uri(
+      scheme: normalizedScheme,
+      host: normalizedHost,
+      port: parsed.hasPort ? parsed.port : null,
+      path: normalizedPath,
+    );
+
+    return normalizedUri.toString().toLowerCase();
+  }
+
+  String? _normalizeLooseToken(String? value) {
+    if (value == null) {
+      return null;
+    }
+
+    final trimmed = value.trim().toLowerCase();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    return trimmed.replaceAll(RegExp(r'\s+'), ' ');
+  }
+
+  String _normalizeTitle(String value) {
+    final trimmed = value.trim().toLowerCase();
+    if (trimmed.isEmpty) {
+      return 'untitled';
+    }
+
+    return trimmed.replaceAll(RegExp(r'\s+'), ' ');
   }
 
   bool _isUuid(String value) {

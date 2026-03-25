@@ -67,7 +67,6 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
 
     final position = _scrollController.position;
     if (position.pixels >= position.maxScrollExtent - 200) {
-      // Con paginazione reale: chiediamo una nuova pagina se la sorgente ha ancora dati.
       if (controller.hasMoreFromSource) {
         controller.loadMoreNews();
       }
@@ -92,7 +91,6 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
     final controller = context.read<NewsController>();
     final userId = AppDI.instance.currentUserId;
 
-    // Evita loop / doppio load durante build: scheduliamo post-frame.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       controller.loadNews(userId: userId);
@@ -108,7 +106,6 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
       case GeoScopeLevel.country:
         return scope.countryCode ?? l10n.newsFeed_scopeCountry;
       case GeoScopeLevel.city:
-        // Se in futuro avrai cityName puoi usarlo qui.
         return scope.cityId ?? l10n.newsFeed_scopeCity;
     }
   }
@@ -172,8 +169,6 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
     }
   }
 
-  /// Message “enterprise” (localizzato) a partire dall'errore normalizzato.
-  /// Fallback: usa le stringhe già presenti in controller / l10n generic.
   String _localizedErrorMessage(
     BuildContext context,
     NewsController controller,
@@ -197,7 +192,6 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
       return l10n.newsFeed_errorNetwork;
     }
 
-    // unknown o null → fallback
     return controller.errorMessage ?? l10n.newsFeed_errorGeneric;
   }
 
@@ -311,10 +305,8 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
             final scopeDescription = _scopeDescription(context, scope);
             final currentUserId = AppDI.instance.currentUserId;
 
-            // Tutte le news caricate finora (aggregato delle pagine)
             final allNews = controller.news;
 
-            // 1) Stato di loading iniziale
             if (controller.isLoading && allNews.isEmpty) {
               return const Center(
                 child: SizedBox(
@@ -325,7 +317,6 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
               );
             }
 
-            // 2) Stato di errore: mostriamo messaggio + bottone Retry
             if (controller.hasError) {
               return _NewsErrorView(
                 message: _localizedErrorMessage(context, controller),
@@ -333,7 +324,6 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
               );
             }
 
-            // 3) Stato "lista vuota" senza errore
             if (allNews.isEmpty) {
               return RefreshIndicator(
                 onRefresh: () => controller.loadNews(userId: currentUserId),
@@ -356,16 +346,13 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
               );
             }
 
-            // 4) Stato normale: lista con RefreshIndicator + infinite scroll (paginazione reale)
             return RefreshIndicator(
               onRefresh: () => controller.loadNews(userId: currentUserId),
               child: ListView.builder(
                 controller: _scrollController,
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                // +1 per l'header, +1 opzionale per il "loading bottom"
                 itemCount: allNews.length + 2,
                 itemBuilder: (context, index) {
-                  // Header in cima
                   if (index == 0) {
                     return Column(
                       children: [
@@ -382,8 +369,6 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                     );
                   }
 
-                  // Ultimo item: se stiamo caricando o ci sono altre pagine,
-                  // mostriamo un indicatore in fondo.
                   if (index == allNews.length + 1) {
                     if (controller.isLoading && allNews.isNotEmpty) {
                       return const Padding(
@@ -410,7 +395,6 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                       );
                     }
 
-                    // Nessun loading, nessun "load more" → spazio vuoto
                     return const SizedBox.shrink();
                   }
 
@@ -563,7 +547,6 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
   }
 }
 
-/// Vista di errore "enterprise": messaggio chiaro + bottone di retry.
 class _NewsErrorView extends StatelessWidget {
   final String message;
   final Future<void> Function() onRetry;
@@ -640,7 +623,8 @@ class _NewsCard extends StatelessWidget {
     final summary = newsController.summaryForNews(news);
     final fireCount = summary?.likeCount ?? 0;
     final iceCount = summary?.dislikeCount ?? 0;
-    final userReaction = summary?.userReaction; // può essere null (nessuna reazione)
+    final commentCount = newsController.commentCountForNews(news);
+    final userReaction = summary?.userReaction;
 
     final sourceLabel = _sourceLabel(news);
 
@@ -652,11 +636,10 @@ class _NewsCard extends StatelessWidget {
         color: theme.colorScheme.surface,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            // Passiamo lo stesso NewsController al dettaglio
+          onTap: () async {
             final newsController = context.read<NewsController>();
 
-            Navigator.of(context).push(
+            await Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => ChangeNotifierProvider<NewsController>.value(
                   value: newsController,
@@ -664,6 +647,9 @@ class _NewsCard extends StatelessWidget {
                 ),
               ),
             );
+
+            if (!context.mounted) return;
+            await newsController.refreshCommentCountForNews(news);
           },
           child: Container(
             decoration: BoxDecoration(
@@ -676,7 +662,6 @@ class _NewsCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Immagine (se presente) — 16:9 + errorBuilder
                 if (_hasImage(news)) ...[
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
@@ -716,7 +701,6 @@ class _NewsCard extends StatelessWidget {
                   const SizedBox(height: 12),
                 ],
 
-                // Header row: breaking badge + source
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -766,7 +750,6 @@ class _NewsCard extends StatelessWidget {
 
                 const SizedBox(height: 10),
 
-                // Titolo
                 Text(
                   news.title,
                   maxLines: 2,
@@ -776,7 +759,6 @@ class _NewsCard extends StatelessWidget {
                   ),
                 ),
 
-                // Summary / abstract
                 if (news.summary != null && news.summary!.trim().isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(
@@ -793,7 +775,6 @@ class _NewsCard extends StatelessWidget {
 
                 const SizedBox(height: 12),
 
-                // Bottom row: data pubblicazione + menu (in basso destra)
                 Row(
                   children: [
                     Icon(
@@ -837,10 +818,10 @@ class _NewsCard extends StatelessWidget {
                 const Divider(height: 1),
                 const SizedBox(height: 8),
 
-                // Barra di engagement 🔥 / ❄ con stato utente
                 EngagementBar(
                   fireCount: fireCount,
                   iceCount: iceCount,
+                  commentCount: commentCount,
                   userReaction: userReaction,
                   onFireTap: () {
                     AuthGuard.ensureCanPerformAction(
@@ -899,13 +880,10 @@ class _NewsCard extends StatelessWidget {
     final hour = local.hour.toString().padLeft(2, '0');
     final minute = local.minute.toString().padLeft(2, '0');
 
-    // Formato: 22/02/2026 14:35
     return '$day/$month/$year $hour:$minute';
   }
 }
 
-/// Piccolo “dot” come favicon placeholder (senza dipendenze).
-/// In futuro potrai sostituirlo con favicon reale dal dominio url della source.
 class _SourceDot extends StatelessWidget {
   final String label;
 
@@ -917,7 +895,6 @@ class _SourceDot extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // colore derivato in modo deterministico dal label
     final hash = label.hashCode.abs();
     final hue = (hash % 360).toDouble();
     final color = HSVColor.fromAHSV(1.0, hue, 0.55, 0.85).toColor();
