@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
-import 'package:sociale_vote/core/security/participation_policy.dart';
-import 'package:sociale_vote/domain/content/social/entities/post.dart';
-import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 import 'package:sociale_vote/features/discovery/application/for_you_feed_controller.dart';
-import 'package:sociale_vote/features/home/presentation/widgets/home_post_preview_card.dart';
+import 'package:sociale_vote/features/home/application/feed_item.dart';
+import 'package:sociale_vote/features/home/presentation/widgets/home_trending_section.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
-import 'package:sociale_vote/shared/services/auth_guard.dart';
 
 class HomeForYouSection extends StatelessWidget {
   final String scopeShortLabel;
@@ -20,11 +17,16 @@ class HomeForYouSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userId = AppDI.instance.currentUserId;
+    if (userId == null || userId.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final controller = context.watch<ForYouFeedController>();
 
-    final List<Post> posts = controller.posts;
+    final List<FeedItem> items = controller.items;
 
     final header = Row(
       children: [
@@ -52,7 +54,7 @@ class HomeForYouSection extends StatelessWidget {
 
     Widget content;
 
-    if (controller.isLoading && posts.isEmpty) {
+    if (controller.isLoading && items.isEmpty) {
       content = const Padding(
         padding: EdgeInsets.symmetric(vertical: 16),
         child: Center(
@@ -72,7 +74,7 @@ class HomeForYouSection extends StatelessWidget {
           child: Text(l10n.homeForYouError),
         ),
       );
-    } else if (posts.isEmpty) {
+    } else if (items.isEmpty) {
       content = Card(
         elevation: 0,
         margin: const EdgeInsets.only(top: 8),
@@ -86,58 +88,18 @@ class HomeForYouSection extends StatelessWidget {
         ),
       );
     } else {
-      final topPosts =
-          posts.length <= 3 ? posts : posts.take(3).toList(growable: false);
+      final topItems =
+          items.length <= 3 ? items : items.take(3).toList(growable: false);
 
       content = Column(
-        children: topPosts.map((post) {
-          final fire = controller.likeCountForPost(post);
-          final ice = controller.dislikeCountForPost(post);
-          final commentCount = controller.commentCountForPost(post);
-          final previewPost = post.copyWith(commentCount: commentCount);
-          final ReactionType? userReaction =
-              controller.userReactionForPost(post);
-
-          return Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: HomePostPreviewCard(
-              post: previewPost,
-              fireCount: fire,
-              iceCount: ice,
-              commentCount: commentCount,
-              userReaction: userReaction,
-              onReturnedFromDetail: () {
-                controller.refreshEngagementForPost(post);
-              },
-              onFireTap: () async {
-                final allowed = await AuthGuard.ensureCanPerformAction(
-                  context,
-                  ParticipationAction.react,
-                );
-                if (!allowed) return;
-
-                final userId = AppDI.instance.currentUserId!;
-                await controller.toggleFireForPost(
-                  userId: userId,
-                  post: post,
-                );
-              },
-              onIceTap: () async {
-                final allowed = await AuthGuard.ensureCanPerformAction(
-                  context,
-                  ParticipationAction.react,
-                );
-                if (!allowed) return;
-
-                final userId = AppDI.instance.currentUserId!;
-                await controller.toggleIceForPost(
-                  userId: userId,
-                  post: post,
-                );
-              },
-            ),
-          );
-        }).toList(),
+        children: topItems
+            .map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: TrendingFeedItemCard(item: item),
+              ),
+            )
+            .toList(),
       );
     }
 

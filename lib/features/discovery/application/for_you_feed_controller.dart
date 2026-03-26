@@ -3,13 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/discovery/usecases/get_for_you_feed.dart';
-import 'package:sociale_vote/domain/discussion/usecases/get_comment_count_for_target.dart';
 import 'package:sociale_vote/domain/engagement/entities/reaction_summary.dart';
 import 'package:sociale_vote/domain/engagement/usecases/get_reaction_summary.dart';
 import 'package:sociale_vote/domain/engagement/usecases/toggle_reaction.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
-import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
+import 'package:sociale_vote/features/home/application/feed_item.dart';
+import 'package:sociale_vote/domain/discussion/usecases/get_comment_count_for_target.dart';
 
 class ForYouFeedController extends ChangeNotifier {
   final GetForYouFeed _getForYouFeed;
@@ -30,8 +30,13 @@ class ForYouFeedController extends ChangeNotifier {
         _getReactionSummary = getReactionSummary,
         _getCommentCountForTarget = getCommentCountForTarget;
 
-  List<Post> _posts = [];
-  List<Post> get posts => List.unmodifiable(_posts);
+  List<FeedItem> _items = [];
+  List<FeedItem> get items => List.unmodifiable(_items);
+
+  List<Post> get posts => _items
+      .where((item) => item.post != null)
+      .map((item) => item.post!)
+      .toList(growable: false);
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -51,7 +56,7 @@ class ForYouFeedController extends ChangeNotifier {
   int _requestId = 0;
 
   ReactionSummary? summaryForPost(Post post) {
-    return _reactionSummaries[_postId(post)];
+    return _reactionSummaries[_targetForPost(post).key];
   }
 
   int likeCountForPost(Post post) {
@@ -78,7 +83,10 @@ class ForYouFeedController extends ChangeNotifier {
 
   bool _containsPost(Post post) {
     final postId = _postId(post);
-    return _posts.any((item) => item.id.value == postId);
+
+    return _items.any(
+      (item) => item.post?.id.value == postId,
+    );
   }
 
   Future<void> load({
@@ -86,7 +94,7 @@ class ForYouFeedController extends ChangeNotifier {
     int limit = 10,
   }) async {
     final int requestId = ++_requestId;
-    final GeoScope scope = _geoScopeController.scope;
+    final scope = _geoScopeController.scope;
 
     _isLoading = true;
     _errorMessage = null;
@@ -107,20 +115,12 @@ class ForYouFeedController extends ChangeNotifier {
         return;
       }
 
-      _posts = result;
+      _items = result;
+      _primeCommentCountsFromItems(result);
 
-      await _loadReactionSummariesForPosts(
+      await _loadReactionSummariesForPostItems(
         result,
         userId: _lastKnownUserId,
-        requestId: requestId,
-      );
-
-      if (!_isRequestStillValid(requestId)) {
-        return;
-      }
-
-      await _loadCommentCountsForPosts(
-        result,
         requestId: requestId,
       );
     } catch (e) {
@@ -129,7 +129,7 @@ class ForYouFeedController extends ChangeNotifier {
       }
 
       _errorMessage = e.toString();
-      _posts = [];
+      _items = [];
       _reactionSummaries.clear();
       _commentCounts.clear();
     } finally {
@@ -142,16 +142,31 @@ class ForYouFeedController extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadReactionSummariesForPosts(
-    List<Post> posts, {
+  void _primeCommentCountsFromItems(List<FeedItem> items) {
+    for (final item in items) {
+      final post = item.post;
+      if (post == null) {
+        continue;
+      }
+
+      _commentCounts[_postId(post)] = item.commentCount;
+    }
+  }
+
+  Future<void> _loadReactionSummariesForPostItems(
+    List<FeedItem> items, {
     required String? userId,
     required int requestId,
   }) async {
-    if (posts.isEmpty) {
+    final postItems = items
+        .where((item) => item.isPost && item.post != null)
+        .toList(growable: false);
+
+    if (postItems.isEmpty) {
       return;
     }
 
-    final targets = posts.map(_targetForPost).toList();
+    final targets = postItems.map((item) => item.targetRef).toList(growable: false);
 
     final summaries = await _getReactionSummary(
       targets,
@@ -163,26 +178,7 @@ class ForYouFeedController extends ChangeNotifier {
     }
 
     for (final summary in summaries) {
-      _reactionSummaries[summary.target.id] = summary;
-    }
-  }
-
-  Future<void> _loadCommentCountsForPosts(
-    List<Post> posts, {
-    required int requestId,
-  }) async {
-    if (posts.isEmpty) {
-      return;
-    }
-
-    for (final post in posts) {
-      final count = await _getCommentCountForTarget(_targetForPost(post));
-
-      if (!_isRequestStillValid(requestId)) {
-        return;
-      }
-
-      _commentCounts[_postId(post)] = count;
+      _reactionSummaries[summary.target.key] = summary;
     }
   }
 
@@ -193,7 +189,9 @@ class ForYouFeedController extends ChangeNotifier {
 
     try {
       final count = await _getCommentCountForTarget(_targetForPost(post));
-      if (_isDisposed || !_containsPost(post)) return;
+      if (_isDisposed || !_containsPost(post)) {
+        return;
+      }
 
       _commentCounts[_postId(post)] = count;
       _safeNotifyListeners();
@@ -211,10 +209,12 @@ class ForYouFeedController extends ChangeNotifier {
         userId: _lastKnownUserId,
       );
 
-      if (_isDisposed || !_containsPost(post)) return;
+      if (_isDisposed || !_containsPost(post)) {
+        return;
+      }
 
       if (summaries.isNotEmpty) {
-        _reactionSummaries[_postId(post)] = summaries.first;
+        _reactionSummaries[_targetForPost(post).key] = summaries.first;
         _safeNotifyListeners();
       }
     } catch (_) {}
@@ -234,16 +234,18 @@ class ForYouFeedController extends ChangeNotifier {
         _getCommentCountForTarget(_targetForPost(post)),
       ]);
 
-      if (_isDisposed || !_containsPost(post)) return;
+      if (_isDisposed || !_containsPost(post)) {
+        return;
+      }
 
       final summaries = results[0] as List<ReactionSummary>;
       final commentCount = results[1] as int;
 
       if (summaries.isNotEmpty) {
-        _reactionSummaries[_postId(post)] = summaries.first;
+        _reactionSummaries[_targetForPost(post).key] = summaries.first;
       }
-      _commentCounts[_postId(post)] = commentCount;
 
+      _commentCounts[_postId(post)] = commentCount;
       _safeNotifyListeners();
     } catch (_) {}
   }
@@ -262,9 +264,11 @@ class ForYouFeedController extends ChangeNotifier {
       type: ReactionType.like,
     );
 
-    if (_isDisposed || !_containsPost(post)) return;
+    if (_isDisposed || !_containsPost(post)) {
+      return;
+    }
 
-    _reactionSummaries[_postId(post)] = summary;
+    _reactionSummaries[target.key] = summary;
     _lastKnownUserId = userId;
     _safeNotifyListeners();
   }
@@ -283,15 +287,17 @@ class ForYouFeedController extends ChangeNotifier {
       type: ReactionType.dislike,
     );
 
-    if (_isDisposed || !_containsPost(post)) return;
+    if (_isDisposed || !_containsPost(post)) {
+      return;
+    }
 
-    _reactionSummaries[_postId(post)] = summary;
+    _reactionSummaries[target.key] = summary;
     _lastKnownUserId = userId;
     _safeNotifyListeners();
   }
 
   void clear() {
-    _posts = [];
+    _items = [];
     _isLoading = false;
     _errorMessage = null;
     _reactionSummaries.clear();
@@ -304,7 +310,9 @@ class ForYouFeedController extends ChangeNotifier {
   }
 
   void _safeNotifyListeners() {
-    if (_isDisposed) return;
+    if (_isDisposed) {
+      return;
+    }
     notifyListeners();
   }
 

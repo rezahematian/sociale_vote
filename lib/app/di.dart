@@ -533,6 +533,9 @@ class AppDI {
 
   GetForYouFeed get getForYouFeed => GetForYouFeed(
         postRepository: postRepository,
+        newsRepository: newsRepository,
+        pollRepository: pollRepository,
+        commentRepository: commentRepository,
         getReactionSummary: getReactionSummary,
         followScopeRepository: followScopeRepository,
       );
