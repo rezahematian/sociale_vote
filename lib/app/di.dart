@@ -525,6 +525,7 @@ class AppDI {
         newsRepository: newsRepository,
         pollRepository: pollRepository,
         voteRepository: voteRepository,
+        commentRepository: commentRepository,
         getReactionSummary: getReactionSummary,
         getCommentsForTarget: getCommentsForTarget,
         followScopeRepository: followScopeRepository,

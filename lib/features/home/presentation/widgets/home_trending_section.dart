@@ -32,12 +32,28 @@ class HomeTrendingSection extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          l10n.homeTrendingTitle,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+        Expanded(
+          child: Text(
+            l10n.homeTrendingTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
+        if (controller.isLoading)
+          const SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+        else
+          IconButton(
+            tooltip: 'Refresh trending',
+            onPressed: () {
+              context.read<TrendingController>().loadTrending();
+            },
+            icon: const Icon(Icons.refresh),
+          ),
       ],
     );
 
@@ -119,7 +135,7 @@ class TrendingFeedItemCard extends StatelessWidget {
     final typeLabel = _typeLabel(item);
     final typeIcon = _typeIcon(item);
 
-    final canOpen = item.isPost;
+    final canOpen = item.isPost || item.isPoll || item.isNews;
 
     return Card(
       elevation: 0,
@@ -128,11 +144,7 @@ class TrendingFeedItemCard extends StatelessWidget {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: canOpen
-            ? () {
-                Navigator.pushNamed(context, AppRouter.social);
-              }
-            : null,
+        onTap: canOpen ? () => _openItem(context, item) : null,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -206,7 +218,8 @@ class TrendingFeedItemCard extends StatelessWidget {
                     child: Text(
                       _formatItemCreatedAt(item.createdAt),
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                        color:
+                            theme.textTheme.bodySmall?.color?.withOpacity(0.7),
                       ),
                     ),
                   ),
@@ -217,6 +230,34 @@ class TrendingFeedItemCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _openItem(BuildContext context, FeedItem item) {
+    if (item.isPost) {
+      Navigator.pushNamed(
+        context,
+        AppRouter.socialDetail,
+        arguments: item.id,
+      );
+      return;
+    }
+
+    if (item.isPoll) {
+      Navigator.pushNamed(
+        context,
+        AppRouter.pollDetail,
+        arguments: item.id,
+      );
+      return;
+    }
+
+    if (item.isNews && item.news != null) {
+      Navigator.pushNamed(
+        context,
+        AppRouter.newsDetail,
+        arguments: item.news,
+      );
+    }
   }
 
   String _titleForItem(FeedItem item) {

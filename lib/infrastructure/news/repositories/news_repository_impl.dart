@@ -482,6 +482,29 @@ class NewsRepositoryImpl implements NewsRepository {
       );
     }
 
+    // Performance fix per Trending:
+    // se la richiesta arriva senza lingua esplicita, prova subito la cache EN
+    // invece di tentare live refresh che oggi va spesso in rate limit.
+    if (requestedLanguage == null) {
+      final englishFallbackItems =
+          await _tryEnglishFallbackTrendingCandidates(
+        countryCode: requestedCountryCode,
+        cityId: requestedCityId,
+        topic: requestedTopic,
+      );
+
+      if (englishFallbackItems.isNotEmpty) {
+        if (kDebugMode) {
+          debugPrint(
+            'NewsRepositoryImpl serving fast explicit English trending '
+            'fallback for null-language request.',
+          );
+        }
+
+        return englishFallbackItems;
+      }
+    }
+
     if (_isRefreshCooldownActive(candidate.cacheKey)) {
       if (kDebugMode) {
         debugPrint(
@@ -490,7 +513,7 @@ class NewsRepositoryImpl implements NewsRepository {
         );
       }
 
-      if (requestedLanguage != null && requestedLanguage != 'en') {
+      if (requestedLanguage != 'en') {
         final englishFallbackItems =
             await _tryEnglishFallbackTrendingCandidates(
           countryCode: requestedCountryCode,
@@ -530,9 +553,8 @@ class NewsRepositoryImpl implements NewsRepository {
       }
     }
 
-    if (requestedLanguage != null && requestedLanguage != 'en') {
-      final englishFallbackItems =
-          await _tryEnglishFallbackTrendingCandidates(
+    if (requestedLanguage != 'en') {
+      final englishFallbackItems = await _tryEnglishFallbackTrendingCandidates(
         countryCode: requestedCountryCode,
         cityId: requestedCityId,
         topic: requestedTopic,
