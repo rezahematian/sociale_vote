@@ -17,74 +17,44 @@ class PostRepositoryImpl implements PostRepository {
     int limit = 20,
     int offset = 0,
   }) async {
-    final rows = await AppSupabase.client
-        .from(_postsTable)
-        .select()
-        .order('created_at', ascending: false);
+    final requestedCountry = _prepareDbFilterValue(countryCode);
+    final requestedCity = _prepareDbFilterValue(cityId);
 
-    final mapped = await _mapPosts(rows);
+    dynamic query = AppSupabase.client.from(_postsTable).select();
 
-    final scoped = mapped
-        .where(
-          (post) => _matchesRequestedScope(
-            post: post,
-            countryCode: countryCode,
-            cityId: cityId,
-          ),
-        )
-        .toList();
+    if (requestedCountry != null) {
+      query = query.eq('country_code', requestedCountry);
+    }
 
-    if (scoped.isEmpty) {
+    if (requestedCity != null) {
+      query = query.eq('city_id', requestedCity);
+    }
+
+    query = query.order('created_at', ascending: false);
+
+    final safeOffset = offset < 0 ? 0 : offset;
+
+    if (limit <= 0) {
       return const [];
     }
 
-    final int start = offset.clamp(0, scoped.length);
-    final int end = (start + limit).clamp(0, scoped.length);
+    query = query.range(safeOffset, safeOffset + limit - 1);
 
-    if (start >= end) {
-      return const [];
-    }
-
-    return List<Post>.unmodifiable(scoped.sublist(start, end));
+    final rows = await query as List<dynamic>;
+    return _mapPosts(rows);
   }
 
-  bool _matchesRequestedScope({
-    required Post post,
-    String? countryCode,
-    String? cityId,
-  }) {
-    final requestedCountry = _normalize(countryCode);
-    final requestedCity = _normalize(cityId);
-
-    final location = post.contentLocation;
-
-    final postCountry = _normalize(
-      post.countryCode ?? location?.countryCode,
-    );
-    final postCity = _normalize(
-      post.cityId ?? location?.cityId,
-    );
-
-    if (requestedCountry == null && requestedCity == null) {
-      return true;
+  String? _prepareDbFilterValue(String? value) {
+    if (value == null) {
+      return null;
     }
 
-    if (requestedCountry != null && requestedCity == null) {
-      return postCountry == requestedCountry;
-    }
-
-    if (requestedCountry != null && requestedCity != null) {
-      return postCountry == requestedCountry && postCity == requestedCity;
-    }
-
-    return false;
-  }
-
-  String? _normalize(String? value) {
-    if (value == null) return null;
     final trimmed = value.trim();
-    if (trimmed.isEmpty) return null;
-    return trimmed.toLowerCase();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    return trimmed;
   }
 
   @override

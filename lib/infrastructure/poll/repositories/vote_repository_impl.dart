@@ -71,6 +71,54 @@ class VoteRepositoryImpl implements VoteRepository {
   }
 
   @override
+  Future<PollVoteAggregate> getVoteAggregateForPoll(PollId pollId) async {
+    final response = await _supabase.rpc(
+      'get_poll_vote_aggregate',
+      params: {'p_poll_id': pollId.value},
+    );
+
+    if (response is! Map) {
+      return const PollVoteAggregate(
+        totalVotes: 0,
+        optionCounts: <String, int>{},
+      );
+    }
+
+    final data = Map<String, dynamic>.from(
+      response.map(
+        (key, value) => MapEntry(key.toString(), value),
+      ),
+    );
+
+    final totalVotes = _readInt(data['total_votes']) ?? 0;
+
+    final optionCounts = <String, int>{};
+    final rawOptionCounts = data['option_counts'];
+
+    if (rawOptionCounts is Map) {
+      rawOptionCounts.forEach((key, value) {
+        final count = _readInt(value) ?? 0;
+        optionCounts[key.toString()] = count;
+      });
+    }
+
+    return PollVoteAggregate(
+      totalVotes: totalVotes,
+      optionCounts: optionCounts,
+    );
+  }
+
+  int? _readInt(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return int.tryParse(value?.toString() ?? '');
+  }
+
+  @override
   Stream<void> watchVotesForPoll(PollId pollId) {
     final key = pollId.value;
 

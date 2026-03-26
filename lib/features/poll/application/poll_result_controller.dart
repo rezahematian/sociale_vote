@@ -25,8 +25,16 @@ class PollResultController extends ChangeNotifier {
   final PollOutcomeCalculator _outcomeCalculator;
   final PollResultsVisibilityResolver _visibilityResolver;
 
+  static const Duration _realtimeReloadDebounce =
+      Duration(milliseconds: 250);
+
   StreamSubscription<void>? _votesSubscription;
+  Timer? _reloadDebounceTimer;
   String? _subscribedPollId;
+
+  bool _isDisposed = false;
+  int _requestId = 0;
+  bool _reloadQueued = false;
 
   PollResultController(
     this._getPollResults,
@@ -66,17 +74,24 @@ class PollResultController extends ChangeNotifier {
     required Poll poll,
     required bool userHasVoted,
   }) async {
+    if (_isDisposed) return;
+
     await _ensureRealtimeSubscription(poll);
+    if (_isDisposed) return;
 
     _lastPoll = poll;
     _lastUserHasVoted = userHasVoted;
 
+    final requestId = ++_requestId;
+
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final result = await _getPollResults(poll);
+      if (!_isRequestStillValid(requestId)) return;
+
       _result = result;
 
       _quorumStatus = _quorumEvaluator.evaluate(
@@ -95,13 +110,22 @@ class PollResultController extends ChangeNotifier {
         userHasVoted: userHasVoted,
       );
     } catch (_) {
+      if (!_isRequestStillValid(requestId)) return;
+
       _error = 'Failed to load results';
       _quorumStatus = QuorumStatus.notApplicable;
       _outcome = PollOutcome.notApplicable;
       _canShowResults = false;
     } finally {
+      if (!_isRequestStillValid(requestId)) return;
+
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
+
+      if (_reloadQueued) {
+        _reloadQueued = false;
+        unawaited(reload());
+      }
     }
   }
 
@@ -115,10 +139,26 @@ class PollResultController extends ChangeNotifier {
     await _votesSubscription?.cancel();
 
     _votesSubscription = _voteRepository.watchVotesForPoll(poll.id).listen((_) {
-      reload();
+      _scheduleRealtimeReload();
     });
 
     _subscribedPollId = pollId;
+  }
+
+  void _scheduleRealtimeReload() {
+    if (_isDisposed) return;
+
+    _reloadDebounceTimer?.cancel();
+    _reloadDebounceTimer = Timer(_realtimeReloadDebounce, () {
+      if (_isDisposed) return;
+
+      if (_isLoading) {
+        _reloadQueued = true;
+        return;
+      }
+
+      unawaited(reload());
+    });
   }
 
   Future<void> reload() async {
@@ -143,16 +183,31 @@ class PollResultController extends ChangeNotifier {
             userHasVoted: true,
           )
         : _canShowResults;
+    _safeNotifyListeners();
+  }
+
+  bool _isRequestStillValid(int requestId) {
+    return !_isDisposed && requestId == _requestId;
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) return;
     notifyListeners();
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
+    _reloadDebounceTimer?.cancel();
     _votesSubscription?.cancel();
     super.dispose();
   }
 
   void reset() {
+    _requestId += 1;
+    _reloadQueued = false;
+    _reloadDebounceTimer?.cancel();
+    _reloadDebounceTimer = null;
     _votesSubscription?.cancel();
     _votesSubscription = null;
     _subscribedPollId = null;
@@ -164,6 +219,6 @@ class PollResultController extends ChangeNotifier {
     _canShowResults = false;
     _lastPoll = null;
     _lastUserHasVoted = null;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 }

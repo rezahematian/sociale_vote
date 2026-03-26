@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/content/social/usecases/get_feed.dart';
@@ -131,6 +132,10 @@ class FeedController extends ChangeNotifier {
     return TargetRef.post(_postId(post));
   }
 
+  String _targetBatchKey(TargetRef target) {
+    return '${target.type.name}|${target.id.trim()}';
+  }
+
   bool _containsPost(Post post) {
     final postId = _postId(post);
     return _posts.any((item) => item.id.value == postId);
@@ -222,7 +227,6 @@ class FeedController extends ChangeNotifier {
     } catch (e, stackTrace) {
       _hasError = true;
       _errorMessage ??= 'Impossibile caricare altri post.';
-      _hasMoreFromSource = false;
 
       if (kDebugMode) {
         debugPrint('Error loading more posts: $e');
@@ -268,12 +272,13 @@ class FeedController extends ChangeNotifier {
     _currentOffset += result.length;
     _posts.addAll(result);
 
-    await _loadReactionSummariesForPosts(
-      result,
-      userId: _lastKnownUserId,
-    );
-
-    await _loadCommentCountsForPosts(result);
+    await Future.wait<void>([
+      _loadReactionSummariesForPosts(
+        result,
+        userId: _lastKnownUserId,
+      ),
+      _loadCommentCountsForPosts(result),
+    ]);
 
     _sortPosts();
   }
@@ -286,7 +291,7 @@ class FeedController extends ChangeNotifier {
       return;
     }
 
-    final targets = posts.map(_targetForPost).toList();
+    final targets = posts.map(_targetForPost).toList(growable: false);
 
     final summaries = await _getReactionSummary(
       targets,
@@ -303,9 +308,14 @@ class FeedController extends ChangeNotifier {
       return;
     }
 
+    final targets = posts.map(_targetForPost).toList(growable: false);
+    final batchCounts = await AppDI.instance.commentRepository
+        .countCommentsForTargets(targets);
+
     for (final post in posts) {
-      final count = await _getCommentCountForTarget(_targetForPost(post));
-      _commentCounts[_postId(post)] = count;
+      final target = _targetForPost(post);
+      final batchKey = _targetBatchKey(target);
+      _commentCounts[_postId(post)] = batchCounts[batchKey] ?? 0;
     }
   }
 

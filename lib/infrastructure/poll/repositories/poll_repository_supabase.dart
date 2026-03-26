@@ -15,8 +15,6 @@ class PollRepositorySupabase implements PollRepository {
   static const String _pollsTable = 'polls_with_vote_count';
   static const String _pollsInsertTable = 'polls';
 
-  static const int _filteredWarmupBatchSize = 200;
-
   @override
   Future<List<Poll>> getPolls({
     String? countryCode,
@@ -24,53 +22,41 @@ class PollRepositorySupabase implements PollRepository {
     int? limit,
     int? offset,
   }) async {
-    final normalizedCountryCode = _normalizeText(countryCode);
-    final normalizedCityId = _normalizeText(cityId);
-    final hasGeoFilter =
-        normalizedCountryCode != null || normalizedCityId != null;
+    final requestedCountryCode = _prepareDbFilterValue(countryCode);
+    final requestedCityId = _prepareDbFilterValue(cityId);
 
     dynamic query = AppSupabase.client.from(_pollsTable).select();
+
+    if (requestedCountryCode != null) {
+      query = query.eq('country_code', requestedCountryCode);
+    }
+
+    if (requestedCityId != null) {
+      query = query.eq('city_id', requestedCityId);
+    }
 
     query = query.order('vote_count', ascending: false);
     query = query.order('created_at', ascending: false);
 
-    if (!hasGeoFilter) {
-      if (offset != null && limit != null) {
-        query = query.range(offset, offset + limit - 1);
-      } else if (limit != null) {
-        query = query.limit(limit);
+    final safeOffset = (offset ?? 0) < 0 ? 0 : (offset ?? 0);
+    final safeLimit = limit;
+
+    if (safeLimit != null) {
+      if (safeLimit <= 0) {
+        return const <Poll>[];
       }
 
-      final rawRows = await query as List<dynamic>;
-
-      return rawRows
-          .whereType<Map<String, dynamic>>()
-          .map(_mapPoll)
-          .toList(growable: false);
+      query = query.range(safeOffset, safeOffset + safeLimit - 1);
+    } else if (safeOffset > 0) {
+      query = query.range(safeOffset, safeOffset + 199);
     }
-
-    final fetchLimit = _resolveFilteredFetchLimit(limit, offset);
-    query = query.limit(fetchLimit);
 
     final rawRows = await query as List<dynamic>;
 
-    final mapped = rawRows
+    return rawRows
         .whereType<Map<String, dynamic>>()
         .map(_mapPoll)
-        .where(
-          (poll) => _matchesGeoFilter(
-            poll,
-            countryCode: normalizedCountryCode,
-            cityId: normalizedCityId,
-          ),
-        )
         .toList(growable: false);
-
-    return _paginatePolls(
-      mapped,
-      limit: limit,
-      offset: offset,
-    );
   }
 
   @override
@@ -241,75 +227,17 @@ class PollRepositorySupabase implements PollRepository {
     return fallback.isEmpty ? null : fallback;
   }
 
-  List<Poll> _paginatePolls(
-    List<Poll> polls, {
-    required int? limit,
-    required int? offset,
-  }) {
-    if (polls.isEmpty) {
-      return const <Poll>[];
+  String? _prepareDbFilterValue(String? value) {
+    if (value == null) {
+      return null;
     }
 
-    final safeOffset = offset ?? 0;
-    final safeLimit = limit ?? polls.length;
-
-    if (safeOffset >= polls.length) {
-      return const <Poll>[];
-    }
-
-    final end = (safeOffset + safeLimit) > polls.length
-        ? polls.length
-        : (safeOffset + safeLimit);
-
-    return List<Poll>.unmodifiable(polls.sublist(safeOffset, end));
-  }
-
-  int _resolveFilteredFetchLimit(int? limit, int? offset) {
-    final requestedLimit = limit ?? 50;
-    final requestedOffset = offset ?? 0;
-    final requestedSpan = requestedLimit + requestedOffset;
-
-    if (requestedSpan > _filteredWarmupBatchSize) {
-      return requestedSpan;
-    }
-
-    return _filteredWarmupBatchSize;
-  }
-
-  bool _matchesGeoFilter(
-    Poll poll, {
-    required String? countryCode,
-    required String? cityId,
-  }) {
-    if (countryCode == null && cityId == null) {
-      return true;
-    }
-
-    final location = poll.contentLocation;
-
-    final pollCountryCode = _normalizeText(
-      location?.countryCode ?? poll.countryCode,
-    );
-    final pollCityId = _normalizeText(
-      location?.cityId ?? poll.cityId,
-    );
-
-    if (cityId != null) {
-      return pollCityId == cityId;
-    }
-
-    if (countryCode != null) {
-      return pollCountryCode == countryCode;
-    }
-
-    return true;
-  }
-
-  String? _normalizeText(String? value) {
-    if (value == null) return null;
     final trimmed = value.trim();
-    if (trimmed.isEmpty) return null;
-    return trimmed.toLowerCase();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    return trimmed;
   }
 
   DateTime? _parseDateTime(dynamic value) {

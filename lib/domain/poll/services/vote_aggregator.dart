@@ -17,24 +17,6 @@ class VoteAggregator {
   /// di selezioni (somma di tutte le optionIds dei voti),
   /// così da gestire anche i poll a scelta multipla.
   PollResult aggregate(Poll poll, List<Vote> votes) {
-    if (votes.isEmpty || poll.options.isEmpty) {
-      return PollResult(
-        pollId: poll.id,
-        totalVotes: 0,
-        optionResults: poll.options
-            .map(
-              (option) => PollOptionResult(
-                optionId: option.id,
-                label: option.label,
-                voteCount: 0,
-                percentage: 0.0,
-              ),
-            )
-            .toList(),
-      );
-    }
-
-    // Conteggio selezioni per opzione.
     final Map<String, int> countsByOptionId = {
       for (final option in poll.options) option.id: 0,
     };
@@ -47,11 +29,37 @@ class VoteAggregator {
       }
     }
 
-    final int totalSelections = countsByOptionId.values.fold(0, (a, b) => a + b);
-    final int totalVotes = votes.length;
+    return aggregateFromCounts(
+      poll,
+      totalVotes: votes.length,
+      countsByOptionId: countsByOptionId,
+    );
+  }
+
+  PollResult aggregateFromCounts(
+    Poll poll, {
+    required int totalVotes,
+    required Map<String, int> countsByOptionId,
+  }) {
+    if (poll.options.isEmpty) {
+      return PollResult(
+        pollId: poll.id,
+        totalVotes: totalVotes,
+        optionResults: const <PollOptionResult>[],
+      );
+    }
+
+    final normalizedCountsByOptionId = <String, int>{
+      for (final option in poll.options) option.id: countsByOptionId[option.id] ?? 0,
+    };
+
+    final int totalSelections = normalizedCountsByOptionId.values.fold(
+      0,
+      (a, b) => a + b,
+    );
 
     final optionResults = poll.options.map((option) {
-      final count = countsByOptionId[option.id] ?? 0;
+      final count = normalizedCountsByOptionId[option.id] ?? 0;
 
       final double percentage;
       if (totalSelections == 0) {
@@ -66,7 +74,7 @@ class VoteAggregator {
         voteCount: count,
         percentage: percentage,
       );
-    }).toList();
+    }).toList(growable: false);
 
     return PollResult(
       pollId: poll.id,

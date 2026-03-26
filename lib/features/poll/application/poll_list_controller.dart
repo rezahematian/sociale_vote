@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/engagement/entities/reaction_summary.dart';
@@ -137,11 +138,25 @@ class PollListController extends ChangeNotifier {
     _currentOffset = 0;
     _hasMoreFromSource = true;
 
-    await _loadNextPage();
-    if (_isDisposed) return;
+    try {
+      await _loadNextPage();
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('Error loading polls: $e');
+        debugPrint('$stackTrace');
+      }
 
-    _isLoading = false;
-    _safeNotifyListeners();
+      _allPolls.clear();
+      _visiblePolls.clear();
+      _reactionSummaries.clear();
+      _pollResults.clear();
+      _currentOffset = 0;
+      _hasMoreFromSource = false;
+    } finally {
+      if (_isDisposed) return;
+      _isLoading = false;
+      _safeNotifyListeners();
+    }
   }
 
   Future<void> loadMorePolls() async {
@@ -152,11 +167,18 @@ class PollListController extends ChangeNotifier {
     _isLoading = true;
     _safeNotifyListeners();
 
-    await _loadNextPage();
-    if (_isDisposed) return;
-
-    _isLoading = false;
-    _safeNotifyListeners();
+    try {
+      await _loadNextPage();
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('Error loading more polls: $e');
+        debugPrint('$stackTrace');
+      }
+    } finally {
+      if (_isDisposed) return;
+      _isLoading = false;
+      _safeNotifyListeners();
+    }
   }
 
   Future<void> _loadNextPage() async {
@@ -194,10 +216,10 @@ class PollListController extends ChangeNotifier {
     _currentOffset += result.length;
     _allPolls.addAll(result);
 
-    await _loadReactionSummariesForPolls(result);
-    if (_isDisposed) return;
-
-    await _loadPollResultsForPolls(result);
+    await Future.wait<void>([
+      _loadReactionSummariesForPolls(result),
+      _loadPollResultsForPolls(result),
+    ]);
     if (_isDisposed) return;
 
     _recomputeVisiblePolls();
@@ -224,15 +246,20 @@ class PollListController extends ChangeNotifier {
     if (_isDisposed) return;
     if (newPolls.isEmpty) return;
 
-    for (final poll in newPolls) {
-      try {
-        final pollResult = await getPollResults(poll);
+    await Future.wait<void>(
+      newPolls.map((poll) async {
         if (_isDisposed) return;
-        _pollResults[poll.id.value] = pollResult;
-      } catch (_) {
-        // Se un poll fallisce, non blocchiamo tutta la lista.
-      }
-    }
+        if (_pollResults.containsKey(poll.id.value)) return;
+
+        try {
+          final pollResult = await getPollResults(poll);
+          if (_isDisposed) return;
+          _pollResults[poll.id.value] = pollResult;
+        } catch (_) {
+          // Se un poll fallisce, non blocchiamo tutta la lista.
+        }
+      }),
+    );
   }
 
   // ===== Reaction helpers =====

@@ -130,6 +130,10 @@ class NewsController extends ChangeNotifier {
     return TargetRef.news(_newsId(newsItem));
   }
 
+  String _targetBatchKey(TargetRef target) {
+    return '${target.type.name}|${target.id.trim()}';
+  }
+
   String? _systemLanguageCode() {
     try {
       return ui.PlatformDispatcher.instance.locale.toLanguageTag();
@@ -289,7 +293,6 @@ class NewsController extends ChangeNotifier {
         debugPrint('$stackTrace');
       }
 
-      _hasMoreFromSource = false;
       _applyError(e, fallbackMessage: 'Unable to load more news.');
     } finally {
       if (!_isRequestStillValid(requestId)) {
@@ -339,20 +342,17 @@ class NewsController extends ChangeNotifier {
     _currentOffset += result.length;
     _news.addAll(result);
 
-    await _loadReactionSummariesForNews(
-      result,
-      userId: _lastKnownUserId,
-      requestId: requestId,
-    );
-
-    if (!_isRequestStillValid(requestId)) {
-      return;
-    }
-
-    await _loadCommentCountsForNews(
-      result,
-      requestId: requestId,
-    );
+    await Future.wait<void>([
+      _loadReactionSummariesForNews(
+        result,
+        userId: _lastKnownUserId,
+        requestId: requestId,
+      ),
+      _loadCommentCountsForNews(
+        result,
+        requestId: requestId,
+      ),
+    ]);
 
     if (!_isRequestStillValid(requestId)) {
       return;
@@ -390,15 +390,18 @@ class NewsController extends ChangeNotifier {
   }) async {
     if (items.isEmpty) return;
 
+    final targets = items.map(_targetForNews).toList(growable: false);
+    final batchCounts = await AppDI.instance.commentRepository
+        .countCommentsForTargets(targets);
+
+    if (!_isRequestStillValid(requestId)) {
+      return;
+    }
+
     for (final item in items) {
-      final count =
-          await AppDI.instance.getCommentCountForTarget(_targetForNews(item));
-
-      if (!_isRequestStillValid(requestId)) {
-        return;
-      }
-
-      _commentCounts[_newsId(item)] = count;
+      final target = _targetForNews(item);
+      final batchKey = _targetBatchKey(target);
+      _commentCounts[_newsId(item)] = batchCounts[batchKey] ?? 0;
     }
   }
 
