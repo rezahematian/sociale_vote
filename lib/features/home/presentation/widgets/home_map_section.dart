@@ -69,19 +69,31 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
               CivicMapWidget(
                 controller: controller,
                 currentScopeLabel: widget.scopeShortLabel,
-                onTap: () {
-                  Navigator.of(context).pushNamed(AppRouter.civicMap);
+                onTap: () async {
+                  await _openFullMap(
+                    context,
+                    controller: controller,
+                    scope: activeScope,
+                  );
                 },
-                onItemTap: (_) {
-                  Navigator.of(context).pushNamed(AppRouter.civicMap);
+                onItemTap: (_) async {
+                  await _openFullMap(
+                    context,
+                    controller: controller,
+                    scope: activeScope,
+                  );
                 },
               ),
               Positioned(
                 right: 12,
                 bottom: 12,
                 child: FilledButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).pushNamed(AppRouter.civicMap);
+                  onPressed: () async {
+                    await _openFullMap(
+                      context,
+                      controller: controller,
+                      scope: activeScope,
+                    );
                   },
                   icon: const Icon(Icons.open_in_full),
                   label: const Text('Apri mappa'),
@@ -94,6 +106,28 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
     );
   }
 
+  Future<void> _openFullMap(
+    BuildContext context, {
+    required CivicMapController controller,
+    required GeoScope? scope,
+  }) async {
+    await Navigator.of(context).pushNamed(AppRouter.civicMap);
+
+    if (!mounted) return;
+
+    if (scope != null) {
+      _lastSyncedScopeKey = _scopeKey(scope);
+      await controller.syncScope(
+        scope,
+        forceReload: true,
+        clearSelection: false,
+      );
+      return;
+    }
+
+    await controller.refresh();
+  }
+
   void _scheduleScopeSyncIfNeeded({
     required CivicMapController controller,
     required GeoScope? scope,
@@ -103,7 +137,14 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
       return;
     }
 
-    if (_lastSyncedScopeKey == scopeKey) {
+    final controllerScope = controller.currentScope;
+    final controllerScopeKey =
+        controllerScope == null ? null : _scopeKey(controllerScope);
+
+    final needsSync =
+        _lastSyncedScopeKey != scopeKey || controllerScopeKey != scopeKey;
+
+    if (!needsSync) {
       return;
     }
 

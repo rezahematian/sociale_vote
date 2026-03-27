@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
-import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
@@ -349,8 +348,6 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
           AppRouter.pollDetail,
           arguments: PollId(targetId),
         );
-        if (!context.mounted) return;
-        await controller.refreshMetrics();
         return;
 
       case TargetType.post:
@@ -358,8 +355,6 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
           AppRouter.socialDetail,
           arguments: targetId,
         );
-        if (!context.mounted) return;
-        await controller.refreshMetrics();
         return;
 
       case TargetType.news:
@@ -380,8 +375,6 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
             builder: (_) => NewsDetailPage(news: newsItem),
           ),
         );
-        if (!context.mounted) return;
-        await controller.refreshMetrics();
         return;
 
       default:
@@ -391,97 +384,88 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
 
   Future<NewsItem?> _resolveNewsItem(String newsId) async {
     final appDi = AppDI.instance;
-
-    try {
-      final dynamic useCase = appDi.getNewsDetail;
-      final dynamic result = await _tryResolveDynamicNewsDetail(
-        useCase: useCase,
-        newsId: newsId,
-      );
-      if (result is NewsItem) {
-        return result;
-      }
-    } catch (_) {}
-
     final currentScope = appDi.geoScopeController.scope;
-
-    String? countryCode;
-    String? cityId;
-
-    switch (currentScope.level) {
-      case GeoScopeLevel.world:
-        break;
-      case GeoScopeLevel.country:
-        countryCode = currentScope.countryCode;
-        break;
-      case GeoScopeLevel.city:
-        countryCode = currentScope.countryCode;
-        cityId = currentScope.cityId;
-        break;
-    }
-
     final language = _selectedLanguage == NewsLanguage.auto
         ? null
         : _selectedLanguage.apiValue;
 
-    try {
-      final items = await appDi.getNewsFeed(
-        countryCode: countryCode,
-        cityId: cityId,
-        language: language,
-        limit: 50,
-        offset: 0,
-      );
+    final attempts = <Future<List<NewsItem>> Function()>[];
 
-      for (final item in items) {
-        if (item.id.value == newsId) {
-          return item;
+    switch (currentScope.level) {
+      case GeoScopeLevel.world:
+        attempts.add(
+          () => appDi.getNewsFeed(
+            language: language,
+            limit: 100,
+            offset: 0,
+          ),
+        );
+        break;
+
+      case GeoScopeLevel.country:
+        attempts.add(
+          () => appDi.getNewsFeed(
+            countryCode: currentScope.countryCode,
+            language: language,
+            limit: 100,
+            offset: 0,
+          ),
+        );
+        attempts.add(
+          () => appDi.getNewsFeed(
+            language: language,
+            limit: 100,
+            offset: 0,
+          ),
+        );
+        break;
+
+      case GeoScopeLevel.city:
+        attempts.add(
+          () => appDi.getNewsFeed(
+            countryCode: currentScope.countryCode,
+            cityId: currentScope.cityId,
+            language: language,
+            limit: 100,
+            offset: 0,
+          ),
+        );
+        attempts.add(
+          () => appDi.getNewsFeed(
+            countryCode: currentScope.countryCode,
+            language: language,
+            limit: 100,
+            offset: 0,
+          ),
+        );
+        attempts.add(
+          () => appDi.getNewsFeed(
+            language: language,
+            limit: 100,
+            offset: 0,
+          ),
+        );
+        break;
+    }
+
+    for (final attempt in attempts) {
+      try {
+        final items = await attempt();
+        for (final item in items) {
+          if (_matchesNewsId(item, newsId)) {
+            return item;
+          }
         }
+      } catch (_) {
+        // best effort
       }
-    } catch (_) {}
-
-    try {
-      final items = await appDi.getNewsFeed(
-        language: language,
-        limit: 50,
-        offset: 0,
-      );
-
-      for (final item in items) {
-        if (item.id.value == newsId) {
-          return item;
-        }
-      }
-    } catch (_) {}
+    }
 
     return null;
   }
 
-  Future<dynamic> _tryResolveDynamicNewsDetail({
-    required dynamic useCase,
-    required String newsId,
-  }) async {
-    final attempts = <Future<dynamic> Function()>[
-      () => useCase(newsId: newsId),
-      () => useCase(id: newsId),
-      () => useCase(newsId),
-      () => useCase(id: EntityId(newsId)),
-      () => useCase(EntityId(newsId)),
-    ];
-
-    Object? lastError;
-
-    for (final attempt in attempts) {
-      try {
-        return await attempt();
-      } catch (e) {
-        lastError = e;
-      }
-    }
-
-    throw StateError(
-      'Impossibile risolvere il dettaglio news: ${lastError ?? 'errore sconosciuto'}',
-    );
+  bool _matchesNewsId(NewsItem item, String newsId) {
+    return item.id.value.trim() == newsId.trim();
   }
 
   String? _readTargetRefId(TargetRef targetRef) {
@@ -838,7 +822,7 @@ class _MarkerPreviewCard extends StatelessWidget {
       case CivicMapHeatTier.hot:
         return Colors.deepOrange;
       case CivicMapHeatTier.active:
-        return Colors.amber.shade800;
+        return Colors.amber;
       case CivicMapHeatTier.normal:
         return Colors.grey;
     }

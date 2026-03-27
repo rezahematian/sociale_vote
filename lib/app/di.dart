@@ -695,6 +695,7 @@ class AppDI {
       loadPollItems: _loadPollMapItemsForScope,
       loadPostItems: _loadPostMapItemsForScope,
       loadNewsItems: _loadNewsMapItemsForScope,
+      beforeRefresh: _refreshNewsCacheForMapScope,
     );
   }
 
@@ -927,6 +928,70 @@ class AppDI {
     );
 
     return _filterEntitiesForGeoScope(fallback, scope);
+  }
+
+  Future<void> _refreshNewsCacheForMapScope(GeoScope scope) async {
+    final levelName = _readScopeLevelName(scope);
+    final countryCode = _readScopeCountryCode(scope);
+    final cityId = _readScopeCityId(scope);
+    final language = await _readEffectiveContentLanguageApiValue();
+
+    if (levelName == 'city') {
+      if (!_hasText(countryCode) || !_hasText(cityId)) {
+        return;
+      }
+
+      await refreshNewsFeedCache(
+        countryCode: countryCode,
+        cityId: cityId,
+        language: language,
+        providerLimit: _newsMapBatchSize,
+      );
+      return;
+    }
+
+    if (levelName == 'country') {
+      if (!_hasText(countryCode)) {
+        return;
+      }
+
+      await refreshNewsFeedCache(
+        countryCode: countryCode,
+        cityId: null,
+        language: language,
+        providerLimit: _newsMapBatchSize,
+      );
+      return;
+    }
+
+    if (levelName == 'area') {
+      if (_hasText(countryCode) && _hasText(cityId)) {
+        await refreshNewsFeedCache(
+          countryCode: countryCode,
+          cityId: cityId,
+          language: language,
+          providerLimit: _newsMapBatchSize,
+        );
+        return;
+      }
+
+      if (_hasText(countryCode)) {
+        await refreshNewsFeedCache(
+          countryCode: countryCode,
+          cityId: null,
+          language: language,
+          providerLimit: _newsMapBatchSize,
+        );
+        return;
+      }
+    }
+
+    await refreshNewsFeedCache(
+      countryCode: null,
+      cityId: null,
+      language: language,
+      providerLimit: _newsMapBatchSize,
+    );
   }
 
   Future<List<NewsItem>> _loadNewsBatch({

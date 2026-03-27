@@ -13,19 +13,13 @@ import 'package:sociale_vote/infrastructure/news/models/news_dto.dart';
 
 class NewsRepositoryImpl implements NewsRepository {
   static const String _cacheTable = 'news_feed_cache';
-  static const Duration _cacheTtl = Duration(minutes: 30);
-  static const Duration _refreshFailureCooldown = Duration(minutes: 5);
-  static const int _cachePayloadVersion = 2;
+  static const int _cachePayloadVersion = 3;
+  static const int _defaultRefreshFetchLimit = 50;
 
-  static const int _providerWarmupBatchSize = 80;
-
-  /// Budget più aggressivo per evitare attese troppo lunghe in mappa.
   static const int _maxArticlesToGeocodePerRefresh = 8;
   static const int _maxLocationCandidatesPerArticle = 3;
   static const int _targetResolvedLocationsPerRefresh = 8;
-
   static const Duration _perArticleGeocodeTimeout = Duration(seconds: 2);
-  static const int _maxParallelGeocodeJobs = 6;
 
   static const String _locationLeadPrepositionPattern =
       r'(?:in|at|from|near|inside|outside|around|across|a|ad|da|nel|nella|nelle|nei|presso)';
@@ -89,10 +83,9 @@ class NewsRepositoryImpl implements NewsRepository {
   final NewsAggregator _aggregator;
   final NewsMapper _mapper;
   final GeocodingRepository _geocodingRepository;
+
   final Map<String, Future<List<Map<String, dynamic>>>> _inFlightRefreshes =
       <String, Future<List<Map<String, dynamic>>>>{};
-  final Map<String, DateTime> _refreshCooldownUntilByCacheKey =
-      <String, DateTime>{};
 
   NewsRepositoryImpl(
     this._aggregator,
@@ -107,22 +100,16 @@ class NewsRepositoryImpl implements NewsRepository {
     String? language,
     int? providerLimit,
   }) async {
-    final requestedCountryCode = _normalize(countryCode);
-    final requestedCityId = _normalize(cityId);
-    final requestedTopic = _normalize(topic);
-    final requestedLanguage = _normalizeLanguageCode(language);
-
     final candidate = _NewsFeedCandidate(
-      countryCode: requestedCountryCode,
-      cityId: requestedCityId,
-      topic: requestedTopic,
-      language: requestedLanguage,
+      countryCode: _normalize(countryCode),
+      cityId: _normalize(cityId),
+      topic: _normalize(topic),
+      language: _normalizeLanguageCode(language),
     );
 
     final refreshedItems = await _refreshCacheForCandidateDeduplicated(
       candidate,
-      providerLimit: _resolveProviderFetchLimit(providerLimit, 0),
-      allowStalePreviousCache: _shouldAllowStaleCache(candidate.language),
+      providerLimit: providerLimit ?? _defaultRefreshFetchLimit,
     );
 
     return refreshedItems.length;
@@ -137,214 +124,28 @@ class NewsRepositoryImpl implements NewsRepository {
     int? limit,
     int? offset,
   }) async {
-    final requestedCountryCode = _normalize(countryCode);
-    final requestedCityId = _normalize(cityId);
-    final requestedTopic = _normalize(topic);
-    final requestedLanguage = _normalizeLanguageCode(language);
-
     final candidate = _NewsFeedCandidate(
-      countryCode: requestedCountryCode,
-      cityId: requestedCityId,
-      topic: requestedTopic,
-      language: requestedLanguage,
+      countryCode: _normalize(countryCode),
+      cityId: _normalize(cityId),
+      topic: _normalize(topic),
+      language: _normalizeLanguageCode(language),
     );
 
-    final allowStaleCache = _shouldAllowStaleCache(requestedLanguage);
-    Object? lastRefreshError;
-
-    final freshCache = await _readCache(
+    final cache = await _readExactCache(
       cacheKey: candidate.cacheKey,
-      acceptStale: false,
       requestedLanguage: candidate.language,
     );
 
-    final hasFreshCache = freshCache != null && freshCache.items.isNotEmpty;
-
-    if (hasFreshCache) {
-      return _mapCandidatePage(
-        candidate,
-        freshCache.items,
-        limit: limit,
-        offset: offset,
-      );
-    }
-
-    final staleCache = allowStaleCache
-        ? await _readCache(
-            cacheKey: candidate.cacheKey,
-            acceptStale: true,
-            requestedLanguage: candidate.language,
-          )
-        : null;
-
-    final usableStaleCache =
-        staleCache != null &&
-                _canUseStaleFallbackCache(
-                  staleCache,
-                  requestedLanguage: candidate.language,
-                )
-            ? staleCache
-            : null;
-
-    if (staleCache != null && usableStaleCache == null && kDebugMode) {
-      debugPrint(
-        'NewsRepositoryImpl stale cache rejected for ${candidate.cacheKey} '
-        'because language/provider coherence is not reliable.',
-      );
-    }
-
-    if (usableStaleCache != null && usableStaleCache.items.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl serving same-language stale cache for '
-          '${candidate.cacheKey}.',
-        );
-      }
-
-      return _mapCandidatePage(
-        candidate,
-        usableStaleCache.items,
-        limit: limit,
-        offset: offset,
-      );
-    }
-
-    final sameLanguageEquivalentCandidates =
-        _buildSameLanguageEquivalentCandidates(candidate);
-
-    final sameLanguageEquivalentFreshHit =
-        await _readFirstSameLanguageEquivalentCache(
-      candidates: sameLanguageEquivalentCandidates,
-      acceptStale: false,
-      requestedLanguage: candidate.language,
-    );
-
-    if (sameLanguageEquivalentFreshHit != null &&
-        sameLanguageEquivalentFreshHit.cache.items.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl serving same-language equivalent fresh cache '
-          'from ${sameLanguageEquivalentFreshHit.candidate.cacheKey} for '
-          '${candidate.cacheKey}.',
-        );
-      }
-
-      return _mapCandidatePage(
-        candidate,
-        sameLanguageEquivalentFreshHit.cache.items,
-        limit: limit,
-        offset: offset,
-      );
-    }
-
-    final sameLanguageEquivalentStaleHit = allowStaleCache
-        ? await _readFirstSameLanguageEquivalentCache(
-            candidates: sameLanguageEquivalentCandidates,
-            acceptStale: true,
-            requestedLanguage: candidate.language,
-          )
-        : null;
-
-    final usableSameLanguageEquivalentStaleHit =
-        sameLanguageEquivalentStaleHit != null &&
-                _canUseStaleFallbackCache(
-                  sameLanguageEquivalentStaleHit.cache,
-                  requestedLanguage: candidate.language,
-                )
-            ? sameLanguageEquivalentStaleHit
-            : null;
-
-    if (usableSameLanguageEquivalentStaleHit != null &&
-        usableSameLanguageEquivalentStaleHit.cache.items.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl serving same-language equivalent stale cache '
-          'from ${usableSameLanguageEquivalentStaleHit.candidate.cacheKey} '
-          'for ${candidate.cacheKey}.',
-        );
-      }
-
-      return _mapCandidatePage(
-        candidate,
-        usableSameLanguageEquivalentStaleHit.cache.items,
-        limit: limit,
-        offset: offset,
-      );
-    }
-
-    if (_isRefreshCooldownActive(candidate.cacheKey)) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl skipping live refresh for ${candidate.cacheKey} '
-          'because failure cooldown is active.',
-        );
-      }
-
-      if (requestedLanguage != null && requestedLanguage != 'en') {
-        final englishFallbackItems = await _tryEnglishFallbackPage(
-          countryCode: requestedCountryCode,
-          cityId: requestedCityId,
-          topic: requestedTopic,
-          limit: limit,
-          offset: offset,
-        );
-
-        if (englishFallbackItems.isNotEmpty) {
-          return englishFallbackItems;
-        }
-      }
-
+    if (cache == null || cache.items.isEmpty) {
       return const <NewsItem>[];
     }
 
-    try {
-      final refreshedItems = await _refreshCacheForCandidateDeduplicated(
-        candidate,
-        providerLimit: _resolveProviderFetchLimit(limit, offset),
-        allowStalePreviousCache: allowStaleCache,
-      );
-
-      if (refreshedItems.isNotEmpty) {
-        return _mapCandidatePage(
-          candidate,
-          refreshedItems,
-          limit: limit,
-          offset: offset,
-        );
-      }
-    } catch (e, st) {
-      lastRefreshError = e;
-
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl refresh failed for ${candidate.cacheKey}: $e',
-        );
-        debugPrint('$st');
-      }
-    }
-
-    if (requestedLanguage != null && requestedLanguage != 'en') {
-      final englishFallbackItems = await _tryEnglishFallbackPage(
-        countryCode: requestedCountryCode,
-        cityId: requestedCityId,
-        topic: requestedTopic,
-        limit: limit,
-        offset: offset,
-      );
-
-      if (englishFallbackItems.isNotEmpty) {
-        return englishFallbackItems;
-      }
-    }
-
-    if (kDebugMode && lastRefreshError != null) {
-      debugPrint(
-        'NewsRepositoryImpl: no usable cache and refresh failed: '
-        '$lastRefreshError',
-      );
-    }
-
-    return const <NewsItem>[];
+    return _mapCandidatePage(
+      candidate,
+      cache.items,
+      limit: limit,
+      offset: offset,
+    );
   }
 
   @override
@@ -355,224 +156,29 @@ class NewsRepositoryImpl implements NewsRepository {
     String? language,
     int? limit,
   }) async {
-    final requestedCountryCode = _normalize(countryCode);
-    final requestedCityId = _normalize(cityId);
-    final requestedTopic = _normalize(topic);
-    final requestedLanguage = _normalizeLanguageCode(language);
-
     final candidate = _NewsFeedCandidate(
-      countryCode: requestedCountryCode,
-      cityId: requestedCityId,
-      topic: requestedTopic,
-      language: requestedLanguage,
+      countryCode: _normalize(countryCode),
+      cityId: _normalize(cityId),
+      topic: _normalize(topic),
+      language: _normalizeLanguageCode(language),
     );
 
-    final allowStaleCache = _shouldAllowStaleCache(requestedLanguage);
-    Object? lastRefreshError;
-
-    final freshCache = await _readCache(
+    final cache = await _readExactCache(
       cacheKey: candidate.cacheKey,
-      acceptStale: false,
       requestedLanguage: candidate.language,
     );
 
-    final hasFreshCache = freshCache != null && freshCache.items.isNotEmpty;
-
-    if (hasFreshCache) {
-      return _mapTrendingCandidateList(
-        candidate,
-        freshCache.items,
-      );
-    }
-
-    final staleCache = allowStaleCache
-        ? await _readCache(
-            cacheKey: candidate.cacheKey,
-            acceptStale: true,
-            requestedLanguage: candidate.language,
-          )
-        : null;
-
-    final usableStaleCache =
-        staleCache != null &&
-                _canUseStaleFallbackCache(
-                  staleCache,
-                  requestedLanguage: candidate.language,
-                )
-            ? staleCache
-            : null;
-
-    if (staleCache != null && usableStaleCache == null && kDebugMode) {
-      debugPrint(
-        'NewsRepositoryImpl stale cache rejected for ${candidate.cacheKey} '
-        'because language/provider coherence is not reliable.',
-      );
-    }
-
-    if (usableStaleCache != null && usableStaleCache.items.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl serving same-language stale cache for '
-          '${candidate.cacheKey}.',
-        );
-      }
-
-      return _mapTrendingCandidateList(
-        candidate,
-        usableStaleCache.items,
-      );
-    }
-
-    final sameLanguageEquivalentCandidates =
-        _buildSameLanguageEquivalentCandidates(candidate);
-
-    final sameLanguageEquivalentFreshHit =
-        await _readFirstSameLanguageEquivalentCache(
-      candidates: sameLanguageEquivalentCandidates,
-      acceptStale: false,
-      requestedLanguage: candidate.language,
-    );
-
-    if (sameLanguageEquivalentFreshHit != null &&
-        sameLanguageEquivalentFreshHit.cache.items.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl serving same-language equivalent fresh cache '
-          'from ${sameLanguageEquivalentFreshHit.candidate.cacheKey} for '
-          '${candidate.cacheKey}.',
-        );
-      }
-
-      return _mapTrendingCandidateList(
-        candidate,
-        sameLanguageEquivalentFreshHit.cache.items,
-      );
-    }
-
-    final sameLanguageEquivalentStaleHit = allowStaleCache
-        ? await _readFirstSameLanguageEquivalentCache(
-            candidates: sameLanguageEquivalentCandidates,
-            acceptStale: true,
-            requestedLanguage: candidate.language,
-          )
-        : null;
-
-    final usableSameLanguageEquivalentStaleHit =
-        sameLanguageEquivalentStaleHit != null &&
-                _canUseStaleFallbackCache(
-                  sameLanguageEquivalentStaleHit.cache,
-                  requestedLanguage: candidate.language,
-                )
-            ? sameLanguageEquivalentStaleHit
-            : null;
-
-    if (usableSameLanguageEquivalentStaleHit != null &&
-        usableSameLanguageEquivalentStaleHit.cache.items.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl serving same-language equivalent stale cache '
-          'from ${usableSameLanguageEquivalentStaleHit.candidate.cacheKey} '
-          'for ${candidate.cacheKey}.',
-        );
-      }
-
-      return _mapTrendingCandidateList(
-        candidate,
-        usableSameLanguageEquivalentStaleHit.cache.items,
-      );
-    }
-
-    // Performance fix per Trending:
-    // se la richiesta arriva senza lingua esplicita, prova subito la cache EN
-    // invece di tentare live refresh che oggi va spesso in rate limit.
-    if (requestedLanguage == null) {
-      final englishFallbackItems =
-          await _tryEnglishFallbackTrendingCandidates(
-        countryCode: requestedCountryCode,
-        cityId: requestedCityId,
-        topic: requestedTopic,
-      );
-
-      if (englishFallbackItems.isNotEmpty) {
-        if (kDebugMode) {
-          debugPrint(
-            'NewsRepositoryImpl serving fast explicit English trending '
-            'fallback for null-language request.',
-          );
-        }
-
-        return englishFallbackItems;
-      }
-    }
-
-    if (_isRefreshCooldownActive(candidate.cacheKey)) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl skipping live refresh for ${candidate.cacheKey} '
-          'because failure cooldown is active.',
-        );
-      }
-
-      if (requestedLanguage != 'en') {
-        final englishFallbackItems =
-            await _tryEnglishFallbackTrendingCandidates(
-          countryCode: requestedCountryCode,
-          cityId: requestedCityId,
-          topic: requestedTopic,
-        );
-
-        if (englishFallbackItems.isNotEmpty) {
-          return englishFallbackItems;
-        }
-      }
-
+    if (cache == null || cache.items.isEmpty) {
       return const <NewsItem>[];
     }
 
-    try {
-      final refreshedItems = await _refreshCacheForCandidateDeduplicated(
-        candidate,
-        providerLimit: _resolveProviderFetchLimit(limit, 0),
-        allowStalePreviousCache: allowStaleCache,
-      );
+    final mapped = _mapTrendingCandidateList(candidate, cache.items);
 
-      if (refreshedItems.isNotEmpty) {
-        return _mapTrendingCandidateList(
-          candidate,
-          refreshedItems,
-        );
-      }
-    } catch (e, st) {
-      lastRefreshError = e;
-
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl refresh failed for ${candidate.cacheKey}: $e',
-        );
-        debugPrint('$st');
-      }
+    if (limit == null || limit <= 0 || mapped.length <= limit) {
+      return mapped;
     }
 
-    if (requestedLanguage != 'en') {
-      final englishFallbackItems = await _tryEnglishFallbackTrendingCandidates(
-        countryCode: requestedCountryCode,
-        cityId: requestedCityId,
-        topic: requestedTopic,
-      );
-
-      if (englishFallbackItems.isNotEmpty) {
-        return englishFallbackItems;
-      }
-    }
-
-    if (kDebugMode && lastRefreshError != null) {
-      debugPrint(
-        'NewsRepositoryImpl: no usable cache and refresh failed: '
-        '$lastRefreshError',
-      );
-    }
-
-    return const <NewsItem>[];
+    return List<NewsItem>.unmodifiable(mapped.take(limit).toList());
   }
 
   @override
@@ -583,179 +189,37 @@ class NewsRepositoryImpl implements NewsRepository {
     }
 
     final json = await _aggregator.fetchNewsDetail(id.value);
+    final normalized = _normalizeFetchedJsonList(
+      <dynamic>[json],
+      defaultLanguage: null,
+    );
+
+    if (normalized.isNotEmpty) {
+      final dto = NewsDto.fromJson(normalized.first);
+      final contentLocation = _readEmbeddedContentLocation(normalized.first);
+
+      return _mapper.toDomain(
+        dto,
+        contentLocation: contentLocation,
+      );
+    }
+
     final dto = NewsDto.fromJson(json);
-
     return _mapper.toDomain(dto);
-  }
-
-  Future<List<NewsItem>> _tryEnglishFallbackPage({
-    required String? countryCode,
-    required String? cityId,
-    required String? topic,
-    int? limit,
-    int? offset,
-  }) async {
-    final fallbackCandidate = _NewsFeedCandidate(
-      countryCode: countryCode,
-      cityId: cityId,
-      topic: topic,
-      language: 'en',
-    );
-
-    if (kDebugMode) {
-      debugPrint(
-        'NewsRepositoryImpl trying explicit English fallback via '
-        '${fallbackCandidate.cacheKey}.',
-      );
-    }
-
-    final freshCache = await _readCache(
-      cacheKey: fallbackCandidate.cacheKey,
-      acceptStale: false,
-      requestedLanguage: fallbackCandidate.language,
-    );
-
-    if (freshCache != null && freshCache.items.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl serving explicit English fallback from fresh '
-          'cache for ${fallbackCandidate.cacheKey}.',
-        );
-      }
-
-      return _mapCandidatePage(
-        fallbackCandidate,
-        freshCache.items,
-        limit: limit,
-        offset: offset,
-      );
-    }
-
-    final staleCache = await _readCache(
-      cacheKey: fallbackCandidate.cacheKey,
-      acceptStale: true,
-      requestedLanguage: fallbackCandidate.language,
-    );
-
-    final usableStaleCache =
-        staleCache != null &&
-                _canUseStaleFallbackCache(
-                  staleCache,
-                  requestedLanguage: fallbackCandidate.language,
-                )
-            ? staleCache
-            : null;
-
-    if (usableStaleCache != null && usableStaleCache.items.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl serving explicit English fallback from stale '
-          'cache for ${fallbackCandidate.cacheKey}.',
-        );
-      }
-
-      return _mapCandidatePage(
-        fallbackCandidate,
-        usableStaleCache.items,
-        limit: limit,
-        offset: offset,
-      );
-    }
-
-    return const <NewsItem>[];
-  }
-
-  Future<List<NewsItem>> _tryEnglishFallbackTrendingCandidates({
-    required String? countryCode,
-    required String? cityId,
-    required String? topic,
-  }) async {
-    final fallbackCandidate = _NewsFeedCandidate(
-      countryCode: countryCode,
-      cityId: cityId,
-      topic: topic,
-      language: 'en',
-    );
-
-    if (kDebugMode) {
-      debugPrint(
-        'NewsRepositoryImpl trying explicit English trending fallback via '
-        '${fallbackCandidate.cacheKey}.',
-      );
-    }
-
-    final freshCache = await _readCache(
-      cacheKey: fallbackCandidate.cacheKey,
-      acceptStale: false,
-      requestedLanguage: fallbackCandidate.language,
-    );
-
-    if (freshCache != null && freshCache.items.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl serving explicit English trending fallback '
-          'from fresh cache for ${fallbackCandidate.cacheKey}.',
-        );
-      }
-
-      return _mapTrendingCandidateList(
-        fallbackCandidate,
-        freshCache.items,
-      );
-    }
-
-    final staleCache = await _readCache(
-      cacheKey: fallbackCandidate.cacheKey,
-      acceptStale: true,
-      requestedLanguage: fallbackCandidate.language,
-    );
-
-    final usableStaleCache =
-        staleCache != null &&
-                _canUseStaleFallbackCache(
-                  staleCache,
-                  requestedLanguage: fallbackCandidate.language,
-                )
-            ? staleCache
-            : null;
-
-    if (usableStaleCache != null && usableStaleCache.items.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl serving explicit English trending fallback '
-          'from stale cache for ${fallbackCandidate.cacheKey}.',
-        );
-      }
-
-      return _mapTrendingCandidateList(
-        fallbackCandidate,
-        usableStaleCache.items,
-      );
-    }
-
-    return const <NewsItem>[];
   }
 
   Future<List<Map<String, dynamic>>> _refreshCacheForCandidateDeduplicated(
     _NewsFeedCandidate candidate, {
     required int providerLimit,
-    required bool allowStalePreviousCache,
   }) {
     final existing = _inFlightRefreshes[candidate.cacheKey];
     if (existing != null) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl joining in-flight refresh for '
-          '${candidate.cacheKey}.',
-        );
-      }
       return existing;
     }
 
     final future = _refreshCacheForCandidate(
       candidate,
       providerLimit: providerLimit,
-      allowStalePreviousCache: allowStalePreviousCache,
     );
 
     _inFlightRefreshes[candidate.cacheKey] = future;
@@ -773,107 +237,430 @@ class NewsRepositoryImpl implements NewsRepository {
   Future<List<Map<String, dynamic>>> _refreshCacheForCandidate(
     _NewsFeedCandidate candidate, {
     required int providerLimit,
-    required bool allowStalePreviousCache,
   }) async {
-    final previousCache = await _readCache(
-      cacheKey: candidate.cacheKey,
-      acceptStale: allowStalePreviousCache,
-      requestedLanguage: candidate.language,
+    final rawList = await _aggregator.fetchNews(
+      countryCode: candidate.countryCode,
+      cityId: candidate.cityId,
+      topic: candidate.topic,
+      language: candidate.language,
+      limit: providerLimit,
+      offset: 0,
     );
 
-    List<dynamic> jsonList;
-    try {
-      jsonList = await _aggregator.fetchNews(
-        countryCode: candidate.countryCode,
-        cityId: candidate.cityId,
-        topic: candidate.topic,
-        language: candidate.language,
-        limit: providerLimit,
-        offset: 0,
-      );
-    } catch (e) {
-      _markRefreshCooldown(
-        candidate.cacheKey,
-        reason: 'live refresh threw an exception',
-      );
-      rethrow;
-    }
+    final normalized = _normalizeFetchedJsonList(
+      rawList,
+      defaultLanguage: candidate.language,
+    );
 
-    final rawNormalized = _normalizeJsonList(jsonList);
-    final languageFiltered = _filterItemsForRequestedLanguage(
-      rawNormalized,
+    final filteredByLanguage = _filterItemsForRequestedLanguage(
+      normalized,
       candidate.language,
     );
-    final livePayloadRejectedByLanguage =
-        candidate.language != null &&
-        rawNormalized.isNotEmpty &&
-        languageFiltered.isEmpty;
 
-    if (kDebugMode && livePayloadRejectedByLanguage) {
-      debugPrint(
-        'NewsRepositoryImpl live payload rejected for ${candidate.cacheKey} '
-        'because no items passed the language coherence filter.',
-      );
-    }
-
-    final normalized = _deduplicateJsonListByStableIdentity(languageFiltered);
-
-    final previousItems = previousCache?.items ?? const <Map<String, dynamic>>[];
-
-    final seeded = _seedLocationsFromPreviousCache(
-      normalized,
-      previousItems,
+    final deduplicated = _deduplicateJsonListByStableIdentity(
+      filteredByLanguage,
     );
 
-    final enriched = await _enrichItemsForCache(seeded);
+    final sorted = _sortJsonListByPublishedAtDesc(deduplicated);
 
-    final stabilized = _preferStablePayload(
-      refreshedItems: enriched,
-      previousItems: previousItems,
+    final enriched = await _enrichItemsForCache(sorted);
+
+    await _writeCache(
+      cacheKey: candidate.cacheKey,
+      countryCode: candidate.countryCode,
+      cityId: candidate.cityId,
+      topic: candidate.topic,
+      language: candidate.language,
+      items: enriched,
     );
 
-    final refreshedLocated = _countItemsWithResolvedLocation(enriched);
-    final previousLocated = _countItemsWithResolvedLocation(previousItems);
+    return enriched;
+  }
 
-    final shouldPersistRefresh =
-        !livePayloadRejectedByLanguage &&
-        enriched.isNotEmpty &&
-        (refreshedLocated > 0 || previousLocated == 0);
+  Future<_CachedNewsFeed?> _readExactCache({
+    required String cacheKey,
+    required String? requestedLanguage,
+  }) async {
+    try {
+      final rows = await AppSupabase.client
+          .from(_cacheTable)
+          .select(
+            'cache_key, payload, refreshed_at, item_count, '
+            'resolved_location_count, provider_signatures, '
+            'languages_present, payload_version',
+          )
+          .eq('cache_key', cacheKey)
+          .limit(1);
 
-    if (shouldPersistRefresh) {
-      await _writeCache(
-        cacheKey: candidate.cacheKey,
-        countryCode: candidate.countryCode,
-        cityId: candidate.cityId,
-        topic: candidate.topic,
-        language: candidate.language,
-        items: stabilized,
-      );
-
-      await _writeCanonicalGlobalAllAliasIfNeeded(
-        sourceCandidate: candidate,
-        items: stabilized,
-      );
-
-      if (refreshedLocated > 0) {
-        _clearRefreshCooldown(candidate.cacheKey);
-      } else {
-        _markRefreshCooldown(
-          candidate.cacheKey,
-          reason: 'live payload persisted without resolved locations',
-        );
+      if (rows.isEmpty) {
+        return null;
       }
-    } else {
-      final reason = livePayloadRejectedByLanguage
-          ? 'live payload rejected by language coherence filter'
-          : enriched.isEmpty
-              ? 'live payload empty after normalization'
-              : 'live payload lost resolved locations compared with previous cache';
 
-      _markRefreshCooldown(candidate.cacheKey, reason: reason);
+      final row = rows.first;
+      if (row is! Map<String, dynamic>) {
+        return null;
+      }
+
+      final refreshedAt = _parseDateTime(row['refreshed_at']);
+      if (refreshedAt == null) {
+        return null;
+      }
+
+      final payload = row['payload'];
+      final items = _filterItemsForRequestedLanguage(
+        _normalizeFetchedJsonList(
+          payload is List ? payload : const <dynamic>[],
+          defaultLanguage: requestedLanguage,
+        ),
+        requestedLanguage,
+      );
+
+      if (items.isEmpty) {
+        return null;
+      }
+
+      final metadata = _readCacheMetadataFromRow(
+        row,
+        fallbackItems: items,
+      );
+
+      return _CachedNewsFeed(
+        items: _sortJsonListByPublishedAtDesc(items),
+        refreshedAt: refreshedAt,
+        metadata: metadata,
+      );
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('NewsRepositoryImpl cache read failed: $e');
+        debugPrint('$st');
+      }
+      return null;
+    }
+  }
+
+  Future<void> _writeCache({
+    required String cacheKey,
+    required String? countryCode,
+    required String? cityId,
+    required String? topic,
+    required String? language,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    try {
+      final metadata = _buildCacheMetadata(items);
+
+      await AppSupabase.client.from(_cacheTable).upsert(
+        <String, dynamic>{
+          'cache_key': cacheKey,
+          'country_code': countryCode,
+          'city_id': cityId,
+          'topic': topic,
+          'language': language,
+          'payload': items,
+          'item_count': metadata.itemCount,
+          'resolved_location_count': metadata.resolvedLocationCount,
+          'provider_signatures': metadata.providerSignatures,
+          'languages_present': metadata.languagesPresent,
+          'payload_version': metadata.payloadVersion,
+          'refreshed_at': DateTime.now().toUtc().toIso8601String(),
+        },
+        onConflict: 'cache_key',
+      );
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('NewsRepositoryImpl cache write failed: $e');
+        debugPrint('$st');
+      }
+    }
+  }
+
+  Future<NewsItem?> _findCachedNewsById(String newsId) async {
+    try {
+      final rows = await AppSupabase.client
+          .from(_cacheTable)
+          .select('payload, country_code, city_id, refreshed_at')
+          .order('refreshed_at', ascending: false)
+          .limit(40);
+
+      for (final row in rows) {
+        if (row is! Map<String, dynamic>) {
+          continue;
+        }
+
+        final payload = row['payload'];
+        if (payload is! List) {
+          continue;
+        }
+
+        final countryCode = _normalize(row['country_code']?.toString());
+        final cityId = _normalize(row['city_id']?.toString());
+
+        final normalizedPayload = _normalizeFetchedJsonList(
+          payload,
+          defaultLanguage: null,
+        );
+
+        for (final json in normalizedPayload) {
+          if (!_matchesRequestedNewsId(json, newsId)) {
+            continue;
+          }
+
+          final dto = _tryParseDto(json);
+          if (dto == null) {
+            continue;
+          }
+
+          final contentLocation = _readEmbeddedContentLocation(json);
+
+          return _mapper.toDomain(
+            dto,
+            countryCode: countryCode,
+            cityId: cityId,
+            contentLocation: contentLocation,
+          );
+        }
+      }
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('NewsRepositoryImpl detail cache lookup failed: $e');
+        debugPrint('$st');
+      }
     }
 
-    return stabilized;
+    return null;
+  }
+
+  List<NewsItem> _mapCandidatePage(
+    _NewsFeedCandidate candidate,
+    List<Map<String, dynamic>> jsonList, {
+    int? limit,
+    int? offset,
+  }) {
+    return _mapAndPaginate(
+      jsonList: jsonList,
+      countryCode: candidate.countryCode,
+      cityId: candidate.cityId,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  List<NewsItem> _mapTrendingCandidateList(
+    _NewsFeedCandidate candidate,
+    List<Map<String, dynamic>> jsonList,
+  ) {
+    return _mapJsonToDomainList(
+      jsonList,
+      countryCode: candidate.countryCode,
+      cityId: candidate.cityId,
+      sortByPublishedAt: true,
+    );
+  }
+
+  List<NewsItem> _mapAndPaginate({
+    required List<Map<String, dynamic>> jsonList,
+    required String? countryCode,
+    required String? cityId,
+    int? limit,
+    int? offset,
+  }) {
+    final mapped = _mapJsonToDomainList(
+      jsonList,
+      countryCode: countryCode,
+      cityId: cityId,
+      sortByPublishedAt: true,
+    );
+
+    if (mapped.isEmpty) {
+      return const <NewsItem>[];
+    }
+
+    final safeOffset = offset ?? 0;
+    final safeLimit = limit ?? mapped.length;
+
+    if (safeOffset >= mapped.length) {
+      return const <NewsItem>[];
+    }
+
+    final end = (safeOffset + safeLimit) > mapped.length
+        ? mapped.length
+        : (safeOffset + safeLimit);
+
+    return List<NewsItem>.unmodifiable(mapped.sublist(safeOffset, end));
+  }
+
+  List<NewsItem> _mapJsonToDomainList(
+    List<Map<String, dynamic>> jsonList, {
+    required String? countryCode,
+    required String? cityId,
+    bool sortByPublishedAt = true,
+  }) {
+    final items = <NewsItem>[];
+
+    for (final json in jsonList) {
+      final dto = _tryParseDto(json);
+      if (dto == null) {
+        continue;
+      }
+
+      final contentLocation = _readEmbeddedContentLocation(json);
+
+      items.add(
+        _mapper.toDomain(
+          dto,
+          countryCode: countryCode,
+          cityId: cityId,
+          contentLocation: contentLocation,
+        ),
+      );
+    }
+
+    if (sortByPublishedAt) {
+      items.sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
+    }
+
+    final seen = <String>{};
+    final unique = <NewsItem>[];
+
+    for (final item in items) {
+      final key = item.id.value;
+      if (seen.add(key)) {
+        unique.add(item);
+      }
+    }
+
+    return List<NewsItem>.unmodifiable(unique);
+  }
+
+  List<Map<String, dynamic>> _normalizeFetchedJsonList(
+    List<dynamic> rawList, {
+    required String? defaultLanguage,
+  }) {
+    final output = <Map<String, dynamic>>[];
+
+    for (final raw in rawList) {
+      if (raw is! Map) {
+        continue;
+      }
+
+      final json = raw.map(
+        (key, value) => MapEntry(key.toString(), value),
+      );
+
+      _flattenSourceFields(json);
+      _normalizePublishedAtField(json);
+
+      final existingLanguage = _extractItemLanguage(json);
+      if (existingLanguage == null &&
+          defaultLanguage != null &&
+          defaultLanguage.trim().isNotEmpty) {
+        json['language'] = defaultLanguage;
+      }
+
+      output.add(json);
+    }
+
+    return List<Map<String, dynamic>>.unmodifiable(output);
+  }
+
+  void _flattenSourceFields(Map<String, dynamic> json) {
+    final source = json['source'];
+    if (source is Map) {
+      final sourceName = source['name'];
+      final sourceId = source['id'];
+
+      if (!_hasNonEmptyScalar(json['sourceName']) && sourceName != null) {
+        json['sourceName'] = sourceName.toString();
+      }
+      if (!_hasNonEmptyScalar(json['sourceId']) && sourceId != null) {
+        json['sourceId'] = sourceId.toString();
+      }
+    }
+
+    final provider = json['provider'];
+    if (provider is Map) {
+      final providerName = provider['name'];
+      final providerId = provider['id'];
+
+      if (!_hasNonEmptyScalar(json['providerName']) && providerName != null) {
+        json['providerName'] = providerName.toString();
+      }
+      if (!_hasNonEmptyScalar(json['providerId']) && providerId != null) {
+        json['providerId'] = providerId.toString();
+      }
+    }
+
+    json['sourceName'] ??= json['source_name'];
+    json['sourceId'] ??= json['source_id'];
+    json['providerName'] ??= json['provider_name'];
+    json['providerId'] ??= json['provider_id'];
+  }
+
+  void _normalizePublishedAtField(Map<String, dynamic> json) {
+    final publishedAt = _extractPublishedAtFromJson(json);
+    if (publishedAt != null) {
+      json['publishedAt'] = publishedAt.toUtc().toIso8601String();
+    }
+  }
+
+  bool _hasNonEmptyScalar(dynamic value) {
+    if (value == null) {
+      return false;
+    }
+
+    final text = value.toString().trim();
+    return text.isNotEmpty;
+  }
+
+  List<Map<String, dynamic>> _filterItemsForRequestedLanguage(
+    List<Map<String, dynamic>> items,
+    String? requestedLanguage,
+  ) {
+    final normalizedRequestedLanguage = _normalizeLanguageCode(
+      requestedLanguage,
+    );
+
+    if (normalizedRequestedLanguage == null) {
+      return List<Map<String, dynamic>>.unmodifiable(
+        items.map((item) => Map<String, dynamic>.from(item)).toList(),
+      );
+    }
+
+    final filtered = items.where((item) {
+      final itemLanguage = _extractItemLanguage(item);
+      return itemLanguage == normalizedRequestedLanguage;
+    }).map((item) {
+      return Map<String, dynamic>.from(item);
+    }).toList(growable: false);
+
+    return List<Map<String, dynamic>>.unmodifiable(filtered);
+  }
+
+  List<Map<String, dynamic>> _sortJsonListByPublishedAtDesc(
+    List<Map<String, dynamic>> items,
+  ) {
+    final sorted = items
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList(growable: false);
+
+    sorted.sort((a, b) {
+      final aDate = _extractPublishedAtFromJson(a);
+      final bDate = _extractPublishedAtFromJson(b);
+
+      if (aDate == null && bDate == null) {
+        return 0;
+      }
+      if (aDate == null) {
+        return 1;
+      }
+      if (bDate == null) {
+        return -1;
+      }
+
+      return bDate.compareTo(aDate);
+    });
+
+    return List<Map<String, dynamic>>.unmodifiable(sorted);
   }
 
   Future<List<Map<String, dynamic>>> _enrichItemsForCache(
@@ -888,99 +675,45 @@ class NewsRepositoryImpl implements NewsRepository {
         .toList(growable: false);
 
     var resolvedCount = 0;
-    var hasReevaluationCandidates = false;
 
     for (final item in output) {
       final existingLocation = _readEmbeddedContentLocation(item);
       if (existingLocation != null &&
           (existingLocation.hasExactPoint || existingLocation.hasCenter)) {
         resolvedCount += 1;
-
-        final dto = _tryParseDto(item);
-        if (dto != null &&
-            _shouldReevaluateExistingLocation(dto, existingLocation)) {
-          hasReevaluationCandidates = true;
-        }
       }
     }
 
-    if (resolvedCount >= _targetResolvedLocationsPerRefresh &&
-        !hasReevaluationCandidates) {
-      return List<Map<String, dynamic>>.unmodifiable(output);
-    }
+    for (final item in output) {
+      if (resolvedCount >= _targetResolvedLocationsPerRefresh) {
+        break;
+      }
 
-    final pendingJobs = <Future<void>>[];
-    var scheduled = 0;
-    var scheduledPotentialResolved = 0;
+      final existingLocation = _readEmbeddedContentLocation(item);
+      if (existingLocation != null &&
+          (existingLocation.hasExactPoint || existingLocation.hasCenter)) {
+        continue;
+      }
 
-    Future<void> flushJobs() async {
-      if (pendingJobs.isEmpty) return;
-      await Future.wait(pendingJobs);
-      pendingJobs.clear();
-      scheduledPotentialResolved = 0;
-    }
-
-    for (int i = 0; i < output.length; i++) {
-      final enriched = output[i];
-      final dto = _tryParseDto(enriched);
+      final dto = _tryParseDto(item);
       if (dto == null) {
         continue;
       }
 
-      final existingLocation = _readEmbeddedContentLocation(enriched);
-      final hasResolvedLocation = existingLocation != null &&
-          (existingLocation.hasExactPoint || existingLocation.hasCenter);
+      try {
+        final detectedLocation = await _detectContentLocationForDto(
+          dto,
+          rawJson: item,
+        ).timeout(_perArticleGeocodeTimeout);
 
-      final shouldReevaluate = hasResolvedLocation &&
-          _shouldReevaluateExistingLocation(dto, existingLocation);
-
-      if (hasResolvedLocation && !shouldReevaluate) {
-        continue;
-      }
-
-      if (scheduled >= _maxArticlesToGeocodePerRefresh) {
-        continue;
-      }
-
-      if (!hasResolvedLocation &&
-          resolvedCount + scheduledPotentialResolved >=
-              _targetResolvedLocationsPerRefresh) {
-        break;
-      }
-
-      scheduled += 1;
-      if (!hasResolvedLocation) {
-        scheduledPotentialResolved += 1;
-      }
-
-      pendingJobs.add(() async {
-        try {
-          final detectedLocation = await _detectContentLocationForDto(
-            dto,
-            rawJson: enriched,
-            ignorePreferredSeed: shouldReevaluate,
-          ).timeout(_perArticleGeocodeTimeout);
-
-          if (detectedLocation != null) {
-            enriched['_sv_content_location'] = detectedLocation.toJson();
-
-            if (!hasResolvedLocation) {
-              resolvedCount += 1;
-            }
-          }
-        } catch (_) {
-          // best effort
+        if (detectedLocation != null) {
+          item['_sv_content_location'] = detectedLocation.toJson();
+          resolvedCount += 1;
         }
-      }());
-
-      if (pendingJobs.length >= _maxParallelGeocodeJobs ||
-          resolvedCount + scheduledPotentialResolved >=
-              _targetResolvedLocationsPerRefresh) {
-        await flushJobs();
+      } catch (_) {
+        // best effort
       }
     }
-
-    await flushJobs();
 
     return List<Map<String, dynamic>>.unmodifiable(output);
   }
@@ -988,9 +721,8 @@ class NewsRepositoryImpl implements NewsRepository {
   Future<ContentLocation?> _detectContentLocationForDto(
     NewsDto dto, {
     Map<String, dynamic>? rawJson,
-    bool ignorePreferredSeed = false,
   }) async {
-    final preferredSeed = ignorePreferredSeed || rawJson == null
+    final preferredSeed = rawJson == null
         ? null
         : _buildPreferredSeedContentLocationFromJson(rawJson);
 
@@ -1316,7 +1048,7 @@ class NewsRepositoryImpl implements NewsRepository {
           (candidate) =>
               !blockedSources.contains(_normalizePhrase(candidate.query)),
         )
-        .toList();
+        .toList(growable: false);
 
     candidates = _rebalanceCountryVsCityCandidates(candidates);
 
@@ -1338,28 +1070,6 @@ class NewsRepositoryImpl implements NewsRepository {
     });
 
     return candidates;
-  }
-
-  String _extractPrimaryLocationWindow(
-    String text, {
-    required int maxLength,
-  }) {
-    final cleaned = _stripHtml(text);
-    if (cleaned.isEmpty) {
-      return '';
-    }
-
-    final window = cleaned.length <= maxLength
-        ? cleaned
-        : cleaned.substring(0, maxLength);
-
-    for (final match in RegExp(r'[.!?;]').allMatches(window)) {
-      if (match.start >= 40) {
-        return window.substring(0, match.start).trim();
-      }
-    }
-
-    return window.trim();
   }
 
   List<_LocationCandidate> _rebalanceCountryVsCityCandidates(
@@ -1407,6 +1117,28 @@ class NewsRepositoryImpl implements NewsRepository {
         score: adjustedScore,
       );
     }).toList(growable: false);
+  }
+
+  String _extractPrimaryLocationWindow(
+    String text, {
+    required int maxLength,
+  }) {
+    final cleaned = _stripHtml(text);
+    if (cleaned.isEmpty) {
+      return '';
+    }
+
+    final window = cleaned.length <= maxLength
+        ? cleaned
+        : cleaned.substring(0, maxLength);
+
+    for (final match in RegExp(r'[.!?;]').allMatches(window)) {
+      if (match.start >= 40) {
+        return window.substring(0, match.start).trim();
+      }
+    }
+
+    return window.trim();
   }
 
   _DatelineLocationPair? _extractDatelineLocationPair(String text) {
@@ -1465,7 +1197,7 @@ class NewsRepositoryImpl implements NewsRepository {
     }
 
     final regex = RegExp(
-      r"\b((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})\s*,\s*((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\\-]+|[A-Z]{2,})){0,2})\b",
+      r"\b((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})\s*,\s*((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})\b",
     );
 
     final output = <_DatelineLocationPair>[];
@@ -1929,327 +1661,6 @@ class NewsRepositoryImpl implements NewsRepository {
     return true;
   }
 
-  bool _shouldReevaluateExistingLocation(
-    NewsDto dto,
-    ContentLocation existingLocation,
-  ) {
-    final candidates = _extractLocationCandidates(dto);
-    if (candidates.isEmpty) {
-      return false;
-    }
-
-    final topCandidate = candidates.first;
-    if (!_isStrongPrimaryLocationCandidate(topCandidate)) {
-      return false;
-    }
-
-    if (_candidateMatchesExistingLocation(topCandidate, existingLocation)) {
-      return false;
-    }
-
-    if (candidates.length >= 2) {
-      final secondCandidate = candidates[1];
-      if (secondCandidate.score >= topCandidate.score - 15 &&
-          _candidateMatchesExistingLocation(
-            secondCandidate,
-            existingLocation,
-          )) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  bool _isStrongPrimaryLocationCandidate(_LocationCandidate candidate) {
-    final minimumScore = candidate.isCountryOnly ? 160 : 170;
-    return candidate.score >= minimumScore;
-  }
-
-  bool _candidateMatchesExistingLocation(
-    _LocationCandidate candidate,
-    ContentLocation existingLocation,
-  ) {
-    final normalizedExistingCity = _normalizePhrase(existingLocation.cityName);
-    final normalizedExistingCountry = _normalize(existingLocation.countryCode);
-
-    if (!candidate.isCountryOnly) {
-      final normalizedCandidateQuery = _normalizePhrase(candidate.query);
-      return normalizedCandidateQuery != null &&
-          normalizedExistingCity != null &&
-          normalizedCandidateQuery == normalizedExistingCity;
-    }
-
-    if (candidate.countryCode == null || normalizedExistingCountry == null) {
-      return false;
-    }
-
-    return candidate.countryCode!.toLowerCase() == normalizedExistingCountry;
-  }
-
-  Future<_CachedNewsFeed?> _readCache({
-    required String cacheKey,
-    required bool acceptStale,
-    required String? requestedLanguage,
-  }) async {
-    try {
-      final rows = await AppSupabase.client
-          .from(_cacheTable)
-          .select(
-            'cache_key, payload, refreshed_at, item_count, '
-            'resolved_location_count, provider_signatures, '
-            'languages_present, payload_version',
-          )
-          .eq('cache_key', cacheKey)
-          .limit(1);
-
-      if (rows.isEmpty) {
-        return null;
-      }
-
-      final row = rows.first;
-      if (row is! Map<String, dynamic>) {
-        return null;
-      }
-
-      final refreshedAt = _parseDateTime(row['refreshed_at']);
-      if (refreshedAt == null) {
-        return null;
-      }
-
-      final payload = row['payload'];
-      final items = _filterItemsForRequestedLanguage(
-        _normalizeJsonList(payload is List ? payload : const []),
-        requestedLanguage,
-      );
-
-      if (items.isEmpty) {
-        return null;
-      }
-
-      final metadata = _readCacheMetadataFromRow(
-        row,
-        fallbackItems: items,
-      );
-
-      final cache = _CachedNewsFeed(
-        items: items,
-        refreshedAt: refreshedAt,
-        metadata: metadata,
-      );
-
-      if (!acceptStale && !cache.isFresh) {
-        return null;
-      }
-
-      return cache;
-    } catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('NewsRepositoryImpl cache read failed: $e');
-        debugPrint('$st');
-      }
-      return null;
-    }
-  }
-
-  Future<void> _writeCache({
-    required String cacheKey,
-    required String? countryCode,
-    required String? cityId,
-    required String? topic,
-    required String? language,
-    required List<Map<String, dynamic>> items,
-  }) async {
-    try {
-      final metadata = _buildCacheMetadata(items);
-
-      await AppSupabase.client.from(_cacheTable).upsert(
-        {
-          'cache_key': cacheKey,
-          'country_code': countryCode,
-          'city_id': cityId,
-          'topic': topic,
-          'language': language,
-          'payload': items,
-          'item_count': metadata.itemCount,
-          'resolved_location_count': metadata.resolvedLocationCount,
-          'provider_signatures': metadata.providerSignatures,
-          'languages_present': metadata.languagesPresent,
-          'payload_version': metadata.payloadVersion,
-          'refreshed_at': DateTime.now().toUtc().toIso8601String(),
-        },
-        onConflict: 'cache_key',
-      );
-    } catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('NewsRepositoryImpl cache write failed: $e');
-        debugPrint('$st');
-      }
-    }
-  }
-
-  Future<NewsItem?> _findCachedNewsById(String newsId) async {
-    try {
-      final rows = await AppSupabase.client
-          .from(_cacheTable)
-          .select('payload, country_code, city_id, refreshed_at')
-          .order('refreshed_at', ascending: false)
-          .limit(20);
-
-      for (final row in rows) {
-        if (row is! Map<String, dynamic>) {
-          continue;
-        }
-
-        final payload = row['payload'];
-        if (payload is! List) {
-          continue;
-        }
-
-        final countryCode = _normalize(row['country_code']?.toString());
-        final cityId = _normalize(row['city_id']?.toString());
-        final normalizedPayload = _normalizeJsonList(payload);
-
-        for (final json in normalizedPayload) {
-          if (!_matchesRequestedNewsId(json, newsId)) {
-            continue;
-          }
-
-          final dto = _tryParseDto(json);
-          if (dto == null) {
-            continue;
-          }
-
-          final contentLocation = _readEmbeddedContentLocation(json);
-
-          return _mapper.toDomain(
-            dto,
-            countryCode: countryCode,
-            cityId: cityId,
-            contentLocation: contentLocation,
-          );
-        }
-
-        final mapped = _mapJsonToDomainList(
-          normalizedPayload,
-          countryCode: countryCode,
-          cityId: cityId,
-        );
-
-        for (final item in mapped) {
-          if (item.id.value == newsId) {
-            return item;
-          }
-        }
-      }
-    } catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('NewsRepositoryImpl detail cache lookup failed: $e');
-        debugPrint('$st');
-      }
-    }
-
-    return null;
-  }
-
-  List<NewsItem> _mapAndPaginate({
-    required List<Map<String, dynamic>> jsonList,
-    required String? countryCode,
-    required String? cityId,
-    int? limit,
-    int? offset,
-  }) {
-    final mapped = _mapJsonToDomainList(
-      jsonList,
-      countryCode: countryCode,
-      cityId: cityId,
-      sortByPublishedAt: true,
-    );
-
-    if (mapped.isEmpty) {
-      return const <NewsItem>[];
-    }
-
-    final safeOffset = offset ?? 0;
-    final safeLimit = limit ?? mapped.length;
-
-    if (safeOffset >= mapped.length) {
-      return const <NewsItem>[];
-    }
-
-    final end = (safeOffset + safeLimit) > mapped.length
-        ? mapped.length
-        : (safeOffset + safeLimit);
-
-    return List<NewsItem>.unmodifiable(mapped.sublist(safeOffset, end));
-  }
-
-  List<NewsItem> _mapCandidatePage(
-    _NewsFeedCandidate candidate,
-    List<Map<String, dynamic>> jsonList, {
-    int? limit,
-    int? offset,
-  }) {
-    return _mapAndPaginate(
-      jsonList: jsonList,
-      countryCode: candidate.countryCode,
-      cityId: candidate.cityId,
-      limit: limit,
-      offset: offset,
-    );
-  }
-
-  List<NewsItem> _mapTrendingCandidateList(
-    _NewsFeedCandidate candidate,
-    List<Map<String, dynamic>> jsonList,
-  ) {
-    final mapped = _mapJsonToDomainList(
-      jsonList,
-      countryCode: candidate.countryCode,
-      cityId: candidate.cityId,
-      sortByPublishedAt: false,
-    );
-
-    return List<NewsItem>.unmodifiable(mapped);
-  }
-
-  List<NewsItem> _mapJsonToDomainList(
-    List<Map<String, dynamic>> jsonList, {
-    required String? countryCode,
-    required String? cityId,
-    bool sortByPublishedAt = true,
-  }) {
-    final stableJsonList = _deduplicateJsonListByStableIdentity(jsonList);
-
-    final items = stableJsonList.map((json) {
-      final dto = NewsDto.fromJson(json);
-      final contentLocation = _readEmbeddedContentLocation(json);
-
-      return _mapper.toDomain(
-        dto,
-        countryCode: countryCode,
-        cityId: cityId,
-        contentLocation: contentLocation,
-      );
-    }).toList();
-
-    if (sortByPublishedAt) {
-      items.sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
-    }
-
-    final seen = <String>{};
-    final unique = <NewsItem>[];
-
-    for (final item in items) {
-      final key = item.id.value;
-      if (seen.add(key)) {
-        unique.add(item);
-      }
-    }
-
-    return unique;
-  }
-
   ContentLocation? _readEmbeddedContentLocation(Map<String, dynamic> json) {
     return _readKnownContentLocation(json) ??
         _buildFlatSeedContentLocationFromJson(json);
@@ -2293,257 +1704,6 @@ class NewsRepositoryImpl implements NewsRepository {
     } catch (_) {
       return null;
     }
-  }
-
-  List<Map<String, dynamic>> _normalizeJsonList(List<dynamic> rawList) {
-    return rawList
-        .whereType<Map>()
-        .map(
-          (json) => json.map(
-            (key, value) => MapEntry(key.toString(), value),
-          ),
-        )
-        .toList(growable: false);
-  }
-
-  List<Map<String, dynamic>> _filterItemsForRequestedLanguage(
-    List<Map<String, dynamic>> items,
-    String? requestedLanguage,
-  ) {
-    final normalizedRequestedLanguage = _normalizeLanguageCode(
-      requestedLanguage,
-    );
-    if (normalizedRequestedLanguage == null || items.isEmpty) {
-      return List<Map<String, dynamic>>.unmodifiable(
-        items.map((item) => Map<String, dynamic>.from(item)).toList(),
-      );
-    }
-
-    final explicitMatches = <Map<String, dynamic>>[];
-    final compatibleUnknownLanguage = <Map<String, dynamic>>[];
-
-    for (final item in items) {
-      final copy = Map<String, dynamic>.from(item);
-      final itemLanguage = _extractItemLanguage(copy);
-
-      if (itemLanguage != null) {
-        if (itemLanguage == normalizedRequestedLanguage) {
-          explicitMatches.add(copy);
-        }
-        continue;
-      }
-
-      if (_shouldKeepUnknownLanguageItemForRequestedLanguage(
-        copy,
-        normalizedRequestedLanguage,
-      )) {
-        compatibleUnknownLanguage.add(copy);
-      }
-    }
-
-    if (explicitMatches.isNotEmpty) {
-      return List<Map<String, dynamic>>.unmodifiable(
-        <Map<String, dynamic>>[
-          ...explicitMatches,
-          ...compatibleUnknownLanguage,
-        ],
-      );
-    }
-
-    return List<Map<String, dynamic>>.unmodifiable(
-      compatibleUnknownLanguage,
-    );
-  }
-
-  bool _shouldKeepUnknownLanguageItemForRequestedLanguage(
-    Map<String, dynamic> item,
-    String requestedLanguage,
-  ) {
-    if (requestedLanguage == 'en') {
-      return true;
-    }
-
-    return false;
-  }
-
-  bool _isGuardianProviderSignature(String? value) {
-    final normalized = _normalizePhrase(value);
-    if (normalized == null) {
-      return false;
-    }
-
-    return normalized == 'guardian' ||
-        normalized == 'the guardian' ||
-        normalized.contains('guardian');
-  }
-
-  String? _extractItemLanguage(Map<String, dynamic> json) {
-    final rawLanguage = _firstNonEmptyString(
-      json,
-      const <String>[
-        'language',
-        'lang',
-        'locale',
-        'content_language',
-        'contentLanguage',
-        'feed_language',
-        'feedLanguage',
-      ],
-    );
-
-    return _normalizeLanguageCode(rawLanguage);
-  }
-
-  bool _canUseStaleFallbackCache(
-    _CachedNewsFeed cache, {
-    required String? requestedLanguage,
-  }) {
-    if (cache.items.isEmpty) {
-      return false;
-    }
-
-    final normalizedRequestedLanguage = _normalizeLanguageCode(
-      requestedLanguage,
-    );
-    if (normalizedRequestedLanguage == null) {
-      return true;
-    }
-
-    final filtered = _filterItemsForRequestedLanguage(
-      cache.items,
-      normalizedRequestedLanguage,
-    );
-
-    if (filtered.isEmpty) {
-      return false;
-    }
-
-    if (cache.metadata.languagesPresent.isNotEmpty) {
-      return cache.metadata.languagesPresent.contains(
-        normalizedRequestedLanguage,
-      );
-    }
-
-    return filtered.any((item) => _extractProviderSignature(item) != null);
-  }
-
-  List<_NewsFeedCandidate> _buildSameLanguageEquivalentCandidates(
-    _NewsFeedCandidate candidate,
-  ) {
-    final isGlobalAllRequest = candidate.countryCode == null &&
-        candidate.cityId == null &&
-        candidate.topic == null &&
-        candidate.language != null;
-
-    if (!isGlobalAllRequest) {
-      return const <_NewsFeedCandidate>[];
-    }
-
-    return <_NewsFeedCandidate>[
-      _NewsFeedCandidate(
-        countryCode: null,
-        cityId: null,
-        topic: 'world',
-        language: candidate.language,
-      ),
-      _NewsFeedCandidate(
-        countryCode: null,
-        cityId: null,
-        topic: 'nation',
-        language: candidate.language,
-      ),
-    ];
-  }
-
-  Future<_EquivalentCacheHit?> _readFirstSameLanguageEquivalentCache({
-    required List<_NewsFeedCandidate> candidates,
-    required bool acceptStale,
-    required String? requestedLanguage,
-  }) async {
-    for (final equivalentCandidate in candidates) {
-      final cache = await _readCache(
-        cacheKey: equivalentCandidate.cacheKey,
-        acceptStale: acceptStale,
-        requestedLanguage: requestedLanguage,
-      );
-
-      if (cache == null || cache.items.isNotEmpty == false) {
-        continue;
-      }
-
-      return _EquivalentCacheHit(
-        candidate: equivalentCandidate,
-        cache: cache,
-      );
-    }
-
-    return null;
-  }
-
-  Future<void> _writeCanonicalGlobalAllAliasIfNeeded({
-    required _NewsFeedCandidate sourceCandidate,
-    required List<Map<String, dynamic>> items,
-  }) async {
-    final isGlobalScoped =
-        sourceCandidate.countryCode == null && sourceCandidate.cityId == null;
-    final isCompatibleTopic =
-        sourceCandidate.topic == 'world' || sourceCandidate.topic == 'nation';
-    final hasLanguage =
-        sourceCandidate.language != null && sourceCandidate.language!.isNotEmpty;
-
-    if (!isGlobalScoped || !isCompatibleTopic || !hasLanguage || items.isEmpty) {
-      return;
-    }
-
-    final aliasCandidate = _NewsFeedCandidate(
-      countryCode: null,
-      cityId: null,
-      topic: null,
-      language: sourceCandidate.language,
-    );
-
-    await _writeCache(
-      cacheKey: aliasCandidate.cacheKey,
-      countryCode: aliasCandidate.countryCode,
-      cityId: aliasCandidate.cityId,
-      topic: aliasCandidate.topic,
-      language: aliasCandidate.language,
-      items: items,
-    );
-
-    _clearRefreshCooldown(aliasCandidate.cacheKey);
-
-    if (kDebugMode) {
-      debugPrint(
-        'NewsRepositoryImpl mirrored ${sourceCandidate.cacheKey} into '
-        '${aliasCandidate.cacheKey} to keep canonical global cache warm.',
-      );
-    }
-  }
-
-  String? _extractProviderSignature(Map<String, dynamic> json) {
-    final rawProvider = _firstNonEmptyString(
-      json,
-      const <String>[
-        'provider',
-        'provider_id',
-        'providerId',
-        'provider_name',
-        'providerName',
-        'source',
-        'source_id',
-        'sourceId',
-        'source_name',
-        'sourceName',
-      ],
-    );
-
-    if (rawProvider != null) {
-      return _normalizePhrase(rawProvider);
-    }
-
-    final dto = _tryParseDto(json);
-    return _normalizePhrase(dto?.sourceId) ?? _normalizePhrase(dto?.sourceName);
   }
 
   _CachePayloadMetadata _buildCacheMetadata(
@@ -2594,6 +1754,76 @@ class NewsRepositoryImpl implements NewsRepository {
     );
   }
 
+  String? _extractProviderSignature(Map<String, dynamic> json) {
+    final sourceName = _firstNonEmptyString(
+      json,
+      const <String>[
+        'sourceName',
+        'source_name',
+        'sourceId',
+        'source_id',
+        'providerSignature',
+        'provider_signature',
+        'providerName',
+        'provider_name',
+        'providerId',
+        'provider_id',
+      ],
+    );
+
+    if (sourceName != null) {
+      return _normalizePhrase(sourceName);
+    }
+
+    final source = json['source'];
+    if (source is Map) {
+      final sourceMap = source.map(
+        (key, value) => MapEntry(key.toString(), value),
+      );
+      final fromSource = _firstNonEmptyString(
+        sourceMap,
+        const <String>['name', 'id'],
+      );
+      if (fromSource != null) {
+        return _normalizePhrase(fromSource);
+      }
+    }
+
+    final provider = json['provider'];
+    if (provider is Map) {
+      final providerMap = provider.map(
+        (key, value) => MapEntry(key.toString(), value),
+      );
+      final fromProvider = _firstNonEmptyString(
+        providerMap,
+        const <String>['name', 'id'],
+      );
+      if (fromProvider != null) {
+        return _normalizePhrase(fromProvider);
+      }
+    }
+
+    final dto = _tryParseDto(json);
+    return _normalizePhrase(dto?.sourceId) ?? _normalizePhrase(dto?.sourceName);
+  }
+
+  String? _extractItemLanguage(Map<String, dynamic> json) {
+    final rawLanguage = _firstNonEmptyString(
+      json,
+      const <String>[
+        'language',
+        'lang',
+        'locale',
+        'content_language',
+        'contentLanguage',
+        'feed_language',
+        'feedLanguage',
+      ],
+    );
+
+    return _normalizeLanguageCode(rawLanguage);
+  }
+
   int? _readInt(dynamic value) {
     if (value is int) {
       return value;
@@ -2619,6 +1849,34 @@ class NewsRepositoryImpl implements NewsRepository {
     return output.toList()..sort();
   }
 
+  List<Map<String, dynamic>> _deduplicateJsonListByStableIdentity(
+    List<Map<String, dynamic>> items,
+  ) {
+    if (items.length <= 1) {
+      return List<Map<String, dynamic>>.unmodifiable(
+        items.map((item) => Map<String, dynamic>.from(item)).toList(),
+      );
+    }
+
+    final seenKeys = <String>{};
+    final output = <Map<String, dynamic>>[];
+
+    for (final item in items) {
+      final copy = Map<String, dynamic>.from(item);
+      final identityKeys = _buildStableArticleKeysFromJson(copy);
+
+      if (identityKeys.isNotEmpty &&
+          identityKeys.any((key) => seenKeys.contains(key))) {
+        continue;
+      }
+
+      output.add(copy);
+      seenKeys.addAll(identityKeys);
+    }
+
+    return List<Map<String, dynamic>>.unmodifiable(output);
+  }
+
   List<String> _buildStableArticleKeysFromJson(Map<String, dynamic> json) {
     final dto = _tryParseDto(json);
     final keys = <String>{};
@@ -2634,15 +1892,14 @@ class NewsRepositoryImpl implements NewsRepository {
       _firstNonEmptyString(
             json,
             const <String>[
-              'source_id',
               'sourceId',
-              'source_name',
+              'source_id',
               'sourceName',
-              'provider',
-              'provider_id',
+              'source_name',
               'providerId',
-              'provider_name',
+              'provider_id',
               'providerName',
+              'provider_name',
             ],
           ) ??
           dto?.sourceId ??
@@ -2711,45 +1968,6 @@ class NewsRepositoryImpl implements NewsRepository {
     return keys.toList(growable: false);
   }
 
-  DateTime? _extractPublishedAtFromJson(Map<String, dynamic> json) {
-    return _parseDateTime(
-      json['published_at'] ??
-          json['publishedAt'] ??
-          json['pubDate'] ??
-          json['date'] ??
-          json['created_at'] ??
-          json['createdAt'],
-    );
-  }
-
-  List<Map<String, dynamic>> _deduplicateJsonListByStableIdentity(
-    List<Map<String, dynamic>> items,
-  ) {
-    if (items.length <= 1) {
-      return List<Map<String, dynamic>>.unmodifiable(
-        items.map((item) => Map<String, dynamic>.from(item)).toList(),
-      );
-    }
-
-    final seenKeys = <String>{};
-    final output = <Map<String, dynamic>>[];
-
-    for (final item in items) {
-      final copy = Map<String, dynamic>.from(item);
-      final identityKeys = _buildStableArticleKeysFromJson(copy);
-
-      if (identityKeys.isNotEmpty &&
-          identityKeys.any((key) => seenKeys.contains(key))) {
-        continue;
-      }
-
-      output.add(copy);
-      seenKeys.addAll(identityKeys);
-    }
-
-    return List<Map<String, dynamic>>.unmodifiable(output);
-  }
-
   bool _matchesRequestedNewsId(
     Map<String, dynamic> json,
     String requestedId,
@@ -2804,119 +2022,12 @@ class NewsRepositoryImpl implements NewsRepository {
         requestedUrl == itemUrl;
   }
 
-  List<Map<String, dynamic>> _seedLocationsFromPreviousCache(
-    List<Map<String, dynamic>> items,
-    List<Map<String, dynamic>> previousItems,
-  ) {
-    if (items.isEmpty || previousItems.isEmpty) {
-      return List<Map<String, dynamic>>.unmodifiable(
-        items.map((item) => Map<String, dynamic>.from(item)).toList(),
-      );
-    }
-
-    final previousLocationsByKey = <String, Map<String, dynamic>>{};
-
-    for (final item in previousItems) {
-      final keys = _buildStableArticleKeysFromJson(item);
-      final location = _readEmbeddedContentLocation(item);
-
-      if (keys.isEmpty || location == null) {
-        continue;
-      }
-
-      if (!_hasResolvedLocation(location)) {
-        continue;
-      }
-
-      final locationJson = location.toJson();
-      for (final key in keys) {
-        previousLocationsByKey[key] = locationJson;
-      }
-    }
-
-    final output = <Map<String, dynamic>>[];
-
-    for (final item in items) {
-      final copy = Map<String, dynamic>.from(item);
-      final currentLocation = _readEmbeddedContentLocation(copy);
-
-      if (currentLocation == null || !_hasResolvedLocation(currentLocation)) {
-        final keys = _buildStableArticleKeysFromJson(copy);
-        Map<String, dynamic>? previousLocationJson;
-
-        for (final key in keys) {
-          final matched = previousLocationsByKey[key];
-          if (matched != null) {
-            previousLocationJson = matched;
-            break;
-          }
-        }
-
-        if (previousLocationJson != null) {
-          copy['_sv_content_location'] = previousLocationJson;
-        }
-      }
-
-      output.add(copy);
-    }
-
-    return List<Map<String, dynamic>>.unmodifiable(output);
-  }
-
-  List<Map<String, dynamic>> _preferStablePayload({
-    required List<Map<String, dynamic>> refreshedItems,
-    required List<Map<String, dynamic>> previousItems,
-  }) {
-    final refreshedLocated = _countItemsWithResolvedLocation(refreshedItems);
-    final previousLocated = _countItemsWithResolvedLocation(previousItems);
-
-    if (refreshedItems.isEmpty && previousItems.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl keeping previous cache payload because refreshed '
-          'payload is empty.',
-        );
-      }
-
-      return List<Map<String, dynamic>>.unmodifiable(
-        previousItems
-            .map((item) => Map<String, dynamic>.from(item))
-            .toList(growable: false),
-      );
-    }
-
-    if (refreshedLocated > 0) {
-      return refreshedItems;
-    }
-
-    if (refreshedItems.isNotEmpty && previousLocated == 0) {
-      return refreshedItems;
-    }
-
-    if (refreshedLocated == 0 && previousLocated > 0) {
-      if (kDebugMode) {
-        debugPrint(
-          'NewsRepositoryImpl keeping previous cache payload because refreshed '
-          'payload has no resolved locations.',
-        );
-      }
-
-      return List<Map<String, dynamic>>.unmodifiable(
-        previousItems
-            .map((item) => Map<String, dynamic>.from(item))
-            .toList(growable: false),
-      );
-    }
-
-    return refreshedItems;
-  }
-
   int _countItemsWithResolvedLocation(List<Map<String, dynamic>> items) {
     var count = 0;
 
     for (final item in items) {
       final location = _readEmbeddedContentLocation(item);
-      if (location != null && _hasResolvedLocation(location)) {
+      if (location != null && (location.hasExactPoint || location.hasCenter)) {
         count += 1;
       }
     }
@@ -2924,82 +2035,15 @@ class NewsRepositoryImpl implements NewsRepository {
     return count;
   }
 
-  bool _cacheHasResolvedLocations(List<Map<String, dynamic>> items) {
-    return _countItemsWithResolvedLocation(items) > 0;
-  }
-
-  bool _hasResolvedLocation(ContentLocation location) {
-    return location.hasExactPoint || location.hasCenter;
-  }
-
-  bool _isRefreshCooldownActive(String cacheKey) {
-    final until = _refreshCooldownUntilByCacheKey[cacheKey];
-    if (until == null) {
-      return false;
-    }
-
-    final now = DateTime.now().toUtc();
-    if (!until.isAfter(now)) {
-      _refreshCooldownUntilByCacheKey.remove(cacheKey);
-      return false;
-    }
-
-    return true;
-  }
-
-  void _markRefreshCooldown(
-    String cacheKey, {
-    required String reason,
-  }) {
-    final until = DateTime.now().toUtc().add(_refreshFailureCooldown);
-    _refreshCooldownUntilByCacheKey[cacheKey] = until;
-
-    if (kDebugMode) {
-      debugPrint(
-        'NewsRepositoryImpl live refresh cooldown active for $cacheKey until '
-        '${until.toIso8601String()} because $reason.',
-      );
-    }
-  }
-
-  void _clearRefreshCooldown(String cacheKey) {
-    final removed = _refreshCooldownUntilByCacheKey.remove(cacheKey);
-    if (removed != null && kDebugMode) {
-      debugPrint(
-        'NewsRepositoryImpl cleared live refresh cooldown for $cacheKey '
-        'after successful refresh.',
-      );
-    }
-  }
-
-  String? _buildStableArticleKeyFromJson(Map<String, dynamic> json) {
-    final keys = _buildStableArticleKeysFromJson(json);
-    if (keys.isNotEmpty) {
-      return keys.first;
-    }
-
-    final dto = _tryParseDto(json);
-    if (dto == null) {
-      return null;
-    }
-
-    return _buildStableArticleKeyFromDto(dto);
-  }
-
-  String _buildStableArticleKeyFromDto(NewsDto dto) {
-    final normalizedUrl = _normalizeArticleUrl(dto.url);
-    if (normalizedUrl != null) {
-      return 'url:$normalizedUrl';
-    }
-
-    final rawId = dto.id.trim();
-    if (rawId.isNotEmpty) {
-      final source = _normalizeIdentitySource(dto.sourceName ?? dto.sourceId);
-      return 'id:$source:${rawId.toLowerCase()}';
-    }
-
-    final source = _normalizeIdentitySource(dto.sourceName ?? dto.sourceId);
-    return 'title:$source:${dto.title.trim().toLowerCase()}:${dto.publishedAt.toUtc().toIso8601String()}';
+  DateTime? _extractPublishedAtFromJson(Map<String, dynamic> json) {
+    return _parseDateTime(
+      json['publishedAt'] ??
+          json['published_at'] ??
+          json['pubDate'] ??
+          json['date'] ??
+          json['created_at'] ??
+          json['createdAt'],
+    );
   }
 
   String _normalizeIdentitySource(String? value) {
@@ -3031,22 +2075,6 @@ class NewsRepositoryImpl implements NewsRepository {
       port: parsed.hasPort ? parsed.port : null,
       path: normalizedPath.isEmpty ? '/' : normalizedPath,
     ).toString().toLowerCase();
-  }
-
-  int _resolveProviderFetchLimit(int? limit, int? offset) {
-    final requestedLimit = limit ?? 20;
-    final requestedOffset = offset ?? 0;
-    final requestedSpan = requestedLimit + requestedOffset;
-
-    if (requestedSpan > _providerWarmupBatchSize) {
-      return requestedSpan;
-    }
-
-    return _providerWarmupBatchSize;
-  }
-
-  bool _shouldAllowStaleCache(String? language) {
-    return true;
   }
 
   String? _normalize(String? value) {
@@ -3134,11 +2162,6 @@ class _CachedNewsFeed {
     required this.refreshedAt,
     required this.metadata,
   });
-
-  bool get isFresh {
-    final now = DateTime.now().toUtc();
-    return now.difference(refreshedAt) < NewsRepositoryImpl._cacheTtl;
-  }
 }
 
 class _CachePayloadMetadata {
@@ -3154,16 +2177,6 @@ class _CachePayloadMetadata {
     required this.providerSignatures,
     required this.languagesPresent,
     required this.payloadVersion,
-  });
-}
-
-class _EquivalentCacheHit {
-  final _NewsFeedCandidate candidate;
-  final _CachedNewsFeed cache;
-
-  const _EquivalentCacheHit({
-    required this.candidate,
-    required this.cache,
   });
 }
 

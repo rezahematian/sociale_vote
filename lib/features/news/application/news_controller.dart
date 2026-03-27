@@ -46,6 +46,8 @@ class NewsController extends ChangeNotifier {
   final Map<String, int> _commentCounts = <String, int>{};
 
   static const int _pageSize = 10;
+  static const int _manualRefreshFetchLimit = 50;
+
   int _currentOffset = 0;
   bool _hasMoreFromSource = true;
 
@@ -103,6 +105,47 @@ class NewsController extends ChangeNotifier {
     _sortMode = mode;
     _sortNews();
     _safeNotifyListeners();
+  }
+
+  Future<void> refreshNews({String? userId}) async {
+    await _ensureLanguagePreferenceHydrated();
+
+    final effectiveUserId = userId ?? _lastKnownUserId;
+    final scopeFilter = _currentScopeFilter();
+
+    _errorMessage = null;
+    _errorKind = null;
+    _isLoading = true;
+    _safeNotifyListeners();
+
+    try {
+      await AppDI.instance.refreshNewsFeedCache(
+        countryCode: scopeFilter.countryCode,
+        cityId: scopeFilter.cityId,
+        topic: _selectedTopic.apiValue,
+        language: _effectiveLanguageApiValue(),
+        providerLimit: _manualRefreshFetchLimit,
+      );
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('Error refreshing news cache: $e');
+        debugPrint('$stackTrace');
+      }
+
+      _applyError(
+        e,
+        fallbackMessage: 'Unable to refresh news at the moment.',
+      );
+    } finally {
+      if (_isDisposed) {
+        return;
+      }
+
+      _isLoading = false;
+      _safeNotifyListeners();
+    }
+
+    await loadNews(userId: effectiveUserId);
   }
 
   ReactionSummary? summaryForNews(NewsItem newsItem) {
@@ -305,26 +348,11 @@ class NewsController extends ChangeNotifier {
   }
 
   Future<void> _loadNextPage({required int requestId}) async {
-    final geoScope = AppDI.instance.geoScopeController.scope;
-
-    String? countryCode;
-    String? cityId;
-
-    switch (geoScope.level) {
-      case GeoScopeLevel.world:
-        break;
-      case GeoScopeLevel.country:
-        countryCode = geoScope.countryCode;
-        break;
-      case GeoScopeLevel.city:
-        countryCode = geoScope.countryCode;
-        cityId = geoScope.cityId;
-        break;
-    }
+    final scopeFilter = _currentScopeFilter();
 
     final result = await _getNewsFeed(
-      countryCode: countryCode,
-      cityId: cityId,
+      countryCode: scopeFilter.countryCode,
+      cityId: scopeFilter.cityId,
       topic: _selectedTopic.apiValue,
       language: _effectiveLanguageApiValue(),
       limit: _pageSize,
@@ -359,6 +387,30 @@ class NewsController extends ChangeNotifier {
     }
 
     _sortNews();
+  }
+
+  _NewsScopeFilter _currentScopeFilter() {
+    final geoScope = AppDI.instance.geoScopeController.scope;
+
+    String? countryCode;
+    String? cityId;
+
+    switch (geoScope.level) {
+      case GeoScopeLevel.world:
+        break;
+      case GeoScopeLevel.country:
+        countryCode = geoScope.countryCode;
+        break;
+      case GeoScopeLevel.city:
+        countryCode = geoScope.countryCode;
+        cityId = geoScope.cityId;
+        break;
+    }
+
+    return _NewsScopeFilter(
+      countryCode: countryCode,
+      cityId: cityId,
+    );
   }
 
   Future<void> _loadReactionSummariesForNews(
@@ -708,6 +760,22 @@ class NewsController extends ChangeNotifier {
 
     switch (_sortMode) {
       case NewsSortMode.latest:
+        _news.sort((a, b) {
+          final aDate = _publishedAtForNews(a);
+          final bDate = _publishedAtForNews(b);
+
+          if (aDate == null && bDate == null) {
+            return 0;
+          }
+          if (aDate == null) {
+            return 1;
+          }
+          if (bDate == null) {
+            return -1;
+          }
+
+          return bDate.compareTo(aDate);
+        });
         break;
       case NewsSortMode.hottest:
         _news.sort((a, b) {
@@ -715,6 +783,12 @@ class NewsController extends ChangeNotifier {
               _importanceScoreForNews(b).compareTo(_importanceScoreForNews(a));
           if (scoreCompare != 0) {
             return scoreCompare;
+          }
+
+          final publishedCompare = (_publishedAtForNews(b) ?? DateTime(1970))
+              .compareTo(_publishedAtForNews(a) ?? DateTime(1970));
+          if (publishedCompare != 0) {
+            return publishedCompare;
           }
 
           return _heatForNews(b).compareTo(_heatForNews(a));
@@ -803,4 +877,14 @@ class NewsController extends ChangeNotifier {
     _isDisposed = true;
     super.dispose();
   }
+}
+
+class _NewsScopeFilter {
+  final String? countryCode;
+  final String? cityId;
+
+  const _NewsScopeFilter({
+    required this.countryCode,
+    required this.cityId,
+  });
 }

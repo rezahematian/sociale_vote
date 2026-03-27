@@ -201,6 +201,28 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     }
   }
 
+  Future<void> _onTrendingPressed() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const _TrendingNowPage(),
+      ),
+    );
+  }
+
+  Future<void> _onForYouPressed() async {
+    final currentUserId = AppDI.instance.currentUserId;
+    final scopeShortLabel = _scopeShortLabel(_geoScopeController.scope);
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _ForYouPage(
+          userId: currentUserId,
+          scopeShortLabel: scopeShortLabel,
+        ),
+      ),
+    );
+  }
+
   void _onProfilePressed() {
     Navigator.pushNamed(context, AppRouter.profile);
   }
@@ -311,6 +333,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
               onRegisterPressed: _onRegisterPressed,
               onProfilePressed: _onProfilePressed,
               onLogoutPressed: _onLogoutPressed,
+              onTrendingPressed: isLoggedIn ? _onTrendingPressed : null,
+              onForYouPressed: isLoggedIn ? _onForYouPressed : null,
               onNotificationsPressed:
                   isLoggedIn ? _onNotificationsPressed : null,
             ),
@@ -410,30 +434,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                       child: Column(
                         children: [
-                          ChangeNotifierProvider<TrendingController>(
-                            key: ValueKey(
-                              'home_trending_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}',
-                            ),
-                            create: (_) =>
-                                AppDI.instance.createTrendingController(),
-                            child: const HomeTrendingSection(),
-                          ),
-                          const SizedBox(height: 24),
-                          ChangeNotifierProvider<ForYouFeedController>(
-                            key: ValueKey(
-                              'home_for_you_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}',
-                            ),
-                            create: (_) {
-                              final controller =
-                                  AppDI.instance.createForYouFeedController();
-                              controller.load(userId: currentUserId);
-                              return controller;
-                            },
-                            child: HomeForYouSection(
-                              scopeShortLabel: scopeShortLabel,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
                           ChangeNotifierProvider<PollListController>(
                             key: ValueKey(
                               'home_polls_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}',
@@ -483,6 +483,62 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+class _TrendingNowPage extends StatelessWidget {
+  const _TrendingNowPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Trending Now'),
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: ChangeNotifierProvider<TrendingController>(
+            create: (_) => AppDI.instance.createTrendingController(),
+            child: const HomeTrendingSection(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ForYouPage extends StatelessWidget {
+  final String? userId;
+  final String scopeShortLabel;
+
+  const _ForYouPage({
+    required this.userId,
+    required this.scopeShortLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('For You'),
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: ChangeNotifierProvider<ForYouFeedController>(
+            create: (_) {
+              final controller = AppDI.instance.createForYouFeedController();
+              controller.load(userId: userId);
+              return controller;
+            },
+            child: HomeForYouSection(
+              scopeShortLabel: scopeShortLabel,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

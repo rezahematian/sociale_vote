@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
@@ -614,6 +615,51 @@ class _NewsCard extends StatelessWidget {
     required this.news,
   });
 
+  Future<void> _openOriginalArticle(BuildContext context) async {
+    final rawUrl = news.articleUrl?.trim();
+
+    if (rawUrl == null || rawUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Link articolo originale non disponibile'),
+        ),
+      );
+      return;
+    }
+
+    final uri = Uri.tryParse(rawUrl);
+    if (uri == null || !uri.hasScheme || uri.host.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Link articolo non valido'),
+        ),
+      );
+      return;
+    }
+
+    try {
+      final opened = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!opened && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Impossibile aprire l’articolo originale'),
+          ),
+        );
+      }
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Impossibile aprire l’articolo originale'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -700,7 +746,6 @@ class _NewsCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                 ],
-
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -747,9 +792,7 @@ class _NewsCard extends StatelessWidget {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 10),
-
                 Text(
                   news.title,
                   maxLines: 2,
@@ -758,7 +801,6 @@ class _NewsCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-
                 if (news.summary != null && news.summary!.trim().isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(
@@ -772,9 +814,18 @@ class _NewsCard extends StatelessWidget {
                     ),
                   ),
                 ],
-
+                if (news.hasOriginalArticleUrl) ...[
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _openOriginalArticle(context),
+                      icon: const Icon(Icons.open_in_new, size: 18),
+                      label: const Text('Apri articolo'),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
-
                 Row(
                   children: [
                     Icon(
@@ -813,11 +864,9 @@ class _NewsCard extends StatelessWidget {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 12),
                 const Divider(height: 1),
                 const SizedBox(height: 8),
-
                 EngagementBar(
                   fireCount: fireCount,
                   iceCount: iceCount,
@@ -866,10 +915,11 @@ class _NewsCard extends StatelessWidget {
   }
 
   static String _sourceLabel(NewsItem news) {
-    final raw = news.authorId.trim();
-    if (raw.isEmpty) return 'GNews';
-    if (raw.length <= 28) return raw;
-    return raw.substring(0, 28);
+    final source = news.effectiveSourceLabel?.trim();
+    if (source != null && source.isNotEmpty) {
+      return source;
+    }
+    return 'News';
   }
 
   static String _formatPublishedAt(DateTime dateTime) {

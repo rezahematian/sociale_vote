@@ -14,10 +14,10 @@ class NewsMapper {
   /// - [countryCode]/[cityId] rappresentano il contesto feed
   /// - [contentLocation] rappresenta il luogo reale di cui parla la news
   ///
-  /// Fix F9.4:
-  /// - l'identità della news deve essere molto più stabile
-  /// - normalizziamo la URL prima di generare l'UUID
-  /// - evitiamo che query params / tracking / slash finali cambino id
+  /// Fix:
+  /// - identità news stabile
+  /// - manteniamo metadati sorgente e URL originale
+  /// - preserviamo authorId per compatibilità UI esistente
   NewsItem toDomain(
     NewsDto dto, {
     String? countryCode,
@@ -25,7 +25,8 @@ class NewsMapper {
     ContentLocation? contentLocation,
   }) {
     final effectiveContent = dto.content ?? dto.description ?? '';
-    final effectiveAuthor = dto.sourceName ?? dto.sourceId ?? 'news';
+    final effectiveSource =
+        _firstNonEmpty(dto.sourceName, dto.sourceId, 'news') ?? 'news';
     final breaking = _computeBreaking(dto);
 
     return NewsItem(
@@ -37,7 +38,12 @@ class NewsMapper {
       countryCode: countryCode,
       cityId: cityId,
       contentLocation: contentLocation,
-      authorId: effectiveAuthor,
+      authorId: effectiveSource,
+      articleUrl: _normalizeReadableUrl(dto.url),
+      sourceId: _normalizeLooseToken(dto.sourceId),
+      sourceName: _normalizeReadableText(dto.sourceName),
+      sourceUrl: _normalizeReadableUrl(dto.sourceUrl),
+      language: _normalizeLanguage(dto.lang),
       publishedAt: dto.publishedAt,
       isBreaking: breaking,
     );
@@ -62,17 +68,15 @@ class NewsMapper {
 
     final normalizedRawId = _normalizeLooseToken(dto.id);
     if (normalizedRawId != null && normalizedRawId.isNotEmpty) {
-      final source = _normalizeLooseToken(
-            dto.sourceId ?? dto.sourceName ?? 'unknown',
-          ) ??
-          'unknown';
+      final source =
+          _normalizeLooseToken(dto.sourceId ?? dto.sourceName ?? 'unknown') ??
+              'unknown';
       return 'id:$source:$normalizedRawId';
     }
 
-    final source = _normalizeLooseToken(
-          dto.sourceId ?? dto.sourceName ?? 'unknown',
-        ) ??
-        'unknown';
+    final source =
+        _normalizeLooseToken(dto.sourceId ?? dto.sourceName ?? 'unknown') ??
+            'unknown';
 
     final normalizedTitle = _normalizeTitle(dto.title);
     final publishedAtUtc = dto.publishedAt.toUtc().toIso8601String();
@@ -118,6 +122,41 @@ class NewsMapper {
     return normalizedUri.toString().toLowerCase();
   }
 
+  String? _normalizeReadableUrl(String? rawUrl) {
+    if (rawUrl == null) {
+      return null;
+    }
+
+    final trimmed = rawUrl.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    final parsed = Uri.tryParse(trimmed);
+    if (parsed == null || !parsed.hasScheme || parsed.host.trim().isEmpty) {
+      return trimmed;
+    }
+
+    var normalizedPath = parsed.path.trim();
+    if (normalizedPath.isEmpty) {
+      normalizedPath = '/';
+    } else {
+      normalizedPath = normalizedPath.replaceFirst(RegExp(r'/+$'), '');
+      if (normalizedPath.isEmpty) {
+        normalizedPath = '/';
+      }
+    }
+
+    return Uri(
+      scheme: parsed.scheme.toLowerCase(),
+      host: parsed.host.toLowerCase(),
+      port: parsed.hasPort ? parsed.port : null,
+      path: normalizedPath,
+      query: parsed.hasQuery ? parsed.query : null,
+      fragment: null,
+    ).toString();
+  }
+
   String? _normalizeLooseToken(String? value) {
     if (value == null) {
       return null;
@@ -129,6 +168,46 @@ class NewsMapper {
     }
 
     return trimmed.replaceAll(RegExp(r'\s+'), ' ');
+  }
+
+  String? _normalizeReadableText(String? value) {
+    if (value == null) {
+      return null;
+    }
+
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    return trimmed.replaceAll(RegExp(r'\s+'), ' ');
+  }
+
+  String? _normalizeLanguage(String? value) {
+    if (value == null) {
+      return null;
+    }
+
+    final trimmed = value.trim().toLowerCase().replaceAll('_', '-');
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    return trimmed.split('-').first;
+  }
+
+  String? _firstNonEmpty(String? a, String? b, String fallback) {
+    final normalizedA = _normalizeReadableText(a);
+    if (normalizedA != null) {
+      return normalizedA;
+    }
+
+    final normalizedB = _normalizeReadableText(b);
+    if (normalizedB != null) {
+      return normalizedB;
+    }
+
+    return fallback;
   }
 
   String _normalizeTitle(String value) {

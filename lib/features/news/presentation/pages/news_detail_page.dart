@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
@@ -259,6 +260,53 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     );
   }
 
+  Future<void> _openOriginalArticle() async {
+    final rawUrl = widget.news.articleUrl?.trim();
+
+    if (rawUrl == null || rawUrl.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Link articolo originale non disponibile'),
+        ),
+      );
+      return;
+    }
+
+    final uri = Uri.tryParse(rawUrl);
+    if (uri == null || !uri.hasScheme || uri.host.trim().isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Link articolo non valido'),
+        ),
+      );
+      return;
+    }
+
+    try {
+      final opened = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!opened && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Impossibile aprire l’articolo originale'),
+          ),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Impossibile aprire l’articolo originale'),
+        ),
+      );
+    }
+  }
+
   String _reportReasonLabel(String reason) {
     switch (reason) {
       case 'spam':
@@ -282,6 +330,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final news = widget.news;
+    final sourceLabel = news.effectiveSourceLabel;
 
     if (_initializedNewsId != news.id.value) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -402,6 +451,28 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     ),
                   ],
                 ),
+                if (sourceLabel != null && sourceLabel.trim().isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.newspaper,
+                        size: 14,
+                        color: theme.hintColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          sourceLabel.trim(),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.hintColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -439,6 +510,17 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     ),
                   ),
                 ),
+                if (news.hasOriginalArticleUrl) ...[
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: OutlinedButton.icon(
+                      onPressed: _openOriginalArticle,
+                      icon: const Icon(Icons.open_in_new),
+                      label: const Text('Leggi articolo originale'),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 24),
                 Builder(
                   builder: (context) {
@@ -529,11 +611,17 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
   }
 
   String _resolveBodyText(AppLocalizations l10n) {
-    final s = widget.news.summary;
-    if (s == null || s.trim().isEmpty) {
-      return l10n.newsDetail_bodyFallback;
+    final summary = widget.news.summary;
+    if (summary != null && summary.trim().isNotEmpty) {
+      return summary;
     }
-    return s;
+
+    final content = widget.news.content;
+    if (content.trim().isNotEmpty) {
+      return content;
+    }
+
+    return l10n.newsDetail_bodyFallback;
   }
 
   String _formatPublishedAt(DateTime dateTime) {

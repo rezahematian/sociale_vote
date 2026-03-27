@@ -10,6 +10,8 @@ class HomeTopBar extends StatelessWidget {
   final VoidCallback onRegisterPressed;
   final VoidCallback onProfilePressed;
   final VoidCallback onLogoutPressed;
+  final VoidCallback? onTrendingPressed;
+  final VoidCallback? onForYouPressed;
   final VoidCallback? onNotificationsPressed;
 
   const HomeTopBar({
@@ -21,6 +23,8 @@ class HomeTopBar extends StatelessWidget {
     required this.onRegisterPressed,
     required this.onProfilePressed,
     required this.onLogoutPressed,
+    this.onTrendingPressed,
+    this.onForYouPressed,
     this.onNotificationsPressed,
   });
 
@@ -73,6 +77,22 @@ class HomeTopBar extends StatelessWidget {
             onPressed: onNotificationsPressed,
           ),
           const SizedBox(width: 4),
+          OutlinedButton(
+            onPressed: onTrendingPressed,
+            style: OutlinedButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+            ),
+            child: const Text('Trending'),
+          ),
+          const SizedBox(width: 6),
+          OutlinedButton(
+            onPressed: onForYouPressed,
+            style: OutlinedButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+            ),
+            child: const Text('For You'),
+          ),
+          const SizedBox(width: 6),
           OutlinedButton(
             onPressed: onProfilePressed,
             style: OutlinedButton.styleFrom(

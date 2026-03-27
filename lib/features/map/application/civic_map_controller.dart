@@ -211,6 +211,10 @@ typedef CivicMapItemsLoader = Future<List<CivicMapItem>> Function(
   GeoScope scope,
 );
 
+typedef CivicMapRefreshHook = Future<void> Function(
+  GeoScope scope,
+);
+
 class _CivicMapLoadResult {
   final String sourceName;
   final List<CivicMapItem> items;
@@ -231,11 +235,13 @@ class CivicMapController extends ChangeNotifier {
   final CivicMapItemsLoader? loadPollItems;
   final CivicMapItemsLoader? loadPostItems;
   final CivicMapItemsLoader? loadNewsItems;
+  final CivicMapRefreshHook? beforeRefresh;
 
   CivicMapController({
     this.loadPollItems,
     this.loadPostItems,
     this.loadNewsItems,
+    this.beforeRefresh,
   });
 
   bool _isDisposed = false;
@@ -347,6 +353,7 @@ class CivicMapController extends ChangeNotifier {
     await _queueLoadForScope(
       scope,
       clearSelection: clearSelection && !sameScope,
+      explicitRefresh: forceReload,
     );
   }
 
@@ -357,6 +364,7 @@ class CivicMapController extends ChangeNotifier {
     return _queueLoadForScope(
       scope,
       clearSelection: clearSelection,
+      explicitRefresh: false,
     );
   }
 
@@ -367,6 +375,7 @@ class CivicMapController extends ChangeNotifier {
     await _queueLoadForScope(
       scope,
       clearSelection: false,
+      explicitRefresh: true,
     );
   }
 
@@ -443,16 +452,20 @@ class CivicMapController extends ChangeNotifier {
   Future<void> _queueLoadForScope(
     GeoScope scope, {
     required bool clearSelection,
+    required bool explicitRefresh,
   }) {
     final scopeKey = _scopeKey(scope);
 
-    if (_activeLoadFuture != null && _activeLoadScopeKey == scopeKey) {
+    if (!explicitRefresh &&
+        _activeLoadFuture != null &&
+        _activeLoadScopeKey == scopeKey) {
       return _activeLoadFuture!;
     }
 
     final future = _performLoadForScope(
       scope,
       clearSelection: clearSelection,
+      explicitRefresh: explicitRefresh,
     );
 
     _activeLoadFuture = future;
@@ -472,18 +485,22 @@ class CivicMapController extends ChangeNotifier {
   Future<void> _performLoadForScope(
     GeoScope scope, {
     required bool clearSelection,
+    required bool explicitRefresh,
   }) async {
     final totalStopwatch = Stopwatch()..start();
     final requestId = ++_loadRequestId;
     final scopeChanged = !_isSameScope(_currentScope, scope);
     final sameScope = !scopeChanged;
     final hasExistingData = _allItems.isNotEmpty;
-    final isBackgroundRefresh = sameScope && hasExistingData;
-    final loadMode = isBackgroundRefresh ? 'background' : 'open';
+    final isBackgroundRefresh =
+        sameScope && hasExistingData && !explicitRefresh;
+    final loadMode = explicitRefresh
+        ? 'manual_refresh'
+        : (isBackgroundRefresh ? 'background' : 'open');
 
     _currentScope = scope;
     _errorMessage = null;
-    _isRefreshing = isBackgroundRefresh;
+    _isRefreshing = isBackgroundRefresh || explicitRefresh;
 
     if (isBackgroundRefresh) {
       if (_status != CivicMapStatus.loaded) {
@@ -507,6 +524,17 @@ class CivicMapController extends ChangeNotifier {
     }
 
     _notifySafely();
+
+    if (explicitRefresh && beforeRefresh != null) {
+      try {
+        await beforeRefresh!(scope);
+      } catch (e, st) {
+        if (kDebugMode) {
+          debugPrint('CivicMap pre-refresh failed: $e');
+          debugPrint('$st');
+        }
+      }
+    }
 
     _CivicMapLoadResult pollResult = const _CivicMapLoadResult(
       sourceName: 'poll',
@@ -550,8 +578,8 @@ class CivicMapController extends ChangeNotifier {
       final storeChanged = _applySourceResult(
         store: store,
         result: result,
-        preservePreviousOnError: sameScope,
-        preservePreviousOnEmpty: sameScope,
+        preservePreviousOnError: sameScope && !explicitRefresh,
+        preservePreviousOnEmpty: sameScope && !explicitRefresh,
       );
 
       upsertError(result);
