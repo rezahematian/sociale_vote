@@ -43,10 +43,14 @@ class HomeForYouSection extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          l10n.homeForYouTitle(scopeShortLabel),
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+        Expanded(
+          child: Text(
+            l10n.homeForYouTitle(scopeShortLabel),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -103,8 +107,8 @@ class HomeForYouSection extends StatelessWidget {
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return ListView(
+      padding: EdgeInsets.zero,
       children: [
         header,
         const SizedBox(height: 8),

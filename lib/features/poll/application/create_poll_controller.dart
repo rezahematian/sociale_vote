@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sociale_vote/domain/geo/repositories/device_location_repository.dart';
 import 'package:sociale_vote/domain/geo/repositories/geocoding_repository.dart';
@@ -22,6 +23,7 @@ class CreatePollController extends ChangeNotifier {
   final GeoScopeController _geoScopeController;
   final DeviceLocationRepository? _deviceLocationRepository;
   final GeocodingRepository? _geocodingRepository;
+  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
 
   final String? _createdByUserId;
 
@@ -475,6 +477,13 @@ class CreatePollController extends ChangeNotifier {
 
       final createdPoll = await _createPollUseCase(poll);
 
+      await _trackPollCreated(
+        createdPoll: createdPoll,
+        optionCount: nonEmptyOptions.length,
+        hasDescription: trimmedDescription.isNotEmpty,
+        contentLocation: effectiveLocation,
+      );
+
       _isSubmitting = false;
       notifyListeners();
       return createdPoll.id;
@@ -490,6 +499,30 @@ class CreatePollController extends ChangeNotifier {
           : 'Unable to create poll at the moment.';
       notifyListeners();
       return null;
+    }
+  }
+
+  Future<void> _trackPollCreated({
+    required Poll createdPoll,
+    required int optionCount,
+    required bool hasDescription,
+    required ContentLocation contentLocation,
+  }) async {
+    try {
+      await _analytics.logEvent(
+        name: 'create_poll',
+        parameters: <String, Object>{
+          'poll_id': createdPoll.id.value,
+          'poll_type': _type.name,
+          'option_count': optionCount,
+          'participation_scope': _participationScope.name,
+          'has_description': hasDescription,
+          'has_content_country': contentLocation.hasCountry,
+          'has_content_city': contentLocation.hasCityName,
+        },
+      );
+    } catch (_) {
+      // Best effort: analytics must never break poll creation.
     }
   }
 

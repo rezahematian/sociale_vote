@@ -108,8 +108,8 @@ class HomeTrendingSection extends StatelessWidget {
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return ListView(
+      padding: EdgeInsets.zero,
       children: [
         header,
         const SizedBox(height: 8),

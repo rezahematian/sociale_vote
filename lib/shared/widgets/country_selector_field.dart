@@ -23,16 +23,13 @@ class CountrySelectorField extends StatelessWidget {
     final effectiveLabel = required ? '$label *' : label;
 
     final selected = countries.firstWhere(
-      (c) =>
-          c.code.toUpperCase() == (selectedCountryCode ?? '').toUpperCase(),
+      (c) => c.code.toUpperCase() == (selectedCountryCode ?? '').toUpperCase(),
       orElse: () => const data.Country(code: '', name: ''),
     );
 
-    final hasSelected =
-        selected.code.isNotEmpty && selected.name.isNotEmpty;
+    final hasSelected = selected.code.isNotEmpty && selected.name.isNotEmpty;
 
-    final textValue =
-        hasSelected ? '${selected.name} (${selected.code})' : '';
+    final textValue = hasSelected ? '${selected.name} (${selected.code})' : '';
 
     return GestureDetector(
       onTap: () => _openCountryPicker(context),
@@ -88,20 +85,18 @@ class CountrySelectorField extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Expanded(
-                      child: Scrollbar(
-                        child: ListView.builder(
-                          itemCount: filtered.length,
-                          itemBuilder: (context, index) {
-                            final country = filtered[index];
-                            return ListTile(
-                              title: Text(country.name),
-                              subtitle: Text(country.code),
-                              onTap: () {
-                                Navigator.of(dialogContext).pop(country.code);
-                              },
-                            );
-                          },
-                        ),
+                      child: ListView.builder(
+                        itemCount: filtered.length,
+                        itemBuilder: (context, index) {
+                          final country = filtered[index];
+                          return ListTile(
+                            title: Text(country.name),
+                            subtitle: Text(country.code),
+                            onTap: () {
+                              Navigator.of(dialogContext).pop(country.code);
+                            },
+                          );
+                        },
                       ),
                     ),
                   ],

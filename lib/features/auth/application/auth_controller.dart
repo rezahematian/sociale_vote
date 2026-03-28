@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
@@ -20,6 +21,7 @@ class AuthController extends ChangeNotifier {
   final LoginUser _loginUser;
   final RegisterUser _registerUser;
   final AuthApi _authApi;
+  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
 
   AuthStatus _status = AuthStatus.unknown;
   String? _errorMessage;
@@ -70,6 +72,13 @@ class AuthController extends ChangeNotifier {
         email: email,
         password: password,
       );
+
+      await _trackAuthEvent(
+        name: 'login',
+        parameters: <String, Object>{
+          'method': 'email',
+        },
+      );
     } catch (e) {
       if (_isDisposed) return;
       _status = AuthStatus.error;
@@ -93,6 +102,13 @@ class AuthController extends ChangeNotifier {
         password: password,
         displayName: displayName,
       );
+
+      await _trackAuthEvent(
+        name: 'sign_up',
+        parameters: <String, Object>{
+          'method': 'email',
+        },
+      );
     } catch (e) {
       if (_isDisposed) return;
       _status = AuthStatus.error;
@@ -104,11 +120,32 @@ class AuthController extends ChangeNotifier {
   Future<void> logout() async {
     await _authApi.logout();
     await _sessionRepository.clearSession();
+
+    await _trackAuthEvent(
+      name: 'logout',
+      parameters: const <String, Object>{
+        'method': 'manual',
+      },
+    );
   }
 
   void clearError() {
     _errorMessage = null;
     _safeNotifyListeners();
+  }
+
+  Future<void> _trackAuthEvent({
+    required String name,
+    Map<String, Object>? parameters,
+  }) async {
+    try {
+      await _analytics.logEvent(
+        name: name,
+        parameters: parameters,
+      );
+    } catch (_) {
+      // Best effort: analytics must never break auth flows.
+    }
   }
 
   void _safeNotifyListeners() {

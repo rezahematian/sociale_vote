@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/di.dart';
@@ -20,6 +21,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
   final _cityController = TextEditingController();
+  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
 
   bool _isSubmitting = false;
   bool _isResolvingLocation = false;
@@ -269,6 +271,12 @@ class _CreatePostPageState extends State<CreatePostPage> {
         contentLocation: effectiveLocation,
       );
 
+      await _trackPostCreated(
+        title: title,
+        content: content,
+        contentLocation: effectiveLocation,
+      );
+
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -295,6 +303,27 @@ class _CreatePostPageState extends State<CreatePostPage> {
           _isSubmitting = false;
         });
       }
+    }
+  }
+
+  Future<void> _trackPostCreated({
+    required String title,
+    required String content,
+    required ContentLocation contentLocation,
+  }) async {
+    try {
+      await _analytics.logEvent(
+        name: 'create_post',
+        parameters: <String, Object>{
+          'title_length': title.length,
+          'content_length': content.length,
+          'has_content_country': contentLocation.hasCountry,
+          'has_content_city': contentLocation.hasCityName,
+          'has_exact_point': contentLocation.hasExactPoint,
+        },
+      );
+    } catch (_) {
+      // Best effort: analytics must never break post creation.
     }
   }
 

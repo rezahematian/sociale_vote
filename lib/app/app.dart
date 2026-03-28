@@ -1,4 +1,5 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -14,6 +15,23 @@ class SocialeVoteApp extends StatelessWidget {
   static final FirebaseAnalyticsObserver _analyticsObserver =
       FirebaseAnalyticsObserver(analytics: _analytics);
 
+  bool get _enableAnalyticsObserver {
+    if (kIsWeb) {
+      return true;
+    }
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        return true;
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+      case TargetPlatform.fuchsia:
+        return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -21,6 +39,9 @@ class SocialeVoteApp extends StatelessWidget {
       title: 'Sociale Vote',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        scrollbars: false,
+      ),
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -28,9 +49,9 @@ class SocialeVoteApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      navigatorObservers: <NavigatorObserver>[
-        _analyticsObserver,
-      ],
+      navigatorObservers: _enableAnalyticsObserver
+          ? <NavigatorObserver>[_analyticsObserver]
+          : const <NavigatorObserver>[],
       initialRoute: AppRouter.initialRoute,
       onGenerateRoute: AppRouter.onGenerateRoute,
     );

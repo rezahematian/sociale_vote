@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/vote.dart';
@@ -17,6 +18,7 @@ enum VoteErrorType {
 
 class VoteController extends ChangeNotifier {
   final SubmitVoteAndNotify _submitVote;
+  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
 
   /// Id delle opzioni attualmente selezionate.
   final Set<String> _selectedOptionIds = {};
@@ -99,6 +101,8 @@ class VoteController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final selectedCount = _selectedOptionIds.length;
+
       final vote = Vote.now(
         pollId: poll.id,
         optionIds: _selectedOptionIds.toList(),
@@ -112,6 +116,11 @@ class VoteController extends ChangeNotifier {
       );
 
       _submittedSuccessfully = true;
+
+      await _trackVoteSubmitted(
+        poll: poll,
+        selectedCount: selectedCount,
+      );
     } on UnauthorizedVoteException {
       _errorType = VoteErrorType.unauthorized;
       _errorMessage = null;
@@ -138,6 +147,23 @@ class VoteController extends ChangeNotifier {
     } finally {
       _isSubmitting = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> _trackVoteSubmitted({
+    required Poll poll,
+    required int selectedCount,
+  }) async {
+    try {
+      await _analytics.logEvent(
+        name: 'submit_vote',
+        parameters: <String, Object>{
+          'poll_id': poll.id.value,
+          'selected_option_count': selectedCount,
+        },
+      );
+    } catch (_) {
+      // Best effort: analytics must never break vote flow.
     }
   }
 }
