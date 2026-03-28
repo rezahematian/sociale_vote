@@ -51,6 +51,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
   String _homeNewsLanguageKey = 'auto';
   bool _isRefreshingHomeNewsLanguageKey = false;
+  bool _isRefreshingHome = false;
+  int _homeRefreshVersion = 0;
 
   @override
   void initState() {
@@ -302,6 +304,35 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
         });
   }
 
+  Future<void> _onRefreshHome() async {
+    if (_isRefreshingHome) {
+      return;
+    }
+
+    setState(() {
+      _isRefreshingHome = true;
+      _homeRefreshVersion += 1;
+    });
+
+    _refreshHomeNewsLanguageKey();
+
+    final notificationsController = _homeNotificationsController;
+    if (notificationsController != null) {
+      try {
+        await notificationsController.refreshUnreadCount();
+      } catch (_) {
+        // best effort
+      }
+    }
+
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+
+    if (!mounted) return;
+    setState(() {
+      _isRefreshingHome = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final String? currentUserId = AppDI.instance.currentUserId;
@@ -385,98 +416,105 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                 ),
               ),
               SafeArea(
-                child: ListView(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                      child: HomeHeroSection(
+                child: RefreshIndicator(
+                  onRefresh: _onRefreshHome,
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 16),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        child: HomeHeroSection(
+                          scopeShortLabel: scopeShortLabel,
+                          onOpenPolls: () {
+                            Navigator.pushNamed(context, AppRouter.polls);
+                          },
+                          onOpenNews: _onOpenNewsPressed,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: HomeSearchBar(
+                          onSubmitted: _handleSearchSubmitted,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                        child: HomeUserStatus(
+                          isLoggedIn: isLoggedIn,
+                          currentUserId: currentUserId,
+                        ),
+                      ),
+                      HomeMapSection(
+                        key: ValueKey(
+                          'home_map_${scope.level}_${scope.countryCode}_${scope.cityId}_${_homeRefreshVersion}',
+                        ),
                         scopeShortLabel: scopeShortLabel,
-                        onOpenPolls: () {
-                          Navigator.pushNamed(context, AppRouter.polls);
-                        },
-                        onOpenNews: _onOpenNewsPressed,
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
+                      HomeScopeHeader(
+                        scope: scope,
+                        scopeLabel: scopeLabel,
+                        isFollowed: _isScopeFollowed(scope),
+                        onToggleFollow: () => _onToggleFollowScope(scope),
+                        onSetWorld: _setWorld,
+                        onSetItaly: _setItaly,
+                        onSetTorino: _setTorino,
                       ),
-                      child: HomeSearchBar(
-                        onSubmitted: _handleSearchSubmitted,
+                      const Divider(height: 1),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                        child: Column(
+                          children: [
+                            ChangeNotifierProvider<PollListController>(
+                              key: ValueKey(
+                                'home_polls_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}_${_homeRefreshVersion}',
+                              ),
+                              create: (_) {
+                                final controller =
+                                    AppDI.instance.createPollListController();
+                                final userId = AppDI.instance.currentUserId;
+                                controller.loadPolls(userId: userId);
+                                return controller;
+                              },
+                              child: HomePollSection(
+                                scopeShortLabel: scopeShortLabel,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            ChangeNotifierProvider<NewsController>(
+                              key: ValueKey(
+                                'home_news_${scope.level}_${scope.countryCode}_${scope.cityId}_${_homeNewsLanguageKey}_${_homeRefreshVersion}'
+                              ),
+                              create: (_) =>
+                                  AppDI.instance.createNewsController()
+                                    ..loadNews(),
+                              child: HomeNewsSection(
+                                scopeShortLabel: scopeShortLabel,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            ChangeNotifierProvider<FeedController>(
+                              key: ValueKey(
+                                'home_social_${scope.level}_${scope.countryCode}_${scope.cityId}_${_homeRefreshVersion}',
+                              ),
+                              create: (_) =>
+                                  AppDI.instance.createFeedController()
+                                    ..loadFeed(),
+                              child: HomeSocialSection(
+                                scopeShortLabel: scopeShortLabel,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 4,
-                      ),
-                      child: HomeUserStatus(
-                        isLoggedIn: isLoggedIn,
-                        currentUserId: currentUserId,
-                      ),
-                    ),
-                    HomeMapSection(
-                      scopeShortLabel: scopeShortLabel,
-                    ),
-                    HomeScopeHeader(
-                      scope: scope,
-                      scopeLabel: scopeLabel,
-                      isFollowed: _isScopeFollowed(scope),
-                      onToggleFollow: () => _onToggleFollowScope(scope),
-                      onSetWorld: _setWorld,
-                      onSetItaly: _setItaly,
-                      onSetTorino: _setTorino,
-                    ),
-                    const Divider(height: 1),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                      child: Column(
-                        children: [
-                          ChangeNotifierProvider<PollListController>(
-                            key: ValueKey(
-                              'home_polls_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}',
-                            ),
-                            create: (_) {
-                              final controller =
-                                  AppDI.instance.createPollListController();
-                              final userId = AppDI.instance.currentUserId;
-                              controller.loadPolls(userId: userId);
-                              return controller;
-                            },
-                            child: HomePollSection(
-                              scopeShortLabel: scopeShortLabel,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          ChangeNotifierProvider<NewsController>(
-                            key: ValueKey(
-                              'home_news_${scope.level}_${scope.countryCode}_${scope.cityId}_$_homeNewsLanguageKey',
-                            ),
-                            create: (_) =>
-                                AppDI.instance.createNewsController()
-                                  ..loadNews(),
-                            child: HomeNewsSection(
-                              scopeShortLabel: scopeShortLabel,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          ChangeNotifierProvider<FeedController>(
-                            key: ValueKey(
-                              'home_social_${scope.level}_${scope.countryCode}_${scope.cityId}',
-                            ),
-                            create: (_) =>
-                                AppDI.instance.createFeedController()
-                                  ..loadFeed(),
-                            child: HomeSocialSection(
-                              scopeShortLabel: scopeShortLabel,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],

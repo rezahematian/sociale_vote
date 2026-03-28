@@ -36,25 +36,26 @@ class HomeNewsSection extends StatelessWidget {
     Widget content;
 
     if (controller.isLoading && newsList.isEmpty) {
-      content = const Padding(
-        padding: EdgeInsets.symmetric(vertical: 20),
-        child: Center(
-          child: SizedBox(
-            width: 22,
-            height: 22,
-            child: LoadingIndicator(),
-          ),
-        ),
-      );
-    } else if (controller.hasError) {
+      content = const _HomeNewsLoadingState();
+    } else if (newsList.isEmpty && controller.hasError) {
       content = HomeNewsPlaceholderCard(
+        icon: Icons.wifi_off_rounded,
         title: l10n.homeNewsErrorTitle,
         subtitle: l10n.homeNewsErrorSubtitle,
+        actionLabel: MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
+        onActionPressed: () {
+          controller.loadNews();
+        },
       );
     } else if (newsList.isEmpty) {
       content = HomeNewsPlaceholderCard(
+        icon: Icons.article_outlined,
         title: l10n.homeNewsEmptyTitle,
         subtitle: l10n.homeNewsEmptySubtitle,
+        actionLabel: MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
+        onActionPressed: () {
+          controller.loadNews();
+        },
       );
     } else {
       final featured = newsList.first;
@@ -63,6 +64,27 @@ class HomeNewsSection extends StatelessWidget {
 
       content = Column(
         children: [
+          if (controller.hasError) ...[
+            _HomeNewsInlineStatus(
+              icon: Icons.info_outline_rounded,
+              title: l10n.homeNewsErrorTitle,
+              subtitle: l10n.homeNewsErrorSubtitle,
+              onRetryPressed: () {
+                controller.loadNews();
+              },
+            ),
+            const SizedBox(height: 10),
+          ],
+          if (controller.isLoading) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                minHeight: 3,
+                backgroundColor: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
           _NewsCardBuilder(
             news: featured,
             compact: false,
@@ -187,7 +209,24 @@ class _HomeNewsHeader extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 4),
+        IconButton(
+          visualDensity: VisualDensity.compact,
+          tooltip: MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
+          onPressed: controller.isLoading
+              ? null
+              : () {
+                  controller.loadNews();
+                },
+          icon: controller.isLoading
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: LoadingIndicator(),
+                )
+              : const Icon(Icons.refresh_rounded, size: 20),
+        ),
+        const SizedBox(width: 4),
         PopupMenuButton<NewsLanguage>(
           tooltip: l10n.newsFeed_languageTooltip,
           onSelected: (lang) {
@@ -325,14 +364,186 @@ class _NewsCardBuilder extends StatelessWidget {
   }
 }
 
-class HomeNewsPlaceholderCard extends StatelessWidget {
+class _HomeNewsInlineStatus extends StatelessWidget {
+  final IconData icon;
   final String title;
   final String subtitle;
+  final VoidCallback onRetryPressed;
+
+  const _HomeNewsInlineStatus({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onRetryPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AppCard(
+      elevated: false,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.78),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: onRetryPressed,
+              child: Text(
+                MaterialLocalizations.of(context)
+                    .refreshIndicatorSemanticLabel,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeNewsLoadingState extends StatelessWidget {
+  const _HomeNewsLoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: const [
+        _HomeNewsLoadingCard(compact: false),
+        SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(child: _HomeNewsLoadingCard(compact: true)),
+            SizedBox(width: 10),
+            Expanded(child: _HomeNewsLoadingCard(compact: true)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _HomeNewsLoadingCard extends StatelessWidget {
+  final bool compact;
+
+  const _HomeNewsLoadingCard({
+    required this.compact,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    Widget bar(double width, {double height = 10}) {
+      return Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.onSurface.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(999),
+        ),
+      );
+    }
+
+    return AppCard(
+      elevated: true,
+      child: Padding(
+        padding: EdgeInsets.all(compact ? 12 : 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      bar(56, height: 8),
+                      const SizedBox(height: 8),
+                      bar(double.infinity, height: 12),
+                      const SizedBox(height: 6),
+                      bar(compact ? 110 : 160, height: 12),
+                      const SizedBox(height: 8),
+                      bar(double.infinity, height: 9),
+                      const SizedBox(height: 5),
+                      bar(compact ? 100 : 180, height: 9),
+                    ],
+                  ),
+                ),
+                SizedBox(width: compact ? 10 : 12),
+                Container(
+                  width: compact ? 78 : 108,
+                  height: compact ? 78 : 92,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.onSurface.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: compact ? 10 : 12),
+            bar(92, height: 8),
+            SizedBox(height: compact ? 8 : 10),
+            const Divider(height: 1),
+            SizedBox(height: compact ? 8 : 10),
+            Row(
+              children: [
+                bar(52, height: 8),
+                const SizedBox(width: 10),
+                bar(52, height: 8),
+                const SizedBox(width: 10),
+                bar(52, height: 8),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HomeNewsPlaceholderCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String? actionLabel;
+  final VoidCallback? onActionPressed;
 
   const HomeNewsPlaceholderCard({
     super.key,
+    required this.icon,
     required this.title,
     required this.subtitle,
+    this.actionLabel,
+    this.onActionPressed,
   });
 
   @override
@@ -346,6 +557,12 @@ class HomeNewsPlaceholderCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Icon(
+              icon,
+              size: 22,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(height: 10),
             Text(
               title,
               style: theme.textTheme.bodyLarge?.copyWith(
@@ -359,6 +576,14 @@ class HomeNewsPlaceholderCard extends StatelessWidget {
                 color: theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
               ),
             ),
+            if (actionLabel != null && onActionPressed != null) ...[
+              const SizedBox(height: 10),
+              TextButton.icon(
+                onPressed: onActionPressed,
+                icon: const Icon(Icons.refresh_rounded),
+                label: Text(actionLabel!),
+              ),
+            ],
           ],
         ),
       ),
