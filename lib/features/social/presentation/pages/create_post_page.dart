@@ -1,7 +1,7 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/core/analytics/analytics_service.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
@@ -21,7 +21,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
   final _cityController = TextEditingController();
-  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
 
   bool _isSubmitting = false;
   bool _isResolvingLocation = false;
@@ -311,20 +310,16 @@ class _CreatePostPageState extends State<CreatePostPage> {
     required String content,
     required ContentLocation contentLocation,
   }) async {
-    try {
-      await _analytics.logEvent(
-        name: 'create_post',
-        parameters: <String, Object>{
-          'title_length': title.length,
-          'content_length': content.length,
-          'has_content_country': contentLocation.hasCountry,
-          'has_content_city': contentLocation.hasCityName,
-          'has_exact_point': contentLocation.hasExactPoint,
-        },
-      );
-    } catch (_) {
-      // Best effort: analytics must never break post creation.
-    }
+    await AnalyticsService.instance.logEvent(
+      'post_created',
+      parameters: <String, Object?>{
+        'title_length': title.length,
+        'content_length': content.length,
+        'has_content_country': contentLocation.hasCountry,
+        'has_content_city': contentLocation.hasCityName,
+        'has_exact_point': contentLocation.hasExactPoint,
+      },
+    );
   }
 
   @override

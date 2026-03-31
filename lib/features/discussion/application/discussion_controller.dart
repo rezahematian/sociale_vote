@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:sociale_vote/core/analytics/analytics_service.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/discussion/entities/comment.dart';
 import 'package:sociale_vote/domain/discussion/usecases/get_comments_for_target.dart';
@@ -161,6 +162,10 @@ class DiscussionController extends ChangeNotifier {
       }
 
       _notifyCommentsChanged();
+      await _trackCommentAdded(
+        isReply: false,
+        contentLength: trimmed.length,
+      );
     } catch (e) {
       _errorMessage = 'Impossibile aggiungere il commento.';
     } finally {
@@ -204,6 +209,10 @@ class DiscussionController extends ChangeNotifier {
       _comments.sort(_compareByCreatedAt);
 
       _notifyCommentsChanged();
+      await _trackCommentAdded(
+        isReply: true,
+        contentLength: trimmed.length,
+      );
     } catch (e) {
       _errorMessage = 'Impossibile aggiungere la risposta.';
     } finally {
@@ -275,5 +284,20 @@ class DiscussionController extends ChangeNotifier {
   void clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  Future<void> _trackCommentAdded({
+    required bool isReply,
+    required int contentLength,
+  }) async {
+    await AnalyticsService.instance.logEvent(
+      'comment_added',
+      parameters: <String, Object?>{
+        'target_type': target.type.name,
+        'target_id': target.id,
+        'is_reply': isReply,
+        'content_length': contentLength,
+      },
+    );
   }
 }

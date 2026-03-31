@@ -1,5 +1,5 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
+import 'package:sociale_vote/core/analytics/analytics_service.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/vote.dart';
 import 'package:sociale_vote/domain/poll/errors/poll_closed_exception.dart';
@@ -18,7 +18,6 @@ enum VoteErrorType {
 
 class VoteController extends ChangeNotifier {
   final SubmitVoteAndNotify _submitVote;
-  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
 
   /// Id delle opzioni attualmente selezionate.
   final Set<String> _selectedOptionIds = {};
@@ -154,16 +153,12 @@ class VoteController extends ChangeNotifier {
     required Poll poll,
     required int selectedCount,
   }) async {
-    try {
-      await _analytics.logEvent(
-        name: 'submit_vote',
-        parameters: <String, Object>{
-          'poll_id': poll.id.value,
-          'selected_option_count': selectedCount,
-        },
-      );
-    } catch (_) {
-      // Best effort: analytics must never break vote flow.
-    }
+    await AnalyticsService.instance.logEvent(
+      'vote_submitted',
+      parameters: <String, Object?>{
+        'poll_id': poll.id.value,
+        'selected_option_count': selectedCount,
+      },
+    );
   }
 }
