@@ -6,6 +6,7 @@ import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 
 import 'package:sociale_vote/features/auth/presentation/pages/login_page.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/register_page.dart';
+import 'package:sociale_vote/features/auth/presentation/pages/reset_password_page.dart';
 import 'package:sociale_vote/features/home/presentation/pages/public_home_screen.dart';
 import 'package:sociale_vote/features/map/presentation/pages/civic_map_page.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
@@ -34,6 +35,7 @@ class AppRouter {
   static const String notifications = '/notifications';
   static const String login = '/login';
   static const String register = '/register';
+  static const String resetPassword = '/reset-password';
 
   static const String initialRoute = home;
 
@@ -138,6 +140,12 @@ class AppRouter {
       case register:
         return MaterialPageRoute<void>(
           builder: (_) => const RegisterPage(),
+          settings: settings,
+        );
+
+      case resetPassword:
+        return MaterialPageRoute<void>(
+          builder: (_) => const ResetPasswordPage(),
           settings: settings,
         );
     }

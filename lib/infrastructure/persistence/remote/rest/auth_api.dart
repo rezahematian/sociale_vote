@@ -3,14 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sociale_vote/core/supabase/supabase_client.dart';
 import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
 
-/// API auth minima basata su Supabase Auth.
-///
-/// Responsabilità:
-/// - login email/password
-/// - register email/password
-/// - lettura sessione corrente
-/// - logout
-/// - sincronizzazione utente in public.users
 class AuthApi {
   const AuthApi();
 
@@ -86,6 +78,26 @@ class AuthApi {
     return _mapToAuthSession(
       session: session,
       user: user,
+    );
+  }
+
+  Future<void> sendPasswordResetEmail({
+    required String email,
+    String? redirectTo,
+  }) async {
+    await AppSupabase.auth.resetPasswordForEmail(
+      email,
+      redirectTo: redirectTo,
+    );
+  }
+
+  Future<void> updatePassword({
+    required String newPassword,
+  }) async {
+    await AppSupabase.auth.updateUser(
+      UserAttributes(
+        password: newPassword,
+      ),
     );
   }
 

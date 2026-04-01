@@ -7,6 +7,7 @@ import 'package:sociale_vote/app/app.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 import 'package:sociale_vote/firebase_options.dart';
+import 'package:sociale_vote/infrastructure/persistence/remote/rest/auth_api.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,17 @@ Future<void> main() async {
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJidXpscmNsd2h4YWlna2duZHJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNDY3MzYsImV4cCI6MjA4ODgyMjczNn0.dHNA8s3NcqnluakSb-NFnb2jNgCcaVm3Ix24LbbIpHI',
   );
+
+  final rememberMe = await AppDI.instance.storageService.readRememberMe();
+
+  if (rememberMe) {
+    final existingSession = await const AuthApi().getCurrentSession();
+    if (existingSession != null) {
+      await AppDI.instance.sessionRepository.saveSession(existingSession);
+    }
+  } else {
+    await AppDI.instance.sessionRepository.clearSession();
+  }
 
   runApp(
     ChangeNotifierProvider<GeoScopeController>.value(

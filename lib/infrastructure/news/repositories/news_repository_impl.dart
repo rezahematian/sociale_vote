@@ -368,7 +368,19 @@ class NewsRepositoryImpl implements NewsRepository {
       return fallbackItems();
     }
 
-    final enriched = await _enrichItemsForCache(sorted);
+    final previousResolvedCount = _countItemsWithResolvedLocation(
+      previousCache?.items ?? const <Map<String, dynamic>>[],
+    );
+
+    final targetResolvedCountForRefresh =
+        previousResolvedCount >= _targetResolvedLocationsPerRefresh
+            ? 0
+            : (_targetResolvedLocationsPerRefresh - previousResolvedCount);
+
+    final enriched = await _enrichItemsForCache(
+      sorted,
+      targetResolvedCount: targetResolvedCountForRefresh,
+    );
     final stablePayload = _retainCacheUsableItems(enriched);
 
     if (stablePayload.isEmpty) {
@@ -1045,8 +1057,9 @@ class NewsRepositoryImpl implements NewsRepository {
   }
 
   Future<List<Map<String, dynamic>>> _enrichItemsForCache(
-    List<Map<String, dynamic>> items,
-  ) async {
+    List<Map<String, dynamic>> items, {
+    required int targetResolvedCount,
+  }) async {
     if (items.isEmpty) {
       return const <Map<String, dynamic>>[];
     }
@@ -1054,6 +1067,15 @@ class NewsRepositoryImpl implements NewsRepository {
     final output = items
         .map((item) => Map<String, dynamic>.from(item))
         .toList(growable: false);
+
+    if (targetResolvedCount <= 0) {
+      return List<Map<String, dynamic>>.unmodifiable(output);
+    }
+
+    final maxGeocodeAttempts = (targetResolvedCount * 2) >
+            _maxArticlesToGeocodePerRefresh
+        ? _maxArticlesToGeocodePerRefresh
+        : (targetResolvedCount * 2);
 
     var resolvedCount = 0;
     var geocodeAttempts = 0;
@@ -1067,11 +1089,11 @@ class NewsRepositoryImpl implements NewsRepository {
     }
 
     for (final item in output) {
-      if (resolvedCount >= _targetResolvedLocationsPerRefresh) {
+      if (resolvedCount >= targetResolvedCount) {
         break;
       }
 
-      if (geocodeAttempts >= _maxArticlesToGeocodePerRefresh) {
+      if (geocodeAttempts >= maxGeocodeAttempts) {
         break;
       }
 

@@ -8,6 +8,7 @@ import 'package:sociale_vote/core/storage/key_value_storage.dart';
 class StorageService {
   static const String contentLanguagePreferenceKey =
       'content_language_preference';
+  static const String rememberMeKey = 'remember_me';
 
   final KeyValueStorage _storage;
 
@@ -47,6 +48,18 @@ class StorageService {
 
   Future<void> clearContentLanguagePreference() {
     return remove(contentLanguagePreferenceKey);
+  }
+
+  Future<void> writeRememberMe(bool value) {
+    return writeBool(rememberMeKey, value);
+  }
+
+  Future<bool> readRememberMe() async {
+    return await readBool(rememberMeKey) ?? false;
+  }
+
+  Future<void> clearRememberMe() {
+    return remove(rememberMeKey);
   }
 
   Future<void> remove(String key) {

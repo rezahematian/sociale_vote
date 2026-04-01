@@ -52,9 +52,7 @@ class AuthController extends ChangeNotifier {
     _currentUserIdSubscription =
         _sessionRepository.watchCurrentUserId().listen((userId) {
       _currentUserId = userId;
-      _status = userId == null
-          ? AuthStatus.unauthenticated
-          : AuthStatus.authenticated;
+      _status = _statusFromCurrentUser();
       _safeNotifyListeners();
     });
   }
@@ -63,6 +61,10 @@ class AuthController extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
+    if (_status == AuthStatus.loading) {
+      return;
+    }
+
     _status = AuthStatus.loading;
     _errorMessage = null;
     _safeNotifyListeners();
@@ -82,7 +84,12 @@ class AuthController extends ChangeNotifier {
     } catch (e) {
       if (_isDisposed) return;
       _status = AuthStatus.error;
-      _errorMessage = e.toString();
+      _errorMessage = _mapAuthError(
+        e,
+        isRegisterFlow: false,
+        isPasswordResetFlow: false,
+        isUpdatePasswordFlow: false,
+      );
       _safeNotifyListeners();
     }
   }
@@ -92,6 +99,10 @@ class AuthController extends ChangeNotifier {
     required String password,
     required String displayName,
   }) async {
+    if (_status == AuthStatus.loading) {
+      return;
+    }
+
     _status = AuthStatus.loading;
     _errorMessage = null;
     _safeNotifyListeners();
@@ -112,8 +123,73 @@ class AuthController extends ChangeNotifier {
     } catch (e) {
       if (_isDisposed) return;
       _status = AuthStatus.error;
-      _errorMessage = e.toString();
+      _errorMessage = _mapAuthError(
+        e,
+        isRegisterFlow: true,
+        isPasswordResetFlow: false,
+        isUpdatePasswordFlow: false,
+      );
       _safeNotifyListeners();
+    }
+  }
+
+  Future<bool> forgotPassword({
+    required String email,
+  }) async {
+    if (_status == AuthStatus.loading) {
+      return false;
+    }
+
+    _status = AuthStatus.loading;
+    _errorMessage = null;
+    _safeNotifyListeners();
+
+    try {
+      await _authApi.sendPasswordResetEmail(email: email);
+      _status = _statusFromCurrentUser();
+      _safeNotifyListeners();
+      return true;
+    } catch (e) {
+      if (_isDisposed) return false;
+      _status = AuthStatus.error;
+      _errorMessage = _mapAuthError(
+        e,
+        isRegisterFlow: false,
+        isPasswordResetFlow: true,
+        isUpdatePasswordFlow: false,
+      );
+      _safeNotifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updatePassword({
+    required String newPassword,
+  }) async {
+    if (_status == AuthStatus.loading) {
+      return false;
+    }
+
+    _status = AuthStatus.loading;
+    _errorMessage = null;
+    _safeNotifyListeners();
+
+    try {
+      await _authApi.updatePassword(newPassword: newPassword);
+      _status = _statusFromCurrentUser();
+      _safeNotifyListeners();
+      return true;
+    } catch (e) {
+      if (_isDisposed) return false;
+      _status = AuthStatus.error;
+      _errorMessage = _mapAuthError(
+        e,
+        isRegisterFlow: false,
+        isPasswordResetFlow: false,
+        isUpdatePasswordFlow: true,
+      );
+      _safeNotifyListeners();
+      return false;
     }
   }
 
@@ -134,6 +210,12 @@ class AuthController extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
+  AuthStatus _statusFromCurrentUser() {
+    return _currentUserId == null
+        ? AuthStatus.unauthenticated
+        : AuthStatus.authenticated;
+  }
+
   Future<void> _trackAuthEvent({
     required String name,
     Map<String, Object>? parameters,
@@ -143,9 +225,81 @@ class AuthController extends ChangeNotifier {
         name: name,
         parameters: parameters,
       );
-    } catch (_) {
-      // Best effort: analytics must never break auth flows.
+    } catch (_) {}
+  }
+
+  String _mapAuthError(
+    Object error, {
+    required bool isRegisterFlow,
+    required bool isPasswordResetFlow,
+    required bool isUpdatePasswordFlow,
+  }) {
+    final raw = error.toString().trim();
+    final normalized = raw.toLowerCase();
+
+    if (normalized.contains('invalid login credentials') ||
+        normalized.contains('invalid credentials')) {
+      return 'Email or password not valid.';
     }
+
+    if (normalized.contains('user already registered') ||
+        normalized.contains('already been registered') ||
+        normalized.contains('already exists')) {
+      return 'This email is already registered.';
+    }
+
+    if (normalized.contains('invalid email')) {
+      return 'Enter a valid email address.';
+    }
+
+    if (normalized.contains('password should be at least') ||
+        normalized.contains('password must be at least') ||
+        normalized.contains('weak password')) {
+      return isUpdatePasswordFlow
+          ? 'New password is too weak.'
+          : 'Password is too weak.';
+    }
+
+    if (normalized.contains('network') ||
+        normalized.contains('socket') ||
+        normalized.contains('timeout') ||
+        normalized.contains('timed out') ||
+        normalized.contains('failed host lookup')) {
+      return 'Network error. Check your connection and try again.';
+    }
+
+    if (normalized.contains('too many requests') ||
+        normalized.contains('rate limit')) {
+      return 'Too many attempts. Please wait a moment and try again.';
+    }
+
+    if (normalized.contains('email not confirmed')) {
+      return isRegisterFlow
+          ? 'Registration failed. Check your details and try again.'
+          : 'Email or password not valid.';
+    }
+
+    if (isPasswordResetFlow) {
+      return raw.isNotEmpty
+          ? 'Password reset failed: $raw'
+          : 'Password reset failed. Please try again.';
+    }
+
+    if (isUpdatePasswordFlow) {
+      return raw.isNotEmpty
+          ? 'Password update failed: $raw'
+          : 'Password update failed. Please try again.';
+    }
+
+    if (isRegisterFlow) {
+      return raw.isNotEmpty
+          ? 'Registration failed: $raw'
+          : 'Registration failed. Please try again.';
+    }
+
+    return raw.isNotEmpty
+        ? 'Login failed: $raw'
+        : 'Login failed. Please try again.';
   }
 
   void _safeNotifyListeners() {
