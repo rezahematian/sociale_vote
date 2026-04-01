@@ -113,6 +113,7 @@ import 'package:sociale_vote/infrastructure/news/aggregator/guardian_provider.da
 import 'package:sociale_vote/infrastructure/news/aggregator/news_aggregator.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/news_api_org_provider.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/news_provider.dart';
+import 'package:sociale_vote/infrastructure/news/aggregator/web_news_proxy_provider.dart';
 import 'package:sociale_vote/infrastructure/news/mappers/news_mapper.dart';
 import 'package:sociale_vote/infrastructure/news/repositories/news_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/notifications/repositories/notification_repository_impl.dart';
@@ -249,13 +250,18 @@ class AppDI {
   late final NewsProvider _newsApiOrgProvider =
       NewsApiOrgProvider(_newsApiOrgApi);
   late final NewsProvider _gnewsProvider = GNewsProvider(_newsApi);
+  late final NewsProvider _webNewsProxyProvider = WebNewsProxyProvider();
 
   late final NewsAggregator _newsAggregator = NewsAggregator(
-    providers: <NewsProvider>[
-      _guardianProvider,
-      _newsApiOrgProvider,
-      _gnewsProvider,
-    ],
+    providers: kIsWeb
+        ? <NewsProvider>[
+            _webNewsProxyProvider,
+          ]
+        : <NewsProvider>[
+            _guardianProvider,
+            _newsApiOrgProvider,
+            _gnewsProvider,
+          ],
     systemLanguageResolver: _readSystemContentLanguageApiValue,
   );
 
