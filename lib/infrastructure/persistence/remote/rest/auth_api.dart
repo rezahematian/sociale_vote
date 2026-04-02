@@ -83,11 +83,27 @@ class AuthApi {
 
   Future<void> sendPasswordResetEmail({
     required String email,
-    String? redirectTo,
+    required String redirectTo,
   }) async {
+    final normalizedEmail = email.trim();
+    final normalizedRedirectTo = redirectTo.trim();
+
+    if (normalizedEmail.isEmpty) {
+      throw ArgumentError('Email reset non valida.');
+    }
+
+    if (normalizedRedirectTo.isEmpty) {
+      throw ArgumentError('Redirect reset password mancante.');
+    }
+
+    final redirectUri = Uri.tryParse(normalizedRedirectTo);
+    if (redirectUri == null || !redirectUri.hasScheme) {
+      throw ArgumentError('Redirect reset password non valido.');
+    }
+
     await AppSupabase.auth.resetPasswordForEmail(
-      email,
-      redirectTo: redirectTo,
+      normalizedEmail,
+      redirectTo: normalizedRedirectTo,
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -48,6 +49,14 @@ class _LoginFormState extends State<LoginForm> {
   bool _isValidEmail(String value) {
     final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
     return emailRegex.hasMatch(value);
+  }
+
+  String _buildPasswordResetRedirectTo() {
+    if (kIsWeb) {
+      return Uri.base.origin;
+    }
+
+    return 'socialevote://reset-password';
   }
 
   bool _validateInputs() {
@@ -250,7 +259,10 @@ class _LoginFormState extends State<LoginForm> {
     }
 
     final controller = context.read<AuthController>();
-    final success = await controller.forgotPassword(email: email);
+    final success = await controller.forgotPassword(
+      email: email,
+      redirectTo: _buildPasswordResetRedirectTo(),
+    );
 
     if (!mounted || !success) {
       return;

@@ -46,28 +46,85 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
   @override
   void initState() {
     super.initState();
-    _listenPasswordRecovery();
+    _listenAuthRecovery();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _bootstrapRecoveryFlow();
+    });
   }
 
-  void _listenPasswordRecovery() {
+  bool _hasRecoverySignal(Uri uri) {
+    final raw = uri.toString().toLowerCase();
+    final fragment = uri.fragment.toLowerCase();
+
+    if (raw.contains('type=recovery') || fragment.contains('type=recovery')) {
+      return true;
+    }
+
+    if (uri.queryParameters.containsKey('code')) {
+      return true;
+    }
+
+    return false;
+  }
+
+  void _listenAuthRecovery() {
     _authStateSubscription =
         Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-      final event = data.event;
+      if (!_hasRecoverySignal(Uri.base)) {
+        return;
+      }
 
-      if (event == AuthChangeEvent.passwordRecovery &&
-          !_passwordRecoveryOpened) {
-        _passwordRecoveryOpened = true;
+      if (data.session == null) {
+        return;
+      }
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final navigator = NavigationService.navigatorKey.currentState;
-          if (navigator == null) {
-            return;
-          }
-
-          navigator.pushNamed(AppRouter.resetPassword);
-        });
+      switch (data.event) {
+        case AuthChangeEvent.initialSession:
+        case AuthChangeEvent.signedIn:
+        case AuthChangeEvent.passwordRecovery:
+        case AuthChangeEvent.tokenRefreshed:
+          _openResetPasswordPage();
+          break;
+        default:
+          break;
       }
     });
+  }
+
+  Future<void> _bootstrapRecoveryFlow() async {
+    if (!_hasRecoverySignal(Uri.base)) {
+      return;
+    }
+
+    final auth = Supabase.instance.client.auth;
+
+    for (var i = 0; i < 30; i++) {
+      if (!mounted || _passwordRecoveryOpened) {
+        return;
+      }
+
+      if (auth.currentSession != null) {
+        _openResetPasswordPage();
+        return;
+      }
+
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    }
+  }
+
+  void _openResetPasswordPage() {
+    if (_passwordRecoveryOpened) {
+      return;
+    }
+
+    final navigator = NavigationService.navigatorKey.currentState;
+    if (navigator == null) {
+      return;
+    }
+
+    _passwordRecoveryOpened = true;
+    navigator.pushNamed(AppRouter.resetPassword);
   }
 
   @override

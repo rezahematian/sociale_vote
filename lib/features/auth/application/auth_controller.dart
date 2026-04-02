@@ -135,6 +135,7 @@ class AuthController extends ChangeNotifier {
 
   Future<bool> forgotPassword({
     required String email,
+    required String redirectTo,
   }) async {
     if (_status == AuthStatus.loading) {
       return false;
@@ -145,7 +146,10 @@ class AuthController extends ChangeNotifier {
     _safeNotifyListeners();
 
     try {
-      await _authApi.sendPasswordResetEmail(email: email);
+      await _authApi.sendPasswordResetEmail(
+        email: email,
+        redirectTo: redirectTo,
+      );
       _status = _statusFromCurrentUser();
       _safeNotifyListeners();
       return true;
