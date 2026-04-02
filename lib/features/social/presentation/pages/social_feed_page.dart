@@ -326,6 +326,21 @@ class _PostCardState extends State<_PostCard> {
     } catch (_) {}
   }
 
+  Future<void> _openDetailAndRefresh() async {
+    final controller = context.read<FeedController>();
+
+    await Navigator.of(context).pushNamed(
+      AppRouter.socialDetail,
+      arguments: post.id.value,
+    );
+
+    final userId = AppDI.instance.currentUserId;
+    await controller.refresh(userId: userId);
+
+    if (!mounted) return;
+    await _initFavoriteStatus();
+  }
+
   Future<void> _onFavoritePressed() async {
     if (_favoriteLoading) return;
 
@@ -386,20 +401,7 @@ class _PostCardState extends State<_PostCard> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: InkWell(
-        onTap: () async {
-          final controller = context.read<FeedController>();
-
-          await Navigator.of(context).pushNamed(
-            AppRouter.socialDetail,
-            arguments: post.id.value,
-          );
-
-          final userId = AppDI.instance.currentUserId;
-          await controller.refresh(userId: userId);
-
-          if (!mounted) return;
-          await _initFavoriteStatus();
-        },
+        onTap: _openDetailAndRefresh,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -480,38 +482,50 @@ class _PostCardState extends State<_PostCard> {
               const SizedBox(height: 12),
               const Divider(height: 1),
               const SizedBox(height: 8),
-              EngagementBar(
-                fireCount: fireCount,
-                iceCount: iceCount,
-                userReaction: userReaction,
-                onFireTap: () async {
-                  final allowed = await AuthGuard.ensureCanPerformAction(
-                    context,
-                    ParticipationAction.react,
-                  );
-                  if (!allowed) return;
+              FutureBuilder(
+                future: AppDI.instance.getCommentsForTarget(
+                  TargetRef.post(post.id.value),
+                ),
+                builder: (context, snapshot) {
+                  final comments = snapshot.data as List<dynamic>? ?? const [];
+                  final commentCount = snapshot.hasError ? 0 : comments.length;
 
-                  final userId = AppDI.instance.currentUserId;
-                  if (userId == null) return;
+                  return EngagementBar(
+                    fireCount: fireCount,
+                    iceCount: iceCount,
+                    commentCount: commentCount,
+                    userReaction: userReaction,
+                    onFireTap: () async {
+                      final allowed = await AuthGuard.ensureCanPerformAction(
+                        context,
+                        ParticipationAction.react,
+                      );
+                      if (!allowed) return;
 
-                  await feedController.toggleFireForPost(
-                    userId: userId,
-                    post: post,
-                  );
-                },
-                onIceTap: () async {
-                  final allowed = await AuthGuard.ensureCanPerformAction(
-                    context,
-                    ParticipationAction.react,
-                  );
-                  if (!allowed) return;
+                      final userId = AppDI.instance.currentUserId;
+                      if (userId == null) return;
 
-                  final userId = AppDI.instance.currentUserId;
-                  if (userId == null) return;
+                      await feedController.toggleFireForPost(
+                        userId: userId,
+                        post: post,
+                      );
+                    },
+                    onIceTap: () async {
+                      final allowed = await AuthGuard.ensureCanPerformAction(
+                        context,
+                        ParticipationAction.react,
+                      );
+                      if (!allowed) return;
 
-                  await feedController.toggleIceForPost(
-                    userId: userId,
-                    post: post,
+                      final userId = AppDI.instance.currentUserId;
+                      if (userId == null) return;
+
+                      await feedController.toggleIceForPost(
+                        userId: userId,
+                        post: post,
+                      );
+                    },
+                    onCommentTap: _openDetailAndRefresh,
                   );
                 },
               ),

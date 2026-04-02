@@ -489,7 +489,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                             const SizedBox(height: 24),
                             ChangeNotifierProvider<NewsController>(
                               key: ValueKey(
-                                'home_news_${scope.level}_${scope.countryCode}_${scope.cityId}_${_homeNewsLanguageKey}_${_homeRefreshVersion}'
+                                'home_news_${scope.level}_${scope.countryCode}_${scope.cityId}_${_homeNewsLanguageKey}_${_homeRefreshVersion}',
                               ),
                               create: (_) =>
                                   AppDI.instance.createNewsController()

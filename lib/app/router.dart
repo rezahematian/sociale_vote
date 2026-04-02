@@ -71,6 +71,31 @@ class AppRouter {
             settings: settings,
           );
         }
+
+        if (args is Map) {
+          final rawPollId = args['pollId'];
+          final openCommentsOnLoad = args['openCommentsOnLoad'] == true;
+
+          PollId? pollId;
+
+          if (rawPollId is PollId) {
+            pollId = rawPollId;
+          } else if (rawPollId is String && rawPollId.trim().isNotEmpty) {
+            pollId = PollId(rawPollId.trim());
+          }
+
+          if (pollId != null) {
+            final resolvedPollId = pollId;
+
+            return MaterialPageRoute<void>(
+              builder: (_) => PollDetailPage(
+                pollId: resolvedPollId,
+                openCommentsOnLoad: openCommentsOnLoad,
+              ),
+              settings: settings,
+            );
+          }
+        }
         break;
 
       case createPoll:

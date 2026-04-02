@@ -151,14 +151,23 @@ class _HomePollCardTileState extends State<_HomePollCardTile> {
     );
   }
 
-  Future<void> _openDetailAndRefresh() async {
+  Future<void> _openDetailAndRefresh({
+    bool openCommentsOnLoad = false,
+  }) async {
     final controller = context.read<PollListController>();
 
     await Navigator.pushNamed(
       context,
       AppRouter.pollDetail,
-      arguments: widget.poll.id,
+      arguments: openCommentsOnLoad
+          ? {
+              'pollId': widget.poll.id,
+              'openCommentsOnLoad': true,
+            }
+          : widget.poll.id,
     );
+
+    if (!mounted) return;
 
     final userId = AppDI.instance.currentUserId;
 
@@ -183,44 +192,45 @@ class _HomePollCardTileState extends State<_HomePollCardTile> {
             ? _resultController.result
             : null;
 
-        return GestureDetector(
-          onTap: _openDetailAndRefresh,
-          child: PollCard(
-            poll: widget.poll,
-            result: result,
-            fireCount: controller.likeCountForPoll(widget.poll),
-            iceCount: controller.dislikeCountForPoll(widget.poll),
-            userReaction: controller.userReactionForPoll(widget.poll),
-            onFireTap: () async {
-              final allowed = await AuthGuard.ensureCanPerformAction(
-                context,
-                ParticipationAction.react,
-              );
-              if (!allowed) return;
+        return PollCard(
+          poll: widget.poll,
+          onTap: () => _openDetailAndRefresh(),
+          result: result,
+          fireCount: controller.likeCountForPoll(widget.poll),
+          iceCount: controller.dislikeCountForPoll(widget.poll),
+          userReaction: controller.userReactionForPoll(widget.poll),
+          onFireTap: () async {
+            final allowed = await AuthGuard.ensureCanPerformAction(
+              context,
+              ParticipationAction.react,
+            );
+            if (!allowed) return;
 
-              final userId = AppDI.instance.currentUserId;
-              if (userId == null || userId.isEmpty) return;
+            final userId = AppDI.instance.currentUserId;
+            if (userId == null || userId.isEmpty) return;
 
-              await controller.toggleFireForPoll(
-                userId: userId,
-                poll: widget.poll,
-              );
-            },
-            onIceTap: () async {
-              final allowed = await AuthGuard.ensureCanPerformAction(
-                context,
-                ParticipationAction.react,
-              );
-              if (!allowed) return;
+            await controller.toggleFireForPoll(
+              userId: userId,
+              poll: widget.poll,
+            );
+          },
+          onIceTap: () async {
+            final allowed = await AuthGuard.ensureCanPerformAction(
+              context,
+              ParticipationAction.react,
+            );
+            if (!allowed) return;
 
-              final userId = AppDI.instance.currentUserId;
-              if (userId == null || userId.isEmpty) return;
+            final userId = AppDI.instance.currentUserId;
+            if (userId == null || userId.isEmpty) return;
 
-              await controller.toggleIceForPoll(
-                userId: userId,
-                poll: widget.poll,
-              );
-            },
+            await controller.toggleIceForPoll(
+              userId: userId,
+              poll: widget.poll,
+            );
+          },
+          onCommentTap: () => _openDetailAndRefresh(
+            openCommentsOnLoad: true,
           ),
         );
       },

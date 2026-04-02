@@ -12,9 +12,11 @@ class PollDetailHeader extends StatelessWidget {
   final VoidCallback onFavoritePressed;
   final int fireCount;
   final int iceCount;
+  final int commentCount;
   final dynamic userReaction;
   final Future<void> Function() onFireTap;
   final Future<void> Function() onIceTap;
+  final VoidCallback? onCommentTap;
   final bool isQuorumApplicable;
   final bool isQuorumReached;
   final int totalVotes;
@@ -26,9 +28,11 @@ class PollDetailHeader extends StatelessWidget {
     required this.onFavoritePressed,
     required this.fireCount,
     required this.iceCount,
+    this.commentCount = 0,
     required this.userReaction,
     required this.onFireTap,
     required this.onIceTap,
+    this.onCommentTap,
     required this.isQuorumApplicable,
     required this.isQuorumReached,
     required this.totalVotes,
@@ -92,9 +96,11 @@ class PollDetailHeader extends StatelessWidget {
         EngagementBar(
           fireCount: fireCount,
           iceCount: iceCount,
+          commentCount: commentCount,
           userReaction: userReaction,
           onFireTap: onFireTap,
           onIceTap: onIceTap,
+          onCommentTap: onCommentTap,
         ),
         const SizedBox(height: 16),
         Wrap(

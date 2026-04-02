@@ -38,6 +38,7 @@ class PollCard extends StatefulWidget {
 
   final VoidCallback? onFireTap;
   final VoidCallback? onIceTap;
+  final VoidCallback? onCommentTap;
 
   const PollCard({
     super.key,
@@ -49,6 +50,7 @@ class PollCard extends StatefulWidget {
     this.result,
     this.onFireTap,
     this.onIceTap,
+    this.onCommentTap,
   });
 
   @override
@@ -185,6 +187,20 @@ class _PollCardState extends State<PollCard> {
       };
     }
 
+    VoidCallback? wrapCommentCallback(VoidCallback? original) {
+      if (original == null) return null;
+
+      return () async {
+        final allowed = await AuthGuard.ensureCanPerformAction(
+          context,
+          ParticipationAction.comment,
+        );
+        if (!allowed) return;
+
+        original();
+      };
+    }
+
     return AppCard(
       margin: const EdgeInsets.only(bottom: AppSpacing.unitM),
       elevated: true,
@@ -281,6 +297,7 @@ class _PollCardState extends State<PollCard> {
             userReaction: widget.userReaction,
             onFireTap: wrapReactCallback(widget.onFireTap),
             onIceTap: wrapReactCallback(widget.onIceTap),
+            onCommentTap: wrapCommentCallback(widget.onCommentTap),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -571,6 +588,7 @@ class _PollEngagementRow extends StatelessWidget {
   final ReactionType? userReaction;
   final VoidCallback? onFireTap;
   final VoidCallback? onIceTap;
+  final VoidCallback? onCommentTap;
   final Widget trailing;
 
   const _PollEngagementRow({
@@ -580,6 +598,7 @@ class _PollEngagementRow extends StatelessWidget {
     required this.userReaction,
     required this.onFireTap,
     required this.onIceTap,
+    required this.onCommentTap,
     required this.trailing,
   });
 
@@ -602,6 +621,7 @@ class _PollEngagementRow extends StatelessWidget {
                 userReaction: userReaction,
                 onFireTap: onFireTap,
                 onIceTap: onIceTap,
+                onCommentTap: onCommentTap,
               ),
             ),
             const SizedBox(width: AppSpacing.unitS),

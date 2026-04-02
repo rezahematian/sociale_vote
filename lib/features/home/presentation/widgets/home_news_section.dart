@@ -42,7 +42,8 @@ class HomeNewsSection extends StatelessWidget {
         icon: Icons.wifi_off_rounded,
         title: l10n.homeNewsErrorTitle,
         subtitle: l10n.homeNewsErrorSubtitle,
-        actionLabel: MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
+        actionLabel:
+            MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
         onActionPressed: () {
           controller.loadNews();
         },
@@ -52,7 +53,8 @@ class HomeNewsSection extends StatelessWidget {
         icon: Icons.article_outlined,
         title: l10n.homeNewsEmptyTitle,
         subtitle: l10n.homeNewsEmptySubtitle,
-        actionLabel: MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
+        actionLabel:
+            MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
         onActionPressed: () {
           controller.loadNews();
         },
@@ -80,7 +82,8 @@ class HomeNewsSection extends StatelessWidget {
               borderRadius: BorderRadius.circular(999),
               child: LinearProgressIndicator(
                 minHeight: 3,
-                backgroundColor: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+                backgroundColor:
+                    theme.colorScheme.surfaceVariant.withOpacity(0.5),
               ),
             ),
             const SizedBox(height: 10),
@@ -212,7 +215,8 @@ class _HomeNewsHeader extends StatelessWidget {
         const SizedBox(width: 4),
         IconButton(
           visualDensity: VisualDensity.compact,
-          tooltip: MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
+          tooltip:
+              MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
           onPressed: controller.isLoading
               ? null
               : () {
@@ -327,8 +331,8 @@ class _NewsCardBuilder extends StatelessWidget {
       iceCount: ice,
       commentCount: commentCount,
       userReaction: userReaction,
-      onReturnedFromDetail: () {
-        controller.loadNews();
+      onReturnedFromDetail: () async {
+        await controller.refreshCommentCountForNews(news);
       },
       onFireTap: () async {
         final allowed = await AuthGuard.ensureCanPerformAction(
@@ -600,7 +604,7 @@ class NewsPreviewCard extends StatelessWidget {
   final ReactionType? userReaction;
   final VoidCallback? onFireTap;
   final VoidCallback? onIceTap;
-  final VoidCallback? onReturnedFromDetail;
+  final Future<void> Function()? onReturnedFromDetail;
 
   const NewsPreviewCard({
     super.key,
@@ -633,7 +637,7 @@ class NewsPreviewCard extends StatelessWidget {
         ),
       );
 
-      onReturnedFromDetail?.call();
+      await onReturnedFromDetail?.call();
     }
 
     return AppCard(

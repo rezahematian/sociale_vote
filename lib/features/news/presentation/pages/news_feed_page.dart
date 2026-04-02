@@ -628,7 +628,7 @@ class _NewsCard extends StatelessWidget {
     }
 
     final uri = Uri.tryParse(rawUrl);
-    if (uri == null || !uri.hasScheme || uri.host.trim().isEmpty) {
+    if (uri == null || !uri.hasScheme || uri.host.trim().isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Link articolo non valido'),
@@ -660,6 +660,22 @@ class _NewsCard extends StatelessWidget {
     }
   }
 
+  Future<void> _openDetailAndRefresh(BuildContext context) async {
+    final newsController = context.read<NewsController>();
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChangeNotifierProvider<NewsController>.value(
+          value: newsController,
+          child: NewsDetailPage(news: news),
+        ),
+      ),
+    );
+
+    if (!context.mounted) return;
+    await newsController.refreshCommentCountForNews(news);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -682,21 +698,7 @@ class _NewsCard extends StatelessWidget {
         color: theme.colorScheme.surface,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () async {
-            final newsController = context.read<NewsController>();
-
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => ChangeNotifierProvider<NewsController>.value(
-                  value: newsController,
-                  child: NewsDetailPage(news: news),
-                ),
-              ),
-            );
-
-            if (!context.mounted) return;
-            await newsController.refreshCommentCountForNews(news);
-          },
+          onTap: () => _openDetailAndRefresh(context),
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
@@ -900,6 +902,7 @@ class _NewsCard extends StatelessWidget {
                       );
                     });
                   },
+                  onCommentTap: () => _openDetailAndRefresh(context),
                 ),
               ],
             ),

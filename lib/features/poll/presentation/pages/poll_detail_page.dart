@@ -26,10 +26,12 @@ import '../widgets/poll_results_section.dart';
 
 class PollDetailPage extends StatefulWidget {
   final PollId pollId;
+  final bool openCommentsOnLoad;
 
   const PollDetailPage({
     super.key,
     required this.pollId,
+    this.openCommentsOnLoad = false,
   });
 
   @override
@@ -50,10 +52,14 @@ class _PollDetailPageState extends State<PollDetailPage> {
   late final VoteController _voteController;
   late final PollResultController _resultController;
 
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _commentSectionKey = GlobalKey();
+
   bool _isFavorite = false;
   bool _favoriteInitialized = false;
   bool _favoriteLoading = false;
   bool _resultsInitialized = false;
+  bool _hasAutoScrolledToComments = false;
   String? _initializedFavoritePollId;
 
   @override
@@ -79,6 +85,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
       _favoriteInitialized = false;
       _favoriteLoading = false;
       _resultsInitialized = false;
+      _hasAutoScrolledToComments = false;
       _initializedFavoritePollId = null;
 
       final userId = AppDI.instance.currentUserId;
@@ -88,6 +95,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _controller.dispose();
     _voteController.dispose();
     _resultController.dispose();
@@ -98,6 +106,59 @@ class _PollDetailPageState extends State<PollDetailPage> {
     return poll.status == PollStatus.open &&
         !_voteController.isSubmitting &&
         _voteController.selectedOptionIds.isNotEmpty;
+  }
+
+  void _maybeAutoScrollToComments() {
+    if (!widget.openCommentsOnLoad || _hasAutoScrolledToComments) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToComments();
+    });
+  }
+
+  Future<void> _scrollToComments() async {
+    if (!mounted) return;
+
+    if (!_scrollController.hasClients) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToComments();
+      });
+      return;
+    }
+
+    _hasAutoScrolledToComments = true;
+
+    Future<void> animateToBottom({
+      required Duration duration,
+    }) async {
+      if (!mounted || !_scrollController.hasClients) return;
+
+      final target = _scrollController.position.maxScrollExtent;
+      await _scrollController.animateTo(
+        target,
+        duration: duration,
+        curve: Curves.easeInOut,
+      );
+    }
+
+    await animateToBottom(duration: const Duration(milliseconds: 320));
+
+    await Future.delayed(const Duration(milliseconds: 250));
+    if (!mounted) return;
+
+    await animateToBottom(duration: const Duration(milliseconds: 220));
+
+    final commentContext = _commentSectionKey.currentContext;
+    if (commentContext != null && mounted) {
+      await Scrollable.ensureVisible(
+        commentContext,
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeInOut,
+        alignment: 0.0,
+      );
+    }
   }
 
   Future<void> _initFavoriteStatus(Poll poll) async {
@@ -352,6 +413,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
               _initFavoriteStatus(poll);
             }
 
+            _maybeAutoScrollToComments();
+
             return ChangeNotifierProvider<DiscussionController>(
               create: (_) => AppDI.instance.createDiscussionController(
                 TargetRef.poll(poll.id.value),
@@ -423,44 +486,61 @@ class _PollDetailPageState extends State<PollDetailPage> {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: ListView(
+        controller: _scrollController,
         children: [
-          PollDetailHeader(
-            poll: poll,
-            isFavorite: _isFavorite,
-            onFavoritePressed: () {
-              if (_favoriteLoading) return;
-              _onFavoritePressed(poll);
-            },
-            fireCount: fireCount,
-            iceCount: iceCount,
-            userReaction: userReaction,
-            onFireTap: () async {
-              final allowed = await AuthGuard.ensureCanPerformAction(
-                context,
-                ParticipationAction.react,
+          Consumer<DiscussionController>(
+            builder: (context, _, __) {
+              return FutureBuilder(
+                future: AppDI.instance.getCommentsForTarget(
+                  TargetRef.poll(poll.id.value),
+                ),
+                builder: (context, snapshot) {
+                  final comments = snapshot.data as List<dynamic>? ?? const [];
+                  final commentCount = snapshot.hasError ? 0 : comments.length;
+
+                  return PollDetailHeader(
+                    poll: poll,
+                    isFavorite: _isFavorite,
+                    onFavoritePressed: () {
+                      if (_favoriteLoading) return;
+                      _onFavoritePressed(poll);
+                    },
+                    fireCount: fireCount,
+                    iceCount: iceCount,
+                    commentCount: commentCount,
+                    userReaction: userReaction,
+                    onFireTap: () async {
+                      final allowed = await AuthGuard.ensureCanPerformAction(
+                        context,
+                        ParticipationAction.react,
+                      );
+                      if (!allowed) return;
+
+                      final userId = AppDI.instance.currentUserId;
+                      if (userId == null) return;
+
+                      await _controller.toggleFire(userId: userId);
+                    },
+                    onIceTap: () async {
+                      final allowed = await AuthGuard.ensureCanPerformAction(
+                        context,
+                        ParticipationAction.react,
+                      );
+                      if (!allowed) return;
+
+                      final userId = AppDI.instance.currentUserId;
+                      if (userId == null) return;
+
+                      await _controller.toggleIce(userId: userId);
+                    },
+                    onCommentTap: _scrollToComments,
+                    isQuorumApplicable: _resultController.isQuorumApplicable,
+                    isQuorumReached: _resultController.isQuorumReached,
+                    totalVotes: totalVotes,
+                  );
+                },
               );
-              if (!allowed) return;
-
-              final userId = AppDI.instance.currentUserId;
-              if (userId == null) return;
-
-              await _controller.toggleFire(userId: userId);
             },
-            onIceTap: () async {
-              final allowed = await AuthGuard.ensureCanPerformAction(
-                context,
-                ParticipationAction.react,
-              );
-              if (!allowed) return;
-
-              final userId = AppDI.instance.currentUserId;
-              if (userId == null) return;
-
-              await _controller.toggleIce(userId: userId);
-            },
-            isQuorumApplicable: _resultController.isQuorumApplicable,
-            isQuorumReached: _resultController.isQuorumReached,
-            totalVotes: totalVotes,
           ),
           const SizedBox(height: 24),
           Text(
@@ -534,8 +614,11 @@ class _PollDetailPageState extends State<PollDetailPage> {
             visibilityMode: visibilityMode,
           ),
           const SizedBox(height: 32),
-          CommentSection(
-            userId: currentUserForComments,
+          Container(
+            key: _commentSectionKey,
+            child: CommentSection(
+              userId: currentUserForComments,
+            ),
           ),
         ],
       ),
