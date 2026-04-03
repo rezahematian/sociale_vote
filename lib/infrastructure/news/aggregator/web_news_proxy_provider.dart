@@ -36,9 +36,7 @@ class WebNewsProxyProvider implements NewsProvider {
     int? offset,
   }) async {
     try {
-      final response = await _client.functions.invoke(
-        functionName,
-        headers: headers.isEmpty ? null : headers,
+      final response = await _invokeWithAuthRecovery(
         body: <String, dynamic>{
           'action': 'feed',
           'countryCode': countryCode,
@@ -73,9 +71,7 @@ class WebNewsProxyProvider implements NewsProvider {
 
   @override
   Future<Map<String, dynamic>> fetchNewsDetail(String id) async {
-    final response = await _client.functions.invoke(
-      functionName,
-      headers: headers.isEmpty ? null : headers,
+    final response = await _invokeWithAuthRecovery(
       body: <String, dynamic>{
         'action': 'detail',
         'id': id,
@@ -114,6 +110,105 @@ class WebNewsProxyProvider implements NewsProvider {
     throw StateError(
       'Risposta detail non valida dalla Edge Function "$functionName".',
     );
+  }
+
+  Future<FunctionResponse> _invokeWithAuthRecovery({
+    required Map<String, dynamic> body,
+  }) async {
+    Object? authFailure;
+
+    try {
+      return await _invoke(body: body);
+    } catch (error) {
+      if (!_looksAuthFailure(error)) {
+        rethrow;
+      }
+      authFailure = error;
+    }
+
+    final refreshed = await _tryRefreshSession();
+    if (refreshed) {
+      try {
+        return await _invoke(body: body);
+      } catch (error) {
+        if (!_looksAuthFailure(error)) {
+          rethrow;
+        }
+        authFailure = error;
+      }
+    }
+
+    final fallbackHeaders = _buildInvokeHeaders(forceApiKeyAuth: true);
+    if (fallbackHeaders != null) {
+      return _client.functions.invoke(
+        functionName,
+        headers: fallbackHeaders,
+        body: body,
+      );
+    }
+
+    throw authFailure ??
+        StateError(
+          'Impossibile invocare la Edge Function "$functionName".',
+        );
+  }
+
+  Future<FunctionResponse> _invoke({
+    required Map<String, dynamic> body,
+  }) {
+    return _client.functions.invoke(
+      functionName,
+      headers: _buildInvokeHeaders(),
+      body: body,
+    );
+  }
+
+  Map<String, String>? _buildInvokeHeaders({
+    bool forceApiKeyAuth = false,
+  }) {
+    final merged = <String, String>{
+      ...headers,
+    };
+
+    if (forceApiKeyAuth) {
+      final apiKey = _resolveApiKey();
+      if (apiKey != null) {
+        merged['apikey'] = apiKey;
+        merged['Authorization'] = 'Bearer $apiKey';
+      }
+    }
+
+    return merged.isEmpty ? null : merged;
+  }
+
+  String? _resolveApiKey() {
+    final apiKey = _client.functions.headers['apikey']?.trim();
+    if (apiKey == null || apiKey.isEmpty) {
+      return null;
+    }
+    return apiKey;
+  }
+
+  Future<bool> _tryRefreshSession() async {
+    final session = _client.auth.currentSession;
+    if (session == null) {
+      return false;
+    }
+
+    try {
+      final refreshed = await _client.auth.refreshSession();
+      return refreshed.session != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  bool _looksAuthFailure(Object error) {
+    final text = error.toString().toLowerCase();
+    return text.contains('401') &&
+        (text.contains('invalid jwt') ||
+            text.contains('missing authorization header') ||
+            text.contains('unauthorized'));
   }
 
   List<Map<String, dynamic>> _readItems(dynamic raw) {
