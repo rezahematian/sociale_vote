@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sociale_vote/app/di.dart';
@@ -163,6 +164,48 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
       setState(() {
         _favoriteLoading = false;
       });
+    }
+  }
+
+  Future<void> _onSharePressed() async {
+    final summary = widget.news.summary?.trim();
+    final content = widget.news.content.trim();
+    final previewSource = (summary != null && summary.isNotEmpty)
+        ? summary
+        : content;
+    final preview = previewSource.length > 220
+        ? '${previewSource.substring(0, 220).trim()}...'
+        : previewSource;
+    final articleUrl = widget.news.articleUrl?.trim();
+
+    final buffer = StringBuffer()..writeln(widget.news.title);
+
+    if (preview.isNotEmpty) {
+      buffer
+        ..writeln()
+        ..writeln(preview);
+    }
+
+    if (articleUrl != null && articleUrl.isNotEmpty) {
+      buffer
+        ..writeln()
+        ..writeln(articleUrl);
+    }
+
+    buffer
+      ..writeln()
+      ..writeln('Apri Sociale_Vote per vedere questa news.');
+
+    try {
+      await Share.share(
+        buffer.toString().trim(),
+        subject: widget.news.title,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossibile condividere la news')),
+      );
     }
   }
 
@@ -411,6 +454,11 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.share_outlined),
+                      tooltip: 'Condividi',
+                      onPressed: _onSharePressed,
                     ),
                     IconButton(
                       icon: _favoriteLoading

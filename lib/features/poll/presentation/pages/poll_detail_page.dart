@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
@@ -229,6 +230,34 @@ class _PollDetailPageState extends State<PollDetailPage> {
       setState(() {
         _favoriteLoading = false;
       });
+    }
+  }
+
+  Future<void> _onSharePressed(Poll poll) async {
+    final description = poll.description?.trim();
+    final buffer = StringBuffer()
+      ..writeln(poll.title);
+
+    if (description != null && description.isNotEmpty) {
+      buffer
+        ..writeln()
+        ..writeln(description);
+    }
+
+    buffer
+      ..writeln()
+      ..writeln('Apri Sociale_Vote per vedere e votare questo sondaggio.');
+
+    try {
+      await Share.share(
+        buffer.toString().trim(),
+        subject: poll.title,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossibile condividere il sondaggio')),
+      );
     }
   }
 
@@ -519,6 +548,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
                     if (_favoriteLoading) return;
                     _onFavoritePressed(poll);
                   },
+                  onSharePressed: () => _onSharePressed(poll),
                   fireCount: fireCount,
                   iceCount: iceCount,
                   commentCount: commentCount,

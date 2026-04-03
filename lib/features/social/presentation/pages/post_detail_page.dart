@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
@@ -140,6 +141,37 @@ class _PostDetailViewState extends State<_PostDetailView> {
       setState(() {
         _favoriteLoading = false;
       });
+    }
+  }
+
+  Future<void> _onSharePressed(Post post) async {
+    final content = post.content.trim();
+    final preview = content.length > 220
+        ? '${content.substring(0, 220).trim()}...'
+        : content;
+
+    final buffer = StringBuffer()..writeln(post.title);
+
+    if (preview.isNotEmpty) {
+      buffer
+        ..writeln()
+        ..writeln(preview);
+    }
+
+    buffer
+      ..writeln()
+      ..writeln('Apri Sociale_Vote per vedere questo post.');
+
+    try {
+      await Share.share(
+        buffer.toString().trim(),
+        subject: post.title,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossibile condividere il post')),
+      );
     }
   }
 
@@ -362,6 +394,11 @@ class _PostDetailViewState extends State<_PostDetailView> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.share_outlined),
+                        tooltip: 'Condividi',
+                        onPressed: () => _onSharePressed(post),
                       ),
                       IconButton(
                         icon: _favoriteLoading
