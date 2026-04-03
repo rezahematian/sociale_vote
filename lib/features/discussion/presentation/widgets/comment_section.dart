@@ -214,31 +214,7 @@ class _CommentSectionState extends State<CommentSection> {
               ),
             ),
 
-            if (!_commentsExpanded) ...[
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(top: 4),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface.withOpacity(0.55),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: theme.dividerColor.withOpacity(0.35),
-                  ),
-                ),
-                child: Text(
-                  totalComments == 0
-                      ? 'Nessun commento per ora.'
-                      : 'I commenti sono nascosti. Tocca "Visualizza commenti" per aprirli.',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.hintColor,
-                  ),
-                ),
-              ),
-            ] else ...[
+            if (_commentsExpanded) ...[
               const SizedBox(height: 4),
 
               Wrap(
@@ -522,15 +498,6 @@ class _CommentSectionState extends State<CommentSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            _editingComment != null
-                ? 'Modifica commento'
-                : 'Scrivi un commento',
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 8),
           if (_editingComment != null) ...[
             Container(
               margin: const EdgeInsets.only(bottom: 8),
