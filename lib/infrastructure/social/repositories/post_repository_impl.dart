@@ -130,6 +130,34 @@ class PostRepositoryImpl implements PostRepository {
   }
 
   @override
+  Future<Post> updatePost({
+    required String postId,
+    required String title,
+    required String content,
+  }) async {
+    final updatedRows = await AppSupabase.client
+        .from(_postsTable)
+        .update({
+          'title': title,
+          'content': content,
+        })
+        .eq('id', postId)
+        .select()
+        .limit(1);
+
+    if (updatedRows.isEmpty) {
+      throw Exception('Aggiornamento post fallito.');
+    }
+
+    final mapped = await _mapPosts(updatedRows);
+    if (mapped.isEmpty) {
+      throw Exception('Aggiornamento post fallito.');
+    }
+
+    return mapped.first;
+  }
+
+  @override
   Future<void> deletePost(String postId) async {
     await AppSupabase.client.from(_postsTable).delete().eq('id', postId);
   }

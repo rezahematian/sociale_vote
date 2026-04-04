@@ -15,8 +15,10 @@ import 'package:sociale_vote/domain/content/news/usecases/get_news_feed.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/content/social/repositories/post_repository.dart';
 import 'package:sociale_vote/domain/content/social/usecases/create_post.dart';
+import 'package:sociale_vote/domain/content/social/usecases/delete_post.dart';
 import 'package:sociale_vote/domain/content/social/usecases/get_feed.dart';
 import 'package:sociale_vote/domain/content/social/usecases/get_post_detail.dart';
+import 'package:sociale_vote/domain/content/social/usecases/update_post.dart';
 
 import 'package:sociale_vote/domain/discovery/usecases/get_for_you_feed.dart';
 import 'package:sociale_vote/domain/discovery/usecases/get_trending_content.dart';
@@ -465,6 +467,10 @@ class AppDI {
 
   CreatePost get createPostUseCase => CreatePost(postRepository);
 
+  UpdatePost get updatePost => UpdatePost(postRepository);
+
+  DeletePost get deletePost => DeletePost(postRepository);
+
   Future<Post> createPost({
     required String authorId,
     required String authorName,
@@ -658,6 +664,8 @@ class AppDI {
     return PostDetailController(
       postId: postId,
       getPostDetail: getPostDetail,
+      updatePost: updatePost,
+      deletePost: deletePost,
       toggleReaction: toggleReaction,
       getReactionSummary: getReactionSummary,
     );

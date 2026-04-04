@@ -55,6 +55,8 @@ class _PostDetailViewState extends State<_PostDetailView> {
   bool _isFavorite = false;
   bool _favoriteInitialized = false;
   bool _favoriteLoading = false;
+  bool _editLoading = false;
+  bool _deleteLoading = false;
   int _commentCount = 0;
   String? _initializedPostId;
 
@@ -172,6 +174,198 @@ class _PostDetailViewState extends State<_PostDetailView> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Impossibile condividere il post')),
       );
+    }
+  }
+
+  bool _isOwner(Post post) {
+    final currentUserId = AppDI.instance.currentUserId;
+    if (currentUserId == null || currentUserId.trim().isEmpty) {
+      return false;
+    }
+
+    final createdByUserId = post.createdByUserId;
+    if (createdByUserId == null || createdByUserId.trim().isEmpty) {
+      return false;
+    }
+
+    return currentUserId == createdByUserId;
+  }
+
+  Future<({String title, String content})?> _showEditPostDialog(
+    Post post,
+  ) async {
+    final titleController = TextEditingController(text: post.title);
+    final contentController = TextEditingController(text: post.content);
+    String? validationMessage;
+
+    try {
+      final result = await showDialog<({String title, String content})>(
+        context: context,
+        builder: (dialogContext) {
+          return StatefulBuilder(
+            builder: (context, setDialogState) {
+              return AlertDialog(
+                title: const Text('Modifica post'),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: titleController,
+                        textInputAction: TextInputAction.next,
+                        decoration: const InputDecoration(
+                          labelText: 'Titolo',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: contentController,
+                        minLines: 4,
+                        maxLines: 8,
+                        decoration: const InputDecoration(
+                          labelText: 'Contenuto',
+                          alignLabelWithHint: true,
+                        ),
+                      ),
+                      if (validationMessage != null) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          validationMessage!,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    child: const Text('Annulla'),
+                  ),
+                  FilledButton(
+                    onPressed: () {
+                      final title = titleController.text.trim();
+                      final content = contentController.text.trim();
+
+                      if (title.isEmpty || content.isEmpty) {
+                        setDialogState(() {
+                          validationMessage =
+                              'Titolo e contenuto sono obbligatori.';
+                        });
+                        return;
+                      }
+
+                      Navigator.of(dialogContext).pop((
+                        title: title,
+                        content: content,
+                      ));
+                    },
+                    child: const Text('Salva'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+
+      return result;
+    } finally {
+      titleController.dispose();
+      contentController.dispose();
+    }
+  }
+
+  Future<void> _onEditPressed(Post post) async {
+    if (_editLoading || _deleteLoading) {
+      return;
+    }
+
+    final edited = await _showEditPostDialog(post);
+    if (!mounted || edited == null) return;
+
+    setState(() {
+      _editLoading = true;
+    });
+
+    try {
+      await context.read<PostDetailController>().update(
+            title: edited.title,
+            content: edited.content,
+          );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Post aggiornato')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossibile aggiornare il post')),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _editLoading = false;
+      });
+    }
+  }
+
+  Future<bool> _showDeleteConfirmationDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Eliminare il post?'),
+          content: const Text(
+            'Questa azione non può essere annullata.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Annulla'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Elimina'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return result == true;
+  }
+
+  Future<void> _onDeletePressed() async {
+    if (_deleteLoading || _editLoading) {
+      return;
+    }
+
+    final confirmed = await _showDeleteConfirmationDialog();
+    if (!mounted || !confirmed) return;
+
+    setState(() {
+      _deleteLoading = true;
+    });
+
+    try {
+      await context.read<PostDetailController>().delete();
+
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossibile eliminare il post')),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _deleteLoading = false;
+      });
     }
   }
 
@@ -320,22 +514,55 @@ class _PostDetailViewState extends State<_PostDetailView> {
           Consumer<PostDetailController>(
             builder: (context, controller, _) {
               final post = controller.post;
-              if (post == null) {
+              if (post == null || _deleteLoading || _editLoading) {
                 return const SizedBox.shrink();
               }
 
+              final isOwner = _isOwner(post);
+
               return PopupMenuButton<String>(
                 onSelected: (value) {
+                  if (value == 'edit') {
+                    _onEditPressed(post);
+                    return;
+                  }
+
+                  if (value == 'delete') {
+                    _onDeletePressed();
+                    return;
+                  }
+
                   if (value == 'report') {
                     _onReportPressed(post);
                   }
                 },
-                itemBuilder: (context) => const [
-                  PopupMenuItem<String>(
-                    value: 'report',
-                    child: Text('Report content'),
-                  ),
-                ],
+                itemBuilder: (context) {
+                  final items = <PopupMenuEntry<String>>[];
+
+                  if (isOwner) {
+                    items.addAll(
+                      const [
+                        PopupMenuItem<String>(
+                          value: 'edit',
+                          child: Text('Modifica post'),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'delete',
+                          child: Text('Elimina post'),
+                        ),
+                      ],
+                    );
+                  } else {
+                    items.add(
+                      const PopupMenuItem<String>(
+                        value: 'report',
+                        child: Text('Report content'),
+                      ),
+                    );
+                  }
+
+                  return items;
+                },
               );
             },
           ),

@@ -34,6 +34,16 @@ abstract class PostRepository {
   /// - ritorna il post creato con id valorizzato.
   Future<Post> createPost(Post post);
 
+  /// Aggiorna un post esistente.
+  ///
+  /// In questa prima versione di edit supportiamo solo i campi testuali
+  /// principali, per evitare di riaprire scope/localizzazione.
+  Future<Post> updatePost({
+    required String postId,
+    required String title,
+    required String content,
+  });
+
   /// (Opzionale ma utile da subito) Elimina un post esistente.
   ///
   /// In v1 mock può semplicemente rimuoverlo dalla lista in memoria.
