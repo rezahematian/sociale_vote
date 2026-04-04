@@ -1,5 +1,6 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 /// Wrapper locale e minimale per Firebase Analytics.
 ///
@@ -14,6 +15,8 @@ class AnalyticsService {
       : _analytics = analytics ?? FirebaseAnalytics.instance;
 
   static final AnalyticsService instance = AnalyticsService();
+
+  static bool _reportedUnavailable = false;
 
   Future<void> logScreenView({
     required String screenName,
@@ -78,10 +81,48 @@ class AnalyticsService {
   ) async {
     try {
       await action();
-    } catch (error, stackTrace) {
+    } on MissingPluginException catch (_) {
+      _reportUnavailableOnce(context);
+    } on PlatformException catch (error) {
+      if (_isAnalyticsChannelUnavailable(error)) {
+        _reportUnavailableOnce(context);
+        return;
+      }
+
       debugPrint('AnalyticsService [$context] error: $error');
-      debugPrint('$stackTrace');
+    } catch (error) {
+      debugPrint('AnalyticsService [$context] error: $error');
     }
+  }
+
+  bool _isAnalyticsChannelUnavailable(PlatformException error) {
+    final code = error.code.trim().toLowerCase();
+    final message = (error.message ?? '').trim().toLowerCase();
+
+    if (code == 'channel-error') {
+      return true;
+    }
+
+    if (message.contains('unable to establish connection on channel')) {
+      return true;
+    }
+
+    if (message.contains('firebaseanalyticshostapi')) {
+      return true;
+    }
+
+    return false;
+  }
+
+  void _reportUnavailableOnce(String context) {
+    if (_reportedUnavailable) {
+      return;
+    }
+
+    _reportedUnavailable = true;
+    debugPrint(
+      'AnalyticsService [$context]: Firebase Analytics non disponibile in questo runtime, tracking saltato.',
+    );
   }
 
   Map<String, Object> _sanitizeParameters(Map<String, Object?> parameters) {
