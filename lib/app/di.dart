@@ -72,6 +72,8 @@ import 'package:sociale_vote/domain/poll/repositories/poll_repository.dart';
 import 'package:sociale_vote/domain/poll/repositories/vote_repository.dart';
 import 'package:sociale_vote/domain/poll/services/vote_aggregator.dart';
 import 'package:sociale_vote/domain/poll/usecases/create_poll.dart';
+import 'package:sociale_vote/domain/poll/usecases/delete_poll.dart';
+import 'package:sociale_vote/domain/poll/usecases/update_poll_text.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_poll_detail.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_poll_results.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_polls.dart';
@@ -457,6 +459,10 @@ class AppDI {
 
   CreatePoll get createPoll => CreatePoll(pollRepository);
 
+  DeletePoll get deletePoll => DeletePoll(pollRepository);
+
+  UpdatePollText get updatePollText => UpdatePollText(pollRepository);
+
   GetNewsFeed get getNewsFeed => GetNewsFeed(newsRepository);
 
   GetNewsDetail get getNewsDetail => GetNewsDetail(newsRepository);
@@ -619,6 +625,8 @@ class AppDI {
   PollDetailController createPollDetailController() {
     return PollDetailController(
       getPollDetail,
+      updatePollText,
+      deletePoll,
       toggleReaction,
       getReactionSummary,
     );

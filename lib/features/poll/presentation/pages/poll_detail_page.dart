@@ -235,8 +235,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
   Future<void> _onSharePressed(Poll poll) async {
     final description = poll.description?.trim();
-    final buffer = StringBuffer()
-      ..writeln(poll.title);
+    final buffer = StringBuffer()..writeln(poll.title);
 
     if (description != null && description.isNotEmpty) {
       buffer
@@ -259,6 +258,182 @@ class _PollDetailPageState extends State<PollDetailPage> {
         const SnackBar(content: Text('Impossibile condividere il sondaggio')),
       );
     }
+  }
+
+  Future<void> _onEditPressed(Poll poll) async {
+    final userId = AppDI.instance.currentUserId;
+    if (userId == null || !_controller.canEdit(userId: userId)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Puoi modificare solo i tuoi sondaggi senza voti',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final result = await _showEditPollDialog(context, poll);
+    if (!mounted || result == null) {
+      return;
+    }
+
+    try {
+      await _controller.updateCurrentPollText(
+        userId: userId,
+        title: result.title,
+        description: result.description,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sondaggio aggiornato')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    }
+  }
+
+  Future<_EditPollFormResult?> _showEditPollDialog(
+    BuildContext context,
+    Poll poll,
+  ) async {
+    final titleController = TextEditingController(text: poll.title);
+    final descriptionController = TextEditingController(
+      text: poll.description ?? '',
+    );
+    final formKey = GlobalKey<FormState>();
+
+    final result = await showDialog<_EditPollFormResult>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Modifica sondaggio'),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: titleController,
+                    autofocus: true,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Titolo',
+                    ),
+                    validator: (value) {
+                      final normalized = value?.trim() ?? '';
+                      if (normalized.isEmpty) {
+                        return 'Il titolo è obbligatorio';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: descriptionController,
+                    minLines: 3,
+                    maxLines: 5,
+                    decoration: const InputDecoration(
+                      labelText: 'Descrizione',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Annulla'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (!(formKey.currentState?.validate() ?? false)) {
+                  return;
+                }
+
+                Navigator.of(dialogContext).pop(
+                  _EditPollFormResult(
+                    title: titleController.text.trim(),
+                    description: descriptionController.text.trim().isEmpty
+                        ? null
+                        : descriptionController.text.trim(),
+                  ),
+                );
+              },
+              child: const Text('Salva'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return result;
+  }
+
+  Future<void> _onDeletePressed(Poll poll) async {
+    final userId = AppDI.instance.currentUserId;
+    if (userId == null || !_controller.canDelete(userId: userId)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Puoi eliminare solo i tuoi sondaggi'),
+        ),
+      );
+      return;
+    }
+
+    final confirmed = await _showDeletePollDialog(context, poll);
+    if (!mounted || confirmed != true) {
+      return;
+    }
+
+    final deleted = await _controller.deleteCurrentPoll(userId: userId);
+    if (!mounted) return;
+
+    if (deleted) {
+      Navigator.of(context).pop(true);
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Impossibile eliminare il sondaggio'),
+      ),
+    );
+  }
+
+  Future<bool?> _showDeletePollDialog(
+    BuildContext context,
+    Poll poll,
+  ) {
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Elimina sondaggio'),
+          content: Text(
+            'Vuoi davvero eliminare "${poll.title}"? Questa azione non può essere annullata.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Annulla'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Elimina'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _onReportPressed(Poll poll) async {
@@ -405,17 +580,53 @@ class _PollDetailPageState extends State<PollDetailPage> {
                 return const SizedBox.shrink();
               }
 
+              final currentUserId = AppDI.instance.currentUserId;
+              final canDelete = currentUserId != null &&
+                  _controller.canDelete(userId: currentUserId);
+              final canEdit = currentUserId != null &&
+                  _controller.canEdit(userId: currentUserId);
+
               return PopupMenuButton<String>(
                 onSelected: (value) {
                   if (value == 'report') {
                     _onReportPressed(state.poll);
+                    return;
+                  }
+
+                  if (value == 'edit') {
+                    _onEditPressed(state.poll);
+                    return;
+                  }
+
+                  if (value == 'delete') {
+                    _onDeletePressed(state.poll);
                   }
                 },
-                itemBuilder: (context) => const [
-                  PopupMenuItem<String>(
+                itemBuilder: (context) => [
+                  const PopupMenuItem<String>(
                     value: 'report',
                     child: Text('Report content'),
                   ),
+                  if (canEdit)
+                    PopupMenuItem<String>(
+                      value: 'edit',
+                      enabled: !_controller.isUpdating,
+                      child: Text(
+                        _controller.isUpdating
+                            ? 'Salvataggio...'
+                            : 'Modifica sondaggio',
+                      ),
+                    ),
+                  if (canDelete)
+                    PopupMenuItem<String>(
+                      value: 'delete',
+                      enabled: !_controller.isDeleting,
+                      child: Text(
+                        _controller.isDeleting
+                            ? 'Eliminazione...'
+                            : 'Elimina sondaggio',
+                      ),
+                    ),
                 ],
               );
             },
@@ -446,8 +657,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
               );
             }
 
-            final shouldInitFavorite =
-                AppDI.instance.currentUserId != null &&
+            final shouldInitFavorite = AppDI.instance.currentUserId != null &&
                 (!_favoriteInitialized ||
                     _initializedFavoritePollId != poll.id.value);
 
@@ -524,8 +734,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
     final userReaction = _controller.userReaction;
     final int commentCount = discussionController.comments.length;
 
-    final String currentUserForComments =
-        AppDI.instance.currentUserId ?? 'guest';
+    final String currentUserForComments = AppDI.instance.currentUserId ?? 'guest';
 
     final voteErrorText = _mapVoteErrorToText(l10n);
 
@@ -819,6 +1028,16 @@ class _PollDetailPageState extends State<PollDetailPage> {
         return 'Impossibile registrare il voto';
     }
   }
+}
+
+class _EditPollFormResult {
+  final String title;
+  final String? description;
+
+  const _EditPollFormResult({
+    required this.title,
+    this.description,
+  });
 }
 
 enum _FeedbackTone {

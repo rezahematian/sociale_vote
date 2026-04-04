@@ -113,6 +113,120 @@ class PollRepositorySupabase implements PollRepository {
     return _mapPoll(row);
   }
 
+  @override
+  Future<void> deletePoll(String pollId) async {
+    final currentUser = AppSupabase.currentUser;
+    if (currentUser == null) {
+      throw Exception('Utente non autenticato.');
+    }
+
+    try {
+      if (kDebugMode) {
+        debugPrint(
+          'POLL DELETE attempt -> pollId=$pollId currentUser=${currentUser.id}',
+        );
+      }
+
+      final deletedRows = await AppSupabase.client
+          .from(_pollsInsertTable)
+          .delete()
+          .eq('id', pollId)
+          .eq('author_id', currentUser.id)
+          .select('id') as List<dynamic>;
+
+      if (kDebugMode) {
+        debugPrint('POLL DELETE result -> rows=${deletedRows.length}');
+      }
+
+      if (deletedRows.isEmpty) {
+        throw Exception('Eliminazione poll fallita: nessuna riga eliminata.');
+      }
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('POLL DELETE failed -> $e');
+        debugPrint('$st');
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Poll> updatePollText({
+    required String pollId,
+    required String title,
+    String? description,
+  }) async {
+    final currentUser = AppSupabase.currentUser;
+    if (currentUser == null) {
+      throw Exception('Utente non autenticato.');
+    }
+
+    final normalizedTitle = title.trim();
+    final normalizedDescription = _normalizeNullableText(description);
+
+    if (normalizedTitle.isEmpty) {
+      throw Exception('Il titolo non può essere vuoto.');
+    }
+
+    final existingPoll = await getPollDetail(PollId(pollId));
+    if (existingPoll == null) {
+      throw Exception('Poll non trovato.');
+    }
+
+    if (existingPoll.createdByUserId != currentUser.id) {
+      throw Exception('Puoi modificare solo i tuoi sondaggi.');
+    }
+
+    if (existingPoll.voteCount > 0) {
+      throw Exception(
+        'Non puoi modificare un sondaggio che ha già ricevuto voti.',
+      );
+    }
+
+    final payload = <String, dynamic>{
+      'title': normalizedTitle,
+      'description': normalizedDescription,
+    };
+
+    try {
+      if (kDebugMode) {
+        debugPrint(
+          'POLL UPDATE TEXT attempt -> pollId=$pollId currentUser=${currentUser.id} payload=$payload',
+        );
+      }
+
+      final updatedRows = await AppSupabase.client
+          .from(_pollsInsertTable)
+          .update(payload)
+          .eq('id', pollId)
+          .eq('author_id', currentUser.id)
+          .select('id') as List<dynamic>;
+
+      if (kDebugMode) {
+        debugPrint('POLL UPDATE TEXT result -> rows=${updatedRows.length}');
+      }
+
+      if (updatedRows.isEmpty) {
+        throw Exception(
+          'Aggiornamento poll fallito: nessuna riga aggiornata.',
+        );
+      }
+
+      final refreshedPoll = await getPollDetail(PollId(pollId));
+      if (refreshedPoll == null) {
+        throw Exception('Poll aggiornato ma non più leggibile.');
+      }
+
+      return refreshedPoll;
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('POLL UPDATE TEXT failed -> $e');
+        debugPrint('$st');
+      }
+      rethrow;
+    }
+  }
+
   Map<String, dynamic> _buildInsertPayload({
     required Poll poll,
     required String authorId,
@@ -228,6 +342,19 @@ class PollRepositorySupabase implements PollRepository {
   }
 
   String? _prepareDbFilterValue(String? value) {
+    if (value == null) {
+      return null;
+    }
+
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    return trimmed;
+  }
+
+  String? _normalizeNullableText(String? value) {
     if (value == null) {
       return null;
     }

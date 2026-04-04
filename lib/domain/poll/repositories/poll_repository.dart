@@ -32,4 +32,23 @@ abstract class PollRepository {
   ///   con uno generato internamente;
   /// - restituisce il `Poll` effettivamente creato/persistito.
   Future<Poll> createPoll(Poll poll);
+
+  /// Elimina una votazione esistente.
+  ///
+  /// La policy owner-only viene gestita dal backend / RLS e dal wiring UI.
+  Future<void> deletePoll(String pollId);
+
+  /// Aggiorna solo i campi testuali minimi del poll.
+  ///
+  /// Non deve toccare:
+  /// - opzioni
+  /// - regole/configurazione
+  /// - status
+  /// - scope/location
+  /// - risultati/voti
+  Future<Poll> updatePollText({
+    required String pollId,
+    required String title,
+    String? description,
+  });
 }

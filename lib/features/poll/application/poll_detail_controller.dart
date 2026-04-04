@@ -5,13 +5,18 @@ import 'package:sociale_vote/domain/engagement/entities/reaction_summary.dart';
 import 'package:sociale_vote/domain/engagement/usecases/get_reaction_summary.dart';
 import 'package:sociale_vote/domain/engagement/usecases/toggle_reaction.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
+import 'package:sociale_vote/domain/poll/entities/poll.dart';
+import 'package:sociale_vote/domain/poll/usecases/delete_poll.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_poll_detail.dart';
+import 'package:sociale_vote/domain/poll/usecases/update_poll_text.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 
 import 'poll_state.dart';
 
 class PollDetailController extends ChangeNotifier {
   final GetPollDetail _getPollDetail;
+  final UpdatePollText _updatePollText;
+  final DeletePoll _deletePoll;
   final ToggleReaction _toggleReaction;
   final GetReactionSummary _getReactionSummary;
 
@@ -26,8 +31,16 @@ class PollDetailController extends ChangeNotifier {
   PollId? _currentPollId;
   String? _lastUserId;
 
+  bool _isDeleting = false;
+  bool get isDeleting => _isDeleting;
+
+  bool _isUpdating = false;
+  bool get isUpdating => _isUpdating;
+
   PollDetailController(
     this._getPollDetail,
+    this._updatePollText,
+    this._deletePoll,
     this._toggleReaction,
     this._getReactionSummary,
   );
@@ -70,8 +83,7 @@ class PollDetailController extends ChangeNotifier {
           _reactionSummary = null;
         }
       }
-    } catch (e) {
-      // Qui possiamo in futuro migliorare con error handler centralizzato
+    } catch (_) {
       _state = const PollDetailError('Failed to load poll');
     }
 
@@ -95,13 +107,110 @@ class PollDetailController extends ChangeNotifier {
   /// Reazione corrente dell'utente sul poll (se presente).
   ReactionType? get userReaction => _reactionSummary?.userReaction;
 
+  bool canDelete({required String userId}) {
+    final currentState = _state;
+    if (currentState is! PollDetailLoaded) {
+      return false;
+    }
+
+    final normalizedUserId = userId.trim();
+    if (normalizedUserId.isEmpty) {
+      return false;
+    }
+
+    final ownerId = currentState.poll.createdByUserId?.trim();
+    if (ownerId == null || ownerId.isEmpty) {
+      return false;
+    }
+
+    return ownerId == normalizedUserId;
+  }
+
+  bool canEdit({required String userId}) {
+    final currentState = _state;
+    if (currentState is! PollDetailLoaded) {
+      return false;
+    }
+
+    if (!canDelete(userId: userId)) {
+      return false;
+    }
+
+    return currentState.poll.voteCount == 0;
+  }
+
+  Future<Poll> updateCurrentPollText({
+    required String userId,
+    required String title,
+    String? description,
+  }) async {
+    final currentState = _state;
+    if (currentState is! PollDetailLoaded) {
+      throw Exception('Poll non caricato.');
+    }
+
+    if (_isUpdating) {
+      throw Exception('Aggiornamento già in corso.');
+    }
+
+    if (!canEdit(userId: userId)) {
+      throw Exception(
+        'Puoi modificare solo i tuoi sondaggi senza voti.',
+      );
+    }
+
+    _isUpdating = true;
+    notifyListeners();
+
+    try {
+      final updatedPoll = await _updatePollText(
+        pollId: currentState.poll.id.value,
+        title: title,
+        description: description,
+      );
+
+      _state = PollDetailLoaded(updatedPoll);
+      return updatedPoll;
+    } finally {
+      _isUpdating = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> deleteCurrentPoll({required String userId}) async {
+    final currentState = _state;
+    if (currentState is! PollDetailLoaded) {
+      return false;
+    }
+
+    if (_isDeleting) {
+      return false;
+    }
+
+    if (!canDelete(userId: userId)) {
+      return false;
+    }
+
+    _isDeleting = true;
+    notifyListeners();
+
+    try {
+      await _deletePoll(currentState.poll.id.value);
+      return true;
+    } catch (_) {
+      return false;
+    } finally {
+      _isDeleting = false;
+      notifyListeners();
+    }
+  }
+
   /// Toggle 🔥 per il poll corrente.
   Future<void> toggleFire({required String userId}) async {
     final currentState = _state;
     if (currentState is! PollDetailLoaded) return;
 
     if (userId.isEmpty) {
-      // v1: la UI / AuthGuard dovrebbe già bloccare i guest.
       return;
     }
 
