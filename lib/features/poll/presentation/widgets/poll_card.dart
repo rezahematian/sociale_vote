@@ -1,8 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import 'package:sociale_vote/app/di.dart';
-import 'package:sociale_vote/app/theme/colors.dart';
 import 'package:sociale_vote/app/theme/radius.dart';
 import 'package:sociale_vote/app/theme/spacing.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
@@ -21,7 +22,7 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/ui/app_card.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 
-class PollCard extends StatefulWidget {
+class PollCard extends StatelessWidget {
   final Poll poll;
   final VoidCallback? onTap;
 
@@ -33,7 +34,6 @@ class PollCard extends StatefulWidget {
   final ReactionType? userReaction;
 
   /// Risultati opzionali del poll.
-  /// Se presenti, la card mostra una preview premium con donut + top opzioni.
   final PollResult? result;
 
   final VoidCallback? onFireTap;
@@ -53,125 +53,65 @@ class PollCard extends StatefulWidget {
     this.onCommentTap,
   });
 
-  @override
-  State<PollCard> createState() => _PollCardState();
-}
-
-class _PollCardState extends State<PollCard> {
-  bool _isFavorite = false;
-  bool _favoriteInitialized = false;
-  bool _favoriteLoading = false;
-  String? _initializedPollId;
-
-  Poll get poll => widget.poll;
-
   bool get _hasGeoRestriction =>
       poll.configuration.participationRules.scope ==
       ParticipationScope.geoScopeOnly;
 
-  @override
-  void initState() {
-    super.initState();
-    _initializeFavorite();
-  }
+  static const _PollChipMetrics _chipMetrics = _PollChipMetrics(
+    height: 32,
+    horizontalPadding: 10,
+    iconSize: 14,
+    contentGap: 4,
+    fontSize: 12,
+  );
 
-  @override
-  void didUpdateWidget(covariant PollCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
+  static const Color _pollChipBackground = Color(0xFFEAF7EF);
+  static const Color _pollChipForeground = Color(0xFF179C5C);
+  static const Color _pollChipBorder = Color(0xFFCFEBD9);
 
-    if (oldWidget.poll.id.value != widget.poll.id.value) {
-      _isFavorite = false;
-      _favoriteInitialized = false;
-      _favoriteLoading = false;
-      _initializedPollId = null;
-      _initializeFavorite();
-    }
-  }
+  static const Color _neutralSoftBlueBg = Color(0xFFF2F7FF);
+  static const Color _neutralSoftBlueFg = Color(0xFF5B7395);
+  static const Color _neutralSoftBlueBorder = Color(0xFFD9E6F5);
 
-  void _initializeFavorite() {
-    _initializedPollId = poll.id.value;
-    _initFavoriteStatus();
-  }
+  static const Color _softIndigoBg = Color(0xFFF1F4FF);
+  static const Color _softIndigoFg = Color(0xFF5D6FC8);
+  static const Color _softIndigoBorder = Color(0xFFDCE4FF);
 
-  Future<void> _initFavoriteStatus() async {
-    final userId = AppDI.instance.currentUserId;
+  static const Color _softVioletBg = Color(0xFFF5F1FF);
+  static const Color _softVioletFg = Color(0xFF7A5CC2);
+  static const Color _softVioletBorder = Color(0xFFE5DCFF);
 
-    if (userId == null) {
-      if (!mounted) return;
-      setState(() {
-        _isFavorite = false;
-        _favoriteInitialized = true;
-      });
-      return;
-    }
+  static const Color _softTealBg = Color(0xFFEFFAF6);
+  static const Color _softTealFg = Color(0xFF1B8A68);
+  static const Color _softTealBorder = Color(0xFFD8F0E6);
 
-    try {
-      final isFav = await AppDI.instance.isFavorite(
-        userId: userId,
-        target: TargetRef.poll(poll.id.value),
-      );
+  static const Color _softAmberBg = Color(0xFFFFF6EC);
+  static const Color _softAmberFg = Color(0xFF9D6F35);
+  static const Color _softAmberBorder = Color(0xFFF2E1CD);
 
-      if (!mounted) return;
-      setState(() {
-        _isFavorite = isFav;
-        _favoriteInitialized = true;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _favoriteInitialized = true;
-      });
-    }
-  }
-
-  Future<void> _onFavoritePressed() async {
-    if (_favoriteLoading) return;
-
-    final allowed = await AuthGuard.ensureCanPerformAction(
-      context,
-      ParticipationAction.react,
-    );
-    if (!allowed) return;
-
-    final userId = AppDI.instance.currentUserId;
-    if (userId == null) return;
-
-    setState(() {
-      _favoriteLoading = true;
-    });
-
-    try {
-      final newState = await AppDI.instance.toggleFavorite(
-        userId: userId,
-        target: TargetRef.poll(poll.id.value),
-      );
-
-      if (!mounted) return;
-      setState(() {
-        _isFavorite = newState;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossibile aggiornare i preferiti')),
-      );
-    } finally {
-      if (!mounted) return;
-      setState(() {
-        _favoriteLoading = false;
-      });
-    }
-  }
+  static const Color _softRoseBg = Color(0xFFFFF4EE);
+  static const Color _softRoseFg = Color(0xFFB46654);
+  static const Color _softRoseBorder = Color(0xFFF4DDD4);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    final description = poll.description ?? '';
-    final hasDescription = description.trim().isNotEmpty;
-    final hasResults =
-        widget.result != null && widget.result!.optionResults.isNotEmpty;
+    final description = (poll.description ?? '').trim();
+    final hasDescription = description.isNotEmpty;
+    final hasResults = result != null && result!.optionResults.isNotEmpty;
+
+    final List<Widget> topChips = [
+      _buildPollIconChip(theme),
+      _buildStatusChip(theme, l10n),
+      _buildScopeChip(theme, l10n),
+      if (_hasGeoRestriction) _buildParticipationChip(theme, l10n),
+      _buildTypeChip(theme, l10n),
+      _buildAnonymityChip(theme, l10n),
+      _buildResultsVisibilityChip(theme, l10n),
+      _buildQuorumChip(theme, l10n),
+    ].where((w) => w is! SizedBox).toList(growable: false);
 
     VoidCallback? wrapReactCallback(VoidCallback? original) {
       if (original == null) return null;
@@ -204,118 +144,58 @@ class _PollCardState extends State<PollCard> {
     return AppCard(
       margin: const EdgeInsets.only(bottom: AppSpacing.unitM),
       elevated: true,
-      onTap: widget.onTap,
+      onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.how_to_vote,
-                size: 20,
-                color: theme.colorScheme.primary.withOpacity(0.8),
-              ),
-              const SizedBox(width: AppSpacing.unitS),
-              Expanded(
-                child: Text(
-                  poll.title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    height: 1.15,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.unitXS),
-              IconButton(
-                tooltip: _isFavorite
-                    ? 'Remove from favorites'
-                    : 'Add to favorites',
-                onPressed: _favoriteLoading ? null : _onFavoritePressed,
-                icon: _favoriteLoading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(
-                        _isFavorite ? Icons.star : Icons.star_border,
-                        color: _isFavorite
-                            ? theme.colorScheme.primary
-                            : theme.iconTheme.color,
-                      ),
-              ),
-              const SizedBox(width: AppSpacing.unitXS),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _buildStatusChip(theme, l10n),
-                  if (_hasGeoRestriction) ...[
-                    const SizedBox(height: AppSpacing.unitXS),
-                    _buildParticipationChip(theme, l10n),
-                  ],
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.unitS),
-          _buildStatusProgressBar(theme),
-          if (hasDescription) ...[
-            const SizedBox(height: AppSpacing.unitS),
+          if (topChips.isNotEmpty)
+            Wrap(
+              spacing: AppSpacing.unitXS,
+              runSpacing: AppSpacing.unitXS,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: topChips,
+            ),
+          const SizedBox(height: AppSpacing.unitM),
+          if (hasResults)
+            _PollResultPreview(
+              poll: poll,
+              result: result!,
+              title: poll.title,
+              description: hasDescription ? description : null,
+            )
+          else ...[
             Text(
-              description,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.85),
+              poll.title,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                height: 1.18,
+                letterSpacing: -0.2,
               ),
-              maxLines: hasResults ? 1 : 2,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-          ],
-          const SizedBox(height: AppSpacing.unitM),
-          if (hasResults) ...[
-            _PollResultPreview(result: widget.result!),
-            const SizedBox(height: AppSpacing.unitM),
-          ],
-          Wrap(
-            spacing: AppSpacing.unitS,
-            runSpacing: AppSpacing.unitS,
-            children: [
-              _buildTypeChip(theme, l10n),
-              _buildScopeChip(theme, l10n),
-              _buildAnonymityChip(theme, l10n),
-              _buildResultsVisibilityChip(theme, l10n),
-              _buildQuorumChip(theme, l10n),
+            if (hasDescription) ...[
+              const SizedBox(height: AppSpacing.unitS),
+              Text(
+                description,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                  height: 1.42,
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
-          ),
+          ],
           const SizedBox(height: AppSpacing.unitM),
           _PollEngagementRow(
             poll: poll,
-            fireCount: widget.fireCount,
-            iceCount: widget.iceCount,
-            userReaction: widget.userReaction,
-            onFireTap: wrapReactCallback(widget.onFireTap),
-            onIceTap: wrapReactCallback(widget.onIceTap),
-            onCommentTap: wrapCommentCallback(widget.onCommentTap),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  l10n.pollCard_viewDetails,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.unitXS),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 14,
-                  color: theme.colorScheme.primary,
-                ),
-              ],
-            ),
+            fireCount: fireCount,
+            iceCount: iceCount,
+            userReaction: userReaction,
+            onFireTap: wrapReactCallback(onFireTap),
+            onIceTap: wrapReactCallback(onIceTap),
+            onCommentTap: wrapCommentCallback(onCommentTap),
           ),
         ],
       ),
@@ -356,25 +236,26 @@ class _PollCardState extends State<PollCard> {
     }
   }
 
-  String _mapResultsVisibilityLabel(
+  String _mapCompactResultsVisibilityLabel(
     AppLocalizations l10n,
     ResultsVisibilityMode mode,
   ) {
+    final locale = l10n.localeName.toLowerCase();
+    final isItalian = locale.startsWith('it');
+
     switch (mode) {
       case ResultsVisibilityMode.always:
-        return l10n.pollVisibility_whileOpen;
+        return isItalian ? 'Risultati visibili' : 'Results visible';
       case ResultsVisibilityMode.afterVote:
-        return l10n.pollVisibility_afterVote;
+        return isItalian ? 'Dopo voto' : 'After vote';
       case ResultsVisibilityMode.afterClose:
-        return l10n.pollVisibility_afterClose;
+        return isItalian ? 'Dopo chiusura' : 'After close';
       default:
         return mode.name;
     }
   }
 
-  String? _resolveParticipationCountryName() {
-    final rules = poll.configuration.participationRules;
-    final code = rules.countryCode;
+  String? _resolveCountryName(String? code) {
     if (code == null) return null;
 
     final upper = code.toUpperCase();
@@ -388,83 +269,71 @@ class _PollCardState extends State<PollCard> {
     }
   }
 
-  Widget _buildStatusProgressBar(ThemeData theme) {
-    final status = poll.status;
+  String? _resolveParticipationCountryName() {
+    return _resolveCountryName(
+      poll.configuration.participationRules.countryCode,
+    );
+  }
 
-    double value;
-    Color color;
-
-    switch (status) {
-      case PollStatus.open:
-        value = 0.6;
-        color = AppColors.success;
-        break;
-      case PollStatus.closed:
-        value = 1.0;
-        color = AppColors.textMuted;
-        break;
-      case PollStatus.scheduled:
-      case PollStatus.draft:
-      default:
-        value = 0.3;
-        color = theme.colorScheme.primary.withOpacity(0.4);
-        break;
-    }
-
-    return ClipRRect(
-      borderRadius: AppRadius.buttonRadius,
-      child: LinearProgressIndicator(
-        value: value,
-        minHeight: 4,
-        backgroundColor: theme.colorScheme.surfaceVariant.withOpacity(0.4),
-        valueColor: AlwaysStoppedAnimation<Color>(color),
-      ),
+  Widget _buildPollIconChip(ThemeData theme) {
+    return _buildMetaPill(
+      theme: theme,
+      metrics: _chipMetrics,
+      icon: Icons.how_to_vote_rounded,
+      label: null,
+      backgroundColor: _pollChipBackground,
+      foregroundColor: _pollChipForeground,
+      borderColor: _pollChipBorder,
     );
   }
 
   Widget _buildStatusChip(ThemeData theme, AppLocalizations l10n) {
     final status = poll.status;
-    final statusLabel = _mapStatusToLabel(l10n, status);
-    final normalized = status.name.toLowerCase();
+    final label = _mapStatusToLabel(l10n, status).toUpperCase();
 
     Color bg;
     Color fg;
+    Color border;
 
-    if (normalized.contains('open')) {
-      bg = AppColors.successSoftBackground;
-      fg = AppColors.success;
-    } else if (normalized.contains('closed')) {
-      bg = AppColors.errorSoftBackground;
-      fg = AppColors.error;
-    } else {
-      bg = AppColors.primarySoftBackground;
-      fg = AppColors.primary;
+    switch (status) {
+      case PollStatus.open:
+        bg = const Color(0xFFE7F8EE);
+        fg = const Color(0xFF0E9F6E);
+        border = const Color(0xFFCBEFD9);
+        break;
+      case PollStatus.closed:
+        bg = const Color(0xFFFFEAEA);
+        fg = const Color(0xFFE02424);
+        border = const Color(0xFFF8C7C7);
+        break;
+      case PollStatus.scheduled:
+        bg = _neutralSoftBlueBg;
+        fg = _neutralSoftBlueFg;
+        border = _neutralSoftBlueBorder;
+        break;
+      case PollStatus.draft:
+      default:
+        bg = const Color(0xFFF6F7F9);
+        fg = const Color(0xFF6B7280);
+        border = const Color(0xFFE4E7EC);
+        break;
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: AppRadius.pillRadius,
-      ),
-      child: Text(
-        statusLabel.toUpperCase(),
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: fg,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.5,
-        ),
-      ),
+    return _buildMetaPill(
+      theme: theme,
+      metrics: _chipMetrics,
+      icon: null,
+      label: label,
+      backgroundColor: bg,
+      foregroundColor: fg,
+      borderColor: border,
+      bold: true,
+      letterSpacing: 0.25,
     );
   }
 
-  Widget _buildTypeChip(ThemeData theme, AppLocalizations l10n) {
-    final label = _mapTypeToLabel(l10n, poll.type);
-    return _buildMiniChip(theme, Icons.category, label);
-  }
-
   Widget _buildScopeChip(ThemeData theme, AppLocalizations l10n) {
-    final country = poll.countryCode;
+    final country = _resolveCountryName(poll.countryCode);
     final city = poll.cityId;
 
     String label;
@@ -472,11 +341,21 @@ class _PollCardState extends State<PollCard> {
       label = l10n.pollGeo_global;
     } else if (country != null && city == null) {
       label = country;
+    } else if (country == null && city != null) {
+      label = city;
     } else {
-      label = '$city ($country)';
+      label = '$city · $country';
     }
 
-    return _buildMiniChip(theme, Icons.public, label);
+    return _buildMetaPill(
+      theme: theme,
+      metrics: _chipMetrics,
+      icon: Icons.public,
+      label: label,
+      backgroundColor: _neutralSoftBlueBg,
+      foregroundColor: _neutralSoftBlueFg,
+      borderColor: _neutralSoftBlueBorder,
+    );
   }
 
   Widget _buildParticipationChip(ThemeData theme, AppLocalizations l10n) {
@@ -491,30 +370,26 @@ class _PollCardState extends State<PollCard> {
         ? l10n.pollCard_restrictedToCountry(countryName)
         : l10n.pollCard_countryRestricted;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        borderRadius: AppRadius.pillRadius,
-        color: AppColors.warningSoftBackground,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.lock_outline,
-            size: 14,
-            color: AppColors.warning,
-          ),
-          const SizedBox(width: AppSpacing.unitXS),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: AppColors.warning,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
+    return _buildMetaPill(
+      theme: theme,
+      metrics: _chipMetrics,
+      icon: Icons.lock_outline,
+      label: label,
+      backgroundColor: _softAmberBg,
+      foregroundColor: _softAmberFg,
+      borderColor: _softAmberBorder,
+    );
+  }
+
+  Widget _buildTypeChip(ThemeData theme, AppLocalizations l10n) {
+    return _buildInfoPill(
+      theme: theme,
+      metrics: _chipMetrics,
+      icon: Icons.category_outlined,
+      label: _mapTypeToLabel(l10n, poll.type),
+      backgroundColor: _softIndigoBg,
+      foregroundColor: _softIndigoFg,
+      borderColor: _softIndigoBorder,
     );
   }
 
@@ -524,7 +399,15 @@ class _PollCardState extends State<PollCard> {
         ? l10n.pollDetail_chipAnonymous
         : l10n.pollDetail_chipPublic;
 
-    return _buildMiniChip(theme, Icons.visibility, label);
+    return _buildInfoPill(
+      theme: theme,
+      metrics: _chipMetrics,
+      icon: Icons.visibility_outlined,
+      label: label,
+      backgroundColor: _softVioletBg,
+      foregroundColor: _softVioletFg,
+      borderColor: _softVioletBorder,
+    );
   }
 
   Widget _buildResultsVisibilityChip(
@@ -532,9 +415,17 @@ class _PollCardState extends State<PollCard> {
     AppLocalizations l10n,
   ) {
     final visibility = poll.configuration.visibilityRules.resultsVisibility;
-    final label = _mapResultsVisibilityLabel(l10n, visibility);
+    final label = _mapCompactResultsVisibilityLabel(l10n, visibility);
 
-    return _buildMiniChip(theme, Icons.insights, label);
+    return _buildInfoPill(
+      theme: theme,
+      metrics: _chipMetrics,
+      icon: Icons.insights_outlined,
+      label: label,
+      backgroundColor: _softTealBg,
+      foregroundColor: _softTealFg,
+      borderColor: _softTealBorder,
+    );
   }
 
   Widget _buildQuorumChip(ThemeData theme, AppLocalizations l10n) {
@@ -544,41 +435,128 @@ class _PollCardState extends State<PollCard> {
       return const SizedBox.shrink();
     }
 
-    final label = l10n.pollCard_quorumLabel(minQuorum);
-
-    return _buildMiniChip(theme, Icons.how_to_vote, label);
+    return _buildInfoPill(
+      theme: theme,
+      metrics: _chipMetrics,
+      icon: Icons.how_to_vote_outlined,
+      label: l10n.pollCard_quorumLabel(minQuorum),
+      backgroundColor: _softRoseBg,
+      foregroundColor: _softRoseFg,
+      borderColor: _softRoseBorder,
+    );
   }
 
-  Widget _buildMiniChip(
-    ThemeData theme,
-    IconData icon,
-    String label,
-  ) {
+  Widget _buildMetaPill({
+    required ThemeData theme,
+    required _PollChipMetrics metrics,
+    required IconData? icon,
+    required String? label,
+    required Color backgroundColor,
+    required Color foregroundColor,
+    required Color borderColor,
+    bool bold = false,
+    double? letterSpacing,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      height: metrics.height,
+      padding: EdgeInsets.symmetric(
+        horizontal: label == null
+            ? metrics.horizontalPadding - 1
+            : metrics.horizontalPadding,
+      ),
       decoration: BoxDecoration(
+        color: backgroundColor,
         borderRadius: AppRadius.pillRadius,
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.6),
+        border: Border.all(
+          color: borderColor,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(
+              icon,
+              size: metrics.iconSize,
+              color: foregroundColor,
+            ),
+            if (label != null) SizedBox(width: metrics.contentGap),
+          ],
+          if (label != null)
+            Text(
+              label,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontSize: metrics.fontSize,
+                height: 1,
+                color: foregroundColor,
+                fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
+                letterSpacing: letterSpacing,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoPill({
+    required ThemeData theme,
+    required _PollChipMetrics metrics,
+    required IconData icon,
+    required String label,
+    required Color backgroundColor,
+    required Color foregroundColor,
+    required Color borderColor,
+  }) {
+    return Container(
+      height: metrics.height,
+      padding: EdgeInsets.symmetric(horizontal: metrics.horizontalPadding),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: AppRadius.pillRadius,
+        border: Border.all(
+          color: borderColor,
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             icon,
-            size: 14,
-            color: theme.colorScheme.onSurface.withOpacity(0.7),
+            size: metrics.iconSize,
+            color: foregroundColor,
           ),
-          const SizedBox(width: AppSpacing.unitXS),
+          SizedBox(width: metrics.contentGap),
           Text(
             label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontWeight: FontWeight.w500,
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontSize: metrics.fontSize,
+              height: 1,
+              color: foregroundColor,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _PollChipMetrics {
+  final double height;
+  final double horizontalPadding;
+  final double iconSize;
+  final double contentGap;
+  final double fontSize;
+
+  const _PollChipMetrics({
+    required this.height,
+    required this.horizontalPadding,
+    required this.iconSize,
+    required this.contentGap,
+    required this.fontSize,
+  });
 }
 
 class _PollEngagementRow extends StatelessWidget {
@@ -589,7 +567,6 @@ class _PollEngagementRow extends StatelessWidget {
   final VoidCallback? onFireTap;
   final VoidCallback? onIceTap;
   final VoidCallback? onCommentTap;
-  final Widget trailing;
 
   const _PollEngagementRow({
     required this.poll,
@@ -599,7 +576,6 @@ class _PollEngagementRow extends StatelessWidget {
     required this.onFireTap,
     required this.onIceTap,
     required this.onCommentTap,
-    required this.trailing,
   });
 
   @override
@@ -611,21 +587,21 @@ class _PollEngagementRow extends StatelessWidget {
         final commentCount = snapshot.hasError ? 0 : comments.length;
 
         return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              child: EngagementBar(
-                fireCount: fireCount ?? 0,
-                iceCount: iceCount ?? 0,
-                commentCount: commentCount,
-                userReaction: userReaction,
-                onFireTap: onFireTap,
-                onIceTap: onIceTap,
-                onCommentTap: onCommentTap,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: EngagementBar(
+                  fireCount: fireCount ?? 0,
+                  iceCount: iceCount ?? 0,
+                  commentCount: commentCount,
+                  userReaction: userReaction,
+                  onFireTap: onFireTap,
+                  onIceTap: onIceTap,
+                  onCommentTap: onCommentTap,
+                ),
               ),
             ),
-            const SizedBox(width: AppSpacing.unitS),
-            trailing,
           ],
         );
       },
@@ -634,14 +610,21 @@ class _PollEngagementRow extends StatelessWidget {
 }
 
 class _PollResultPreview extends StatelessWidget {
+  final Poll poll;
   final PollResult result;
+  final String title;
+  final String? description;
 
   const _PollResultPreview({
+    required this.poll,
     required this.result,
+    required this.title,
+    required this.description,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final sortedOptions = _sortedVisibleOptionResults(result);
 
     if (sortedOptions.isEmpty) {
@@ -653,20 +636,57 @@ class _PollResultPreview extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        Expanded(
+          flex: 4,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  height: 1.18,
+                  letterSpacing: -0.2,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (description != null) ...[
+                const SizedBox(height: AppSpacing.unitS),
+                Text(
+                  description!,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                    height: 1.4,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(width: AppSpacing.unitM),
         _PollResultDonut(
+          poll: poll,
           result: result,
           sortedOptions: sortedOptions,
         ),
-        const SizedBox(width: AppSpacing.unitL),
+        const SizedBox(width: AppSpacing.unitM),
         Expanded(
+          flex: 5,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: List.generate(topOptions.length, (index) {
               final option = topOptions[index];
               final color = _pollResultColorForIndex(index);
 
               return Padding(
-                padding: const EdgeInsets.only(
-                  bottom: AppSpacing.unitS,
+                padding: EdgeInsets.only(
+                  bottom: index == topOptions.length - 1
+                      ? 0
+                      : AppSpacing.unitS,
                 ),
                 child: _PollResultRow(
                   option: option,
@@ -705,15 +725,16 @@ class _PollResultRow extends StatelessWidget {
                 option.label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(
+                style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.82),
                 ),
               ),
             ),
             const SizedBox(width: AppSpacing.unitS),
             Text(
               '${percentage.toStringAsFixed(0)}%',
-              style: theme.textTheme.labelMedium?.copyWith(
+              style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: color,
               ),
@@ -725,8 +746,10 @@ class _PollResultRow extends StatelessWidget {
           borderRadius: AppRadius.buttonRadius,
           child: LinearProgressIndicator(
             value: percentage / 100,
-            minHeight: 6,
-            backgroundColor: theme.colorScheme.surfaceVariant.withOpacity(0.35),
+            minHeight: 7,
+            backgroundColor: theme.colorScheme.surfaceVariant.withValues(
+              alpha: 0.55,
+            ),
             valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
         ),
@@ -736,10 +759,12 @@ class _PollResultRow extends StatelessWidget {
 }
 
 class _PollResultDonut extends StatelessWidget {
+  final Poll poll;
   final PollResult result;
   final List<PollOptionResult> sortedOptions;
 
   const _PollResultDonut({
+    required this.poll,
     required this.result,
     required this.sortedOptions,
   });
@@ -747,6 +772,7 @@ class _PollResultDonut extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final progress = _resolveTimeProgress(poll);
 
     if (sortedOptions.isEmpty) {
       return Container(
@@ -754,7 +780,7 @@ class _PollResultDonut extends StatelessWidget {
         height: 112,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: theme.colorScheme.surfaceVariant.withOpacity(0.35),
+          color: theme.colorScheme.surfaceVariant.withValues(alpha: 0.45),
         ),
         alignment: Alignment.center,
         child: Text(
@@ -772,47 +798,155 @@ class _PollResultDonut extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          PieChart(
-            PieChartData(
-              sectionsSpace: 3,
-              centerSpaceRadius: 34,
-              startDegreeOffset: -90,
-              sections: List.generate(sortedOptions.length, (index) {
-                final option = sortedOptions[index];
-                return PieChartSectionData(
-                  value: option.percentage <= 0 ? 0.001 : option.percentage,
-                  color: _pollResultColorForIndex(index),
-                  radius: 18,
-                  showTitle: false,
-                );
-              }),
+          if (progress != null)
+            CustomPaint(
+              size: const Size(112, 112),
+              painter: _PollTimeRingPainter(
+                progress: progress,
+              ),
             ),
-          ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '${result.totalVotes}',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  height: 1,
+          SizedBox(
+            width: 104,
+            height: 104,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                PieChart(
+                  PieChartData(
+                    sectionsSpace: 3,
+                    centerSpaceRadius: 31,
+                    startDegreeOffset: -90,
+                    sections: List.generate(sortedOptions.length, (index) {
+                      final option = sortedOptions[index];
+                      return PieChartSectionData(
+                        value:
+                            option.percentage <= 0 ? 0.001 : option.percentage,
+                        color: _pollResultColorForIndex(index),
+                        radius: 17,
+                        showTitle: false,
+                      );
+                    }),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'votes',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.62),
-                  height: 1,
-                  fontWeight: FontWeight.w600,
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${result.totalVotes}',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        height: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'votes',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        fontWeight: FontWeight.w600,
+                        height: 1,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
     );
   }
+}
+
+class _PollTimeRingPainter extends CustomPainter {
+  final double progress;
+
+  const _PollTimeRingPainter({
+    required this.progress,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final clamped = progress.clamp(0.0, 1.0).toDouble();
+    final visibleProgress = clamped <= 0.0 ? 0.03 : clamped;
+
+    final strokeWidth = 5.0;
+    final center = size.center(Offset.zero);
+    final radius = (size.width - strokeWidth) / 2;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+
+    final trackPaint = Paint()
+      ..color = const Color(0xFFE9EDF5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+
+    canvas.drawCircle(center, radius, trackPaint);
+
+    final gradientPaint = Paint()
+      ..shader = SweepGradient(
+        startAngle: -math.pi / 2,
+        endAngle: 3 * math.pi / 2,
+        colors: const [
+          Color(0xFF22C55E),
+          Color(0xFF22C55E),
+          Color(0xFFF59E0B),
+          Color(0xFFEF4444),
+        ],
+        stops: const [0.0, 0.45, 0.78, 1.0],
+        transform: const GradientRotation(-math.pi / 2),
+      ).createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawArc(
+      rect,
+      -math.pi / 2,
+      2 * math.pi * visibleProgress,
+      false,
+      gradientPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _PollTimeRingPainter oldDelegate) {
+    return oldDelegate.progress != progress;
+  }
+}
+
+double? _resolveTimeProgress(Poll poll) {
+  final start = poll.startAt;
+  final end = poll.endAt;
+
+  if (start == null || end == null) {
+    return null;
+  }
+
+  final startUtc = start.toUtc();
+  final endUtc = end.toUtc();
+
+  if (!endUtc.isAfter(startUtc)) {
+    return null;
+  }
+
+  final now = DateTime.now().toUtc();
+
+  if (now.isBefore(startUtc)) {
+    return 0.0;
+  }
+
+  if (now.isAfter(endUtc)) {
+    return 1.0;
+  }
+
+  final totalMs = endUtc.difference(startUtc).inMilliseconds;
+  if (totalMs <= 0) {
+    return null;
+  }
+
+  final elapsedMs = now.difference(startUtc).inMilliseconds;
+  return elapsedMs / totalMs;
 }
 
 List<PollOptionResult> _sortedVisibleOptionResults(PollResult result) {
@@ -827,17 +961,17 @@ List<PollOptionResult> _sortedVisibleOptionResults(PollResult result) {
 }
 
 Color _pollResultColorForIndex(int index) {
-  final colors = [
-    const Color(0xFF2563EB),
-    const Color(0xFFEF4444),
-    const Color(0xFFF59E0B),
-    const Color(0xFF10B981),
-    const Color(0xFF8B5CF6),
-    const Color(0xFFEC4899),
-    const Color(0xFF14B8A6),
-    const Color(0xFFF97316),
-    const Color(0xFF84CC16),
-    const Color(0xFF6366F1),
+  const colors = [
+    Color(0xFF316BFF),
+    Color(0xFF8B5CF6),
+    Color(0xFF06B6D4),
+    Color(0xFFEC4899),
+    Color(0xFF14B8A6),
+    Color(0xFF6366F1),
+    Color(0xFFF59E0B),
+    Color(0xFFEF4444),
+    Color(0xFF84CC16),
+    Color(0xFFF97316),
   ];
 
   return colors[index % colors.length];

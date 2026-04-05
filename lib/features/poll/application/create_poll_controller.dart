@@ -50,6 +50,7 @@ class CreatePollController extends ChangeNotifier {
 
   DateTime _startAt = DateTime.now();
   DateTime _endAt = DateTime.now().add(const Duration(days: 7));
+  bool _hasExplicitTimeWindow = false;
 
   ParticipationScope _participationScope = ParticipationScope.everyone;
   AnonymityLevel _anonymityLevel = AnonymityLevel.anonymous;
@@ -75,6 +76,7 @@ class CreatePollController extends ChangeNotifier {
 
   DateTime get startAt => _startAt;
   DateTime get endAt => _endAt;
+  bool get hasExplicitTimeWindow => _hasExplicitTimeWindow;
 
   ParticipationScope get participationScope => _participationScope;
   AnonymityLevel get anonymityLevel => _anonymityLevel;
@@ -93,7 +95,8 @@ class CreatePollController extends ChangeNotifier {
   int get _validNonEmptyOptionsCount =>
       _options.where((o) => o.trim().isNotEmpty).length;
 
-  bool get _hasValidDates => !_endAt.isBefore(_startAt);
+  bool get _hasValidDates =>
+      !_hasExplicitTimeWindow || !_endAt.isBefore(_startAt);
 
   bool get canSubmit =>
       !_isSubmitting &&
@@ -232,12 +235,22 @@ class CreatePollController extends ChangeNotifier {
 
   void setStartAt(DateTime value) {
     _startAt = value;
+    _hasExplicitTimeWindow = true;
     _errorMessage = null;
     notifyListeners();
   }
 
   void setEndAt(DateTime value) {
     _endAt = value;
+    _hasExplicitTimeWindow = true;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  void clearTimeWindow() {
+    _startAt = DateTime.now();
+    _endAt = DateTime.now().add(const Duration(days: 7));
+    _hasExplicitTimeWindow = false;
     _errorMessage = null;
     notifyListeners();
   }
@@ -376,7 +389,7 @@ class CreatePollController extends ChangeNotifier {
       return null;
     }
 
-    if (_endAt.isBefore(_startAt)) {
+    if (_hasExplicitTimeWindow && _endAt.isBefore(_startAt)) {
       _errorMessage = 'End date must be after start date.';
       notifyListeners();
       return null;
@@ -451,7 +464,9 @@ class CreatePollController extends ChangeNotifier {
       final now = DateTime.now();
       late PollStatus status;
 
-      if (_startAt.isAfter(now)) {
+      if (!_hasExplicitTimeWindow) {
+        status = PollStatus.open;
+      } else if (_startAt.isAfter(now)) {
         status = PollStatus.scheduled;
       } else if (_endAt.isBefore(now)) {
         status = PollStatus.closed;
@@ -467,8 +482,8 @@ class CreatePollController extends ChangeNotifier {
         status: status,
         options: pollOptions,
         configuration: configuration,
-        startAt: _startAt,
-        endAt: _endAt,
+        startAt: _hasExplicitTimeWindow ? _startAt : null,
+        endAt: _hasExplicitTimeWindow ? _endAt : null,
         countryCode: geoCountryCode,
         cityId: cityId,
         contentLocation: effectiveLocation,

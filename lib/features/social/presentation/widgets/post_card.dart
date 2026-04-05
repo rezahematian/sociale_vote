@@ -7,8 +7,8 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
-import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/shared/ui/app_card.dart';
+import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 
 /// Card visuale per un singolo post social.
 ///
@@ -51,7 +51,6 @@ class PostCard extends StatefulWidget {
 class _PostCardState extends State<PostCard> {
   bool _isFavorite = false;
   bool _favoriteLoading = false;
-  String? _initializedPostId;
 
   Post get post => widget.post;
 
@@ -68,13 +67,11 @@ class _PostCardState extends State<PostCard> {
     if (oldWidget.post.id.value != widget.post.id.value) {
       _isFavorite = false;
       _favoriteLoading = false;
-      _initializedPostId = null;
       _initializeFavorite();
     }
   }
 
   void _initializeFavorite() {
-    _initializedPostId = post.id.value;
     _initFavoriteStatus();
   }
 
@@ -146,11 +143,15 @@ class _PostCardState extends State<PostCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final title = post.title.trim();
+    final content = post.content.trim();
+    final hasTitle = title.isNotEmpty;
+    final hasContent = content.isNotEmpty;
 
     /// Wrapper sicurezza:
     /// - Verifica permesso via AuthGuard
     /// - Non esegue nulla se non autorizzato
-    VoidCallback? _wrapReactCallback(VoidCallback? original) {
+    VoidCallback? wrapReactCallback(VoidCallback? original) {
       if (original == null) return null;
 
       return () async {
@@ -173,108 +174,214 @@ class _PostCardState extends State<PostCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text(
-                  'Post',
-                  style: theme.textTheme.titleMedium,
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildDiscussionChip(theme),
+                    _buildAuthorChip(theme),
+                  ],
                 ),
               ),
-              IconButton(
-                tooltip: _isFavorite
-                    ? 'Remove from favorites'
-                    : 'Add to favorites',
-                onPressed: _favoriteLoading ? null : _onFavoritePressed,
-                icon: _favoriteLoading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(
-                        _isFavorite ? Icons.star : Icons.star_border,
-                        color: _isFavorite
-                            ? theme.colorScheme.primary
-                            : theme.iconTheme.color,
-                      ),
-              ),
+              const SizedBox(width: 8),
+              _buildFavoriteButton(theme),
             ],
           ),
-          const SizedBox(height: 8),
-
-          Text(
-            post.toString(),
-            style: theme.textTheme.bodyMedium,
-          ),
-
-          const SizedBox(height: 12),
-          const Divider(height: 1),
-          const SizedBox(height: 8),
-
-          Row(
-            children: [
-              _CommentCountBadge(post: post),
-              const Spacer(),
-              EngagementBar(
-                fireCount: widget.fireCount,
-                iceCount: widget.iceCount,
-                userReaction: widget.userReaction,
-                onFireTap: _wrapReactCallback(widget.onFireTap),
-                onIceTap: _wrapReactCallback(widget.onIceTap),
+          if (hasTitle || hasContent) const SizedBox(height: 12),
+          if (hasTitle) ...[
+            Text(
+              title,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                height: 1.18,
+                letterSpacing: -0.2,
               ),
-            ],
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (hasContent) const SizedBox(height: 8),
+          ],
+          if (hasContent)
+            Text(
+              content,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                height: 1.42,
+              ),
+              maxLines: hasTitle ? 3 : 4,
+              overflow: TextOverflow.ellipsis,
+            ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              _formatDateTime(post.createdAt),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          _PostEngagementRow(
+            post: post,
+            fireCount: widget.fireCount,
+            iceCount: widget.iceCount,
+            userReaction: widget.userReaction,
+            onFireTap: wrapReactCallback(widget.onFireTap),
+            onIceTap: wrapReactCallback(widget.onIceTap),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildDiscussionChip(ThemeData theme) {
+    return _buildHeaderChip(
+      theme: theme,
+      icon: Icons.mode_comment_outlined,
+      label: 'Discussion',
+      backgroundColor: const Color(0xFFEFF4FF),
+      foregroundColor: const Color(0xFF316BFF),
+      borderColor: const Color(0xFFDCE7FF),
+    );
+  }
+
+  Widget _buildAuthorChip(ThemeData theme) {
+    return _buildHeaderChip(
+      theme: theme,
+      icon: Icons.person_outline_rounded,
+      label: post.authorName,
+      backgroundColor: const Color(0xFFF4F7FB),
+      foregroundColor: const Color(0xFF667085),
+      borderColor: const Color(0xFFE2E8F0),
+    );
+  }
+
+  Widget _buildFavoriteButton(ThemeData theme) {
+    return SizedBox(
+      width: 36,
+      height: 36,
+      child: IconButton(
+        tooltip: _isFavorite
+            ? 'Remove from favorites'
+            : 'Add to favorites',
+        visualDensity: VisualDensity.compact,
+        padding: EdgeInsets.zero,
+        onPressed: _favoriteLoading ? null : _onFavoritePressed,
+        icon: _favoriteLoading
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(
+                _isFavorite ? Icons.star : Icons.star_border,
+                size: 20,
+                color: _isFavorite
+                    ? theme.colorScheme.primary
+                    : theme.iconTheme.color,
+              ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderChip({
+    required ThemeData theme,
+    required IconData icon,
+    required String label,
+    required Color backgroundColor,
+    required Color foregroundColor,
+    required Color borderColor,
+  }) {
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: borderColor,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: foregroundColor,
+          ),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontSize: 12,
+                height: 1,
+                fontWeight: FontWeight.w600,
+                color: foregroundColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDateTime(DateTime value) {
+    final local = value.toLocal();
+
+    final day = local.day.toString().padLeft(2, '0');
+    final month = local.month.toString().padLeft(2, '0');
+    final year = local.year.toString();
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
+
+    return '$day/$month/$year $hour:$minute';
+  }
 }
 
-/// Badge conteggio commenti (discussion/).
-class _CommentCountBadge extends StatelessWidget {
+class _PostEngagementRow extends StatelessWidget {
   final Post post;
+  final int fireCount;
+  final int iceCount;
+  final ReactionType? userReaction;
+  final VoidCallback? onFireTap;
+  final VoidCallback? onIceTap;
 
-  const _CommentCountBadge({required this.post});
+  const _PostEngagementRow({
+    required this.post,
+    required this.fireCount,
+    required this.iceCount,
+    required this.userReaction,
+    required this.onFireTap,
+    required this.onIceTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return FutureBuilder(
       future: AppDI.instance.getCommentsForTarget(TargetRef.post(post.id.value)),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox.shrink();
-        }
-
-        if (snapshot.hasError) {
-          return const SizedBox.shrink();
-        }
-
         final comments = snapshot.data as List<dynamic>? ?? const [];
-        final count = comments.length;
+        final commentCount = snapshot.hasError ? 0 : comments.length;
 
-        if (count == 0) {
-          return const SizedBox.shrink();
-        }
-
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.comment_outlined,
-              size: 14,
-              color: theme.colorScheme.onSurface.withOpacity(0.7),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '$count',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.8),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: EngagementBar(
+            fireCount: fireCount,
+            iceCount: iceCount,
+            commentCount: commentCount,
+            userReaction: userReaction,
+            onFireTap: onFireTap,
+            onIceTap: onIceTap,
+          ),
         );
       },
     );
