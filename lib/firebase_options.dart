@@ -83,4 +83,5 @@ class DefaultFirebaseOptions {
     authDomain: 'socialevote.firebaseapp.com',
     storageBucket: 'socialevote.firebasestorage.app',
   );
+
 }

@@ -11,6 +11,8 @@ import 'package:sociale_vote/features/news/application/news_controller.dart';
 import 'package:sociale_vote/features/news/domain/news_language.dart';
 import 'package:sociale_vote/features/news/domain/news_topic.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
+import 'package:sociale_vote/features/news/presentation/widgets/news_card.dart'
+    as shared_news;
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/ui/app_card.dart';
 import 'package:sociale_vote/shared/ui/loading_indicator.dart';
@@ -628,7 +630,7 @@ class _NewsCard extends StatelessWidget {
     }
 
     final uri = Uri.tryParse(rawUrl);
-    if (uri == null || !uri.hasScheme || uri.host.trim().isNotEmpty) {
+    if (uri == null || !uri.hasScheme || uri.host.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Link articolo non valido'),
@@ -678,8 +680,6 @@ class _NewsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
     final newsController = context.watch<NewsController>();
 
     final summary = newsController.summaryForNews(news);
@@ -688,252 +688,45 @@ class _NewsCard extends StatelessWidget {
     final commentCount = newsController.commentCountForNews(news);
     final userReaction = summary?.userReaction;
 
-    final sourceLabel = _sourceLabel(news);
+    return shared_news.NewsCard(
+      news: news,
+      fireCount: fireCount,
+      iceCount: iceCount,
+      commentCount: commentCount,
+      userReaction: userReaction,
+      onCardTap: () => _openDetailAndRefresh(context),
+      onCommentTap: () => _openDetailAndRefresh(context),
+      onFireTap: () async {
+        final allowed = await AuthGuard.ensureCanPerformAction(
+          context,
+          ParticipationAction.react,
+        );
+        if (!allowed) return;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Material(
-        elevation: 0,
-        borderRadius: BorderRadius.circular(16),
-        color: theme.colorScheme.surface,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => _openDetailAndRefresh(context),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: theme.dividerColor.withOpacity(0.4),
-              ),
-            ),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (_hasImage(news)) ...[
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: AspectRatio(
-                      aspectRatio: 16 / 9,
-                      child: Image.network(
-                        news.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            alignment: Alignment.center,
-                            color: theme.colorScheme.surfaceVariant
-                                .withOpacity(0.35),
-                            child: Icon(
-                              Icons.image_not_supported_outlined,
-                              color: theme.colorScheme.onSurface
-                                  .withOpacity(0.55),
-                            ),
-                          );
-                        },
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            color: theme.colorScheme.surfaceVariant
-                                .withOpacity(0.35),
-                            alignment: Alignment.center,
-                            child: const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: LoadingIndicator(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    if (news.isBreaking) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.error,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          l10n.newsDetail_breakingBadge,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onError,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.6,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    Expanded(
-                      child: Row(
-                        children: [
-                          _SourceDot(label: sourceLabel),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              sourceLabel,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.hintColor,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  news.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                if (news.summary != null && news.summary!.trim().isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    news.summary!,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      height: 1.3,
-                      color:
-                          theme.textTheme.bodyMedium?.color?.withOpacity(0.85),
-                    ),
-                  ),
-                ],
-                if (news.hasOriginalArticleUrl) ...[
-                  const SizedBox(height: 12),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: OutlinedButton.icon(
-                      onPressed: () => _openOriginalArticle(context),
-                      icon: const Icon(Icons.open_in_new, size: 18),
-                      label: const Text('Apri articolo'),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.schedule,
-                      size: 14,
-                      color: theme.hintColor,
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        _formatPublishedAt(news.publishedAt),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.hintColor,
-                        ),
-                      ),
-                    ),
-                    _NewsCardMoreButton(
-                      news: news,
-                      onCopyTitle: () async {
-                        await Clipboard.setData(
-                          ClipboardData(text: news.title),
-                        );
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(l10n.newsFeed_copiedTitleToast),
-                              duration: const Duration(milliseconds: 900),
-                            ),
-                          );
-                        }
-                      },
-                      onRefresh: () {
-                        final userId = AppDI.instance.currentUserId;
-                        context.read<NewsController>().loadNews(userId: userId);
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                const Divider(height: 1),
-                const SizedBox(height: 8),
-                EngagementBar(
-                  fireCount: fireCount,
-                  iceCount: iceCount,
-                  commentCount: commentCount,
-                  userReaction: userReaction,
-                  onFireTap: () {
-                    AuthGuard.ensureCanPerformAction(
-                      context,
-                      ParticipationAction.react,
-                    ).then((allowed) {
-                      if (!allowed) return;
-                      final userId = AppDI.instance.currentUserId;
-                      if (userId == null) return;
-                      newsController.toggleFireForNews(
-                        userId: userId,
-                        newsItem: news,
-                      );
-                    });
-                  },
-                  onIceTap: () {
-                    AuthGuard.ensureCanPerformAction(
-                      context,
-                      ParticipationAction.react,
-                    ).then((allowed) {
-                      if (!allowed) return;
-                      final userId = AppDI.instance.currentUserId;
-                      if (userId == null) return;
-                      newsController.toggleIceForNews(
-                        userId: userId,
-                        newsItem: news,
-                      );
-                    });
-                  },
-                  onCommentTap: () => _openDetailAndRefresh(context),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+        final userId = AppDI.instance.currentUserId;
+        if (userId == null) return;
+
+        await newsController.toggleFireForNews(
+          userId: userId,
+          newsItem: news,
+        );
+      },
+      onIceTap: () async {
+        final allowed = await AuthGuard.ensureCanPerformAction(
+          context,
+          ParticipationAction.react,
+        );
+        if (!allowed) return;
+
+        final userId = AppDI.instance.currentUserId;
+        if (userId == null) return;
+
+        await newsController.toggleIceForNews(
+          userId: userId,
+          newsItem: news,
+        );
+      },
     );
-  }
-
-  static bool _hasImage(NewsItem news) {
-    final url = news.imageUrl;
-    return url != null && url.trim().isNotEmpty;
-  }
-
-  static String _sourceLabel(NewsItem news) {
-    final source = news.effectiveSourceLabel?.trim();
-    if (source != null && source.isNotEmpty) {
-      return source;
-    }
-    return 'News';
-  }
-
-  static String _formatPublishedAt(DateTime dateTime) {
-    final local = dateTime.toLocal();
-    final day = local.day.toString().padLeft(2, '0');
-    final month = local.month.toString().padLeft(2, '0');
-    final year = local.year.toString();
-    final hour = local.hour.toString().padLeft(2, '0');
-    final minute = local.minute.toString().padLeft(2, '0');
-
-    return '$day/$month/$year $hour:$minute';
   }
 }
 

@@ -7,47 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:726104051748:android:18f3b01b1aa975ab4e08b1",
-        "android_client_info": {
-          "package_name": "com.example.salute_mentale"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDHUCDMUc7GJlcwbLgqJeG0Sn5q6bovIC4"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:726104051748:android:ad6a99e4419631fd4e08b1",
         "android_client_info": {
           "package_name": "com.example.sociale_vote"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDHUCDMUc7GJlcwbLgqJeG0Sn5q6bovIC4"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:726104051748:android:fcf10e1e5494dbda4e08b1",
-        "android_client_info": {
-          "package_name": "com.social.voteapp"
         }
       },
       "oauth_client": [],

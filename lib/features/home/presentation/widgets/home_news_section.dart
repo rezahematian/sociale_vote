@@ -9,6 +9,8 @@ import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart'
 import 'package:sociale_vote/features/news/application/news_controller.dart';
 import 'package:sociale_vote/features/news/domain/news_language.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
+import 'package:sociale_vote/features/news/presentation/widgets/news_card.dart'
+    as shared_news;
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/ui/app_card.dart';
@@ -621,10 +623,6 @@ class NewsPreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-    final source = _sourceLabel(news);
-
     Future<void> openNewsDetail() async {
       final newsController = context.read<NewsController>();
 
@@ -640,116 +638,18 @@ class NewsPreviewCard extends StatelessWidget {
       await onReturnedFromDetail?.call();
     }
 
-    return AppCard(
-      elevated: true,
-      onTap: openNewsDetail,
-      child: Padding(
-        padding: EdgeInsets.all(compact ? 12 : 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (news.isBreaking) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.error,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  l10n.homeNewsBreakingBadge,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onError,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ],
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _NewsCardTextBlock(
-                    news: news,
-                    source: source,
-                    compact: compact,
-                  ),
-                ),
-                if (_hasImage(news)) ...[
-                  SizedBox(width: compact ? 10 : 12),
-                  _NewsThumbnail(
-                    imageUrl: news.imageUrl!,
-                    compact: compact,
-                  ),
-                ],
-              ],
-            ),
-            SizedBox(height: compact ? 10 : 12),
-            Row(
-              children: [
-                Icon(
-                  Icons.schedule,
-                  size: 14,
-                  color: theme.hintColor,
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    _formatPublishedAt(news.publishedAt),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color:
-                          theme.textTheme.bodySmall?.color?.withOpacity(0.72),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: compact ? 8 : 10),
-            const Divider(height: 1),
-            SizedBox(height: compact ? 6 : 8),
-            _NewsPreviewEngagementBar(
-              fireCount: fireCount,
-              iceCount: iceCount,
-              commentCount: commentCount,
-              userReaction: userReaction,
-              onFireTap: onFireTap,
-              onIceTap: onIceTap,
-              onCommentTap: openNewsDetail,
-            ),
-          ],
-        ),
-      ),
+    return shared_news.NewsCard(
+      news: news,
+      compact: compact,
+      fireCount: fireCount,
+      iceCount: iceCount,
+      commentCount: commentCount,
+      userReaction: userReaction,
+      onCardTap: openNewsDetail,
+      onCommentTap: openNewsDetail,
+      onFireTap: onFireTap,
+      onIceTap: onIceTap,
     );
-  }
-
-  static bool _hasImage(NewsItem news) {
-    final url = news.imageUrl;
-    return url != null && url.trim().isNotEmpty;
-  }
-
-  static String _sourceLabel(NewsItem news) {
-    final raw = news.authorId.trim();
-    if (raw.isEmpty) return 'GNews';
-    if (raw.length <= 28) return raw;
-    return raw.substring(0, 28);
-  }
-
-  String _formatPublishedAt(DateTime dateTime) {
-    final local = dateTime.toLocal();
-
-    final day = local.day.toString().padLeft(2, '0');
-    final month = local.month.toString().padLeft(2, '0');
-    final year = local.year.toString();
-    final hour = local.hour.toString().padLeft(2, '0');
-    final minute = local.minute.toString().padLeft(2, '0');
-
-    return '$day/$month/$year $hour:$minute';
   }
 }
 

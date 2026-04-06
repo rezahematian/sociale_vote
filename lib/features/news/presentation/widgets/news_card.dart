@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
@@ -7,49 +6,43 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
+import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
-import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/shared/ui/app_card.dart';
-import 'package:sociale_vote/shared/ui/loading_indicator.dart';
-import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 
-/// Card visuale per una singola news.
-///
-/// v2 (UI hardening):
-/// - header: favicon + source + time ago + "open source"
-/// - title + description
-/// - image (se presente)
-/// - footer unificato con engagement standard
 class NewsCard extends StatelessWidget {
   final NewsItem news;
 
-  /// Conteggio like (🔥) e dislike (❄) da mostrare sotto la news.
+  final bool compact;
+
   final int fireCount;
   final int iceCount;
+  final int? commentCount;
+  final ReactionType? userReaction;
 
-  /// Callback per tap su 🔥 e ❄.
-  ///
-  /// IMPORTANTE:
-  /// - La UI non chiama più direttamente questi callback.
-  /// - Prima passa sempre da [AuthGuard.ensureCanPerformAction] con
-  ///   [ParticipationAction.react].
   final VoidCallback? onFireTap;
   final VoidCallback? onIceTap;
+  final VoidCallback? onCommentTap;
+  final VoidCallback? onCardTap;
 
   const NewsCard({
     super.key,
     required this.news,
+    this.compact = false,
     this.fireCount = 0,
     this.iceCount = 0,
+    this.commentCount,
+    this.userReaction,
     this.onFireTap,
     this.onIceTap,
+    this.onCommentTap,
+    this.onCardTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final l10n = AppLocalizations.of(context)!;
 
     VoidCallback? wrapReactCallback(VoidCallback? original) {
       if (original == null) return null;
@@ -65,203 +58,107 @@ class NewsCard extends StatelessWidget {
       };
     }
 
-    final dynamic n = news;
+    void openDetail() {
+      if (onCardTap != null) {
+        onCardTap!.call();
+        return;
+      }
 
-    final String title =
-        (n.title is String && (n.title as String).trim().isNotEmpty)
-            ? (n.title as String).trim()
-            : news.toString();
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => NewsDetailPage(news: news),
+        ),
+      );
+    }
 
-    final String? description =
-        (n.description is String &&
-                (n.description as String).trim().isNotEmpty)
-            ? (n.description as String).trim()
+    void openCommentsOrDetail() {
+      if (onCommentTap != null) {
+        onCommentTap!.call();
+        return;
+      }
+
+      openDetail();
+    }
+
+    final String title = news.title.trim().isNotEmpty ? news.title.trim() : 'News';
+
+    final String? summary =
+        news.summary != null && news.summary!.trim().isNotEmpty
+            ? news.summary!.trim()
             : null;
 
     final String? imageUrl =
-        (n.imageUrl is String && (n.imageUrl as String).trim().isNotEmpty)
-            ? (n.imageUrl as String).trim()
-            : (n.image is String && (n.image as String).trim().isNotEmpty)
-                ? (n.image as String).trim()
-                : null;
+        news.imageUrl != null && news.imageUrl!.trim().isNotEmpty
+            ? news.imageUrl!.trim()
+            : null;
 
-    final String? sourceName =
-        (n.sourceName is String && (n.sourceName as String).trim().isNotEmpty)
-            ? (n.sourceName as String).trim()
-            : (n.source is String && (n.source as String).trim().isNotEmpty)
-                ? (n.source as String).trim()
-                : null;
+    final String sourceName = _sourceLabel(news);
 
-    final String? url = (n.url is String && (n.url as String).trim().isNotEmpty)
-        ? (n.url as String).trim()
-        : null;
+    final String publishedLabel = _formatPublishedAt(news.publishedAt);
 
-    final DateTime? publishedAt =
-        (n.publishedAt is DateTime) ? (n.publishedAt as DateTime) : null;
-
-    final String timeAgo = _formatTimeAgo(publishedAt);
-
-    final String? domain = _extractDomain(url);
-    final String? faviconUrl = (domain == null)
-        ? null
-        : 'https://www.google.com/s2/favicons?domain=$domain&sz=64';
-
-    Future<void> openSource() async {
-      if (url == null || url.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.newsDetail_openSourceUnavailable)),
-        );
-        return;
-      }
-
-      final uri = Uri.tryParse(url);
-      if (uri == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.newsDetail_openSourceUnavailable)),
-        );
-        return;
-      }
-
-      final ok = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
-
-      if (!ok && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.newsDetail_openSourceUnavailable)),
-        );
-      }
-    }
+    final double imageWidth = compact ? 78 : 108;
+    final double imageHeight = compact ? 78 : 92;
+    final EdgeInsets cardPadding = EdgeInsets.all(compact ? 12 : 14);
 
     return AppCard(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevated: true,
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => NewsDetailPage(news: news),
-          ),
-        );
-      },
+      onTap: openDetail,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: cardPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                _Favicon(
-                  url: faviconUrl,
-                  fallbackLetter:
-                      (sourceName != null && sourceName.isNotEmpty)
-                          ? sourceName[0].toUpperCase()
-                          : 'N',
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        sourceName ?? l10n.newsCard_headerTitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (timeAgo.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          timeAgo,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.65),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                IconButton(
-                  tooltip: l10n.newsDetail_openSource,
-                  onPressed: openSource,
-                  icon: Icon(
-                    Icons.open_in_new,
-                    size: 20,
-                    color: colorScheme.onSurface.withOpacity(0.75),
-                  ),
-                ),
+                _buildNewsIconChip(),
+                _buildSourceChip(theme, sourceName),
               ],
             ),
             const SizedBox(height: 12),
-            Text(
-              title,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                height: 1.15,
-              ),
-            ),
-            if (description != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                description,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.78),
-                  height: 1.25,
-                ),
-              ),
-            ],
-            if (imageUrl != null) ...[
-              const SizedBox(height: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: colorScheme.onSurface.withOpacity(0.06),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.image_not_supported_outlined,
-                        size: 22,
-                        color: colorScheme.onSurface.withOpacity(0.35),
-                      ),
-                    ),
-                    loadingBuilder: (context, child, progress) {
-                      if (progress == null) return child;
-                      return Container(
-                        color: colorScheme.onSurface.withOpacity(0.06),
-                        alignment: Alignment.center,
-                        child: const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: LoadingIndicator(),
-                        ),
-                      );
-                    },
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _NewsTextBlock(
+                    title: title,
+                    summary: summary,
+                    compact: compact,
                   ),
                 ),
+                if (imageUrl != null) ...[
+                  SizedBox(width: compact ? 10 : 12),
+                  _NewsThumbnail(
+                    imageUrl: imageUrl,
+                    width: imageWidth,
+                    height: imageHeight,
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              publishedLabel,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.58),
+                fontWeight: FontWeight.w500,
               ),
-            ],
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             const SizedBox(height: 12),
-            const Divider(height: 1),
-            const SizedBox(height: 8),
             _NewsEngagementBar(
               news: news,
+              commentCount: commentCount,
               fireCount: fireCount,
               iceCount: iceCount,
+              userReaction: userReaction,
               onFireTap: wrapReactCallback(onFireTap),
               onIceTap: wrapReactCallback(onIceTap),
+              onCommentTap: openCommentsOrDetail,
             ),
           ],
         ),
@@ -269,81 +166,185 @@ class NewsCard extends StatelessWidget {
     );
   }
 
-  String _formatTimeAgo(DateTime? date) {
-    if (date == null) return '';
-    final now = DateTime.now().toUtc();
-    final d = date.toUtc();
+  Widget _buildNewsIconChip() {
+    const backgroundColor = Color(0xFFFFF1F1);
+    const foregroundColor = Color(0xFFE14D4D);
+    const borderColor = Color(0xFFFFD9D9);
 
-    final diff = now.difference(d);
-    if (diff.isNegative) return '';
-
-    if (diff.inMinutes < 1) return 'now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
-
-    final day = d.day.toString().padLeft(2, '0');
-    final month = d.month.toString().padLeft(2, '0');
-    final year = d.year.toString();
-    return '$day/$month/$year';
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: borderColor,
+          width: 1,
+        ),
+      ),
+      child: const Icon(
+        Icons.newspaper_outlined,
+        size: 16,
+        color: foregroundColor,
+      ),
+    );
   }
 
-  String? _extractDomain(String? url) {
-    if (url == null || url.trim().isEmpty) return null;
-    try {
-      final uri = Uri.parse(url.trim());
-      final host = uri.host;
-      if (host.isEmpty) return null;
-      return host.startsWith('www.') ? host.substring(4) : host;
-    } catch (_) {
-      return null;
+  Widget _buildSourceChip(ThemeData theme, String sourceName) {
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4F7FB),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: const Color(0xFFE2E8F0),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.language_outlined,
+            size: 14,
+            color: Color(0xFF667085),
+          ),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              sourceName,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontSize: 12,
+                height: 1,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF667085),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _sourceLabel(NewsItem news) {
+    final effective = news.effectiveSourceLabel?.trim();
+    if (effective != null && effective.isNotEmpty) {
+      return effective;
     }
+
+    final author = news.authorId.trim();
+    if (author.isNotEmpty) {
+      return author.length <= 28 ? author : author.substring(0, 28);
+    }
+
+    return 'News';
+  }
+
+  String _formatPublishedAt(DateTime dateTime) {
+    final local = dateTime.toLocal();
+    final day = local.day.toString().padLeft(2, '0');
+    final month = local.month.toString().padLeft(2, '0');
+    final year = local.year.toString();
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
+
+    return '$day/$month/$year $hour:$minute';
   }
 }
 
-class _Favicon extends StatelessWidget {
-  final String? url;
-  final String fallbackLetter;
+class _NewsTextBlock extends StatelessWidget {
+  final String title;
+  final String? summary;
+  final bool compact;
 
-  const _Favicon({
-    required this.url,
-    required this.fallbackLetter,
+  const _NewsTextBlock({
+    required this.title,
+    required this.summary,
+    required this.compact,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
-    Widget fallback() {
-      return Container(
-        width: 22,
-        height: 22,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: colorScheme.onSurface.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          fallbackLetter,
-          style: theme.textTheme.labelSmall?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: colorScheme.onSurface.withOpacity(0.75),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style:
+              (compact ? theme.textTheme.bodyMedium : theme.textTheme.titleSmall)
+                  ?.copyWith(
+            fontWeight: FontWeight.w700,
+            height: 1.15,
           ),
+          maxLines: compact ? 3 : 2,
+          overflow: TextOverflow.ellipsis,
         ),
-      );
-    }
+        if (summary != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            summary!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.textTheme.bodySmall?.color?.withOpacity(0.82),
+              height: 1.25,
+            ),
+            maxLines: compact ? 3 : 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ],
+    );
+  }
+}
 
-    if (url == null) return fallback();
+class _NewsThumbnail extends StatelessWidget {
+  final String imageUrl;
+  final double width;
+  final double height;
+
+  const _NewsThumbnail({
+    required this.imageUrl,
+    required this.width,
+    required this.height,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(6),
-      child: Image.network(
-        url!,
-        width: 22,
-        height: 22,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => fallback(),
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+            color: theme.colorScheme.onSurface.withOpacity(0.06),
+            alignment: Alignment.center,
+            child: Icon(
+              Icons.image_not_supported_outlined,
+              size: 20,
+              color: theme.colorScheme.onSurface.withOpacity(0.35),
+            ),
+          ),
+          loadingBuilder: (context, child, progress) {
+            if (progress == null) return child;
+            return Container(
+              color: theme.colorScheme.onSurface.withOpacity(0.06),
+              alignment: Alignment.center,
+              child: const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -351,42 +352,50 @@ class _Favicon extends StatelessWidget {
 
 class _NewsEngagementBar extends StatelessWidget {
   final NewsItem news;
+  final int? commentCount;
   final int fireCount;
   final int iceCount;
+  final ReactionType? userReaction;
   final VoidCallback? onFireTap;
   final VoidCallback? onIceTap;
+  final VoidCallback? onCommentTap;
 
   const _NewsEngagementBar({
     required this.news,
+    required this.commentCount,
     required this.fireCount,
     required this.iceCount,
+    required this.userReaction,
     required this.onFireTap,
     required this.onIceTap,
+    required this.onCommentTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (commentCount != null) {
+      return _buildBar(commentCount!);
+    }
+
     return FutureBuilder(
       future: AppDI.instance.getCommentsForTarget(TargetRef.news(news.id.value)),
       builder: (context, snapshot) {
         final comments = snapshot.data as List<dynamic>? ?? const [];
-        final commentCount = snapshot.hasError ? 0 : comments.length;
-
-        return EngagementBar(
-          fireCount: fireCount,
-          iceCount: iceCount,
-          commentCount: commentCount,
-          onFireTap: onFireTap,
-          onIceTap: onIceTap,
-          onCommentTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => NewsDetailPage(news: news),
-              ),
-            );
-          },
-        );
+        final resolvedCommentCount = snapshot.hasError ? 0 : comments.length;
+        return _buildBar(resolvedCommentCount);
       },
+    );
+  }
+
+  Widget _buildBar(int resolvedCommentCount) {
+    return EngagementBar(
+      fireCount: fireCount,
+      iceCount: iceCount,
+      commentCount: resolvedCommentCount,
+      userReaction: userReaction,
+      onFireTap: onFireTap,
+      onIceTap: onIceTap,
+      onCommentTap: onCommentTap,
     );
   }
 }
