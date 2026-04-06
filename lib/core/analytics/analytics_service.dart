@@ -8,20 +8,45 @@ import 'package:flutter/services.dart';
 /// - evitare wiring in bootstrap/DI
 /// - offrire un punto unico sicuro
 /// - non rompere i flussi core se analytics fallisce
+/// - non usare analytics su runtime non supportati (es. Windows)
 class AnalyticsService {
-  final FirebaseAnalytics _analytics;
+  final FirebaseAnalytics? _analytics;
 
   AnalyticsService([FirebaseAnalytics? analytics])
-      : _analytics = analytics ?? FirebaseAnalytics.instance;
+      : _analytics = _isSupportedRuntime
+            ? (analytics ?? FirebaseAnalytics.instance)
+            : null;
 
   static final AnalyticsService instance = AnalyticsService();
 
   static bool _reportedUnavailable = false;
 
+  static bool get _isSupportedRuntime {
+    if (kIsWeb) {
+      return true;
+    }
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        return true;
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+      case TargetPlatform.fuchsia:
+        return false;
+    }
+  }
+
   Future<void> logScreenView({
     required String screenName,
     String? screenClass,
   }) async {
+    if (_analytics == null) {
+      _reportUnavailableOnce('logScreenView');
+      return;
+    }
+
     await _safeCall(
       () => _analytics.logScreenView(
         screenName: _normalizeName(screenName),
@@ -39,6 +64,11 @@ class AnalyticsService {
     String name, {
     Map<String, Object?> parameters = const {},
   }) async {
+    if (_analytics == null) {
+      _reportUnavailableOnce('logEvent:$name');
+      return;
+    }
+
     await _safeCall(
       () => _analytics.logEvent(
         name: _normalizeEventName(name),
@@ -49,6 +79,11 @@ class AnalyticsService {
   }
 
   Future<void> setUserId(String? userId) async {
+    if (_analytics == null) {
+      _reportUnavailableOnce('setUserId');
+      return;
+    }
+
     await _safeCall(
       () => _analytics.setUserId(id: userId),
       'setUserId',
@@ -59,6 +94,11 @@ class AnalyticsService {
     required String name,
     String? value,
   }) async {
+    if (_analytics == null) {
+      _reportUnavailableOnce('setUserProperty:$name');
+      return;
+    }
+
     await _safeCall(
       () => _analytics.setUserProperty(
         name: _normalizeName(name),
@@ -69,6 +109,11 @@ class AnalyticsService {
   }
 
   Future<void> resetAnalyticsData() async {
+    if (_analytics == null) {
+      _reportUnavailableOnce('resetAnalyticsData');
+      return;
+    }
+
     await _safeCall(
       _analytics.resetAnalyticsData,
       'resetAnalyticsData',

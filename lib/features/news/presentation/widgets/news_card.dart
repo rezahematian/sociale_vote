@@ -80,7 +80,8 @@ class NewsCard extends StatelessWidget {
       openDetail();
     }
 
-    final String title = news.title.trim().isNotEmpty ? news.title.trim() : 'News';
+    final String title =
+        news.title.trim().isNotEmpty ? news.title.trim() : 'News';
 
     final String? summary =
         news.summary != null && news.summary!.trim().isNotEmpty
@@ -93,75 +94,120 @@ class NewsCard extends StatelessWidget {
             : null;
 
     final String sourceName = _sourceLabel(news);
-
     final String publishedLabel = _formatPublishedAt(news.publishedAt);
-
-    final double imageWidth = compact ? 78 : 108;
-    final double imageHeight = compact ? 78 : 92;
     final EdgeInsets cardPadding = EdgeInsets.all(compact ? 12 : 14);
 
     return AppCard(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevated: true,
       onTap: openDetail,
-      child: Padding(
-        padding: cardPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                _buildNewsIconChip(),
-                _buildSourceChip(theme, sourceName),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final bool narrow = constraints.maxWidth < 560;
+
+          final double imageWidth = compact ? 96 : (narrow ? 132 : 188);
+          final double imageHeight = compact ? 96 : (narrow ? 112 : 164);
+
+          final int titleMaxLines = compact
+              ? 2
+              : (narrow ? 2 : 2);
+
+          final int summaryMaxLines = compact
+              ? 2
+              : (narrow ? 2 : 2);
+
+          return Padding(
+            padding: cardPadding,
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: _NewsTextBlock(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    _buildNewsIconChip(),
+                    _buildSourceChip(theme, sourceName),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (imageUrl != null)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: imageHeight,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: _NewsTextBlock(
+                                  title: title,
+                                  summary: summary,
+                                  compact: compact,
+                                  titleMaxLines: titleMaxLines,
+                                  summaryMaxLines: summaryMaxLines,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                publishedLabel,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurface.withOpacity(
+                                    0.58,
+                                  ),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: compact ? 10 : 12),
+                      _NewsThumbnail(
+                        imageUrl: imageUrl,
+                        width: imageWidth,
+                        height: imageHeight,
+                      ),
+                    ],
+                  )
+                else ...[
+                  _NewsTextBlock(
                     title: title,
                     summary: summary,
                     compact: compact,
+                    titleMaxLines: compact ? 3 : 2,
+                    summaryMaxLines: compact ? 3 : 2,
                   ),
-                ),
-                if (imageUrl != null) ...[
-                  SizedBox(width: compact ? 10 : 12),
-                  _NewsThumbnail(
-                    imageUrl: imageUrl,
-                    width: imageWidth,
-                    height: imageHeight,
+                  const SizedBox(height: 10),
+                  Text(
+                    publishedLabel,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.58),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
+                const SizedBox(height: 12),
+                _NewsEngagementBar(
+                  news: news,
+                  commentCount: commentCount,
+                  fireCount: fireCount,
+                  iceCount: iceCount,
+                  userReaction: userReaction,
+                  onFireTap: wrapReactCallback(onFireTap),
+                  onIceTap: wrapReactCallback(onIceTap),
+                  onCommentTap: openCommentsOrDetail,
+                ),
               ],
             ),
-            const SizedBox(height: 10),
-            Text(
-              publishedLabel,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.58),
-                fontWeight: FontWeight.w500,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 12),
-            _NewsEngagementBar(
-              news: news,
-              commentCount: commentCount,
-              fireCount: fireCount,
-              iceCount: iceCount,
-              userReaction: userReaction,
-              onFireTap: wrapReactCallback(onFireTap),
-              onIceTap: wrapReactCallback(onIceTap),
-              onCommentTap: openCommentsOrDetail,
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -192,13 +238,14 @@ class NewsCard extends StatelessWidget {
 
   Widget _buildSourceChip(ThemeData theme, String sourceName) {
     return Container(
+      constraints: const BoxConstraints(maxWidth: 180),
       height: 32,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF4F7FB),
+        color: const Color(0xFFEEF4FF),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: const Color(0xFFE2E8F0),
+          color: const Color(0xFFD6E4FF),
           width: 1,
         ),
       ),
@@ -208,7 +255,7 @@ class NewsCard extends StatelessWidget {
           const Icon(
             Icons.language_outlined,
             size: 14,
-            color: Color(0xFF667085),
+            color: Color(0xFF58739A),
           ),
           const SizedBox(width: 4),
           Flexible(
@@ -218,8 +265,8 @@ class NewsCard extends StatelessWidget {
               style: theme.textTheme.labelMedium?.copyWith(
                 fontSize: 12,
                 height: 1,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF667085),
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF58739A),
               ),
             ),
           ),
@@ -258,11 +305,15 @@ class _NewsTextBlock extends StatelessWidget {
   final String title;
   final String? summary;
   final bool compact;
+  final int titleMaxLines;
+  final int summaryMaxLines;
 
   const _NewsTextBlock({
     required this.title,
     required this.summary,
     required this.compact,
+    required this.titleMaxLines,
+    required this.summaryMaxLines,
   });
 
   @override
@@ -280,7 +331,7 @@ class _NewsTextBlock extends StatelessWidget {
             fontWeight: FontWeight.w700,
             height: 1.15,
           ),
-          maxLines: compact ? 3 : 2,
+          maxLines: titleMaxLines,
           overflow: TextOverflow.ellipsis,
         ),
         if (summary != null) ...[
@@ -291,7 +342,7 @@ class _NewsTextBlock extends StatelessWidget {
               color: theme.textTheme.bodySmall?.color?.withOpacity(0.82),
               height: 1.25,
             ),
-            maxLines: compact ? 3 : 2,
+            maxLines: summaryMaxLines,
             overflow: TextOverflow.ellipsis,
           ),
         ],

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -13,12 +12,11 @@ import 'package:sociale_vote/features/news/domain/news_topic.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
 import 'package:sociale_vote/features/news/presentation/widgets/news_card.dart'
     as shared_news;
+import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/ui/app_card.dart';
 import 'package:sociale_vote/shared/ui/loading_indicator.dart';
-import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
-import 'package:sociale_vote/l10n/app_localizations.dart';
-import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api.dart';
 
 class NewsFeedPage extends StatelessWidget {
   const NewsFeedPage({super.key});
@@ -203,6 +201,31 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
     return l10n.newsFeed_languageTooltip;
   }
 
+  Color _topicAccentColor(BuildContext context, NewsTopic topic) {
+    final scheme = Theme.of(context).colorScheme;
+
+    switch (topic) {
+      case NewsTopic.all:
+        return scheme.primary;
+      case NewsTopic.world:
+        return Colors.blue.shade700;
+      case NewsTopic.nation:
+        return Colors.indigo.shade600;
+      case NewsTopic.business:
+        return Colors.amber.shade800;
+      case NewsTopic.technology:
+        return Colors.teal.shade700;
+      case NewsTopic.science:
+        return Colors.purple.shade600;
+      case NewsTopic.health:
+        return Colors.green.shade700;
+      case NewsTopic.sports:
+        return Colors.orange.shade700;
+      case NewsTopic.entertainment:
+        return Colors.pink.shade600;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -229,75 +252,6 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
             ),
           ],
         ),
-        actions: [
-          Consumer<NewsController>(
-            builder: (context, controller, _) {
-              final currentUserId = AppDI.instance.currentUserId;
-              final selected = controller.selectedLanguage;
-
-              return PopupMenuButton<NewsLanguage>(
-                tooltip: _languageTooltip(context),
-                onSelected: (lang) {
-                  controller.setLanguage(lang, userId: currentUserId);
-                },
-                itemBuilder: (context) => const [
-                  PopupMenuItem<NewsLanguage>(
-                    value: NewsLanguage.auto,
-                    child: Text('AUTO'),
-                  ),
-                  PopupMenuItem<NewsLanguage>(
-                    value: NewsLanguage.it,
-                    child: Text('IT'),
-                  ),
-                  PopupMenuItem<NewsLanguage>(
-                    value: NewsLanguage.en,
-                    child: Text('EN'),
-                  ),
-                  PopupMenuItem<NewsLanguage>(
-                    value: NewsLanguage.es,
-                    child: Text('ES'),
-                  ),
-                  PopupMenuItem<NewsLanguage>(
-                    value: NewsLanguage.fr,
-                    child: Text('FR'),
-                  ),
-                  PopupMenuItem<NewsLanguage>(
-                    value: NewsLanguage.de,
-                    child: Text('DE'),
-                  ),
-                  PopupMenuItem<NewsLanguage>(
-                    value: NewsLanguage.ar,
-                    child: Text('AR'),
-                  ),
-                  PopupMenuItem<NewsLanguage>(
-                    value: NewsLanguage.fa,
-                    child: Text('FA'),
-                  ),
-                ],
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.public, size: 18),
-                        const SizedBox(width: 6),
-                        Text(
-                          _languageLabel(selected),
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(width: 2),
-                        const Icon(Icons.arrow_drop_down, size: 18),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: Container(
         color: theme.colorScheme.surface,
@@ -334,14 +288,24 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                   controller: _scrollController,
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                   children: [
-                    _buildScopeHeader(
-                      context,
-                      scopeLabel: scopeLabel,
-                      scopeDescription: scopeDescription,
-                      newsCount: 0,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: _buildScopeHeader(
+                        context,
+                        scopeLabel: scopeLabel,
+                        scopeDescription: scopeDescription,
+                        newsCount: 0,
+                        selectedLanguage: controller.selectedLanguage,
+                        onLanguageSelected: (lang) {
+                          controller.setLanguage(lang, userId: currentUserId);
+                        },
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    _buildTopicChips(context, controller),
+                    const SizedBox(height: 14),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: _buildTopicChips(context, controller),
+                    ),
                     const SizedBox(height: 24),
                     _buildEmptyStateCard(context),
                   ],
@@ -359,14 +323,27 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                   if (index == 0) {
                     return Column(
                       children: [
-                        _buildScopeHeader(
-                          context,
-                          scopeLabel: scopeLabel,
-                          scopeDescription: scopeDescription,
-                          newsCount: allNews.length,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: _buildScopeHeader(
+                            context,
+                            scopeLabel: scopeLabel,
+                            scopeDescription: scopeDescription,
+                            newsCount: allNews.length,
+                            selectedLanguage: controller.selectedLanguage,
+                            onLanguageSelected: (lang) {
+                              controller.setLanguage(
+                                lang,
+                                userId: currentUserId,
+                              );
+                            },
+                          ),
                         ),
-                        const SizedBox(height: 12),
-                        _buildTopicChips(context, controller),
+                        const SizedBox(height: 14),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: _buildTopicChips(context, controller),
+                        ),
                         const SizedBox(height: 12),
                       ],
                     );
@@ -423,6 +400,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
         child: Row(
           children: kNewsTopics.map((topic) {
             final bool selected = controller.selectedTopic == topic;
+            final accent = _topicAccentColor(context, topic);
 
             return Padding(
               padding: const EdgeInsets.only(right: 8),
@@ -435,11 +413,29 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                 },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(999),
+                  side: BorderSide(
+                    color: selected
+                        ? accent.withOpacity(0.38)
+                        : accent.withOpacity(0.18),
+                  ),
                 ),
+                backgroundColor: theme.colorScheme.surface,
+                selectedColor: accent.withOpacity(0.14),
+                checkmarkColor: accent,
                 labelStyle: theme.textTheme.labelMedium?.copyWith(
+                  color: selected ? accent : theme.colorScheme.onSurface,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                 ),
                 visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                side: BorderSide(
+                  color: selected
+                      ? accent.withOpacity(0.38)
+                      : accent.withOpacity(0.18),
+                ),
               ),
             );
           }).toList(),
@@ -453,57 +449,239 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
     required String scopeLabel,
     required String scopeDescription,
     required int newsCount,
+    required NewsLanguage selectedLanguage,
+    required ValueChanged<NewsLanguage> onLanguageSelected,
   }) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    return AppCard(
-      elevated: true,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final primary = theme.colorScheme.primary;
+    final onSurface = theme.colorScheme.onSurface;
+    const borderRadius = BorderRadius.all(Radius.circular(20));
+
+    return ClipRRect(
+      borderRadius: borderRadius,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: borderRadius,
+          border: Border.all(
+            color: primary.withOpacity(0.10),
+          ),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              primary.withOpacity(0.10),
+              primary.withOpacity(0.04),
+            ],
+          ),
+        ),
+        child: Stack(
           children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.public,
-                  size: 20,
-                  color: theme.colorScheme.primary,
+            Positioned(
+              top: -34,
+              right: -20,
+              child: Container(
+                width: 118,
+                height: 118,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: primary.withOpacity(0.08),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  scopeLabel,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              scopeDescription,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.textTheme.bodySmall?.color?.withOpacity(0.8),
               ),
             ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(
-                  Icons.article,
-                  size: 16,
-                  color: theme.colorScheme.primary,
+            Positioned(
+              bottom: -42,
+              left: -10,
+              child: Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: primary.withOpacity(0.05),
                 ),
-                const SizedBox(width: 4),
-                Text(
-                  l10n.newsFeed_itemsFound(newsCount),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.surface.withOpacity(
+                                  0.72,
+                                ),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: primary.withOpacity(0.16),
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.public,
+                                size: 20,
+                                color: primary,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    scopeLabel,
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: onSurface,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    scopeDescription,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: onSurface.withOpacity(0.76),
+                                      height: 1.25,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      _buildLanguageSelector(
+                        context,
+                        selectedLanguage: selectedLanguage,
+                        onLanguageSelected: onLanguageSelected,
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface.withOpacity(0.72),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: primary.withOpacity(0.12),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.article_outlined,
+                          size: 16,
+                          color: primary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          l10n.newsFeed_itemsFound(newsCount),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageSelector(
+    BuildContext context, {
+    required NewsLanguage selectedLanguage,
+    required ValueChanged<NewsLanguage> onLanguageSelected,
+  }) {
+    final theme = Theme.of(context);
+
+    return PopupMenuButton<NewsLanguage>(
+      tooltip: _languageTooltip(context),
+      onSelected: onLanguageSelected,
+      itemBuilder: (context) => const [
+        PopupMenuItem<NewsLanguage>(
+          value: NewsLanguage.auto,
+          child: Text('AUTO'),
+        ),
+        PopupMenuItem<NewsLanguage>(
+          value: NewsLanguage.it,
+          child: Text('IT'),
+        ),
+        PopupMenuItem<NewsLanguage>(
+          value: NewsLanguage.en,
+          child: Text('EN'),
+        ),
+        PopupMenuItem<NewsLanguage>(
+          value: NewsLanguage.es,
+          child: Text('ES'),
+        ),
+        PopupMenuItem<NewsLanguage>(
+          value: NewsLanguage.fr,
+          child: Text('FR'),
+        ),
+        PopupMenuItem<NewsLanguage>(
+          value: NewsLanguage.de,
+          child: Text('DE'),
+        ),
+        PopupMenuItem<NewsLanguage>(
+          value: NewsLanguage.ar,
+          child: Text('AR'),
+        ),
+        PopupMenuItem<NewsLanguage>(
+          value: NewsLanguage.fa,
+          child: Text('FA'),
+        ),
+      ],
+      padding: EdgeInsets.zero,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface.withOpacity(0.78),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: theme.colorScheme.primary.withOpacity(0.14),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.language_rounded,
+              size: 16,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              _languageLabel(selectedLanguage),
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.arrow_drop_down_rounded,
+              size: 18,
+              color: theme.colorScheme.onSurface.withOpacity(0.72),
             ),
           ],
         ),
