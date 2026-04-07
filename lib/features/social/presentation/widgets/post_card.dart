@@ -7,7 +7,6 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
-import 'package:sociale_vote/shared/ui/app_card.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 
 /// Card visuale per un singolo post social.
@@ -53,11 +52,23 @@ class PostCard extends StatelessWidget {
     final theme = Theme.of(context);
     final title = post.title.trim();
     final content = post.content.trim();
-    final authorName = post.authorName.trim().isNotEmpty
-        ? post.authorName.trim()
-        : 'Author';
+    final authorName =
+        post.authorName.trim().isNotEmpty ? post.authorName.trim() : 'Author';
     final hasTitle = title.isNotEmpty;
     final hasContent = content.isNotEmpty;
+
+    final Color cardTopColor =
+        theme.brightness == Brightness.dark
+            ? const Color(0xFF18202B)
+            : const Color(0xFFFCFDFE);
+    final Color cardBottomColor =
+        theme.brightness == Brightness.dark
+            ? const Color(0xFF121A24)
+            : const Color(0xFFF0F4F9);
+    final Color cardBorderColor =
+        theme.brightness == Brightness.dark
+            ? const Color(0xFF2C3948)
+            : const Color(0xFFD7DFEA);
 
     VoidCallback? wrapReactCallback(VoidCallback? original) {
       if (original == null) return null;
@@ -74,66 +85,109 @@ class PostCard extends StatelessWidget {
       };
     }
 
-    return AppCard(
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevated: true,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              _buildDiscussionIconChip(),
-              _buildAuthorChip(theme, authorName),
-            ],
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.07),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
           ),
-          if (hasTitle || hasContent) const SizedBox(height: 14),
-          if (hasTitle) ...[
-            Text(
-              title,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                height: 1.18,
-                letterSpacing: -0.2,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (hasContent) const SizedBox(height: 8),
-          ],
-          if (hasContent)
-            Text(
-              content,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
-                height: 1.42,
-              ),
-              maxLines: hasTitle ? 3 : 4,
-              overflow: TextOverflow.ellipsis,
-            ),
-          if (hasTitle || hasContent) const SizedBox(height: 10),
-          Text(
-            _formatDateTime(post.createdAt),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 14),
-          _PostEngagementRow(
-            post: post,
-            commentCount: commentCount,
-            fireCount: fireCount,
-            iceCount: iceCount,
-            userReaction: userReaction,
-            onFireTap: wrapReactCallback(onFireTap),
-            onIceTap: wrapReactCallback(onIceTap),
-            onCommentTap: onCommentTap,
+          BoxShadow(
+            color: const Color(0xFF94A3B8).withValues(alpha: 0.10),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
           ),
         ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: cardBorderColor,
+              width: 1.2,
+            ),
+            gradient: LinearGradient(
+              colors: [
+                cardTopColor,
+                cardBottomColor,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: onCommentTap,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      _buildDiscussionIconChip(),
+                      _buildAuthorChip(theme, authorName),
+                    ],
+                  ),
+                  if (hasTitle || hasContent) const SizedBox(height: 14),
+                  if (hasTitle) ...[
+                    Text(
+                      title,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        height: 1.18,
+                        letterSpacing: -0.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (hasContent) const SizedBox(height: 8),
+                  ],
+                  if (hasContent)
+                    Text(
+                      content,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.78,
+                        ),
+                        height: 1.42,
+                      ),
+                      maxLines: hasTitle ? 3 : 4,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  if (hasTitle || hasContent) const SizedBox(height: 10),
+                  Text(
+                    _formatDateTime(post.createdAt),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  _PostEngagementRow(
+                    post: post,
+                    commentCount: commentCount,
+                    fireCount: fireCount,
+                    iceCount: iceCount,
+                    userReaction: userReaction,
+                    onFireTap: wrapReactCallback(onFireTap),
+                    onIceTap: wrapReactCallback(onIceTap),
+                    onCommentTap: onCommentTap,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -167,9 +221,15 @@ class PostCard extends StatelessWidget {
       theme: theme,
       icon: Icons.person_outline_rounded,
       label: authorName,
-      backgroundColor: const Color(0xFFF4F7FB),
+      backgroundColor:
+          theme.brightness == Brightness.dark
+              ? const Color(0xFF1C2836)
+              : const Color(0xFFEFF4FB),
       foregroundColor: const Color(0xFF667085),
-      borderColor: const Color(0xFFE2E8F0),
+      borderColor:
+          theme.brightness == Brightness.dark
+              ? const Color(0xFF314255)
+              : const Color(0xFFD9E3EF),
     );
   }
 

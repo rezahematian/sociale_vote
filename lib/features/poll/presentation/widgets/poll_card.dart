@@ -19,7 +19,6 @@ import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
-import 'package:sociale_vote/shared/ui/app_card.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 
 class PollCard extends StatelessWidget {
@@ -102,6 +101,19 @@ class PollCard extends StatelessWidget {
     final hasDescription = description.isNotEmpty;
     final hasResults = result != null && result!.optionResults.isNotEmpty;
 
+    final Color cardTopColor =
+        theme.brightness == Brightness.dark
+            ? const Color(0xFF18202B)
+            : const Color(0xFFFCFDFE);
+    final Color cardBottomColor =
+        theme.brightness == Brightness.dark
+            ? const Color(0xFF121A24)
+            : const Color(0xFFF0F4F9);
+    final Color cardBorderColor =
+        theme.brightness == Brightness.dark
+            ? const Color(0xFF2C3948)
+            : const Color(0xFFD7DFEA);
+
     final List<Widget> topChips = [
       _buildPollIconChip(theme),
       _buildStatusChip(theme, l10n),
@@ -141,63 +153,106 @@ class PollCard extends StatelessWidget {
       };
     }
 
-    return AppCard(
+    return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.unitM),
-      elevated: true,
-      onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (topChips.isNotEmpty)
-            Wrap(
-              spacing: AppSpacing.unitXS,
-              runSpacing: AppSpacing.unitXS,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: topChips,
-            ),
-          const SizedBox(height: AppSpacing.unitM),
-          if (hasResults)
-            _PollResultPreview(
-              poll: poll,
-              result: result!,
-              title: poll.title,
-              description: hasDescription ? description : null,
-            )
-          else ...[
-            Text(
-              poll.title,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                height: 1.18,
-                letterSpacing: -0.2,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (hasDescription) ...[
-              const SizedBox(height: AppSpacing.unitS),
-              Text(
-                description,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
-                  height: 1.42,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ],
-          const SizedBox(height: AppSpacing.unitM),
-          _PollEngagementRow(
-            poll: poll,
-            fireCount: fireCount,
-            iceCount: iceCount,
-            userReaction: userReaction,
-            onFireTap: wrapReactCallback(onFireTap),
-            onIceTap: wrapReactCallback(onIceTap),
-            onCommentTap: wrapCommentCallback(onCommentTap),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.07),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: const Color(0xFF94A3B8).withValues(alpha: 0.10),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
           ),
         ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: cardBorderColor,
+              width: 1.2,
+            ),
+            gradient: LinearGradient(
+              colors: [
+                cardTopColor,
+                cardBottomColor,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (topChips.isNotEmpty)
+                    Wrap(
+                      spacing: AppSpacing.unitXS,
+                      runSpacing: AppSpacing.unitXS,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: topChips,
+                    ),
+                  const SizedBox(height: AppSpacing.unitM),
+                  if (hasResults)
+                    _PollResultPreview(
+                      poll: poll,
+                      result: result!,
+                      title: poll.title,
+                      description: hasDescription ? description : null,
+                    )
+                  else ...[
+                    Text(
+                      poll.title,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        height: 1.18,
+                        letterSpacing: -0.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (hasDescription) ...[
+                      const SizedBox(height: AppSpacing.unitS),
+                      Text(
+                        description,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.78,
+                          ),
+                          height: 1.42,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                  const SizedBox(height: AppSpacing.unitM),
+                  _PollEngagementRow(
+                    poll: poll,
+                    fireCount: fireCount,
+                    iceCount: iceCount,
+                    userReaction: userReaction,
+                    onFireTap: wrapReactCallback(onFireTap),
+                    onIceTap: wrapReactCallback(onIceTap),
+                    onCommentTap: wrapCommentCallback(onCommentTap),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

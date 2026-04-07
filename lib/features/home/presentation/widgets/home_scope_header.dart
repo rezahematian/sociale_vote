@@ -11,7 +11,6 @@ class HomeScopeHeader extends StatelessWidget {
   final VoidCallback onToggleFollow;
   final VoidCallback onSetWorld;
   final VoidCallback onSetItaly;
-  final VoidCallback onSetTorino;
 
   const HomeScopeHeader({
     super.key,
@@ -21,7 +20,6 @@ class HomeScopeHeader extends StatelessWidget {
     required this.onToggleFollow,
     required this.onSetWorld,
     required this.onSetItaly,
-    required this.onSetTorino,
   });
 
   @override
@@ -32,10 +30,8 @@ class HomeScopeHeader extends StatelessWidget {
     final isWorld = scope.level == GeoScopeLevel.world;
     final isItaly = scope.level == GeoScopeLevel.country &&
         (scope.countryCode ?? '').toUpperCase() == 'IT';
-    final isTorino = scope.level == GeoScopeLevel.city &&
-        (scope.cityId ?? '').toUpperCase() == 'TORINO';
 
-    final extraScopeChipLabel = _extraScopeChipLabel(l10n);
+    final extraScopeChipLabel = _extraScopeChipLabel();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
@@ -52,7 +48,7 @@ class HomeScopeHeader extends StatelessWidget {
               Row(
                 children: [
                   Icon(
-                    Icons.public,
+                    _scopeIcon(),
                     color: theme.colorScheme.primary,
                   ),
                   const SizedBox(width: 8),
@@ -64,11 +60,13 @@ class HomeScopeHeader extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  FollowScopeButton(
-                    isFollowed: isFollowed,
-                    onToggle: onToggleFollow,
-                  ),
+                  if (!isWorld) ...[
+                    const SizedBox(width: 8),
+                    FollowScopeButton(
+                      isFollowed: isFollowed,
+                      onToggle: onToggleFollow,
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 10),
@@ -90,14 +88,7 @@ class HomeScopeHeader extends StatelessWidget {
                       selected: isItaly,
                       onTap: onSetItaly,
                     ),
-                    if (isTorino)
-                      _buildScopeChip(
-                        context,
-                        label: l10n.homeScopeChipTorino,
-                        selected: true,
-                        onTap: onSetTorino,
-                      )
-                    else if (extraScopeChipLabel != null)
+                    if (extraScopeChipLabel != null)
                       _buildScopeChip(
                         context,
                         label: extraScopeChipLabel,
@@ -147,31 +138,38 @@ class HomeScopeHeader extends StatelessWidget {
     );
   }
 
-  String? _extraScopeChipLabel(AppLocalizations l10n) {
-    if (scope.level == GeoScopeLevel.world || isItalyScope || isTorinoScope) {
+  String? _extraScopeChipLabel() {
+    if (scope.level == GeoScopeLevel.world || isItalyScope) {
       return null;
     }
 
+    final label = scopeLabel.trim();
+    if (label.isEmpty) {
+      return null;
+    }
+
+    return label;
+  }
+
+  IconData _scopeIcon() {
+    if (scope.level == GeoScopeLevel.world) {
+      return Icons.public;
+    }
+
     if (scope.level == GeoScopeLevel.country) {
-      final countryCode = (scope.countryCode ?? '').toUpperCase().trim();
-      return countryCode.isEmpty ? null : countryCode;
+      return Icons.flag_outlined;
     }
 
     if (scope.level == GeoScopeLevel.city) {
-      final cityId = (scope.cityId ?? '').trim();
-      return cityId.isEmpty ? null : cityId;
+      return Icons.location_city_outlined;
     }
 
-    return null;
+    return Icons.place_outlined;
   }
 
   bool get isItalyScope =>
       scope.level == GeoScopeLevel.country &&
       (scope.countryCode ?? '').toUpperCase() == 'IT';
-
-  bool get isTorinoScope =>
-      scope.level == GeoScopeLevel.city &&
-      (scope.cityId ?? '').toUpperCase() == 'TORINO';
 }
 
 class FollowScopeButton extends StatelessWidget {

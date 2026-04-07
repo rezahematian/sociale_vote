@@ -116,9 +116,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
   void _setItaly() => _geoScopeController.setCountry('IT');
 
-  void _setTorino() =>
-      _geoScopeController.setCity(countryCode: 'IT', cityId: 'TORINO');
-
   Future<void> _openSearchPage() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -474,7 +471,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                         onToggleFollow: () => _onToggleFollowScope(scope),
                         onSetWorld: _setWorld,
                         onSetItaly: _setItaly,
-                        onSetTorino: _setTorino,
                       ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
