@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
+enum _TopBarMenuAction {
+  trending,
+  forYou,
+}
+
 class HomeTopBar extends StatelessWidget {
   final String scopeShortLabel;
   final bool isLoggedIn;
@@ -43,13 +48,15 @@ class HomeTopBar extends StatelessWidget {
               'Sociale Vote',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               scopeShortLabel,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                color: Colors.white.withOpacity(0.72),
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -76,22 +83,13 @@ class HomeTopBar extends StatelessWidget {
             unreadCount: unreadNotificationsCount,
             onPressed: onNotificationsPressed,
           ),
-          const SizedBox(width: 4),
-          OutlinedButton(
-            onPressed: onTrendingPressed,
-            style: OutlinedButton.styleFrom(
-              visualDensity: VisualDensity.compact,
+          if (onTrendingPressed != null || onForYouPressed != null) ...[
+            const SizedBox(width: 6),
+            _DiscoverMenuButton(
+              onTrendingPressed: onTrendingPressed,
+              onForYouPressed: onForYouPressed,
             ),
-            child: const Text('Trending'),
-          ),
-          const SizedBox(width: 6),
-          OutlinedButton(
-            onPressed: onForYouPressed,
-            style: OutlinedButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-            ),
-            child: const Text('For You'),
-          ),
+          ],
           const SizedBox(width: 6),
           OutlinedButton(
             onPressed: onProfilePressed,
@@ -103,10 +101,93 @@ class HomeTopBar extends StatelessWidget {
           const SizedBox(width: 6),
           TextButton(
             onPressed: onLogoutPressed,
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white.withOpacity(0.9),
+            ),
             child: Text(l10n.homeLogoutButton),
           ),
         ],
       ],
+    );
+  }
+}
+
+class _DiscoverMenuButton extends StatelessWidget {
+  final VoidCallback? onTrendingPressed;
+  final VoidCallback? onForYouPressed;
+
+  const _DiscoverMenuButton({
+    required this.onTrendingPressed,
+    required this.onForYouPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<_TopBarMenuAction>(
+      tooltip: 'Discover',
+      onSelected: (value) {
+        switch (value) {
+          case _TopBarMenuAction.trending:
+            onTrendingPressed?.call();
+            break;
+          case _TopBarMenuAction.forYou:
+            onForYouPressed?.call();
+            break;
+        }
+      },
+      itemBuilder: (context) => [
+        if (onTrendingPressed != null)
+          const PopupMenuItem<_TopBarMenuAction>(
+            value: _TopBarMenuAction.trending,
+            child: Row(
+              children: [
+                Icon(Icons.local_fire_department_outlined, size: 18),
+                SizedBox(width: 8),
+                Text('Trending'),
+              ],
+            ),
+          ),
+        if (onForYouPressed != null)
+          const PopupMenuItem<_TopBarMenuAction>(
+            value: _TopBarMenuAction.forYou,
+            child: Row(
+              children: [
+                Icon(Icons.auto_awesome_outlined, size: 18),
+                SizedBox(width: 8),
+                Text('For You'),
+              ],
+            ),
+          ),
+      ],
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: const Color(0xFF316BFF),
+            width: 1,
+          ),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.explore_outlined,
+              size: 17,
+              color: Color(0xFF316BFF),
+            ),
+            SizedBox(width: 6),
+            Text(
+              'Discover',
+              style: TextStyle(
+                color: Color(0xFF316BFF),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -140,6 +221,7 @@ class _NotificationsButton extends StatelessWidget {
               minWidth: 40,
               minHeight: 40,
             ),
+            color: Colors.white.withOpacity(0.88),
             icon: const Icon(Icons.notifications_outlined),
           ),
           if (unreadCount > 0)
@@ -159,7 +241,7 @@ class _NotificationsButton extends StatelessWidget {
                   color: theme.colorScheme.error,
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(
-                    color: theme.colorScheme.surface,
+                    color: Colors.black,
                     width: 1.5,
                   ),
                 ),

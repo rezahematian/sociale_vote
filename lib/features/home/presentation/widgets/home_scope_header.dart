@@ -30,12 +30,12 @@ class HomeScopeHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     final isWorld = scope.level == GeoScopeLevel.world;
-
     final isItaly = scope.level == GeoScopeLevel.country &&
         (scope.countryCode ?? '').toUpperCase() == 'IT';
-
     final isTorino = scope.level == GeoScopeLevel.city &&
         (scope.cityId ?? '').toUpperCase() == 'TORINO';
+
+    final extraScopeChipLabel = _extraScopeChipLabel(l10n);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
@@ -72,26 +72,40 @@ class HomeScopeHeader extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  ChoiceChip(
-                    label: Text(l10n.homeScopeChipWorld),
-                    selected: isWorld,
-                    onSelected: (_) => onSetWorld(),
-                  ),
-                  const SizedBox(width: 8),
-                  ChoiceChip(
-                    label: Text(l10n.homeScopeChipItaly),
-                    selected: isItaly,
-                    onSelected: (_) => onSetItaly(),
-                  ),
-                  const SizedBox(width: 8),
-                  ChoiceChip(
-                    label: Text(l10n.homeScopeChipTorino),
-                    selected: isTorino,
-                    onSelected: (_) => onSetTorino(),
-                  ),
-                ],
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildScopeChip(
+                      context,
+                      label: l10n.homeScopeChipWorld,
+                      selected: isWorld,
+                      onTap: onSetWorld,
+                    ),
+                    _buildScopeChip(
+                      context,
+                      label: l10n.homeScopeChipItaly,
+                      selected: isItaly,
+                      onTap: onSetItaly,
+                    ),
+                    if (isTorino)
+                      _buildScopeChip(
+                        context,
+                        label: l10n.homeScopeChipTorino,
+                        selected: true,
+                        onTap: onSetTorino,
+                      )
+                    else if (extraScopeChipLabel != null)
+                      _buildScopeChip(
+                        context,
+                        label: extraScopeChipLabel,
+                        selected: true,
+                        onTap: null,
+                      ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -99,6 +113,65 @@ class HomeScopeHeader extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildScopeChip(
+    BuildContext context, {
+    required String label,
+    required bool selected,
+    required VoidCallback? onTap,
+  }) {
+    final theme = Theme.of(context);
+
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      showCheckmark: false,
+      onSelected: onTap == null ? null : (_) => onTap(),
+      labelStyle: theme.textTheme.labelLarge?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: selected
+            ? theme.colorScheme.primary
+            : theme.colorScheme.onSurface.withOpacity(0.82),
+      ),
+      backgroundColor: theme.colorScheme.surface.withOpacity(0.82),
+      selectedColor: theme.colorScheme.primary.withOpacity(0.12),
+      side: BorderSide(
+        color: selected
+            ? theme.colorScheme.primary.withOpacity(0.45)
+            : theme.dividerColor.withOpacity(0.6),
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(999),
+      ),
+      visualDensity: VisualDensity.compact,
+    );
+  }
+
+  String? _extraScopeChipLabel(AppLocalizations l10n) {
+    if (scope.level == GeoScopeLevel.world || isItalyScope || isTorinoScope) {
+      return null;
+    }
+
+    if (scope.level == GeoScopeLevel.country) {
+      final countryCode = (scope.countryCode ?? '').toUpperCase().trim();
+      return countryCode.isEmpty ? null : countryCode;
+    }
+
+    if (scope.level == GeoScopeLevel.city) {
+      final cityId = (scope.cityId ?? '').trim();
+      return cityId.isEmpty ? null : cityId;
+    }
+
+    return null;
+  }
+
+  bool get isItalyScope =>
+      scope.level == GeoScopeLevel.country &&
+      (scope.countryCode ?? '').toUpperCase() == 'IT';
+
+  bool get isTorinoScope =>
+      scope.level == GeoScopeLevel.city &&
+      (scope.cityId ?? '').toUpperCase() == 'TORINO';
 }
 
 class FollowScopeButton extends StatelessWidget {

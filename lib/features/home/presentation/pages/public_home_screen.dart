@@ -19,11 +19,9 @@ import 'package:sociale_vote/features/home/presentation/widgets/home_map_section
 import 'package:sociale_vote/features/home/presentation/widgets/home_news_section.dart';
 import 'package:sociale_vote/features/home/presentation/widgets/home_poll_section.dart';
 import 'package:sociale_vote/features/home/presentation/widgets/home_scope_header.dart';
-import 'package:sociale_vote/features/home/presentation/widgets/home_search_bar.dart';
 import 'package:sociale_vote/features/home/presentation/widgets/home_social_section.dart';
 import 'package:sociale_vote/features/home/presentation/widgets/home_top_bar.dart';
 import 'package:sociale_vote/features/home/presentation/widgets/home_trending_section.dart';
-import 'package:sociale_vote/features/home/presentation/widgets/home_user_status.dart';
 import 'package:sociale_vote/features/news/application/news_controller.dart';
 import 'package:sociale_vote/features/notifications/application/notifications_controller.dart';
 import 'package:sociale_vote/features/poll/application/poll_list_controller.dart';
@@ -54,14 +52,18 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   bool _isRefreshingHome = false;
   int _homeRefreshVersion = 0;
 
+  String? _heroUserChipLabel;
+  int _heroUserChipRequestId = 0;
+
   @override
   void initState() {
     super.initState();
 
     _sessionSub = AppDI.instance.sessionRepository.watchCurrentUserId().listen((
       userId,
-    ) {
+    ) async {
       _rebuildHomeNotificationsController(userId);
+      await _refreshHeroUserChipLabel(userId);
 
       if (!mounted) return;
       setState(() {});
@@ -69,6 +71,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
     _refreshHomeNewsLanguageKey();
     _rebuildHomeNotificationsController(AppDI.instance.currentUserId);
+    unawaited(_refreshHeroUserChipLabel(AppDI.instance.currentUserId));
   }
 
   @override
@@ -116,38 +119,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   void _setTorino() =>
       _geoScopeController.setCity(countryCode: 'IT', cityId: 'TORINO');
 
-  void _handleSearchSubmitted(String rawQuery) {
-    final l10n = AppLocalizations.of(context)!;
-    final query = rawQuery.trim();
-    if (query.isEmpty) return;
-
-    final q = query.toLowerCase();
-
-    if (q == 'world' || q == 'mondo' || q == 'global') {
-      _setWorld();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.homeScopeChangedWorld)),
-      );
-      return;
-    }
-
-    if (q == 'italy' || q == 'italia' || q == 'it') {
-      _setItaly();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.homeScopeChangedItaly)),
-      );
-      return;
-    }
-
-    if (q == 'torino' || q == 'turin') {
-      _setTorino();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.homeScopeChangedTorino)),
-      );
-      return;
-    }
-
-    Navigator.of(context).push(
+  Future<void> _openSearchPage() async {
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => const SearchPage(),
       ),
@@ -255,6 +228,59 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     }
   }
 
+  String? _normalizeHeroChipText(String? value) {
+    final normalized = value?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
+  }
+
+  String _fallbackHeroUserChipLabel(String userId) {
+    final compact = userId.replaceAll('-', '').trim();
+    return compact.isNotEmpty ? compact : userId;
+  }
+
+  Future<void> _refreshHeroUserChipLabel(String? userId) async {
+    final requestId = ++_heroUserChipRequestId;
+    final normalizedUserId = userId?.trim();
+
+    if (normalizedUserId == null || normalizedUserId.isEmpty) {
+      if (!mounted || requestId != _heroUserChipRequestId) {
+        return;
+      }
+      setState(() {
+        _heroUserChipLabel = null;
+      });
+      return;
+    }
+
+    try {
+      final profile = await AppDI.instance.getUserProfile(normalizedUserId);
+
+      if (!mounted || requestId != _heroUserChipRequestId) {
+        return;
+      }
+
+      final username = _normalizeHeroChipText(profile.username);
+      final displayName = _normalizeHeroChipText(profile.displayName);
+
+      setState(() {
+        _heroUserChipLabel = username != null
+            ? '@$username'
+            : (displayName ?? _fallbackHeroUserChipLabel(normalizedUserId));
+      });
+    } catch (_) {
+      if (!mounted || requestId != _heroUserChipRequestId) {
+        return;
+      }
+
+      setState(() {
+        _heroUserChipLabel = _fallbackHeroUserChipLabel(normalizedUserId);
+      });
+    }
+  }
+
   bool _isScopeFollowed(GeoScope scope) {
     return _followScopeController.isScopeFollowed(scope);
   }
@@ -315,6 +341,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     });
 
     _refreshHomeNewsLanguageKey();
+    await _refreshHeroUserChipLabel(AppDI.instance.currentUserId);
 
     final notificationsController = _homeNotificationsController;
     if (notificationsController != null) {
@@ -423,32 +450,15 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                     padding: const EdgeInsets.only(bottom: 16),
                     children: [
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        padding: const EdgeInsets.fromLTRB(30, 18, 30, 0),
                         child: HomeHeroSection(
                           scopeShortLabel: scopeShortLabel,
+                          userLabel: isLoggedIn ? _heroUserChipLabel : null,
                           onOpenPolls: () {
                             Navigator.pushNamed(context, AppRouter.polls);
                           },
                           onOpenNews: _onOpenNewsPressed,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        child: HomeSearchBar(
-                          onSubmitted: _handleSearchSubmitted,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 4,
-                        ),
-                        child: HomeUserStatus(
-                          isLoggedIn: isLoggedIn,
-                          currentUserId: currentUserId,
+                          onOpenSearch: _openSearchPage,
                         ),
                       ),
                       HomeMapSection(
@@ -466,7 +476,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                         onSetItaly: _setItaly,
                         onSetTorino: _setTorino,
                       ),
-                      const Divider(height: 1),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                         child: Column(

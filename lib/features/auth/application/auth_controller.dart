@@ -21,7 +21,6 @@ class AuthController extends ChangeNotifier {
   final LoginUser _loginUser;
   final RegisterUser _registerUser;
   final AuthApi _authApi;
-  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
 
   AuthStatus _status = AuthStatus.unknown;
   String? _errorMessage;
@@ -220,12 +219,33 @@ class AuthController extends ChangeNotifier {
         : AuthStatus.authenticated;
   }
 
+  bool get _supportsFirebaseAnalytics {
+    if (kIsWeb) {
+      return true;
+    }
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        return true;
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+      case TargetPlatform.fuchsia:
+        return false;
+    }
+  }
+
   Future<void> _trackAuthEvent({
     required String name,
     Map<String, Object>? parameters,
   }) async {
+    if (!_supportsFirebaseAnalytics) {
+      return;
+    }
+
     try {
-      await _analytics.logEvent(
+      await FirebaseAnalytics.instance.logEvent(
         name: name,
         parameters: parameters,
       );

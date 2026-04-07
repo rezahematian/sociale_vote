@@ -4,20 +4,28 @@ import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class HomeHeroSection extends StatelessWidget {
   final String scopeShortLabel;
+  final String? userLabel;
   final VoidCallback onOpenPolls;
   final VoidCallback onOpenNews;
+  final VoidCallback? onOpenSearch;
 
   const HomeHeroSection({
     super.key,
     required this.scopeShortLabel,
     required this.onOpenPolls,
     required this.onOpenNews,
+    this.userLabel,
+    this.onOpenSearch,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final materialL10n = MaterialLocalizations.of(context);
+
+    final trimmedUserLabel = userLabel?.trim();
+    final hasUserLabel = trimmedUserLabel != null && trimmedUserLabel.isNotEmpty;
 
     return Container(
       width: double.infinity,
@@ -46,22 +54,54 @@ class HomeHeroSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.78),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(
-                color: theme.colorScheme.outline.withOpacity(0.10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildTopChip(
+                      theme: theme,
+                      icon: null,
+                      label: scopeShortLabel,
+                      foregroundColor: theme.colorScheme.primary,
+                    ),
+                    if (hasUserLabel)
+                      _buildTopChip(
+                        theme: theme,
+                        icon: Icons.person_outline_rounded,
+                        label: trimmedUserLabel!,
+                        foregroundColor: theme.colorScheme.primary,
+                      ),
+                  ],
+                ),
               ),
-            ),
-            child: Text(
-              scopeShortLabel,
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.primary,
-              ),
-            ),
+              if (onOpenSearch != null) ...[
+                const SizedBox(width: 12),
+                OutlinedButton.icon(
+                  onPressed: onOpenSearch,
+                  icon: const Icon(Icons.search_rounded, size: 18),
+                  label: Text(materialL10n.searchFieldLabel),
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    foregroundColor: theme.colorScheme.primary,
+                    backgroundColor: Colors.white.withOpacity(0.72),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    side: BorderSide(
+                      color: theme.colorScheme.outline.withOpacity(0.14),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 16),
           Text(
@@ -96,6 +136,48 @@ class HomeHeroSection extends StatelessWidget {
                 label: Text(l10n.homeNewsViewAllButton),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopChip({
+    required ThemeData theme,
+    required String label,
+    required Color foregroundColor,
+    IconData? icon,
+  }) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 420),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.78),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.10),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(
+              icon,
+              size: 14,
+              color: foregroundColor,
+            ),
+            const SizedBox(width: 6),
+          ],
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: foregroundColor,
+              ),
+            ),
           ),
         ],
       ),
