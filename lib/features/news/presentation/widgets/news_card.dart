@@ -95,11 +95,11 @@ class NewsCard extends StatelessWidget {
 
     final String sourceName = _sourceLabel(news);
     final String publishedLabel = _formatPublishedAt(news.publishedAt);
-    final EdgeInsets cardPadding = EdgeInsets.all(compact ? 12 : 14);
 
     return AppCard(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevated: true,
+      padding: const EdgeInsets.all(16),
       onTap: openDetail,
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -108,104 +108,97 @@ class NewsCard extends StatelessWidget {
           final double imageWidth = compact ? 96 : (narrow ? 132 : 188);
           final double imageHeight = compact ? 96 : (narrow ? 112 : 164);
 
-          final int titleMaxLines = compact
-              ? 2
-              : (narrow ? 2 : 2);
+          final int titleMaxLines = compact ? 2 : 2;
+          final int summaryMaxLines = compact ? 2 : 2;
 
-          final int summaryMaxLines = compact
-              ? 2
-              : (narrow ? 2 : 2);
-
-          return Padding(
-            padding: cardPadding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  _buildNewsIconChip(),
+                  _buildSourceChip(theme, sourceName),
+                ],
+              ),
+              const SizedBox(height: 14),
+              if (imageUrl != null) ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildNewsIconChip(),
-                    _buildSourceChip(theme, sourceName),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                if (imageUrl != null)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: imageHeight,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: _NewsTextBlock(
-                                  title: title,
-                                  summary: summary,
-                                  compact: compact,
-                                  titleMaxLines: titleMaxLines,
-                                  summaryMaxLines: summaryMaxLines,
-                                ),
+                    Expanded(
+                      child: SizedBox(
+                        height: imageHeight,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: _NewsTextBlock(
+                                title: title,
+                                summary: summary,
+                                compact: compact,
+                                titleMaxLines: titleMaxLines,
+                                summaryMaxLines: summaryMaxLines,
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                publishedLabel,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurface.withOpacity(
-                                    0.58,
-                                  ),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              publishedLabel,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color:
+                                    theme.colorScheme.onSurface.withValues(
+                                      alpha: 0.58,
+                                    ),
+                                fontWeight: FontWeight.w500,
                               ),
-                            ],
-                          ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
-                      SizedBox(width: compact ? 10 : 12),
-                      _NewsThumbnail(
-                        imageUrl: imageUrl,
-                        width: imageWidth,
-                        height: imageHeight,
-                      ),
-                    ],
-                  )
-                else ...[
-                  _NewsTextBlock(
-                    title: title,
-                    summary: summary,
-                    compact: compact,
-                    titleMaxLines: compact ? 3 : 2,
-                    summaryMaxLines: compact ? 3 : 2,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    publishedLabel,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.58),
-                      fontWeight: FontWeight.w500,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    SizedBox(width: compact ? 10 : 12),
+                    _NewsThumbnail(
+                      imageUrl: imageUrl,
+                      width: imageWidth,
+                      height: imageHeight,
+                    ),
+                  ],
+                ),
+              ] else ...[
+                _NewsTextBlock(
+                  title: title,
+                  summary: summary,
+                  compact: compact,
+                  titleMaxLines: compact ? 3 : 2,
+                  summaryMaxLines: compact ? 3 : 2,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  publishedLabel,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
+                    fontWeight: FontWeight.w500,
                   ),
-                ],
-                const SizedBox(height: 12),
-                _NewsEngagementBar(
-                  news: news,
-                  commentCount: commentCount,
-                  fireCount: fireCount,
-                  iceCount: iceCount,
-                  userReaction: userReaction,
-                  onFireTap: wrapReactCallback(onFireTap),
-                  onIceTap: wrapReactCallback(onIceTap),
-                  onCommentTap: openCommentsOrDetail,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
-            ),
+              const SizedBox(height: 14),
+              _NewsEngagementBar(
+                news: news,
+                commentCount: commentCount,
+                fireCount: fireCount,
+                iceCount: iceCount,
+                userReaction: userReaction,
+                onFireTap: wrapReactCallback(onFireTap),
+                onIceTap: wrapReactCallback(onIceTap),
+                onCommentTap: openCommentsOrDetail,
+              ),
+            ],
           );
         },
       ),
@@ -328,9 +321,9 @@ class _NewsTextBlock extends StatelessWidget {
           style:
               (compact ? theme.textTheme.bodyMedium : theme.textTheme.titleSmall)
                   ?.copyWith(
-            fontWeight: FontWeight.w700,
-            height: 1.15,
-          ),
+                    fontWeight: FontWeight.w700,
+                    height: 1.15,
+                  ),
           maxLines: titleMaxLines,
           overflow: TextOverflow.ellipsis,
         ),
@@ -339,7 +332,7 @@ class _NewsTextBlock extends StatelessWidget {
           Text(
             summary!,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.textTheme.bodySmall?.color?.withOpacity(0.82),
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.82),
               height: 1.25,
             ),
             maxLines: summaryMaxLines,
@@ -375,18 +368,18 @@ class _NewsThumbnail extends StatelessWidget {
           imageUrl,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => Container(
-            color: theme.colorScheme.onSurface.withOpacity(0.06),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
             alignment: Alignment.center,
             child: Icon(
               Icons.image_not_supported_outlined,
               size: 20,
-              color: theme.colorScheme.onSurface.withOpacity(0.35),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.35),
             ),
           ),
           loadingBuilder: (context, child, progress) {
             if (progress == null) return child;
             return Container(
-              color: theme.colorScheme.onSurface.withOpacity(0.06),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
               alignment: Alignment.center,
               child: const SizedBox(
                 width: 18,
@@ -439,14 +432,17 @@ class _NewsEngagementBar extends StatelessWidget {
   }
 
   Widget _buildBar(int resolvedCommentCount) {
-    return EngagementBar(
-      fireCount: fireCount,
-      iceCount: iceCount,
-      commentCount: resolvedCommentCount,
-      userReaction: userReaction,
-      onFireTap: onFireTap,
-      onIceTap: onIceTap,
-      onCommentTap: onCommentTap,
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: EngagementBar(
+        fireCount: fireCount,
+        iceCount: iceCount,
+        commentCount: resolvedCommentCount,
+        userReaction: userReaction,
+        onFireTap: onFireTap,
+        onIceTap: onIceTap,
+        onCommentTap: onCommentTap,
+      ),
     );
   }
 }

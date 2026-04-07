@@ -93,7 +93,10 @@ class HomePollSection extends StatelessWidget {
       children: [
         header,
         const SizedBox(height: 12),
-        content,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: content,
+        ),
         const SizedBox(height: 8),
         Align(
           alignment: Alignment.centerLeft,

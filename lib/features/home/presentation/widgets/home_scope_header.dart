@@ -38,7 +38,7 @@ class HomeScopeHeader extends StatelessWidget {
         (scope.cityId ?? '').toUpperCase() == 'TORINO';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
       child: Card(
         elevation: 0,
         color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
