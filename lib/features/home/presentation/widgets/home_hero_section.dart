@@ -23,31 +23,75 @@ class HomeHeroSection extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final materialL10n = MaterialLocalizations.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     final trimmedUserLabel = userLabel?.trim();
     final hasUserLabel = trimmedUserLabel != null && trimmedUserLabel.isNotEmpty;
+
+    final heroGradient = isDark
+        ? const [
+            Color(0xFF0F172A),
+            Color(0xFF172554),
+          ]
+        : const [
+            Color(0xFFEFF6FF),
+            Color(0xFFF5F3FF),
+          ];
+
+    final heroBorderColor = isDark
+        ? Colors.white.withOpacity(0.08)
+        : theme.colorScheme.outline.withOpacity(0.14);
+
+    final heroShadowColor = isDark
+        ? Colors.black.withOpacity(0.18)
+        : Colors.black.withOpacity(0.04);
+
+    final chipBackgroundColor = isDark
+        ? Colors.white.withOpacity(0.07)
+        : Colors.white.withOpacity(0.78);
+
+    final chipBorderColor = isDark
+        ? Colors.white.withOpacity(0.10)
+        : theme.colorScheme.outline.withOpacity(0.10);
+
+    final chipForegroundColor = isDark
+        ? const Color(0xFF9CC2FF)
+        : theme.colorScheme.primary;
+
+    final searchForegroundColor = isDark
+        ? Colors.white.withOpacity(0.92)
+        : theme.colorScheme.primary;
+
+    final searchBackgroundColor = isDark
+        ? Colors.white.withOpacity(0.06)
+        : Colors.white.withOpacity(0.72);
+
+    final searchBorderColor = isDark
+        ? Colors.white.withOpacity(0.10)
+        : theme.colorScheme.outline.withOpacity(0.14);
+
+    final titleColor = isDark
+        ? Colors.white.withOpacity(0.96)
+        : theme.colorScheme.onSurface;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFFEFF6FF),
-            Color(0xFFF5F3FF),
-          ],
+        gradient: LinearGradient(
+          colors: heroGradient,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.14),
+          color: heroBorderColor,
         ),
         boxShadow: [
           BoxShadow(
             blurRadius: 24,
             offset: const Offset(0, 10),
-            color: Colors.black.withOpacity(0.04),
+            color: heroShadowColor,
           ),
         ],
       ),
@@ -66,14 +110,18 @@ class HomeHeroSection extends StatelessWidget {
                       theme: theme,
                       icon: null,
                       label: scopeShortLabel,
-                      foregroundColor: theme.colorScheme.primary,
+                      foregroundColor: chipForegroundColor,
+                      backgroundColor: chipBackgroundColor,
+                      borderColor: chipBorderColor,
                     ),
                     if (hasUserLabel)
                       _buildTopChip(
                         theme: theme,
                         icon: Icons.person_outline_rounded,
                         label: trimmedUserLabel!,
-                        foregroundColor: theme.colorScheme.primary,
+                        foregroundColor: chipForegroundColor,
+                        backgroundColor: chipBackgroundColor,
+                        borderColor: chipBorderColor,
                       ),
                   ],
                 ),
@@ -86,8 +134,8 @@ class HomeHeroSection extends StatelessWidget {
                   label: Text(materialL10n.searchFieldLabel),
                   style: OutlinedButton.styleFrom(
                     visualDensity: VisualDensity.compact,
-                    foregroundColor: theme.colorScheme.primary,
-                    backgroundColor: Colors.white.withOpacity(0.72),
+                    foregroundColor: searchForegroundColor,
+                    backgroundColor: searchBackgroundColor,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 10,
@@ -96,7 +144,7 @@ class HomeHeroSection extends StatelessWidget {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     side: BorderSide(
-                      color: theme.colorScheme.outline.withOpacity(0.14),
+                      color: searchBorderColor,
                     ),
                   ),
                 ),
@@ -110,14 +158,7 @@ class HomeHeroSection extends StatelessWidget {
               fontWeight: FontWeight.w800,
               height: 1.0,
               letterSpacing: -0.6,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Esplora il tuo scope, segui aree geografiche, scopri sondaggi, news e discussioni civiche in un’unica home.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.76),
-              height: 1.5,
+              color: titleColor,
             ),
           ),
           const SizedBox(height: 18),
@@ -146,16 +187,18 @@ class HomeHeroSection extends StatelessWidget {
     required ThemeData theme,
     required String label,
     required Color foregroundColor,
+    required Color backgroundColor,
+    required Color borderColor,
     IconData? icon,
   }) {
     return Container(
       constraints: const BoxConstraints(maxWidth: 420),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.78),
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.10),
+          color: borderColor,
         ),
       ),
       child: Row(

@@ -18,6 +18,8 @@ class HomeTopBar extends StatelessWidget {
   final VoidCallback? onTrendingPressed;
   final VoidCallback? onForYouPressed;
   final VoidCallback? onNotificationsPressed;
+  final ThemeMode? currentThemeMode;
+  final ValueChanged<ThemeMode>? onThemeModeChanged;
 
   const HomeTopBar({
     super.key,
@@ -31,12 +33,21 @@ class HomeTopBar extends StatelessWidget {
     this.onTrendingPressed,
     this.onForYouPressed,
     this.onNotificationsPressed,
+    this.currentThemeMode,
+    this.onThemeModeChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final themeModeButton =
+        currentThemeMode != null && onThemeModeChanged != null
+            ? _ThemeModeCycleButton(
+                currentThemeMode: currentThemeMode!,
+                onChanged: onThemeModeChanged!,
+              )
+            : null;
 
     return Row(
       children: [
@@ -78,6 +89,10 @@ class HomeTopBar extends StatelessWidget {
             ),
             child: Text(l10n.homeRegisterButton),
           ),
+          if (themeModeButton != null) ...[
+            const SizedBox(width: 8),
+            themeModeButton,
+          ],
         ] else ...[
           _NotificationsButton(
             unreadCount: unreadNotificationsCount,
@@ -106,6 +121,10 @@ class HomeTopBar extends StatelessWidget {
             ),
             child: Text(l10n.homeLogoutButton),
           ),
+          if (themeModeButton != null) ...[
+            const SizedBox(width: 8),
+            themeModeButton,
+          ],
         ],
       ],
     );
@@ -187,6 +206,72 @@ class _DiscoverMenuButton extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ThemeModeCycleButton extends StatelessWidget {
+  final ThemeMode currentThemeMode;
+  final ValueChanged<ThemeMode> onChanged;
+
+  const _ThemeModeCycleButton({
+    required this.currentThemeMode,
+    required this.onChanged,
+  });
+
+  ThemeMode _nextThemeMode(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.system:
+        return ThemeMode.light;
+      case ThemeMode.light:
+        return ThemeMode.dark;
+      case ThemeMode.dark:
+        return ThemeMode.system;
+    }
+  }
+
+  IconData _iconForThemeMode(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.system:
+        return Icons.brightness_auto;
+      case ThemeMode.light:
+        return Icons.light_mode_outlined;
+      case ThemeMode.dark:
+        return Icons.dark_mode_outlined;
+    }
+  }
+
+  String _labelForThemeMode(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.system:
+        return 'Tema: sistema';
+      case ThemeMode.light:
+        return 'Tema: chiaro';
+      case ThemeMode.dark:
+        return 'Tema: scuro';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = _iconForThemeMode(currentThemeMode);
+    final tooltip = _labelForThemeMode(currentThemeMode);
+
+    return SizedBox(
+      width: 40,
+      height: 40,
+      child: IconButton(
+        onPressed: () => onChanged(_nextThemeMode(currentThemeMode)),
+        tooltip: tooltip,
+        visualDensity: VisualDensity.compact,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(
+          minWidth: 40,
+          minHeight: 40,
+        ),
+        color: Colors.white.withOpacity(0.88),
+        icon: Icon(icon),
       ),
     );
   }

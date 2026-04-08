@@ -55,7 +55,7 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
     );
 
     return SizedBox(
-      height: 300,
+      height: 360,
       child: Padding(
         padding: const EdgeInsets.all(30.0),
         child: Card(

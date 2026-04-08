@@ -11,6 +11,31 @@ import 'package:sociale_vote/app/theme/app_theme.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/navigation_service.dart';
 
+class AppThemeModeController {
+  AppThemeModeController._();
+
+  static final ValueNotifier<ThemeMode> themeMode =
+      ValueNotifier<ThemeMode>(ThemeMode.system);
+
+  static void setThemeMode(ThemeMode mode) {
+    if (themeMode.value == mode) {
+      return;
+    }
+    themeMode.value = mode;
+  }
+
+  static ThemeMode next(ThemeMode current) {
+    switch (current) {
+      case ThemeMode.system:
+        return ThemeMode.light;
+      case ThemeMode.light:
+        return ThemeMode.dark;
+      case ThemeMode.dark:
+        return ThemeMode.system;
+    }
+  }
+}
+
 class SocialeVoteApp extends StatefulWidget {
   const SocialeVoteApp({super.key});
 
@@ -136,26 +161,33 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: NavigationService.navigatorKey,
-      title: 'Sociale Vote',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.theme,
-      scrollBehavior: const MaterialScrollBehavior().copyWith(
-        scrollbars: false,
-      ),
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-      navigatorObservers: _enableAnalyticsObserver
-          ? <NavigatorObserver>[_analyticsObserver]
-          : const <NavigatorObserver>[],
-      initialRoute: AppRouter.initialRoute,
-      onGenerateRoute: AppRouter.onGenerateRoute,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppThemeModeController.themeMode,
+      builder: (context, themeMode, _) {
+        return MaterialApp(
+          navigatorKey: NavigationService.navigatorKey,
+          title: 'Sociale Vote',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeMode,
+          scrollBehavior: const MaterialScrollBehavior().copyWith(
+            scrollbars: false,
+          ),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          navigatorObservers: _enableAnalyticsObserver
+              ? <NavigatorObserver>[_analyticsObserver]
+              : const <NavigatorObserver>[],
+          initialRoute: AppRouter.initialRoute,
+          onGenerateRoute: AppRouter.onGenerateRoute,
+        );
+      },
     );
   }
 }

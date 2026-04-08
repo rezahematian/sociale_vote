@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:sociale_vote/app/app.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
@@ -199,6 +200,10 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     Navigator.pushNamed(context, AppRouter.profile);
   }
 
+  void _onThemeModeChanged(ThemeMode mode) {
+    AppThemeModeController.setThemeMode(mode);
+  }
+
   String _scopeLabel(GeoScope scope) {
     final l10n = AppLocalizations.of(context)!;
 
@@ -366,11 +371,36 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
         : 0;
 
     return AnimatedBuilder(
-      animation: _geoScopeController,
+      animation: Listenable.merge([
+        _geoScopeController,
+        AppThemeModeController.themeMode,
+      ]),
       builder: (context, _) {
         final scope = _geoScopeController.scope;
         final scopeLabel = _scopeLabel(scope);
         final scopeShortLabel = _scopeShortLabel(scope);
+        final currentThemeMode = AppThemeModeController.themeMode.value;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
+        final backgroundGradient = isDark
+            ? const [
+                Color(0xFF09111F),
+                Color(0xFF0F172A),
+                Color(0xFF172554),
+              ]
+            : const [
+                Color(0xFFF8FAFC),
+                Color(0xFFEFF4FF),
+                Color(0xFFF5F7FB),
+              ];
+
+        final topGlowColor = isDark
+            ? const Color(0xFF3B82F6).withOpacity(0.12)
+            : const Color(0xFF60A5FA).withOpacity(0.10);
+
+        final sideGlowColor = isDark
+            ? const Color(0xFF6366F1).withOpacity(0.10)
+            : const Color(0xFFA78BFA).withOpacity(0.08);
 
         return Scaffold(
           backgroundColor: Colors.transparent,
@@ -392,19 +422,17 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
               onForYouPressed: isLoggedIn ? _onForYouPressed : null,
               onNotificationsPressed:
                   isLoggedIn ? _onNotificationsPressed : null,
+              currentThemeMode: currentThemeMode,
+              onThemeModeChanged: _onThemeModeChanged,
             ),
           ),
           body: Stack(
             children: [
               Positioned.fill(
                 child: Container(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        Color(0xFFF8FAFC),
-                        Color(0xFFEFF4FF),
-                        Color(0xFFF5F7FB),
-                      ],
+                      colors: backgroundGradient,
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -420,7 +448,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                     height: 240,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFF60A5FA).withOpacity(0.10),
+                      color: topGlowColor,
                     ),
                   ),
                 ),
@@ -434,7 +462,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                     height: 230,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFA78BFA).withOpacity(0.08),
+                      color: sideGlowColor,
                     ),
                   ),
                 ),

@@ -33,6 +33,25 @@ class AppColors {
   static const Color surfaceVariant = Color(0xFFF8FAFC);
 
   // =========================================================
+  // DARK / BACKGROUND
+  // =========================================================
+
+  /// Sfondo principale dark dell'app.
+  static const Color backgroundDark = Color(0xFF0F172A);
+
+  /// Variante alternativa dark per layering leggero.
+  static const Color backgroundAltDark = Color(0xFF111827);
+
+  /// Superficie principale dark (card, fogli, pannelli).
+  static const Color surfaceDark = Color(0xFF111827);
+
+  /// Variante dark di surface leggermente distinta.
+  static const Color surfaceAltDark = Color(0xFF172033);
+
+  /// Surface variant dark per contenitori secondari, placeholder, box informativi.
+  static const Color surfaceVariantDark = Color(0xFF1E293B);
+
+  // =========================================================
   // BORDI / DIVIDER
   // =========================================================
 
@@ -41,6 +60,16 @@ class AppColors {
 
   /// Divider leggero tra elementi di lista / sezioni.
   static const Color divider = Color(0xFFECEFF4);
+
+  // =========================================================
+  // DARK / BORDI / DIVIDER
+  // =========================================================
+
+  /// Bordo soft dark per card e contenitori.
+  static const Color borderSoftDark = Color(0xFF2A3444);
+
+  /// Divider dark tra elementi di lista / sezioni.
+  static const Color dividerDark = Color(0xFF243041);
 
   // =========================================================
   // PRIMARY / BRAND
@@ -66,6 +95,12 @@ class AppColors {
 
   /// Testo/icona sopra primarySoftBackground.
   static const Color primarySoftForeground = primary;
+
+  /// Soft background primary per dark surfaces.
+  static const Color primarySoftBackgroundDark = Color(0xFF1E3A8A);
+
+  /// Testo/icona sopra primarySoftBackgroundDark.
+  static const Color primarySoftForegroundDark = Color(0xFFDBEAFE);
 
   // =========================================================
   // ENGAGEMENT / STATE
@@ -102,6 +137,25 @@ class AppColors {
   static const Color errorSoftBackground = Color(0xFFFEE2E2);
 
   // =========================================================
+  // DARK / ENGAGEMENT / STATE
+  // =========================================================
+
+  /// Variante soft dark per badge / background heat.
+  static const Color heatSoftBackgroundDark = Color(0xFF4C1D1D);
+
+  /// Variante soft dark per badge / background cool.
+  static const Color coolSoftBackgroundDark = Color(0xFF082F49);
+
+  /// Soft background dark per success.
+  static const Color successSoftBackgroundDark = Color(0xFF052E16);
+
+  /// Soft background dark per warning.
+  static const Color warningSoftBackgroundDark = Color(0xFF451A03);
+
+  /// Soft background dark per error.
+  static const Color errorSoftBackgroundDark = Color(0xFF450A0A);
+
+  // =========================================================
   // TEXT
   // =========================================================
 
@@ -118,6 +172,19 @@ class AppColors {
   static const Color textInverted = Color(0xFFFFFFFF);
 
   // =========================================================
+  // DARK / TEXT
+  // =========================================================
+
+  /// Testo principale dark (titoli, body importante).
+  static const Color textPrimaryDark = Color(0xFFF8FAFC);
+
+  /// Testo secondario dark (descrizioni, meta info).
+  static const Color textSecondaryDark = Color(0xFFCBD5E1);
+
+  /// Testo attenuato dark (caption, label leggere).
+  static const Color textMutedDark = Color(0xFF94A3B8);
+
+  // =========================================================
   // ICON / DISABLED
   // =========================================================
 
@@ -131,6 +198,19 @@ class AppColors {
   static const Color disabled = Color(0xFFD1D5DB);
 
   // =========================================================
+  // DARK / ICON / DISABLED
+  // =========================================================
+
+  /// Icone di default dark (stato neutro).
+  static const Color iconDark = Color(0xFFCBD5E1);
+
+  /// Icone disabilitate dark / elementi disattivati.
+  static const Color iconDisabledDark = Color(0xFF475569);
+
+  /// Colore generico dark per elementi disabled.
+  static const Color disabledDark = Color(0xFF334155);
+
+  // =========================================================
   // FEEDBACK VISUAL / EFFECTS
   // =========================================================
 
@@ -142,6 +222,19 @@ class AppColors {
 
   /// Highlight per skeleton loading.
   static const Color skeletonHighlight = Color(0xFFF3F4F6);
+
+  // =========================================================
+  // DARK / FEEDBACK VISUAL / EFFECTS
+  // =========================================================
+
+  /// Ombra dark per card e overlay.
+  static const Color shadowDark = Color(0x66000000);
+
+  /// Base dark per skeleton loading.
+  static const Color skeletonBaseDark = Color(0xFF1E293B);
+
+  /// Highlight dark per skeleton loading.
+  static const Color skeletonHighlightDark = Color(0xFF334155);
 
   // =========================================================
   // OVERLAY / SCRIM
