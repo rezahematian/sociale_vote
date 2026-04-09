@@ -551,12 +551,22 @@ class _PollDetailPageState extends State<PollDetailPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
+    final isDark = theme.brightness == Brightness.dark;
 
     final pageBackground = Color.alphaBlend(
-      theme.colorScheme.primary.withOpacity(0.03),
+      colorScheme.primary.withOpacity(isDark ? 0.05 : 0.025),
       theme.scaffoldBackgroundColor,
     );
+
+    final backgroundTop = isDark
+        ? colorScheme.primary.withOpacity(0.08)
+        : colorScheme.primary.withOpacity(0.05);
+
+    final backgroundBottom = isDark
+        ? colorScheme.surface.withOpacity(0.12)
+        : Colors.white.withOpacity(0.55);
 
     return Scaffold(
       backgroundColor: pageBackground,
@@ -565,10 +575,12 @@ class _PollDetailPageState extends State<PollDetailPage> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
+        titleSpacing: 8,
         title: Text(
           l10n.pollDetail_title,
           style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.2,
           ),
         ),
         actions: [
@@ -633,60 +645,122 @@ class _PollDetailPageState extends State<PollDetailPage> {
           ),
         ],
       ),
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          final state = _controller.state;
-
-          if (state is PollDetailLoading || state is PollDetailInitial) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (state is PollDetailError) {
-            return Center(child: Text(state.message));
-          }
-
-          if (state is PollDetailLoaded) {
-            final poll = state.poll;
-
-            if (!_resultsInitialized) {
-              _resultsInitialized = true;
-              _resultController.loadResults(
-                poll: poll,
-                userHasVoted: _voteController.submittedSuccessfully,
-              );
-            }
-
-            final shouldInitFavorite = AppDI.instance.currentUserId != null &&
-                (!_favoriteInitialized ||
-                    _initializedFavoritePollId != poll.id.value);
-
-            if (shouldInitFavorite) {
-              _favoriteInitialized = false;
-              _initializedFavoritePollId = poll.id.value;
-              _initFavoriteStatus(poll);
-            }
-
-            _maybeAutoScrollToComments();
-
-            return ChangeNotifierProvider<DiscussionController>(
-              create: (_) => AppDI.instance.createDiscussionController(
-                TargetRef.poll(poll.id.value),
-              )..loadComments(),
-              child: AnimatedBuilder(
-                animation: Listenable.merge([
-                  _voteController,
-                  _resultController,
-                ]),
-                builder: (context, __) {
-                  return _buildPollContent(context, poll);
-                },
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              backgroundTop,
+              pageBackground,
+              backgroundBottom,
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              top: -90,
+              right: -60,
+              child: IgnorePointer(
+                child: Container(
+                  width: 220,
+                  height: 220,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: colorScheme.primary.withOpacity(isDark ? 0.08 : 0.06),
+                  ),
+                ),
               ),
-            );
-          }
+            ),
+            Positioned(
+              bottom: -120,
+              left: -80,
+              child: IgnorePointer(
+                child: Container(
+                  width: 260,
+                  height: 260,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: colorScheme.primary.withOpacity(isDark ? 0.05 : 0.04),
+                  ),
+                ),
+              ),
+            ),
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                final state = _controller.state;
 
-          return const SizedBox.shrink();
-        },
+                if (state is PollDetailLoading || state is PollDetailInitial) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (state is PollDetailError) {
+                  return _buildErrorState(
+                    context,
+                    message: state.message,
+                    onRetry: () {
+                      final userId = AppDI.instance.currentUserId;
+                      _controller.loadPoll(widget.pollId, userId: userId);
+                    },
+                  );
+                }
+
+                if (state is PollDetailLoaded) {
+                  final poll = state.poll;
+
+                  if (!_resultsInitialized) {
+                    _resultsInitialized = true;
+                    _resultController.loadResults(
+                      poll: poll,
+                      userHasVoted: _voteController.submittedSuccessfully,
+                    );
+                  }
+
+                  final shouldInitFavorite =
+                      AppDI.instance.currentUserId != null &&
+                      (!_favoriteInitialized ||
+                          _initializedFavoritePollId != poll.id.value);
+
+                  if (shouldInitFavorite) {
+                    _favoriteInitialized = false;
+                    _initializedFavoritePollId = poll.id.value;
+                    _initFavoriteStatus(poll);
+                  }
+
+                  _maybeAutoScrollToComments();
+
+                  return ChangeNotifierProvider<DiscussionController>(
+                    create: (_) => AppDI.instance.createDiscussionController(
+                      TargetRef.poll(poll.id.value),
+                    )..loadComments(),
+                    child: AnimatedBuilder(
+                      animation: Listenable.merge([
+                        _voteController,
+                        _resultController,
+                      ]),
+                      builder: (context, __) {
+                        return LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isWideLayout = constraints.maxWidth >= 980;
+                            return _buildPollContent(
+                              context,
+                              poll,
+                              isWideLayout: isWideLayout,
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  );
+                }
+
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -720,11 +794,12 @@ class _PollDetailPageState extends State<PollDetailPage> {
     }
   }
 
-  Widget _buildPollContent(BuildContext context, Poll poll) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
+  Widget _buildPollContent(
+    BuildContext context,
+    Poll poll, {
+    required bool isWideLayout,
+  }) {
     final discussionController = context.watch<DiscussionController>();
-
     final config = poll.configuration;
     final visibilityMode = config.visibilityRules.resultsVisibility;
     final totalVotes = _resultController.result?.totalVotes ?? 0;
@@ -736,14 +811,14 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
     final String currentUserForComments = AppDI.instance.currentUserId ?? 'guest';
 
-    final voteErrorText = _mapVoteErrorToText(l10n);
+    final l10n = AppLocalizations.of(context)!;
 
     return Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 960),
+        constraints: const BoxConstraints(maxWidth: 1120),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
           child: ListView(
             controller: _scrollController,
             physics: const BouncingScrollPhysics(),
@@ -792,114 +867,42 @@ class _PollDetailPageState extends State<PollDetailPage> {
                   totalVotes: totalVotes,
                 ),
               ),
-              const SizedBox(height: 24),
-              _buildSectionSurface(
-                context,
-                child: Column(
+              const SizedBox(height: 20),
+              if (isWideLayout)
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      l10n.pollDetail_optionsTitle,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
+                    Expanded(
+                      flex: 11,
+                      child: _buildOptionsCard(
+                        context,
+                        poll,
+                        l10n: l10n,
                       ),
                     ),
-                    const SizedBox(height: 14),
-                    _buildInnerSurface(
-                      context,
-                      child: PollOptionsSection(
-                        poll: poll,
-                        selectedOptionIds: _voteController.selectedOptionIds,
-                        onToggleOption: (optionId, allowMultiple) {
-                          _voteController.toggleOption(
-                            optionId,
-                            allowMultiple: allowMultiple,
-                          );
-                        },
-                      ),
-                    ),
-                    if (poll.status != PollStatus.open) ...[
-                      const SizedBox(height: 16),
-                      _buildFeedbackBox(
+                    const SizedBox(width: 20),
+                    Expanded(
+                      flex: 10,
+                      child: _buildResultsCard(
                         context,
-                        message: poll.status == PollStatus.closed
-                            ? l10n.pollDetail_statusClosedMessage
-                            : poll.status == PollStatus.scheduled
-                                ? l10n.pollDetail_statusScheduledMessage
-                                : l10n.pollDetail_statusNotAvailableMessage,
-                        icon: Icons.info_outline,
-                        tone: _FeedbackTone.warning,
-                      ),
-                    ],
-                    if (voteErrorText != null) ...[
-                      const SizedBox(height: 14),
-                      _buildFeedbackBox(
-                        context,
-                        message: voteErrorText,
-                        icon: Icons.error_outline,
-                        tone: _FeedbackTone.error,
-                      ),
-                    ],
-                    if (_voteController.submittedSuccessfully) ...[
-                      const SizedBox(height: 14),
-                      _buildFeedbackBox(
-                        context,
-                        message: l10n.pollDetail_voteSubmitted,
-                        icon: Icons.check_circle_outline,
-                        tone: _FeedbackTone.success,
-                      ),
-                    ],
-                    const SizedBox(height: 20),
-                    Align(
-                      alignment: Alignment.center,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          minWidth: 180,
-                          maxWidth: 240,
-                        ),
-                        child: FilledButton(
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size.fromHeight(48),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 14,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          onPressed: _canVote(poll)
-                              ? () => _onVotePressed(context, poll)
-                              : null,
-                          child: _voteController.isSubmitting
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Text(l10n.pollDetail_voteButton),
-                        ),
+                        visibilityMode: visibilityMode,
                       ),
                     ),
                   ],
+                )
+              else ...[
+                _buildOptionsCard(
+                  context,
+                  poll,
+                  l10n: l10n,
                 ),
-              ),
-              const SizedBox(height: 24),
-              _buildSectionSurface(
-                context,
-                child: PollResultsSection(
-                  canShowResults: _resultController.canShowResults,
-                  isLoading: _resultController.isLoading,
-                  error: _resultController.error,
-                  result: _resultController.result,
-                  hasOutcome: _resultController.hasOutcome,
-                  outcome: _resultController.outcome,
+                const SizedBox(height: 20),
+                _buildResultsCard(
+                  context,
                   visibilityMode: visibilityMode,
                 ),
-              ),
-              const SizedBox(height: 24),
+              ],
+              const SizedBox(height: 20),
               Container(
                 key: _commentSectionKey,
                 child: CommentSection(
@@ -913,50 +916,161 @@ class _PollDetailPageState extends State<PollDetailPage> {
     );
   }
 
+  Widget _buildOptionsCard(
+    BuildContext context,
+    Poll poll, {
+    required AppLocalizations l10n,
+  }) {
+    final theme = Theme.of(context);
+    final voteErrorText = _mapVoteErrorToText(l10n);
+
+    return _buildSectionSurface(
+      context,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.pollDetail_optionsTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.1,
+            ),
+          ),
+          const SizedBox(height: 18),
+          PollOptionsSection(
+            poll: poll,
+            selectedOptionIds: _voteController.selectedOptionIds,
+            onToggleOption: (optionId, allowMultiple) {
+              _voteController.toggleOption(
+                optionId,
+                allowMultiple: allowMultiple,
+              );
+            },
+          ),
+          if (poll.status != PollStatus.open) ...[
+            const SizedBox(height: 16),
+            _buildFeedbackBox(
+              context,
+              message: poll.status == PollStatus.closed
+                  ? l10n.pollDetail_statusClosedMessage
+                  : poll.status == PollStatus.scheduled
+                      ? l10n.pollDetail_statusScheduledMessage
+                      : l10n.pollDetail_statusNotAvailableMessage,
+              icon: Icons.info_outline,
+              tone: _FeedbackTone.warning,
+            ),
+          ],
+          if (voteErrorText != null) ...[
+            const SizedBox(height: 14),
+            _buildFeedbackBox(
+              context,
+              message: voteErrorText,
+              icon: Icons.error_outline,
+              tone: _FeedbackTone.error,
+            ),
+          ],
+          if (_voteController.submittedSuccessfully) ...[
+            const SizedBox(height: 14),
+            _buildFeedbackBox(
+              context,
+              message: l10n.pollDetail_voteSubmitted,
+              icon: Icons.check_circle_outline,
+              tone: _FeedbackTone.success,
+            ),
+          ],
+          const SizedBox(height: 20),
+          Align(
+            alignment: Alignment.center,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                minWidth: 180,
+                maxWidth: 260,
+              ),
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 14,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: _canVote(poll)
+                    ? () => _onVotePressed(context, poll)
+                    : null,
+                child: _voteController.isSubmitting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(l10n.pollDetail_voteButton),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResultsCard(
+    BuildContext context, {
+    required dynamic visibilityMode,
+  }) {
+    return _buildSectionSurface(
+      context,
+      child: PollResultsSection(
+        canShowResults: _resultController.canShowResults,
+        isLoading: _resultController.isLoading,
+        error: _resultController.error,
+        result: _resultController.result,
+        hasOutcome: _resultController.hasOutcome,
+        outcome: _resultController.outcome,
+        visibilityMode: visibilityMode,
+      ),
+    );
+  }
+
   Widget _buildSectionSurface(
     BuildContext context, {
     required Widget child,
   }) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final surfaceColor = Color.alphaBlend(
+      colorScheme.primary.withOpacity(isDark ? 0.05 : 0.014),
+      colorScheme.surface,
+    );
+
+    final borderColor = colorScheme.outline.withOpacity(isDark ? 0.26 : 0.12);
+
+    final shadowColor = isDark
+        ? Colors.black.withOpacity(0.18)
+        : Colors.black.withOpacity(0.045);
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(22),
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: theme.dividerColor.withOpacity(0.7),
-          width: 1.2,
+          color: borderColor,
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+            color: shadowColor,
+            blurRadius: 22,
+            offset: const Offset(0, 8),
           ),
         ],
-      ),
-      child: child,
-    );
-  }
-
-  Widget _buildInnerSurface(
-    BuildContext context, {
-    required Widget child,
-  }) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withOpacity(0.58),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: theme.dividerColor.withOpacity(0.55),
-          width: 1,
-        ),
       ),
       child: child,
     );
@@ -1008,6 +1122,47 @@ class _PollDetailPageState extends State<PollDetailPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(
+    BuildContext context, {
+    required String message,
+    required VoidCallback onRetry,
+  }) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 460),
+          child: _buildSectionSurface(
+            context,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.error_outline_rounded,
+                  size: 32,
+                  color: theme.colorScheme.error,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 18),
+                FilledButton(
+                  onPressed: onRetry,
+                  child: const Text('Riprova'),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

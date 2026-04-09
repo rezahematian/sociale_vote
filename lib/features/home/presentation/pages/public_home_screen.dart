@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:sociale_vote/app/app.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/app/theme/colors.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/login_page.dart';
@@ -384,23 +385,27 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
         final backgroundGradient = isDark
             ? const [
-                Color(0xFF09111F),
-                Color(0xFF0F172A),
-                Color(0xFF172554),
+                AppColors.backgroundDark,
+                AppColors.backgroundAltDark,
+                AppColors.surfaceDark,
               ]
             : const [
-                Color(0xFFF8FAFC),
-                Color(0xFFEFF4FF),
-                Color(0xFFF5F7FB),
+                AppColors.background,
+                AppColors.backgroundAlt,
+                AppColors.surfaceVariant,
               ];
 
         final topGlowColor = isDark
-            ? const Color(0xFF3B82F6).withOpacity(0.12)
-            : const Color(0xFF60A5FA).withOpacity(0.10);
+            ? AppColors.primary.withValues(alpha: 0.12)
+            : AppColors.primaryLight.withValues(alpha: 0.10);
 
         final sideGlowColor = isDark
-            ? const Color(0xFF6366F1).withOpacity(0.10)
-            : const Color(0xFFA78BFA).withOpacity(0.08);
+            ? AppColors.cool.withValues(alpha: 0.09)
+            : AppColors.cool.withValues(alpha: 0.07);
+
+        final bottomGlowColor = isDark
+            ? AppColors.primaryLight.withValues(alpha: 0.05)
+            : AppColors.primary.withValues(alpha: 0.04);
 
         return Scaffold(
           backgroundColor: Colors.transparent,
@@ -429,7 +434,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
           body: Stack(
             children: [
               Positioned.fill(
-                child: Container(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: backgroundGradient,
@@ -440,8 +446,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                 ),
               ),
               Positioned(
-                top: -70,
-                right: -40,
+                top: -72,
+                right: -44,
                 child: IgnorePointer(
                   child: Container(
                     width: 240,
@@ -454,15 +460,29 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                 ),
               ),
               Positioned(
-                top: 190,
-                left: -70,
+                top: 210,
+                left: -76,
                 child: IgnorePointer(
                   child: Container(
-                    width: 230,
-                    height: 230,
+                    width: 220,
+                    height: 220,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: sideGlowColor,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: -90,
+                right: 40,
+                child: IgnorePointer(
+                  child: Container(
+                    width: 260,
+                    height: 260,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: bottomGlowColor,
                     ),
                   ),
                 ),

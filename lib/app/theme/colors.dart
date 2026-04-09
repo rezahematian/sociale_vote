@@ -18,58 +18,58 @@ class AppColors {
   // =========================================================
 
   /// Sfondo principale dell'app (dietro le card).
-  static const Color background = Color(0xFFF7F8FC);
+  static const Color background = Color(0xFFF5F7FB);
 
   /// Variante alternativa di background per layering leggero.
-  static const Color backgroundAlt = Color(0xFFF1F5F9);
+  static const Color backgroundAlt = Color(0xFFEEF3F9);
 
   /// Superficie principale (card, fogli, pannelli).
   static const Color surface = Color(0xFFFFFFFF);
 
   /// Variante di surface leggermente distinta.
-  static const Color surfaceAlt = Color(0xFFFDFEFF);
+  static const Color surfaceAlt = Color(0xFFFCFDFE);
 
   /// Surface variant per contenitori secondari, placeholder, box informativi.
-  static const Color surfaceVariant = Color(0xFFF8FAFC);
+  static const Color surfaceVariant = Color(0xFFF6F8FC);
 
   // =========================================================
   // DARK / BACKGROUND
   // =========================================================
 
   /// Sfondo principale dark dell'app.
-  static const Color backgroundDark = Color(0xFF0F172A);
+  static const Color backgroundDark = Color(0xFF0B1220);
 
   /// Variante alternativa dark per layering leggero.
-  static const Color backgroundAltDark = Color(0xFF111827);
+  static const Color backgroundAltDark = Color(0xFF0F1728);
 
   /// Superficie principale dark (card, fogli, pannelli).
-  static const Color surfaceDark = Color(0xFF111827);
+  static const Color surfaceDark = Color(0xFF121A26);
 
   /// Variante dark di surface leggermente distinta.
-  static const Color surfaceAltDark = Color(0xFF172033);
+  static const Color surfaceAltDark = Color(0xFF172131);
 
   /// Surface variant dark per contenitori secondari, placeholder, box informativi.
-  static const Color surfaceVariantDark = Color(0xFF1E293B);
+  static const Color surfaceVariantDark = Color(0xFF1D2938);
 
   // =========================================================
   // BORDI / DIVIDER
   // =========================================================
 
   /// Bordo soft per card e contenitori.
-  static const Color borderSoft = Color(0xFFE2E4EA);
+  static const Color borderSoft = Color(0xFFDCE3EC);
 
   /// Divider leggero tra elementi di lista / sezioni.
-  static const Color divider = Color(0xFFECEFF4);
+  static const Color divider = Color(0xFFE8EDF3);
 
   // =========================================================
   // DARK / BORDI / DIVIDER
   // =========================================================
 
   /// Bordo soft dark per card e contenitori.
-  static const Color borderSoftDark = Color(0xFF2A3444);
+  static const Color borderSoftDark = Color(0xFF2D3A4D);
 
   /// Divider dark tra elementi di lista / sezioni.
-  static const Color dividerDark = Color(0xFF243041);
+  static const Color dividerDark = Color(0xFF223044);
 
   // =========================================================
   // PRIMARY / BRAND
@@ -97,10 +97,10 @@ class AppColors {
   static const Color primarySoftForeground = primary;
 
   /// Soft background primary per dark surfaces.
-  static const Color primarySoftBackgroundDark = Color(0xFF1E3A8A);
+  static const Color primarySoftBackgroundDark = Color(0xFF1A2B52);
 
   /// Testo/icona sopra primarySoftBackgroundDark.
-  static const Color primarySoftForegroundDark = Color(0xFFDBEAFE);
+  static const Color primarySoftForegroundDark = Color(0xFFD8E6FF);
 
   // =========================================================
   // ENGAGEMENT / STATE
@@ -141,19 +141,19 @@ class AppColors {
   // =========================================================
 
   /// Variante soft dark per badge / background heat.
-  static const Color heatSoftBackgroundDark = Color(0xFF4C1D1D);
+  static const Color heatSoftBackgroundDark = Color(0xFF412022);
 
   /// Variante soft dark per badge / background cool.
-  static const Color coolSoftBackgroundDark = Color(0xFF082F49);
+  static const Color coolSoftBackgroundDark = Color(0xFF102D42);
 
   /// Soft background dark per success.
-  static const Color successSoftBackgroundDark = Color(0xFF052E16);
+  static const Color successSoftBackgroundDark = Color(0xFF123125);
 
   /// Soft background dark per warning.
-  static const Color warningSoftBackgroundDark = Color(0xFF451A03);
+  static const Color warningSoftBackgroundDark = Color(0xFF402817);
 
   /// Soft background dark per error.
-  static const Color errorSoftBackgroundDark = Color(0xFF450A0A);
+  static const Color errorSoftBackgroundDark = Color(0xFF3E1A1D);
 
   // =========================================================
   // TEXT
@@ -176,13 +176,13 @@ class AppColors {
   // =========================================================
 
   /// Testo principale dark (titoli, body importante).
-  static const Color textPrimaryDark = Color(0xFFF8FAFC);
+  static const Color textPrimaryDark = Color(0xFFF3F7FD);
 
   /// Testo secondario dark (descrizioni, meta info).
-  static const Color textSecondaryDark = Color(0xFFCBD5E1);
+  static const Color textSecondaryDark = Color(0xFFBEC9D8);
 
   /// Testo attenuato dark (caption, label leggere).
-  static const Color textMutedDark = Color(0xFF94A3B8);
+  static const Color textMutedDark = Color(0xFF8FA1B7);
 
   // =========================================================
   // ICON / DISABLED
@@ -202,7 +202,7 @@ class AppColors {
   // =========================================================
 
   /// Icone di default dark (stato neutro).
-  static const Color iconDark = Color(0xFFCBD5E1);
+  static const Color iconDark = Color(0xFFC8D3E1);
 
   /// Icone disabilitate dark / elementi disattivati.
   static const Color iconDisabledDark = Color(0xFF475569);
@@ -215,7 +215,7 @@ class AppColors {
   // =========================================================
 
   /// Ombra standard molto leggera per card e overlay.
-  static const Color shadow = Color(0x14000000);
+  static const Color shadow = Color(0x140F172A);
 
   /// Base per skeleton loading.
   static const Color skeletonBase = Color(0xFFE5E7EB);

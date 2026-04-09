@@ -52,31 +52,68 @@ class AppCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    final isDark = theme.brightness == Brightness.dark;
     final EdgeInsetsGeometry effectivePadding = padding ?? AppSpacing.card;
 
-    Color backgroundColor = theme.cardColor;
-    final BorderSide borderSide;
+    final Color baseBackgroundColor = theme.cardColor;
+    final Color backgroundColor = selected
+        ? (isDark
+              ? AppColors.primarySoftBackgroundDark
+              : AppColors.primarySoftBackground)
+        : baseBackgroundColor;
 
-    if (selected) {
-      backgroundColor = AppColors.primarySoftBackground;
-      borderSide = BorderSide(
-        color: AppColors.primary.withOpacity(0.7),
-        width: 1.2,
-      );
-    } else {
-      borderSide = const BorderSide(
-        color: AppColors.borderSoft,
-        width: 1,
-      );
-    }
+    final BorderSide borderSide = BorderSide(
+      color: selected
+          ? (isDark
+                ? AppColors.primaryLight.withOpacity(0.52)
+                : AppColors.primary.withOpacity(0.42))
+          : (isDark ? AppColors.borderSoftDark : AppColors.borderSoft),
+      width: selected ? 1.2 : 1,
+    );
+
+    final List<Color> gradientColors = selected
+        ? <Color>[
+            backgroundColor,
+            backgroundColor,
+          ]
+        : isDark
+        ? <Color>[
+            _blend(baseBackgroundColor, Colors.white, 0.035),
+            _blend(baseBackgroundColor, const Color(0xFF020617), 0.16),
+          ]
+        : <Color>[
+            _blend(baseBackgroundColor, Colors.white, 0.72),
+            _blend(baseBackgroundColor, AppColors.backgroundAlt, 0.30),
+          ];
+
+    final List<BoxShadow> shadows = elevated
+        ? <BoxShadow>[
+            BoxShadow(
+              blurRadius: isDark ? 28 : 20,
+              offset: const Offset(0, 10),
+              color: isDark
+                  ? Colors.black.withOpacity(0.24)
+                  : Colors.black.withOpacity(0.06),
+            ),
+          ]
+        : <BoxShadow>[
+            BoxShadow(
+              blurRadius: isDark ? 16 : 12,
+              offset: const Offset(0, 4),
+              color: isDark
+                  ? Colors.black.withOpacity(0.16)
+                  : Colors.black.withOpacity(0.028),
+            ),
+          ];
 
     final shape = RoundedRectangleBorder(
       borderRadius: AppRadius.cardRadius,
       side: borderSide,
     );
 
-    final double elevationValue = elevated ? 3.0 : 0.0;
+    final Color overlayColor = isDark
+        ? AppColors.primarySoftBackgroundDark.withOpacity(0.34)
+        : AppColors.primarySoftBackground.withOpacity(0.72);
 
     Widget cardChild = Padding(
       padding: effectivePadding,
@@ -87,19 +124,30 @@ class AppCard extends StatelessWidget {
       cardChild = InkWell(
         onTap: onTap,
         borderRadius: AppRadius.cardRadius,
-        splashColor: AppColors.primarySoftBackground,
-        highlightColor: AppColors.primarySoftBackground.withOpacity(0.4),
+        splashColor: overlayColor,
+        highlightColor: overlayColor.withOpacity(0.75),
+        hoverColor: overlayColor.withOpacity(0.45),
         child: cardChild,
       );
     }
 
     Widget content = Material(
-      color: backgroundColor,
-      elevation: elevationValue,
-      shadowColor: elevated ? AppColors.shadow : Colors.transparent,
+      color: Colors.transparent,
       shape: shape,
       clipBehavior: Clip.antiAlias,
-      child: cardChild,
+      child: Ink(
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.cardRadius,
+          border: Border.fromBorderSide(borderSide),
+          gradient: LinearGradient(
+            colors: gradientColors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: shadows,
+        ),
+        child: cardChild,
+      ),
     );
 
     if (margin != null) {
@@ -110,5 +158,9 @@ class AppCard extends StatelessWidget {
     }
 
     return content;
+  }
+
+  Color _blend(Color base, Color other, double amount) {
+    return Color.lerp(base, other, amount) ?? base;
   }
 }
