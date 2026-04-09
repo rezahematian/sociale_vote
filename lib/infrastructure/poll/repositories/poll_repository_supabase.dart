@@ -5,11 +5,14 @@ import 'package:sociale_vote/domain/geo/value_objects/content_location_source.da
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/poll_option.dart';
 import 'package:sociale_vote/domain/poll/repositories/poll_repository.dart';
+import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_configuration.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_status.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
+import 'package:sociale_vote/domain/poll/value_objects/quorum_rules.dart';
+import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 
 class PollRepositorySupabase implements PollRepository {
   static const String _pollsTable = 'polls_with_vote_count';
@@ -250,6 +253,16 @@ class PollRepositorySupabase implements PollRepository {
       'participation_scope': _participationScopeValue(
         poll.configuration.participationRules.scope,
       ),
+      'participation_country_code':
+          poll.configuration.participationRules.countryCode,
+      'allow_vote_change': poll.configuration.allowVoteChange,
+      'anonymity_level': _anonymityLevelValue(
+        poll.configuration.anonymityRules.level,
+      ),
+      'results_visibility': _resultsVisibilityValue(
+        poll.configuration.visibilityRules.resultsVisibility,
+      ),
+      'min_quorum_votes': poll.configuration.quorumRules.minAbsoluteVotes,
       'country_code': poll.countryCode,
       'city_id': poll.cityId,
       'start_at': poll.startAt?.toIso8601String(),
@@ -274,6 +287,16 @@ class PollRepositorySupabase implements PollRepository {
 
     final countryCode = row['country_code'] as String?;
     final cityId = row['city_id'] as String?;
+    final participationCountryCode =
+        row['participation_country_code'] as String?;
+    final startAt = _parseDateTime(row['start_at']);
+    final endAt = _parseDateTime(row['end_at']);
+    final storedStatus = _pollStatusFromValue(row['status'] as String?);
+    final effectiveStatus = _resolveEffectiveStatus(
+      storedStatus: storedStatus,
+      startAt: startAt,
+      endAt: endAt,
+    );
     final contentLocation = _mapContentLocation(row, countryCode, cityId);
 
     return Poll(
@@ -281,27 +304,71 @@ class PollRepositorySupabase implements PollRepository {
       title: (row['title'] as String?) ?? '',
       description: row['description'] as String?,
       type: _pollTypeFromValue(row['type'] as String?),
-      status: _pollStatusFromValue(row['status'] as String?),
+      status: effectiveStatus,
       options: options,
       configuration: PollConfiguration(
         minSelections: (row['min_selections'] as int?) ?? 1,
         maxSelections: (row['max_selections'] as int?) ?? 1,
+        allowVoteChange: (row['allow_vote_change'] as bool?) ?? false,
         participationRules: ParticipationRules(
           scope: _participationScopeFromValue(
             row['participation_scope'] as String?,
           ),
-          countryCode: countryCode,
+          countryCode: participationCountryCode,
+        ),
+        anonymityRules: AnonymityRules(
+          level: _anonymityLevelFromValue(
+            row['anonymity_level'] as String?,
+          ),
+        ),
+        visibilityRules: VisibilityRules(
+          resultsVisibility: _resultsVisibilityFromValue(
+            row['results_visibility'] as String?,
+          ),
+        ),
+        quorumRules: QuorumRules(
+          minAbsoluteVotes: _toInt(row['min_quorum_votes']),
         ),
       ),
       createdAt: _parseDateTime(row['created_at']),
-      startAt: _parseDateTime(row['start_at']),
-      endAt: _parseDateTime(row['end_at']),
+      startAt: startAt,
+      endAt: endAt,
       countryCode: countryCode,
       cityId: cityId,
       contentLocation: contentLocation,
       createdByUserId: row['author_id'] as String?,
       voteCount: (row['vote_count'] as int?) ?? 0,
     );
+  }
+
+  PollStatus _resolveEffectiveStatus({
+    required PollStatus storedStatus,
+    required DateTime? startAt,
+    required DateTime? endAt,
+  }) {
+    if (storedStatus == PollStatus.draft) {
+      return PollStatus.draft;
+    }
+
+    if (storedStatus == PollStatus.closed) {
+      return PollStatus.closed;
+    }
+
+    if (startAt == null && endAt == null) {
+      return storedStatus;
+    }
+
+    final now = DateTime.now();
+
+    if (startAt != null && now.isBefore(startAt)) {
+      return PollStatus.scheduled;
+    }
+
+    if (endAt != null && now.isAfter(endAt)) {
+      return PollStatus.closed;
+    }
+
+    return PollStatus.open;
   }
 
   ContentLocation? _mapContentLocation(
@@ -385,6 +452,13 @@ class PollRepositorySupabase implements PollRepository {
     return double.tryParse(value.toString());
   }
 
+  int? _toInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
+  }
+
   String _pollTypeValue(PollType type) {
     return type.toString().split('.').last;
   }
@@ -395,6 +469,14 @@ class PollRepositorySupabase implements PollRepository {
 
   String _participationScopeValue(ParticipationScope scope) {
     return scope.toString().split('.').last;
+  }
+
+  String _anonymityLevelValue(AnonymityLevel level) {
+    return level.toString().split('.').last;
+  }
+
+  String _resultsVisibilityValue(ResultsVisibilityMode mode) {
+    return mode.toString().split('.').last;
   }
 
   PollType _pollTypeFromValue(String? value) {
@@ -436,6 +518,28 @@ class PollRepositorySupabase implements PollRepository {
       case 'everyone':
       default:
         return ParticipationScope.everyone;
+    }
+  }
+
+  AnonymityLevel _anonymityLevelFromValue(String? value) {
+    switch (value) {
+      case 'public':
+        return AnonymityLevel.public;
+      case 'anonymous':
+      default:
+        return AnonymityLevel.anonymous;
+    }
+  }
+
+  ResultsVisibilityMode _resultsVisibilityFromValue(String? value) {
+    switch (value) {
+      case 'afterVote':
+        return ResultsVisibilityMode.afterVote;
+      case 'afterClose':
+        return ResultsVisibilityMode.afterClose;
+      case 'always':
+      default:
+        return ResultsVisibilityMode.always;
     }
   }
 }

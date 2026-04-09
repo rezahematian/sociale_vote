@@ -206,7 +206,7 @@ class CreatePollController extends ChangeNotifier {
   }
 
   void setCountryCodeForParticipation(String? code) {
-    _countryCodeForParticipation = code;
+    _countryCodeForParticipation = _normalizeCountryCode(code);
     _errorMessage = null;
     notifyListeners();
   }
@@ -266,7 +266,7 @@ class CreatePollController extends ChangeNotifier {
   }) {
     _contentLocation = ContentLocation(
       source: ContentLocationSource.manual,
-      countryCode: _normalizeString(countryCode),
+      countryCode: _normalizeCountryCode(countryCode),
       cityId: _normalizeString(cityId),
       cityName: _normalizeString(cityName),
       centerLat: centerLat,
@@ -403,13 +403,14 @@ class CreatePollController extends ChangeNotifier {
       final scope = _geoScopeController.scope;
       final effectiveLocation = await _resolveLocationBeforeSubmit();
 
-      String? geoCountryCode = effectiveLocation.countryCode;
+      String? geoCountryCode =
+          _normalizeCountryCode(effectiveLocation.countryCode);
       String? cityId = effectiveLocation.cityId;
 
-      if (geoCountryCode == null || geoCountryCode.trim().isEmpty) {
+      if (geoCountryCode == null) {
         if (scope.level == GeoScopeLevel.country ||
             scope.level == GeoScopeLevel.city) {
-          geoCountryCode = scope.countryCode;
+          geoCountryCode = _normalizeCountryCode(scope.countryCode);
         }
       }
 
@@ -420,7 +421,8 @@ class CreatePollController extends ChangeNotifier {
 
       final effectiveParticipationCountry =
           _participationScope == ParticipationScope.geoScopeOnly
-              ? (_countryCodeForParticipation ?? geoCountryCode)
+              ? (_normalizeCountryCode(_countryCodeForParticipation) ??
+                  geoCountryCode)
               : null;
 
       if (_participationScope == ParticipationScope.geoScopeOnly &&
@@ -553,7 +555,7 @@ class CreatePollController extends ChangeNotifier {
       case GeoScopeLevel.country:
         return ContentLocation(
           source: ContentLocationSource.geoScopeFallback,
-          countryCode: scope.countryCode,
+          countryCode: _normalizeCountryCode(scope.countryCode),
           centerLat: scope.centerLat,
           centerLng: scope.centerLng,
         );
@@ -561,7 +563,7 @@ class CreatePollController extends ChangeNotifier {
       case GeoScopeLevel.city:
         return ContentLocation(
           source: ContentLocationSource.geoScopeFallback,
-          countryCode: scope.countryCode,
+          countryCode: _normalizeCountryCode(scope.countryCode),
           cityId: scope.cityId,
           centerLat: scope.centerLat,
           centerLng: scope.centerLng,
@@ -574,5 +576,13 @@ class CreatePollController extends ChangeNotifier {
     final trimmed = value.trim();
     if (trimmed.isEmpty) return null;
     return trimmed;
+  }
+
+  String? _normalizeCountryCode(String? value) {
+    final normalized = _normalizeString(value);
+    if (normalized == null) {
+      return null;
+    }
+    return normalized.toUpperCase();
   }
 }

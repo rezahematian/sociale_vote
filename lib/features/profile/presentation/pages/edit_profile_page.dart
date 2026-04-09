@@ -4,7 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 import 'package:sociale_vote/features/profile/application/profile_controller.dart';
+import 'package:sociale_vote/shared/data/countries.dart' as data;
+import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class EditProfilePage extends StatelessWidget {
@@ -69,15 +73,17 @@ class _EditProfileViewState extends State<_EditProfileView> {
   final _usernameController = TextEditingController();
   final _avatarUrlController = TextEditingController();
   final _bioController = TextEditingController();
-  final _countryController = TextEditingController();
   final _cityController = TextEditingController();
 
   final ImagePicker _imagePicker = ImagePicker();
 
   bool _didInitForm = false;
   bool _isUploadingAvatar = false;
+
+  String? _selectedCountryCode;
   String? _avatarUploadError;
   String? _usernameError;
+  String? _locationError;
 
   @override
   void dispose() {
@@ -85,7 +91,6 @@ class _EditProfileViewState extends State<_EditProfileView> {
     _usernameController.dispose();
     _avatarUrlController.dispose();
     _bioController.dispose();
-    _countryController.dispose();
     _cityController.dispose();
     super.dispose();
   }
@@ -102,7 +107,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
           _usernameController.text = profile.username ?? '';
           _avatarUrlController.text = profile.avatarUrl ?? '';
           _bioController.text = profile.bio ?? '';
-          _countryController.text = profile.country ?? '';
+          _selectedCountryCode = _normalizeCountryCode(profile.country);
           _cityController.text = profile.city ?? '';
         }
 
@@ -139,6 +144,20 @@ class _EditProfileViewState extends State<_EditProfileView> {
                           padding: const EdgeInsets.all(12),
                           child: Text(
                             _avatarUploadError!,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    if (_locationError != null) ...[
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Text(
+                            _locationError!,
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.error,
                             ),
@@ -230,20 +249,49 @@ class _EditProfileViewState extends State<_EditProfileView> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    TextField(
-                      controller: _countryController,
-                      textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        labelText: 'Country',
-                        border: OutlineInputBorder(),
-                      ),
+                    CountrySelectorField(
+                      selectedCountryCode: _selectedCountryCode,
+                      label: 'Country',
+                      onCountrySelected: (code) {
+                        setState(() {
+                          _selectedCountryCode = _normalizeCountryCode(code);
+                          _locationError = null;
+                        });
+                      },
                     ),
-                    const SizedBox(height: 12),
+                    if (_selectedCountryCode != null &&
+                        _selectedCountryCode!.trim().isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          onPressed: controller.isSaving || _isUploadingAvatar
+                              ? null
+                              : () {
+                                  setState(() {
+                                    _selectedCountryCode = null;
+                                    _locationError = null;
+                                  });
+                                },
+                          icon: const Icon(Icons.clear),
+                          label: const Text('Clear country'),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 8),
                     TextField(
                       controller: _cityController,
                       textInputAction: TextInputAction.done,
+                      onChanged: (_) {
+                        if (_locationError == null) return;
+                        setState(() {
+                          _locationError = null;
+                        });
+                      },
                       decoration: const InputDecoration(
                         labelText: 'City',
+                        helperText:
+                            'City is validated against the selected country before save.',
                         border: OutlineInputBorder(),
                       ),
                     ),
@@ -256,6 +304,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
                               setState(() {
                                 _avatarUploadError = null;
                                 _usernameError = null;
+                                _locationError = null;
                               });
 
                               final normalizedUsername =
@@ -273,6 +322,67 @@ class _EditProfileViewState extends State<_EditProfileView> {
                                 return;
                               }
 
+                              final normalizedCountryCode =
+                                  _normalizeCountryCode(_selectedCountryCode);
+                              final normalizedCityInput = _normalizeNullable(
+                                _cityController.text,
+                              );
+
+                              if (normalizedCityInput != null &&
+                                  normalizedCountryCode == null) {
+                                setState(() {
+                                  _locationError =
+                                      'Seleziona prima un paese per validare la città.';
+                                });
+                                return;
+                              }
+
+                              String? effectiveCountry = normalizedCountryCode;
+                              String? effectiveCity = normalizedCityInput;
+
+                              if (normalizedCountryCode != null ||
+                                  normalizedCityInput != null) {
+                                try {
+                                  final resolved = await AppDI
+                                      .instance.geocodingRepository
+                                      .geocodeContentLocation(
+                                    ContentLocation(
+                                      source:
+                                          ContentLocationSource.geoScopeFallback,
+                                      countryCode: normalizedCountryCode,
+                                      cityName: normalizedCityInput,
+                                    ),
+                                  );
+
+                                  if (normalizedCityInput != null &&
+                                      resolved == null) {
+                                    setState(() {
+                                      _locationError =
+                                          'Città non riconosciuta per il paese selezionato.';
+                                    });
+                                    return;
+                                  }
+
+                                  effectiveCountry = _normalizeCountryCode(
+                                    resolved?.countryCode ?? normalizedCountryCode,
+                                  );
+
+                                  effectiveCity = _normalizeNullable(
+                                    resolved?.cityName ??
+                                        normalizedCityInput ??
+                                        '',
+                                  );
+                                } catch (_) {
+                                  if (normalizedCityInput != null) {
+                                    setState(() {
+                                      _locationError =
+                                          'Impossibile verificare la città in questo momento.';
+                                    });
+                                    return;
+                                  }
+                                }
+                              }
+
                               await controller.updateProfile(
                                 userId: widget.currentUserId,
                                 displayName: _normalizeNullable(
@@ -283,10 +393,8 @@ class _EditProfileViewState extends State<_EditProfileView> {
                                   _avatarUrlController.text,
                                 ),
                                 bio: _normalizeNullable(_bioController.text),
-                                country: _normalizeNullable(
-                                  _countryController.text,
-                                ),
-                                city: _normalizeNullable(_cityController.text),
+                                country: effectiveCountry,
+                                city: effectiveCity,
                               );
 
                               if (!context.mounted) return;
@@ -367,6 +475,31 @@ class _EditProfileViewState extends State<_EditProfileView> {
   String? _normalizeNullable(String value) {
     final normalized = value.trim();
     return normalized.isEmpty ? null : normalized;
+  }
+
+  String? _normalizeCountryCode(String? value) {
+    final normalized = _normalizeNullable(value ?? '');
+    if (normalized == null) {
+      return null;
+    }
+
+    final upper = normalized.toUpperCase();
+
+    for (final country in data.Countries.all) {
+      if (country.code.toUpperCase() == upper) {
+        return country.code.toUpperCase();
+      }
+    }
+
+    final lower = normalized.toLowerCase();
+
+    for (final country in data.Countries.all) {
+      if (country.name.toLowerCase() == lower) {
+        return country.code.toUpperCase();
+      }
+    }
+
+    return null;
   }
 
   String? _normalizeUsernameInput(String value) {

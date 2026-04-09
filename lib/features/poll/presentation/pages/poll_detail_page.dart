@@ -782,10 +782,19 @@ class _PollDetailPageState extends State<PollDetailPage> {
       return;
     }
 
+    String? userCountryCode;
+    try {
+      final profile = await AppDI.instance.getUserProfile(userId);
+      final normalizedCountry = profile?.country?.trim();
+      if (normalizedCountry != null && normalizedCountry.isNotEmpty) {
+        userCountryCode = normalizedCountry.toUpperCase();
+      }
+    } catch (_) {}
+
     await _voteController.submitVote(
       poll: poll,
       userId: userId,
-      userCountryCode: null,
+      userCountryCode: userCountryCode,
     );
 
     if (_voteController.submittedSuccessfully) {

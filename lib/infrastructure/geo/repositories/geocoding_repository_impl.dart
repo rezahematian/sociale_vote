@@ -16,7 +16,7 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
   final Duration _timeout;
 
   const GeocodingRepositoryImpl({
-    http.Client? httpClient,
+    httpClient,
     String baseUrl = _defaultBaseUrl,
     String userAgent = _defaultUserAgent,
     Duration timeout = const Duration(seconds: 8),
@@ -93,7 +93,11 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
       requests.add(freeFormPlaceOnly);
     }
 
-    if (countryCode != null) {
+    // Importante:
+    // la ricerca "solo paese" va fatta SOLO se l'utente non ha inserito
+    // una città. Altrimenti qualunque città inventata verrebbe accettata
+    // grazie al match del solo paese.
+    if (countryCode != null && placeName == null) {
       final countrySearch = baseParams()
         ..['featureType'] = 'country'
         ..['countrycodes'] = countryCode
@@ -159,6 +163,16 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
       return null;
     }
 
+    // Se l'utente ha richiesto una città specifica, il risultato deve
+    // matchare davvero una località coerente. Un match del solo paese
+    // non è sufficiente.
+    if (!_matchesRequestedCity(
+      candidate: selected,
+      seed: seed,
+    )) {
+      return null;
+    }
+
     final lat = _toDouble(selected['lat']);
     final lon = _toDouble(selected['lon']);
 
@@ -193,7 +207,7 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
   }
 
   Map<String, dynamic>? _selectBestResult({
-    required List<dynamic> decoded,
+    required List decoded,
     required ContentLocation seed,
   }) {
     final candidates = decoded
@@ -260,16 +274,57 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
     }
 
     if (seedPlaceName != null) {
+      // Se l'utente ha indicato una città, un risultato che non matcha
+      // affatto quella città non va considerato valido.
       if (candidateLocality == seedPlaceName) {
         score += 100;
       } else if (displayName != null && displayName.contains(seedPlaceName)) {
         score += 40;
       } else {
-        score -= 20;
+        return -1000;
       }
     }
 
     return score;
+  }
+
+  bool _matchesRequestedCity({
+    required Map<String, dynamic> candidate,
+    required ContentLocation seed,
+  }) {
+    final seedPlaceName = _normalize(seed.cityName)?.toLowerCase();
+    if (seedPlaceName == null) {
+      return true;
+    }
+
+    final address = _readAddress(candidate);
+    final localityCandidates = [
+      address?['city']?.toString(),
+      address?['town']?.toString(),
+      address?['village']?.toString(),
+      address?['municipality']?.toString(),
+      address?['county']?.toString(),
+      address?['state_district']?.toString(),
+      address?['suburb']?.toString(),
+    ]
+        .map((value) => _normalize(value)?.toLowerCase())
+        .whereType<String>()
+        .toList(growable: false);
+
+    for (final locality in localityCandidates) {
+      if (locality == seedPlaceName) {
+        return true;
+      }
+    }
+
+    final displayName =
+        _normalize(candidate['display_name']?.toString())?.toLowerCase();
+
+    if (displayName != null && displayName.contains(seedPlaceName)) {
+      return true;
+    }
+
+    return false;
   }
 
   Map<String, dynamic>? _readAddress(Map<String, dynamic> row) {

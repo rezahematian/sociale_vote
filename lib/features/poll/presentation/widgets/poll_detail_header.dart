@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
+import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_status.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
 import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
@@ -101,17 +102,34 @@ class PollDetailHeader extends StatelessWidget {
 
     final locationLabel = _mapLocationLabel(l10n);
     final statusLabel = _mapStatusToLabel(l10n, poll.status);
+    final participationLabel = _mapParticipationLabel(l10n);
     final timeWindowLabel = _mapTimeWindowLabel(
       startAt: poll.startAt,
       endAt: poll.endAt,
     );
     final typeLabel = _mapTypeToLabel(l10n, poll.type);
     final voteChangeLabel = config.allowVoteChange
-        ? 'Voto modificabile'
-        : 'Voto non modificabile';
+        ? _localizedText(
+            l10n,
+            it: 'Voto modificabile',
+            en: 'Vote can change',
+          )
+        : _localizedText(
+            l10n,
+            it: 'Voto non modificabile',
+            en: 'Vote locked',
+          );
     final anonymityLabel = config.anonymityRules.level == AnonymityLevel.anonymous
-        ? l10n.pollDetail_chipAnonymous
-        : l10n.pollDetail_chipPublic;
+        ? _localizedText(
+            l10n,
+            it: 'Voto anonimo',
+            en: 'Anonymous vote',
+          )
+        : _localizedText(
+            l10n,
+            it: 'Voto pubblico',
+            en: 'Public vote',
+          );
     final resultsVisibilityLabel = _mapResultsVisibilityLabel(
       l10n,
       config.visibilityRules.resultsVisibility,
@@ -134,6 +152,8 @@ class PollDetailHeader extends StatelessWidget {
     final chips = <Widget>[
       _buildLocationChip(theme, locationLabel),
       _buildStatusChip(theme, statusLabel, poll.status),
+      if (participationLabel != null)
+        _buildParticipationChip(theme, participationLabel),
       if (timeWindowLabel != null) _buildTimeWindowChip(theme, timeWindowLabel),
       _buildTypeChip(theme, typeLabel),
       _buildVoteChangeChip(theme, voteChangeLabel, config.allowVoteChange),
@@ -365,6 +385,18 @@ class PollDetailHeader extends StatelessWidget {
       borderColor: border,
       bold: true,
       letterSpacing: 0.25,
+    );
+  }
+
+  Widget _buildParticipationChip(ThemeData theme, String label) {
+    return _buildInfoPill(
+      theme: theme,
+      metrics: _chipMetrics,
+      icon: Icons.lock_outline,
+      label: label,
+      backgroundColor: _softAmberBg,
+      foregroundColor: _softAmberFg,
+      borderColor: _softAmberBorder,
     );
   }
 
@@ -669,19 +701,46 @@ class PollDetailHeader extends StatelessWidget {
   }
 
   String _mapLocationLabel(AppLocalizations l10n) {
-    final country = _resolveCountryName(poll.countryCode);
-    final city = poll.cityId;
+    final contentLocation = poll.contentLocation;
+    final countryCode = contentLocation?.countryCode ?? poll.countryCode;
+    final cityName = _normalizeString(contentLocation?.cityName) ??
+        _normalizeString(poll.cityId);
 
-    if (country == null && city == null) {
+    final country = _resolveCountryName(countryCode);
+
+    if (country == null && cityName == null) {
       return l10n.pollGeo_global;
     }
-    if (country != null && city == null) {
+    if (country != null && cityName == null) {
       return country;
     }
-    if (country == null && city != null) {
-      return city;
+    if (country == null && cityName != null) {
+      return cityName;
     }
-    return '$city · $country';
+    return '$cityName · $country';
+  }
+
+  String? _mapParticipationLabel(AppLocalizations l10n) {
+    final rules = poll.configuration.participationRules;
+
+    if (rules.scope == ParticipationScope.everyone) {
+      return null;
+    }
+
+    final countryName = _resolveCountryName(rules.countryCode);
+    if (countryName != null) {
+      return _localizedText(
+        l10n,
+        it: 'Solo utenti $countryName',
+        en: 'Only $countryName users',
+      );
+    }
+
+    return _localizedText(
+      l10n,
+      it: 'Partecipazione ristretta',
+      en: 'Restricted access',
+    );
   }
 
   String? _resolveCountryName(String? code) {
@@ -766,19 +825,46 @@ class PollDetailHeader extends StatelessWidget {
     AppLocalizations l10n,
     ResultsVisibilityMode mode,
   ) {
-    final locale = l10n.localeName.toLowerCase();
-    final isItalian = locale.startsWith('it');
-
     switch (mode) {
       case ResultsVisibilityMode.always:
-        return isItalian ? 'Sempre visibili' : 'Always visible';
+        return _localizedText(
+          l10n,
+          it: 'Risultati sempre visibili',
+          en: 'Results always visible',
+        );
       case ResultsVisibilityMode.afterVote:
-        return isItalian ? 'Visibili dopo voto' : 'Visible after vote';
+        return _localizedText(
+          l10n,
+          it: 'Risultati visibili dopo voto',
+          en: 'Results visible after vote',
+        );
       case ResultsVisibilityMode.afterClose:
-        return isItalian ? 'Visibili dopo chiusura' : 'Visible after close';
-      default:
-        return isItalian ? 'Risultati' : 'Results';
+        return _localizedText(
+          l10n,
+          it: 'Risultati visibili dopo chiusura',
+          en: 'Results visible after close',
+        );
     }
+  }
+
+  String _localizedText(
+    AppLocalizations l10n, {
+    required String it,
+    required String en,
+  }) {
+    final locale = l10n.localeName.toLowerCase();
+    return locale.startsWith('it') ? it : en;
+  }
+
+  String? _normalizeString(String? value) {
+    if (value == null) {
+      return null;
+    }
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+    return trimmed;
   }
 }
 
