@@ -43,6 +43,18 @@ class SubmitVote {
       optionIds: vote.optionIds,
     );
 
-    await voteRepository.submitVote(vote);
+    final hasAlreadyVoted = await voteRepository.hasCurrentUserVoted(poll.id);
+
+    if (!hasAlreadyVoted) {
+      await voteRepository.submitVote(vote);
+      return;
+    }
+
+    if (poll.configuration.allowVoteChange) {
+      await voteRepository.updateVote(vote);
+      return;
+    }
+
+    throw Exception('already voted');
   }
 }

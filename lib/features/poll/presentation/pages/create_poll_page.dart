@@ -32,8 +32,6 @@ class _CreatePollView extends StatefulWidget {
 }
 
 class _CreatePollViewState extends State<_CreatePollView> {
-  String? _selectedCountryCode;
-  String? _selectedContentCountryCode;
   final TextEditingController _contentCityController = TextEditingController();
 
   @override
@@ -135,12 +133,115 @@ class _CreatePollViewState extends State<_CreatePollView> {
     return parts.join(', ');
   }
 
-  void _applyManualContentLocation(CreatePollController controller) {
+  void _applyManualContentLocation(
+    CreatePollController controller, {
+    String? countryCode,
+  }) {
     controller.setManualContentLocation(
-      countryCode: _selectedContentCountryCode,
+      countryCode: countryCode ?? controller.contentLocation?.countryCode,
       cityName: _contentCityController.text.trim().isEmpty
           ? null
           : _contentCityController.text.trim(),
+    );
+  }
+
+  bool _isTimingTooLong(CreatePollController controller) {
+    if (!controller.hasExplicitTimeWindow) {
+      return false;
+    }
+    return controller.endAt.difference(controller.startAt) >
+        const Duration(days: 31);
+  }
+
+  String? _submitHintText(CreatePollController controller) {
+    if (!controller.hasExplicitTimeWindow) {
+      return 'Imposta data di inizio e data di fine prima di creare il poll.';
+    }
+
+    if (controller.endAt.isBefore(controller.startAt)) {
+      return 'La data di fine deve essere successiva alla data di inizio.';
+    }
+
+    if (_isTimingTooLong(controller)) {
+      return 'La votazione non può durare più di 31 giorni.';
+    }
+
+    return null;
+  }
+
+  Widget _buildInlineErrorBox(
+    BuildContext context, {
+    required String text,
+  }) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.error.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: theme.colorScheme.error.withOpacity(0.35),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 18,
+            color: theme.colorScheme.error,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInlineInfoBox(
+    BuildContext context, {
+    required String text,
+  }) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: theme.colorScheme.primary.withOpacity(0.18),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: 18,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -152,6 +253,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
     final theme = Theme.of(context);
     final effectiveLocation = controller.effectiveContentLocation;
     final explicitLocation = controller.contentLocation;
+    final selectedContentCountryCode = controller.contentLocation?.countryCode;
 
     return Card(
       elevation: 1,
@@ -181,7 +283,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.35),
+                color:
+                    theme.colorScheme.surfaceContainerHighest.withOpacity(0.35),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: theme.colorScheme.outline.withOpacity(0.15),
@@ -214,78 +317,117 @@ class _CreatePollViewState extends State<_CreatePollView> {
               ),
             ),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: isSubmitting
-                      ? null
-                      : () {
-                          controller.useGeoScopeAsContentLocation();
-                          final location = controller.contentLocation;
-                          setState(() {
-                            _selectedContentCountryCode = location?.countryCode;
-                            _contentCityController.text = location?.cityName ?? '';
-                          });
-                        },
-                  icon: const Icon(Icons.public),
-                  label: const Text('Usa scope corrente'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: isSubmitting || controller.isResolvingContentLocation
-                      ? null
-                      : () async {
-                          final success =
-                              await controller.useCurrentDeviceLocation();
-                          if (!mounted) return;
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final compact = constraints.maxWidth < 420;
 
-                          if (success) {
-                            final location = controller.contentLocation;
-                            setState(() {
-                              _selectedContentCountryCode =
-                                  location?.countryCode;
-                              _contentCityController.text =
-                                  location?.cityName ?? '';
-                            });
-                          }
-                        },
-                  icon: controller.isResolvingContentLocation
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.my_location),
-                  label: Text(
-                    controller.isResolvingContentLocation
-                        ? 'Ricavo posizione...'
-                        : 'Usa posizione attuale',
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: isSubmitting
-                      ? null
-                      : () {
-                          controller.clearContentLocation();
-                          setState(() {
-                            _selectedContentCountryCode = null;
-                            _contentCityController.clear();
-                          });
-                        },
-                  icon: const Icon(Icons.restart_alt),
-                  label: const Text('Reset'),
-                ),
-              ],
+                return Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: isSubmitting
+                            ? null
+                            : () {
+                                controller.useGeoScopeAsContentLocation();
+                                final location = controller.contentLocation;
+                                _contentCityController.text =
+                                    location?.cityName ?? '';
+                                setState(() {});
+                              },
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 10,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        icon: const Icon(Icons.public, size: 16),
+                        label: Text(
+                          compact ? 'Scope corrente' : 'Usa scope corrente',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed:
+                            isSubmitting || controller.isResolvingContentLocation
+                                ? null
+                                : () async {
+                                    final success =
+                                        await controller.useCurrentDeviceLocation();
+                                    if (!mounted) return;
+
+                                    if (success) {
+                                      final location = controller.contentLocation;
+                                      _contentCityController.text =
+                                          location?.cityName ?? '';
+                                      setState(() {});
+                                    }
+                                  },
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 10,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        icon: controller.isResolvingContentLocation
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.my_location, size: 16),
+                        label: Text(
+                          controller.isResolvingContentLocation
+                              ? (compact
+                                  ? 'Attendo...'
+                                  : 'Ricavo posizione...')
+                              : (compact
+                                  ? 'Posizione attuale'
+                                  : 'Usa posizione attuale'),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton.icon(
+                      onPressed: isSubmitting
+                          ? null
+                          : () {
+                              controller.clearContentLocation();
+                              _contentCityController.clear();
+                              setState(() {});
+                            },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      icon: const Icon(Icons.restart_alt, size: 16),
+                      label: const Text('Reset'),
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 16),
             CountrySelectorField(
-              selectedCountryCode: _selectedContentCountryCode,
+              key: ValueKey(
+                'content-country-${selectedContentCountryCode ?? 'none'}',
+              ),
+              selectedCountryCode: selectedContentCountryCode,
               onCountrySelected: (code) {
-                setState(() {
-                  _selectedContentCountryCode = code;
-                });
-                _applyManualContentLocation(controller);
+                _applyManualContentLocation(
+                  controller,
+                  countryCode: code,
+                );
+                setState(() {});
               },
               label: 'Paese del contenuto',
               required: false,
@@ -297,7 +439,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
               decoration: const InputDecoration(
                 labelText: 'Città del contenuto',
                 border: OutlineInputBorder(),
-                helperText: 'Facoltativo. Serve per posizionare meglio il poll.',
+                helperText:
+                    'Facoltativo. Serve per posizionare meglio il poll.',
               ),
               onChanged: (_) => _applyManualContentLocation(controller),
             ),
@@ -348,6 +491,12 @@ class _CreatePollViewState extends State<_CreatePollView> {
             child: Consumer<CreatePollController>(
               builder: (context, controller, _) {
                 final isSubmitting = controller.isSubmitting;
+                final selectedParticipationCountryCode =
+                    controller.countryCodeForParticipation;
+                final submitHintText = _submitHintText(controller);
+                final canSubmitPoll = controller.canSubmit &&
+                    controller.hasExplicitTimeWindow &&
+                    !_isTimingTooLong(controller);
 
                 return AbsorbPointer(
                   absorbing: isSubmitting,
@@ -358,39 +507,6 @@ class _CreatePollViewState extends State<_CreatePollView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (controller.errorMessage != null) ...[
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            margin: const EdgeInsets.only(bottom: 12),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.error.withOpacity(0.08),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: theme.colorScheme.error.withOpacity(0.4),
-                              ),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  color: theme.colorScheme.error,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    controller.errorMessage!,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: theme.colorScheme.error,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-
-                        // ===== BASIC INFO CARD =====
                         Card(
                           elevation: 1,
                           shape: RoundedRectangleBorder(
@@ -403,16 +519,14 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               children: [
                                 Text(
                                   l10n.createPollBasicInfoTitle,
-                                  style:
-                                      theme.textTheme.titleMedium?.copyWith(
+                                  style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   l10n.createPollBasicInfoSubtitle,
-                                  style:
-                                      theme.textTheme.bodySmall?.copyWith(
+                                  style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
                                         ?.withOpacity(0.8),
                                   ),
@@ -421,11 +535,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 TextField(
                                   enabled: !isSubmitting,
                                   decoration: InputDecoration(
-                                    labelText:
-                                        l10n.createPollTitleFieldLabel,
+                                    labelText: l10n.createPollTitleFieldLabel,
                                     border: const OutlineInputBorder(),
-                                    helperText:
-                                        l10n.createPollTitleFieldHelper,
+                                    helperText: l10n.createPollTitleFieldHelper,
                                   ),
                                   onChanged: controller.setTitle,
                                 ),
@@ -445,18 +557,13 @@ class _CreatePollViewState extends State<_CreatePollView> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 16),
-
                         _buildContentLocationCard(
                           context,
                           controller,
                           isSubmitting,
                         ),
-
                         const SizedBox(height: 16),
-
-                        // ===== VOTING MODEL CARD =====
                         Card(
                           elevation: 1,
                           shape: RoundedRectangleBorder(
@@ -469,16 +576,14 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               children: [
                                 Text(
                                   l10n.createPollVotingModelTitle,
-                                  style:
-                                      theme.textTheme.titleMedium?.copyWith(
+                                  style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   l10n.createPollVotingModelSubtitle,
-                                  style:
-                                      theme.textTheme.bodySmall?.copyWith(
+                                  style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
                                         ?.withOpacity(0.8),
                                   ),
@@ -486,8 +591,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 const SizedBox(height: 16),
                                 InputDecorator(
                                   decoration: InputDecoration(
-                                    labelText:
-                                        l10n.createPollTypeFieldLabel,
+                                    labelText: l10n.createPollTypeFieldLabel,
                                     border: const OutlineInputBorder(),
                                   ),
                                   child: DropdownButtonHideUnderline(
@@ -530,8 +634,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                           controller.minSelections,
                                           controller.maxSelections,
                                         ),
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
+                                        style:
+                                            theme.textTheme.bodySmall?.copyWith(
                                           color: theme.textTheme.bodySmall?.color
                                               ?.withOpacity(0.8),
                                         ),
@@ -561,10 +665,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 16),
-
-                        // ===== OPTIONS CARD =====
                         Card(
                           elevation: 1,
                           shape: RoundedRectangleBorder(
@@ -577,16 +678,14 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               children: [
                                 Text(
                                   l10n.createPollOptionsTitle,
-                                  style:
-                                      theme.textTheme.titleMedium?.copyWith(
+                                  style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   l10n.createPollOptionsSubtitle,
-                                  style:
-                                      theme.textTheme.bodySmall?.copyWith(
+                                  style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
                                         ?.withOpacity(0.8),
                                   ),
@@ -661,10 +760,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 16),
-
-                        // ===== PARTICIPATION & PRIVACY CARD =====
                         Card(
                           elevation: 1,
                           shape: RoundedRectangleBorder(
@@ -677,17 +773,14 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               children: [
                                 Text(
                                   l10n.createPollParticipationPrivacyTitle,
-                                  style:
-                                      theme.textTheme.titleMedium?.copyWith(
+                                  style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  l10n
-                                      .createPollParticipationPrivacySubtitle,
-                                  style:
-                                      theme.textTheme.bodySmall?.copyWith(
+                                  l10n.createPollParticipationPrivacySubtitle,
+                                  style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
                                         ?.withOpacity(0.8),
                                   ),
@@ -695,8 +788,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 const SizedBox(height: 12),
                                 Text(
                                   l10n.createPollWhoCanVoteLabel,
-                                  style:
-                                      theme.textTheme.bodySmall?.copyWith(
+                                  style: theme.textTheme.bodySmall?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -709,10 +801,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     ),
                                   ),
                                   subtitle: Text(
-                                    l10n
-                                        .createPollParticipationEveryoneSubtitle,
-                                    style:
-                                        theme.textTheme.bodySmall?.copyWith(
+                                    l10n.createPollParticipationEveryoneSubtitle,
+                                    style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.textTheme.bodySmall?.color
                                           ?.withOpacity(0.8),
                                     ),
@@ -723,9 +813,6 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                       ? null
                                       : (value) {
                                           if (value != null) {
-                                            setState(() {
-                                              _selectedCountryCode = null;
-                                            });
                                             controller
                                                 .setParticipationScope(value);
                                             controller
@@ -743,10 +830,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     ),
                                   ),
                                   subtitle: Text(
-                                    l10n
-                                        .createPollParticipationGeoScopeSubtitle,
-                                    style:
-                                        theme.textTheme.bodySmall?.copyWith(
+                                    l10n.createPollParticipationGeoScopeSubtitle,
+                                    style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.textTheme.bodySmall?.color
                                           ?.withOpacity(0.8),
                                     ),
@@ -761,7 +846,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                                 .setParticipationScope(value);
                                             controller
                                                 .setCountryCodeForParticipation(
-                                              _selectedCountryCode,
+                                              selectedParticipationCountryCode,
                                             );
                                           }
                                         },
@@ -770,26 +855,23 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     ParticipationScope.geoScopeOnly) ...[
                                   const SizedBox(height: 12),
                                   CountrySelectorField(
+                                    key: ValueKey(
+                                      'participation-country-${selectedParticipationCountryCode ?? 'none'}',
+                                    ),
                                     selectedCountryCode:
-                                        _selectedCountryCode,
+                                        selectedParticipationCountryCode,
                                     onCountrySelected: (code) {
-                                      setState(() {
-                                        _selectedCountryCode = code;
-                                      });
                                       controller
-                                          .setCountryCodeForParticipation(
-                                        code,
-                                      );
+                                          .setCountryCodeForParticipation(code);
+                                      setState(() {});
                                     },
-                                    label:
-                                        l10n.createPollCountryFieldLabel,
+                                    label: l10n.createPollCountryFieldLabel,
                                     required: true,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     l10n.createPollCountryFieldHelper,
-                                    style:
-                                        theme.textTheme.bodySmall?.copyWith(
+                                    style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.textTheme.bodySmall?.color
                                           ?.withOpacity(0.7),
                                     ),
@@ -798,8 +880,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 const Divider(height: 24),
                                 Text(
                                   l10n.createPollVoteAnonymityTitle,
-                                  style:
-                                      theme.textTheme.bodySmall?.copyWith(
+                                  style: theme.textTheme.bodySmall?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -812,10 +893,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     ),
                                   ),
                                   subtitle: Text(
-                                    l10n
-                                        .createPollAnonymityAnonymousSubtitle,
-                                    style:
-                                        theme.textTheme.bodySmall?.copyWith(
+                                    l10n.createPollAnonymityAnonymousSubtitle,
+                                    style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.textTheme.bodySmall?.color
                                           ?.withOpacity(0.8),
                                     ),
@@ -826,8 +905,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                       ? null
                                       : (value) {
                                           if (value != null) {
-                                            controller
-                                                .setAnonymityLevel(value);
+                                            controller.setAnonymityLevel(value);
                                           }
                                         },
                                 ),
@@ -837,10 +915,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     _anonymityLabel(AnonymityLevel.public),
                                   ),
                                   subtitle: Text(
-                                    l10n
-                                        .createPollAnonymityPublicSubtitle,
-                                    style:
-                                        theme.textTheme.bodySmall?.copyWith(
+                                    l10n.createPollAnonymityPublicSubtitle,
+                                    style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.textTheme.bodySmall?.color
                                           ?.withOpacity(0.8),
                                     ),
@@ -851,8 +927,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                       ? null
                                       : (value) {
                                           if (value != null) {
-                                            controller
-                                                .setAnonymityLevel(value);
+                                            controller.setAnonymityLevel(value);
                                           }
                                         },
                                 ),
@@ -860,10 +935,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 16),
-
-                        // ===== RESULTS & VALIDITY CARD =====
                         Card(
                           elevation: 1,
                           shape: RoundedRectangleBorder(
@@ -876,16 +948,14 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               children: [
                                 Text(
                                   l10n.createPollResultsValidityTitle,
-                                  style:
-                                      theme.textTheme.titleMedium?.copyWith(
+                                  style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   l10n.createPollResultsValiditySubtitle,
-                                  style:
-                                      theme.textTheme.bodySmall?.copyWith(
+                                  style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
                                         ?.withOpacity(0.8),
                                   ),
@@ -898,8 +968,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     border: const OutlineInputBorder(),
                                   ),
                                   child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<
-                                        ResultsVisibilityMode>(
+                                    child:
+                                        DropdownButton<ResultsVisibilityMode>(
                                       isExpanded: true,
                                       value: controller.resultsVisibility,
                                       onChanged: isSubmitting
@@ -928,16 +998,14 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 const SizedBox(height: 16),
                                 Text(
                                   l10n.createPollQuorumTitle,
-                                  style:
-                                      theme.textTheme.bodySmall?.copyWith(
+                                  style: theme.textTheme.bodySmall?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   l10n.createPollQuorumSubtitle,
-                                  style:
-                                      theme.textTheme.bodySmall?.copyWith(
+                                  style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
                                         ?.withOpacity(0.8),
                                   ),
@@ -946,8 +1014,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 TextFormField(
                                   enabled: !isSubmitting,
                                   initialValue:
-                                      controller.minQuorumVotes?.toString() ??
-                                          '',
+                                      controller.minQuorumVotes?.toString() ?? '',
                                   keyboardType: TextInputType.number,
                                   decoration: InputDecoration(
                                     border: const OutlineInputBorder(),
@@ -968,10 +1035,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 16),
-
-                        // ===== TIMING CARD =====
                         Card(
                           elevation: 1,
                           shape: RoundedRectangleBorder(
@@ -984,16 +1048,14 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               children: [
                                 Text(
                                   l10n.createPollTimingTitle,
-                                  style:
-                                      theme.textTheme.titleMedium?.copyWith(
+                                  style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   l10n.createPollTimingSubtitle,
-                                  style:
-                                      theme.textTheme.bodySmall?.copyWith(
+                                  style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
                                         ?.withOpacity(0.8),
                                   ),
@@ -1007,29 +1069,31 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     l10n.createPollStartDateLabel,
                                   ),
                                   subtitle: Text(
-                                    _formatDate(controller.startAt),
+                                    controller.hasExplicitStartAt
+                                        ? _formatDate(controller.startAt)
+                                        : 'Non impostata',
                                   ),
                                   trailing: TextButton(
                                     onPressed: isSubmitting
                                         ? null
                                         : () async {
                                             final now = DateTime.now();
-                                            final initialDate = controller
-                                                    .startAt
-                                                    .isBefore(
-                                              DateTime(
-                                                now.year,
-                                                now.month,
-                                                now.day,
-                                              ),
-                                            )
-                                                ? now
-                                                : controller.startAt;
+                                            final baseDate = DateTime(
+                                              now.year,
+                                              now.month,
+                                              now.day,
+                                            );
+                                            final initialDate =
+                                                controller.hasExplicitStartAt
+                                                    ? controller.startAt
+                                                    : now;
 
-                                            final picked =
-                                                await showDatePicker(
+                                            final picked = await showDatePicker(
                                               context: context,
-                                              initialDate: initialDate,
+                                              initialDate:
+                                                  initialDate.isBefore(baseDate)
+                                                      ? now
+                                                      : initialDate,
                                               firstDate: now.subtract(
                                                 const Duration(days: 365),
                                               ),
@@ -1038,8 +1102,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                               ),
                                             );
                                             if (picked != null) {
-                                              final current =
-                                                  controller.startAt;
+                                              final current = controller.startAt;
                                               controller.setStartAt(
                                                 DateTime(
                                                   picked.year,
@@ -1052,7 +1115,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                             }
                                           },
                                     child: Text(
-                                      l10n.createPollChangeDateButtonLabel,
+                                      controller.hasExplicitStartAt
+                                          ? l10n.createPollChangeDateButtonLabel
+                                          : 'Seleziona',
                                     ),
                                   ),
                                 ),
@@ -1064,29 +1129,31 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     l10n.createPollEndDateLabel,
                                   ),
                                   subtitle: Text(
-                                    _formatDate(controller.endAt),
+                                    controller.hasExplicitEndAt
+                                        ? _formatDate(controller.endAt)
+                                        : 'Non impostata',
                                   ),
                                   trailing: TextButton(
                                     onPressed: isSubmitting
                                         ? null
                                         : () async {
                                             final now = DateTime.now();
-                                            final initialDate = controller
-                                                    .endAt
-                                                    .isBefore(
-                                              DateTime(
-                                                now.year,
-                                                now.month,
-                                                now.day,
-                                              ),
-                                            )
-                                                ? now
-                                                : controller.endAt;
+                                            final baseDate = DateTime(
+                                              now.year,
+                                              now.month,
+                                              now.day,
+                                            );
+                                            final initialDate =
+                                                controller.hasExplicitEndAt
+                                                    ? controller.endAt
+                                                    : now;
 
-                                            final picked =
-                                                await showDatePicker(
+                                            final picked = await showDatePicker(
                                               context: context,
-                                              initialDate: initialDate,
+                                              initialDate:
+                                                  initialDate.isBefore(baseDate)
+                                                      ? now
+                                                      : initialDate,
                                               firstDate: now.subtract(
                                                 const Duration(days: 365),
                                               ),
@@ -1095,8 +1162,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                               ),
                                             );
                                             if (picked != null) {
-                                              final current =
-                                                  controller.endAt;
+                                              final current = controller.endAt;
                                               controller.setEndAt(
                                                 DateTime(
                                                   picked.year,
@@ -1109,36 +1175,47 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                             }
                                           },
                                     child: Text(
-                                      l10n.createPollChangeDateButtonLabel,
+                                      controller.hasExplicitEndAt
+                                          ? l10n.createPollChangeDateButtonLabel
+                                          : 'Seleziona',
                                     ),
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   l10n.createPollTimingStatusInfo,
-                                  style:
-                                      theme.textTheme.bodySmall?.copyWith(
+                                  style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
                                         ?.withOpacity(0.8),
                                   ),
                                 ),
+                                if (submitHintText != null) ...[
+                                  const SizedBox(height: 12),
+                                  _buildInlineInfoBox(
+                                    context,
+                                    text: submitHintText,
+                                  ),
+                                ],
                               ],
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 24),
-
-                        // ===== SUBMIT BUTTON =====
+                        if (controller.errorMessage != null) ...[
+                          _buildInlineErrorBox(
+                            context,
+                            text: controller.errorMessage!,
+                          ),
+                          const SizedBox(height: 12),
+                        ],
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
-                            onPressed: controller.canSubmit && !isSubmitting
+                            onPressed: canSubmitPoll && !isSubmitting
                                 ? () async {
                                     FocusScope.of(context).unfocus();
 
-                                    final pollId =
-                                        await controller.submit();
+                                    final pollId = await controller.submit();
                                     if (!context.mounted) return;
                                     if (pollId != null) {
                                       ScaffoldMessenger.of(context)
@@ -1173,8 +1250,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               padding: const EdgeInsets.symmetric(
                                 vertical: 14,
                               ),
-                              textStyle:
-                                  theme.textTheme.labelLarge?.copyWith(
+                              textStyle: theme.textTheme.labelLarge?.copyWith(
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

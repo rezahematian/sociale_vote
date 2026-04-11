@@ -83,6 +83,26 @@ class PollRepositorySupabase implements PollRepository {
   }
 
   @override
+  Future<bool> hasUserCreatedPollSince({
+    required String userId,
+    required DateTime since,
+  }) async {
+    final normalizedUserId = userId.trim();
+    if (normalizedUserId.isEmpty) {
+      return false;
+    }
+
+    final rawRows = await AppSupabase.client
+        .from(_pollsInsertTable)
+        .select('id')
+        .eq('author_id', normalizedUserId)
+        .gte('created_at', since.toUtc().toIso8601String())
+        .limit(1) as List<dynamic>;
+
+    return rawRows.isNotEmpty;
+  }
+
+  @override
   Future<Poll> createPoll(Poll poll) async {
     final currentUser = AppSupabase.currentUser;
     if (currentUser == null) {

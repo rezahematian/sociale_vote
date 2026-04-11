@@ -52,6 +52,14 @@ class PollDetailHeader extends StatelessWidget {
     fontSize: 12,
   );
 
+  static const _PollChipMetrics _mobileHeroChipMetrics = _PollChipMetrics(
+    height: 30,
+    horizontalPadding: 9,
+    iconSize: 13,
+    contentGap: 4,
+    fontSize: 11.5,
+  );
+
   static const Color _neutralSoftBlueBg = Color(0xFFF2F7FF);
   static const Color _neutralSoftBlueFg = Color(0xFF5B7395);
   static const Color _neutralSoftBlueBorder = Color(0xFFD9E6F5);
@@ -119,17 +127,18 @@ class PollDetailHeader extends StatelessWidget {
             it: 'Voto non modificabile',
             en: 'Vote locked',
           );
-    final anonymityLabel = config.anonymityRules.level == AnonymityLevel.anonymous
-        ? _localizedText(
-            l10n,
-            it: 'Voto anonimo',
-            en: 'Anonymous vote',
-          )
-        : _localizedText(
-            l10n,
-            it: 'Voto pubblico',
-            en: 'Public vote',
-          );
+    final anonymityLabel =
+        config.anonymityRules.level == AnonymityLevel.anonymous
+            ? _localizedText(
+                l10n,
+                it: 'Voto anonimo',
+                en: 'Anonymous vote',
+              )
+            : _localizedText(
+                l10n,
+                it: 'Voto pubblico',
+                en: 'Public vote',
+              );
     final resultsVisibilityLabel = _mapResultsVisibilityLabel(
       l10n,
       config.visibilityRules.resultsVisibility,
@@ -149,31 +158,127 @@ class PollDetailHeader extends StatelessWidget {
       isDark ? 0.60 : 0.58,
     );
 
-    final chips = <Widget>[
-      _buildLocationChip(theme, locationLabel),
-      _buildStatusChip(theme, statusLabel, poll.status),
-      if (participationLabel != null)
-        _buildParticipationChip(theme, participationLabel),
-      if (timeWindowLabel != null) _buildTimeWindowChip(theme, timeWindowLabel),
-      _buildTypeChip(theme, typeLabel),
-      _buildVoteChangeChip(theme, voteChangeLabel, config.allowVoteChange),
-      _buildAnonymityChip(theme, anonymityLabel),
-      _buildResultsVisibilityChip(theme, resultsVisibilityLabel),
-      if (minQuorum != null) _buildQuorumChip(theme, l10n, minQuorum),
-    ];
-
     return LayoutBuilder(
       builder: (context, constraints) {
+        final isMobileLayout = constraints.maxWidth < 600;
         final compactBottomRow = constraints.maxWidth < 760;
+
+        final heroChips = <Widget>[
+          _buildLocationChip(theme, locationLabel, _mobileHeroChipMetrics),
+          _buildStatusChip(
+            theme,
+            statusLabel,
+            poll.status,
+            _mobileHeroChipMetrics,
+          ),
+          if (participationLabel != null)
+            _buildParticipationChip(
+              theme,
+              participationLabel,
+              _mobileHeroChipMetrics,
+            ),
+        ];
+
+        final desktopChips = <Widget>[
+          _buildLocationChip(theme, locationLabel, _chipMetrics),
+          _buildStatusChip(theme, statusLabel, poll.status, _chipMetrics),
+          if (participationLabel != null)
+            _buildParticipationChip(theme, participationLabel, _chipMetrics),
+          if (timeWindowLabel != null)
+            _buildTimeWindowChip(theme, timeWindowLabel, _chipMetrics),
+          _buildTypeChip(theme, typeLabel, _chipMetrics),
+          _buildVoteChangeChip(
+            theme,
+            voteChangeLabel,
+            config.allowVoteChange,
+            _chipMetrics,
+          ),
+          _buildAnonymityChip(theme, anonymityLabel, _chipMetrics),
+          _buildResultsVisibilityChip(
+            theme,
+            resultsVisibilityLabel,
+            _chipMetrics,
+          ),
+          if (minQuorum != null)
+            _buildQuorumChip(theme, l10n, minQuorum, _chipMetrics),
+        ];
+
+        final ruleItems = <_PollRuleItem>[
+          if (timeWindowLabel != null)
+            _PollRuleItem(
+              label: _localizedText(
+                l10n,
+                it: 'Tempistiche',
+                en: 'Time window',
+              ),
+              value: timeWindowLabel,
+              icon: Icons.schedule_outlined,
+            ),
+          _PollRuleItem(
+            label: _localizedText(
+              l10n,
+              it: 'Modalità voto',
+              en: 'Vote mode',
+            ),
+            value: typeLabel,
+            icon: Icons.category_outlined,
+          ),
+          _PollRuleItem(
+            label: _localizedText(
+              l10n,
+              it: 'Modifica voto',
+              en: 'Vote changes',
+            ),
+            value: voteChangeLabel,
+            icon: config.allowVoteChange
+                ? Icons.restart_alt_rounded
+                : Icons.block_outlined,
+          ),
+          _PollRuleItem(
+            label: _localizedText(
+              l10n,
+              it: 'Anonimato',
+              en: 'Privacy',
+            ),
+            value: anonymityLabel,
+            icon: Icons.visibility_outlined,
+          ),
+          _PollRuleItem(
+            label: _localizedText(
+              l10n,
+              it: 'Visibilità risultati',
+              en: 'Results visibility',
+            ),
+            value: resultsVisibilityLabel,
+            icon: Icons.insights_outlined,
+          ),
+          if (minQuorum != null)
+            _PollRuleItem(
+              label: _localizedText(
+                l10n,
+                it: 'Quorum',
+                en: 'Quorum',
+              ),
+              value: l10n.pollCard_quorumLabel(minQuorum),
+              icon: Icons.how_to_vote_outlined,
+            ),
+        ];
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: chips,
-            ),
+            if (isMobileLayout)
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: heroChips,
+              )
+            else
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: desktopChips,
+              ),
             const SizedBox(height: 22),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 760),
@@ -210,6 +315,18 @@ class PollDetailHeader extends StatelessWidget {
                 ),
               ),
             ],
+            if (isMobileLayout && ruleItems.isNotEmpty) ...[
+              const SizedBox(height: 18),
+              _buildVotingRulesCard(
+                context,
+                title: _localizedText(
+                  l10n,
+                  it: 'Regole di voto',
+                  en: 'Voting rules',
+                ),
+                items: ruleItems,
+              ),
+            ],
             if (quorumInfoText != null) ...[
               const SizedBox(height: 14),
               _buildInfoStrip(
@@ -237,52 +354,8 @@ class PollDetailHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              child: compactBottomRow
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        EngagementBar(
-                          fireCount: fireCount,
-                          iceCount: iceCount,
-                          commentCount: commentCount,
-                          userReaction: userReaction,
-                          onFireTap: onFireTap,
-                          onIceTap: onIceTap,
-                          onCommentTap: onCommentTap,
-                        ),
-                        const SizedBox(height: 12),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            alignment: WrapAlignment.end,
-                            children: [
-                              _buildActionPill(
-                                context,
-                                icon: Icons.share_outlined,
-                                label: 'Condividi',
-                                tooltip: 'Condividi',
-                                onPressed: onSharePressed,
-                              ),
-                              _buildActionPill(
-                                context,
-                                icon: isFavorite
-                                    ? Icons.star_rounded
-                                    : Icons.star_border_rounded,
-                                label: 'Salva',
-                                tooltip: isFavorite
-                                    ? l10n.pollDetail_removeFromFavoritesTooltip
-                                    : l10n.pollDetail_addToFavoritesTooltip,
-                                onPressed: onFavoritePressed,
-                                isActive: isFavorite,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  : Row(
+              child: isMobileLayout
+                  ? Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
@@ -296,34 +369,115 @@ class PollDetailHeader extends StatelessWidget {
                             onCommentTap: onCommentTap,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
+                        const SizedBox(width: 8),
+                        _buildCompactActionIcon(
+                          context,
+                          icon: Icons.share_outlined,
+                          tooltip: 'Condividi',
+                          onPressed: onSharePressed,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildCompactActionIcon(
+                          context,
+                          icon: isFavorite
+                              ? Icons.star_rounded
+                              : Icons.star_border_rounded,
+                          tooltip: isFavorite
+                              ? l10n.pollDetail_removeFromFavoritesTooltip
+                              : l10n.pollDetail_addToFavoritesTooltip,
+                          onPressed: onFavoritePressed,
+                          isActive: isFavorite,
+                        ),
+                      ],
+                    )
+                  : compactBottomRow
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildActionPill(
-                              context,
-                              icon: Icons.share_outlined,
-                              label: 'Condividi',
-                              tooltip: 'Condividi',
-                              onPressed: onSharePressed,
+                            EngagementBar(
+                              fireCount: fireCount,
+                              iceCount: iceCount,
+                              commentCount: commentCount,
+                              userReaction: userReaction,
+                              onFireTap: onFireTap,
+                              onIceTap: onIceTap,
+                              onCommentTap: onCommentTap,
                             ),
-                            const SizedBox(width: 8),
-                            _buildActionPill(
-                              context,
-                              icon: isFavorite
-                                  ? Icons.star_rounded
-                                  : Icons.star_border_rounded,
-                              label: 'Salva',
-                              tooltip: isFavorite
-                                  ? l10n.pollDetail_removeFromFavoritesTooltip
-                                  : l10n.pollDetail_addToFavoritesTooltip,
-                              onPressed: onFavoritePressed,
-                              isActive: isFavorite,
+                            const SizedBox(height: 12),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                alignment: WrapAlignment.end,
+                                children: [
+                                  _buildActionPill(
+                                    context,
+                                    icon: Icons.share_outlined,
+                                    label: 'Condividi',
+                                    tooltip: 'Condividi',
+                                    onPressed: onSharePressed,
+                                  ),
+                                  _buildActionPill(
+                                    context,
+                                    icon: isFavorite
+                                        ? Icons.star_rounded
+                                        : Icons.star_border_rounded,
+                                    label: 'Salva',
+                                    tooltip: isFavorite
+                                        ? l10n
+                                            .pollDetail_removeFromFavoritesTooltip
+                                        : l10n.pollDetail_addToFavoritesTooltip,
+                                    onPressed: onFavoritePressed,
+                                    isActive: isFavorite,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: EngagementBar(
+                                fireCount: fireCount,
+                                iceCount: iceCount,
+                                commentCount: commentCount,
+                                userReaction: userReaction,
+                                onFireTap: onFireTap,
+                                onIceTap: onIceTap,
+                                onCommentTap: onCommentTap,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildActionPill(
+                                  context,
+                                  icon: Icons.share_outlined,
+                                  label: 'Condividi',
+                                  tooltip: 'Condividi',
+                                  onPressed: onSharePressed,
+                                ),
+                                const SizedBox(width: 8),
+                                _buildActionPill(
+                                  context,
+                                  icon: isFavorite
+                                      ? Icons.star_rounded
+                                      : Icons.star_border_rounded,
+                                  label: 'Salva',
+                                  tooltip: isFavorite
+                                      ? l10n.pollDetail_removeFromFavoritesTooltip
+                                      : l10n.pollDetail_addToFavoritesTooltip,
+                                  onPressed: onFavoritePressed,
+                                  isActive: isFavorite,
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
             ),
           ],
         );
@@ -331,10 +485,113 @@ class PollDetailHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildLocationChip(ThemeData theme, String label) {
+  Widget _buildVotingRulesCard(
+    BuildContext context, {
+    required String title,
+    required List<_PollRuleItem> items,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withOpacity(isDark ? 0.36 : 0.92),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(isDark ? 0.22 : 0.10),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 12),
+          for (var i = 0; i < items.length; i++) ...[
+            _buildVotingRuleRow(context, item: items[i]),
+            if (i != items.length - 1) ...[
+              const SizedBox(height: 10),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: colorScheme.outline.withOpacity(isDark ? 0.18 : 0.08),
+              ),
+              const SizedBox(height: 10),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVotingRuleRow(
+    BuildContext context, {
+    required _PollRuleItem item,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            item.icon,
+            size: 16,
+            color: colorScheme.primary,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                item.label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.62),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                item.value,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                  height: 1.25,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLocationChip(
+    ThemeData theme,
+    String label,
+    _PollChipMetrics metrics,
+  ) {
     return _buildInfoPill(
       theme: theme,
-      metrics: _chipMetrics,
+      metrics: metrics,
       icon: Icons.public,
       label: label,
       backgroundColor: _neutralSoftBlueBg,
@@ -347,6 +604,7 @@ class PollDetailHeader extends StatelessWidget {
     ThemeData theme,
     String label,
     PollStatus status,
+    _PollChipMetrics metrics,
   ) {
     Color bg;
     Color fg;
@@ -377,7 +635,7 @@ class PollDetailHeader extends StatelessWidget {
 
     return _buildMetaPill(
       theme: theme,
-      metrics: _chipMetrics,
+      metrics: metrics,
       icon: null,
       label: label.toUpperCase(),
       backgroundColor: bg,
@@ -388,10 +646,14 @@ class PollDetailHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildParticipationChip(ThemeData theme, String label) {
+  Widget _buildParticipationChip(
+    ThemeData theme,
+    String label,
+    _PollChipMetrics metrics,
+  ) {
     return _buildInfoPill(
       theme: theme,
-      metrics: _chipMetrics,
+      metrics: metrics,
       icon: Icons.lock_outline,
       label: label,
       backgroundColor: _softAmberBg,
@@ -400,10 +662,14 @@ class PollDetailHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildTimeWindowChip(ThemeData theme, String label) {
+  Widget _buildTimeWindowChip(
+    ThemeData theme,
+    String label,
+    _PollChipMetrics metrics,
+  ) {
     return _buildInfoPill(
       theme: theme,
-      metrics: _chipMetrics,
+      metrics: metrics,
       icon: Icons.schedule_outlined,
       label: label,
       backgroundColor: _softAmberBg,
@@ -412,10 +678,14 @@ class PollDetailHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildTypeChip(ThemeData theme, String label) {
+  Widget _buildTypeChip(
+    ThemeData theme,
+    String label,
+    _PollChipMetrics metrics,
+  ) {
     return _buildInfoPill(
       theme: theme,
-      metrics: _chipMetrics,
+      metrics: metrics,
       icon: Icons.category_outlined,
       label: label,
       backgroundColor: _softIndigoBg,
@@ -428,10 +698,11 @@ class PollDetailHeader extends StatelessWidget {
     ThemeData theme,
     String label,
     bool allowVoteChange,
+    _PollChipMetrics metrics,
   ) {
     return _buildInfoPill(
       theme: theme,
-      metrics: _chipMetrics,
+      metrics: metrics,
       icon: allowVoteChange
           ? Icons.restart_alt_rounded
           : Icons.block_outlined,
@@ -442,10 +713,14 @@ class PollDetailHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildAnonymityChip(ThemeData theme, String label) {
+  Widget _buildAnonymityChip(
+    ThemeData theme,
+    String label,
+    _PollChipMetrics metrics,
+  ) {
     return _buildInfoPill(
       theme: theme,
-      metrics: _chipMetrics,
+      metrics: metrics,
       icon: Icons.visibility_outlined,
       label: label,
       backgroundColor: _softVioletBg,
@@ -454,10 +729,14 @@ class PollDetailHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildResultsVisibilityChip(ThemeData theme, String label) {
+  Widget _buildResultsVisibilityChip(
+    ThemeData theme,
+    String label,
+    _PollChipMetrics metrics,
+  ) {
     return _buildInfoPill(
       theme: theme,
-      metrics: _chipMetrics,
+      metrics: metrics,
       icon: Icons.insights_outlined,
       label: label,
       backgroundColor: _softTealBg,
@@ -470,10 +749,11 @@ class PollDetailHeader extends StatelessWidget {
     ThemeData theme,
     AppLocalizations l10n,
     int minQuorum,
+    _PollChipMetrics metrics,
   ) {
     return _buildInfoPill(
       theme: theme,
-      metrics: _chipMetrics,
+      metrics: metrics,
       icon: Icons.how_to_vote_outlined,
       label: l10n.pollCard_quorumLabel(minQuorum),
       backgroundColor: _softRoseBg,
@@ -636,6 +916,56 @@ class PollDetailHeader extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactActionIcon(
+    BuildContext context, {
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback? onPressed,
+    bool isActive = false,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final enabled = onPressed != null;
+
+    final backgroundColor = isActive ? _softAmberBg : colorScheme.surface;
+    final borderColor = isActive
+        ? _softAmberBorder
+        : colorScheme.outline.withOpacity(0.16);
+    final foregroundColor = !enabled
+        ? colorScheme.onSurface.withOpacity(0.34)
+        : isActive
+            ? _softAmberFg
+            : colorScheme.onSurface.withOpacity(0.84);
+
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(999),
+          child: Ink(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: borderColor,
+                width: 1,
+              ),
+            ),
+            child: Icon(
+              icon,
+              size: 18,
+              color: foregroundColor,
             ),
           ),
         ),
@@ -881,5 +1211,17 @@ class _PollChipMetrics {
     required this.iconSize,
     required this.contentGap,
     required this.fontSize,
+  });
+}
+
+class _PollRuleItem {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _PollRuleItem({
+    required this.label,
+    required this.value,
+    required this.icon,
   });
 }

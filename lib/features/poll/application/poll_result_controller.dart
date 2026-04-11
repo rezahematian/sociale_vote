@@ -79,9 +79,6 @@ class PollResultController extends ChangeNotifier {
     await _ensureRealtimeSubscription(poll);
     if (_isDisposed) return;
 
-    _lastPoll = poll;
-    _lastUserHasVoted = userHasVoted;
-
     final requestId = ++_requestId;
 
     _isLoading = true;
@@ -89,6 +86,16 @@ class PollResultController extends ChangeNotifier {
     _safeNotifyListeners();
 
     try {
+      final repositoryUserHasVoted =
+          await _resolveCurrentUserHasVoted(poll);
+
+      if (!_isRequestStillValid(requestId)) return;
+
+      final effectiveUserHasVoted = userHasVoted || repositoryUserHasVoted;
+
+      _lastPoll = poll;
+      _lastUserHasVoted = effectiveUserHasVoted;
+
       final result = await _getPollResults(poll);
       if (!_isRequestStillValid(requestId)) return;
 
@@ -107,7 +114,7 @@ class PollResultController extends ChangeNotifier {
 
       _canShowResults = _visibilityResolver.canShowResults(
         poll: poll,
-        userHasVoted: userHasVoted,
+        userHasVoted: effectiveUserHasVoted,
       );
     } catch (_) {
       if (!_isRequestStillValid(requestId)) return;
@@ -126,6 +133,14 @@ class PollResultController extends ChangeNotifier {
         _reloadQueued = false;
         unawaited(reload());
       }
+    }
+  }
+
+  Future<bool> _resolveCurrentUserHasVoted(Poll poll) async {
+    try {
+      return await _voteRepository.hasCurrentUserVoted(poll.id);
+    } catch (_) {
+      return false;
     }
   }
 

@@ -19,6 +19,8 @@ import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 
 class CreatePollController extends ChangeNotifier {
+  static const Duration _maxPollDuration = Duration(days: 31);
+
   final CreatePoll _createPollUseCase;
   final GeoScopeController _geoScopeController;
   final DeviceLocationRepository? _deviceLocationRepository;
@@ -50,7 +52,8 @@ class CreatePollController extends ChangeNotifier {
 
   DateTime _startAt = DateTime.now();
   DateTime _endAt = DateTime.now().add(const Duration(days: 7));
-  bool _hasExplicitTimeWindow = false;
+  bool _hasExplicitStartAt = false;
+  bool _hasExplicitEndAt = false;
 
   ParticipationScope _participationScope = ParticipationScope.everyone;
   AnonymityLevel _anonymityLevel = AnonymityLevel.anonymous;
@@ -76,7 +79,9 @@ class CreatePollController extends ChangeNotifier {
 
   DateTime get startAt => _startAt;
   DateTime get endAt => _endAt;
-  bool get hasExplicitTimeWindow => _hasExplicitTimeWindow;
+  bool get hasExplicitStartAt => _hasExplicitStartAt;
+  bool get hasExplicitEndAt => _hasExplicitEndAt;
+  bool get hasExplicitTimeWindow => _hasExplicitStartAt && _hasExplicitEndAt;
 
   ParticipationScope get participationScope => _participationScope;
   AnonymityLevel get anonymityLevel => _anonymityLevel;
@@ -96,13 +101,19 @@ class CreatePollController extends ChangeNotifier {
       _options.where((o) => o.trim().isNotEmpty).length;
 
   bool get _hasValidDates =>
-      !_hasExplicitTimeWindow || !_endAt.isBefore(_startAt);
+      !hasExplicitTimeWindow || !_endAt.isBefore(_startAt);
+
+  bool get _isTimeWindowWithinLimit =>
+      !hasExplicitTimeWindow ||
+      _endAt.difference(_startAt) <= _maxPollDuration;
 
   bool get canSubmit =>
       !_isSubmitting &&
       _title.trim().isNotEmpty &&
       _validNonEmptyOptionsCount >= 2 &&
-      _hasValidDates;
+      hasExplicitTimeWindow &&
+      _hasValidDates &&
+      _isTimeWindowWithinLimit;
 
   ContentLocation get effectiveContentLocation {
     if (_contentLocation != null && !_contentLocation!.isEmpty) {
@@ -235,14 +246,14 @@ class CreatePollController extends ChangeNotifier {
 
   void setStartAt(DateTime value) {
     _startAt = value;
-    _hasExplicitTimeWindow = true;
+    _hasExplicitStartAt = true;
     _errorMessage = null;
     notifyListeners();
   }
 
   void setEndAt(DateTime value) {
     _endAt = value;
-    _hasExplicitTimeWindow = true;
+    _hasExplicitEndAt = true;
     _errorMessage = null;
     notifyListeners();
   }
@@ -250,7 +261,8 @@ class CreatePollController extends ChangeNotifier {
   void clearTimeWindow() {
     _startAt = DateTime.now();
     _endAt = DateTime.now().add(const Duration(days: 7));
-    _hasExplicitTimeWindow = false;
+    _hasExplicitStartAt = false;
+    _hasExplicitEndAt = false;
     _errorMessage = null;
     notifyListeners();
   }
@@ -389,8 +401,20 @@ class CreatePollController extends ChangeNotifier {
       return null;
     }
 
-    if (_hasExplicitTimeWindow && _endAt.isBefore(_startAt)) {
+    if (!hasExplicitTimeWindow) {
+      _errorMessage = 'Start and end dates are required.';
+      notifyListeners();
+      return null;
+    }
+
+    if (_endAt.isBefore(_startAt)) {
       _errorMessage = 'End date must be after start date.';
+      notifyListeners();
+      return null;
+    }
+
+    if (_endAt.difference(_startAt) > _maxPollDuration) {
+      _errorMessage = 'Poll duration cannot exceed 31 days.';
       notifyListeners();
       return null;
     }
@@ -466,9 +490,7 @@ class CreatePollController extends ChangeNotifier {
       final now = DateTime.now();
       late PollStatus status;
 
-      if (!_hasExplicitTimeWindow) {
-        status = PollStatus.open;
-      } else if (_startAt.isAfter(now)) {
+      if (_startAt.isAfter(now)) {
         status = PollStatus.scheduled;
       } else if (_endAt.isBefore(now)) {
         status = PollStatus.closed;
@@ -484,8 +506,8 @@ class CreatePollController extends ChangeNotifier {
         status: status,
         options: pollOptions,
         configuration: configuration,
-        startAt: _hasExplicitTimeWindow ? _startAt : null,
-        endAt: _hasExplicitTimeWindow ? _endAt : null,
+        startAt: _startAt,
+        endAt: _endAt,
         countryCode: geoCountryCode,
         cityId: cityId,
         contentLocation: effectiveLocation,

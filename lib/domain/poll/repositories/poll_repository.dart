@@ -25,6 +25,17 @@ abstract class PollRepository {
 
   Future<Poll?> getPollDetail(PollId pollId);
 
+  /// Verifica se un utente ha già creato almeno una votazione
+  /// a partire da un certo istante.
+  ///
+  /// Serve al use case per applicare regole come:
+  /// - massimo 1 poll al giorno
+  /// - rate limit di creazione
+  Future<bool> hasUserCreatedPollSince({
+    required String userId,
+    required DateTime since,
+  });
+
   /// Crea una nuova votazione.
   ///
   /// In questa versione mock:

@@ -82,7 +82,10 @@ class _EditProfileViewState extends State<_EditProfileView> {
 
   String? _selectedCountryCode;
   String? _avatarUploadError;
+  String? _displayNameError;
   String? _usernameError;
+  String? _countryError;
+  String? _cityError;
   String? _locationError;
 
   @override
@@ -205,9 +208,16 @@ class _EditProfileViewState extends State<_EditProfileView> {
                     TextField(
                       controller: _displayNameController,
                       textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
+                      onChanged: (_) {
+                        if (_displayNameError == null) return;
+                        setState(() {
+                          _displayNameError = null;
+                        });
+                      },
+                      decoration: InputDecoration(
                         labelText: 'Display name',
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
+                        errorText: _displayNameError,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -223,7 +233,8 @@ class _EditProfileViewState extends State<_EditProfileView> {
                       decoration: InputDecoration(
                         labelText: 'Username',
                         hintText: 'es. mario_roma',
-                        helperText: '3-20 caratteri: lettere, numeri, underscore',
+                        helperText:
+                            '3-20 caratteri: lettere, numeri, underscore',
                         errorText: _usernameError,
                         prefixText: '@',
                         border: const OutlineInputBorder(),
@@ -250,15 +261,29 @@ class _EditProfileViewState extends State<_EditProfileView> {
                     ),
                     const SizedBox(height: 12),
                     CountrySelectorField(
+                      key: ValueKey(
+                        'edit-profile-country-${_selectedCountryCode ?? 'none'}',
+                      ),
                       selectedCountryCode: _selectedCountryCode,
                       label: 'Country',
                       onCountrySelected: (code) {
                         setState(() {
                           _selectedCountryCode = _normalizeCountryCode(code);
+                          _countryError = null;
                           _locationError = null;
                         });
                       },
                     ),
+                    if (_countryError != null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        _countryError!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                     if (_selectedCountryCode != null &&
                         _selectedCountryCode!.trim().isNotEmpty) ...[
                       const SizedBox(height: 4),
@@ -270,6 +295,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
                               : () {
                                   setState(() {
                                     _selectedCountryCode = null;
+                                    _countryError = null;
                                     _locationError = null;
                                   });
                                 },
@@ -283,16 +309,18 @@ class _EditProfileViewState extends State<_EditProfileView> {
                       controller: _cityController,
                       textInputAction: TextInputAction.done,
                       onChanged: (_) {
-                        if (_locationError == null) return;
+                        if (_cityError == null && _locationError == null) return;
                         setState(() {
+                          _cityError = null;
                           _locationError = null;
                         });
                       },
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'City',
                         helperText:
                             'City is validated against the selected country before save.',
-                        border: OutlineInputBorder(),
+                        errorText: _cityError,
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -303,91 +331,100 @@ class _EditProfileViewState extends State<_EditProfileView> {
                               controller.clearError();
                               setState(() {
                                 _avatarUploadError = null;
+                                _displayNameError = null;
                                 _usernameError = null;
+                                _countryError = null;
+                                _cityError = null;
                                 _locationError = null;
                               });
 
+                              final normalizedDisplayName = _normalizeNullable(
+                                _displayNameController.text,
+                              );
                               final normalizedUsername =
                                   _normalizeUsernameInput(
                                 _usernameController.text,
                               );
-
-                              final usernameValidationError =
-                                  _validateUsername(normalizedUsername);
-
-                              if (usernameValidationError != null) {
-                                setState(() {
-                                  _usernameError = usernameValidationError;
-                                });
-                                return;
-                              }
-
                               final normalizedCountryCode =
                                   _normalizeCountryCode(_selectedCountryCode);
                               final normalizedCityInput = _normalizeNullable(
                                 _cityController.text,
                               );
 
-                              if (normalizedCityInput != null &&
-                                  normalizedCountryCode == null) {
-                                setState(() {
-                                  _locationError =
-                                      'Seleziona prima un paese per validare la città.';
-                                });
+                              bool hasValidationError = false;
+
+                              if (normalizedDisplayName == null) {
+                                _displayNameError =
+                                    'Display name is required.';
+                                hasValidationError = true;
+                              }
+
+                              final usernameValidationError =
+                                  _validateUsername(normalizedUsername);
+
+                              if (usernameValidationError != null) {
+                                _usernameError = usernameValidationError;
+                                hasValidationError = true;
+                              }
+
+                              if (normalizedCountryCode == null) {
+                                _countryError = 'Country is required.';
+                                hasValidationError = true;
+                              }
+
+                              if (normalizedCityInput == null) {
+                                _cityError = 'City is required.';
+                                hasValidationError = true;
+                              }
+
+                              if (hasValidationError) {
+                                setState(() {});
                                 return;
                               }
 
                               String? effectiveCountry = normalizedCountryCode;
                               String? effectiveCity = normalizedCityInput;
 
-                              if (normalizedCountryCode != null ||
-                                  normalizedCityInput != null) {
-                                try {
-                                  final resolved = await AppDI
-                                      .instance.geocodingRepository
-                                      .geocodeContentLocation(
-                                    ContentLocation(
-                                      source:
-                                          ContentLocationSource.geoScopeFallback,
-                                      countryCode: normalizedCountryCode,
-                                      cityName: normalizedCityInput,
-                                    ),
-                                  );
+                              try {
+                                final resolved = await AppDI
+                                    .instance.geocodingRepository
+                                    .geocodeContentLocation(
+                                  ContentLocation(
+                                    source:
+                                        ContentLocationSource.geoScopeFallback,
+                                    countryCode: normalizedCountryCode,
+                                    cityName: normalizedCityInput,
+                                  ),
+                                );
 
-                                  if (normalizedCityInput != null &&
-                                      resolved == null) {
-                                    setState(() {
-                                      _locationError =
-                                          'Città non riconosciuta per il paese selezionato.';
-                                    });
-                                    return;
-                                  }
-
-                                  effectiveCountry = _normalizeCountryCode(
-                                    resolved?.countryCode ?? normalizedCountryCode,
-                                  );
-
-                                  effectiveCity = _normalizeNullable(
-                                    resolved?.cityName ??
-                                        normalizedCityInput ??
-                                        '',
-                                  );
-                                } catch (_) {
-                                  if (normalizedCityInput != null) {
-                                    setState(() {
-                                      _locationError =
-                                          'Impossibile verificare la città in questo momento.';
-                                    });
-                                    return;
-                                  }
+                                if (resolved == null) {
+                                  setState(() {
+                                    _cityError =
+                                        'Città non riconosciuta per il paese selezionato.';
+                                  });
+                                  return;
                                 }
+
+                                effectiveCountry = _normalizeCountryCode(
+                                  resolved.countryCode ?? normalizedCountryCode,
+                                );
+
+                                effectiveCity = _normalizeNullable(
+                                  resolved.cityName ??
+                                      normalizedCityInput ??
+                                      '',
+                                );
+                              } catch (_) {
+                                setState(() {
+                                  _locationError =
+                                      'Impossibile verificare la città in questo momento.';
+                                });
+                                return;
                               }
 
                               await controller.updateProfile(
                                 userId: widget.currentUserId,
-                                displayName: _normalizeNullable(
-                                  _displayNameController.text,
-                                ),
+                                displayName: normalizedDisplayName,
                                 username: normalizedUsername,
                                 avatarUrl: _normalizeNullable(
                                   _avatarUrlController.text,
@@ -512,7 +549,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
 
   String? _validateUsername(String? username) {
     if (username == null) {
-      return null;
+      return 'Username is required.';
     }
 
     final regex = RegExp(r'^[a-z0-9_]{3,20}$');

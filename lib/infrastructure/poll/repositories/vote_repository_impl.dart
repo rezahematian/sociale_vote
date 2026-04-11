@@ -43,6 +43,53 @@ class VoteRepositoryImpl implements VoteRepository {
   }
 
   @override
+  Future<void> updateVote(Vote vote) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      throw Exception('Utente non autenticato');
+    }
+
+    try {
+      final updatedRow = await _supabase
+          .from('votes')
+          .update({
+            'selected_options': vote.optionIds,
+          })
+          .eq('poll_id', vote.pollId.value)
+          .eq('user_id', user.id)
+          .select('poll_id')
+          .maybeSingle();
+
+      if (updatedRow == null) {
+        throw Exception('Voto non trovato');
+      }
+    } on PostgrestException catch (e) {
+      throw Exception(e.message);
+    }
+  }
+
+  @override
+  Future<bool> hasCurrentUserVoted(PollId pollId) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      throw Exception('Utente non autenticato');
+    }
+
+    try {
+      final row = await _supabase
+          .from('votes')
+          .select('poll_id')
+          .eq('poll_id', pollId.value)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+      return row != null;
+    } on PostgrestException catch (e) {
+      throw Exception(e.message);
+    }
+  }
+
+  @override
   Future<List<Vote>> getVotesForPoll(PollId pollId) async {
     final response = await _supabase
         .from('votes')
@@ -142,6 +189,12 @@ class VoteRepositoryImpl implements VoteRepository {
       },
     );
 
+    void emitChange() {
+      if (!controller.isClosed) {
+        controller.add(null);
+      }
+    }
+
     final channel = _supabase.channel('votes_poll_$key');
 
     channel.onPostgresChanges(
@@ -153,11 +206,19 @@ class VoteRepositoryImpl implements VoteRepository {
         column: 'poll_id',
         value: key,
       ),
-      callback: (_) {
-        if (!controller.isClosed) {
-          controller.add(null);
-        }
-      },
+      callback: (_) => emitChange(),
+    );
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.update,
+      schema: 'public',
+      table: 'votes',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'poll_id',
+        value: key,
+      ),
+      callback: (_) => emitChange(),
     );
 
     channel.subscribe();

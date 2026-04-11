@@ -12,16 +12,25 @@ class PollVoteAggregate {
 }
 
 abstract class VoteRepository {
-  /// Invia un voto per un poll.
+  /// Invia il primo voto dell'utente corrente per un poll.
   ///
   /// L'implementazione concreta (infrastructure) si occuperà di:
-  /// - validare a livello tecnico la richiesta (HTTP, ecc.)
-  /// - propagare eventuali errori di rete
-  ///
-  /// Le regole di business (chi può votare, quando, quante volte, ecc.)
-  /// stanno nei servizi di dominio (es. VoteValidator, PollPolicyService),
-  /// non qui.
+  /// - validare a livello tecnico la richiesta (HTTP, DB, ecc.)
+  /// - propagare eventuali errori di rete/persistenza
   Future<void> submitVote(Vote vote);
+
+  /// Aggiorna il voto già esistente dell'utente corrente per un poll.
+  ///
+  /// Questo serve quando il poll consente la modifica del voto.
+  Future<void> updateVote(Vote vote);
+
+  /// Verifica se l'utente corrente ha già votato su questo poll.
+  ///
+  /// Serve al use case per distinguere:
+  /// - primo voto
+  /// - voto già esistente modificabile
+  /// - voto già esistente non modificabile
+  Future<bool> hasCurrentUserVoted(PollId pollId);
 
   /// Restituisce tutti i voti associati a un poll.
   ///
@@ -35,7 +44,7 @@ abstract class VoteRepository {
   /// `optionCounts` = conteggi aggregati per optionId
   Future<PollVoteAggregate> getVoteAggregateForPoll(PollId pollId);
 
-  /// 🔴 Stream realtime per notificare nuovi voti su un poll.
+  /// 🔴 Stream realtime per notificare cambiamenti ai voti su un poll.
   ///
   /// Non restituisce i voti direttamente: serve solo come trigger
   /// per ricaricare i risultati.
