@@ -155,6 +155,64 @@ class VoteRepositoryImpl implements VoteRepository {
     );
   }
 
+  @override
+  Future<PublicPollVotePage> getPublicVotesForPoll(
+    PollId pollId, {
+    String? query,
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'get_public_poll_votes',
+        params: {
+          'p_poll_id': pollId.value,
+          'p_query': query,
+          'p_limit': limit,
+          'p_offset': offset,
+        },
+      );
+
+      final rows = (response as List? ?? const [])
+          .map((row) => Map<String, dynamic>.from(row as Map))
+          .toList(growable: false);
+
+      final items = rows.map((row) {
+        final rawOptions = row['selected_options'];
+        final optionIds = rawOptions is List
+            ? List<String>.from(rawOptions.map((e) => e.toString()))
+            : const <String>[];
+
+        final createdAtRaw = row['created_at']?.toString();
+
+        return PublicPollVoteEntry(
+          userId: row['user_id']?.toString() ?? '',
+          username: _normalizeNullableText(row['username']),
+          displayName: _normalizeNullableText(row['display_name']),
+          optionIds: optionIds,
+          votedAt: createdAtRaw != null && createdAtRaw.isNotEmpty
+              ? DateTime.parse(createdAtRaw).toUtc()
+              : DateTime.now().toUtc(),
+        );
+      }).toList(growable: false);
+
+      return PublicPollVotePage(
+        items: items,
+        hasMore: items.length >= limit,
+      );
+    } on PostgrestException catch (e) {
+      throw Exception(e.message);
+    }
+  }
+
+  String? _normalizeNullableText(dynamic value) {
+    final text = value?.toString().trim();
+    if (text == null || text.isEmpty) {
+      return null;
+    }
+    return text;
+  }
+
   int? _readInt(dynamic value) {
     if (value is int) {
       return value;

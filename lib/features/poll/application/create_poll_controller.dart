@@ -100,12 +100,28 @@ class CreatePollController extends ChangeNotifier {
   int get _validNonEmptyOptionsCount =>
       _options.where((o) => o.trim().isNotEmpty).length;
 
+  DateTime get _effectiveStartAt => DateTime(
+        _startAt.year,
+        _startAt.month,
+        _startAt.day,
+      );
+
+  DateTime get _effectiveEndAt => DateTime(
+        _endAt.year,
+        _endAt.month,
+        _endAt.day,
+        23,
+        59,
+        59,
+        999,
+      );
+
   bool get _hasValidDates =>
-      !hasExplicitTimeWindow || !_endAt.isBefore(_startAt);
+      !hasExplicitTimeWindow || !_effectiveEndAt.isBefore(_effectiveStartAt);
 
   bool get _isTimeWindowWithinLimit =>
       !hasExplicitTimeWindow ||
-      _endAt.difference(_startAt) <= _maxPollDuration;
+      _effectiveEndAt.difference(_effectiveStartAt) <= _maxPollDuration;
 
   bool get canSubmit =>
       !_isSubmitting &&
@@ -389,6 +405,9 @@ class CreatePollController extends ChangeNotifier {
     final nonEmptyOptions =
         _options.map((o) => o.trim()).where((o) => o.isNotEmpty).toList();
 
+    final effectiveStartAt = _effectiveStartAt;
+    final effectiveEndAt = _effectiveEndAt;
+
     if (trimmedTitle.isEmpty) {
       _errorMessage = 'Title is required.';
       notifyListeners();
@@ -407,13 +426,13 @@ class CreatePollController extends ChangeNotifier {
       return null;
     }
 
-    if (_endAt.isBefore(_startAt)) {
+    if (effectiveEndAt.isBefore(effectiveStartAt)) {
       _errorMessage = 'End date must be after start date.';
       notifyListeners();
       return null;
     }
 
-    if (_endAt.difference(_startAt) > _maxPollDuration) {
+    if (effectiveEndAt.difference(effectiveStartAt) > _maxPollDuration) {
       _errorMessage = 'Poll duration cannot exceed 31 days.';
       notifyListeners();
       return null;
@@ -490,9 +509,9 @@ class CreatePollController extends ChangeNotifier {
       final now = DateTime.now();
       late PollStatus status;
 
-      if (_startAt.isAfter(now)) {
+      if (effectiveStartAt.isAfter(now)) {
         status = PollStatus.scheduled;
-      } else if (_endAt.isBefore(now)) {
+      } else if (effectiveEndAt.isBefore(now)) {
         status = PollStatus.closed;
       } else {
         status = PollStatus.open;
@@ -506,8 +525,8 @@ class CreatePollController extends ChangeNotifier {
         status: status,
         options: pollOptions,
         configuration: configuration,
-        startAt: _startAt,
-        endAt: _endAt,
+        startAt: effectiveStartAt,
+        endAt: effectiveEndAt,
         countryCode: geoCountryCode,
         cityId: cityId,
         contentLocation: effectiveLocation,

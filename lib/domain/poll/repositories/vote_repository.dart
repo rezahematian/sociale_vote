@@ -11,6 +11,32 @@ class PollVoteAggregate {
   });
 }
 
+class PublicPollVoteEntry {
+  final String userId;
+  final String? username;
+  final String? displayName;
+  final List<String> optionIds;
+  final DateTime votedAt;
+
+  const PublicPollVoteEntry({
+    required this.userId,
+    required this.optionIds,
+    required this.votedAt,
+    this.username,
+    this.displayName,
+  });
+}
+
+class PublicPollVotePage {
+  final List<PublicPollVoteEntry> items;
+  final bool hasMore;
+
+  const PublicPollVotePage({
+    required this.items,
+    required this.hasMore,
+  });
+}
+
 abstract class VoteRepository {
   /// Invia il primo voto dell'utente corrente per un poll.
   ///
@@ -43,6 +69,23 @@ abstract class VoteRepository {
   /// `totalVotes` = numero di righe voto del poll
   /// `optionCounts` = conteggi aggregati per optionId
   Future<PollVoteAggregate> getVoteAggregateForPoll(PollId pollId);
+
+  /// Restituisce la lista dei voti pubblici per un poll, pronta per UI/detail.
+  ///
+  /// Uso previsto:
+  /// - solo quando il poll è a voto pubblico
+  /// - solo quando i risultati sono visibili per l’utente corrente
+  ///
+  /// Supporta:
+  /// - ricerca per username/displayName
+  /// - paginazione base
+  /// - poll multi-voto tramite `optionIds`
+  Future<PublicPollVotePage> getPublicVotesForPoll(
+    PollId pollId, {
+    String? query,
+    int limit = 50,
+    int offset = 0,
+  });
 
   /// 🔴 Stream realtime per notificare cambiamenti ai voti su un poll.
   ///
