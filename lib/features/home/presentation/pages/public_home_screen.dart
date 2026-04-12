@@ -378,43 +378,70 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       ]),
       builder: (context, _) {
         final scope = _geoScopeController.scope;
-        final scopeLabel = _scopeLabel(scope);
         final scopeShortLabel = _scopeShortLabel(scope);
+        final scopeLabel = _scopeLabel(scope);
         final currentThemeMode = AppThemeModeController.themeMode.value;
         final isDark = Theme.of(context).brightness == Brightness.dark;
 
+        final screenWidth = MediaQuery.sizeOf(context).width;
+        final isCompactGuestTopBar = !isLoggedIn && screenWidth < 520.0;
+        final appBarToolbarHeight = isLoggedIn
+            ? 74.0
+            : (isCompactGuestTopBar ? 104.0 : 74.0);
+
         final backgroundGradient = isDark
-            ? const [
-                AppColors.backgroundDark,
-                AppColors.backgroundAltDark,
-                AppColors.surfaceDark,
+            ? [
+                Color.alphaBlend(
+                  AppColors.primary.withValues(alpha: 0.10),
+                  AppColors.backgroundDark,
+                ),
+                Color.alphaBlend(
+                  AppColors.cool.withValues(alpha: 0.10),
+                  AppColors.backgroundAltDark,
+                ),
+                Color.alphaBlend(
+                  AppColors.primaryLight.withValues(alpha: 0.08),
+                  AppColors.surfaceDark,
+                ),
               ]
-            : const [
-                AppColors.background,
-                AppColors.backgroundAlt,
-                AppColors.surfaceVariant,
+            : [
+                Color.alphaBlend(
+                  AppColors.primary.withValues(alpha: 0.07),
+                  AppColors.background,
+                ),
+                Color.alphaBlend(
+                  AppColors.cool.withValues(alpha: 0.06),
+                  AppColors.backgroundAlt,
+                ),
+                Color.alphaBlend(
+                  AppColors.primaryLight.withValues(alpha: 0.10),
+                  AppColors.surfaceVariant,
+                ),
               ];
 
         final topGlowColor = isDark
-            ? AppColors.primary.withValues(alpha: 0.12)
-            : AppColors.primaryLight.withValues(alpha: 0.10);
+            ? AppColors.primary.withValues(alpha: 0.14)
+            : AppColors.primaryLight.withValues(alpha: 0.14);
 
         final sideGlowColor = isDark
-            ? AppColors.cool.withValues(alpha: 0.09)
-            : AppColors.cool.withValues(alpha: 0.07);
+            ? AppColors.cool.withValues(alpha: 0.11)
+            : AppColors.cool.withValues(alpha: 0.10);
 
         final bottomGlowColor = isDark
-            ? AppColors.primaryLight.withValues(alpha: 0.05)
-            : AppColors.primary.withValues(alpha: 0.04);
+            ? AppColors.primaryLight.withValues(alpha: 0.07)
+            : AppColors.primary.withValues(alpha: 0.07);
 
         return Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(
-            backgroundColor: Colors.transparent,
+            backgroundColor: Colors.black,
             surfaceTintColor: Colors.transparent,
+            shadowColor: Colors.transparent,
             elevation: 0,
+            scrolledUnderElevation: 0,
             centerTitle: false,
             titleSpacing: 16,
+            toolbarHeight: appBarToolbarHeight,
             title: HomeTopBar(
               scopeShortLabel: scopeShortLabel,
               isLoggedIn: isLoggedIn,

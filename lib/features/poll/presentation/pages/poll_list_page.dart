@@ -532,10 +532,14 @@ class _PollListPageState extends State<PollListPage> {
 
               if (!context.mounted) return;
 
-              Navigator.of(context).pushNamed(
+              await Navigator.of(context).pushNamed(
                 AppRouter.pollDetail,
                 arguments: result,
               );
+
+              if (!context.mounted) return;
+
+              await pollListController.loadPolls(userId: userId);
             } else if (result == true) {
               await pollListController.loadPolls(userId: userId);
             }

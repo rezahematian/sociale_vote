@@ -557,438 +557,17 @@ class _PollDetailPageState extends State<PollDetailPage> {
     BuildContext context,
     Poll poll,
   ) async {
-    final searchController = TextEditingController(
-      text: _resultController.publicVotesQuery,
-    );
-    Timer? searchDebounce;
-
-    if (!_resultController.publicVotesInitialized &&
-        !_resultController.isPublicVotesLoading) {
-      unawaited(
-        _resultController.loadPublicVotes(
-          query: searchController.text,
-        ),
-      );
-    }
-
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (sheetContext) {
-        final theme = Theme.of(sheetContext);
-
-        return SafeArea(
-          child: FractionallySizedBox(
-            heightFactor: 0.88,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                20,
-                8,
-                20,
-                MediaQuery.of(sheetContext).viewInsets.bottom + 20,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Voti pubblici',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Qui puoi vedere chi ha votato cosa in questo sondaggio.',
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: searchController,
-                    textInputAction: TextInputAction.search,
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search),
-                      hintText: 'Cerca utente',
-                      suffixIcon: searchController.text.trim().isEmpty
-                          ? null
-                          : IconButton(
-                              onPressed: () {
-                                searchController.clear();
-                                _resultController.loadPublicVotes(query: '');
-                              },
-                              icon: const Icon(Icons.close),
-                            ),
-                    ),
-                    onSubmitted: (value) {
-                      _resultController.loadPublicVotes(query: value);
-                    },
-                    onChanged: (value) {
-                      searchDebounce?.cancel();
-                      searchDebounce = Timer(
-                        const Duration(milliseconds: 350),
-                        () {
-                          _resultController.loadPublicVotes(query: value);
-                        },
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: AnimatedBuilder(
-                      animation: _resultController,
-                      builder: (context, _) {
-                        return _buildPublicVotesBody(
-                          context,
-                          poll,
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        return _PublicVotesSheetContent(
+          poll: poll,
+          resultController: _resultController,
         );
       },
     );
-
-    searchDebounce?.cancel();
-    searchController.dispose();
-  }
-
-  Widget _buildPublicVotesBody(
-    BuildContext context,
-    Poll poll,
-  ) {
-    final theme = Theme.of(context);
-
-    if (_resultController.isPublicVotesLoading &&
-        _resultController.publicVotes.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-
-    if (_resultController.publicVotesError != null &&
-        _resultController.publicVotes.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.error_outline_rounded,
-                size: 30,
-                color: theme.colorScheme.error,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Impossibile caricare i voti pubblici',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 14),
-              FilledButton(
-                onPressed: () {
-                  _resultController.loadPublicVotes(
-                    query: _resultController.publicVotesQuery,
-                  );
-                },
-                child: const Text('Riprova'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (_resultController.publicVotes.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Text(
-            _resultController.publicVotesQuery.trim().isEmpty
-                ? 'Nessun voto pubblico disponibile'
-                : 'Nessun utente trovato per questa ricerca',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium,
-          ),
-        ),
-      );
-    }
-
-    final entries = _resultController.publicVotes;
-
-    return Column(
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            '${entries.length} risultati caricati',
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        Expanded(
-          child: ListView.separated(
-            physics: const BouncingScrollPhysics(),
-            itemCount: entries.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, index) {
-              final entry = entries[index];
-              return _buildPublicVoteTile(
-                context,
-                poll,
-                entry,
-              );
-            },
-          ),
-        ),
-        if (_resultController.isPublicVotesLoading &&
-            entries.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          const SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ] else if (_resultController.publicVotesHasMore) ...[
-          const SizedBox(height: 12),
-          OutlinedButton(
-            onPressed: () {
-              _resultController.loadPublicVotes(
-                query: _resultController.publicVotesQuery,
-                loadMore: true,
-              );
-            },
-            child: const Text('Carica altri'),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildPublicVoteTile(
-    BuildContext context,
-    Poll poll,
-    PublicPollVoteEntry entry,
-  ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    final primaryLabel =
-        entry.displayName?.trim().isNotEmpty == true
-            ? entry.displayName!.trim()
-            : entry.username?.trim().isNotEmpty == true
-                ? '@${entry.username!.trim()}'
-                : 'Utente';
-
-    final secondaryLabel =
-        entry.displayName?.trim().isNotEmpty == true &&
-                entry.username?.trim().isNotEmpty == true
-            ? '@${entry.username!.trim()}'
-            : null;
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.35),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outline.withOpacity(0.12),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: colorScheme.primary.withOpacity(0.12),
-                child: Icon(
-                  Icons.person_outline,
-                  size: 18,
-                  color: colorScheme.primary,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      primaryLabel,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (secondaryLabel != null)
-                      Text(
-                        secondaryLabel,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.textTheme.bodySmall?.color?.withOpacity(
-                            0.75,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              Text(
-                _formatVoteDate(entry.votedAt),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: entry.optionIds.map((optionId) {
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: colorScheme.primary.withOpacity(0.16),
-                  ),
-                ),
-                child: Text(
-                  _optionLabelFor(poll, optionId),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.primary,
-                  ),
-                ),
-              );
-            }).toList(growable: false),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _optionLabelFor(Poll poll, String optionId) {
-    for (final option in poll.options) {
-      final rawId = _extractOptionId(option);
-      if (rawId != optionId) {
-        continue;
-      }
-
-      final rawLabel = _extractOptionLabel(option);
-      if (rawLabel != null && rawLabel.isNotEmpty) {
-        return rawLabel;
-      }
-    }
-
-    return optionId;
-  }
-
-  String? _extractOptionId(dynamic option) {
-    if (option == null) return null;
-
-    try {
-      final directId = option.id;
-      if (directId != null) {
-        final nestedValue = _tryReadValueField(directId);
-        final normalizedNested = _normalizeDisplayText(nestedValue);
-        if (normalizedNested != null) {
-          return normalizedNested;
-        }
-
-        final normalizedDirect = _normalizeDisplayText(directId);
-        if (normalizedDirect != null) {
-          return normalizedDirect;
-        }
-      }
-    } catch (_) {}
-
-    try {
-      final optionId = option.optionId;
-      if (optionId != null) {
-        final nestedValue = _tryReadValueField(optionId);
-        final normalizedNested = _normalizeDisplayText(nestedValue);
-        if (normalizedNested != null) {
-          return normalizedNested;
-        }
-
-        final normalizedDirect = _normalizeDisplayText(optionId);
-        if (normalizedDirect != null) {
-          return normalizedDirect;
-        }
-      }
-    } catch (_) {}
-
-    return null;
-  }
-
-  String? _extractOptionLabel(dynamic option) {
-    if (option == null) return null;
-
-    for (final candidate in [
-      _tryReadField(option, 'label'),
-      _tryReadField(option, 'text'),
-      _tryReadField(option, 'title'),
-      _tryReadField(option, 'value'),
-    ]) {
-      final normalized = _normalizeDisplayText(candidate);
-      if (normalized != null) {
-        return normalized;
-      }
-    }
-
-    return null;
-  }
-
-  dynamic _tryReadField(dynamic target, String fieldName) {
-    try {
-      switch (fieldName) {
-        case 'label':
-          return target.label;
-        case 'text':
-          return target.text;
-        case 'title':
-          return target.title;
-        case 'value':
-          return target.value;
-      }
-    } catch (_) {}
-    return null;
-  }
-
-  dynamic _tryReadValueField(dynamic target) {
-    try {
-      return target.value;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  String? _normalizeDisplayText(dynamic value) {
-    if (value == null) return null;
-    final text = value.toString().trim();
-    if (text.isEmpty) return null;
-    return text;
-  }
-
-  String _formatVoteDate(DateTime value) {
-    final local = value.toLocal();
-
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-
-    return '${twoDigits(local.day)}/${twoDigits(local.month)} '
-        '${twoDigits(local.hour)}:${twoDigits(local.minute)}';
   }
 
   @override
@@ -1705,6 +1284,492 @@ class _PollDetailPageState extends State<PollDetailPage> {
       case VoteErrorType.generic:
         return 'Impossibile registrare il voto';
     }
+  }
+}
+
+class _PublicVotesSheetContent extends StatefulWidget {
+  final Poll poll;
+  final PollResultController resultController;
+
+  const _PublicVotesSheetContent({
+    required this.poll,
+    required this.resultController,
+  });
+
+  @override
+  State<_PublicVotesSheetContent> createState() =>
+      _PublicVotesSheetContentState();
+}
+
+class _PublicVotesSheetContentState extends State<_PublicVotesSheetContent> {
+  late final TextEditingController _searchController;
+  Timer? _searchDebounce;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _searchController = TextEditingController(
+      text: widget.resultController.publicVotesQuery,
+    );
+    _searchController.addListener(_handleSearchTextChanged);
+
+    if (!widget.resultController.publicVotesInitialized &&
+        !widget.resultController.isPublicVotesLoading) {
+      unawaited(
+        widget.resultController.loadPublicVotes(
+          query: _searchController.text,
+        ),
+      );
+    }
+  }
+
+  void _handleSearchTextChanged() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  void _handleSearchSubmitted(String value) {
+    _searchDebounce?.cancel();
+    widget.resultController.loadPublicVotes(query: value);
+  }
+
+  void _handleSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(
+      const Duration(milliseconds: 350),
+      () {
+        if (!mounted) return;
+        widget.resultController.loadPublicVotes(query: value);
+      },
+    );
+  }
+
+  void _clearSearch() {
+    _searchDebounce?.cancel();
+    _searchController.clear();
+    widget.resultController.loadPublicVotes(query: '');
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.removeListener(_handleSearchTextChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return SafeArea(
+      child: FractionallySizedBox(
+        heightFactor: 0.88,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            8,
+            20,
+            MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Voti pubblici',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Qui puoi vedere chi ha votato cosa in questo sondaggio.',
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _searchController,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search),
+                  hintText: 'Cerca utente',
+                  suffixIcon: _searchController.text.trim().isEmpty
+                      ? null
+                      : IconButton(
+                          onPressed: _clearSearch,
+                          icon: const Icon(Icons.close),
+                        ),
+                ),
+                onSubmitted: _handleSearchSubmitted,
+                onChanged: _handleSearchChanged,
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: AnimatedBuilder(
+                  animation: widget.resultController,
+                  builder: (context, _) {
+                    return _PublicVotesBody(
+                      poll: widget.poll,
+                      resultController: widget.resultController,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PublicVotesBody extends StatelessWidget {
+  final Poll poll;
+  final PollResultController resultController;
+
+  const _PublicVotesBody({
+    required this.poll,
+    required this.resultController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (resultController.isPublicVotesLoading &&
+        resultController.publicVotes.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (resultController.publicVotesError != null &&
+        resultController.publicVotes.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.error_outline_rounded,
+                size: 30,
+                color: theme.colorScheme.error,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Impossibile caricare i voti pubblici',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 14),
+              FilledButton(
+                onPressed: () {
+                  resultController.loadPublicVotes(
+                    query: resultController.publicVotesQuery,
+                  );
+                },
+                child: const Text('Riprova'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (resultController.publicVotes.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text(
+            resultController.publicVotesQuery.trim().isEmpty
+                ? 'Nessun voto pubblico disponibile'
+                : 'Nessun utente trovato per questa ricerca',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium,
+          ),
+        ),
+      );
+    }
+
+    final entries = resultController.publicVotes;
+
+    return Column(
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            '${entries.length} risultati caricati',
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Expanded(
+          child: ListView.separated(
+            physics: const BouncingScrollPhysics(),
+            itemCount: entries.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (context, index) {
+              final entry = entries[index];
+              return _PublicVoteTile(
+                poll: poll,
+                entry: entry,
+              );
+            },
+          ),
+        ),
+        if (resultController.isPublicVotesLoading &&
+            entries.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          const SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ] else if (resultController.publicVotesHasMore) ...[
+          const SizedBox(height: 12),
+          OutlinedButton(
+            onPressed: () {
+              resultController.loadPublicVotes(
+                query: resultController.publicVotesQuery,
+                loadMore: true,
+              );
+            },
+            child: const Text('Carica altri'),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _PublicVoteTile extends StatelessWidget {
+  final Poll poll;
+  final PublicPollVoteEntry entry;
+
+  const _PublicVoteTile({
+    required this.poll,
+    required this.entry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final primaryLabel =
+        entry.displayName?.trim().isNotEmpty == true
+            ? entry.displayName!.trim()
+            : entry.username?.trim().isNotEmpty == true
+                ? '@${entry.username!.trim()}'
+                : 'Utente';
+
+    final secondaryLabel =
+        entry.displayName?.trim().isNotEmpty == true &&
+                entry.username?.trim().isNotEmpty == true
+            ? '@${entry.username!.trim()}'
+            : null;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.35),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(0.12),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: colorScheme.primary.withOpacity(0.12),
+                child: Icon(
+                  Icons.person_outline,
+                  size: 18,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      primaryLabel,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (secondaryLabel != null)
+                      Text(
+                        secondaryLabel,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.textTheme.bodySmall?.color?.withOpacity(
+                            0.75,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Text(
+                _formatVoteDate(entry.votedAt),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: entry.optionIds.map((optionId) {
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: colorScheme.primary.withOpacity(0.16),
+                  ),
+                ),
+                child: Text(
+                  _optionLabelFor(poll, optionId),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              );
+            }).toList(growable: false),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _optionLabelFor(Poll poll, String optionId) {
+    for (final option in poll.options) {
+      final rawId = _extractOptionId(option);
+      if (rawId != optionId) {
+        continue;
+      }
+
+      final rawLabel = _extractOptionLabel(option);
+      if (rawLabel != null && rawLabel.isNotEmpty) {
+        return rawLabel;
+      }
+    }
+
+    return optionId;
+  }
+
+  static String? _extractOptionId(dynamic option) {
+    if (option == null) return null;
+
+    try {
+      final directId = option.id;
+      if (directId != null) {
+        final nestedValue = _tryReadValueField(directId);
+        final normalizedNested = _normalizeDisplayText(nestedValue);
+        if (normalizedNested != null) {
+          return normalizedNested;
+        }
+
+        final normalizedDirect = _normalizeDisplayText(directId);
+        if (normalizedDirect != null) {
+          return normalizedDirect;
+        }
+      }
+    } catch (_) {}
+
+    try {
+      final optionId = option.optionId;
+      if (optionId != null) {
+        final nestedValue = _tryReadValueField(optionId);
+        final normalizedNested = _normalizeDisplayText(nestedValue);
+        if (normalizedNested != null) {
+          return normalizedNested;
+        }
+
+        final normalizedDirect = _normalizeDisplayText(optionId);
+        if (normalizedDirect != null) {
+          return normalizedDirect;
+        }
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  static String? _extractOptionLabel(dynamic option) {
+    if (option == null) return null;
+
+    for (final candidate in [
+      _tryReadField(option, 'label'),
+      _tryReadField(option, 'text'),
+      _tryReadField(option, 'title'),
+      _tryReadField(option, 'value'),
+    ]) {
+      final normalized = _normalizeDisplayText(candidate);
+      if (normalized != null) {
+        return normalized;
+      }
+    }
+
+    return null;
+  }
+
+  static dynamic _tryReadField(dynamic target, String fieldName) {
+    try {
+      switch (fieldName) {
+        case 'label':
+          return target.label;
+        case 'text':
+          return target.text;
+        case 'title':
+          return target.title;
+        case 'value':
+          return target.value;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static dynamic _tryReadValueField(dynamic target) {
+    try {
+      return target.value;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static String? _normalizeDisplayText(dynamic value) {
+    if (value == null) return null;
+    final text = value.toString().trim();
+    if (text.isEmpty) return null;
+    return text;
+  }
+
+  static String _formatVoteDate(DateTime value) {
+    final local = value.toLocal();
+
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+
+    return '${twoDigits(local.day)}/${twoDigits(local.month)} '
+        '${twoDigits(local.hour)}:${twoDigits(local.minute)}';
   }
 }
 

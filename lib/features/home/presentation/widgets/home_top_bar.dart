@@ -39,41 +39,27 @@ class HomeTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final themeModeButton =
-        currentThemeMode != null && onThemeModeChanged != null
-            ? _ThemeModeCycleButton(
-                currentThemeMode: currentThemeMode!,
-                onChanged: onThemeModeChanged!,
-              )
-            : null;
 
-    return Row(
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Sociale Vote',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
+    final themeModeButton = isLoggedIn &&
+            currentThemeMode != null &&
+            onThemeModeChanged != null
+        ? _ThemeModeCycleButton(
+            currentThemeMode: currentThemeMode!,
+            onChanged: onThemeModeChanged!,
+          )
+        : null;
+
+    if (!isLoggedIn) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: _ColorfulBrand(
+              scopeShortLabel: scopeShortLabel,
             ),
-            const SizedBox(height: 2),
-            Text(
-              scopeShortLabel,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: Colors.white.withOpacity(0.72),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const Spacer(),
-        if (!isLoggedIn) ...[
+          ),
+          const SizedBox(width: 8),
           OutlinedButton(
             onPressed: onLoginPressed,
             style: OutlinedButton.styleFrom(
@@ -89,53 +75,131 @@ class HomeTopBar extends StatelessWidget {
             ),
             child: Text(l10n.homeRegisterButton),
           ),
-          if (themeModeButton != null) ...[
-            const SizedBox(width: 8),
-            themeModeButton,
-          ],
-        ] else ...[
-          _NotificationsButton(
-            unreadCount: unreadNotificationsCount,
-            onPressed: onNotificationsPressed,
-          ),
-          if (onTrendingPressed != null || onForYouPressed != null) ...[
-            const SizedBox(width: 6),
-            _DiscoverMenuButton(
-              onTrendingPressed: onTrendingPressed,
-              onForYouPressed: onForYouPressed,
-            ),
-          ],
-          const SizedBox(width: 6),
-          OutlinedButton(
-            onPressed: onProfilePressed,
-            style: OutlinedButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-            ),
-            child: Text(l10n.homeProfileButton),
-          ),
-          const SizedBox(width: 6),
-          TextButton(
-            onPressed: onLogoutPressed,
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white.withOpacity(0.9),
-            ),
-            child: Text(l10n.homeLogoutButton),
-          ),
-          if (themeModeButton != null) ...[
-            const SizedBox(width: 8),
-            themeModeButton,
-          ],
         ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: _ColorfulBrand(
+            scopeShortLabel: scopeShortLabel,
+          ),
+        ),
+        const SizedBox(width: 8),
+        _NotificationsButton(
+          unreadCount: unreadNotificationsCount,
+          onPressed: onNotificationsPressed,
+        ),
+        if (onTrendingPressed != null || onForYouPressed != null) ...[
+          const SizedBox(width: 4),
+          _DiscoverMenuIconButton(
+            onTrendingPressed: onTrendingPressed,
+            onForYouPressed: onForYouPressed,
+          ),
+        ],
+        if (themeModeButton != null) ...[
+          const SizedBox(width: 4),
+          themeModeButton,
+        ],
+        const SizedBox(width: 4),
+        _TopBarIconButton(
+          tooltip: l10n.homeProfileButton,
+          icon: Icons.person_outline_rounded,
+          onPressed: onProfilePressed,
+        ),
+        const SizedBox(width: 4),
+        _TopBarIconButton(
+          tooltip: l10n.homeLogoutButton,
+          icon: Icons.logout_rounded,
+          onPressed: onLogoutPressed,
+        ),
       ],
     );
   }
 }
 
-class _DiscoverMenuButton extends StatelessWidget {
+class _ColorfulBrand extends StatelessWidget {
+  final String scopeShortLabel;
+
+  const _ColorfulBrand({
+    required this.scopeShortLabel,
+  });
+
+  static const List<Color> _brandColors = [
+    Color(0xFF4F8CFF),
+    Color(0xFF8B5CF6),
+    Color(0xFF12B981),
+    Color(0xFFFF7A59),
+    Color(0xFFF59E0B),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    const brandText = 'Sociale Vote';
+
+    final spans = <TextSpan>[];
+    var colorIndex = 0;
+
+    for (final rune in brandText.runes) {
+      final char = String.fromCharCode(rune);
+
+      if (char == ' ') {
+        spans.add(const TextSpan(text: ' '));
+        continue;
+      }
+
+      spans.add(
+        TextSpan(
+          text: char,
+          style: TextStyle(
+            color: _brandColors[colorIndex % _brandColors.length],
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      );
+      colorIndex++;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        RichText(
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          text: TextSpan(
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.25,
+              fontSize: 28,
+              height: 1.0,
+            ),
+            children: spans,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          scopeShortLabel,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: Colors.white.withOpacity(0.72),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DiscoverMenuIconButton extends StatelessWidget {
   final VoidCallback? onTrendingPressed;
   final VoidCallback? onForYouPressed;
 
-  const _DiscoverMenuButton({
+  const _DiscoverMenuIconButton({
     required this.onTrendingPressed,
     required this.onForYouPressed,
   });
@@ -178,34 +242,8 @@ class _DiscoverMenuButton extends StatelessWidget {
             ),
           ),
       ],
-      child: Container(
-        height: 36,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: const Color(0xFF316BFF),
-            width: 1,
-          ),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.explore_outlined,
-              size: 17,
-              color: Color(0xFF316BFF),
-            ),
-            SizedBox(width: 6),
-            Text(
-              'Discover',
-              style: TextStyle(
-                color: Color(0xFF316BFF),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
+      child: const _TopBarIconShell(
+        icon: Icons.explore_outlined,
       ),
     );
   }
@@ -255,23 +293,63 @@ class _ThemeModeCycleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = _iconForThemeMode(currentThemeMode);
-    final tooltip = _labelForThemeMode(currentThemeMode);
+    return _TopBarIconButton(
+      tooltip: _labelForThemeMode(currentThemeMode),
+      icon: _iconForThemeMode(currentThemeMode),
+      onPressed: () => onChanged(_nextThemeMode(currentThemeMode)),
+    );
+  }
+}
 
-    return SizedBox(
-      width: 40,
-      height: 40,
-      child: IconButton(
-        onPressed: () => onChanged(_nextThemeMode(currentThemeMode)),
-        tooltip: tooltip,
-        visualDensity: VisualDensity.compact,
-        padding: EdgeInsets.zero,
-        constraints: const BoxConstraints(
-          minWidth: 40,
-          minHeight: 40,
+class _TopBarIconButton extends StatelessWidget {
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback? onPressed;
+
+  const _TopBarIconButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(999),
+        child: _TopBarIconShell(
+          icon: icon,
         ),
-        color: Colors.white.withOpacity(0.88),
-        icon: Icon(icon),
+      ),
+    );
+  }
+}
+
+class _TopBarIconShell extends StatelessWidget {
+  final IconData icon;
+
+  const _TopBarIconShell({
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.14),
+        ),
+      ),
+      child: Icon(
+        icon,
+        size: 18,
+        color: Colors.white.withOpacity(0.92),
       ),
     );
   }
@@ -291,58 +369,58 @@ class _NotificationsButton extends StatelessWidget {
     final theme = Theme.of(context);
     final displayCount = unreadCount > 99 ? '99+' : unreadCount.toString();
 
-    return SizedBox(
-      width: 40,
-      height: 40,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          IconButton(
-            onPressed: onPressed,
-            tooltip: 'Notifiche',
-            visualDensity: VisualDensity.compact,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(
-              minWidth: 40,
-              minHeight: 40,
-            ),
-            color: Colors.white.withOpacity(0.88),
-            icon: const Icon(Icons.notifications_outlined),
-          ),
-          if (unreadCount > 0)
-            Positioned(
-              top: -2,
-              right: -2,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 5,
-                  vertical: 1,
-                ),
-                constraints: const BoxConstraints(
-                  minWidth: 18,
-                  minHeight: 18,
-                ),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.error,
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: Colors.black,
-                    width: 1.5,
-                  ),
-                ),
-                child: Text(
-                  displayCount,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onError,
-                    fontWeight: FontWeight.w700,
-                    fontSize: unreadCount > 99 ? 9 : 10,
-                    height: 1.1,
-                  ),
+    return Tooltip(
+      message: 'Notifiche',
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(999),
+        child: SizedBox(
+          width: 36,
+          height: 36,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Positioned.fill(
+                child: _TopBarIconShell(
+                  icon: Icons.notifications_outlined,
                 ),
               ),
-            ),
-        ],
+              if (unreadCount > 0)
+                Positioned(
+                  top: -4,
+                  right: -4,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 1,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.error,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: Colors.black,
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Text(
+                      displayCount,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onError,
+                        fontWeight: FontWeight.w700,
+                        fontSize: unreadCount > 99 ? 9 : 10,
+                        height: 1.1,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

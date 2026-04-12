@@ -214,11 +214,27 @@ class PollListController extends ChangeNotifier {
     }
 
     _currentOffset += result.length;
-    _allPolls.addAll(result);
+
+    final existingIds = _allPolls.map((p) => p.id.value).toSet();
+    final uniqueNewPolls = <Poll>[];
+
+    for (final poll in result) {
+      final pollId = poll.id.value;
+      if (existingIds.add(pollId)) {
+        uniqueNewPolls.add(poll);
+      }
+    }
+
+    if (result.isNotEmpty && uniqueNewPolls.isEmpty) {
+      _hasMoreFromSource = false;
+      return;
+    }
+
+    _allPolls.addAll(uniqueNewPolls);
 
     await Future.wait<void>([
-      _loadReactionSummariesForPolls(result),
-      _loadPollResultsForPolls(result),
+      _loadReactionSummariesForPolls(uniqueNewPolls),
+      _loadPollResultsForPolls(uniqueNewPolls),
     ]);
     if (_isDisposed) return;
 

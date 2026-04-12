@@ -17,7 +17,7 @@ import 'package:sociale_vote/shared/ui/app_card.dart';
 import 'package:sociale_vote/shared/ui/loading_indicator.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 
-class HomeNewsSection extends StatelessWidget {
+class HomeNewsSection extends StatefulWidget {
   final String scopeShortLabel;
 
   const HomeNewsSection({
@@ -26,14 +26,27 @@ class HomeNewsSection extends StatelessWidget {
   });
 
   @override
+  State<HomeNewsSection> createState() => _HomeNewsSectionState();
+}
+
+class _HomeNewsSectionState extends State<HomeNewsSection> {
+  int _secondaryPageIndex = 0;
+
+  void _handleSecondaryPageChanged(int index) {
+    if (_secondaryPageIndex == index) return;
+    setState(() {
+      _secondaryPageIndex = index;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final controller = context.watch<NewsController>();
 
     final allNews = controller.news;
-    final newsList =
-        allNews.length <= 3 ? allNews : allNews.take(3).toList(growable: false);
+    final newsList = List<NewsItem>.from(allNews);
 
     Widget content;
 
@@ -66,6 +79,15 @@ class HomeNewsSection extends StatelessWidget {
       final secondary =
           newsList.length > 1 ? newsList.sublist(1) : const <NewsItem>[];
 
+      if (_secondaryPageIndex >= secondary.length && secondary.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          setState(() {
+            _secondaryPageIndex = 0;
+          });
+        });
+      }
+
       content = Column(
         children: [
           if (controller.hasError) ...[
@@ -95,24 +117,11 @@ class HomeNewsSection extends StatelessWidget {
             compact: false,
           ),
           if (secondary.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: secondary.map((news) {
-                return Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      right:
-                          news == secondary.first && secondary.length > 1 ? 5 : 0,
-                      left: news != secondary.first ? 5 : 0,
-                    ),
-                    child: _NewsCardBuilder(
-                      news: news,
-                      compact: true,
-                    ),
-                  ),
-                );
-              }).toList(),
+            const SizedBox(height: 12),
+            _SecondaryNewsCarousel(
+              newsList: secondary,
+              currentIndex: secondary.isEmpty ? 0 : _secondaryPageIndex,
+              onPageChanged: _handleSecondaryPageChanged,
             ),
           ],
         ],
@@ -122,7 +131,7 @@ class HomeNewsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _HomeNewsHeader(scopeShortLabel: scopeShortLabel),
+        _HomeNewsHeader(scopeShortLabel: widget.scopeShortLabel),
         const SizedBox(height: 10),
         content,
         const SizedBox(height: 10),
@@ -144,6 +153,117 @@ class HomeNewsSection extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SecondaryNewsCarousel extends StatefulWidget {
+  final List<NewsItem> newsList;
+  final int currentIndex;
+  final ValueChanged<int> onPageChanged;
+
+  const _SecondaryNewsCarousel({
+    required this.newsList,
+    required this.currentIndex,
+    required this.onPageChanged,
+  });
+
+  @override
+  State<_SecondaryNewsCarousel> createState() => _SecondaryNewsCarouselState();
+}
+
+class _SecondaryNewsCarouselState extends State<_SecondaryNewsCarousel> {
+  PageController? _pageController;
+  double? _lastViewportFraction;
+
+  @override
+  void dispose() {
+    _pageController?.dispose();
+    super.dispose();
+  }
+
+  PageController _resolveController(double viewportFraction) {
+    if (_pageController == null || _lastViewportFraction != viewportFraction) {
+      final previousPage = _pageController?.hasClients == true
+          ? _pageController!.page?.round()
+          : widget.currentIndex;
+      _pageController?.dispose();
+      _pageController = PageController(
+        viewportFraction: viewportFraction,
+        initialPage: previousPage ?? widget.currentIndex,
+      );
+      _lastViewportFraction = viewportFraction;
+    }
+    return _pageController!;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final viewportFraction = width >= 720
+            ? 0.58
+            : width >= 520
+                ? 0.72
+                : 0.88;
+
+        final cardHeight = width >= 720 ? 258.0 : 248.0;
+        final controller = _resolveController(viewportFraction);
+
+        final activeDotColor = theme.colorScheme.primary;
+        final inactiveDotColor =
+            theme.colorScheme.outline.withOpacity(0.28);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: cardHeight,
+              child: PageView.builder(
+                controller: controller,
+                padEnds: false,
+                itemCount: widget.newsList.length,
+                onPageChanged: widget.onPageChanged,
+                itemBuilder: (context, index) {
+                  final news = widget.newsList[index];
+
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      right: index == widget.newsList.length - 1 ? 0 : 10,
+                    ),
+                    child: _NewsCardBuilder(
+                      news: news,
+                      compact: true,
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 10),
+            Center(
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: List.generate(widget.newsList.length, (index) {
+                  final selected = index == widget.currentIndex;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    width: selected ? 16 : 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: selected ? activeDotColor : inactiveDotColor,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -443,14 +563,8 @@ class _HomeNewsLoadingState extends StatelessWidget {
     return Column(
       children: const [
         _HomeNewsLoadingCard(compact: false),
-        SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(child: _HomeNewsLoadingCard(compact: true)),
-            SizedBox(width: 10),
-            Expanded(child: _HomeNewsLoadingCard(compact: true)),
-          ],
-        ),
+        SizedBox(height: 12),
+        _HomeNewsLoadingCard(compact: true),
       ],
     );
   }
