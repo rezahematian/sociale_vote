@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/theme/radius.dart';
@@ -64,38 +64,12 @@ class PollCard extends StatelessWidget {
     fontSize: 12,
   );
 
-  static const Color _pollChipBackground = Color(0xFFEAF7EF);
-  static const Color _pollChipForeground = Color(0xFF179C5C);
-  static const Color _pollChipBorder = Color(0xFFCFEBD9);
-
-  static const Color _neutralSoftBlueBg = Color(0xFFF2F7FF);
-  static const Color _neutralSoftBlueFg = Color(0xFF5B7395);
-  static const Color _neutralSoftBlueBorder = Color(0xFFD9E6F5);
-
-  static const Color _softIndigoBg = Color(0xFFF1F4FF);
-  static const Color _softIndigoFg = Color(0xFF5D6FC8);
-  static const Color _softIndigoBorder = Color(0xFFDCE4FF);
-
-  static const Color _softVioletBg = Color(0xFFF5F1FF);
-  static const Color _softVioletFg = Color(0xFF7A5CC2);
-  static const Color _softVioletBorder = Color(0xFFE5DCFF);
-
-  static const Color _softTealBg = Color(0xFFEFFAF6);
-  static const Color _softTealFg = Color(0xFF1B8A68);
-  static const Color _softTealBorder = Color(0xFFD8F0E6);
-
-  static const Color _softAmberBg = Color(0xFFFFF6EC);
-  static const Color _softAmberFg = Color(0xFF9D6F35);
-  static const Color _softAmberBorder = Color(0xFFF2E1CD);
-
-  static const Color _softRoseBg = Color(0xFFFFF4EE);
-  static const Color _softRoseFg = Color(0xFFB46654);
-  static const Color _softRoseBorder = Color(0xFFF4DDD4);
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isCompactLayout = screenWidth < 700;
 
     final description = (poll.description ?? '').trim();
     final hasDescription = description.isNotEmpty;
@@ -114,16 +88,12 @@ class PollCard extends StatelessWidget {
             ? const Color(0xFF2C3948)
             : const Color(0xFFD7DFEA);
 
-    final List<Widget> topChips = [
-      _buildPollIconChip(theme),
-      _buildStatusChip(theme, l10n),
-      _buildScopeChip(theme, l10n),
-      if (_hasGeoRestriction) _buildParticipationChip(theme, l10n),
-      _buildTypeChip(theme, l10n),
-      _buildAnonymityChip(theme, l10n),
-      _buildResultsVisibilityChip(theme, l10n),
-      _buildQuorumChip(theme, l10n),
-    ].where((w) => w is! SizedBox).toList(growable: false);
+    final topChipItems = _buildTopChipItems(
+      context: context,
+      theme: theme,
+      l10n: l10n,
+      isCompactLayout: isCompactLayout,
+    );
 
     VoidCallback? wrapReactCallback(VoidCallback? original) {
       if (original == null) return null;
@@ -197,12 +167,10 @@ class PollCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (topChips.isNotEmpty)
-                    Wrap(
-                      spacing: AppSpacing.unitXS,
-                      runSpacing: AppSpacing.unitXS,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: topChips,
+                  if (topChipItems.isNotEmpty)
+                    _SingleLineChipRow(
+                      items: topChipItems,
+                      chipHeight: _chipMetrics.height,
                     ),
                   const SizedBox(height: AppSpacing.unitM),
                   if (hasResults)
@@ -255,6 +223,188 @@ class PollCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<_PollChipItem> _buildTopChipItems({
+    required BuildContext context,
+    required ThemeData theme,
+    required AppLocalizations l10n,
+    required bool isCompactLayout,
+  }) {
+    final items = <_PollChipItem>[
+      _chipItem(
+        context: context,
+        theme: theme,
+        icon: Icons.how_to_vote_rounded,
+        label: null,
+        child: _buildPollIconChip(theme),
+      ),
+      _chipItem(
+        context: context,
+        theme: theme,
+        icon: null,
+        label: _mapStatusToLabel(l10n, poll.status).toUpperCase(),
+        bold: true,
+        letterSpacing: 0.25,
+        child: _buildStatusChip(theme, l10n),
+      ),
+      _chipItem(
+        context: context,
+        theme: theme,
+        icon: Icons.public,
+        label: _scopeLabel(l10n),
+        child: _buildScopeChip(theme, l10n),
+      ),
+    ];
+
+    if (_hasGeoRestriction) {
+      items.add(
+        _chipItem(
+          context: context,
+          theme: theme,
+          icon: Icons.lock_outline,
+          label: _participationLabel(l10n),
+          child: _buildParticipationChip(theme, l10n),
+        ),
+      );
+    }
+
+    final dateLabel = _dateLabel(context, compact: isCompactLayout);
+    if (dateLabel != null) {
+      items.add(
+        _chipItem(
+          context: context,
+          theme: theme,
+          icon: Icons.event_outlined,
+          label: dateLabel,
+          child: _buildDateChip(theme, dateLabel),
+        ),
+      );
+    }
+
+    if (!isCompactLayout) {
+      items.add(
+        _chipItem(
+          context: context,
+          theme: theme,
+          icon: poll.configuration.anonymityRules.level ==
+                  AnonymityLevel.anonymous
+              ? Icons.visibility_off_outlined
+              : Icons.visibility_outlined,
+          label: _anonymityLabel(l10n),
+          child: _buildAnonymityChip(theme, l10n),
+        ),
+      );
+    }
+
+    items.add(
+      _chipItem(
+        context: context,
+        theme: theme,
+        icon: Icons.category_outlined,
+        label: _mapTypeToLabel(l10n, poll.type),
+        child: _buildTypeChip(theme, l10n),
+      ),
+    );
+
+    items.add(
+      _chipItem(
+        context: context,
+        theme: theme,
+        icon: Icons.insights_outlined,
+        label: _mapCompactResultsVisibilityLabel(
+          l10n,
+          poll.configuration.visibilityRules.resultsVisibility,
+        ),
+        child: _buildResultsVisibilityChip(theme, l10n),
+      ),
+    );
+
+    final quorumLabel = _quorumLabel(l10n);
+    if (quorumLabel != null) {
+      items.add(
+        _chipItem(
+          context: context,
+          theme: theme,
+          icon: Icons.how_to_vote_outlined,
+          label: quorumLabel,
+          child: _buildQuorumChip(theme, l10n),
+        ),
+      );
+    }
+
+    return items;
+  }
+
+  _PollChipItem _chipItem({
+    required BuildContext context,
+    required ThemeData theme,
+    required IconData? icon,
+    required String? label,
+    required Widget child,
+    bool bold = false,
+    double? letterSpacing,
+  }) {
+    return _PollChipItem(
+      child: child,
+      estimatedWidth: _estimateChipWidth(
+        context: context,
+        theme: theme,
+        icon: icon,
+        label: label,
+        metrics: _chipMetrics,
+        bold: bold,
+        letterSpacing: letterSpacing,
+      ),
+    );
+  }
+
+  double _estimateChipWidth({
+    required BuildContext context,
+    required ThemeData theme,
+    required IconData? icon,
+    required String? label,
+    required _PollChipMetrics metrics,
+    bool bold = false,
+    double? letterSpacing,
+  }) {
+    double width = 0;
+
+    final horizontalPadding =
+        label == null
+            ? (metrics.horizontalPadding - 1) * 2
+            : metrics.horizontalPadding * 2;
+
+    width += horizontalPadding;
+    width += 2; // bordo + margine di sicurezza
+
+    if (icon != null) {
+      width += metrics.iconSize;
+    }
+
+    if (icon != null && label != null) {
+      width += metrics.contentGap;
+    }
+
+    if (label != null) {
+      final style = theme.textTheme.labelMedium?.copyWith(
+        fontSize: metrics.fontSize,
+        height: 1,
+        fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
+        letterSpacing: letterSpacing,
+      );
+
+      final painter = TextPainter(
+        text: TextSpan(text: label, style: style),
+        maxLines: 1,
+        textDirection: Directionality.of(context),
+        textScaler: MediaQuery.textScalerOf(context),
+      )..layout();
+
+      width += painter.width;
+    }
+
+    return width + 6; // buffer anti-overflow
   }
 
   String _mapTypeToLabel(AppLocalizations l10n, PollType type) {
@@ -324,144 +474,350 @@ class PollCard extends StatelessWidget {
     }
   }
 
+  String _scopeLabel(AppLocalizations l10n) {
+    final country = _resolveCountryName(poll.countryCode);
+    final city = poll.cityId;
+
+    if (country == null && city == null) {
+      return l10n.pollGeo_global;
+    } else if (country != null && city == null) {
+      return country;
+    } else if (country == null && city != null) {
+      return city;
+    } else {
+      return '$city · $country';
+    }
+  }
+
   String? _resolveParticipationCountryName() {
     return _resolveCountryName(
       poll.configuration.participationRules.countryCode,
     );
   }
 
+  String _participationLabel(AppLocalizations l10n) {
+    final countryName = _resolveParticipationCountryName();
+    return countryName != null
+        ? l10n.pollCard_restrictedToCountry(countryName)
+        : l10n.pollCard_countryRestricted;
+  }
+
+  String _anonymityLabel(AppLocalizations l10n) {
+    final level = poll.configuration.anonymityRules.level;
+    return level == AnonymityLevel.anonymous
+        ? l10n.pollDetail_chipAnonymous
+        : l10n.pollDetail_chipPublic;
+  }
+
+  String? _quorumLabel(AppLocalizations l10n) {
+    final minQuorum = poll.configuration.quorumRules.minAbsoluteVotes;
+    if (minQuorum == null) return null;
+    return l10n.pollCard_quorumLabel(minQuorum);
+  }
+
+  String _formatChipDate(BuildContext context, DateTime date, {required bool compact}) {
+    final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+    final local = date.toLocal();
+
+    final day = local.day.toString().padLeft(2, '0');
+    final month = local.month.toString().padLeft(2, '0');
+    final year = (local.year % 100).toString().padLeft(2, '0');
+
+    final isEnglish = locale.startsWith('en');
+
+    if (compact) {
+      return isEnglish ? '$month/$day' : '$day/$month';
+    }
+
+    return isEnglish ? '$month/$day/$year' : '$day/$month/$year';
+  }
+
+  String? _dateLabel(BuildContext context, {required bool compact}) {
+    final start = poll.startAt;
+    final end = poll.endAt;
+
+    if (start == null && end == null) {
+      return null;
+    }
+
+    if (start != null && end != null) {
+      final startLabel = _formatChipDate(context, start, compact: compact);
+      final endLabel = _formatChipDate(context, end, compact: compact);
+      return startLabel == endLabel ? startLabel : '$startLabel→$endLabel';
+    }
+
+    if (start != null) {
+      return _formatChipDate(context, start, compact: compact);
+    }
+
+    return _formatChipDate(context, end!, compact: compact);
+  }
+
+  _PollChipTone _pollChipTone(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return const _PollChipTone(
+        backgroundColor: Color(0xFF163126),
+        foregroundColor: Color(0xFF54D497),
+        borderColor: Color(0xFF2A5942),
+      );
+    }
+
+    return const _PollChipTone(
+      backgroundColor: Color(0xFFEAF7EF),
+      foregroundColor: Color(0xFF179C5C),
+      borderColor: Color(0xFFCFEBD9),
+    );
+  }
+
+  _PollChipTone _neutralBlueTone(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return const _PollChipTone(
+        backgroundColor: Color(0xFF172332),
+        foregroundColor: Color(0xFF9AB8E4),
+        borderColor: Color(0xFF304457),
+      );
+    }
+
+    return const _PollChipTone(
+      backgroundColor: Color(0xFFF2F7FF),
+      foregroundColor: Color(0xFF5B7395),
+      borderColor: Color(0xFFD9E6F5),
+    );
+  }
+
+  _PollChipTone _indigoTone(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return const _PollChipTone(
+        backgroundColor: Color(0xFF1D2237),
+        foregroundColor: Color(0xFFAEBBF8),
+        borderColor: Color(0xFF3B4564),
+      );
+    }
+
+    return const _PollChipTone(
+      backgroundColor: Color(0xFFF1F4FF),
+      foregroundColor: Color(0xFF5D6FC8),
+      borderColor: Color(0xFFDCE4FF),
+    );
+  }
+
+  _PollChipTone _violetTone(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return const _PollChipTone(
+        backgroundColor: Color(0xFF27203A),
+        foregroundColor: Color(0xFFD4B6FF),
+        borderColor: Color(0xFF493B63),
+      );
+    }
+
+    return const _PollChipTone(
+      backgroundColor: Color(0xFFF5F1FF),
+      foregroundColor: Color(0xFF7A5CC2),
+      borderColor: Color(0xFFE5DCFF),
+    );
+  }
+
+  _PollChipTone _tealTone(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return const _PollChipTone(
+        backgroundColor: Color(0xFF17322B),
+        foregroundColor: Color(0xFF7EDFC1),
+        borderColor: Color(0xFF31584E),
+      );
+    }
+
+    return const _PollChipTone(
+      backgroundColor: Color(0xFFEFFAF6),
+      foregroundColor: Color(0xFF1B8A68),
+      borderColor: Color(0xFFD8F0E6),
+    );
+  }
+
+  _PollChipTone _amberTone(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return const _PollChipTone(
+        backgroundColor: Color(0xFF35291D),
+        foregroundColor: Color(0xFFF0C17B),
+        borderColor: Color(0xFF5C4832),
+      );
+    }
+
+    return const _PollChipTone(
+      backgroundColor: Color(0xFFFFF6EC),
+      foregroundColor: Color(0xFF9D6F35),
+      borderColor: Color(0xFFF2E1CD),
+    );
+  }
+
+  _PollChipTone _roseTone(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return const _PollChipTone(
+        backgroundColor: Color(0xFF362229),
+        foregroundColor: Color(0xFFF0AA9D),
+        borderColor: Color(0xFF5D3B43),
+      );
+    }
+
+    return const _PollChipTone(
+      backgroundColor: Color(0xFFFFF4EE),
+      foregroundColor: Color(0xFFB46654),
+      borderColor: Color(0xFFF4DDD4),
+    );
+  }
+
+  _PollChipTone _statusTone(ThemeData theme, PollStatus status) {
+    switch (status) {
+      case PollStatus.open:
+        if (theme.brightness == Brightness.dark) {
+          return const _PollChipTone(
+            backgroundColor: Color(0xFF163126),
+            foregroundColor: Color(0xFF58D99C),
+            borderColor: Color(0xFF2A5942),
+          );
+        }
+        return const _PollChipTone(
+          backgroundColor: Color(0xFFE7F8EE),
+          foregroundColor: Color(0xFF0E9F6E),
+          borderColor: Color(0xFFCBEFD9),
+        );
+      case PollStatus.closed:
+        if (theme.brightness == Brightness.dark) {
+          return const _PollChipTone(
+            backgroundColor: Color(0xFF381E24),
+            foregroundColor: Color(0xFFFF9AA4),
+            borderColor: Color(0xFF5C3941),
+          );
+        }
+        return const _PollChipTone(
+          backgroundColor: Color(0xFFFFEAEA),
+          foregroundColor: Color(0xFFE02424),
+          borderColor: Color(0xFFF8C7C7),
+        );
+      case PollStatus.scheduled:
+        return _neutralBlueTone(theme);
+      case PollStatus.draft:
+      default:
+        if (theme.brightness == Brightness.dark) {
+          return const _PollChipTone(
+            backgroundColor: Color(0xFF232A35),
+            foregroundColor: Color(0xFFC2CBD7),
+            borderColor: Color(0xFF3A4653),
+          );
+        }
+        return const _PollChipTone(
+          backgroundColor: Color(0xFFF6F7F9),
+          foregroundColor: Color(0xFF6B7280),
+          borderColor: Color(0xFFE4E7EC),
+        );
+    }
+  }
+
   Widget _buildPollIconChip(ThemeData theme) {
+    final tone = _pollChipTone(theme);
+
     return _buildMetaPill(
       theme: theme,
       metrics: _chipMetrics,
       icon: Icons.how_to_vote_rounded,
       label: null,
-      backgroundColor: _pollChipBackground,
-      foregroundColor: _pollChipForeground,
-      borderColor: _pollChipBorder,
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
     );
   }
 
   Widget _buildStatusChip(ThemeData theme, AppLocalizations l10n) {
-    final status = poll.status;
-    final label = _mapStatusToLabel(l10n, status).toUpperCase();
-
-    Color bg;
-    Color fg;
-    Color border;
-
-    switch (status) {
-      case PollStatus.open:
-        bg = const Color(0xFFE7F8EE);
-        fg = const Color(0xFF0E9F6E);
-        border = const Color(0xFFCBEFD9);
-        break;
-      case PollStatus.closed:
-        bg = const Color(0xFFFFEAEA);
-        fg = const Color(0xFFE02424);
-        border = const Color(0xFFF8C7C7);
-        break;
-      case PollStatus.scheduled:
-        bg = _neutralSoftBlueBg;
-        fg = _neutralSoftBlueFg;
-        border = _neutralSoftBlueBorder;
-        break;
-      case PollStatus.draft:
-      default:
-        bg = const Color(0xFFF6F7F9);
-        fg = const Color(0xFF6B7280);
-        border = const Color(0xFFE4E7EC);
-        break;
-    }
+    final tone = _statusTone(theme, poll.status);
 
     return _buildMetaPill(
       theme: theme,
       metrics: _chipMetrics,
       icon: null,
-      label: label,
-      backgroundColor: bg,
-      foregroundColor: fg,
-      borderColor: border,
+      label: _mapStatusToLabel(l10n, poll.status).toUpperCase(),
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
       bold: true,
       letterSpacing: 0.25,
     );
   }
 
   Widget _buildScopeChip(ThemeData theme, AppLocalizations l10n) {
-    final country = _resolveCountryName(poll.countryCode);
-    final city = poll.cityId;
-
-    String label;
-    if (country == null && city == null) {
-      label = l10n.pollGeo_global;
-    } else if (country != null && city == null) {
-      label = country;
-    } else if (country == null && city != null) {
-      label = city;
-    } else {
-      label = '$city · $country';
-    }
+    final tone = _neutralBlueTone(theme);
 
     return _buildMetaPill(
       theme: theme,
       metrics: _chipMetrics,
       icon: Icons.public,
-      label: label,
-      backgroundColor: _neutralSoftBlueBg,
-      foregroundColor: _neutralSoftBlueFg,
-      borderColor: _neutralSoftBlueBorder,
+      label: _scopeLabel(l10n),
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
     );
   }
 
   Widget _buildParticipationChip(ThemeData theme, AppLocalizations l10n) {
-    final rules = poll.configuration.participationRules;
-
-    if (rules.scope != ParticipationScope.geoScopeOnly) {
+    if (!_hasGeoRestriction) {
       return const SizedBox.shrink();
     }
 
-    final countryName = _resolveParticipationCountryName();
-    final label = countryName != null
-        ? l10n.pollCard_restrictedToCountry(countryName)
-        : l10n.pollCard_countryRestricted;
+    final tone = _amberTone(theme);
 
     return _buildMetaPill(
       theme: theme,
       metrics: _chipMetrics,
       icon: Icons.lock_outline,
+      label: _participationLabel(l10n),
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
+    );
+  }
+
+  Widget _buildDateChip(ThemeData theme, String label) {
+    final tone = _neutralBlueTone(theme);
+
+    return _buildMetaPill(
+      theme: theme,
+      metrics: _chipMetrics,
+      icon: Icons.event_outlined,
       label: label,
-      backgroundColor: _softAmberBg,
-      foregroundColor: _softAmberFg,
-      borderColor: _softAmberBorder,
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
     );
   }
 
   Widget _buildTypeChip(ThemeData theme, AppLocalizations l10n) {
+    final tone = _indigoTone(theme);
+
     return _buildInfoPill(
       theme: theme,
       metrics: _chipMetrics,
       icon: Icons.category_outlined,
       label: _mapTypeToLabel(l10n, poll.type),
-      backgroundColor: _softIndigoBg,
-      foregroundColor: _softIndigoFg,
-      borderColor: _softIndigoBorder,
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
     );
   }
 
   Widget _buildAnonymityChip(ThemeData theme, AppLocalizations l10n) {
-    final level = poll.configuration.anonymityRules.level;
-    final label = level == AnonymityLevel.anonymous
-        ? l10n.pollDetail_chipAnonymous
-        : l10n.pollDetail_chipPublic;
+    final tone = _violetTone(theme);
+    final isAnonymous =
+        poll.configuration.anonymityRules.level == AnonymityLevel.anonymous;
 
     return _buildInfoPill(
       theme: theme,
       metrics: _chipMetrics,
-      icon: Icons.visibility_outlined,
-      label: label,
-      backgroundColor: _softVioletBg,
-      foregroundColor: _softVioletFg,
-      borderColor: _softVioletBorder,
+      icon:
+          isAnonymous
+              ? Icons.visibility_off_outlined
+              : Icons.visibility_outlined,
+      label: _anonymityLabel(l10n),
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
     );
   }
 
@@ -469,17 +825,19 @@ class PollCard extends StatelessWidget {
     ThemeData theme,
     AppLocalizations l10n,
   ) {
-    final visibility = poll.configuration.visibilityRules.resultsVisibility;
-    final label = _mapCompactResultsVisibilityLabel(l10n, visibility);
+    final tone = _tealTone(theme);
 
     return _buildInfoPill(
       theme: theme,
       metrics: _chipMetrics,
       icon: Icons.insights_outlined,
-      label: label,
-      backgroundColor: _softTealBg,
-      foregroundColor: _softTealFg,
-      borderColor: _softTealBorder,
+      label: _mapCompactResultsVisibilityLabel(
+        l10n,
+        poll.configuration.visibilityRules.resultsVisibility,
+      ),
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
     );
   }
 
@@ -490,14 +848,16 @@ class PollCard extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final tone = _roseTone(theme);
+
     return _buildInfoPill(
       theme: theme,
       metrics: _chipMetrics,
       icon: Icons.how_to_vote_outlined,
       label: l10n.pollCard_quorumLabel(minQuorum),
-      backgroundColor: _softRoseBg,
-      foregroundColor: _softRoseFg,
-      borderColor: _softRoseBorder,
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
     );
   }
 
@@ -612,6 +972,72 @@ class _PollChipMetrics {
     required this.contentGap,
     required this.fontSize,
   });
+}
+
+class _PollChipTone {
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final Color borderColor;
+
+  const _PollChipTone({
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.borderColor,
+  });
+}
+
+class _PollChipItem {
+  final Widget child;
+  final double estimatedWidth;
+
+  const _PollChipItem({
+    required this.child,
+    required this.estimatedWidth,
+  });
+}
+
+class _SingleLineChipRow extends StatelessWidget {
+  final List<_PollChipItem> items;
+  final double chipHeight;
+
+  const _SingleLineChipRow({
+    required this.items,
+    required this.chipHeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const spacing = AppSpacing.unitXS;
+        final maxWidth = constraints.maxWidth;
+        final visible = <Widget>[];
+        double usedWidth = 0;
+
+        for (final item in items) {
+          final nextWidth =
+              item.estimatedWidth + (visible.isEmpty ? 0 : spacing);
+
+          if (usedWidth + nextWidth > maxWidth) {
+            break;
+          }
+
+          if (visible.isNotEmpty) {
+            visible.add(const SizedBox(width: spacing));
+          }
+          visible.add(item.child);
+          usedWidth += nextWidth;
+        }
+
+        return SizedBox(
+          height: chipHeight,
+          child: Row(
+            children: visible,
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _PollEngagementRow extends StatelessWidget {

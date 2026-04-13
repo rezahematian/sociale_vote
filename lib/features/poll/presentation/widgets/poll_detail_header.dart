@@ -108,10 +108,22 @@ class PollDetailHeader extends StatelessWidget {
     final createdAt = _tryGetCreatedAt(poll);
     final minQuorum = config.quorumRules.minAbsoluteVotes;
 
+    final shareLabel = _localizedText(
+      l10n,
+      it: 'Condividi',
+      en: 'Share',
+    );
+    final saveLabel = _localizedText(
+      l10n,
+      it: 'Salva',
+      en: 'Save',
+    );
+
     final locationLabel = _mapLocationLabel(l10n);
     final statusLabel = _mapStatusToLabel(l10n, poll.status);
     final participationLabel = _mapParticipationLabel(l10n);
     final timeWindowLabel = _mapTimeWindowLabel(
+      l10n,
       startAt: poll.startAt,
       endAt: poll.endAt,
     );
@@ -146,8 +158,16 @@ class PollDetailHeader extends StatelessWidget {
 
     final String? quorumInfoText = (minQuorum != null && isQuorumApplicable)
         ? (isQuorumReached
-              ? 'Quorum raggiunto • $totalVotes/$minQuorum'
-              : 'Quorum non raggiunto • $totalVotes/$minQuorum')
+              ? _localizedText(
+                  l10n,
+                  it: 'Quorum raggiunto • $totalVotes/$minQuorum',
+                  en: 'Quorum reached • $totalVotes/$minQuorum',
+                )
+              : _localizedText(
+                  l10n,
+                  it: 'Quorum non raggiunto • $totalVotes/$minQuorum',
+                  en: 'Quorum not reached • $totalVotes/$minQuorum',
+                ))
         : null;
 
     final titleColor = colorScheme.onSurface;
@@ -308,7 +328,11 @@ class PollDetailHeader extends StatelessWidget {
             if (createdAt != null) ...[
               const SizedBox(height: 10),
               Text(
-                'Creato il ${_formatDateTime(createdAt)}',
+                _localizedText(
+                  l10n,
+                  it: 'Creato il ${_formatDateTime(createdAt)}',
+                  en: 'Created on ${_formatDateTime(createdAt)}',
+                ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: metaTextColor,
                   fontWeight: FontWeight.w600,
@@ -373,7 +397,7 @@ class PollDetailHeader extends StatelessWidget {
                         _buildCompactActionIcon(
                           context,
                           icon: Icons.share_outlined,
-                          tooltip: 'Condividi',
+                          tooltip: shareLabel,
                           onPressed: onSharePressed,
                         ),
                         const SizedBox(width: 8),
@@ -414,8 +438,8 @@ class PollDetailHeader extends StatelessWidget {
                                   _buildActionPill(
                                     context,
                                     icon: Icons.share_outlined,
-                                    label: 'Condividi',
-                                    tooltip: 'Condividi',
+                                    label: shareLabel,
+                                    tooltip: shareLabel,
                                     onPressed: onSharePressed,
                                   ),
                                   _buildActionPill(
@@ -423,7 +447,7 @@ class PollDetailHeader extends StatelessWidget {
                                     icon: isFavorite
                                         ? Icons.star_rounded
                                         : Icons.star_border_rounded,
-                                    label: 'Salva',
+                                    label: saveLabel,
                                     tooltip: isFavorite
                                         ? l10n
                                             .pollDetail_removeFromFavoritesTooltip
@@ -457,8 +481,8 @@ class PollDetailHeader extends StatelessWidget {
                                 _buildActionPill(
                                   context,
                                   icon: Icons.share_outlined,
-                                  label: 'Condividi',
-                                  tooltip: 'Condividi',
+                                  label: shareLabel,
+                                  tooltip: shareLabel,
                                   onPressed: onSharePressed,
                                 ),
                                 const SizedBox(width: 8),
@@ -467,7 +491,7 @@ class PollDetailHeader extends StatelessWidget {
                                   icon: isFavorite
                                       ? Icons.star_rounded
                                       : Icons.star_border_rounded,
-                                  label: 'Salva',
+                                  label: saveLabel,
                                   tooltip: isFavorite
                                       ? l10n.pollDetail_removeFromFavoritesTooltip
                                       : l10n.pollDetail_addToFavoritesTooltip,
@@ -584,19 +608,179 @@ class PollDetailHeader extends StatelessWidget {
     );
   }
 
+  _PollChipTone _locationTone(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return const _PollChipTone(
+        backgroundColor: Color(0xFF182535),
+        foregroundColor: Color(0xFF9DBDF4),
+        borderColor: Color(0xFF30455E),
+      );
+    }
+
+    return const _PollChipTone(
+      backgroundColor: _neutralSoftBlueBg,
+      foregroundColor: _neutralSoftBlueFg,
+      borderColor: _neutralSoftBlueBorder,
+    );
+  }
+
+  _PollChipTone _statusTone(ThemeData theme, PollStatus status) {
+    switch (status) {
+      case PollStatus.open:
+        if (theme.brightness == Brightness.dark) {
+          return const _PollChipTone(
+            backgroundColor: Color(0xFF163226),
+            foregroundColor: Color(0xFF58D99C),
+            borderColor: Color(0xFF2B5A45),
+          );
+        }
+        return const _PollChipTone(
+          backgroundColor: _softGreenBg,
+          foregroundColor: _softGreenFg,
+          borderColor: _softGreenBorder,
+        );
+      case PollStatus.closed:
+        if (theme.brightness == Brightness.dark) {
+          return const _PollChipTone(
+            backgroundColor: Color(0xFF381C21),
+            foregroundColor: Color(0xFFFF8B94),
+            borderColor: Color(0xFF5F323A),
+          );
+        }
+        return const _PollChipTone(
+          backgroundColor: _softRedBg,
+          foregroundColor: _softRedFg,
+          borderColor: _softRedBorder,
+        );
+      case PollStatus.scheduled:
+        return _locationTone(theme);
+      case PollStatus.draft:
+        if (theme.brightness == Brightness.dark) {
+          return const _PollChipTone(
+            backgroundColor: Color(0xFF232A35),
+            foregroundColor: Color(0xFFC0CAD7),
+            borderColor: Color(0xFF3A4654),
+          );
+        }
+        return const _PollChipTone(
+          backgroundColor: _softGrayBg,
+          foregroundColor: _softGrayFg,
+          borderColor: _softGrayBorder,
+        );
+    }
+  }
+
+  _PollChipTone _participationTone(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return const _PollChipTone(
+        backgroundColor: Color(0xFF34281B),
+        foregroundColor: Color(0xFFF2C078),
+        borderColor: Color(0xFF5A4631),
+      );
+    }
+
+    return const _PollChipTone(
+      backgroundColor: _softAmberBg,
+      foregroundColor: _softAmberFg,
+      borderColor: _softAmberBorder,
+    );
+  }
+
+  _PollChipTone _timeTone(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return const _PollChipTone(
+        backgroundColor: Color(0xFF1F2532),
+        foregroundColor: Color(0xFFC6D2E3),
+        borderColor: Color(0xFF364154),
+      );
+    }
+
+    return const _PollChipTone(
+      backgroundColor: Color(0xFFF5F7FB),
+      foregroundColor: Color(0xFF5F6D82),
+      borderColor: Color(0xFFDDE5F0),
+    );
+  }
+
+  _PollChipTone _typeTone(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return const _PollChipTone(
+        backgroundColor: Color(0xFF1D2237),
+        foregroundColor: Color(0xFFAEBBF8),
+        borderColor: Color(0xFF3B4564),
+      );
+    }
+
+    return const _PollChipTone(
+      backgroundColor: _softIndigoBg,
+      foregroundColor: _softIndigoFg,
+      borderColor: _softIndigoBorder,
+    );
+  }
+
+  _PollChipTone _tealTone(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return const _PollChipTone(
+        backgroundColor: Color(0xFF17322B),
+        foregroundColor: Color(0xFF7EDFC1),
+        borderColor: Color(0xFF31584E),
+      );
+    }
+
+    return const _PollChipTone(
+      backgroundColor: _softTealBg,
+      foregroundColor: _softTealFg,
+      borderColor: _softTealBorder,
+    );
+  }
+
+  _PollChipTone _anonymityTone(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return const _PollChipTone(
+        backgroundColor: Color(0xFF2A203A),
+        foregroundColor: Color(0xFFD8B8FF),
+        borderColor: Color(0xFF4A3A63),
+      );
+    }
+
+    return const _PollChipTone(
+      backgroundColor: _softVioletBg,
+      foregroundColor: _softVioletFg,
+      borderColor: _softVioletBorder,
+    );
+  }
+
+  _PollChipTone _quorumTone(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return const _PollChipTone(
+        backgroundColor: Color(0xFF362229),
+        foregroundColor: Color(0xFFF0AA9D),
+        borderColor: Color(0xFF5D3B43),
+      );
+    }
+
+    return const _PollChipTone(
+      backgroundColor: _softRoseBg,
+      foregroundColor: _softRoseFg,
+      borderColor: _softRoseBorder,
+    );
+  }
+
   Widget _buildLocationChip(
     ThemeData theme,
     String label,
     _PollChipMetrics metrics,
   ) {
+    final tone = _locationTone(theme);
+
     return _buildInfoPill(
       theme: theme,
       metrics: metrics,
       icon: Icons.public,
       label: label,
-      backgroundColor: _neutralSoftBlueBg,
-      foregroundColor: _neutralSoftBlueFg,
-      borderColor: _neutralSoftBlueBorder,
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
     );
   }
 
@@ -606,41 +790,16 @@ class PollDetailHeader extends StatelessWidget {
     PollStatus status,
     _PollChipMetrics metrics,
   ) {
-    Color bg;
-    Color fg;
-    Color border;
-
-    switch (status) {
-      case PollStatus.open:
-        bg = _softGreenBg;
-        fg = _softGreenFg;
-        border = _softGreenBorder;
-        break;
-      case PollStatus.closed:
-        bg = _softRedBg;
-        fg = _softRedFg;
-        border = _softRedBorder;
-        break;
-      case PollStatus.scheduled:
-        bg = _neutralSoftBlueBg;
-        fg = _neutralSoftBlueFg;
-        border = _neutralSoftBlueBorder;
-        break;
-      case PollStatus.draft:
-        bg = _softGrayBg;
-        fg = _softGrayFg;
-        border = _softGrayBorder;
-        break;
-    }
+    final tone = _statusTone(theme, status);
 
     return _buildMetaPill(
       theme: theme,
       metrics: metrics,
       icon: null,
       label: label.toUpperCase(),
-      backgroundColor: bg,
-      foregroundColor: fg,
-      borderColor: border,
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
       bold: true,
       letterSpacing: 0.25,
     );
@@ -651,14 +810,16 @@ class PollDetailHeader extends StatelessWidget {
     String label,
     _PollChipMetrics metrics,
   ) {
+    final tone = _participationTone(theme);
+
     return _buildInfoPill(
       theme: theme,
       metrics: metrics,
       icon: Icons.lock_outline,
       label: label,
-      backgroundColor: _softAmberBg,
-      foregroundColor: _softAmberFg,
-      borderColor: _softAmberBorder,
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
     );
   }
 
@@ -667,14 +828,16 @@ class PollDetailHeader extends StatelessWidget {
     String label,
     _PollChipMetrics metrics,
   ) {
+    final tone = _timeTone(theme);
+
     return _buildInfoPill(
       theme: theme,
       metrics: metrics,
       icon: Icons.schedule_outlined,
       label: label,
-      backgroundColor: _softAmberBg,
-      foregroundColor: _softAmberFg,
-      borderColor: _softAmberBorder,
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
     );
   }
 
@@ -683,14 +846,16 @@ class PollDetailHeader extends StatelessWidget {
     String label,
     _PollChipMetrics metrics,
   ) {
+    final tone = _typeTone(theme);
+
     return _buildInfoPill(
       theme: theme,
       metrics: metrics,
       icon: Icons.category_outlined,
       label: label,
-      backgroundColor: _softIndigoBg,
-      foregroundColor: _softIndigoFg,
-      borderColor: _softIndigoBorder,
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
     );
   }
 
@@ -700,6 +865,8 @@ class PollDetailHeader extends StatelessWidget {
     bool allowVoteChange,
     _PollChipMetrics metrics,
   ) {
+    final tone = _tealTone(theme);
+
     return _buildInfoPill(
       theme: theme,
       metrics: metrics,
@@ -707,9 +874,9 @@ class PollDetailHeader extends StatelessWidget {
           ? Icons.restart_alt_rounded
           : Icons.block_outlined,
       label: label,
-      backgroundColor: _softTealBg,
-      foregroundColor: _softTealFg,
-      borderColor: _softTealBorder,
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
     );
   }
 
@@ -718,14 +885,18 @@ class PollDetailHeader extends StatelessWidget {
     String label,
     _PollChipMetrics metrics,
   ) {
+    final tone = _anonymityTone(theme);
+
     return _buildInfoPill(
       theme: theme,
       metrics: metrics,
-      icon: Icons.visibility_outlined,
+      icon: poll.configuration.anonymityRules.level == AnonymityLevel.anonymous
+          ? Icons.visibility_off_outlined
+          : Icons.visibility_outlined,
       label: label,
-      backgroundColor: _softVioletBg,
-      foregroundColor: _softVioletFg,
-      borderColor: _softVioletBorder,
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
     );
   }
 
@@ -734,14 +905,16 @@ class PollDetailHeader extends StatelessWidget {
     String label,
     _PollChipMetrics metrics,
   ) {
+    final tone = _tealTone(theme);
+
     return _buildInfoPill(
       theme: theme,
       metrics: metrics,
       icon: Icons.insights_outlined,
       label: label,
-      backgroundColor: _softTealBg,
-      foregroundColor: _softTealFg,
-      borderColor: _softTealBorder,
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
     );
   }
 
@@ -751,14 +924,16 @@ class PollDetailHeader extends StatelessWidget {
     int minQuorum,
     _PollChipMetrics metrics,
   ) {
+    final tone = _quorumTone(theme);
+
     return _buildInfoPill(
       theme: theme,
       metrics: metrics,
       icon: Icons.how_to_vote_outlined,
       label: l10n.pollCard_quorumLabel(minQuorum),
-      backgroundColor: _softRoseBg,
-      foregroundColor: _softRoseFg,
-      borderColor: _softRoseBorder,
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
     );
   }
 
@@ -869,15 +1044,18 @@ class PollDetailHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final enabled = onPressed != null;
+    final activeTone = _participationTone(theme);
 
-    final backgroundColor = isActive ? _softAmberBg : colorScheme.surface;
+    final backgroundColor = isActive
+        ? activeTone.backgroundColor
+        : colorScheme.surface;
     final borderColor = isActive
-        ? _softAmberBorder
+        ? activeTone.borderColor
         : colorScheme.outline.withOpacity(0.16);
     final foregroundColor = !enabled
         ? colorScheme.onSurface.withOpacity(0.34)
         : isActive
-            ? _softAmberFg
+            ? activeTone.foregroundColor
             : colorScheme.onSurface.withOpacity(0.84);
 
     return Tooltip(
@@ -933,15 +1111,18 @@ class PollDetailHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final enabled = onPressed != null;
+    final activeTone = _participationTone(theme);
 
-    final backgroundColor = isActive ? _softAmberBg : colorScheme.surface;
+    final backgroundColor = isActive
+        ? activeTone.backgroundColor
+        : colorScheme.surface;
     final borderColor = isActive
-        ? _softAmberBorder
+        ? activeTone.borderColor
         : colorScheme.outline.withOpacity(0.16);
     final foregroundColor = !enabled
         ? colorScheme.onSurface.withOpacity(0.34)
         : isActive
-            ? _softAmberFg
+            ? activeTone.foregroundColor
             : colorScheme.onSurface.withOpacity(0.84);
 
     return Tooltip(
@@ -1087,7 +1268,8 @@ class PollDetailHeader extends StatelessWidget {
     }
   }
 
-  String? _mapTimeWindowLabel({
+  String? _mapTimeWindowLabel(
+    AppLocalizations l10n, {
     required DateTime? startAt,
     required DateTime? endAt,
   }) {
@@ -1100,10 +1282,18 @@ class PollDetailHeader extends StatelessWidget {
     }
 
     if (startAt != null) {
-      return 'Da ${_formatShortDate(startAt)}';
+      return _localizedText(
+        l10n,
+        it: 'Da ${_formatShortDate(startAt)}',
+        en: 'From ${_formatShortDate(startAt)}',
+      );
     }
 
-    return 'Fino ${_formatShortDate(endAt!)}';
+    return _localizedText(
+      l10n,
+      it: 'Fino ${_formatShortDate(endAt!)}',
+      en: 'Until ${_formatShortDate(endAt!)}',
+    );
   }
 
   String _formatShortDate(DateTime value) {
@@ -1211,6 +1401,18 @@ class _PollChipMetrics {
     required this.iconSize,
     required this.contentGap,
     required this.fontSize,
+  });
+}
+
+class _PollChipTone {
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final Color borderColor;
+
+  const _PollChipTone({
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.borderColor,
   });
 }
 

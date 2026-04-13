@@ -578,17 +578,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
     final isDark = theme.brightness == Brightness.dark;
 
     final pageBackground = Color.alphaBlend(
-      colorScheme.primary.withOpacity(isDark ? 0.05 : 0.025),
+      colorScheme.primary.withOpacity(isDark ? 0.035 : 0.012),
       theme.scaffoldBackgroundColor,
     );
-
-    final backgroundTop = isDark
-        ? colorScheme.primary.withOpacity(0.08)
-        : colorScheme.primary.withOpacity(0.05);
-
-    final backgroundBottom = isDark
-        ? colorScheme.surface.withOpacity(0.12)
-        : Colors.white.withOpacity(0.55);
 
     return Scaffold(
       backgroundColor: pageBackground,
@@ -667,121 +659,79 @@ class _PollDetailPageState extends State<PollDetailPage> {
           ),
         ],
       ),
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              backgroundTop,
-              pageBackground,
-              backgroundBottom,
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: -90,
-              right: -60,
-              child: IgnorePointer(
-                child: Container(
-                  width: 220,
-                  height: 220,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: colorScheme.primary.withOpacity(isDark ? 0.08 : 0.06),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -120,
-              left: -80,
-              child: IgnorePointer(
-                child: Container(
-                  width: 260,
-                  height: 260,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: colorScheme.primary.withOpacity(isDark ? 0.05 : 0.04),
-                  ),
-                ),
-              ),
-            ),
-            AnimatedBuilder(
-              animation: _controller,
-              builder: (context, _) {
-                final state = _controller.state;
+      body: ColoredBox(
+        color: pageBackground,
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            final state = _controller.state;
 
-                if (state is PollDetailLoading || state is PollDetailInitial) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+            if (state is PollDetailLoading || state is PollDetailInitial) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                if (state is PollDetailError) {
-                  return _buildErrorState(
-                    context,
-                    message: state.message,
-                    onRetry: () {
-                      final userId = AppDI.instance.currentUserId;
-                      _controller.loadPoll(widget.pollId, userId: userId);
-                    },
-                  );
-                }
+            if (state is PollDetailError) {
+              return _buildErrorState(
+                context,
+                message: state.message,
+                onRetry: () {
+                  final userId = AppDI.instance.currentUserId;
+                  _controller.loadPoll(widget.pollId, userId: userId);
+                },
+              );
+            }
 
-                if (state is PollDetailLoaded) {
-                  final poll = state.poll;
+            if (state is PollDetailLoaded) {
+              final poll = state.poll;
 
-                  if (!_resultsInitialized) {
-                    _resultsInitialized = true;
-                    _resultController.loadResults(
-                      poll: poll,
-                      userHasVoted: false,
-                    );
-                  }
+              if (!_resultsInitialized) {
+                _resultsInitialized = true;
+                _resultController.loadResults(
+                  poll: poll,
+                  userHasVoted: false,
+                );
+              }
 
-                  final shouldInitFavorite =
-                      AppDI.instance.currentUserId != null &&
-                      (!_favoriteInitialized ||
-                          _initializedFavoritePollId != poll.id.value);
+              final shouldInitFavorite =
+                  AppDI.instance.currentUserId != null &&
+                  (!_favoriteInitialized ||
+                      _initializedFavoritePollId != poll.id.value);
 
-                  if (shouldInitFavorite) {
-                    _favoriteInitialized = false;
-                    _initializedFavoritePollId = poll.id.value;
-                    _initFavoriteStatus(poll);
-                  }
+              if (shouldInitFavorite) {
+                _favoriteInitialized = false;
+                _initializedFavoritePollId = poll.id.value;
+                _initFavoriteStatus(poll);
+              }
 
-                  _maybeAutoScrollToComments();
+              _maybeAutoScrollToComments();
 
-                  return ChangeNotifierProvider<DiscussionController>(
-                    create: (_) => AppDI.instance.createDiscussionController(
-                      TargetRef.poll(poll.id.value),
-                    )..loadComments(),
-                    child: AnimatedBuilder(
-                      animation: Listenable.merge([
-                        _voteController,
-                        _resultController,
-                      ]),
-                      builder: (context, __) {
-                        return LayoutBuilder(
-                          builder: (context, constraints) {
-                            final isWideLayout = constraints.maxWidth >= 980;
-                            return _buildPollContent(
-                              context,
-                              poll,
-                              isWideLayout: isWideLayout,
-                            );
-                          },
+              return ChangeNotifierProvider<DiscussionController>(
+                create: (_) => AppDI.instance.createDiscussionController(
+                  TargetRef.poll(poll.id.value),
+                )..loadComments(),
+                child: AnimatedBuilder(
+                  animation: Listenable.merge([
+                    _voteController,
+                    _resultController,
+                  ]),
+                  builder: (context, __) {
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isWideLayout = constraints.maxWidth >= 980;
+                        return _buildPollContent(
+                          context,
+                          poll,
+                          isWideLayout: isWideLayout,
                         );
                       },
-                    ),
-                  );
-                }
+                    );
+                  },
+                ),
+              );
+            }
 
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
+            return const SizedBox.shrink();
+          },
         ),
       ),
     );

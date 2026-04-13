@@ -39,8 +39,7 @@ class CommentSection extends StatefulWidget {
 class _CommentSectionState extends State<CommentSection> {
   final TextEditingController _primaryInputController =
       TextEditingController();
-  final TextEditingController _replyInputController =
-      TextEditingController();
+  final TextEditingController _replyInputController = TextEditingController();
 
   final Map<String, String> _authorLabels = <String, String>{};
   final Set<String> _loadingAuthorIds = <String>{};
@@ -63,6 +62,8 @@ class _CommentSectionState extends State<CommentSection> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final controller = context.watch<DiscussionController>();
 
     final isLoading = controller.isLoading;
@@ -76,13 +77,13 @@ class _CommentSectionState extends State<CommentSection> {
     final String? currentUserId = AppDI.instance.currentUserId;
     final int totalComments = controller.comments.length;
 
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: theme.dividerColor.withOpacity(0.4),
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withOpacity(isDark ? 0.38 : 0.45),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(isDark ? 0.22 : 0.12),
         ),
       ),
       child: Padding(
@@ -97,31 +98,39 @@ class _CommentSectionState extends State<CommentSection> {
                 Icon(
                   Icons.chat_bubble_outline,
                   size: 18,
-                  color: theme.colorScheme.primary,
+                  color: colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     l10n.commentSection_title,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
-                    vertical: 4,
+                    vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.08),
+                    color: colorScheme.primary.withOpacity(
+                      isDark ? 0.18 : 0.08,
+                    ),
                     borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: colorScheme.primary.withOpacity(
+                        isDark ? 0.32 : 0.18,
+                      ),
+                    ),
                   ),
                   child: Text(
                     '$totalComments',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.primary,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: colorScheme.primary,
                       fontWeight: FontWeight.w700,
+                      height: 1,
                     ),
                   ),
                 ),
@@ -136,7 +145,7 @@ class _CommentSectionState extends State<CommentSection> {
               ],
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
 
             // Composer principale SEMPRE visibile per nuovo commento / edit
             _buildPrimaryComposer(
@@ -145,7 +154,7 @@ class _CommentSectionState extends State<CommentSection> {
             ),
 
             if (hasError) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
@@ -153,10 +162,10 @@ class _CommentSectionState extends State<CommentSection> {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.error.withOpacity(0.06),
-                  borderRadius: BorderRadius.circular(8),
+                  color: colorScheme.error.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: theme.colorScheme.error.withOpacity(0.4),
+                    color: colorScheme.error.withOpacity(0.35),
                   ),
                 ),
                 child: Row(
@@ -165,7 +174,7 @@ class _CommentSectionState extends State<CommentSection> {
                     Icon(
                       Icons.error_outline,
                       size: 16,
-                      color: theme.colorScheme.error,
+                      color: colorScheme.error,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -173,7 +182,7 @@ class _CommentSectionState extends State<CommentSection> {
                         controller.errorMessage ??
                             l10n.commentSection_errorGeneric,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.error,
+                          color: colorScheme.error,
                         ),
                       ),
                     ),
@@ -190,9 +199,8 @@ class _CommentSectionState extends State<CommentSection> {
               ),
             ],
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
 
-            // Toggle lista commenti aperta/chiusa
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
@@ -208,15 +216,22 @@ class _CommentSectionState extends State<CommentSection> {
                 ),
                 label: Text(
                   _commentsExpanded
-                      ? 'Chiudi commenti'
-                      : 'Visualizza commenti',
+                      ? _localizedText(
+                          l10n,
+                          it: 'Chiudi commenti',
+                          en: 'Hide comments',
+                        )
+                      : _localizedText(
+                          l10n,
+                          it: 'Visualizza commenti',
+                          en: 'View comments',
+                        ),
                 ),
               ),
             ),
 
             if (_commentsExpanded) ...[
               const SizedBox(height: 4),
-
               Wrap(
                 crossAxisAlignment: WrapCrossAlignment.center,
                 spacing: 8,
@@ -225,7 +240,9 @@ class _CommentSectionState extends State<CommentSection> {
                   Text(
                     l10n.commentSection_sortLabel,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.hintColor,
+                      color: colorScheme.onSurface.withOpacity(
+                        isDark ? 0.62 : 0.52,
+                      ),
                     ),
                   ),
                   ChoiceChip(
@@ -260,11 +277,12 @@ class _CommentSectionState extends State<CommentSection> {
                   ),
                 ],
               ),
-
-              const SizedBox(height: 16),
-              const Divider(height: 1),
-              const SizedBox(height: 16),
-
+              const SizedBox(height: 14),
+              Divider(
+                height: 1,
+                color: colorScheme.outline.withOpacity(isDark ? 0.18 : 0.08),
+              ),
+              const SizedBox(height: 14),
               if (!controller.hasComments && !isLoading) ...[
                 Container(
                   width: double.infinity,
@@ -273,16 +291,20 @@ class _CommentSectionState extends State<CommentSection> {
                     vertical: 14,
                   ),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surface.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(12),
+                    color: colorScheme.surface.withOpacity(isDark ? 0.30 : 0.5),
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: theme.dividerColor.withOpacity(0.35),
+                      color: colorScheme.outline.withOpacity(
+                        isDark ? 0.22 : 0.12,
+                      ),
                     ),
                   ),
                   child: Text(
                     l10n.commentSection_empty,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.hintColor,
+                      color: colorScheme.onSurface.withOpacity(
+                        isDark ? 0.60 : 0.52,
+                      ),
                     ),
                   ),
                 ),
@@ -317,7 +339,6 @@ class _CommentSectionState extends State<CommentSection> {
                             ? () => controller.deleteComment(root)
                             : null,
                       ),
-
                       if (_isInlineReplyOpenFor(root)) ...[
                         Padding(
                           padding: const EdgeInsets.only(top: 8, bottom: 8),
@@ -328,7 +349,6 @@ class _CommentSectionState extends State<CommentSection> {
                           ),
                         ),
                       ],
-
                       Builder(
                         builder: (_) {
                           final replies = controller.repliesFor(root.id);
@@ -361,8 +381,15 @@ class _CommentSectionState extends State<CommentSection> {
                                   ),
                                   label: Text(
                                     repliesExpanded
-                                        ? 'Nascondi risposte'
-                                        : _viewRepliesLabel(repliesCount),
+                                        ? _localizedText(
+                                            l10n,
+                                            it: 'Nascondi risposte',
+                                            en: 'Hide replies',
+                                          )
+                                        : _viewRepliesLabel(
+                                            l10n,
+                                            repliesCount,
+                                          ),
                                   ),
                                 ),
                                 if (repliesExpanded) ...[
@@ -381,7 +408,7 @@ class _CommentSectionState extends State<CommentSection> {
                                               right: 10,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: theme.colorScheme.primary
+                                              color: colorScheme.primary
                                                   .withOpacity(0.18),
                                               borderRadius:
                                                   BorderRadius.circular(999),
@@ -454,10 +481,8 @@ class _CommentSectionState extends State<CommentSection> {
                           );
                         },
                       ),
-
                       const SizedBox(height: 10),
                     ],
-
                     if (hasMore) ...[
                       const SizedBox(height: 4),
                       Align(
@@ -484,123 +509,125 @@ class _CommentSectionState extends State<CommentSection> {
     required bool isSubmitting,
   }) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = theme.colorScheme;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: theme.dividerColor.withOpacity(0.45),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_editingComment != null) ...[
-            Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 6,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_editingComment != null) ...[
+          Container(
+            margin: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 6,
+            ),
+            decoration: BoxDecoration(
+              color: colorScheme.secondary.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: colorScheme.secondary.withOpacity(0.14),
               ),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.secondary.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.edit_outlined,
-                    size: 16,
-                    color: theme.colorScheme.secondary,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.edit_outlined,
+                  size: 16,
+                  color: colorScheme.secondary,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    _localizedText(
+                      l10n,
+                      it:
+                          'Stai modificando: ${_shorten(_editingComment!.content)}',
+                      en:
+                          'Editing: ${_shorten(_editingComment!.content)}',
+                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.secondary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'Stai modificando: ${_shorten(_editingComment!.content)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.secondary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: _cancelEdit,
+                  child: Text(
+                    _localizedText(
+                      l10n,
+                      it: 'Annulla',
+                      en: 'Cancel',
+                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.secondary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: _cancelEdit,
-                    child: Text(
-                      'Annulla',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.secondary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _primaryInputController,
+                maxLines: 3,
+                minLines: 1,
+                textInputAction: TextInputAction.newline,
+                decoration: _commentInputDecoration(
+                  context,
+                  hintText: _editingComment != null
+                      ? _localizedText(
+                          l10n,
+                          it: 'Modifica il tuo commento',
+                          en: 'Edit your comment',
+                        )
+                      : _localizedText(
+                          l10n,
+                          it: 'Aggiungi un commento...',
+                          en: 'Add a comment...',
+                        ),
+                ),
+                enabled: !isSubmitting,
+              ),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              height: 44,
+              width: 44,
+              child: IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: colorScheme.primary.withOpacity(0.10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ],
+                ),
+                icon: isSubmitting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Icon(
+                        _editingComment != null
+                            ? Icons.check
+                            : Icons.send_rounded,
+                        color: colorScheme.primary,
+                      ),
+                onPressed: isSubmitting ? null : () => _submitPrimary(context),
               ),
             ),
           ],
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _primaryInputController,
-                  maxLines: 3,
-                  minLines: 1,
-                  textInputAction: TextInputAction.newline,
-                  decoration: InputDecoration(
-                    hintText: _editingComment != null
-                        ? 'Modifica il tuo commento'
-                        : 'Aggiungi un commento...',
-                    isDense: true,
-                    filled: true,
-                    fillColor: theme.cardColor,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                  enabled: !isSubmitting,
-                ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 46,
-                width: 46,
-                child: IconButton(
-                  style: IconButton.styleFrom(
-                    backgroundColor:
-                        theme.colorScheme.primary.withOpacity(0.1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: isSubmitting
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : Icon(
-                          _editingComment != null
-                              ? Icons.check
-                              : Icons.send_rounded,
-                          color: theme.colorScheme.primary,
-                        ),
-                  onPressed: isSubmitting ? null : () => _submitPrimary(context),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -611,15 +638,16 @@ class _CommentSectionState extends State<CommentSection> {
   }) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = theme.colorScheme;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.04),
+        color: colorScheme.primary.withOpacity(0.04),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: theme.colorScheme.primary.withOpacity(0.18),
+          color: colorScheme.primary.withOpacity(0.18),
         ),
       ),
       child: Column(
@@ -630,14 +658,18 @@ class _CommentSectionState extends State<CommentSection> {
               Icon(
                 Icons.reply,
                 size: 16,
-                color: theme.colorScheme.primary,
+                color: colorScheme.primary,
               ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'Rispondi a $replyingToLabel',
+                  _localizedText(
+                    l10n,
+                    it: 'Rispondi a $replyingToLabel',
+                    en: 'Reply to $replyingToLabel',
+                  ),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.primary,
+                    color: colorScheme.primary,
                     fontWeight: FontWeight.w600,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -648,7 +680,7 @@ class _CommentSectionState extends State<CommentSection> {
                 child: Text(
                   l10n.commentSection_cancelReply,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.primary,
+                    color: colorScheme.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -666,18 +698,9 @@ class _CommentSectionState extends State<CommentSection> {
                   minLines: 1,
                   autofocus: true,
                   textInputAction: TextInputAction.newline,
-                  decoration: InputDecoration(
+                  decoration: _commentInputDecoration(
+                    context,
                     hintText: l10n.commentSection_inputHintReply,
-                    isDense: true,
-                    filled: true,
-                    fillColor: theme.cardColor,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
                   ),
                   enabled: !isSubmitting,
                 ),
@@ -688,8 +711,7 @@ class _CommentSectionState extends State<CommentSection> {
                 width: 44,
                 child: IconButton(
                   style: IconButton.styleFrom(
-                    backgroundColor:
-                        theme.colorScheme.primary.withOpacity(0.1),
+                    backgroundColor: colorScheme.primary.withOpacity(0.10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -704,7 +726,7 @@ class _CommentSectionState extends State<CommentSection> {
                         )
                       : Icon(
                           Icons.send_rounded,
-                          color: theme.colorScheme.primary,
+                          color: colorScheme.primary,
                         ),
                   onPressed: isSubmitting ? null : () => _submitReply(context),
                 ),
@@ -712,6 +734,49 @@ class _CommentSectionState extends State<CommentSection> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  InputDecoration _commentInputDecoration(
+    BuildContext context, {
+    required String hintText,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    OutlineInputBorder border(Color color, {double width = 1}) {
+      return OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: color,
+          width: width,
+        ),
+      );
+    }
+
+    return InputDecoration(
+      hintText: hintText,
+      isDense: true,
+      filled: true,
+      fillColor: colorScheme.surface.withOpacity(isDark ? 0.92 : 1),
+      border: border(
+        colorScheme.outline.withOpacity(isDark ? 0.26 : 0.12),
+      ),
+      enabledBorder: border(
+        colorScheme.outline.withOpacity(isDark ? 0.26 : 0.12),
+      ),
+      focusedBorder: border(
+        colorScheme.primary.withOpacity(0.42),
+        width: 1.2,
+      ),
+      disabledBorder: border(
+        colorScheme.outline.withOpacity(isDark ? 0.18 : 0.08),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 11,
       ),
     );
   }
@@ -761,7 +826,11 @@ class _CommentSectionState extends State<CommentSection> {
   String _authorLabelFor(Comment comment) {
     final userId = comment.userId.trim();
     if (userId.isEmpty) {
-      return 'Utente';
+      return _localizedText(
+        AppLocalizations.of(context)!,
+        it: 'Utente',
+        en: 'User',
+      );
     }
 
     return _authorLabels[userId] ?? _shortUserId(userId);
@@ -784,7 +853,11 @@ class _CommentSectionState extends State<CommentSection> {
   String _shortUserId(String value) {
     final normalized = value.trim();
     if (normalized.isEmpty) {
-      return 'Utente';
+      return _localizedText(
+        AppLocalizations.of(context)!,
+        it: 'Utente',
+        en: 'User',
+      );
     }
     if (normalized.length <= 8) {
       return normalized;
@@ -941,17 +1014,28 @@ class _CommentSectionState extends State<CommentSection> {
     }
   }
 
-  String _viewRepliesLabel(int count) {
+  String _viewRepliesLabel(AppLocalizations l10n, int count) {
+    final isItalian = l10n.localeName.toLowerCase().startsWith('it');
+
     if (count == 1) {
-      return 'Visualizza 1 risposta';
+      return isItalian ? 'Visualizza 1 risposta' : 'View 1 reply';
     }
-    return 'Visualizza $count risposte';
+    return isItalian ? 'Visualizza $count risposte' : 'View $count replies';
   }
 
   String _shorten(String text, {int max = 40}) {
     final trimmed = text.trim();
     if (trimmed.length <= max) return trimmed;
     return '${trimmed.substring(0, max)}…';
+  }
+
+  String _localizedText(
+    AppLocalizations l10n, {
+    required String it,
+    required String en,
+  }) {
+    final locale = l10n.localeName.toLowerCase();
+    return locale.startsWith('it') ? it : en;
   }
 }
 
@@ -982,19 +1066,21 @@ class _CommentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     final Color backgroundColor;
     if (isCurrentUser) {
-      backgroundColor = theme.colorScheme.primary.withOpacity(0.05);
+      backgroundColor = colorScheme.primary.withOpacity(isDark ? 0.10 : 0.05);
     } else if (isReply) {
-      backgroundColor = theme.colorScheme.primary.withOpacity(0.025);
+      backgroundColor = colorScheme.primary.withOpacity(isDark ? 0.07 : 0.025);
     } else {
-      backgroundColor = theme.cardColor;
+      backgroundColor = colorScheme.surface.withOpacity(isDark ? 0.30 : 0.72);
     }
 
     final Color borderColor = isReply
-        ? theme.colorScheme.primary.withOpacity(0.22)
-        : theme.dividerColor.withOpacity(0.35);
+        ? colorScheme.primary.withOpacity(isDark ? 0.26 : 0.18)
+        : colorScheme.outline.withOpacity(isDark ? 0.18 : 0.10);
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
@@ -1038,14 +1124,13 @@ class _CommentTile extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.primary
-                                  .withOpacity(0.15),
+                              color: colorScheme.primary.withOpacity(0.15),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
                               l10n.commentSection_youBadge,
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.primary,
+                                color: colorScheme.primary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -1057,14 +1142,17 @@ class _CommentTile extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.primary
-                                  .withOpacity(0.08),
+                              color: colorScheme.primary.withOpacity(0.08),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
-                              'Reply',
+                              _localizedText(
+                                l10n,
+                                it: 'Reply',
+                                en: 'Reply',
+                              ),
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.primary,
+                                color: colorScheme.primary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -1075,7 +1163,9 @@ class _CommentTile extends StatelessWidget {
                     Text(
                       _formatTime(comment.createdAt),
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.hintColor,
+                        color: colorScheme.onSurface.withOpacity(
+                          isDark ? 0.56 : 0.48,
+                        ),
                         fontSize: 11,
                       ),
                     ),
@@ -1095,9 +1185,15 @@ class _CommentTile extends StatelessWidget {
                   },
                   itemBuilder: (context) => [
                     if (canEdit && onEditTap != null)
-                      const PopupMenuItem<String>(
+                      PopupMenuItem<String>(
                         value: 'edit',
-                        child: Text('Modifica'),
+                        child: Text(
+                          _localizedText(
+                            l10n,
+                            it: 'Modifica',
+                            en: 'Edit',
+                          ),
+                        ),
                       ),
                     if (canDelete && onDeleteTap != null)
                       PopupMenuItem<String>(
@@ -1108,7 +1204,9 @@ class _CommentTile extends StatelessWidget {
                   icon: Icon(
                     Icons.more_horiz,
                     size: 18,
-                    color: theme.hintColor,
+                    color: colorScheme.onSurface.withOpacity(
+                      isDark ? 0.56 : 0.48,
+                    ),
                   ),
                   padding: EdgeInsets.zero,
                 ),
@@ -1138,13 +1236,13 @@ class _CommentTile extends StatelessWidget {
                       Icon(
                         Icons.reply_outlined,
                         size: 15,
-                        color: theme.colorScheme.primary,
+                        color: colorScheme.primary,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         l10n.commentSection_replyAction,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.primary,
+                          color: colorScheme.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1168,6 +1266,15 @@ class _CommentTile extends StatelessWidget {
     final minute = local.minute.toString().padLeft(2, '0');
     return '$day/$month/$year $hour:$minute';
   }
+
+  String _localizedText(
+    AppLocalizations l10n, {
+    required String it,
+    required String en,
+  }) {
+    final locale = l10n.localeName.toLowerCase();
+    return locale.startsWith('it') ? it : en;
+  }
 }
 
 class _AuthorAvatar extends StatelessWidget {
@@ -1184,16 +1291,18 @@ class _AuthorAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     final bgColor = isCurrentUser
-        ? theme.colorScheme.primary.withOpacity(0.14)
+        ? colorScheme.primary.withOpacity(isDark ? 0.18 : 0.14)
         : isReply
-            ? theme.colorScheme.primary.withOpacity(0.08)
-            : theme.colorScheme.surface.withOpacity(0.9);
+            ? colorScheme.primary.withOpacity(isDark ? 0.12 : 0.08)
+            : colorScheme.surfaceVariant.withOpacity(isDark ? 0.28 : 0.55);
 
     final borderColor = isCurrentUser
-        ? theme.colorScheme.primary.withOpacity(0.25)
-        : theme.dividerColor.withOpacity(0.4);
+        ? colorScheme.primary.withOpacity(isDark ? 0.36 : 0.25)
+        : colorScheme.outline.withOpacity(isDark ? 0.22 : 0.12);
 
     return Container(
       width: 32,
@@ -1208,7 +1317,7 @@ class _AuthorAvatar extends StatelessWidget {
         _initial(label),
         style: theme.textTheme.labelMedium?.copyWith(
           fontWeight: FontWeight.w700,
-          color: theme.colorScheme.onSurface,
+          color: colorScheme.onSurface,
         ),
       ),
     );

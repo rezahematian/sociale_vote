@@ -179,7 +179,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: theme.colorScheme.error.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: theme.colorScheme.error.withOpacity(0.35),
         ),
@@ -217,7 +217,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: theme.colorScheme.primary.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: theme.colorScheme.primary.withOpacity(0.18),
         ),
@@ -245,6 +245,47 @@ class _CreatePollViewState extends State<_CreatePollView> {
     );
   }
 
+  Widget _buildSectionCard(
+    BuildContext context, {
+    required Widget child,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final surfaceColor = Color.alphaBlend(
+      colorScheme.primary.withOpacity(isDark ? 0.05 : 0.014),
+      colorScheme.surface,
+    );
+
+    final borderColor = colorScheme.outline.withOpacity(isDark ? 0.26 : 0.12);
+
+    final shadowColor = isDark
+        ? Colors.black.withOpacity(0.18)
+        : Colors.black.withOpacity(0.045);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: borderColor,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: shadowColor,
+            blurRadius: 22,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
   Widget _buildContentLocationCard(
     BuildContext context,
     CreatePollController controller,
@@ -255,207 +296,196 @@ class _CreatePollViewState extends State<_CreatePollView> {
     final explicitLocation = controller.contentLocation;
     final selectedContentCountryCode = controller.contentLocation?.countryCode;
 
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Località contenuto',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+    return _buildSectionCard(
+      context,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Località contenuto',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Definisce dove appartiene il poll sulla mappa. Puoi usare lo scope corrente, la posizione attuale oppure impostare manualmente paese e città.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.textTheme.bodySmall?.color?.withOpacity(0.8),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.35),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: theme.colorScheme.outline.withOpacity(0.15),
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              'Definisce dove appartiene il poll sulla mappa. Puoi usare lo scope corrente, la posizione attuale oppure impostare manualmente paese e città.',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.textTheme.bodySmall?.color?.withOpacity(0.8),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color:
-                    theme.colorScheme.surfaceContainerHighest.withOpacity(0.35),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Località attiva',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Località attiva',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                const SizedBox(height: 6),
+                Text(
+                  _contentLocationSummary(effectiveLocation),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _contentLocationSummary(effectiveLocation),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Origine: ${_contentLocationSourceLabel(effectiveLocation.source)}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Origine: ${_contentLocationSourceLabel(effectiveLocation.source)}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final compact = constraints.maxWidth < 420;
+          ),
+          const SizedBox(height: 16),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final compact = constraints.maxWidth < 420;
 
-                return Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: isSubmitting
-                            ? null
-                            : () {
-                                controller.useGeoScopeAsContentLocation();
-                                final location = controller.contentLocation;
-                                _contentCityController.text =
-                                    location?.cityName ?? '';
-                                setState(() {});
-                              },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 10,
-                          ),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        icon: const Icon(Icons.public, size: 16),
-                        label: Text(
-                          compact ? 'Scope corrente' : 'Usa scope corrente',
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed:
-                            isSubmitting || controller.isResolvingContentLocation
-                                ? null
-                                : () async {
-                                    final success =
-                                        await controller.useCurrentDeviceLocation();
-                                    if (!mounted) return;
-
-                                    if (success) {
-                                      final location = controller.contentLocation;
-                                      _contentCityController.text =
-                                          location?.cityName ?? '';
-                                      setState(() {});
-                                    }
-                                  },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 10,
-                          ),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        icon: controller.isResolvingContentLocation
-                            ? const SizedBox(
-                                width: 14,
-                                height: 14,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.my_location, size: 16),
-                        label: Text(
-                          controller.isResolvingContentLocation
-                              ? (compact
-                                  ? 'Attendo...'
-                                  : 'Ricavo posizione...')
-                              : (compact
-                                  ? 'Posizione attuale'
-                                  : 'Usa posizione attuale'),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    TextButton.icon(
+              return Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
                       onPressed: isSubmitting
                           ? null
                           : () {
-                              controller.clearContentLocation();
-                              _contentCityController.clear();
+                              controller.useGeoScopeAsContentLocation();
+                              final location = controller.contentLocation;
+                              _contentCityController.text =
+                                  location?.cityName ?? '';
                               setState(() {});
                             },
-                      style: TextButton.styleFrom(
+                      style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 10,
                         ),
                         visualDensity: VisualDensity.compact,
                       ),
-                      icon: const Icon(Icons.restart_alt, size: 16),
-                      label: const Text('Reset'),
+                      icon: const Icon(Icons.public, size: 16),
+                      label: Text(
+                        compact ? 'Scope corrente' : 'Usa scope corrente',
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ],
-                );
-              },
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed:
+                          isSubmitting || controller.isResolvingContentLocation
+                              ? null
+                              : () async {
+                                  final success =
+                                      await controller.useCurrentDeviceLocation();
+                                  if (!mounted) return;
+
+                                  if (success) {
+                                    final location = controller.contentLocation;
+                                    _contentCityController.text =
+                                        location?.cityName ?? '';
+                                    setState(() {});
+                                  }
+                                },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      icon: controller.isResolvingContentLocation
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.my_location, size: 16),
+                      label: Text(
+                        controller.isResolvingContentLocation
+                            ? (compact ? 'Attendo...' : 'Ricavo posizione...')
+                            : (compact
+                                  ? 'Posizione attuale'
+                                  : 'Usa posizione attuale'),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton.icon(
+                    onPressed: isSubmitting
+                        ? null
+                        : () {
+                            controller.clearContentLocation();
+                            _contentCityController.clear();
+                            setState(() {});
+                          },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 10,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    icon: const Icon(Icons.restart_alt, size: 16),
+                    label: const Text('Reset'),
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+          CountrySelectorField(
+            key: ValueKey(
+              'content-country-${selectedContentCountryCode ?? 'none'}',
             ),
-            const SizedBox(height: 16),
-            CountrySelectorField(
-              key: ValueKey(
-                'content-country-${selectedContentCountryCode ?? 'none'}',
-              ),
-              selectedCountryCode: selectedContentCountryCode,
-              onCountrySelected: (code) {
-                _applyManualContentLocation(
-                  controller,
-                  countryCode: code,
-                );
-                setState(() {});
-              },
-              label: 'Paese del contenuto',
-              required: false,
+            selectedCountryCode: selectedContentCountryCode,
+            onCountrySelected: (code) {
+              _applyManualContentLocation(
+                controller,
+                countryCode: code,
+              );
+              setState(() {});
+            },
+            label: 'Paese del contenuto',
+            required: false,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _contentCityController,
+            enabled: !isSubmitting,
+            decoration: const InputDecoration(
+              labelText: 'Città del contenuto',
+              border: OutlineInputBorder(),
+              helperText: 'Facoltativo. Serve per posizionare meglio il poll.',
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _contentCityController,
-              enabled: !isSubmitting,
-              decoration: const InputDecoration(
-                labelText: 'Città del contenuto',
-                border: OutlineInputBorder(),
-                helperText:
-                    'Facoltativo. Serve per posizionare meglio il poll.',
+            onChanged: (_) => _applyManualContentLocation(controller),
+          ),
+          if (explicitLocation != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Località personalizzata pronta per il submit.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w600,
               ),
-              onChanged: (_) => _applyManualContentLocation(controller),
             ),
-            if (explicitLocation != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Località personalizzata pronta per il submit.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
           ],
-        ),
+        ],
       ),
     );
   }
@@ -464,9 +494,21 @@ class _CreatePollViewState extends State<_CreatePollView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final pageBackground = Color.alphaBlend(
+      colorScheme.primary.withOpacity(isDark ? 0.035 : 0.012),
+      theme.scaffoldBackgroundColor,
+    );
 
     return Scaffold(
+      backgroundColor: pageBackground,
       appBar: AppBar(
+        backgroundColor: pageBackground,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -482,45 +524,42 @@ class _CreatePollViewState extends State<_CreatePollView> {
           ],
         ),
       ),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 720,
-            ),
-            child: Consumer<CreatePollController>(
-              builder: (context, controller, _) {
-                final isSubmitting = controller.isSubmitting;
-                final selectedParticipationCountryCode =
-                    controller.countryCodeForParticipation;
-                final submitHintText = _submitHintText(controller);
-                final canSubmitPoll = controller.canSubmit &&
-                    controller.hasExplicitTimeWindow &&
-                    !_isTimingTooLong(controller);
+      body: ColoredBox(
+        color: pageBackground,
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: 720,
+              ),
+              child: Consumer<CreatePollController>(
+                builder: (context, controller, _) {
+                  final isSubmitting = controller.isSubmitting;
+                  final selectedParticipationCountryCode =
+                      controller.countryCodeForParticipation;
+                  final submitHintText = _submitHintText(controller);
+                  final canSubmitPoll = controller.canSubmit &&
+                      controller.hasExplicitTimeWindow &&
+                      !_isTimingTooLong(controller);
 
-                return AbsorbPointer(
-                  absorbing: isSubmitting,
-                  child: SingleChildScrollView(
-                    keyboardDismissBehavior:
-                        ScrollViewKeyboardDismissBehavior.onDrag,
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Card(
-                          elevation: 1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
+                  return AbsorbPointer(
+                    absorbing: isSubmitting,
+                    child: SingleChildScrollView(
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildSectionCard(
+                            context,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   l10n.createPollBasicInfoTitle,
                                   style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -556,28 +595,22 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildContentLocationCard(
-                          context,
-                          controller,
-                          isSubmitting,
-                        ),
-                        const SizedBox(height: 16),
-                        Card(
-                          elevation: 1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                          const SizedBox(height: 16),
+                          _buildContentLocationCard(
+                            context,
+                            controller,
+                            isSubmitting,
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
+                          const SizedBox(height: 16),
+                          _buildSectionCard(
+                            context,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   l10n.createPollVotingModelTitle,
                                   style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -634,11 +667,12 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                           controller.minSelections,
                                           controller.maxSelections,
                                         ),
-                                        style:
-                                            theme.textTheme.bodySmall?.copyWith(
-                                          color: theme.textTheme.bodySmall?.color
-                                              ?.withOpacity(0.8),
-                                        ),
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: theme
+                                                  .textTheme.bodySmall?.color
+                                                  ?.withOpacity(0.8),
+                                            ),
                                       ),
                                     ),
                                   ],
@@ -664,22 +698,16 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        Card(
-                          elevation: 1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
+                          const SizedBox(height: 16),
+                          _buildSectionCard(
+                            context,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   l10n.createPollOptionsTitle,
                                   style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -720,9 +748,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                                 ),
                                                 onChanged: (value) =>
                                                     controller.setOptionText(
-                                                  index,
-                                                  value,
-                                                ),
+                                                      index,
+                                                      value,
+                                                    ),
                                               ),
                                             ),
                                             const SizedBox(width: 8),
@@ -759,22 +787,16 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        Card(
-                          elevation: 1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
+                          const SizedBox(height: 16),
+                          _buildSectionCard(
+                            context,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   l10n.createPollParticipationPrivacyTitle,
                                   style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -817,8 +839,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                                 .setParticipationScope(value);
                                             controller
                                                 .setCountryCodeForParticipation(
-                                              null,
-                                            );
+                                                  null,
+                                                );
                                           }
                                         },
                                 ),
@@ -846,8 +868,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                                 .setParticipationScope(value);
                                             controller
                                                 .setCountryCodeForParticipation(
-                                              selectedParticipationCountryCode,
-                                            );
+                                                  selectedParticipationCountryCode,
+                                                );
                                           }
                                         },
                                 ),
@@ -934,22 +956,16 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        Card(
-                          elevation: 1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
+                          const SizedBox(height: 16),
+                          _buildSectionCard(
+                            context,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   l10n.createPollResultsValidityTitle,
                                   style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -970,29 +986,31 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                   child: DropdownButtonHideUnderline(
                                     child:
                                         DropdownButton<ResultsVisibilityMode>(
-                                      isExpanded: true,
-                                      value: controller.resultsVisibility,
-                                      onChanged: isSubmitting
-                                          ? null
-                                          : (value) {
-                                              if (value != null) {
-                                                controller
-                                                    .setResultsVisibility(
-                                                  value,
-                                                );
-                                              }
-                                            },
-                                      items: ResultsVisibilityMode.values
-                                          .map(
-                                            (mode) => DropdownMenuItem(
-                                              value: mode,
-                                              child: Text(
-                                                _resultsVisibilityLabel(mode),
-                                              ),
-                                            ),
-                                          )
-                                          .toList(),
-                                    ),
+                                          isExpanded: true,
+                                          value: controller.resultsVisibility,
+                                          onChanged: isSubmitting
+                                              ? null
+                                              : (value) {
+                                                  if (value != null) {
+                                                    controller
+                                                        .setResultsVisibility(
+                                                          value,
+                                                        );
+                                                  }
+                                                },
+                                          items: ResultsVisibilityMode.values
+                                              .map(
+                                                (mode) => DropdownMenuItem(
+                                                  value: mode,
+                                                  child: Text(
+                                                    _resultsVisibilityLabel(
+                                                      mode,
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                              .toList(),
+                                        ),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -1034,22 +1052,16 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        Card(
-                          elevation: 1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
+                          const SizedBox(height: 16),
+                          _buildSectionCard(
+                            context,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   l10n.createPollTimingTitle,
                                   style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -1116,7 +1128,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                           },
                                     child: Text(
                                       controller.hasExplicitStartAt
-                                          ? l10n.createPollChangeDateButtonLabel
+                                          ? l10n
+                                                .createPollChangeDateButtonLabel
                                           : 'Seleziona',
                                     ),
                                   ),
@@ -1176,7 +1189,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                           },
                                     child: Text(
                                       controller.hasExplicitEndAt
-                                          ? l10n.createPollChangeDateButtonLabel
+                                          ? l10n
+                                                .createPollChangeDateButtonLabel
                                           : 'Seleziona',
                                     ),
                                   ),
@@ -1199,68 +1213,68 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                        if (controller.errorMessage != null) ...[
-                          _buildInlineErrorBox(
-                            context,
-                            text: controller.errorMessage!,
-                          ),
-                          const SizedBox(height: 12),
-                        ],
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: canSubmitPoll && !isSubmitting
-                                ? () async {
-                                    FocusScope.of(context).unfocus();
+                          const SizedBox(height: 24),
+                          if (controller.errorMessage != null) ...[
+                            _buildInlineErrorBox(
+                              context,
+                              text: controller.errorMessage!,
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: canSubmitPoll && !isSubmitting
+                                  ? () async {
+                                      FocusScope.of(context).unfocus();
 
-                                    final pollId = await controller.submit();
-                                    if (!context.mounted) return;
-                                    if (pollId != null) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          behavior:
-                                              SnackBarBehavior.floating,
-                                          content: Text(
-                                            l10n.createPollSuccessMessage,
-                                          ),
-                                        ),
-                                      );
-                                      Navigator.of(context).pop(pollId);
+                                      final pollId = await controller.submit();
+                                      if (!context.mounted) return;
+                                      if (pollId != null) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                              SnackBar(
+                                                behavior:
+                                                    SnackBarBehavior.floating,
+                                                content: Text(
+                                                  l10n.createPollSuccessMessage,
+                                                ),
+                                              ),
+                                            );
+                                        Navigator.of(context).pop(pollId);
+                                      }
                                     }
-                                  }
-                                : null,
-                            icon: isSubmitting
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Icon(Icons.check),
-                            label: Text(
-                              isSubmitting
-                                  ? l10n.createPollSubmitCreatingLabel
-                                  : l10n.createPollSubmitLabel,
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 14,
+                                  : null,
+                              icon: isSubmitting
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.check),
+                              label: Text(
+                                isSubmitting
+                                    ? l10n.createPollSubmitCreatingLabel
+                                    : l10n.createPollSubmitLabel,
                               ),
-                              textStyle: theme.textTheme.labelLarge?.copyWith(
-                                fontWeight: FontWeight.w600,
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                textStyle: theme.textTheme.labelLarge?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ),

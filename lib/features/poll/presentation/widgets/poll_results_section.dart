@@ -66,19 +66,20 @@ class PollResultsSection extends StatelessWidget {
               child: Text(
                 l10n.pollDetail_resultsTitle,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
+                  height: 1.1,
                 ),
               ),
             ),
             if (!isLoading && error == null && totalVotes > 0)
               _buildVotesBadge(
                 context,
-                _votesLabel(totalVotes),
+                _votesLabel(l10n, totalVotes),
               ),
           ],
         ),
         if (hasOutcome) ...[
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           _buildOutcomeBadge(
             context,
             l10n.pollDetail_outcomePrefix(
@@ -86,11 +87,11 @@ class PollResultsSection extends StatelessWidget {
             ),
           ),
         ],
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         if (isLoading) ...[
           const Center(
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
+              padding: EdgeInsets.symmetric(vertical: 18),
               child: CircularProgressIndicator(),
             ),
           ),
@@ -118,8 +119,9 @@ class PollResultsSection extends StatelessWidget {
               label: rows[i].label,
               percentage: rows[i].percentage,
               voteCount: rows[i].voteCount,
+              votesLabel: _votesLabel(l10n, rows[i].voteCount),
             ),
-            if (i != rows.length - 1) const SizedBox(height: 14),
+            if (i != rows.length - 1) const SizedBox(height: 10),
           ],
         ] else ...[
           Text(
@@ -135,6 +137,7 @@ class PollResultsSection extends StatelessWidget {
 
   Widget _buildVotesBadge(BuildContext context, String label) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -142,10 +145,10 @@ class PollResultsSection extends StatelessWidget {
         vertical: 6,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.08),
+        color: theme.colorScheme.primary.withOpacity(isDark ? 0.18 : 0.08),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: theme.colorScheme.primary.withOpacity(0.18),
+          color: theme.colorScheme.primary.withOpacity(isDark ? 0.32 : 0.18),
         ),
       ),
       child: Text(
@@ -153,6 +156,7 @@ class PollResultsSection extends StatelessWidget {
         style: theme.textTheme.labelMedium?.copyWith(
           color: theme.colorScheme.primary,
           fontWeight: FontWeight.w700,
+          height: 1,
         ),
       ),
     );
@@ -160,17 +164,18 @@ class PollResultsSection extends StatelessWidget {
 
   Widget _buildOutcomeBadge(BuildContext context, String label) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 12,
-        vertical: 8,
+        vertical: 7,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.secondary.withOpacity(0.08),
+        color: theme.colorScheme.secondary.withOpacity(isDark ? 0.18 : 0.08),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: theme.colorScheme.secondary.withOpacity(0.18),
+          color: theme.colorScheme.secondary.withOpacity(isDark ? 0.32 : 0.18),
         ),
       ),
       child: Text(
@@ -178,6 +183,7 @@ class PollResultsSection extends StatelessWidget {
         style: theme.textTheme.bodySmall?.copyWith(
           color: theme.colorScheme.secondary,
           fontWeight: FontWeight.w700,
+          height: 1.1,
         ),
       ),
     );
@@ -377,11 +383,14 @@ class PollResultsSection extends StatelessWidget {
     return null;
   }
 
-  String _votesLabel(int votes) {
+  String _votesLabel(AppLocalizations l10n, int votes) {
+    final isItalian = l10n.localeName.toLowerCase().startsWith('it');
+
     if (votes == 1) {
-      return '1 voto';
+      return isItalian ? '1 voto' : '1 vote';
     }
-    return '$votes voti';
+
+    return isItalian ? '$votes voti' : '$votes votes';
   }
 
   String _mapOutcomeLabel(AppLocalizations l10n, PollOutcome outcome) {
@@ -404,26 +413,33 @@ class _PremiumResultRow extends StatelessWidget {
   final String label;
   final double percentage;
   final int voteCount;
+  final String votesLabel;
 
   const _PremiumResultRow({
     required this.label,
     required this.percentage,
     required this.voteCount,
+    required this.votesLabel,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final normalized = (percentage.clamp(0.0, 100.0)) / 100.0;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 14,
+      ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withOpacity(0.45),
+        color: colorScheme.surface.withOpacity(isDark ? 0.38 : 0.45),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: theme.dividerColor.withOpacity(0.5),
+          color: colorScheme.outline.withOpacity(isDark ? 0.22 : 0.12),
         ),
       ),
       child: Column(
@@ -436,7 +452,7 @@ class _PremiumResultRow extends StatelessWidget {
                   label,
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
-                    height: 1.2,
+                    height: 1.15,
                   ),
                 ),
               ),
@@ -445,7 +461,7 @@ class _PremiumResultRow extends StatelessWidget {
                 '${percentage.round()}%',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: theme.colorScheme.onSurface,
+                  color: colorScheme.onSurface,
                 ),
               ),
             ],
@@ -454,16 +470,16 @@ class _PremiumResultRow extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
             child: Container(
-              height: 12,
+              height: 10,
               width: double.infinity,
-              color: theme.dividerColor.withOpacity(0.18),
+              color: colorScheme.outline.withOpacity(isDark ? 0.24 : 0.10),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: FractionallySizedBox(
                   widthFactor: normalized,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary,
+                      color: colorScheme.primary,
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
@@ -471,12 +487,13 @@ class _PremiumResultRow extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 7),
           Text(
-            voteCount == 1 ? '1 voto' : '$voteCount voti',
+            votesLabel,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.hintColor,
+              color: colorScheme.onSurface.withOpacity(isDark ? 0.60 : 0.52),
               fontWeight: FontWeight.w600,
+              height: 1.1,
             ),
           ),
         ],

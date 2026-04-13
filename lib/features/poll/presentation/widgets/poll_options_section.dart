@@ -36,7 +36,7 @@ class PollOptionsSection extends StatelessWidget {
                 ? () => onToggleOption(poll.options[i].id, !isSingleChoice)
                 : null,
           ),
-          if (i != poll.options.length - 1) const SizedBox(height: 14),
+          if (i != poll.options.length - 1) const SizedBox(height: 12),
         ],
       ],
     );
@@ -63,35 +63,37 @@ class _PollOptionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     final borderColor = isSelected
-        ? theme.colorScheme.primary.withOpacity(0.85)
-        : theme.dividerColor.withOpacity(0.75);
+        ? colorScheme.primary.withOpacity(isDark ? 0.78 : 0.82)
+        : colorScheme.outline.withOpacity(isDark ? 0.32 : 0.14);
 
     final backgroundColor = isSelected
-        ? theme.colorScheme.primary.withOpacity(0.07)
-        : theme.cardColor;
+        ? colorScheme.primary.withOpacity(isDark ? 0.12 : 0.07)
+        : colorScheme.surface;
 
     final leadingBackground = isSelected
-        ? theme.colorScheme.primary.withOpacity(0.14)
-        : theme.colorScheme.surface.withOpacity(0.9);
+        ? colorScheme.primary.withOpacity(isDark ? 0.18 : 0.13)
+        : colorScheme.surfaceVariant.withOpacity(isDark ? 0.36 : 0.55);
 
     final leadingBorder = isSelected
-        ? theme.colorScheme.primary.withOpacity(0.35)
-        : theme.dividerColor.withOpacity(0.55);
+        ? colorScheme.primary.withOpacity(isDark ? 0.42 : 0.24)
+        : colorScheme.outline.withOpacity(isDark ? 0.28 : 0.12);
 
-    final leadingIconColor = isSelected
-        ? theme.colorScheme.primary
-        : theme.hintColor.withOpacity(0.95);
+    final controlColor = isSelected
+        ? colorScheme.primary
+        : colorScheme.onSurface.withOpacity(isDark ? 0.64 : 0.52);
 
     final textColor = isEnabled
-        ? theme.colorScheme.onSurface
-        : theme.hintColor.withOpacity(0.95);
+        ? colorScheme.onSurface
+        : colorScheme.onSurface.withOpacity(0.48);
 
     final badgeText = String.fromCharCode(65 + (index % 26));
 
     return Opacity(
-      opacity: isEnabled ? 1 : 0.72,
+      opacity: isEnabled ? 1 : 0.76,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -103,20 +105,24 @@ class _PollOptionTile extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(
               horizontal: 16,
-              vertical: 16,
+              vertical: 12,
             ),
             decoration: BoxDecoration(
               color: backgroundColor,
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
                 color: borderColor,
-                width: isSelected ? 1.5 : 1.1,
+                width: isSelected ? 1.45 : 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(isSelected ? 0.045 : 0.025),
-                  blurRadius: isSelected ? 14 : 10,
-                  offset: const Offset(0, 3),
+                  color: Colors.black.withOpacity(
+                    isDark
+                        ? (isSelected ? 0.16 : 0.10)
+                        : (isSelected ? 0.035 : 0.018),
+                  ),
+                  blurRadius: isSelected ? 12 : 8,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
@@ -129,69 +135,42 @@ class _PollOptionTile extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: leadingBackground,
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: leadingBorder,
-                    ),
+                    border: Border.all(color: leadingBorder),
                   ),
                   child: Text(
                     badgeText,
                     style: theme.textTheme.labelLarge?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: isSelected
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurface.withOpacity(0.8),
+                          ? colorScheme.primary
+                          : colorScheme.onSurface.withOpacity(0.78),
                     ),
                   ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 12),
                 SizedBox(
-                  width: 26,
-                  height: 26,
+                  width: 24,
+                  height: 24,
                   child: Icon(
                     isSingleChoice
                         ? (isSelected
                               ? Icons.radio_button_checked
                               : Icons.radio_button_unchecked)
                         : (isSelected
-                              ? Icons.check_box
-                              : Icons.check_box_outline_blank),
-                    size: 24,
-                    color: leadingIconColor,
+                              ? Icons.check_box_rounded
+                              : Icons.check_box_outline_blank_rounded),
+                    size: 22,
+                    color: controlColor,
                   ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     label,
                     style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      height: 1.25,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                      height: 1.2,
                       color: textColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                AnimatedOpacity(
-                  duration: const Duration(milliseconds: 160),
-                  opacity: isSelected ? 1 : 0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: theme.colorScheme.primary.withOpacity(0.18),
-                      ),
-                    ),
-                    child: Text(
-                      'Selezionata',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
                     ),
                   ),
                 ),
