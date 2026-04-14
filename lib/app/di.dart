@@ -50,9 +50,17 @@ import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
 import 'package:sociale_vote/domain/identity/repositories/user_profile_repository.dart';
 import 'package:sociale_vote/domain/identity/repositories/user_repository.dart';
+import 'package:sociale_vote/domain/identity/repositories/verification_request_repository.dart';
+import 'package:sociale_vote/domain/identity/usecases/cancel_verification_request.dart';
+import 'package:sociale_vote/domain/identity/usecases/create_verification_request.dart';
+import 'package:sociale_vote/domain/identity/usecases/get_pending_verification_request.dart';
+import 'package:sociale_vote/domain/identity/usecases/get_pending_verification_requests.dart';
 import 'package:sociale_vote/domain/identity/usecases/get_user_profile.dart';
+import 'package:sociale_vote/domain/identity/usecases/get_verification_requests_for_user.dart';
 import 'package:sociale_vote/domain/identity/usecases/login_user.dart';
 import 'package:sociale_vote/domain/identity/usecases/register_user.dart';
+import 'package:sociale_vote/domain/identity/usecases/review_verification_request.dart';
+import 'package:sociale_vote/domain/identity/usecases/review_verification_request_and_update_profile.dart';
 import 'package:sociale_vote/domain/identity/usecases/update_user_profile.dart';
 
 import 'package:sociale_vote/domain/moderation/repositories/moderation_repository.dart';
@@ -73,12 +81,12 @@ import 'package:sociale_vote/domain/poll/repositories/vote_repository.dart';
 import 'package:sociale_vote/domain/poll/services/vote_aggregator.dart';
 import 'package:sociale_vote/domain/poll/usecases/create_poll.dart';
 import 'package:sociale_vote/domain/poll/usecases/delete_poll.dart';
-import 'package:sociale_vote/domain/poll/usecases/update_poll_text.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_poll_detail.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_poll_results.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_polls.dart';
 import 'package:sociale_vote/domain/poll/usecases/submit_vote.dart';
 import 'package:sociale_vote/domain/poll/usecases/submit_vote_and_notify.dart';
+import 'package:sociale_vote/domain/poll/usecases/update_poll_text.dart';
 
 import 'package:sociale_vote/domain/search/repositories/search_repository.dart';
 import 'package:sociale_vote/domain/search/usecases/search_content.dart';
@@ -98,6 +106,8 @@ import 'package:sociale_vote/features/poll/application/poll_detail_controller.da
 import 'package:sociale_vote/features/poll/application/poll_list_controller.dart';
 import 'package:sociale_vote/features/poll/application/poll_result_controller.dart';
 import 'package:sociale_vote/features/poll/application/vote_controller.dart';
+import 'package:sociale_vote/features/profile/application/verification_requests_controller.dart';
+import 'package:sociale_vote/features/profile/application/verification_review_controller.dart';
 import 'package:sociale_vote/features/search/application/search_controller.dart';
 import 'package:sociale_vote/features/social/application/feed_controller.dart';
 import 'package:sociale_vote/features/social/application/post_detail_controller.dart';
@@ -111,6 +121,7 @@ import 'package:sociale_vote/infrastructure/geo/repositories/device_location_rep
 import 'package:sociale_vote/infrastructure/geo/repositories/follow_scope_repository_in_memory.dart';
 import 'package:sociale_vote/infrastructure/geo/repositories/geocoding_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/identity/repositories/user_profile_repository_impl.dart';
+import 'package:sociale_vote/infrastructure/identity/repositories/verification_request_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/moderation/repositories/moderation_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/gnews_provider.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/guardian_provider.dart';
@@ -275,6 +286,8 @@ class AppDI {
   late final UserRepository _userRepository = UserRepositoryImpl(_authApi);
   late final UserProfileRepository _userProfileRepository =
       UserProfileRepositoryImpl();
+  late final VerificationRequestRepository _verificationRequestRepository =
+      VerificationRequestRepositoryImpl();
   late final GeoResolver _geoResolver = GeoResolverImpl();
   late final DeviceLocationRepository _deviceLocationRepository =
       const DeviceLocationRepositoryImpl();
@@ -310,6 +323,8 @@ class AppDI {
   SessionRepository get sessionRepository => _sessionRepository;
   UserRepository get userRepository => _userRepository;
   UserProfileRepository get userProfileRepository => _userProfileRepository;
+  VerificationRequestRepository get verificationRequestRepository =>
+      _verificationRequestRepository;
   PollRepository get pollRepository => _pollRepository;
   VoteRepository get voteRepository => _voteRepository;
   NewsRepository get newsRepository => _newsRepository;
@@ -438,10 +453,37 @@ class AppDI {
         sessionRepository,
       );
 
-  GetUserProfile get getUserProfile => GetUserProfile(userProfileRepository);
+  GetUserProfile get getUserProfile =>
+      GetUserProfile(userProfileRepository, sessionRepository);
 
   UpdateUserProfile get updateUserProfile =>
       UpdateUserProfile(userProfileRepository);
+
+  CreateVerificationRequest get createVerificationRequest =>
+      CreateVerificationRequest(verificationRequestRepository);
+
+  GetPendingVerificationRequest get getPendingVerificationRequest =>
+      GetPendingVerificationRequest(verificationRequestRepository);
+
+  GetPendingVerificationRequests get getPendingVerificationRequests =>
+      GetPendingVerificationRequests(verificationRequestRepository);
+
+  GetVerificationRequestsForUser get getVerificationRequestsForUser =>
+      GetVerificationRequestsForUser(verificationRequestRepository);
+
+  CancelVerificationRequest get cancelVerificationRequest =>
+      CancelVerificationRequest(verificationRequestRepository);
+
+  ReviewVerificationRequest get reviewVerificationRequest =>
+      ReviewVerificationRequest(verificationRequestRepository);
+
+  ReviewVerificationRequestAndUpdateProfile
+      get reviewVerificationRequestAndUpdateProfile =>
+          ReviewVerificationRequestAndUpdateProfile(
+            verificationRequestRepository: verificationRequestRepository,
+            userProfileRepository: userProfileRepository,
+            reviewVerificationRequest: reviewVerificationRequest,
+          );
 
   GetPolls get getPolls => GetPolls(pollRepository);
 
@@ -609,6 +651,23 @@ class AppDI {
       loginUser: loginUser,
       registerUser: registerUser,
       authApi: _authApi,
+    );
+  }
+
+  VerificationRequestsController createVerificationRequestsController() {
+    return VerificationRequestsController(
+      createVerificationRequest: createVerificationRequest,
+      getPendingVerificationRequest: getPendingVerificationRequest,
+      getVerificationRequestsForUser: getVerificationRequestsForUser,
+      cancelVerificationRequest: cancelVerificationRequest,
+    );
+  }
+
+  VerificationReviewController createVerificationReviewController() {
+    return VerificationReviewController(
+      getPendingVerificationRequests: getPendingVerificationRequests,
+      reviewVerificationRequestAndUpdateProfile:
+          reviewVerificationRequestAndUpdateProfile,
     );
   }
 

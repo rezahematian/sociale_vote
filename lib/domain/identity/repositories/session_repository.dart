@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:sociale_vote/domain/identity/value_objects/role.dart';
+
 /// Sessione autenticata minima dell'utente.
 ///
 /// V1 reale minima:
@@ -8,12 +10,14 @@ import 'dart:async';
 /// - refreshToken opzionale
 /// - email opzionale
 /// - displayName opzionale
+/// - role tecnico opzionale con default user
 class AuthSession {
   final String userId;
   final String accessToken;
   final String? refreshToken;
   final String? email;
   final String? displayName;
+  final Role role;
 
   const AuthSession({
     required this.userId,
@@ -21,6 +25,7 @@ class AuthSession {
     this.refreshToken,
     this.email,
     this.displayName,
+    this.role = Role.user,
   });
 
   AuthSession copyWith({
@@ -29,6 +34,7 @@ class AuthSession {
     String? refreshToken,
     String? email,
     String? displayName,
+    Role? role,
   }) {
     return AuthSession(
       userId: userId ?? this.userId,
@@ -36,6 +42,7 @@ class AuthSession {
       refreshToken: refreshToken ?? this.refreshToken,
       email: email ?? this.email,
       displayName: displayName ?? this.displayName,
+      role: role ?? this.role,
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:sociale_vote/core/supabase/supabase_client.dart';
 import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
+import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 
 class AuthApi {
   const AuthApi();
@@ -124,12 +125,14 @@ class AuthApi {
   Future<void> _upsertUserProfile(User user) async {
     final metadata = user.userMetadata ?? const <String, dynamic>{};
     final displayName = _readDisplayName(metadata);
+    final role = _readRole(metadata);
 
     await Supabase.instance.client.from('users').upsert(
       <String, dynamic>{
         'id': user.id,
         'email': user.email,
         'display_name': displayName,
+        'role': role.storageKey,
       },
       onConflict: 'id',
     );
@@ -147,6 +150,7 @@ class AuthApi {
       refreshToken: session.refreshToken,
       email: user.email,
       displayName: _readDisplayName(metadata),
+      role: _readRole(metadata),
     );
   }
 
@@ -156,5 +160,13 @@ class AuthApi {
       return value.trim();
     }
     return null;
+  }
+
+  Role _readRole(Map<String, dynamic> metadata) {
+    final raw = metadata['role'];
+    if (raw is String && raw.trim().isNotEmpty) {
+      return RoleX.fromStorageKey(raw);
+    }
+    return Role.user;
   }
 }

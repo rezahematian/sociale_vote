@@ -16,6 +16,7 @@ import 'package:sociale_vote/features/poll/presentation/pages/create_poll_page.d
 import 'package:sociale_vote/features/poll/presentation/pages/poll_detail_page.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/poll_list_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_profile_page.dart';
+import 'package:sociale_vote/features/profile/presentation/pages/verification_review_page.dart';
 import 'package:sociale_vote/features/social/presentation/pages/post_detail_page.dart';
 import 'package:sociale_vote/features/social/presentation/pages/social_feed_page.dart';
 
@@ -31,8 +32,10 @@ class AppRouter {
   static const String social = '/social';
   static const String socialDetail = '/social/detail';
   static const String civicMap = '/map';
-  static const String profile = '/profile';
+  static const String account = '/account';
+  static const String profile = account;
   static const String notifications = '/notifications';
+  static const String verificationReview = '/verification-review';
   static const String login = '/login';
   static const String register = '/register';
   static const String resetPassword = '/reset-password';
@@ -142,7 +145,7 @@ class AppRouter {
           settings: settings,
         );
 
-      case profile:
+      case account:
         return MaterialPageRoute<void>(
           builder: (_) => const MyProfilePage(),
           settings: settings,
@@ -153,6 +156,12 @@ class AppRouter {
           builder: (_) => NotificationsPage(
             controller: AppDI.instance.createNotificationsController(),
           ),
+          settings: settings,
+        );
+
+      case verificationReview:
+        return MaterialPageRoute<void>(
+          builder: (_) => const VerificationReviewPage(),
           settings: settings,
         );
 

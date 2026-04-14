@@ -7,6 +7,14 @@ enum _TopBarMenuAction {
   forYou,
 }
 
+enum _AccountMenuAction {
+  account,
+  themeSystem,
+  themeLight,
+  themeDark,
+  logout,
+}
+
 class HomeTopBar extends StatelessWidget {
   final String scopeShortLabel;
   final bool isLoggedIn;
@@ -40,15 +48,6 @@ class HomeTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
-    final themeModeButton = isLoggedIn &&
-            currentThemeMode != null &&
-            onThemeModeChanged != null
-        ? _ThemeModeCycleButton(
-            currentThemeMode: currentThemeMode!,
-            onChanged: onThemeModeChanged!,
-          )
-        : null;
 
     if (!isLoggedIn) {
       return Row(
@@ -99,21 +98,12 @@ class HomeTopBar extends StatelessWidget {
             onForYouPressed: onForYouPressed,
           ),
         ],
-        if (themeModeButton != null) ...[
-          const SizedBox(width: 4),
-          themeModeButton,
-        ],
         const SizedBox(width: 4),
-        _TopBarIconButton(
-          tooltip: l10n.homeProfileButton,
-          icon: Icons.person_outline_rounded,
-          onPressed: onProfilePressed,
-        ),
-        const SizedBox(width: 4),
-        _TopBarIconButton(
-          tooltip: l10n.homeLogoutButton,
-          icon: Icons.logout_rounded,
-          onPressed: onLogoutPressed,
+        _AccountMenuButton(
+          onAccountPressed: onProfilePressed,
+          onLogoutPressed: onLogoutPressed,
+          currentThemeMode: currentThemeMode,
+          onThemeModeChanged: onThemeModeChanged,
         ),
       ],
     );
@@ -249,54 +239,116 @@ class _DiscoverMenuIconButton extends StatelessWidget {
   }
 }
 
-class _ThemeModeCycleButton extends StatelessWidget {
-  final ThemeMode currentThemeMode;
-  final ValueChanged<ThemeMode> onChanged;
+class _AccountMenuButton extends StatelessWidget {
+  final VoidCallback onAccountPressed;
+  final VoidCallback onLogoutPressed;
+  final ThemeMode? currentThemeMode;
+  final ValueChanged<ThemeMode>? onThemeModeChanged;
 
-  const _ThemeModeCycleButton({
+  const _AccountMenuButton({
+    required this.onAccountPressed,
+    required this.onLogoutPressed,
     required this.currentThemeMode,
-    required this.onChanged,
+    required this.onThemeModeChanged,
   });
 
-  ThemeMode _nextThemeMode(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.system:
-        return ThemeMode.light;
-      case ThemeMode.light:
-        return ThemeMode.dark;
-      case ThemeMode.dark:
-        return ThemeMode.system;
-    }
-  }
+  bool get _canChangeTheme =>
+      currentThemeMode != null && onThemeModeChanged != null;
 
-  IconData _iconForThemeMode(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.system:
-        return Icons.brightness_auto;
-      case ThemeMode.light:
-        return Icons.light_mode_outlined;
-      case ThemeMode.dark:
-        return Icons.dark_mode_outlined;
-    }
-  }
+  bool _isSelectedTheme(ThemeMode value) => currentThemeMode == value;
 
-  String _labelForThemeMode(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.system:
-        return 'Tema: sistema';
-      case ThemeMode.light:
-        return 'Tema: chiaro';
-      case ThemeMode.dark:
-        return 'Tema: scuro';
-    }
+  PopupMenuItem<_AccountMenuAction> _themeItem({
+    required _AccountMenuAction action,
+    required IconData icon,
+    required String label,
+    required bool selected,
+  }) {
+    return PopupMenuItem<_AccountMenuAction>(
+      value: action,
+      child: Row(
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(width: 8),
+          Expanded(child: Text(label)),
+          if (selected) ...[
+            const SizedBox(width: 8),
+            const Icon(Icons.check, size: 18),
+          ],
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return _TopBarIconButton(
-      tooltip: _labelForThemeMode(currentThemeMode),
-      icon: _iconForThemeMode(currentThemeMode),
-      onPressed: () => onChanged(_nextThemeMode(currentThemeMode)),
+    return PopupMenuButton<_AccountMenuAction>(
+      tooltip: 'Account',
+      onSelected: (value) {
+        switch (value) {
+          case _AccountMenuAction.account:
+            onAccountPressed();
+            break;
+          case _AccountMenuAction.themeSystem:
+            onThemeModeChanged?.call(ThemeMode.system);
+            break;
+          case _AccountMenuAction.themeLight:
+            onThemeModeChanged?.call(ThemeMode.light);
+            break;
+          case _AccountMenuAction.themeDark:
+            onThemeModeChanged?.call(ThemeMode.dark);
+            break;
+          case _AccountMenuAction.logout:
+            onLogoutPressed();
+            break;
+        }
+      },
+      itemBuilder: (context) => [
+        const PopupMenuItem<_AccountMenuAction>(
+          value: _AccountMenuAction.account,
+          child: Row(
+            children: [
+              Icon(Icons.manage_accounts_outlined, size: 18),
+              SizedBox(width: 8),
+              Text('Account'),
+            ],
+          ),
+        ),
+        if (_canChangeTheme) ...[
+          const PopupMenuDivider(),
+          _themeItem(
+            action: _AccountMenuAction.themeSystem,
+            icon: Icons.brightness_auto,
+            label: 'Tema: sistema',
+            selected: _isSelectedTheme(ThemeMode.system),
+          ),
+          _themeItem(
+            action: _AccountMenuAction.themeLight,
+            icon: Icons.light_mode_outlined,
+            label: 'Tema: chiaro',
+            selected: _isSelectedTheme(ThemeMode.light),
+          ),
+          _themeItem(
+            action: _AccountMenuAction.themeDark,
+            icon: Icons.dark_mode_outlined,
+            label: 'Tema: scuro',
+            selected: _isSelectedTheme(ThemeMode.dark),
+          ),
+        ],
+        const PopupMenuDivider(),
+        const PopupMenuItem<_AccountMenuAction>(
+          value: _AccountMenuAction.logout,
+          child: Row(
+            children: [
+              Icon(Icons.logout_rounded, size: 18),
+              SizedBox(width: 8),
+              Text('Logout'),
+            ],
+          ),
+        ),
+      ],
+      child: const _TopBarIconShell(
+        icon: Icons.manage_accounts_outlined,
+      ),
     );
   }
 }

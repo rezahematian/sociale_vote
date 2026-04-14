@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sociale_vote/app/app.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/domain/identity/entities/verification_request.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/institution_level.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_status.dart';
 
 import 'package:sociale_vote/features/profile/application/profile_controller.dart';
+import 'package:sociale_vote/features/profile/application/verification_requests_controller.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_comments_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_favorites_page.dart';
@@ -21,14 +28,14 @@ class MyProfilePage extends StatelessWidget {
     if (currentUserId == null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('My Profile'),
+          title: const Text('Account'),
         ),
         body: const Center(
           child: Padding(
             padding: EdgeInsets.all(16),
             child: Text(
-              'You must be logged in to view your profile.\n\n'
-              'Accedi o registrati dalla home per vedere le tue attività.',
+              'You must be logged in to open your account.\n\n'
+              'Accedi o registrati dalla home per gestire profilo, notifiche e impostazioni.',
               textAlign: TextAlign.center,
             ),
           ),
@@ -36,11 +43,19 @@ class MyProfilePage extends StatelessWidget {
       );
     }
 
-    return ChangeNotifierProvider(
-      create: (_) => ProfileController(
-        getUserProfile: AppDI.instance.getUserProfile,
-        updateUserProfile: AppDI.instance.updateUserProfile,
-      )..loadProfile(currentUserId),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => ProfileController(
+            getUserProfile: AppDI.instance.getUserProfile,
+            updateUserProfile: AppDI.instance.updateUserProfile,
+          )..loadProfile(currentUserId),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AppDI.instance.createVerificationRequestsController()
+            ..load(currentUserId),
+        ),
+      ],
       child: _MyProfileView(currentUserId: currentUserId),
     );
   }
@@ -78,28 +93,508 @@ class _MyProfileViewState extends State<_MyProfileView> {
     });
   }
 
+  Future<void> _openEditProfile() async {
+    final controller = context.read<ProfileController>();
+
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const EditProfilePage(),
+      ),
+    );
+
+    if (result == true && mounted) {
+      await controller.loadProfile(currentUserId);
+    }
+  }
+
+  Future<void> _openNotifications() async {
+    await Navigator.of(context).pushNamed(AppRouter.notifications);
+
+    if (!mounted) return;
+    _refreshUnreadNotificationsCount();
+  }
+
+  Future<void> _showThemeModeSheet() async {
+    final currentMode = AppThemeModeController.themeMode.value;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<ThemeMode>(
+                value: ThemeMode.system,
+                groupValue: currentMode,
+                title: const Text('Sistema'),
+                subtitle: const Text('Segue il tema del dispositivo'),
+                onChanged: (value) {
+                  if (value == null) return;
+                  AppThemeModeController.setThemeMode(value);
+                  Navigator.of(sheetContext).pop();
+                },
+              ),
+              RadioListTile<ThemeMode>(
+                value: ThemeMode.light,
+                groupValue: currentMode,
+                title: const Text('Chiaro'),
+                onChanged: (value) {
+                  if (value == null) return;
+                  AppThemeModeController.setThemeMode(value);
+                  Navigator.of(sheetContext).pop();
+                },
+              ),
+              RadioListTile<ThemeMode>(
+                value: ThemeMode.dark,
+                groupValue: currentMode,
+                title: const Text('Scuro'),
+                onChanged: (value) {
+                  if (value == null) return;
+                  AppThemeModeController.setThemeMode(value);
+                  Navigator.of(sheetContext).pop();
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  Future<void> _showVerificationCenter({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+    required VerificationStatus verificationStatus,
+    required InstitutionLevel? institutionLevel,
+    required VerificationRequest? pendingRequest,
+  }) async {
+    final actorTypeLabel = _formatActorTypeLabel(actorType);
+    final verificationLevelLabel =
+        _formatVerificationLevelLabel(verificationLevel);
+    final verificationStatusLabel =
+        _formatVerificationStatusLabel(verificationStatus);
+    final institutionLevelLabel =
+        _formatInstitutionLevelLabel(institutionLevel);
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Verification & account type',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Stato attuale:',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text('- Tipo account: $actorTypeLabel'),
+                Text('- Livello verifica: $verificationLevelLabel'),
+                Text(
+                  '- Stato richiesta profilo: $verificationStatusLabel',
+                ),
+                if (institutionLevelLabel != null)
+                  Text('- Livello istituzionale: $institutionLevelLabel'),
+                if (pendingRequest != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'Richiesta attiva:',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _formatVerificationRequestTypeLabel(
+                      pendingRequest.requestType,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        Navigator.of(sheetContext).pop();
+                        await _confirmCancelPendingRequest();
+                      },
+                      icon: const Icon(Icons.close_rounded),
+                      label: const Text('Annulla richiesta pending'),
+                    ),
+                  ),
+                ] else ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'Richiedi upgrade:',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  _VerificationActionTile(
+                    title: 'Request Verified Lv1',
+                    subtitle: 'Verifica base per account citizen',
+                    icon: Icons.verified_outlined,
+                    onTap: () async {
+                      Navigator.of(sheetContext).pop();
+                      await _submitCitizenVerificationRequest(
+                        VerificationRequestType.citizenLevel1,
+                      );
+                    },
+                  ),
+                  _VerificationActionTile(
+                    title: 'Request Verified Lv2',
+                    subtitle: 'Verifica avanzata per account citizen',
+                    icon: Icons.verified_user_outlined,
+                    onTap: () async {
+                      Navigator.of(sheetContext).pop();
+                      await _submitCitizenVerificationRequest(
+                        VerificationRequestType.citizenLevel2,
+                      );
+                    },
+                  ),
+                  _VerificationActionTile(
+                    title: 'Request Public Official account',
+                    subtitle: 'Richiede title ufficiale e review',
+                    icon: Icons.badge_outlined,
+                    onTap: () async {
+                      Navigator.of(sheetContext).pop();
+                      await _promptPublicOfficialRequest();
+                    },
+                  ),
+                  _VerificationActionTile(
+                    title: 'Request Institution account',
+                    subtitle: 'Richiede nome ente, livello e review',
+                    icon: Icons.account_balance_outlined,
+                    onTap: () async {
+                      Navigator.of(sheetContext).pop();
+                      await _promptInstitutionRequest();
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _submitCitizenVerificationRequest(
+    VerificationRequestType requestType,
+  ) async {
+    final controller = context.read<VerificationRequestsController>();
+    final success = await controller.createRequest(
+      userId: currentUserId,
+      requestType: requestType,
+    );
+
+    if (!mounted) return;
+
+    final message = success
+        ? 'Richiesta inviata con successo.'
+        : (controller.errorMessage ?? 'Impossibile inviare la richiesta.');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _promptPublicOfficialRequest() async {
+    final titleController = TextEditingController();
+
+    try {
+      final officialTitle = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('Request Public Official account'),
+            content: TextField(
+              controller: titleController,
+              textInputAction: TextInputAction.done,
+              decoration: const InputDecoration(
+                labelText: 'Official title',
+                hintText: 'es. Sindaco, Assessore, Ministro',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Annulla'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop(
+                    titleController.text.trim(),
+                  );
+                },
+                child: const Text('Invia richiesta'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (!mounted || officialTitle == null) return;
+
+      final controller = context.read<VerificationRequestsController>();
+      final success = await controller.createRequest(
+        userId: currentUserId,
+        requestType: VerificationRequestType.publicOfficial,
+        officialTitle: officialTitle,
+      );
+
+      if (!mounted) return;
+
+      final message = success
+          ? 'Richiesta inviata con successo.'
+          : (controller.errorMessage ?? 'Impossibile inviare la richiesta.');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } finally {
+      titleController.dispose();
+    }
+  }
+
+  Future<void> _promptInstitutionRequest() async {
+    final nameController = TextEditingController();
+
+    try {
+      final draft = await showDialog<_InstitutionRequestDraft>(
+        context: context,
+        builder: (dialogContext) {
+          InstitutionLevel? selectedLevel;
+
+          return StatefulBuilder(
+            builder: (context, setLocalState) {
+              return AlertDialog(
+                title: const Text('Request Institution account'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      textInputAction: TextInputAction.next,
+                      decoration: const InputDecoration(
+                        labelText: 'Institution name',
+                        hintText: 'es. Comune di Roma',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<InstitutionLevel>(
+                      value: selectedLevel,
+                      decoration: const InputDecoration(
+                        labelText: 'Institution level',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: InstitutionLevel.values
+                          .map(
+                            (level) => DropdownMenuItem(
+                              value: level,
+                              child: Text(
+                                _formatStaticInstitutionLevelLabel(level),
+                              ),
+                            ),
+                          )
+                          .toList(growable: false),
+                      onChanged: (value) {
+                        setLocalState(() {
+                          selectedLevel = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    child: const Text('Annulla'),
+                  ),
+                  FilledButton(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop(
+                        _InstitutionRequestDraft(
+                          institutionName: nameController.text.trim(),
+                          institutionLevel: selectedLevel,
+                        ),
+                      );
+                    },
+                    child: const Text('Invia richiesta'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+
+      if (!mounted || draft == null) return;
+
+      final controller = context.read<VerificationRequestsController>();
+      final success = await controller.createRequest(
+        userId: currentUserId,
+        requestType: VerificationRequestType.institution,
+        institutionName: draft.institutionName,
+        targetInstitutionLevel: draft.institutionLevel,
+      );
+
+      if (!mounted) return;
+
+      final message = success
+          ? 'Richiesta inviata con successo.'
+          : (controller.errorMessage ?? 'Impossibile inviare la richiesta.');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } finally {
+      nameController.dispose();
+    }
+  }
+
+  Future<void> _confirmCancelPendingRequest() async {
+    final verificationController = context.read<VerificationRequestsController>();
+
+    final shouldCancel = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) {
+            return AlertDialog(
+              title: const Text('Annulla richiesta'),
+              content: const Text(
+                'Vuoi davvero annullare la richiesta di verifica attualmente pending?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text('No'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: const Text('Annulla richiesta'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+
+    if (!shouldCancel) return;
+
+    final success =
+        await verificationController.cancelPendingRequest(currentUserId);
+
+    if (!mounted) return;
+
+    final message = success
+        ? 'Richiesta annullata.'
+        : (verificationController.errorMessage ??
+            'Impossibile annullare la richiesta.');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _confirmLogout() async {
+    final shouldLogout = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) {
+            return AlertDialog(
+              title: const Text('Logout'),
+              content: const Text('Vuoi davvero uscire dal tuo account?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text('Annulla'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: const Text('Logout'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+
+    if (!shouldLogout) return;
+
+    await AppDI.instance.logoutCurrentUser();
+    if (!mounted) return;
+
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final controller = context.watch<ProfileController>();
+    final verificationController =
+        context.watch<VerificationRequestsController>();
     final profile = controller.profile;
 
     final avatarUrl = profile?.avatarUrl?.trim() ?? '';
     final displayName = profile?.displayName?.trim() ?? '';
+    final username = profile?.username?.trim() ?? '';
     final bio = profile?.bio?.trim() ?? '';
     final country = profile?.country?.trim() ?? '';
     final city = profile?.city?.trim() ?? '';
-    final accountType = (profile?.accountType.trim().isNotEmpty ?? false)
-        ? profile!.accountType.trim()
-        : 'citizen';
+
+    final actorType = profile?.actorType ?? ActorType.citizen;
+    final verificationLevel =
+        profile?.verificationLevel ?? VerificationLevel.none;
+    final verificationStatus =
+        profile?.verificationStatus ?? VerificationStatus.none;
+    final institutionLevel = profile?.institutionLevel;
+    final pendingRequest = verificationController.pendingRequest;
+
+    final accountStatusLabel = _accountStatusLabel(
+      actorType: actorType,
+      verificationLevel: verificationLevel,
+      institutionLevel: institutionLevel,
+    );
+    final verificationTileSubtitle = _verificationTileSubtitle(
+      accountStatusLabel: accountStatusLabel,
+      verificationStatus: verificationStatus,
+      pendingRequest: pendingRequest,
+    );
+    final locationLabel = finalLocation(city: city, country: country);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Profile'),
+        title: const Text('Account'),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          await context.read<ProfileController>().loadProfile(currentUserId);
+          await Future.wait<void>([
+            context.read<ProfileController>().loadProfile(currentUserId),
+            context
+                .read<VerificationRequestsController>()
+                .load(currentUserId),
+          ]);
           _refreshUnreadNotificationsCount();
         },
         child: ListView(
@@ -116,6 +611,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                         ),
                       )
                     : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,101 +636,69 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                           : 'User',
                                       style:
                                           theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
-                                    const SizedBox(height: 6),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          accountType,
-                                          style:
-                                              theme.textTheme.labelMedium?.copyWith(
-                                            color: theme.colorScheme.primary,
-                                          ),
-                                        ),
-                                        if (profile?.isVerified == true) ...[
-                                          const SizedBox(width: 6),
-                                          Icon(
-                                            Icons.verified,
-                                            size: 16,
-                                            color: theme.colorScheme.primary,
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                    if (bio.isNotEmpty) ...[
-                                      const SizedBox(height: 8),
+                                    if (username.isNotEmpty) ...[
+                                      const SizedBox(height: 4),
                                       Text(
-                                        bio,
-                                        style: theme.textTheme.bodySmall,
+                                        '@$username',
+                                        style:
+                                            theme.textTheme.bodyMedium?.copyWith(
+                                          color: theme.colorScheme.primary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ],
-                                    finalLocation(city: city, country: country) !=
-                                            null
-                                        ? Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 8),
-                                            child: Text(
-                                              finalLocation(
-                                                city: city,
-                                                country: country,
-                                              )!,
-                                              style: theme.textTheme.bodySmall
-                                                  ?.copyWith(
-                                                color: theme
-                                                    .textTheme.bodySmall?.color
-                                                    ?.withOpacity(0.8),
-                                              ),
-                                            ),
-                                          )
-                                        : const SizedBox.shrink(),
                                     const SizedBox(height: 8),
-                                    Text(
-                                      currentUserId,
-                                      style:
-                                          theme.textTheme.bodySmall?.copyWith(
-                                        color: theme.textTheme.bodySmall?.color
-                                            ?.withOpacity(0.7),
-                                      ),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: [
+                                        _StatusChip(
+                                          icon: Icons.shield_outlined,
+                                          label: accountStatusLabel,
+                                        ),
+                                        if (locationLabel != null)
+                                          _StatusChip(
+                                            icon: Icons.location_on_outlined,
+                                            label: locationLabel,
+                                          ),
+                                      ],
                                     ),
                                   ],
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: OutlinedButton.icon(
-                              onPressed: controller.isSaving
-                                  ? null
-                                  : () async {
-                                      final result =
-                                          await Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              const EditProfilePage(),
-                                        ),
-                                      );
-
-                                      if (result == true && context.mounted) {
-                                        await context
-                                            .read<ProfileController>()
-                                            .loadProfile(currentUserId);
-                                      }
-                                    },
-                              icon: controller.isSaving
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(Icons.edit_outlined),
-                              label: const Text('Edit Profile'),
+                          if (bio.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              bio,
+                              style: theme.textTheme.bodyMedium,
                             ),
+                          ],
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: controller.isSaving
+                                      ? null
+                                      : _openEditProfile,
+                                  icon: controller.isSaving
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Icon(Icons.edit_outlined),
+                                  label: const Text('Edit Profile'),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -254,7 +718,80 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 ),
               ),
             ],
+            if (verificationController.errorMessage != null) ...[
+              const SizedBox(height: 12),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    verificationController.errorMessage!,
+                    style: TextStyle(
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
+            const _SectionTitle('Profile'),
+            _ProfileSectionTile(
+              title: 'Edit Profile',
+              subtitle: 'Nome, username, avatar, bio, paese e città',
+              icon: Icons.edit_outlined,
+              onTap: _openEditProfile,
+            ),
+            _ProfileSectionTile(
+              title: 'Verification & account type',
+              subtitle: verificationTileSubtitle,
+              icon: Icons.verified_user_outlined,
+              trailing: verificationController.isLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : null,
+              onTap: () => _showVerificationCenter(
+                actorType: actorType,
+                verificationLevel: verificationLevel,
+                verificationStatus: verificationStatus,
+                institutionLevel: institutionLevel,
+                pendingRequest: pendingRequest,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const _SectionTitle('App'),
+            ValueListenableBuilder<ThemeMode>(
+              valueListenable: AppThemeModeController.themeMode,
+              builder: (context, mode, _) {
+                return _ProfileSectionTile(
+                  title: 'Theme',
+                  subtitle: _themeModeLabel(mode),
+                  icon: Icons.palette_outlined,
+                  onTap: _showThemeModeSheet,
+                );
+              },
+            ),
+            FutureBuilder<int>(
+              future: _unreadNotificationsFuture,
+              builder: (context, snapshot) {
+                final unreadCount = snapshot.data ?? 0;
+
+                return _ProfileSectionTile(
+                  title: 'Notifications',
+                  subtitle: unreadCount > 0
+                      ? '$unreadCount non lette'
+                      : 'Nessuna notifica non letta',
+                  icon: Icons.notifications_none,
+                  trailing: _NotificationsTrailingBadge(
+                    unreadCount: unreadCount,
+                  ),
+                  onTap: _openNotifications,
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+            const _SectionTitle('My activity'),
             _ProfileSectionTile(
               title: 'My Polls',
               icon: Icons.how_to_vote,
@@ -268,7 +805,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
             ),
             _ProfileSectionTile(
               title: 'My Posts',
-              icon: Icons.forum,
+              icon: Icons.forum_outlined,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -279,7 +816,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
             ),
             _ProfileSectionTile(
               title: 'My Comments',
-              icon: Icons.comment,
+              icon: Icons.comment_outlined,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -288,31 +825,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 );
               },
             ),
-            FutureBuilder<int>(
-              future: _unreadNotificationsFuture,
-              builder: (context, snapshot) {
-                final unreadCount = snapshot.data ?? 0;
-
-                return _ProfileSectionTile(
-                  title: 'My Notifications',
-                  icon: Icons.notifications_none,
-                  trailing: _NotificationsTrailingBadge(
-                    unreadCount: unreadCount,
-                  ),
-                  onTap: () async {
-                    await Navigator.of(context).pushNamed(
-                      AppRouter.notifications,
-                    );
-
-                    if (!mounted) return;
-                    _refreshUnreadNotificationsCount();
-                  },
-                );
-              },
-            ),
             _ProfileSectionTile(
               title: 'My Favorites',
-              icon: Icons.star,
+              icon: Icons.star_border_rounded,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -332,10 +847,158 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 );
               },
             ),
+            const SizedBox(height: 24),
+            const _SectionTitle('Account'),
+            _ProfileSectionTile(
+              title: 'Account ID',
+              subtitle: currentUserId,
+              icon: Icons.badge_outlined,
+              trailing: const SizedBox.shrink(),
+              onTap: null,
+            ),
+            _ProfileSectionTile(
+              title: 'Logout',
+              subtitle: 'Esci dall’account corrente',
+              icon: Icons.logout_rounded,
+              iconColor: theme.colorScheme.error,
+              textColor: theme.colorScheme.error,
+              onTap: _confirmLogout,
+            ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatActorTypeLabel(ActorType value) {
+    switch (value) {
+      case ActorType.citizen:
+        return 'Citizen';
+      case ActorType.publicOfficial:
+        return 'Public Official';
+      case ActorType.institution:
+        return 'Institution';
+    }
+  }
+
+  String _formatVerificationRequestTypeLabel(VerificationRequestType value) {
+    switch (value) {
+      case VerificationRequestType.citizenLevel1:
+        return 'Verified Lv1 request';
+      case VerificationRequestType.citizenLevel2:
+        return 'Verified Lv2 request';
+      case VerificationRequestType.publicOfficial:
+        return 'Public Official request';
+      case VerificationRequestType.institution:
+        return 'Institution request';
+    }
+  }
+
+  String? _formatInstitutionLevelLabel(InstitutionLevel? value) {
+    switch (value) {
+      case InstitutionLevel.municipality:
+        return 'Municipality';
+      case InstitutionLevel.province:
+        return 'Province';
+      case InstitutionLevel.region:
+        return 'Region';
+      case InstitutionLevel.ministry:
+        return 'Ministry';
+      case InstitutionLevel.government:
+        return 'Government';
+      case InstitutionLevel.publicAgency:
+        return 'Public Agency';
+      case InstitutionLevel.otherPublicBody:
+        return 'Other Public Body';
+      case null:
+        return null;
+    }
+  }
+
+  static String _formatStaticInstitutionLevelLabel(InstitutionLevel value) {
+    switch (value) {
+      case InstitutionLevel.municipality:
+        return 'Municipality';
+      case InstitutionLevel.province:
+        return 'Province';
+      case InstitutionLevel.region:
+        return 'Region';
+      case InstitutionLevel.ministry:
+        return 'Ministry';
+      case InstitutionLevel.government:
+        return 'Government';
+      case InstitutionLevel.publicAgency:
+        return 'Public Agency';
+      case InstitutionLevel.otherPublicBody:
+        return 'Other Public Body';
+    }
+  }
+
+  String _formatVerificationLevelLabel(VerificationLevel value) {
+    switch (value) {
+      case VerificationLevel.none:
+        return 'Standard';
+      case VerificationLevel.level1:
+        return 'Verified Lv1';
+      case VerificationLevel.level2:
+        return 'Verified Lv2';
+    }
+  }
+
+  String _formatVerificationStatusLabel(VerificationStatus value) {
+    switch (value) {
+      case VerificationStatus.none:
+        return 'Nessuna richiesta';
+      case VerificationStatus.pending:
+        return 'In review';
+      case VerificationStatus.rejected:
+        return 'Rejected';
+    }
+  }
+
+  String _accountStatusLabel({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+    required InstitutionLevel? institutionLevel,
+  }) {
+    final parts = <String>[
+      _formatActorTypeLabel(actorType),
+    ];
+
+    final institutionLevelLabel = _formatInstitutionLevelLabel(institutionLevel);
+    if (institutionLevelLabel != null) {
+      parts.add(institutionLevelLabel);
+    }
+
+    parts.add(_formatVerificationLevelLabel(verificationLevel));
+    return parts.join(' · ');
+  }
+
+  String _verificationTileSubtitle({
+    required String accountStatusLabel,
+    required VerificationStatus verificationStatus,
+    required VerificationRequest? pendingRequest,
+  }) {
+    if (pendingRequest != null) {
+      return '$accountStatusLabel · ${_formatVerificationRequestTypeLabel(pendingRequest.requestType)} pending';
+    }
+
+    if (verificationStatus == VerificationStatus.rejected) {
+      return '$accountStatusLabel · ultima richiesta rejected';
+    }
+
+    return accountStatusLabel;
+  }
+
+  String _themeModeLabel(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.system:
+        return 'Sistema';
+      case ThemeMode.light:
+        return 'Chiaro';
+      case ThemeMode.dark:
+        return 'Scuro';
+    }
   }
 
   String? finalLocation({
@@ -355,25 +1018,149 @@ class _MyProfileViewState extends State<_MyProfileView> {
   }
 }
 
-class _ProfileSectionTile extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final VoidCallback? onTap;
-  final Widget? trailing;
+class _InstitutionRequestDraft {
+  final String institutionName;
+  final InstitutionLevel? institutionLevel;
 
-  const _ProfileSectionTile({
-    required this.title,
+  const _InstitutionRequestDraft({
+    required this.institutionName,
+    required this.institutionLevel,
+  });
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+
+  const _SectionTitle(this.title);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+      ),
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _StatusChip({
     required this.icon,
-    this.onTap,
-    this.trailing,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: theme.colorScheme.primary.withOpacity(0.18),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VerificationActionTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _VerificationActionTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: Icon(icon),
         title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
+class _ProfileSectionTile extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final IconData icon;
+  final VoidCallback? onTap;
+  final Widget? trailing;
+  final Color? iconColor;
+  final Color? textColor;
+
+  const _ProfileSectionTile({
+    required this.title,
+    required this.icon,
+    this.subtitle,
+    this.onTap,
+    this.trailing,
+    this.iconColor,
+    this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      child: ListTile(
+        leading: Icon(
+          icon,
+          color: iconColor,
+        ),
+        title: Text(
+          title,
+          style: textColor != null
+              ? theme.textTheme.bodyLarge?.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                )
+              : null,
+        ),
+        subtitle: subtitle != null ? Text(subtitle!) : null,
         trailing: trailing ?? const Icon(Icons.chevron_right),
         onTap: onTap,
       ),

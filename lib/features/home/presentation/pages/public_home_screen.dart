@@ -198,7 +198,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   }
 
   void _onProfilePressed() {
-    Navigator.pushNamed(context, AppRouter.profile);
+    Navigator.pushNamed(context, AppRouter.account);
   }
 
   void _onThemeModeChanged(ThemeMode mode) {
