@@ -123,9 +123,10 @@ class AuthApi {
   }
 
   Future<void> _upsertUserProfile(User user) async {
-    final metadata = user.userMetadata ?? const <String, dynamic>{};
-    final displayName = _readDisplayName(metadata);
-    final role = _readRole(metadata);
+    final userMetadata = user.userMetadata ?? const <String, dynamic>{};
+    final appMetadata = user.appMetadata ?? const <String, dynamic>{};
+    final displayName = _readDisplayName(userMetadata);
+    final role = _readRole(appMetadata);
 
     await Supabase.instance.client.from('users').upsert(
       <String, dynamic>{
@@ -142,15 +143,16 @@ class AuthApi {
     required Session session,
     required User user,
   }) {
-    final metadata = user.userMetadata ?? const <String, dynamic>{};
+    final userMetadata = user.userMetadata ?? const <String, dynamic>{};
+    final appMetadata = user.appMetadata ?? const <String, dynamic>{};
 
     return AuthSession(
       userId: user.id,
       accessToken: session.accessToken,
       refreshToken: session.refreshToken,
       email: user.email,
-      displayName: _readDisplayName(metadata),
-      role: _readRole(metadata),
+      displayName: _readDisplayName(userMetadata),
+      role: _readRole(appMetadata),
     );
   }
 
@@ -162,8 +164,8 @@ class AuthApi {
     return null;
   }
 
-  Role _readRole(Map<String, dynamic> metadata) {
-    final raw = metadata['role'];
+  Role _readRole(Map<String, dynamic> appMetadata) {
+    final raw = appMetadata['role'];
     if (raw is String && raw.trim().isNotEmpty) {
       return RoleX.fromStorageKey(raw);
     }

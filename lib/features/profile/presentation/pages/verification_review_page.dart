@@ -72,10 +72,6 @@ class _VerificationReviewGateState extends State<_VerificationReviewGate> {
     final session = await AppDI.instance.sessionRepository.getCurrentSession();
     final role = session?.role ?? Role.user;
 
-    debugPrint('review session userId=${session?.userId}');
-    debugPrint('review session role=$role');
-    debugPrint('review session email=${session?.email}');
-
     if (!mounted) return;
 
     final allowed = await AuthGuard.ensureCanPerformAction(
