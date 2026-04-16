@@ -11,10 +11,15 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
 
   @override
   Future<UserProfile?> getUserProfile(String userId) async {
+    final normalizedUserId = userId.trim();
+    if (normalizedUserId.isEmpty) {
+      throw ArgumentError('User id non valido.');
+    }
+
     final rows = await AppSupabase.client
         .from(_table)
         .select()
-        .eq('id', userId)
+        .eq('id', normalizedUserId)
         .limit(1);
 
     if (rows.isEmpty) {
@@ -56,16 +61,21 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     String? country,
     String? city,
   }) async {
+    final normalizedUserId = userId.trim();
+    if (normalizedUserId.isEmpty) {
+      throw ArgumentError('User id non valido.');
+    }
+
     final now = DateTime.now().toUtc().toIso8601String();
 
     final payload = <String, dynamic>{
-      'id': userId,
-      'display_name': displayName,
+      'id': normalizedUserId,
+      'display_name': _normalizeNullable(displayName),
       'username': _normalizeUsername(username),
-      'avatar_url': avatarUrl,
-      'bio': bio,
-      'country': country,
-      'city': city,
+      'avatar_url': _normalizeNullable(avatarUrl),
+      'bio': _normalizeNullable(bio),
+      'country': _normalizeNullable(country),
+      'city': _normalizeNullable(city),
 
       // Nuovo modello identity
       'actor_type': ActorType.citizen.storageKey,
@@ -109,21 +119,38 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     String? country,
     String? city,
   }) async {
+    final normalizedUserId = userId.trim();
+    if (normalizedUserId.isEmpty) {
+      throw ArgumentError('User id non valido.');
+    }
+
     final updates = <String, dynamic>{
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     };
 
-    if (displayName != null) updates['display_name'] = displayName;
-    if (username != null) updates['username'] = _normalizeUsername(username);
-    if (avatarUrl != null) updates['avatar_url'] = avatarUrl;
-    if (bio != null) updates['bio'] = bio;
-    if (country != null) updates['country'] = country;
-    if (city != null) updates['city'] = city;
+    if (displayName != null) {
+      updates['display_name'] = _normalizeNullable(displayName);
+    }
+    if (username != null) {
+      updates['username'] = _normalizeUsername(username);
+    }
+    if (avatarUrl != null) {
+      updates['avatar_url'] = _normalizeNullable(avatarUrl);
+    }
+    if (bio != null) {
+      updates['bio'] = _normalizeNullable(bio);
+    }
+    if (country != null) {
+      updates['country'] = _normalizeNullable(country);
+    }
+    if (city != null) {
+      updates['city'] = _normalizeNullable(city);
+    }
 
     final rows = await AppSupabase.client
         .from(_table)
         .update(updates)
-        .eq('id', userId)
+        .eq('id', normalizedUserId)
         .select()
         .limit(1);
 
@@ -147,16 +174,30 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     DateTime? verificationRequestedAt,
     DateTime? verifiedAt,
   }) async {
+    final normalizedUserId = userId.trim();
+    if (normalizedUserId.isEmpty) {
+      throw ArgumentError('User id non valido.');
+    }
+
+    final normalizedInstitutionLevel =
+        actorType == ActorType.institution ? institutionLevel : null;
+    final normalizedOfficialTitle = actorType == ActorType.publicOfficial
+        ? _normalizeNullable(officialTitle)
+        : null;
+    final normalizedInstitutionName = actorType == ActorType.institution
+        ? _normalizeNullable(institutionName)
+        : null;
+
     final updates = <String, dynamic>{
       'actor_type': actorType.storageKey,
       'verification_level': verificationLevel.storageKey,
-      'institution_level': institutionLevel?.storageKey,
+      'institution_level': normalizedInstitutionLevel?.storageKey,
       'verification_status': verificationStatus.storageKey,
       'verification_requested_at':
           _toNullableUtcIsoString(verificationRequestedAt),
       'verified_at': _toNullableUtcIsoString(verifiedAt),
-      'official_title': _normalizeNullable(officialTitle),
-      'institution_name': _normalizeNullable(institutionName),
+      'official_title': normalizedOfficialTitle,
+      'institution_name': normalizedInstitutionName,
 
       // Bridge legacy temporaneo
       'account_type': actorType.storageKey,
@@ -168,7 +209,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     final rows = await AppSupabase.client
         .from(_table)
         .update(updates)
-        .eq('id', userId)
+        .eq('id', normalizedUserId)
         .select()
         .limit(1);
 
@@ -182,13 +223,13 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
 
   UserProfile _mapProfile(Map<String, dynamic> row) {
     return UserProfile(
-      id: (row['id'] as String?) ?? '',
-      displayName: row['display_name'] as String?,
-      username: row['username'] as String?,
-      avatarUrl: row['avatar_url'] as String?,
-      bio: row['bio'] as String?,
-      country: row['country'] as String?,
-      city: row['city'] as String?,
+      id: _readRequiredString(row, 'id'),
+      displayName: _normalizeNullable(row['display_name'] as String?),
+      username: _normalizeUsername(row['username'] as String?),
+      avatarUrl: _normalizeNullable(row['avatar_url'] as String?),
+      bio: _normalizeNullable(row['bio'] as String?),
+      country: _normalizeNullable(row['country'] as String?),
+      city: _normalizeNullable(row['city'] as String?),
       actorType: _readActorType(row),
       verificationLevel: _readVerificationLevel(row),
       institutionLevel: _readInstitutionLevel(row),
@@ -197,11 +238,19 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
         row['verification_requested_at'],
       ),
       verifiedAt: _parseNullableDateTime(row['verified_at']),
-      officialTitle: row['official_title'] as String?,
-      institutionName: row['institution_name'] as String?,
-      createdAt: _parseDateTime(row['created_at']),
-      updatedAt: _parseDateTime(row['updated_at']),
+      officialTitle: _normalizeNullable(row['official_title'] as String?),
+      institutionName: _normalizeNullable(row['institution_name'] as String?),
+      createdAt: _parseRequiredDateTime(row['created_at'], 'created_at'),
+      updatedAt: _parseRequiredDateTime(row['updated_at'], 'updated_at'),
     );
+  }
+
+  String _readRequiredString(Map<String, dynamic> row, String key) {
+    final value = row[key];
+    if (value is String && value.trim().isNotEmpty) {
+      return value.trim();
+    }
+    throw StateError('Campo obbligatorio mancante o non valido: $key');
   }
 
   ActorType _readActorType(Map<String, dynamic> row) {
@@ -290,7 +339,11 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     return null;
   }
 
-  DateTime _parseDateTime(dynamic value) {
-    return _parseNullableDateTime(value) ?? DateTime.now();
+  DateTime _parseRequiredDateTime(dynamic value, String fieldName) {
+    final parsed = _parseNullableDateTime(value);
+    if (parsed == null) {
+      throw StateError('Campo datetime obbligatorio non valido: $fieldName');
+    }
+    return parsed;
   }
 }

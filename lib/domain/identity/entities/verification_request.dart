@@ -87,6 +87,8 @@ extension VerificationRequestStatusX on VerificationRequestStatus {
 }
 
 class VerificationRequest {
+  static const Object _unset = Object();
+
   final String id;
   final String userId;
 
@@ -131,6 +133,9 @@ class VerificationRequest {
   bool get isRejected => status == VerificationRequestStatus.rejected;
   bool get isCancelled => status == VerificationRequestStatus.cancelled;
 
+  bool get isReviewable => isPending;
+  bool get isCancellable => isPending;
+
   bool get requiresOfficialTitle =>
       requestType == VerificationRequestType.publicOfficial;
 
@@ -143,14 +148,14 @@ class VerificationRequest {
     VerificationRequestType? requestType,
     ActorType? targetActorType,
     VerificationLevel? targetVerificationLevel,
-    InstitutionLevel? targetInstitutionLevel,
-    String? officialTitle,
-    String? institutionName,
+    Object? targetInstitutionLevel = _unset,
+    Object? officialTitle = _unset,
+    Object? institutionName = _unset,
     VerificationRequestStatus? status,
     DateTime? submittedAt,
-    DateTime? reviewedAt,
-    String? reviewedBy,
-    String? reviewNote,
+    Object? reviewedAt = _unset,
+    Object? reviewedBy = _unset,
+    Object? reviewNote = _unset,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -161,15 +166,26 @@ class VerificationRequest {
       targetActorType: targetActorType ?? this.targetActorType,
       targetVerificationLevel:
           targetVerificationLevel ?? this.targetVerificationLevel,
-      targetInstitutionLevel:
-          targetInstitutionLevel ?? this.targetInstitutionLevel,
-      officialTitle: officialTitle ?? this.officialTitle,
-      institutionName: institutionName ?? this.institutionName,
+      targetInstitutionLevel: identical(targetInstitutionLevel, _unset)
+          ? this.targetInstitutionLevel
+          : targetInstitutionLevel as InstitutionLevel?,
+      officialTitle: identical(officialTitle, _unset)
+          ? this.officialTitle
+          : officialTitle as String?,
+      institutionName: identical(institutionName, _unset)
+          ? this.institutionName
+          : institutionName as String?,
       status: status ?? this.status,
       submittedAt: submittedAt ?? this.submittedAt,
-      reviewedAt: reviewedAt ?? this.reviewedAt,
-      reviewedBy: reviewedBy ?? this.reviewedBy,
-      reviewNote: reviewNote ?? this.reviewNote,
+      reviewedAt: identical(reviewedAt, _unset)
+          ? this.reviewedAt
+          : reviewedAt as DateTime?,
+      reviewedBy: identical(reviewedBy, _unset)
+          ? this.reviewedBy
+          : reviewedBy as String?,
+      reviewNote: identical(reviewNote, _unset)
+          ? this.reviewNote
+          : reviewNote as String?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

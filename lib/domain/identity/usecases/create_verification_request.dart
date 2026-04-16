@@ -16,13 +16,18 @@ class CreateVerificationRequest {
     String? institutionName,
     InstitutionLevel? targetInstitutionLevel,
   }) {
+    final normalizedUserId = userId.trim();
     final normalizedOfficialTitle = _normalizeNullable(officialTitle);
     final normalizedInstitutionName = _normalizeNullable(institutionName);
+
+    if (normalizedUserId.isEmpty) {
+      throw ArgumentError('User id non valido.');
+    }
 
     switch (requestType) {
       case VerificationRequestType.citizenLevel1:
         return _repository.createRequest(
-          userId: userId,
+          userId: normalizedUserId,
           requestType: requestType,
           targetActorType: ActorType.citizen,
           targetVerificationLevel: VerificationLevel.level1,
@@ -30,7 +35,7 @@ class CreateVerificationRequest {
 
       case VerificationRequestType.citizenLevel2:
         return _repository.createRequest(
-          userId: userId,
+          userId: normalizedUserId,
           requestType: requestType,
           targetActorType: ActorType.citizen,
           targetVerificationLevel: VerificationLevel.level2,
@@ -38,11 +43,11 @@ class CreateVerificationRequest {
 
       case VerificationRequestType.publicOfficial:
         if (normalizedOfficialTitle == null) {
-          throw Exception('Official title obbligatorio.');
+          throw ArgumentError('Official title obbligatorio.');
         }
 
         return _repository.createRequest(
-          userId: userId,
+          userId: normalizedUserId,
           requestType: requestType,
           targetActorType: ActorType.publicOfficial,
           targetVerificationLevel: VerificationLevel.level2,
@@ -51,15 +56,15 @@ class CreateVerificationRequest {
 
       case VerificationRequestType.institution:
         if (normalizedInstitutionName == null) {
-          throw Exception('Institution name obbligatorio.');
+          throw ArgumentError('Institution name obbligatorio.');
         }
 
         if (targetInstitutionLevel == null) {
-          throw Exception('Institution level obbligatorio.');
+          throw ArgumentError('Institution level obbligatorio.');
         }
 
         return _repository.createRequest(
-          userId: userId,
+          userId: normalizedUserId,
           requestType: requestType,
           targetActorType: ActorType.institution,
           targetVerificationLevel: VerificationLevel.level2,

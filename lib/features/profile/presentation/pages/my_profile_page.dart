@@ -182,13 +182,25 @@ class _MyProfileViewState extends State<_MyProfileView> {
     final institutionLevelLabel =
         _formatInstitutionLevelLabel(institutionLevel);
 
+    final canRequestCitizenLevel1 = actorType == ActorType.citizen &&
+        verificationLevel == VerificationLevel.none;
+    final canRequestCitizenLevel2 = actorType == ActorType.citizen &&
+        verificationLevel != VerificationLevel.level2;
+    final canRequestPublicOfficial = actorType == ActorType.citizen;
+    final canRequestInstitution = actorType == ActorType.citizen;
+
+    final hasAvailableUpgradeActions = canRequestCitizenLevel1 ||
+        canRequestCitizenLevel2 ||
+        canRequestPublicOfficial ||
+        canRequestInstitution;
+
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
       builder: (sheetContext) {
         return SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -243,6 +255,13 @@ class _MyProfileViewState extends State<_MyProfileView> {
                   ),
                 ] else ...[
                   const SizedBox(height: 16),
+                  if (verificationStatus == VerificationStatus.rejected) ...[
+                    Text(
+                      'La tua ultima richiesta è stata respinta. Puoi correggere i dati e inviarne una nuova.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   Text(
                     'Richiedi upgrade:',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -250,46 +269,58 @@ class _MyProfileViewState extends State<_MyProfileView> {
                         ),
                   ),
                   const SizedBox(height: 8),
-                  _VerificationActionTile(
-                    title: 'Request Verified Lv1',
-                    subtitle: 'Verifica base per account citizen',
-                    icon: Icons.verified_outlined,
-                    onTap: () async {
-                      Navigator.of(sheetContext).pop();
-                      await _submitCitizenVerificationRequest(
-                        VerificationRequestType.citizenLevel1,
-                      );
-                    },
-                  ),
-                  _VerificationActionTile(
-                    title: 'Request Verified Lv2',
-                    subtitle: 'Verifica avanzata per account citizen',
-                    icon: Icons.verified_user_outlined,
-                    onTap: () async {
-                      Navigator.of(sheetContext).pop();
-                      await _submitCitizenVerificationRequest(
-                        VerificationRequestType.citizenLevel2,
-                      );
-                    },
-                  ),
-                  _VerificationActionTile(
-                    title: 'Request Public Official account',
-                    subtitle: 'Richiede title ufficiale e review',
-                    icon: Icons.badge_outlined,
-                    onTap: () async {
-                      Navigator.of(sheetContext).pop();
-                      await _promptPublicOfficialRequest();
-                    },
-                  ),
-                  _VerificationActionTile(
-                    title: 'Request Institution account',
-                    subtitle: 'Richiede nome ente, livello e review',
-                    icon: Icons.account_balance_outlined,
-                    onTap: () async {
-                      Navigator.of(sheetContext).pop();
-                      await _promptInstitutionRequest();
-                    },
-                  ),
+                  if (hasAvailableUpgradeActions) ...[
+                    if (canRequestCitizenLevel1)
+                      _VerificationActionTile(
+                        title: 'Request Verified Lv1',
+                        subtitle: 'Verifica base per account citizen',
+                        icon: Icons.verified_outlined,
+                        onTap: () async {
+                          Navigator.of(sheetContext).pop();
+                          await _submitCitizenVerificationRequest(
+                            VerificationRequestType.citizenLevel1,
+                          );
+                        },
+                      ),
+                    if (canRequestCitizenLevel2)
+                      _VerificationActionTile(
+                        title: 'Request Verified Lv2',
+                        subtitle: 'Verifica avanzata per account citizen',
+                        icon: Icons.verified_user_outlined,
+                        onTap: () async {
+                          Navigator.of(sheetContext).pop();
+                          await _submitCitizenVerificationRequest(
+                            VerificationRequestType.citizenLevel2,
+                          );
+                        },
+                      ),
+                    if (canRequestPublicOfficial)
+                      _VerificationActionTile(
+                        title: 'Request Public Official account',
+                        subtitle: 'Richiede title ufficiale e review',
+                        icon: Icons.badge_outlined,
+                        onTap: () async {
+                          Navigator.of(sheetContext).pop();
+                          await _promptPublicOfficialRequest();
+                        },
+                      ),
+                    if (canRequestInstitution)
+                      _VerificationActionTile(
+                        title: 'Request Institution account',
+                        subtitle: 'Richiede nome ente, livello e review',
+                        icon: Icons.account_balance_outlined,
+                        onTap: () async {
+                          Navigator.of(sheetContext).pop();
+                          await _promptInstitutionRequest();
+                        },
+                      ),
+                  ] else ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Non ci sono upgrade self-service disponibili per lo stato attuale del tuo account.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
                 ],
               ],
             ),
