@@ -700,10 +700,13 @@ class AppDI {
   }
 
   CreatePollController createCreatePollController() {
+    final effectiveUserId =
+        currentUserId ?? Supabase.instance.client.auth.currentUser?.id;
+
     return CreatePollController(
       createPollUseCase: createPoll,
       geoScopeController: geoScopeController,
-      createdByUserId: currentUserId ?? 'guest',
+      createdByUserId: effectiveUserId,
       deviceLocationRepository: deviceLocationRepository,
       geocodingRepository: geocodingRepository,
     );

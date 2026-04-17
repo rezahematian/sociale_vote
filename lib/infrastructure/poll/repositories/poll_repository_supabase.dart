@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:sociale_vote/core/supabase/supabase_client.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/institution_level.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/poll_option.dart';
 import 'package:sociale_vote/domain/poll/repositories/poll_repository.dart';
@@ -285,9 +287,14 @@ class PollRepositorySupabase implements PollRepository {
       'min_quorum_votes': poll.configuration.quorumRules.minAbsoluteVotes,
       'country_code': poll.countryCode,
       'city_id': poll.cityId,
-      'start_at': poll.startAt?.toIso8601String(),
-      'end_at': poll.endAt?.toIso8601String(),
+      'start_at': poll.startAt?.toUtc().toIso8601String(),
+      'end_at': poll.endAt?.toUtc().toIso8601String(),
       'content_location': poll.contentLocation?.toJson(),
+      'published_as_actor_type': poll.publishedAsActorType?.storageKey,
+      'published_as_institution_level':
+          poll.publishedAsInstitutionLevel?.storageKey,
+      'published_as_display_name':
+          _normalizeNullableText(poll.publishedAsDisplayName),
     };
   }
 
@@ -318,6 +325,12 @@ class PollRepositorySupabase implements PollRepository {
       endAt: endAt,
     );
     final contentLocation = _mapContentLocation(row, countryCode, cityId);
+
+    final publishedAsActorTypeValue =
+        _normalizeNullableText(row['published_as_actor_type'] as String?);
+    final publishedAsInstitutionLevelValue = _normalizeNullableText(
+      row['published_as_institution_level'] as String?,
+    );
 
     return Poll(
       id: PollId((row['id'] as String?) ?? ''),
@@ -357,6 +370,17 @@ class PollRepositorySupabase implements PollRepository {
       cityId: cityId,
       contentLocation: contentLocation,
       createdByUserId: row['author_id'] as String?,
+      publishedAsActorType: publishedAsActorTypeValue == null
+          ? null
+          : ActorTypeX.fromStorageKey(publishedAsActorTypeValue),
+      publishedAsInstitutionLevel: publishedAsInstitutionLevelValue == null
+          ? null
+          : InstitutionLevelX.fromStorageKey(
+              publishedAsInstitutionLevelValue,
+            ),
+      publishedAsDisplayName: _normalizeNullableText(
+        row['published_as_display_name'] as String?,
+      ),
       voteCount: (row['vote_count'] as int?) ?? 0,
     );
   }

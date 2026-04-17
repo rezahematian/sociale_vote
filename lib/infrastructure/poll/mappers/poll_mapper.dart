@@ -5,6 +5,8 @@ import 'package:sociale_vote/domain/poll/value_objects/poll_configuration.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_status.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/institution_level.dart';
 
 import '../models/poll_dto.dart';
 import '../models/poll_option_dto.dart';
@@ -38,6 +40,15 @@ class PollMapper {
       countryCode: dto.countryCode,
       cityId: dto.cityId,
       createdByUserId: dto.createdByUserId,
+      publishedAsActorType: dto.publishedAsActorType == null
+          ? null
+          : ActorTypeX.fromStorageKey(dto.publishedAsActorType),
+      publishedAsInstitutionLevel: dto.publishedAsInstitutionLevel == null
+          ? null
+          : InstitutionLevelX.fromStorageKey(
+              dto.publishedAsInstitutionLevel,
+            ),
+      publishedAsDisplayName: _normalizeNullable(dto.publishedAsDisplayName),
     );
   }
 
@@ -65,6 +76,18 @@ class PollMapper {
       countryCode: poll.countryCode,
       cityId: poll.cityId,
       createdByUserId: poll.createdByUserId,
+      publishedAsActorType: poll.publishedAsActorType?.storageKey,
+      publishedAsInstitutionLevel:
+          poll.publishedAsInstitutionLevel?.storageKey,
+      publishedAsDisplayName: _normalizeNullable(poll.publishedAsDisplayName),
     );
+  }
+
+  static String? _normalizeNullable(String? value) {
+    final normalized = value?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
   }
 }

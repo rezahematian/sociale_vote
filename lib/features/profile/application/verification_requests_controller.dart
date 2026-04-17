@@ -31,6 +31,7 @@ class VerificationRequestsController extends ChangeNotifier {
   bool _isCancelling = false;
 
   String? _errorMessage;
+  Future<void>? _activeLoadFuture;
 
   VerificationRequest? get pendingRequest => _pendingRequest;
   List<VerificationRequest> get requests => _requests;
@@ -42,12 +43,64 @@ class VerificationRequestsController extends ChangeNotifier {
   bool get hasPendingRequest => _pendingRequest != null;
   String? get errorMessage => _errorMessage;
 
-  Future<void> load(String userId) async {
-    if (_isLoading) return;
+  VerificationRequest? get latestRequest {
+    if (_requests.isEmpty) {
+      return null;
+    }
+    return _requests.first;
+  }
 
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+  VerificationRequest? get latestResolvedRequest {
+    final pendingId = _pendingRequest?.id;
+    for (final request in _requests) {
+      if (request.id != pendingId) {
+        return request;
+      }
+    }
+    return null;
+  }
+
+  Future<void> load(String userId) {
+    final activeLoad = _activeLoadFuture;
+    if (activeLoad != null) {
+      return activeLoad;
+    }
+
+    final future = _runLoad(
+      userId,
+      showLoadingState: true,
+    );
+
+    _activeLoadFuture = future;
+
+    return future.whenComplete(() {
+      if (identical(_activeLoadFuture, future)) {
+        _activeLoadFuture = null;
+      }
+    });
+  }
+
+  Future<void> _refreshAfterMutation(String userId) async {
+    final activeLoad = _activeLoadFuture;
+    if (activeLoad != null) {
+      await activeLoad;
+    }
+
+    await _runLoad(
+      userId,
+      showLoadingState: false,
+    );
+  }
+
+  Future<void> _runLoad(
+    String userId, {
+    required bool showLoadingState,
+  }) async {
+    if (showLoadingState) {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+    }
 
     try {
       final results = await Future.wait<dynamic>([
@@ -62,7 +115,9 @@ class VerificationRequestsController extends ChangeNotifier {
     } catch (_) {
       _errorMessage = 'Impossibile caricare le richieste di verifica.';
     } finally {
-      _isLoading = false;
+      if (showLoadingState) {
+        _isLoading = false;
+      }
       notifyListeners();
     }
   }
@@ -89,7 +144,7 @@ class VerificationRequestsController extends ChangeNotifier {
         targetInstitutionLevel: targetInstitutionLevel,
       );
 
-      await load(userId);
+      await _refreshAfterMutation(userId);
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceFirst('Exception: ', '');
@@ -112,7 +167,7 @@ class VerificationRequestsController extends ChangeNotifier {
 
     try {
       await _cancelVerificationRequest.call(requestId: request.id);
-      await load(userId);
+      await _refreshAfterMutation(userId);
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceFirst('Exception: ', '');

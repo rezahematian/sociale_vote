@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
+import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 
 import 'package:sociale_vote/domain/discussion/entities/comment.dart';
 import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
@@ -42,6 +43,7 @@ class _CommentSectionState extends State<CommentSection> {
   final TextEditingController _replyInputController = TextEditingController();
 
   final Map<String, String> _authorLabels = <String, String>{};
+  final Map<String, UserProfile?> _authorProfiles = <String, UserProfile?>{};
   final Set<String> _loadingAuthorIds = <String>{};
   final Set<String> _expandedReplyThreads = <String>{};
 
@@ -316,6 +318,7 @@ class _CommentSectionState extends State<CommentSection> {
                       _CommentTile(
                         comment: root,
                         authorLabel: _authorLabelFor(root),
+                        authorProfile: _authorProfileFor(root),
                         isReply: false,
                         isCurrentUser:
                             currentUserId != null &&
@@ -423,6 +426,8 @@ class _CommentSectionState extends State<CommentSection> {
                                                   comment: reply,
                                                   authorLabel:
                                                       _authorLabelFor(reply),
+                                                  authorProfile:
+                                                      _authorProfileFor(reply),
                                                   isReply: true,
                                                   isCurrentUser:
                                                       currentUserId != null &&
@@ -543,8 +548,7 @@ class _CommentSectionState extends State<CommentSection> {
                       l10n,
                       it:
                           'Stai modificando: ${_shorten(_editingComment!.content)}',
-                      en:
-                          'Editing: ${_shorten(_editingComment!.content)}',
+                      en: 'Editing: ${_shorten(_editingComment!.content)}',
                     ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.secondary,
@@ -808,6 +812,7 @@ class _CommentSectionState extends State<CommentSection> {
       }
 
       setState(() {
+        _authorProfiles[userId] = profile;
         _authorLabels[userId] = _buildAuthorLabel(profile, userId);
       });
     } catch (_) {
@@ -816,6 +821,7 @@ class _CommentSectionState extends State<CommentSection> {
       }
 
       setState(() {
+        _authorProfiles[userId] = null;
         _authorLabels[userId] = _shortUserId(userId);
       });
     } finally {
@@ -834,6 +840,15 @@ class _CommentSectionState extends State<CommentSection> {
     }
 
     return _authorLabels[userId] ?? _shortUserId(userId);
+  }
+
+  UserProfile? _authorProfileFor(Comment comment) {
+    final userId = comment.userId.trim();
+    if (userId.isEmpty) {
+      return null;
+    }
+
+    return _authorProfiles[userId];
   }
 
   String _buildAuthorLabel(UserProfile? profile, String fallbackUserId) {
@@ -1042,6 +1057,7 @@ class _CommentSectionState extends State<CommentSection> {
 class _CommentTile extends StatelessWidget {
   final Comment comment;
   final String authorLabel;
+  final UserProfile? authorProfile;
   final bool isReply;
   final bool isCurrentUser;
   final VoidCallback onReplyTap;
@@ -1053,6 +1069,7 @@ class _CommentTile extends StatelessWidget {
   const _CommentTile({
     required this.comment,
     required this.authorLabel,
+    required this.authorProfile,
     required this.isReply,
     required this.isCurrentUser,
     required this.onReplyTap,
@@ -1117,6 +1134,14 @@ class _CommentTile extends StatelessWidget {
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
+                        if (authorProfile != null &&
+                            UserIdentityMark.shouldShowForProfile(
+                              authorProfile!,
+                            ))
+                          UserIdentityMark.fromProfile(
+                            authorProfile!,
+                            size: 14,
+                          ),
                         if (isCurrentUser)
                           Container(
                             padding: const EdgeInsets.symmetric(

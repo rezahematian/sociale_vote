@@ -29,9 +29,6 @@ class ParticipationPolicy {
   /// Ritorna `true` se l'azione è permessa per questo utente.
   ///
   /// [userId] è null se l'utente è guest (non loggato).
-  ///
-  /// I parametri identity aggiuntivi sono introdotti ora per rendere
-  /// la policy estendibile in futuro senza cambiare di nuovo la firma.
   bool canPerform({
     required String? userId,
     required ParticipationAction action,
@@ -40,8 +37,7 @@ class ParticipationPolicy {
     VerificationLevel verificationLevel = VerificationLevel.none,
     InstitutionLevel? institutionLevel,
   }) {
-    // Guest NON può fare nessuna azione di partecipazione.
-    if (userId == null) {
+    if (!isAuthenticated(userId)) {
       return false;
     }
 
@@ -56,7 +52,7 @@ class ParticipationPolicy {
         return true;
 
       case ParticipationAction.reviewVerificationRequests:
-        return role == Role.moderator || role == Role.admin;
+        return canReviewVerificationRequests(role: role);
     }
   }
 
@@ -68,9 +64,6 @@ class ParticipationPolicy {
   /// - se scope == everyone → consentito
   /// - se scope == geoScopeOnly → userCountryCode deve combaciare
   ///   con rules.countryCode
-  ///
-  /// Anche qui la firma è già pronta per future regole identity-aware,
-  /// senza cambiare di nuovo tutti i punti di chiamata.
   bool canVoteOnPoll({
     required String? userId,
     required ParticipationRules rules,
@@ -80,7 +73,6 @@ class ParticipationPolicy {
     VerificationLevel verificationLevel = VerificationLevel.none,
     InstitutionLevel? institutionLevel,
   }) {
-    // 1) Prima passa dalla policy generale.
     if (!canPerform(
       userId: userId,
       action: ParticipationAction.vote,
@@ -92,22 +84,17 @@ class ParticipationPolicy {
       return false;
     }
 
-    // 2) Tutti gli utenti loggati possono votare.
     if (rules.scope == ParticipationScope.everyone) {
       return true;
     }
 
-    // 3) Restrizione geografica.
     if (rules.scope == ParticipationScope.geoScopeOnly) {
       final requiredCountry = rules.countryCode;
 
-      // Se non è definito il country richiesto,
-      // consideriamo la regola non valida → blocchiamo.
       if (requiredCountry == null) {
         return false;
       }
 
-      // Utente senza country → blocco.
       if (userCountryCode == null) {
         return false;
       }
@@ -116,5 +103,171 @@ class ParticipationPolicy {
     }
 
     return false;
+  }
+
+  /// Utente autenticato reale.
+  bool isAuthenticated(String? userId) {
+    return userId != null && userId.trim().isNotEmpty;
+  }
+
+  /// Ruolo tecnico reviewer/admin.
+  bool hasReviewerRole(Role role) {
+    return role == Role.moderator || role == Role.admin;
+  }
+
+  /// Accesso agli strumenti reviewer delle verification requests.
+  bool canReviewVerificationRequests({
+    required Role role,
+  }) {
+    return hasReviewerRole(role);
+  }
+
+  /// Citizen standard senza verifica.
+  bool isStandardCitizen({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+  }) {
+    return actorType == ActorType.citizen &&
+        verificationLevel == VerificationLevel.none;
+  }
+
+  /// Citizen con verifica identity almeno level1.
+  bool isVerifiedCitizen({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+  }) {
+    return actorType == ActorType.citizen &&
+        verificationLevel != VerificationLevel.none;
+  }
+
+  /// Citizen con verifica level2 piena.
+  bool isLevel2Citizen({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+  }) {
+    return actorType == ActorType.citizen &&
+        verificationLevel == VerificationLevel.level2;
+  }
+
+  /// Identity prodotto valida come public official.
+  bool canActAsPublicOfficial({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+  }) {
+    return actorType == ActorType.publicOfficial &&
+        verificationLevel == VerificationLevel.level2;
+  }
+
+  /// Identity prodotto valida come institution.
+  ///
+  /// Richiede actor type institution, livello verifica 2
+  /// e livello istituzionale valorizzato.
+  bool canActAsInstitution({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+    required InstitutionLevel? institutionLevel,
+  }) {
+    return actorType == ActorType.institution &&
+        verificationLevel == VerificationLevel.level2 &&
+        institutionLevel != null;
+  }
+
+  /// Identity prodotto valida per superfici "verified".
+  ///
+  /// Include:
+  /// - citizen level1
+  /// - citizen level2
+  /// - public official
+  /// - institution
+  bool canUseVerifiedIdentityFeatures({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+    required InstitutionLevel? institutionLevel,
+  }) {
+    return isVerifiedCitizen(
+          actorType: actorType,
+          verificationLevel: verificationLevel,
+        ) ||
+        canActAsPublicOfficial(
+          actorType: actorType,
+          verificationLevel: verificationLevel,
+        ) ||
+        canActAsInstitution(
+          actorType: actorType,
+          verificationLevel: verificationLevel,
+          institutionLevel: institutionLevel,
+        );
+  }
+
+  /// Identity prodotto valida per feature che richiedono level2 pieno.
+  ///
+  /// Include:
+  /// - citizen level2
+  /// - public official
+  /// - institution
+  bool canUseLevel2IdentityFeatures({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+    required InstitutionLevel? institutionLevel,
+  }) {
+    return isLevel2Citizen(
+          actorType: actorType,
+          verificationLevel: verificationLevel,
+        ) ||
+        canActAsPublicOfficial(
+          actorType: actorType,
+          verificationLevel: verificationLevel,
+        ) ||
+        canActAsInstitution(
+          actorType: actorType,
+          verificationLevel: verificationLevel,
+          institutionLevel: institutionLevel,
+        );
+  }
+
+  /// Capability prodotto per rappresentanza come attore istituzionale o ufficiale.
+  ///
+  /// Esclude i citizen verificati.
+  bool canUseRepresentativeIdentityFeatures({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+    required InstitutionLevel? institutionLevel,
+  }) {
+    return canActAsPublicOfficial(
+          actorType: actorType,
+          verificationLevel: verificationLevel,
+        ) ||
+        canActAsInstitution(
+          actorType: actorType,
+          verificationLevel: verificationLevel,
+          institutionLevel: institutionLevel,
+        );
+  }
+
+  /// Capability prodotto strettamente limitata alle institution validate.
+  bool canUseInstitutionIdentityFeatures({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+    required InstitutionLevel? institutionLevel,
+  }) {
+    return canActAsInstitution(
+      actorType: actorType,
+      verificationLevel: verificationLevel,
+      institutionLevel: institutionLevel,
+    );
+  }
+
+  /// Helper comodo per capire se l'utente ha una identity prodotto
+  /// "elevata" oltre il citizen standard.
+  bool hasElevatedProductIdentity({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+    required InstitutionLevel? institutionLevel,
+  }) {
+    return canUseVerifiedIdentityFeatures(
+      actorType: actorType,
+      verificationLevel: verificationLevel,
+      institutionLevel: institutionLevel,
+    );
   }
 }

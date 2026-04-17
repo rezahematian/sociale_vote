@@ -166,27 +166,41 @@ class VerificationRequestRepositoryImpl
       throw ArgumentError('Stato review non valido.');
     }
 
+    final existingRequest =
+        await _getRequiredPendingRequest(normalizedRequestId);
+
+    final reviewedAtUtc = DateTime.now().toUtc();
+    final reviewedAtLocal = reviewedAtUtc.toLocal();
+
     final updates = <String, dynamic>{
       'status': status.storageKey,
       'reviewed_by': normalizedReviewedBy,
-      'reviewed_at': DateTime.now().toUtc().toIso8601String(),
+      'reviewed_at': reviewedAtUtc.toIso8601String(),
       'review_note': normalizedReviewNote,
     };
 
-    final rows = await AppSupabase.client
+    await AppSupabase.client
         .from(_table)
         .update(updates)
         .eq('id', normalizedRequestId)
-        .eq('status', VerificationRequestStatus.pending.storageKey)
-        .select()
-        .limit(1);
+        .eq('status', VerificationRequestStatus.pending.storageKey);
 
-    if (rows.isEmpty) {
-      throw Exception('Review richiesta verifica fallita.');
+    final refreshed = await getById(normalizedRequestId);
+    if (refreshed != null) {
+      if (refreshed.status != status) {
+        throw Exception('Review richiesta verifica fallita.');
+      }
+      return refreshed;
     }
 
-    final row = rows.first as Map<String, dynamic>;
-    return _mapRequest(row);
+    return _buildLocallyUpdatedRequest(
+      existingRequest,
+      status: status,
+      reviewedBy: normalizedReviewedBy,
+      reviewedAt: reviewedAtLocal,
+      reviewNote: normalizedReviewNote,
+      updatedAt: reviewedAtLocal,
+    );
   }
 
   @override
@@ -198,6 +212,12 @@ class VerificationRequestRepositoryImpl
       throw ArgumentError('Request id non valido.');
     }
 
+    final existingRequest =
+        await _getRequiredPendingRequest(normalizedRequestId);
+
+    final cancelledAtUtc = DateTime.now().toUtc();
+    final cancelledAtLocal = cancelledAtUtc.toLocal();
+
     final updates = <String, dynamic>{
       'status': VerificationRequestStatus.cancelled.storageKey,
       'reviewed_by': null,
@@ -205,20 +225,69 @@ class VerificationRequestRepositoryImpl
       'review_note': null,
     };
 
-    final rows = await AppSupabase.client
+    await AppSupabase.client
         .from(_table)
         .update(updates)
         .eq('id', normalizedRequestId)
-        .eq('status', VerificationRequestStatus.pending.storageKey)
-        .select()
-        .limit(1);
+        .eq('status', VerificationRequestStatus.pending.storageKey);
 
-    if (rows.isEmpty) {
-      throw Exception('Annullamento richiesta verifica fallito.');
+    final refreshed = await getById(normalizedRequestId);
+    if (refreshed != null) {
+      if (refreshed.status != VerificationRequestStatus.cancelled) {
+        throw Exception('Annullamento richiesta verifica fallito.');
+      }
+      return refreshed;
     }
 
-    final row = rows.first as Map<String, dynamic>;
-    return _mapRequest(row);
+    return _buildLocallyUpdatedRequest(
+      existingRequest,
+      status: VerificationRequestStatus.cancelled,
+      reviewedBy: null,
+      reviewedAt: null,
+      reviewNote: null,
+      updatedAt: cancelledAtLocal,
+    );
+  }
+
+  Future<VerificationRequest> _getRequiredPendingRequest(String requestId) async {
+    final request = await getById(requestId);
+
+    if (request == null) {
+      throw Exception('Richiesta di verifica non trovata.');
+    }
+
+    if (request.status != VerificationRequestStatus.pending) {
+      throw Exception('La richiesta non è più pending.');
+    }
+
+    return request;
+  }
+
+  VerificationRequest _buildLocallyUpdatedRequest(
+    VerificationRequest existing, {
+    required VerificationRequestStatus status,
+    required String? reviewedBy,
+    required DateTime? reviewedAt,
+    required String? reviewNote,
+    required DateTime updatedAt,
+  }) {
+    return VerificationRequest(
+      id: existing.id,
+      userId: existing.userId,
+      requestType: existing.requestType,
+      targetActorType: existing.targetActorType,
+      targetVerificationLevel: existing.targetVerificationLevel,
+      targetInstitutionLevel: existing.targetInstitutionLevel,
+      officialTitle: existing.officialTitle,
+      institutionName: existing.institutionName,
+      status: status,
+      submittedAt: existing.submittedAt,
+      reviewedAt: reviewedAt,
+      reviewedBy: reviewedBy,
+      reviewNote: reviewNote,
+      createdAt: existing.createdAt,
+      updatedAt: updatedAt,
+    );
   }
 
   VerificationRequest _mapRequest(Map<String, dynamic> row) {

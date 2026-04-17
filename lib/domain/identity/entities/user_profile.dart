@@ -77,6 +77,101 @@ class UserProfile {
   /// Getter legacy mantenuto per compatibilità temporanea.
   bool get isVerified => verificationLevel.isVerified;
 
+  /// Identity semantic helpers
+  bool get isCitizen => actorType == ActorType.citizen;
+
+  bool get isVerifiedCitizen =>
+      actorType == ActorType.citizen &&
+      verificationLevel != VerificationLevel.none;
+
+  bool get isPublicOfficial =>
+      actorType == ActorType.publicOfficial &&
+      verificationLevel == VerificationLevel.level2;
+
+  bool get isInstitutionActor =>
+      actorType == ActorType.institution &&
+      verificationLevel == VerificationLevel.level2 &&
+      institutionLevel != null;
+
+  bool get hasElevatedIdentity =>
+      isVerifiedCitizen || isPublicOfficial || isInstitutionActor;
+
+  /// Label principali centralizzate per evitare derivazioni sparse nei widget.
+  String get actorTypeLabel => _actorTypeLabel(actorType);
+
+  String get verificationLevelLabel =>
+      _verificationLevelLabel(verificationLevel);
+
+  String? get institutionLevelLabel =>
+      _formatInstitutionLevelLabel(institutionLevel);
+
+  /// Badge principale derivato dall'identità prodotto.
+  ///
+  /// Regola:
+  /// - citizen standard -> nessun badge principale
+  /// - citizen verificato -> badge verified
+  /// - public official -> badge public official
+  /// - institution -> badge institution
+  String? get primaryIdentityBadgeLabel {
+    if (isPublicOfficial) {
+      return 'Public Official';
+    }
+
+    if (isInstitutionActor) {
+      return 'Institution';
+    }
+
+    switch (verificationLevel) {
+      case VerificationLevel.none:
+        return null;
+      case VerificationLevel.level1:
+        return 'Verified Lv1';
+      case VerificationLevel.level2:
+        return 'Verified Lv2';
+    }
+  }
+
+  /// Badge secondario opzionale per l'identity.
+  ///
+  /// In F12.6 serve soprattutto per institution level.
+  String? get secondaryIdentityBadgeLabel {
+    if (!isInstitutionActor) {
+      return null;
+    }
+
+    return institutionLevelLabel;
+  }
+
+  /// Dettaglio identity mostrabile vicino al nome profilo.
+  ///
+  /// - official -> titolo pubblico
+  /// - institution -> nome ente
+  String? get identityDetailLabel {
+    if (isPublicOfficial) {
+      return _normalizeNullableText(officialTitle);
+    }
+
+    if (actorType == ActorType.institution) {
+      return _normalizeNullableText(institutionName);
+    }
+
+    return null;
+  }
+
+  /// Stato account leggibile già derivato centralmente.
+  String get accountStatusLabel {
+    final parts = <String>[
+      actorTypeLabel,
+    ];
+
+    if (institutionLevelLabel != null) {
+      parts.add(institutionLevelLabel!);
+    }
+
+    parts.add(verificationLevelLabel);
+    return parts.join(' · ');
+  }
+
   UserProfile copyWith({
     String? displayName,
     String? username,
@@ -142,5 +237,56 @@ class UserProfile {
       return VerificationLevel.level1;
     }
     return VerificationLevel.none;
+  }
+
+  static String _actorTypeLabel(ActorType value) {
+    switch (value) {
+      case ActorType.citizen:
+        return 'Citizen';
+      case ActorType.publicOfficial:
+        return 'Public Official';
+      case ActorType.institution:
+        return 'Institution';
+    }
+  }
+
+  static String _verificationLevelLabel(VerificationLevel value) {
+    switch (value) {
+      case VerificationLevel.none:
+        return 'Standard';
+      case VerificationLevel.level1:
+        return 'Verified Lv1';
+      case VerificationLevel.level2:
+        return 'Verified Lv2';
+    }
+  }
+
+  static String? _formatInstitutionLevelLabel(InstitutionLevel? value) {
+    switch (value) {
+      case InstitutionLevel.municipality:
+        return 'Municipality';
+      case InstitutionLevel.province:
+        return 'Province';
+      case InstitutionLevel.region:
+        return 'Region';
+      case InstitutionLevel.ministry:
+        return 'Ministry';
+      case InstitutionLevel.government:
+        return 'Government';
+      case InstitutionLevel.publicAgency:
+        return 'Public Agency';
+      case InstitutionLevel.otherPublicBody:
+        return 'Other Public Body';
+      case null:
+        return null;
+    }
+  }
+
+  static String? _normalizeNullableText(String? value) {
+    final normalized = value?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
   }
 }

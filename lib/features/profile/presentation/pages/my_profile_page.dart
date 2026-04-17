@@ -3,12 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:sociale_vote/app/app.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
 import 'package:sociale_vote/domain/identity/entities/verification_request.dart';
 import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/identity/value_objects/institution_level.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_status.dart';
-
 import 'package:sociale_vote/features/profile/application/profile_controller.dart';
 import 'package:sociale_vote/features/profile/application/verification_requests_controller.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/edit_profile_page.dart';
@@ -17,6 +17,7 @@ import 'package:sociale_vote/features/profile/presentation/pages/my_favorites_pa
 import 'package:sociale_vote/features/profile/presentation/pages/my_followed_scopes_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_polls_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_posts_page.dart';
+import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 
 class MyProfilePage extends StatelessWidget {
   const MyProfilePage({super.key});
@@ -168,19 +169,35 @@ class _MyProfileViewState extends State<_MyProfileView> {
   }
 
   Future<void> _showVerificationCenter({
-    required ActorType actorType,
-    required VerificationLevel verificationLevel,
-    required VerificationStatus verificationStatus,
-    required InstitutionLevel? institutionLevel,
+    required UserProfile? profile,
     required VerificationRequest? pendingRequest,
   }) async {
-    final actorTypeLabel = _formatActorTypeLabel(actorType);
+    final actorType = profile?.actorType ?? ActorType.citizen;
+    final verificationLevel =
+        profile?.verificationLevel ?? VerificationLevel.none;
+    final verificationStatus =
+        profile?.verificationStatus ?? VerificationStatus.none;
+    final institutionLevel = profile?.institutionLevel;
+
+    final actorTypeLabel =
+        profile?.actorTypeLabel ?? _formatActorTypeLabel(actorType);
     final verificationLevelLabel =
+        profile?.verificationLevelLabel ??
         _formatVerificationLevelLabel(verificationLevel);
-    final verificationStatusLabel =
-        _formatVerificationStatusLabel(verificationStatus);
     final institutionLevelLabel =
+        profile?.institutionLevelLabel ??
         _formatInstitutionLevelLabel(institutionLevel);
+    final identityDetailLabel = profile?.identityDetailLabel;
+    final primaryIdentityBadgeLabel = profile?.primaryIdentityBadgeLabel;
+    final secondaryIdentityBadgeLabel = profile?.secondaryIdentityBadgeLabel;
+    final hasIdentityBadges =
+        primaryIdentityBadgeLabel != null || secondaryIdentityBadgeLabel != null;
+
+    final hasPendingRequest = pendingRequest != null;
+    final hasRejectedState =
+        !hasPendingRequest && verificationStatus == VerificationStatus.rejected;
+    final hasPendingState =
+        hasPendingRequest || verificationStatus == VerificationStatus.pending;
 
     final canRequestCitizenLevel1 = actorType == ActorType.citizen &&
         verificationLevel == VerificationLevel.none;
@@ -189,10 +206,11 @@ class _MyProfileViewState extends State<_MyProfileView> {
     final canRequestPublicOfficial = actorType == ActorType.citizen;
     final canRequestInstitution = actorType == ActorType.citizen;
 
-    final hasAvailableUpgradeActions = canRequestCitizenLevel1 ||
-        canRequestCitizenLevel2 ||
-        canRequestPublicOfficial ||
-        canRequestInstitution;
+    final hasAvailableUpgradeActions = !hasPendingState &&
+        (canRequestCitizenLevel1 ||
+            canRequestCitizenLevel2 ||
+            canRequestPublicOfficial ||
+            canRequestInstitution);
 
     await showModalBottomSheet<void>(
       context: context,
@@ -214,113 +232,185 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Stato attuale:',
+                  'Current account',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                 ),
                 const SizedBox(height: 8),
-                Text('- Tipo account: $actorTypeLabel'),
-                Text('- Livello verifica: $verificationLevelLabel'),
-                Text(
-                  '- Stato richiesta profilo: $verificationStatusLabel',
+                Row(
+                  children: [
+                    Text('- Tipo account: $actorTypeLabel'),
+                    if (profile != null &&
+                        UserIdentityMark.shouldShowForProfile(profile)) ...[
+                      const SizedBox(width: 4),
+                      UserIdentityMark.fromProfile(
+                        profile,
+                        size: 16,
+                      ),
+                    ],
+                  ],
                 ),
+                Text('- Livello verifica: $verificationLevelLabel'),
+                if (identityDetailLabel != null)
+                  Text(
+                    actorType == ActorType.institution
+                        ? '- Ente: $identityDetailLabel'
+                        : '- Titolo ufficiale: $identityDetailLabel',
+                  ),
                 if (institutionLevelLabel != null)
                   Text('- Livello istituzionale: $institutionLevelLabel'),
-                if (pendingRequest != null) ...[
-                  const SizedBox(height: 12),
+                if (hasIdentityBadges) ...[
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (primaryIdentityBadgeLabel != null)
+                        _IdentityBadgeChip(
+                          label: primaryIdentityBadgeLabel,
+                          isPrimary: true,
+                        ),
+                      if (secondaryIdentityBadgeLabel != null)
+                        _IdentityBadgeChip(
+                          label: secondaryIdentityBadgeLabel,
+                        ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 16),
+                if (hasPendingState) ...[
                   Text(
-                    'Richiesta attiva:',
+                    'Active request',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    _formatVerificationRequestTypeLabel(
-                      pendingRequest.requestType,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        Navigator.of(sheetContext).pop();
-                        await _confirmCancelPendingRequest();
-                      },
-                      icon: const Icon(Icons.close_rounded),
-                      label: const Text('Annulla richiesta pending'),
-                    ),
-                  ),
-                ] else ...[
-                  const SizedBox(height: 16),
-                  if (verificationStatus == VerificationStatus.rejected) ...[
+                  if (pendingRequest != null) ...[
                     Text(
-                      'La tua ultima richiesta è stata respinta. Puoi correggere i dati e inviarne una nuova.',
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      _formatVerificationRequestTypeLabel(
+                        pendingRequest.requestType,
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                  ],
-                  Text(
-                    'Richiedi upgrade:',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (hasAvailableUpgradeActions) ...[
-                    if (canRequestCitizenLevel1)
-                      _VerificationActionTile(
-                        title: 'Request Verified Lv1',
-                        subtitle: 'Verifica base per account citizen',
-                        icon: Icons.verified_outlined,
-                        onTap: () async {
-                          Navigator.of(sheetContext).pop();
-                          await _submitCitizenVerificationRequest(
-                            VerificationRequestType.citizenLevel1,
-                          );
-                        },
-                      ),
-                    if (canRequestCitizenLevel2)
-                      _VerificationActionTile(
-                        title: 'Request Verified Lv2',
-                        subtitle: 'Verifica avanzata per account citizen',
-                        icon: Icons.verified_user_outlined,
-                        onTap: () async {
-                          Navigator.of(sheetContext).pop();
-                          await _submitCitizenVerificationRequest(
-                            VerificationRequestType.citizenLevel2,
-                          );
-                        },
-                      ),
-                    if (canRequestPublicOfficial)
-                      _VerificationActionTile(
-                        title: 'Request Public Official account',
-                        subtitle: 'Richiede title ufficiale e review',
-                        icon: Icons.badge_outlined,
-                        onTap: () async {
-                          Navigator.of(sheetContext).pop();
-                          await _promptPublicOfficialRequest();
-                        },
-                      ),
-                    if (canRequestInstitution)
-                      _VerificationActionTile(
-                        title: 'Request Institution account',
-                        subtitle: 'Richiede nome ente, livello e review',
-                        icon: Icons.account_balance_outlined,
-                        onTap: () async {
-                          Navigator.of(sheetContext).pop();
-                          await _promptInstitutionRequest();
-                        },
-                      ),
-                  ] else ...[
                     const SizedBox(height: 8),
                     Text(
-                      'Non ci sono upgrade self-service disponibili per lo stato attuale del tuo account.',
+                      'Il tuo profilo attuale non cambia finché la review non viene approvata.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          Navigator.of(sheetContext).pop();
+                          await _confirmCancelPendingRequest();
+                        },
+                        icon: const Icon(Icons.close_rounded),
+                        label: const Text('Annulla richiesta pending'),
+                      ),
+                    ),
+                  ] else ...[
+                    Text(
+                      'Hai una richiesta in review. Finché resta pending non puoi inviarne una nuova.',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
+                ] else ...[
+                  Text(
+                    'No active request',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Al momento non hai richieste in review.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  if (hasRejectedState) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Last rejected request',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'La tua ultima richiesta è stata respinta.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Il profilo attuale non è cambiato. Puoi correggere i dati e inviarne una nuova.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ],
+                const SizedBox(height: 16),
+                Text(
+                  'Available requests',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                if (hasAvailableUpgradeActions) ...[
+                  if (canRequestCitizenLevel1)
+                    _VerificationActionTile(
+                      title: 'Request Verified Lv1',
+                      subtitle: 'Verifica base per account citizen',
+                      icon: Icons.verified_outlined,
+                      onTap: () async {
+                        Navigator.of(sheetContext).pop();
+                        await _submitCitizenVerificationRequest(
+                          VerificationRequestType.citizenLevel1,
+                        );
+                      },
+                    ),
+                  if (canRequestCitizenLevel2)
+                    _VerificationActionTile(
+                      title: 'Request Verified Lv2',
+                      subtitle: 'Verifica avanzata per account citizen',
+                      icon: Icons.verified_user_outlined,
+                      onTap: () async {
+                        Navigator.of(sheetContext).pop();
+                        await _submitCitizenVerificationRequest(
+                          VerificationRequestType.citizenLevel2,
+                        );
+                      },
+                    ),
+                  if (canRequestPublicOfficial)
+                    _VerificationActionTile(
+                      title: 'Request Public Official account',
+                      subtitle: 'Richiede title ufficiale e review',
+                      icon: Icons.badge_outlined,
+                      onTap: () async {
+                        Navigator.of(sheetContext).pop();
+                        await _promptPublicOfficialRequest();
+                      },
+                    ),
+                  if (canRequestInstitution)
+                    _VerificationActionTile(
+                      title: 'Request Institution account',
+                      subtitle: 'Richiede nome ente, livello e review',
+                      icon: Icons.account_balance_outlined,
+                      onTap: () async {
+                        Navigator.of(sheetContext).pop();
+                        await _promptInstitutionRequest();
+                      },
+                    ),
+                ] else if (hasPendingState) ...[
+                  Text(
+                    'Finché hai una richiesta pending non puoi inviarne una nuova.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ] else ...[
+                  Text(
+                    'Non ci sono upgrade self-service disponibili per lo stato attuale del tuo account.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ],
               ],
             ),
@@ -597,22 +687,29 @@ class _MyProfileViewState extends State<_MyProfileView> {
     final actorType = profile?.actorType ?? ActorType.citizen;
     final verificationLevel =
         profile?.verificationLevel ?? VerificationLevel.none;
+    final institutionLevel = profile?.institutionLevel;
     final verificationStatus =
         profile?.verificationStatus ?? VerificationStatus.none;
-    final institutionLevel = profile?.institutionLevel;
     final pendingRequest = verificationController.pendingRequest;
 
-    final accountStatusLabel = _accountStatusLabel(
-      actorType: actorType,
-      verificationLevel: verificationLevel,
-      institutionLevel: institutionLevel,
-    );
+    final accountStatusLabel =
+        profile?.accountStatusLabel ??
+        _accountStatusLabel(
+          actorType: actorType,
+          verificationLevel: verificationLevel,
+          institutionLevel: institutionLevel,
+        );
     final verificationTileSubtitle = _verificationTileSubtitle(
       accountStatusLabel: accountStatusLabel,
       verificationStatus: verificationStatus,
       pendingRequest: pendingRequest,
     );
     final locationLabel = finalLocation(city: city, country: country);
+    final identityDetailLabel = profile?.identityDetailLabel;
+    final primaryIdentityBadgeLabel = profile?.primaryIdentityBadgeLabel;
+    final secondaryIdentityBadgeLabel = profile?.secondaryIdentityBadgeLabel;
+    final hasIdentityBadges =
+        primaryIdentityBadgeLabel != null || secondaryIdentityBadgeLabel != null;
 
     return Scaffold(
       appBar: AppBar(
@@ -661,22 +758,47 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      displayName.isNotEmpty
-                                          ? displayName
-                                          : 'User',
-                                      style:
-                                          theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                                    Wrap(
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      spacing: 6,
+                                      runSpacing: 4,
+                                      children: [
+                                        Text(
+                                          displayName.isNotEmpty
+                                              ? displayName
+                                              : 'User',
+                                          style: theme.textTheme.titleMedium
+                                              ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        if (profile != null &&
+                                            UserIdentityMark
+                                                .shouldShowForProfile(profile))
+                                          UserIdentityMark.fromProfile(
+                                            profile,
+                                            size: 16,
+                                          ),
+                                      ],
                                     ),
                                     if (username.isNotEmpty) ...[
                                       const SizedBox(height: 4),
                                       Text(
                                         '@$username',
-                                        style:
-                                            theme.textTheme.bodyMedium?.copyWith(
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
                                           color: theme.colorScheme.primary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                    if (identityDetailLabel != null) ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        identityDetailLabel,
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -686,10 +808,20 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                       spacing: 8,
                                       runSpacing: 8,
                                       children: [
-                                        _StatusChip(
-                                          icon: Icons.shield_outlined,
-                                          label: accountStatusLabel,
-                                        ),
+                                        if (primaryIdentityBadgeLabel != null)
+                                          _IdentityBadgeChip(
+                                            label: primaryIdentityBadgeLabel,
+                                            isPrimary: true,
+                                          ),
+                                        if (secondaryIdentityBadgeLabel != null)
+                                          _IdentityBadgeChip(
+                                            label: secondaryIdentityBadgeLabel,
+                                          ),
+                                        if (!hasIdentityBadges)
+                                          _StatusChip(
+                                            icon: Icons.shield_outlined,
+                                            label: accountStatusLabel,
+                                          ),
                                         if (locationLabel != null)
                                           _StatusChip(
                                             icon: Icons.location_on_outlined,
@@ -783,10 +915,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                     )
                   : null,
               onTap: () => _showVerificationCenter(
-                actorType: actorType,
-                verificationLevel: verificationLevel,
-                verificationStatus: verificationStatus,
-                institutionLevel: institutionLevel,
+                profile: profile,
                 pendingRequest: pendingRequest,
               ),
             ),
@@ -976,17 +1105,6 @@ class _MyProfileViewState extends State<_MyProfileView> {
     }
   }
 
-  String _formatVerificationStatusLabel(VerificationStatus value) {
-    switch (value) {
-      case VerificationStatus.none:
-        return 'Nessuna richiesta';
-      case VerificationStatus.pending:
-        return 'In review';
-      case VerificationStatus.rejected:
-        return 'Rejected';
-    }
-  }
-
   String _accountStatusLabel({
     required ActorType actorType,
     required VerificationLevel verificationLevel,
@@ -1011,11 +1129,15 @@ class _MyProfileViewState extends State<_MyProfileView> {
     required VerificationRequest? pendingRequest,
   }) {
     if (pendingRequest != null) {
-      return '$accountStatusLabel · ${_formatVerificationRequestTypeLabel(pendingRequest.requestType)} pending';
+      return '$accountStatusLabel · richiesta in review';
+    }
+
+    if (verificationStatus == VerificationStatus.pending) {
+      return '$accountStatusLabel · richiesta in review';
     }
 
     if (verificationStatus == VerificationStatus.rejected) {
-      return '$accountStatusLabel · ultima richiesta rejected';
+      return '$accountStatusLabel · ultima richiesta respinta';
     }
 
     return accountStatusLabel;
@@ -1120,6 +1242,49 @@ class _StatusChip extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _IdentityBadgeChip extends StatelessWidget {
+  final String label;
+  final bool isPrimary;
+
+  const _IdentityBadgeChip({
+    required this.label,
+    this.isPrimary = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final backgroundColor = isPrimary
+        ? theme.colorScheme.primary.withOpacity(0.10)
+        : theme.colorScheme.surfaceContainerHighest.withOpacity(0.45);
+    final borderColor = isPrimary
+        ? theme.colorScheme.primary.withOpacity(0.22)
+        : theme.colorScheme.outline.withOpacity(0.14);
+    final textColor = isPrimary
+        ? theme.colorScheme.primary
+        : theme.colorScheme.onSurface;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: borderColor),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

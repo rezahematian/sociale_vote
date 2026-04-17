@@ -7,8 +7,10 @@ import 'package:share_plus/share_plus.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
+import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
+import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
 import 'package:sociale_vote/domain/moderation/entities/report.dart';
 import 'package:sociale_vote/domain/moderation/repositories/moderation_repository.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
@@ -1497,7 +1499,7 @@ class _PublicVotesBody extends StatelessWidget {
   }
 }
 
-class _PublicVoteTile extends StatelessWidget {
+class _PublicVoteTile extends StatefulWidget {
   final Poll poll;
   final PublicPollVoteEntry entry;
 
@@ -1507,7 +1509,65 @@ class _PublicVoteTile extends StatelessWidget {
   });
 
   @override
+  State<_PublicVoteTile> createState() => _PublicVoteTileState();
+}
+
+class _PublicVoteTileState extends State<_PublicVoteTile> {
+  UserProfile? _authorProfile;
+  String? _loadedUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAuthorProfile();
+  }
+
+  @override
+  void didUpdateWidget(covariant _PublicVoteTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.entry.userId != widget.entry.userId) {
+      _authorProfile = null;
+      _loadedUserId = null;
+      _loadAuthorProfile();
+    }
+  }
+
+  Future<void> _loadAuthorProfile() async {
+    final userId = widget.entry.userId.trim();
+    if (userId.isEmpty) {
+      return;
+    }
+
+    _loadedUserId = userId;
+
+    try {
+      final profile = await AppDI.instance.userProfileRepository.getUserProfile(
+        userId,
+      );
+
+      if (!mounted || _loadedUserId != userId) {
+        return;
+      }
+
+      setState(() {
+        _authorProfile = profile;
+      });
+    } catch (_) {
+      if (!mounted || _loadedUserId != userId) {
+        return;
+      }
+
+      setState(() {
+        _authorProfile = null;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final poll = widget.poll;
+    final entry = widget.entry;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -1552,11 +1612,26 @@ class _PublicVoteTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      primaryLabel,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        Text(
+                          primaryLabel,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (_authorProfile != null &&
+                            UserIdentityMark.shouldShowForProfile(
+                              _authorProfile!,
+                            ))
+                          UserIdentityMark.fromProfile(
+                            _authorProfile!,
+                            size: 14,
+                          ),
+                      ],
                     ),
                     if (secondaryLabel != null)
                       Text(

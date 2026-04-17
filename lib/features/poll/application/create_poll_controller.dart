@@ -1,10 +1,14 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/geo/repositories/device_location_repository.dart';
 import 'package:sociale_vote/domain/geo/repositories/geocoding_repository.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
+import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/poll_option.dart';
 import 'package:sociale_vote/domain/poll/usecases/create_poll.dart';
@@ -20,6 +24,7 @@ import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart'
 
 class CreatePollController extends ChangeNotifier {
   static const Duration _maxPollDuration = Duration(days: 31);
+  static const ParticipationPolicy _participationPolicy = ParticipationPolicy();
 
   final CreatePoll _createPollUseCase;
   final GeoScopeController _geoScopeController;
@@ -397,6 +402,52 @@ class CreatePollController extends ChangeNotifier {
     }
   }
 
+  Future<UserProfile?> _resolveRepresentativePublishingProfile() async {
+    final userId = _normalizeString(_createdByUserId);
+    if (userId == null) {
+      return null;
+    }
+
+    try {
+      final profile = await AppDI.instance.getUserProfile(userId);
+      if (profile == null) {
+        return null;
+      }
+
+      final canPublishAsRepresentative =
+          _participationPolicy.canUseRepresentativeIdentityFeatures(
+        actorType: profile.actorType,
+        verificationLevel: profile.verificationLevel,
+        institutionLevel: profile.institutionLevel,
+      );
+
+      if (!canPublishAsRepresentative) {
+        return null;
+      }
+
+      final representativeName = _representativeDisplayNameFor(profile);
+      if (representativeName == null) {
+        return null;
+      }
+
+      return profile;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String? _representativeDisplayNameFor(UserProfile profile) {
+    if (profile.actorType == ActorType.publicOfficial) {
+      return _normalizeString(profile.officialTitle);
+    }
+
+    if (profile.actorType == ActorType.institution) {
+      return _normalizeString(profile.institutionName);
+    }
+
+    return null;
+  }
+
   Future<PollId?> submit() async {
     if (_isSubmitting) return null;
 
@@ -507,15 +558,32 @@ class CreatePollController extends ChangeNotifier {
       );
 
       final now = DateTime.now();
+      final todayStart = DateTime(now.year, now.month, now.day);
+      final todayEnd = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        23,
+        59,
+        59,
+        999,
+      );
+
       late PollStatus status;
 
-      if (effectiveStartAt.isAfter(now)) {
+      if (effectiveStartAt.isAfter(todayEnd)) {
         status = PollStatus.scheduled;
-      } else if (effectiveEndAt.isBefore(now)) {
+      } else if (effectiveEndAt.isBefore(todayStart)) {
         status = PollStatus.closed;
       } else {
         status = PollStatus.open;
       }
+
+      final representativeProfile =
+          await _resolveRepresentativePublishingProfile();
+      final representativeDisplayName = representativeProfile == null
+          ? null
+          : _representativeDisplayNameFor(representativeProfile);
 
       final poll = Poll(
         id: temporaryId,
@@ -531,6 +599,12 @@ class CreatePollController extends ChangeNotifier {
         cityId: cityId,
         contentLocation: effectiveLocation,
         createdByUserId: _createdByUserId,
+        publishedAsActorType: representativeProfile?.actorType,
+        publishedAsInstitutionLevel:
+            representativeProfile?.actorType == ActorType.institution
+                ? representativeProfile?.institutionLevel
+                : null,
+        publishedAsDisplayName: representativeDisplayName,
       );
 
       final createdPoll = await _createPollUseCase(poll);
@@ -577,6 +651,7 @@ class CreatePollController extends ChangeNotifier {
           'has_description': hasDescription,
           'has_content_country': contentLocation.hasCountry,
           'has_content_city': contentLocation.hasCityName,
+          'is_representative_poll': createdPoll.isPublishedAsRepresentative,
         },
       );
     } catch (_) {

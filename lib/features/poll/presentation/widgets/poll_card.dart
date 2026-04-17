@@ -73,7 +73,9 @@ class PollCard extends StatelessWidget {
 
     final description = (poll.description ?? '').trim();
     final hasDescription = description.isNotEmpty;
-    final hasResults = result != null && result!.optionResults.isNotEmpty;
+    final visibleOptionResults =
+        result == null ? const <PollOptionResult>[] : _sortedVisibleOptionResults(result!);
+    final hasResults = visibleOptionResults.isNotEmpty;
 
     final Color cardTopColor =
         theme.brightness == Brightness.dark
@@ -1100,7 +1102,7 @@ class _PollResultPreview extends StatelessWidget {
     required this.poll,
     required this.result,
     required this.title,
-    required this.description,
+    this.description,
   });
 
   @override

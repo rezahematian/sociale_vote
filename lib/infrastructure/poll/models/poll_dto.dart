@@ -20,6 +20,11 @@ class PollDto {
   final String? cityId;
   final String? createdByUserId;
 
+  /// Snapshot identity rappresentativa del poll.
+  final String? publishedAsActorType;
+  final String? publishedAsInstitutionLevel;
+  final String? publishedAsDisplayName;
+
   PollDto({
     required this.id,
     required this.title,
@@ -34,6 +39,9 @@ class PollDto {
     this.countryCode,
     this.cityId,
     this.createdByUserId,
+    this.publishedAsActorType,
+    this.publishedAsInstitutionLevel,
+    this.publishedAsDisplayName,
   });
 
   factory PollDto.fromJson(Map<String, dynamic> json) {
@@ -53,6 +61,10 @@ class PollDto {
       countryCode: json['countryCode'] as String?,
       cityId: json['cityId'] as String?,
       createdByUserId: json['createdByUserId'] as String?,
+      publishedAsActorType: json['publishedAsActorType'] as String?,
+      publishedAsInstitutionLevel:
+          json['publishedAsInstitutionLevel'] as String?,
+      publishedAsDisplayName: json['publishedAsDisplayName'] as String?,
     );
   }
 
@@ -71,6 +83,9 @@ class PollDto {
       'countryCode': countryCode,
       'cityId': cityId,
       'createdByUserId': createdByUserId,
+      'publishedAsActorType': publishedAsActorType,
+      'publishedAsInstitutionLevel': publishedAsInstitutionLevel,
+      'publishedAsDisplayName': publishedAsDisplayName,
     };
   }
 }

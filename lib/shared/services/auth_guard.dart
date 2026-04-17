@@ -24,45 +24,169 @@ class AuthGuard {
   /// - Se guest → mostra bottom sheet login/registrazione
   /// - Se loggato ma non autorizzato → mostra dialog di accesso negato
   ///
-  /// I parametri identity aggiuntivi sono opzionali e servono per
-  /// estendere il sistema in futuro senza cambiare di nuovo la firma.
+  /// I parametri identity aggiuntivi sono opzionali:
+  /// se non vengono passati, la guard prova a risolverli automaticamente
+  /// da sessione e profilo corrente.
   static Future<bool> ensureCanPerformAction(
     BuildContext context,
     ParticipationAction action, {
-    Role role = Role.user,
-    ActorType actorType = ActorType.citizen,
-    VerificationLevel verificationLevel = VerificationLevel.none,
+    Role? role,
+    ActorType? actorType,
+    VerificationLevel? verificationLevel,
     InstitutionLevel? institutionLevel,
   }) async {
-    final userId = AppDI.instance.currentUserId;
-
-    if (_policy.canPerform(
-      userId: userId,
-      action: action,
+    var resolvedIdentity = await _resolveIdentityContext(
       role: role,
       actorType: actorType,
       verificationLevel: verificationLevel,
       institutionLevel: institutionLevel,
+    );
+
+    if (_policy.canPerform(
+      userId: resolvedIdentity.userId,
+      action: action,
+      role: resolvedIdentity.role,
+      actorType: resolvedIdentity.actorType,
+      verificationLevel: resolvedIdentity.verificationLevel,
+      institutionLevel: resolvedIdentity.institutionLevel,
     )) {
       return true;
     }
 
-    if (userId == null) {
+    if (resolvedIdentity.userId == null) {
       await _showLoginRequiredSheet(context, action);
 
-      final newUserId = AppDI.instance.currentUserId;
-      return _policy.canPerform(
-        userId: newUserId,
-        action: action,
+      resolvedIdentity = await _resolveIdentityContext(
         role: role,
         actorType: actorType,
         verificationLevel: verificationLevel,
         institutionLevel: institutionLevel,
       );
+
+      return _policy.canPerform(
+        userId: resolvedIdentity.userId,
+        action: action,
+        role: resolvedIdentity.role,
+        actorType: resolvedIdentity.actorType,
+        verificationLevel: resolvedIdentity.verificationLevel,
+        institutionLevel: resolvedIdentity.institutionLevel,
+      );
     }
 
     await _showPermissionDeniedDialog(context, action);
     return false;
+  }
+
+  /// Wrapper centrale per ruolo reviewer/admin.
+  static bool canReviewVerificationRequests({
+    required Role role,
+  }) {
+    return _policy.canReviewVerificationRequests(role: role);
+  }
+
+  /// Wrapper centrale per feature prodotto disponibili a identità verified.
+  static bool canUseVerifiedIdentityFeatures({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+    required InstitutionLevel? institutionLevel,
+  }) {
+    return _policy.canUseVerifiedIdentityFeatures(
+      actorType: actorType,
+      verificationLevel: verificationLevel,
+      institutionLevel: institutionLevel,
+    );
+  }
+
+  /// Wrapper centrale per feature che richiedono level2 pieno.
+  static bool canUseLevel2IdentityFeatures({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+    required InstitutionLevel? institutionLevel,
+  }) {
+    return _policy.canUseLevel2IdentityFeatures(
+      actorType: actorType,
+      verificationLevel: verificationLevel,
+      institutionLevel: institutionLevel,
+    );
+  }
+
+  /// Wrapper centrale per feature da attore rappresentativo
+  /// (public official / institution).
+  static bool canUseRepresentativeIdentityFeatures({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+    required InstitutionLevel? institutionLevel,
+  }) {
+    return _policy.canUseRepresentativeIdentityFeatures(
+      actorType: actorType,
+      verificationLevel: verificationLevel,
+      institutionLevel: institutionLevel,
+    );
+  }
+
+  /// Wrapper centrale per feature strettamente istituzionali.
+  static bool canUseInstitutionIdentityFeatures({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+    required InstitutionLevel? institutionLevel,
+  }) {
+    return _policy.canUseInstitutionIdentityFeatures(
+      actorType: actorType,
+      verificationLevel: verificationLevel,
+      institutionLevel: institutionLevel,
+    );
+  }
+
+  static Future<_ResolvedAuthIdentity> _resolveIdentityContext({
+    Role? role,
+    ActorType? actorType,
+    VerificationLevel? verificationLevel,
+    InstitutionLevel? institutionLevel,
+  }) async {
+    final userId = AppDI.instance.currentUserId;
+
+    Role resolvedRole = role ?? Role.user;
+    ActorType resolvedActorType = actorType ?? ActorType.citizen;
+    VerificationLevel resolvedVerificationLevel =
+        verificationLevel ?? VerificationLevel.none;
+    InstitutionLevel? resolvedInstitutionLevel = institutionLevel;
+
+    if (userId != null && role == null) {
+      try {
+        final session = await AppDI.instance.sessionRepository.getCurrentSession();
+        resolvedRole = session?.role ?? Role.user;
+      } catch (_) {
+        resolvedRole = Role.user;
+      }
+    }
+
+    final needsProfileLookup = userId != null &&
+        (actorType == null ||
+            verificationLevel == null ||
+            institutionLevel == null);
+
+    if (needsProfileLookup) {
+      try {
+        final profile = await AppDI.instance.getUserProfile(userId!);
+        if (profile != null) {
+          resolvedActorType = actorType ?? profile.actorType;
+          resolvedVerificationLevel =
+              verificationLevel ?? profile.verificationLevel;
+          resolvedInstitutionLevel =
+              institutionLevel ?? profile.institutionLevel;
+        }
+      } catch (_) {
+        // Manteniamo i fallback safe già impostati sopra.
+      }
+    }
+
+    return _ResolvedAuthIdentity(
+      userId: userId,
+      role: resolvedRole,
+      actorType: resolvedActorType,
+      verificationLevel: resolvedVerificationLevel,
+      institutionLevel: resolvedInstitutionLevel,
+    );
   }
 
   static Future<void> _showLoginRequiredSheet(
@@ -205,4 +329,20 @@ class AuthGuard {
         return 'revisionare richieste di verifica';
     }
   }
+}
+
+class _ResolvedAuthIdentity {
+  final String? userId;
+  final Role role;
+  final ActorType actorType;
+  final VerificationLevel verificationLevel;
+  final InstitutionLevel? institutionLevel;
+
+  const _ResolvedAuthIdentity({
+    required this.userId,
+    required this.role,
+    required this.actorType,
+    required this.verificationLevel,
+    required this.institutionLevel,
+  });
 }

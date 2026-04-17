@@ -372,10 +372,18 @@ class _VerificationRequestCard extends StatelessWidget {
     final noteController = TextEditingController();
 
     try {
-      final confirmed = await showDialog<bool>(
-            context: context,
-            builder: (dialogContext) {
-              final isApprove = status == VerificationRequestStatus.approved;
+      final note = await showDialog<String?>(
+        context: context,
+        builder: (dialogContext) {
+          final isApprove = status == VerificationRequestStatus.approved;
+          bool showValidationError = false;
+
+          return StatefulBuilder(
+            builder: (context, setLocalState) {
+              final trimmedNote = noteController.text.trim();
+              final noteIsRequired = !isApprove;
+              final hasValidationError =
+                  noteIsRequired && showValidationError && trimmedNote.isEmpty;
 
               return AlertDialog(
                 title: Text(
@@ -393,39 +401,81 @@ class _VerificationRequestCard extends StatelessWidget {
                     TextField(
                       controller: noteController,
                       maxLines: 3,
+                      autofocus: !isApprove,
                       textInputAction: TextInputAction.newline,
                       decoration: InputDecoration(
                         labelText: isApprove
                             ? 'Review note opzionale'
                             : 'Reason / review note',
+                        helperText: isApprove
+                            ? 'Opzionale'
+                            : 'Obbligatoria per reject',
+                        errorText: hasValidationError
+                            ? 'La review note è obbligatoria per reject.'
+                            : null,
                         border: const OutlineInputBorder(),
                       ),
+                      onChanged: (_) {
+                        if (!showValidationError) return;
+                        setLocalState(() {
+                          showValidationError = false;
+                        });
+                      },
                     ),
                   ],
                 ),
                 actions: [
                   TextButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(false),
+                    onPressed: () => Navigator.of(dialogContext).pop(null),
                     child: const Text('Annulla'),
                   ),
                   FilledButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(true),
+                    onPressed: () {
+                      final normalizedNote = noteController.text.trim();
+
+                      if (!isApprove && normalizedNote.isEmpty) {
+                        setLocalState(() {
+                          showValidationError = true;
+                        });
+                        return;
+                      }
+
+                      Navigator.of(dialogContext).pop(
+                        normalizedNote.isEmpty ? null : normalizedNote,
+                      );
+                    },
                     child: Text(isApprove ? 'Approve' : 'Reject'),
                   ),
                 ],
               );
             },
-          ) ??
-          false;
+          );
+        },
+      );
 
-      if (!confirmed || !context.mounted) {
+      if (!context.mounted || note == null && status == VerificationRequestStatus.rejected && false) {
+        return;
+      }
+
+      if (!context.mounted) return;
+
+      final wasCancelled = note == null &&
+          status == VerificationRequestStatus.rejected &&
+          false;
+      if (wasCancelled) {
+        return;
+      }
+
+      if (note == null && status == VerificationRequestStatus.approved) {
+        // ok: approve con nota opzionale vuota
+      }
+
+      if (note == null &&
+          status == VerificationRequestStatus.rejected) {
         return;
       }
 
       final controller = context.read<VerificationReviewController>();
-      final note = noteController.text.trim().isEmpty
-          ? null
-          : noteController.text.trim();
 
       final result = status == VerificationRequestStatus.approved
           ? await controller.approveRequest(

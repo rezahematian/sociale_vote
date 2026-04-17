@@ -156,6 +156,54 @@ class AppColors {
   static const Color errorSoftBackgroundDark = Color(0xFF3E1A1D);
 
   // =========================================================
+  // IDENTITY / BADGE / INLINE MARK
+  // =========================================================
+
+  /// Citizen verified Lv1 = silver.
+  static const Color identityVerifiedLv1Foreground = Color(0xFF6F7785);
+  static const Color identityVerifiedLv1Background = Color(0xFFF1F3F6);
+  static const Color identityVerifiedLv1Border = Color(0xFFD1D7E0);
+
+  /// Citizen verified Lv2 = gold.
+  static const Color identityVerifiedLv2Foreground = Color(0xFF9B6A00);
+  static const Color identityVerifiedLv2Background = Color(0xFFFFF4D6);
+  static const Color identityVerifiedLv2Border = Color(0xFFE4C16A);
+
+  /// Public official = civic red.
+  static const Color identityPublicOfficialForeground = Color(0xFFB9382F);
+  static const Color identityPublicOfficialBackground = Color(0xFFFFEEEB);
+  static const Color identityPublicOfficialBorder = Color(0xFFF3B8B1);
+
+  /// Institution = institutional blue.
+  static const Color identityInstitutionForeground = Color(0xFF1F5AA6);
+  static const Color identityInstitutionBackground = Color(0xFFEAF2FF);
+  static const Color identityInstitutionBorder = Color(0xFFB8D0F7);
+
+  // =========================================================
+  // DARK / IDENTITY / BADGE / INLINE MARK
+  // =========================================================
+
+  /// Citizen verified Lv1 = silver (dark).
+  static const Color identityVerifiedLv1ForegroundDark = Color(0xFFD7DEE8);
+  static const Color identityVerifiedLv1BackgroundDark = Color(0xFF2A3240);
+  static const Color identityVerifiedLv1BorderDark = Color(0xFF566173);
+
+  /// Citizen verified Lv2 = gold (dark).
+  static const Color identityVerifiedLv2ForegroundDark = Color(0xFFFFD36B);
+  static const Color identityVerifiedLv2BackgroundDark = Color(0xFF3D2E0A);
+  static const Color identityVerifiedLv2BorderDark = Color(0xFF7A5A12);
+
+  /// Public official = civic red (dark).
+  static const Color identityPublicOfficialForegroundDark = Color(0xFFFFC3BC);
+  static const Color identityPublicOfficialBackgroundDark = Color(0xFF452120);
+  static const Color identityPublicOfficialBorderDark = Color(0xFF8D4A45);
+
+  /// Institution = institutional blue (dark).
+  static const Color identityInstitutionForegroundDark = Color(0xFFCBE0FF);
+  static const Color identityInstitutionBackgroundDark = Color(0xFF132B4D);
+  static const Color identityInstitutionBorderDark = Color(0xFF456C9E);
+
+  // =========================================================
   // TEXT
   // =========================================================
 

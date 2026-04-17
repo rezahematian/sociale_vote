@@ -1,4 +1,6 @@
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/institution_level.dart';
 
 import '../value_objects/poll_configuration.dart';
 import '../value_objects/poll_id.dart';
@@ -46,8 +48,28 @@ class Poll {
   /// Località completa del contenuto.
   final ContentLocation? contentLocation;
 
-  /// Utente che ha creato il poll.
+  /// Utente che ha creato tecnicamente il poll.
   final String? createdByUserId;
+
+  /// Snapshot dell'identità rappresentativa usata in pubblicazione.
+  ///
+  /// - null = poll pubblicato come utente normale
+  /// - publicOfficial = poll pubblicato come official verificato
+  /// - institution = poll pubblicato come ente verificato
+  ///
+  /// NON sostituisce [createdByUserId]:
+  /// quello resta il creatore tecnico reale.
+  final ActorType? publishedAsActorType;
+
+  /// Livello istituzionale snapshot se il poll è pubblicato come institution.
+  final InstitutionLevel? publishedAsInstitutionLevel;
+
+  /// Etichetta rappresentativa snapshot da mostrare nel prodotto.
+  ///
+  /// Esempi:
+  /// - officialTitle per public official
+  /// - institutionName per institution
+  final String? publishedAsDisplayName;
 
   /// Numero totale di partecipanti (aggregato backend).
   final int voteCount;
@@ -67,14 +89,61 @@ class Poll {
     this.cityId,
     this.contentLocation,
     this.createdByUserId,
+    this.publishedAsActorType,
+    this.publishedAsInstitutionLevel,
+    this.publishedAsDisplayName,
     this.voteCount = 0,
-  });
+  }) : assert(
+          publishedAsActorType != ActorType.citizen,
+          'publishedAsActorType non può essere citizen: usare null per pubblicazione standard.',
+        ),
+        assert(
+          publishedAsActorType == ActorType.institution ||
+              publishedAsInstitutionLevel == null,
+          'publishedAsInstitutionLevel è valido solo per poll pubblicati come institution.',
+        );
 
   bool get isOpen => status == PollStatus.open;
 
   bool get isClosed => status == PollStatus.closed;
 
   bool get isScheduled => status == PollStatus.scheduled;
+
+  bool get isPublishedAsRepresentative {
+    final normalized = publishedAsDisplayName?.trim();
+    return (publishedAsActorType == ActorType.publicOfficial ||
+            publishedAsActorType == ActorType.institution) &&
+        normalized != null &&
+        normalized.isNotEmpty;
+  }
+
+  bool get isPublishedAsPublicOfficial {
+    return publishedAsActorType == ActorType.publicOfficial;
+  }
+
+  bool get isPublishedAsInstitution {
+    return publishedAsActorType == ActorType.institution;
+  }
+
+  String? get representativeDisplayName {
+    final normalized = publishedAsDisplayName?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
+  }
+
+  String? get representativeActorTypeLabel {
+    switch (publishedAsActorType) {
+      case ActorType.publicOfficial:
+        return 'Public Official';
+      case ActorType.institution:
+        return 'Institution';
+      case ActorType.citizen:
+      case null:
+        return null;
+    }
+  }
 
   /// Data coerente da usare nei ranking discovery/trending.
   ///
@@ -116,6 +185,9 @@ class Poll {
     String? cityId,
     ContentLocation? contentLocation,
     String? createdByUserId,
+    ActorType? publishedAsActorType,
+    InstitutionLevel? publishedAsInstitutionLevel,
+    String? publishedAsDisplayName,
     int? voteCount,
   }) {
     return Poll(
@@ -133,12 +205,17 @@ class Poll {
       cityId: cityId ?? this.cityId,
       contentLocation: contentLocation ?? this.contentLocation,
       createdByUserId: createdByUserId ?? this.createdByUserId,
+      publishedAsActorType: publishedAsActorType ?? this.publishedAsActorType,
+      publishedAsInstitutionLevel: publishedAsInstitutionLevel ??
+          this.publishedAsInstitutionLevel,
+      publishedAsDisplayName:
+          publishedAsDisplayName ?? this.publishedAsDisplayName,
       voteCount: voteCount ?? this.voteCount,
     );
   }
 
   @override
   String toString() {
-    return 'Poll(id: $id, title: $title, createdAt: $createdAt, votes: $voteCount, type: $type, status: $status, options: ${options.length}, countryCode: $countryCode, cityId: $cityId, contentLocation: $contentLocation, createdBy: $createdByUserId)';
+    return 'Poll(id: $id, title: $title, createdAt: $createdAt, votes: $voteCount, type: $type, status: $status, options: ${options.length}, countryCode: $countryCode, cityId: $cityId, contentLocation: $contentLocation, createdBy: $createdByUserId, publishedAsActorType: $publishedAsActorType, publishedAsInstitutionLevel: $publishedAsInstitutionLevel, publishedAsDisplayName: $publishedAsDisplayName)';
   }
 }

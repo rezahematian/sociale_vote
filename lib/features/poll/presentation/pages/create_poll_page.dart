@@ -4,13 +4,16 @@ import 'package:provider/provider.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
+import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
 import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
 import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 import 'package:sociale_vote/features/poll/application/create_poll_controller.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
+import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 
 class CreatePollPage extends StatelessWidget {
   const CreatePollPage({super.key});
@@ -34,10 +37,46 @@ class _CreatePollView extends StatefulWidget {
 class _CreatePollViewState extends State<_CreatePollView> {
   final TextEditingController _contentCityController = TextEditingController();
 
+  UserProfile? _currentUserProfile;
+  bool _publishingIdentityLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPublishingIdentity();
+  }
+
   @override
   void dispose() {
     _contentCityController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadPublishingIdentity() async {
+    final userId = AppDI.instance.currentUserId;
+    if (userId == null) {
+      if (!mounted) return;
+      setState(() {
+        _publishingIdentityLoaded = true;
+      });
+      return;
+    }
+
+    try {
+      final profile = await AppDI.instance.getUserProfile(userId);
+      if (!mounted) return;
+
+      setState(() {
+        _currentUserProfile = profile;
+        _publishingIdentityLoaded = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _publishingIdentityLoaded = true;
+      });
+    }
   }
 
   String _pollTypeLabel(PollType type) {
@@ -167,6 +206,117 @@ class _CreatePollViewState extends State<_CreatePollView> {
     }
 
     return null;
+  }
+
+  bool _canPublishAsRepresentative(UserProfile? profile) {
+    if (profile == null) {
+      return false;
+    }
+
+    return AuthGuard.canUseRepresentativeIdentityFeatures(
+      actorType: profile.actorType,
+      verificationLevel: profile.verificationLevel,
+      institutionLevel: profile.institutionLevel,
+    );
+  }
+
+  String? _publishingIdentityTypeLabel(UserProfile? profile) {
+    if (profile == null) {
+      return null;
+    }
+
+    if (profile.isPublicOfficial) {
+      return 'Public Official';
+    }
+
+    if (profile.isInstitutionActor) {
+      return 'Institution';
+    }
+
+    return null;
+  }
+
+  Widget _buildRepresentativePublishingCard(BuildContext context) {
+    if (!_publishingIdentityLoaded) {
+      return const SizedBox.shrink();
+    }
+
+    final profile = _currentUserProfile;
+    if (!_canPublishAsRepresentative(profile)) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final identityTypeLabel = _publishingIdentityTypeLabel(profile);
+    final identityDetailLabel = profile?.identityDetailLabel;
+    final institutionLevelLabel = profile?.institutionLevelLabel;
+
+    return _buildSectionCard(
+      context,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (profile != null &&
+                  UserIdentityMark.shouldShowForProfile(profile))
+                UserIdentityMark.fromProfile(
+                  profile,
+                  size: 18,
+                )
+              else
+                Icon(
+                  Icons.campaign_outlined,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Pubblicazione rappresentativa',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            identityTypeLabel == null
+                ? 'Questo poll verrà pubblicato con la tua identity verificata.'
+                : 'Questo poll verrà pubblicato come $identityTypeLabel.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (identityDetailLabel != null && identityDetailLabel.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              profile!.isInstitutionActor
+                  ? 'Ente verificato: $identityDetailLabel'
+                  : 'Titolo verificato: $identityDetailLabel',
+              style: theme.textTheme.bodyMedium,
+            ),
+          ],
+          if (institutionLevelLabel != null &&
+              institutionLevelLabel.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Livello istituzionale: $institutionLevelLabel',
+              style: theme.textTheme.bodyMedium,
+            ),
+          ],
+          const SizedBox(height: 10),
+          Text(
+            'Non puoi cambiare manualmente questa identità qui: viene dal profilo già verificato.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.textTheme.bodySmall?.color?.withOpacity(0.8),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildInlineErrorBox(
@@ -595,6 +745,10 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               ],
                             ),
                           ),
+                          if (_canPublishAsRepresentative(_currentUserProfile)) ...[
+                            const SizedBox(height: 16),
+                            _buildRepresentativePublishingCard(context),
+                          ],
                           const SizedBox(height: 16),
                           _buildContentLocationCard(
                             context,
