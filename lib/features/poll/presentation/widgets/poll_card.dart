@@ -9,6 +9,7 @@ import 'package:sociale_vote/app/theme/spacing.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/poll_result.dart';
 import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
@@ -55,6 +56,10 @@ class PollCard extends StatelessWidget {
   bool get _hasGeoRestriction =>
       poll.configuration.participationRules.scope ==
       ParticipationScope.geoScopeOnly;
+
+  bool get _hasRepresentativePublisher =>
+      poll.publishedAsActorType == ActorType.publicOfficial ||
+      poll.publishedAsActorType == ActorType.institution;
 
   static const _PollChipMetrics _chipMetrics = _PollChipMetrics(
     height: 32,
@@ -241,6 +246,22 @@ class PollCard extends StatelessWidget {
         label: null,
         child: _buildPollIconChip(theme),
       ),
+    ];
+
+    if (_hasRepresentativePublisher) {
+      items.add(
+        _chipItem(
+          context: context,
+          theme: theme,
+          icon: _representativeIcon(),
+          label: _representativeLabel(l10n),
+          bold: true,
+          child: _buildRepresentativeChip(theme, l10n),
+        ),
+      );
+    }
+
+    items.addAll([
       _chipItem(
         context: context,
         theme: theme,
@@ -257,7 +278,7 @@ class PollCard extends StatelessWidget {
         label: _scopeLabel(l10n),
         child: _buildScopeChip(theme, l10n),
       ),
-    ];
+    ]);
 
     if (_hasGeoRestriction) {
       items.add(
@@ -459,6 +480,31 @@ class PollCard extends StatelessWidget {
         return isItalian ? 'Dopo chiusura' : 'After close';
       default:
         return mode.name;
+    }
+  }
+
+  String _representativeLabel(AppLocalizations l10n) {
+    final locale = l10n.localeName.toLowerCase();
+    final isItalian = locale.startsWith('it');
+
+    switch (poll.publishedAsActorType) {
+      case ActorType.publicOfficial:
+        return isItalian ? 'Public Official' : 'Public Official';
+      case ActorType.institution:
+        return isItalian ? 'Institution' : 'Institution';
+      default:
+        return isItalian ? 'Representative' : 'Representative';
+    }
+  }
+
+  IconData _representativeIcon() {
+    switch (poll.publishedAsActorType) {
+      case ActorType.publicOfficial:
+        return Icons.workspace_premium_outlined;
+      case ActorType.institution:
+        return Icons.account_balance_outlined;
+      default:
+        return Icons.verified_user_outlined;
     }
   }
 
@@ -667,6 +713,39 @@ class PollCard extends StatelessWidget {
     );
   }
 
+  _PollChipTone _representativeTone(ThemeData theme, ActorType actorType) {
+    switch (actorType) {
+      case ActorType.publicOfficial:
+        if (theme.brightness == Brightness.dark) {
+          return const _PollChipTone(
+            backgroundColor: Color(0xFF392126),
+            foregroundColor: Color(0xFFF2AEA3),
+            borderColor: Color(0xFF614047),
+          );
+        }
+        return const _PollChipTone(
+          backgroundColor: Color(0xFFFFF1EF),
+          foregroundColor: Color(0xFFBF5B49),
+          borderColor: Color(0xFFF4D8D2),
+        );
+      case ActorType.institution:
+        if (theme.brightness == Brightness.dark) {
+          return const _PollChipTone(
+            backgroundColor: Color(0xFF16253A),
+            foregroundColor: Color(0xFFAEC9F8),
+            borderColor: Color(0xFF334A66),
+          );
+        }
+        return const _PollChipTone(
+          backgroundColor: Color(0xFFF1F6FF),
+          foregroundColor: Color(0xFF4F6FCB),
+          borderColor: Color(0xFFD8E5FF),
+        );
+      default:
+        return _neutralBlueTone(theme);
+    }
+  }
+
   _PollChipTone _statusTone(ThemeData theme, PollStatus status) {
     switch (status) {
       case PollStatus.open:
@@ -725,6 +804,26 @@ class PollCard extends StatelessWidget {
       backgroundColor: tone.backgroundColor,
       foregroundColor: tone.foregroundColor,
       borderColor: tone.borderColor,
+    );
+  }
+
+  Widget _buildRepresentativeChip(ThemeData theme, AppLocalizations l10n) {
+    final actorType = poll.publishedAsActorType;
+    if (actorType == null) {
+      return const SizedBox.shrink();
+    }
+
+    final tone = _representativeTone(theme, actorType);
+
+    return _buildMetaPill(
+      theme: theme,
+      metrics: _chipMetrics,
+      icon: _representativeIcon(),
+      label: _representativeLabel(l10n),
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
+      bold: true,
     );
   }
 

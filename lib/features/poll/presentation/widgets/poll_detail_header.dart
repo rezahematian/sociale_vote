@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
@@ -96,6 +97,10 @@ class PollDetailHeader extends StatelessWidget {
   static const Color _softGrayFg = Color(0xFF6B7280);
   static const Color _softGrayBorder = Color(0xFFE4E7EC);
 
+  bool get _hasRepresentativePublisher =>
+      poll.publishedAsActorType == ActorType.publicOfficial ||
+      poll.publishedAsActorType == ActorType.institution;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -118,6 +123,13 @@ class PollDetailHeader extends StatelessWidget {
       it: 'Salva',
       en: 'Save',
     );
+
+    final representativeLabel = _hasRepresentativePublisher
+        ? _mapRepresentativeLabel(l10n)
+        : null;
+    final representativeDisplayName = _normalizeString(poll.publishedAsDisplayName);
+    final representativeInfoText =
+        _mapRepresentativeInfoText(l10n, representativeDisplayName);
 
     final locationLabel = _mapLocationLabel(l10n);
     final statusLabel = _mapStatusToLabel(l10n, poll.status);
@@ -184,13 +196,25 @@ class PollDetailHeader extends StatelessWidget {
         final compactBottomRow = constraints.maxWidth < 760;
 
         final heroChips = <Widget>[
-          _buildLocationChip(theme, locationLabel, _mobileHeroChipMetrics),
+          if (representativeLabel != null)
+            _buildRepresentativeChip(
+              theme,
+              representativeLabel,
+              _mobileHeroChipMetrics,
+            ),
           _buildStatusChip(
             theme,
             statusLabel,
             poll.status,
             _mobileHeroChipMetrics,
           ),
+          _buildLocationChip(theme, locationLabel, _mobileHeroChipMetrics),
+          if (timeWindowLabel != null)
+            _buildTimeWindowChip(
+              theme,
+              timeWindowLabel,
+              _mobileHeroChipMetrics,
+            ),
           if (participationLabel != null)
             _buildParticipationChip(
               theme,
@@ -200,12 +224,14 @@ class PollDetailHeader extends StatelessWidget {
         ];
 
         final desktopChips = <Widget>[
-          _buildLocationChip(theme, locationLabel, _chipMetrics),
+          if (representativeLabel != null)
+            _buildRepresentativeChip(theme, representativeLabel, _chipMetrics),
           _buildStatusChip(theme, statusLabel, poll.status, _chipMetrics),
-          if (participationLabel != null)
-            _buildParticipationChip(theme, participationLabel, _chipMetrics),
+          _buildLocationChip(theme, locationLabel, _chipMetrics),
           if (timeWindowLabel != null)
             _buildTimeWindowChip(theme, timeWindowLabel, _chipMetrics),
+          if (participationLabel != null)
+            _buildParticipationChip(theme, participationLabel, _chipMetrics),
           _buildTypeChip(theme, typeLabel, _chipMetrics),
           _buildVoteChangeChip(
             theme,
@@ -323,6 +349,35 @@ class PollDetailHeader extends StatelessWidget {
                     color: descriptionColor,
                   ),
                 ),
+              ),
+            ],
+            if (representativeInfoText != null) ...[
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    _representativeIcon(),
+                    size: 16,
+                    color: _representativeTone(
+                      theme,
+                      poll.publishedAsActorType!,
+                    ).foregroundColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      representativeInfoText,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface.withOpacity(
+                          isDark ? 0.78 : 0.72,
+                        ),
+                        fontWeight: FontWeight.w700,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
             if (createdAt != null) ...[
@@ -624,6 +679,39 @@ class PollDetailHeader extends StatelessWidget {
     );
   }
 
+  _PollChipTone _representativeTone(ThemeData theme, ActorType actorType) {
+    switch (actorType) {
+      case ActorType.publicOfficial:
+        if (theme.brightness == Brightness.dark) {
+          return const _PollChipTone(
+            backgroundColor: Color(0xFF392126),
+            foregroundColor: Color(0xFFF2AEA3),
+            borderColor: Color(0xFF614047),
+          );
+        }
+        return const _PollChipTone(
+          backgroundColor: Color(0xFFFFF1EF),
+          foregroundColor: Color(0xFFBF5B49),
+          borderColor: Color(0xFFF4D8D2),
+        );
+      case ActorType.institution:
+        if (theme.brightness == Brightness.dark) {
+          return const _PollChipTone(
+            backgroundColor: Color(0xFF16253A),
+            foregroundColor: Color(0xFFAEC9F8),
+            borderColor: Color(0xFF334A66),
+          );
+        }
+        return const _PollChipTone(
+          backgroundColor: Color(0xFFF1F6FF),
+          foregroundColor: Color(0xFF4F6FCB),
+          borderColor: Color(0xFFD8E5FF),
+        );
+      default:
+        return _locationTone(theme);
+    }
+  }
+
   _PollChipTone _statusTone(ThemeData theme, PollStatus status) {
     switch (status) {
       case PollStatus.open:
@@ -763,6 +851,30 @@ class PollDetailHeader extends StatelessWidget {
       backgroundColor: _softRoseBg,
       foregroundColor: _softRoseFg,
       borderColor: _softRoseBorder,
+    );
+  }
+
+  Widget _buildRepresentativeChip(
+    ThemeData theme,
+    String label,
+    _PollChipMetrics metrics,
+  ) {
+    final actorType = poll.publishedAsActorType;
+    if (actorType == null) {
+      return const SizedBox.shrink();
+    }
+
+    final tone = _representativeTone(theme, actorType);
+
+    return _buildMetaPill(
+      theme: theme,
+      metrics: metrics,
+      icon: _representativeIcon(),
+      label: label,
+      backgroundColor: tone.backgroundColor,
+      foregroundColor: tone.foregroundColor,
+      borderColor: tone.borderColor,
+      bold: true,
     );
   }
 
@@ -1214,8 +1326,8 @@ class PollDetailHeader extends StatelessWidget {
   String _mapLocationLabel(AppLocalizations l10n) {
     final contentLocation = poll.contentLocation;
     final countryCode = contentLocation?.countryCode ?? poll.countryCode;
-    final cityName = _normalizeString(contentLocation?.cityName) ??
-        _normalizeString(poll.cityId);
+    final cityName =
+        _normalizeString(contentLocation?.cityName) ?? _normalizeString(poll.cityId);
 
     final country = _resolveCountryName(countryCode);
 
@@ -1252,6 +1364,65 @@ class PollDetailHeader extends StatelessWidget {
       it: 'Partecipazione ristretta',
       en: 'Restricted access',
     );
+  }
+
+  String _mapRepresentativeLabel(AppLocalizations l10n) {
+    switch (poll.publishedAsActorType) {
+      case ActorType.publicOfficial:
+        return _localizedText(
+          l10n,
+          it: 'Public Official',
+          en: 'Public Official',
+        );
+      case ActorType.institution:
+        return _localizedText(
+          l10n,
+          it: 'Institution',
+          en: 'Institution',
+        );
+      default:
+        return _localizedText(
+          l10n,
+          it: 'Representative',
+          en: 'Representative',
+        );
+    }
+  }
+
+  String? _mapRepresentativeInfoText(
+    AppLocalizations l10n,
+    String? displayName,
+  ) {
+    if (!_hasRepresentativePublisher) {
+      return null;
+    }
+
+    final actorLabel = _mapRepresentativeLabel(l10n);
+
+    if (displayName != null) {
+      return _localizedText(
+        l10n,
+        it: 'Pubblicato come $actorLabel · $displayName',
+        en: 'Published as $actorLabel · $displayName',
+      );
+    }
+
+    return _localizedText(
+      l10n,
+      it: 'Pubblicato come $actorLabel',
+      en: 'Published as $actorLabel',
+    );
+  }
+
+  IconData _representativeIcon() {
+    switch (poll.publishedAsActorType) {
+      case ActorType.publicOfficial:
+        return Icons.workspace_premium_outlined;
+      case ActorType.institution:
+        return Icons.account_balance_outlined;
+      default:
+        return Icons.verified_user_outlined;
+    }
   }
 
   String? _resolveCountryName(String? code) {
