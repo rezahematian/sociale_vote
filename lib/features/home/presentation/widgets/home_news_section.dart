@@ -1,3 +1,6 @@
+import 'dart:ui' show PointerDeviceKind;
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -175,6 +178,8 @@ class _SecondaryNewsCarousel extends StatefulWidget {
 class _SecondaryNewsCarouselState extends State<_SecondaryNewsCarousel> {
   PageController? _pageController;
   double? _lastViewportFraction;
+  bool _isAnimating = false;
+  double _wheelDeltaAccumulator = 0;
 
   @override
   void dispose() {
@@ -187,6 +192,7 @@ class _SecondaryNewsCarouselState extends State<_SecondaryNewsCarousel> {
       final previousPage = _pageController?.hasClients == true
           ? _pageController!.page?.round()
           : widget.currentIndex;
+
       _pageController?.dispose();
       _pageController = PageController(
         viewportFraction: viewportFraction,
@@ -194,7 +200,88 @@ class _SecondaryNewsCarouselState extends State<_SecondaryNewsCarousel> {
       );
       _lastViewportFraction = viewportFraction;
     }
+
     return _pageController!;
+  }
+
+  Future<void> _animateToPage(int index) async {
+    if (_pageController == null || !_pageController!.hasClients) {
+      return;
+    }
+    if (_isAnimating) return;
+
+    final safeIndex = index.clamp(0, widget.newsList.length - 1);
+    final currentPage = _pageController!.page?.round() ?? widget.currentIndex;
+    if (safeIndex == currentPage) return;
+
+    _isAnimating = true;
+    try {
+      await _pageController!.animateToPage(
+        safeIndex,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+      );
+    } finally {
+      _isAnimating = false;
+    }
+  }
+
+  Future<void> _goToPrevious() async {
+    final currentPage = _pageController?.hasClients == true
+        ? _pageController!.page?.round() ?? widget.currentIndex
+        : widget.currentIndex;
+    await _animateToPage(currentPage - 1);
+  }
+
+  Future<void> _goToNext() async {
+    final currentPage = _pageController?.hasClients == true
+        ? _pageController!.page?.round() ?? widget.currentIndex
+        : widget.currentIndex;
+    await _animateToPage(currentPage + 1);
+  }
+
+  void _consumeWheelDelta(double delta) {
+    if (_isAnimating || widget.newsList.length <= 1) {
+      return;
+    }
+
+    if (_wheelDeltaAccumulator != 0 &&
+        _wheelDeltaAccumulator.sign != delta.sign) {
+      _wheelDeltaAccumulator = 0;
+    }
+
+    _wheelDeltaAccumulator += delta;
+
+    const triggerThreshold = 36.0;
+    if (_wheelDeltaAccumulator.abs() < triggerThreshold) {
+      return;
+    }
+
+    final direction = _wheelDeltaAccumulator.sign;
+    _wheelDeltaAccumulator = 0;
+
+    if (direction > 0) {
+      _goToNext();
+    } else if (direction < 0) {
+      _goToPrevious();
+    }
+  }
+
+  void _handlePointerSignal(PointerSignalEvent event) {
+    if (event is! PointerScrollEvent) return;
+    if (widget.newsList.length <= 1) return;
+
+    final dx = event.scrollDelta.dx;
+    final dy = event.scrollDelta.dy;
+    final dominantDelta = dx.abs() > dy.abs() ? dx : dy;
+
+    if (dominantDelta.abs() < 1) {
+      return;
+    }
+
+    GestureBinding.instance.pointerSignalResolver.register(event, (_) {
+      _consumeWheelDelta(dominantDelta);
+    });
   }
 
   @override
@@ -212,34 +299,86 @@ class _SecondaryNewsCarouselState extends State<_SecondaryNewsCarousel> {
 
         final cardHeight = width >= 720 ? 258.0 : 248.0;
         final controller = _resolveController(viewportFraction);
+        final isDesktop = width >= 720;
+        final sideGutter = isDesktop ? 52.0 : 0.0;
 
         final activeDotColor = theme.colorScheme.primary;
-        final inactiveDotColor =
-            theme.colorScheme.outline.withOpacity(0.28);
+        final inactiveDotColor = theme.colorScheme.outline.withOpacity(0.28);
+
+        final currentIndex =
+            widget.currentIndex.clamp(0, widget.newsList.length - 1);
+        final canGoPrevious = currentIndex > 0;
+        final canGoNext = currentIndex < widget.newsList.length - 1;
+
+        final scrollBehavior = const MaterialScrollBehavior().copyWith(
+          dragDevices: const {
+            PointerDeviceKind.touch,
+            PointerDeviceKind.mouse,
+            PointerDeviceKind.trackpad,
+            PointerDeviceKind.stylus,
+            PointerDeviceKind.unknown,
+          },
+        );
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
               height: cardHeight,
-              child: PageView.builder(
-                controller: controller,
-                padEnds: false,
-                itemCount: widget.newsList.length,
-                onPageChanged: widget.onPageChanged,
-                itemBuilder: (context, index) {
-                  final news = widget.newsList[index];
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  Positioned.fill(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: sideGutter),
+                      child: Listener(
+                        onPointerSignal: _handlePointerSignal,
+                        child: ScrollConfiguration(
+                          behavior: scrollBehavior,
+                          child: PageView.builder(
+                            controller: controller,
+                            padEnds: false,
+                            itemCount: widget.newsList.length,
+                            onPageChanged: widget.onPageChanged,
+                            itemBuilder: (context, index) {
+                              final news = widget.newsList[index];
 
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      right: index == widget.newsList.length - 1 ? 0 : 10,
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                  right:
+                                      index == widget.newsList.length - 1 ? 0 : 10,
+                                ),
+                                child: _NewsCardBuilder(
+                                  news: news,
+                                  compact: true,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
                     ),
-                    child: _NewsCardBuilder(
-                      news: news,
-                      compact: true,
+                  ),
+                  if (isDesktop && widget.newsList.length > 1) ...[
+                    Positioned(
+                      left: 4,
+                      child: _CarouselChevronButton(
+                        icon: Icons.chevron_left_rounded,
+                        enabled: canGoPrevious,
+                        onPressed: canGoPrevious ? _goToPrevious : null,
+                      ),
                     ),
-                  );
-                },
+                    Positioned(
+                      right: 4,
+                      child: _CarouselChevronButton(
+                        icon: Icons.chevron_right_rounded,
+                        enabled: canGoNext,
+                        onPressed: canGoNext ? _goToNext : null,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
             const SizedBox(height: 10),
@@ -248,14 +387,30 @@ class _SecondaryNewsCarouselState extends State<_SecondaryNewsCarousel> {
                 spacing: 6,
                 runSpacing: 6,
                 children: List.generate(widget.newsList.length, (index) {
-                  final selected = index == widget.currentIndex;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    width: selected ? 16 : 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: selected ? activeDotColor : inactiveDotColor,
+                  final selected = index == currentIndex;
+
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
                       borderRadius: BorderRadius.circular(999),
+                      onTap: () {
+                        _animateToPage(index);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 6,
+                        ),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          width: selected ? 16 : 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: selected ? activeDotColor : inactiveDotColor,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
+                      ),
                     ),
                   );
                 }),
@@ -264,6 +419,58 @@ class _SecondaryNewsCarouselState extends State<_SecondaryNewsCarousel> {
           ],
         );
       },
+    );
+  }
+}
+
+class _CarouselChevronButton extends StatelessWidget {
+  final IconData icon;
+  final bool enabled;
+  final VoidCallback? onPressed;
+
+  const _CarouselChevronButton({
+    required this.icon,
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    final foregroundColor = enabled
+        ? theme.colorScheme.onSurface.withOpacity(0.88)
+        : theme.colorScheme.onSurface.withOpacity(0.32);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled ? onPressed : null,
+        borderRadius: BorderRadius.circular(999),
+        child: Ink(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface.withOpacity(0.92),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: theme.colorScheme.outline.withOpacity(0.16),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0F172A).withOpacity(0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Icon(
+            icon,
+            size: 22,
+            color: foregroundColor,
+          ),
+        ),
+      ),
     );
   }
 }

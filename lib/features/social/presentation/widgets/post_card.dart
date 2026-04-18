@@ -8,6 +8,7 @@ import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
+import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 
 /// Card visuale per un singolo post social.
 ///
@@ -56,19 +57,14 @@ class PostCard extends StatelessWidget {
         post.authorName.trim().isNotEmpty ? post.authorName.trim() : 'Author';
     final hasTitle = title.isNotEmpty;
     final hasContent = content.isNotEmpty;
+    final isDark = theme.brightness == Brightness.dark;
 
     final Color cardTopColor =
-        theme.brightness == Brightness.dark
-            ? const Color(0xFF18202B)
-            : const Color(0xFFFCFDFE);
+        isDark ? const Color(0xFF182230) : const Color(0xFFFCFDFE);
     final Color cardBottomColor =
-        theme.brightness == Brightness.dark
-            ? const Color(0xFF121A24)
-            : const Color(0xFFF0F4F9);
+        isDark ? const Color(0xFF121B27) : const Color(0xFFF1F5FA);
     final Color cardBorderColor =
-        theme.brightness == Brightness.dark
-            ? const Color(0xFF2C3948)
-            : const Color(0xFFD7DFEA);
+        isDark ? const Color(0xFF2E3B4B) : const Color(0xFFD7DFEA);
 
     VoidCallback? wrapReactCallback(VoidCallback? original) {
       if (original == null) return null;
@@ -134,23 +130,24 @@ class PostCard extends StatelessWidget {
                     runSpacing: 8,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      _buildDiscussionIconChip(),
+                      _buildDiscussionIconChip(theme),
                       _buildAuthorChip(theme, authorName),
                     ],
                   ),
-                  if (hasTitle || hasContent) const SizedBox(height: 14),
+                  if (hasTitle || hasContent) const SizedBox(height: 12),
                   if (hasTitle) ...[
                     Text(
                       title,
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w700,
-                        height: 1.18,
+                        height: 1.16,
                         letterSpacing: -0.2,
+                        color: theme.colorScheme.onSurface,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (hasContent) const SizedBox(height: 8),
+                    if (hasContent) const SizedBox(height: 9),
                   ],
                   if (hasContent)
                     Text(
@@ -159,29 +156,33 @@ class PostCard extends StatelessWidget {
                         color: theme.colorScheme.onSurface.withValues(
                           alpha: 0.78,
                         ),
-                        height: 1.42,
+                        height: 1.46,
                       ),
                       maxLines: hasTitle ? 3 : 4,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  if (hasTitle || hasContent) const SizedBox(height: 10),
-                  Text(
-                    _formatDateTime(post.createdAt),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  _PostEngagementRow(
-                    post: post,
-                    commentCount: commentCount,
-                    fireCount: fireCount,
-                    iceCount: iceCount,
-                    userReaction: userReaction,
-                    onFireTap: wrapReactCallback(onFireTap),
-                    onIceTap: wrapReactCallback(onIceTap),
-                    onCommentTap: onCommentTap,
+                  if (hasTitle || hasContent) const SizedBox(height: 14),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: _PostEngagementRow(
+                          post: post,
+                          commentCount: commentCount,
+                          fireCount: fireCount,
+                          iceCount: iceCount,
+                          userReaction: userReaction,
+                          onFireTap: wrapReactCallback(onFireTap),
+                          onIceTap: wrapReactCallback(onIceTap),
+                          onCommentTap: onCommentTap,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: _buildDateRow(theme),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -192,10 +193,15 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDiscussionIconChip() {
-    const backgroundColor = Color(0xFFEFF4FF);
-    const foregroundColor = Color(0xFF316BFF);
-    const borderColor = Color(0xFFDCE7FF);
+  Widget _buildDiscussionIconChip(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+
+    final backgroundColor =
+        isDark ? const Color(0xFF1A2D4A) : const Color(0xFFEFF4FF);
+    final foregroundColor =
+        isDark ? const Color(0xFF9FC0FF) : const Color(0xFF316BFF);
+    final borderColor =
+        isDark ? const Color(0xFF314C72) : const Color(0xFFDCE7FF);
 
     return Container(
       width: 32,
@@ -208,7 +214,7 @@ class PostCard extends StatelessWidget {
           width: 1,
         ),
       ),
-      child: const Icon(
+      child: Icon(
         Icons.mode_comment_outlined,
         size: 16,
         color: foregroundColor,
@@ -225,11 +231,26 @@ class PostCard extends StatelessWidget {
           theme.brightness == Brightness.dark
               ? const Color(0xFF1C2836)
               : const Color(0xFFEFF4FB),
-      foregroundColor: const Color(0xFF667085),
+      foregroundColor:
+          theme.brightness == Brightness.dark
+              ? const Color(0xFFB7C4D6)
+              : const Color(0xFF667085),
       borderColor:
           theme.brightness == Brightness.dark
               ? const Color(0xFF314255)
               : const Color(0xFFD9E3EF),
+      identityMark: UserIdentityMark.shouldShow(
+        actorType: post.authorActorType,
+        verificationLevel: post.authorVerificationLevel,
+        institutionLevel: post.authorInstitutionLevel,
+      )
+          ? UserIdentityMark(
+              actorType: post.authorActorType,
+              verificationLevel: post.authorVerificationLevel,
+              institutionLevel: post.authorInstitutionLevel,
+              size: 14,
+            )
+          : null,
     );
   }
 
@@ -240,8 +261,10 @@ class PostCard extends StatelessWidget {
     required Color backgroundColor,
     required Color foregroundColor,
     required Color borderColor,
+    Widget? identityMark,
   }) {
     return Container(
+      constraints: const BoxConstraints(maxWidth: 280),
       height: 32,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
@@ -273,8 +296,33 @@ class PostCard extends StatelessWidget {
               ),
             ),
           ),
+          if (identityMark != null) identityMark,
         ],
       ),
+    );
+  }
+
+  Widget _buildDateRow(ThemeData theme) {
+    final color = theme.colorScheme.onSurface.withValues(alpha: 0.56);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.schedule_outlined,
+          size: 14,
+          color: color,
+        ),
+        const SizedBox(width: 6),
+        Text(
+          _formatDateTime(post.createdAt),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w600,
+            height: 1,
+          ),
+        ),
+      ],
     );
   }
 

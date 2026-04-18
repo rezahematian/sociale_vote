@@ -5,10 +5,14 @@ import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/content/social/repositories/post_repository.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/institution_level.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 
 class PostRepositoryImpl implements PostRepository {
   static const String _postsTable = 'posts';
   static const String _usersTable = 'users';
+  static const String _userProfilesTable = 'user_profiles';
 
   @override
   Future<List<Post>> getFeed({
@@ -183,6 +187,7 @@ class PostRepositoryImpl implements PostRepository {
         .toList(growable: false);
 
     final authorsById = await _loadAuthorsById(authorIds);
+    final authorIdentityById = await _loadAuthorIdentityById(authorIds);
 
     return normalizedRows.map((row) {
       final authorId = row['author_id'] as String?;
@@ -198,10 +203,15 @@ class PostRepositoryImpl implements PostRepository {
       final effectiveCountryCode =
           rowCountryCode ?? contentLocation?.countryCode;
       final effectiveCityId = rowCityId ?? contentLocation?.cityId;
+      final authorIdentity = authorIdentityById[authorId];
 
       return Post(
         id: EntityId(row['id'] as String),
         authorName: authorsById[authorId] ?? 'Unknown user',
+        authorActorType: authorIdentity?.actorType ?? ActorType.citizen,
+        authorVerificationLevel:
+            authorIdentity?.verificationLevel ?? VerificationLevel.none,
+        authorInstitutionLevel: authorIdentity?.institutionLevel,
         title: (row['title'] as String?) ?? '',
         content: (row['content'] as String?) ?? '',
         createdAt: _parseDateTime(createdAtRaw),
@@ -294,6 +304,105 @@ class PostRepositoryImpl implements PostRepository {
     return result;
   }
 
+  Future<Map<String, _PostAuthorIdentity>> _loadAuthorIdentityById(
+    List<String> authorIds,
+  ) async {
+    if (authorIds.isEmpty) {
+      return const {};
+    }
+
+    final rows = await AppSupabase.client
+        .from(_userProfilesTable)
+        .select('id, actor_type, verification_level, institution_level')
+        .inFilter('id', authorIds);
+
+    final result = <String, _PostAuthorIdentity>{};
+
+    for (final row in rows) {
+      if (row is! Map<String, dynamic>) {
+        continue;
+      }
+
+      final id = row['id'] as String?;
+      if (id == null || id.trim().isEmpty) {
+        continue;
+      }
+
+      result[id] = _PostAuthorIdentity(
+        actorType: _parseActorType(row['actor_type']),
+        verificationLevel: _parseVerificationLevel(row['verification_level']),
+        institutionLevel: _parseInstitutionLevel(row['institution_level']),
+      );
+    }
+
+    return result;
+  }
+
+  ActorType _parseActorType(dynamic value) {
+    final normalized = _normalizeIdentityValue(value);
+
+    switch (normalized) {
+      case 'publicofficial':
+        return ActorType.publicOfficial;
+      case 'institution':
+        return ActorType.institution;
+      case 'citizen':
+      default:
+        return ActorType.citizen;
+    }
+  }
+
+  VerificationLevel _parseVerificationLevel(dynamic value) {
+    final normalized = _normalizeIdentityValue(value);
+
+    switch (normalized) {
+      case 'level1':
+        return VerificationLevel.level1;
+      case 'level2':
+        return VerificationLevel.level2;
+      case 'none':
+      default:
+        return VerificationLevel.none;
+    }
+  }
+
+  InstitutionLevel? _parseInstitutionLevel(dynamic value) {
+    final normalized = _normalizeIdentityValue(value);
+
+    switch (normalized) {
+      case 'municipality':
+        return InstitutionLevel.municipality;
+      case 'province':
+        return InstitutionLevel.province;
+      case 'region':
+        return InstitutionLevel.region;
+      case 'ministry':
+        return InstitutionLevel.ministry;
+      case 'government':
+        return InstitutionLevel.government;
+      case 'publicagency':
+        return InstitutionLevel.publicAgency;
+      case 'otherpublicbody':
+        return InstitutionLevel.otherPublicBody;
+      default:
+        return null;
+    }
+  }
+
+  String _normalizeIdentityValue(dynamic value) {
+    if (value == null) {
+      return '';
+    }
+
+    return value
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replaceAll('_', '')
+        .replaceAll('-', '')
+        .replaceAll(' ', '');
+  }
+
   Future<void> _ensureCurrentUserRow() async {
     final currentUser = AppSupabase.currentUser;
     if (currentUser == null) {
@@ -332,4 +441,16 @@ class PostRepositoryImpl implements PostRepository {
     }
     return DateTime.now();
   }
+}
+
+class _PostAuthorIdentity {
+  final ActorType actorType;
+  final VerificationLevel verificationLevel;
+  final InstitutionLevel? institutionLevel;
+
+  const _PostAuthorIdentity({
+    required this.actorType,
+    required this.verificationLevel,
+    required this.institutionLevel,
+  });
 }

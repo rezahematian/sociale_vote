@@ -30,155 +30,268 @@ class HomeHeroSection extends StatelessWidget {
 
     final heroGradient = isDark
         ? const [
-            Color(0xFF0F172A),
-            Color(0xFF172554),
+            Color(0xFF13213C),
+            Color(0xFF1A2B4A),
+            Color(0xFF20355D),
           ]
         : const [
-            Color(0xFFEFF6FF),
-            Color(0xFFF5F3FF),
+            Color(0xFFFCFDFF),
+            Color(0xFFF6F8FF),
+            Color(0xFFF4F1FF),
           ];
 
     final heroBorderColor = isDark
-        ? Colors.white.withOpacity(0.08)
-        : theme.colorScheme.outline.withOpacity(0.14);
+        ? Colors.white.withOpacity(0.12)
+        : theme.colorScheme.outline.withOpacity(0.18);
 
     final heroShadowColor = isDark
-        ? Colors.black.withOpacity(0.18)
-        : Colors.black.withOpacity(0.04);
+        ? Colors.black.withOpacity(0.24)
+        : const Color(0xFF0F172A).withOpacity(0.07);
 
     final chipBackgroundColor = isDark
-        ? Colors.white.withOpacity(0.07)
-        : Colors.white.withOpacity(0.78);
+        ? Colors.white.withOpacity(0.08)
+        : Colors.white.withOpacity(0.94);
 
     final chipBorderColor = isDark
-        ? Colors.white.withOpacity(0.10)
-        : theme.colorScheme.outline.withOpacity(0.10);
+        ? Colors.white.withOpacity(0.12)
+        : theme.colorScheme.outline.withOpacity(0.12);
 
     final chipForegroundColor = isDark
-        ? const Color(0xFF9CC2FF)
+        ? const Color(0xFFB5D0FF)
         : theme.colorScheme.primary;
 
     final searchForegroundColor = isDark
-        ? Colors.white.withOpacity(0.92)
+        ? Colors.white.withOpacity(0.94)
         : theme.colorScheme.primary;
 
     final searchBackgroundColor = isDark
-        ? Colors.white.withOpacity(0.06)
-        : Colors.white.withOpacity(0.72);
+        ? Colors.white.withOpacity(0.08)
+        : Colors.white.withOpacity(0.96);
 
     final searchBorderColor = isDark
-        ? Colors.white.withOpacity(0.10)
-        : theme.colorScheme.outline.withOpacity(0.14);
+        ? Colors.white.withOpacity(0.14)
+        : theme.colorScheme.outline.withOpacity(0.16);
 
     final titleColor = isDark
-        ? Colors.white.withOpacity(0.96)
+        ? Colors.white.withOpacity(0.97)
         : theme.colorScheme.onSurface;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: LinearGradient(
-          colors: heroGradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        border: Border.all(
-          color: heroBorderColor,
-        ),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-            color: heroShadowColor,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _buildTopChip(
-                      theme: theme,
-                      icon: null,
-                      label: scopeShortLabel,
-                      foregroundColor: chipForegroundColor,
-                      backgroundColor: chipBackgroundColor,
-                      borderColor: chipBorderColor,
-                    ),
-                    if (hasUserLabel)
-                      _buildTopChip(
-                        theme: theme,
-                        icon: Icons.person_outline_rounded,
-                        label: trimmedUserLabel!,
-                        foregroundColor: chipForegroundColor,
-                        backgroundColor: chipBackgroundColor,
-                        borderColor: chipBorderColor,
-                      ),
-                  ],
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 640;
+        final horizontalPadding = isCompact ? 20.0 : 24.0;
+        final verticalPadding = isCompact ? 20.0 : 24.0;
+
+        return Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            gradient: LinearGradient(
+              colors: heroGradient,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(color: heroBorderColor),
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 26,
+                offset: const Offset(0, 12),
+                color: heroShadowColor,
               ),
-              if (onOpenSearch != null) ...[
-                const SizedBox(width: 12),
-                OutlinedButton.icon(
-                  onPressed: onOpenSearch,
-                  icon: const Icon(Icons.search_rounded, size: 18),
-                  label: Text(materialL10n.searchFieldLabel),
-                  style: OutlinedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    foregroundColor: searchForegroundColor,
-                    backgroundColor: searchBackgroundColor,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    side: BorderSide(
-                      color: searchBorderColor,
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: Stack(
+              children: [
+                Positioned(
+                  top: -28,
+                  right: -18,
+                  child: IgnorePointer(
+                    child: Container(
+                      width: isCompact ? 112 : 136,
+                      height: isCompact ? 112 : 136,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDark
+                            ? Colors.white.withOpacity(0.05)
+                            : theme.colorScheme.primary.withOpacity(0.06),
+                      ),
                     ),
                   ),
                 ),
+                Positioned(
+                  bottom: -34,
+                  left: -22,
+                  child: IgnorePointer(
+                    child: Container(
+                      width: isCompact ? 96 : 120,
+                      height: isCompact ? 96 : 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDark
+                            ? const Color(0xFF7C9BFF).withOpacity(0.07)
+                            : const Color(0xFF8B5CF6).withOpacity(0.05),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalPadding,
+                    verticalPadding,
+                    horizontalPadding,
+                    isCompact ? 18 : 20,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                _buildTopChip(
+                                  theme: theme,
+                                  icon: Icons.public_outlined,
+                                  label: scopeShortLabel,
+                                  foregroundColor: chipForegroundColor,
+                                  backgroundColor: chipBackgroundColor,
+                                  borderColor: chipBorderColor,
+                                ),
+                                if (hasUserLabel)
+                                  _buildTopChip(
+                                    theme: theme,
+                                    icon: Icons.person_outline_rounded,
+                                    label: trimmedUserLabel!,
+                                    foregroundColor: chipForegroundColor,
+                                    backgroundColor: chipBackgroundColor,
+                                    borderColor: chipBorderColor,
+                                  ),
+                              ],
+                            ),
+                          ),
+                          if (onOpenSearch != null) ...[
+                            const SizedBox(width: 12),
+                            _buildSearchButton(
+                              label: materialL10n.searchFieldLabel,
+                              theme: theme,
+                              foregroundColor: searchForegroundColor,
+                              backgroundColor: searchBackgroundColor,
+                              borderColor: searchBorderColor,
+                            ),
+                          ],
+                        ],
+                      ),
+                      SizedBox(height: isCompact ? 20 : 22),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: isCompact ? double.infinity : 520,
+                        ),
+                        child: Text(
+                          'Decidi il futuro.\nInsieme.',
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            height: 0.98,
+                            letterSpacing: -0.7,
+                            color: titleColor,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: isCompact ? 20 : 22),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          FilledButton.icon(
+                            onPressed: onOpenPolls,
+                            icon: const Icon(Icons.how_to_vote, size: 18),
+                            label: Text(l10n.homePollsViewAllButton),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 13,
+                              ),
+                              textStyle: theme.textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: onOpenNews,
+                            icon: const Icon(Icons.article_outlined, size: 18),
+                            label: Text(l10n.homeNewsViewAllButton),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: isDark
+                                  ? Colors.white.withOpacity(0.92)
+                                  : theme.colorScheme.onSurface,
+                              backgroundColor: isDark
+                                  ? Colors.white.withOpacity(0.05)
+                                  : Colors.white.withOpacity(0.88),
+                              side: BorderSide(
+                                color: isDark
+                                    ? Colors.white.withOpacity(0.12)
+                                    : theme.colorScheme.outline.withOpacity(0.16),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 13,
+                              ),
+                              textStyle: theme.textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ],
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Decidi il futuro.\nInsieme.',
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              height: 1.0,
-              letterSpacing: -0.6,
-              color: titleColor,
             ),
           ),
-          const SizedBox(height: 18),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              FilledButton.icon(
-                onPressed: onOpenPolls,
-                icon: const Icon(Icons.how_to_vote, size: 18),
-                label: Text(l10n.homePollsViewAllButton),
-              ),
-              OutlinedButton.icon(
-                onPressed: onOpenNews,
-                icon: const Icon(Icons.article_outlined, size: 18),
-                label: Text(l10n.homeNewsViewAllButton),
-              ),
-            ],
-          ),
-        ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSearchButton({
+    required String label,
+    required ThemeData theme,
+    required Color foregroundColor,
+    required Color backgroundColor,
+    required Color borderColor,
+  }) {
+    return OutlinedButton.icon(
+      onPressed: onOpenSearch,
+      icon: const Icon(Icons.search_rounded, size: 18),
+      label: Text(label),
+      style: OutlinedButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+        foregroundColor: foregroundColor,
+        backgroundColor: backgroundColor,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 11,
+        ),
+        textStyle: theme.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(999),
+        ),
+        side: BorderSide(
+          color: borderColor,
+        ),
       ),
     );
   }
@@ -193,7 +306,7 @@ class HomeHeroSection extends StatelessWidget {
   }) {
     return Container(
       constraints: const BoxConstraints(maxWidth: 420),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(999),
@@ -217,7 +330,7 @@ class HomeHeroSection extends StatelessWidget {
               label,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
                 color: foregroundColor,
               ),
             ),

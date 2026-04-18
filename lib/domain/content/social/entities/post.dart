@@ -1,5 +1,8 @@
 import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/institution_level.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 
 /// Entity di dominio per un post del social feed.
 ///
@@ -22,6 +25,15 @@ class Post {
   /// v1: semplice stringa.
   /// In futuro potrà essere derivata da UserProfile.
   final String authorName;
+
+  /// Tipo attore identity dell'autore.
+  final ActorType authorActorType;
+
+  /// Livello verifica identity dell'autore.
+  final VerificationLevel authorVerificationLevel;
+
+  /// Livello istituzionale dell'autore, se applicabile.
+  final InstitutionLevel? authorInstitutionLevel;
 
   /// Titolo breve del post, mostrato nel feed.
   final String title;
@@ -56,6 +68,9 @@ class Post {
   const Post({
     required this.id,
     required this.authorName,
+    this.authorActorType = ActorType.citizen,
+    this.authorVerificationLevel = VerificationLevel.none,
+    this.authorInstitutionLevel,
     required this.title,
     required this.content,
     required this.createdAt,
@@ -104,6 +119,9 @@ class Post {
   Post copyWith({
     EntityId? id,
     String? authorName,
+    ActorType? authorActorType,
+    VerificationLevel? authorVerificationLevel,
+    InstitutionLevel? authorInstitutionLevel,
     String? title,
     String? content,
     DateTime? createdAt,
@@ -116,6 +134,11 @@ class Post {
     return Post(
       id: id ?? this.id,
       authorName: authorName ?? this.authorName,
+      authorActorType: authorActorType ?? this.authorActorType,
+      authorVerificationLevel:
+          authorVerificationLevel ?? this.authorVerificationLevel,
+      authorInstitutionLevel:
+          authorInstitutionLevel ?? this.authorInstitutionLevel,
       title: title ?? this.title,
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
