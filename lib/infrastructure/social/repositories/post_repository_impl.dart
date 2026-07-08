@@ -171,9 +171,8 @@ class PostRepositoryImpl implements PostRepository {
       return const [];
     }
 
-    final normalizedRows = rows
-        .whereType<Map<String, dynamic>>()
-        .toList(growable: false);
+    final normalizedRows =
+        rows.whereType<Map<String, dynamic>>().toList(growable: false);
 
     if (normalizedRows.isEmpty) {
       return const [];
@@ -282,10 +281,6 @@ class PostRepositoryImpl implements PostRepository {
     final result = <String, String>{};
 
     for (final row in rows) {
-      if (row is! Map<String, dynamic>) {
-        continue;
-      }
-
       final id = row['id'] as String?;
       if (id == null || id.trim().isEmpty) {
         continue;
@@ -319,10 +314,6 @@ class PostRepositoryImpl implements PostRepository {
     final result = <String, _PostAuthorIdentity>{};
 
     for (final row in rows) {
-      if (row is! Map<String, dynamic>) {
-        continue;
-      }
-
       final id = row['id'] as String?;
       if (id == null || id.trim().isEmpty) {
         continue;

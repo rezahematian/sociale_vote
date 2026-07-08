@@ -367,9 +367,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   Widget build(BuildContext context) {
     final String? currentUserId = AppDI.instance.currentUserId;
     final bool isLoggedIn = currentUserId != null;
-    final int unreadNotificationsCount = isLoggedIn
-        ? (_homeNotificationsController?.unreadCount ?? 0)
-        : 0;
+    final int unreadNotificationsCount =
+        isLoggedIn ? (_homeNotificationsController?.unreadCount ?? 0) : 0;
 
     return AnimatedBuilder(
       animation: Listenable.merge([
@@ -385,9 +384,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
         final screenWidth = MediaQuery.sizeOf(context).width;
         final isCompactGuestTopBar = !isLoggedIn && screenWidth < 520.0;
-        final appBarToolbarHeight = isLoggedIn
-            ? 74.0
-            : (isCompactGuestTopBar ? 104.0 : 74.0);
+        final appBarToolbarHeight =
+            isLoggedIn ? 74.0 : (isCompactGuestTopBar ? 104.0 : 74.0);
 
         final backgroundGradient = isDark
             ? [
@@ -535,7 +533,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                       ),
                       HomeMapSection(
                         key: ValueKey(
-                          'home_map_${scope.level}_${scope.countryCode}_${scope.cityId}_${_homeRefreshVersion}',
+                          'home_map_${scope.level}_${scope.countryCode}_${scope.cityId}_$_homeRefreshVersion',
                         ),
                         scopeShortLabel: scopeShortLabel,
                       ),
@@ -553,7 +551,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                           children: [
                             ChangeNotifierProvider<PollListController>(
                               key: ValueKey(
-                                'home_polls_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}_${_homeRefreshVersion}',
+                                'home_polls_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}_$_homeRefreshVersion',
                               ),
                               create: (_) {
                                 final controller =
@@ -569,7 +567,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                             const SizedBox(height: 24),
                             ChangeNotifierProvider<NewsController>(
                               key: ValueKey(
-                                'home_news_${scope.level}_${scope.countryCode}_${scope.cityId}_${_homeNewsLanguageKey}_${_homeRefreshVersion}',
+                                'home_news_${scope.level}_${scope.countryCode}_${scope.cityId}_${_homeNewsLanguageKey}_$_homeRefreshVersion',
                               ),
                               create: (_) =>
                                   AppDI.instance.createNewsController()
@@ -581,7 +579,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                             const SizedBox(height: 24),
                             ChangeNotifierProvider<FeedController>(
                               key: ValueKey(
-                                'home_social_${scope.level}_${scope.countryCode}_${scope.cityId}_${_homeRefreshVersion}',
+                                'home_social_${scope.level}_${scope.countryCode}_${scope.cityId}_$_homeRefreshVersion',
                               ),
                               create: (_) =>
                                   AppDI.instance.createFeedController()

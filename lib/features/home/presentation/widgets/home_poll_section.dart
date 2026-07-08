@@ -191,9 +191,8 @@ class _HomePollCardTileState extends State<_HomePollCardTile> {
     return AnimatedBuilder(
       animation: _resultController,
       builder: (context, _) {
-        final PollResult? result = _resultController.canShowResults
-            ? _resultController.result
-            : null;
+        final PollResult? result =
+            _resultController.canShowResults ? _resultController.result : null;
 
         return PollCard(
           poll: widget.poll,
@@ -258,7 +257,7 @@ class HomePollsPlaceholderCard extends StatelessWidget {
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(top: 8),
-      color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+      color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),

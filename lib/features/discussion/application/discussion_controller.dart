@@ -43,7 +43,7 @@ class DiscussionController extends ChangeNotifier {
   CommentSortOrder _sortOrder = CommentSortOrder.oldestFirst;
 
   static const int _defaultPageSize = 10;
-  int _pageSize = _defaultPageSize;
+  final int _pageSize = _defaultPageSize;
   int _visibleRootCount = _defaultPageSize;
 
   List<Comment> get comments => List.unmodifiable(_comments);
@@ -266,7 +266,9 @@ class DiscussionController extends ChangeNotifier {
     try {
       final id = comment.id;
 
-      _comments = _comments.where((c) => c.id != id && c.parentId != id).toList()
+      _comments = _comments
+          .where((c) => c.id != id && c.parentId != id)
+          .toList()
         ..sort(_compareByCreatedAt);
 
       final totalRoots = _allRootCommentsCount();

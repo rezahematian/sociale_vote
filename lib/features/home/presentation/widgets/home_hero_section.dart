@@ -26,7 +26,8 @@ class HomeHeroSection extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final trimmedUserLabel = userLabel?.trim();
-    final hasUserLabel = trimmedUserLabel != null && trimmedUserLabel.isNotEmpty;
+    final hasUserLabel =
+        trimmedUserLabel != null && trimmedUserLabel.isNotEmpty;
 
     final heroGradient = isDark
         ? const [
@@ -56,13 +57,11 @@ class HomeHeroSection extends StatelessWidget {
         ? Colors.white.withOpacity(0.12)
         : theme.colorScheme.outline.withOpacity(0.12);
 
-    final chipForegroundColor = isDark
-        ? const Color(0xFFB5D0FF)
-        : theme.colorScheme.primary;
+    final chipForegroundColor =
+        isDark ? const Color(0xFFB5D0FF) : theme.colorScheme.primary;
 
-    final searchForegroundColor = isDark
-        ? Colors.white.withOpacity(0.94)
-        : theme.colorScheme.primary;
+    final searchForegroundColor =
+        isDark ? Colors.white.withOpacity(0.94) : theme.colorScheme.primary;
 
     final searchBackgroundColor = isDark
         ? Colors.white.withOpacity(0.08)
@@ -72,9 +71,8 @@ class HomeHeroSection extends StatelessWidget {
         ? Colors.white.withOpacity(0.14)
         : theme.colorScheme.outline.withOpacity(0.16);
 
-    final titleColor = isDark
-        ? Colors.white.withOpacity(0.97)
-        : theme.colorScheme.onSurface;
+    final titleColor =
+        isDark ? Colors.white.withOpacity(0.97) : theme.colorScheme.onSurface;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -166,7 +164,7 @@ class HomeHeroSection extends StatelessWidget {
                                   _buildTopChip(
                                     theme: theme,
                                     icon: Icons.person_outline_rounded,
-                                    label: trimmedUserLabel!,
+                                    label: trimmedUserLabel,
                                     foregroundColor: chipForegroundColor,
                                     backgroundColor: chipBackgroundColor,
                                     borderColor: chipBorderColor,
@@ -237,7 +235,8 @@ class HomeHeroSection extends StatelessWidget {
                               side: BorderSide(
                                 color: isDark
                                     ? Colors.white.withOpacity(0.12)
-                                    : theme.colorScheme.outline.withOpacity(0.16),
+                                    : theme.colorScheme.outline
+                                        .withOpacity(0.16),
                               ),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,

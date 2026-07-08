@@ -124,10 +124,10 @@ class PollDetailHeader extends StatelessWidget {
       en: 'Save',
     );
 
-    final representativeLabel = _hasRepresentativePublisher
-        ? _mapRepresentativeLabel(l10n)
-        : null;
-    final representativeDisplayName = _normalizeString(poll.publishedAsDisplayName);
+    final representativeLabel =
+        _hasRepresentativePublisher ? _mapRepresentativeLabel(l10n) : null;
+    final representativeDisplayName =
+        _normalizeString(poll.publishedAsDisplayName);
     final representativeInfoText =
         _mapRepresentativeInfoText(l10n, representativeDisplayName);
 
@@ -170,16 +170,16 @@ class PollDetailHeader extends StatelessWidget {
 
     final String? quorumInfoText = (minQuorum != null && isQuorumApplicable)
         ? (isQuorumReached
-              ? _localizedText(
-                  l10n,
-                  it: 'Quorum raggiunto • $totalVotes/$minQuorum',
-                  en: 'Quorum reached • $totalVotes/$minQuorum',
-                )
-              : _localizedText(
-                  l10n,
-                  it: 'Quorum non raggiunto • $totalVotes/$minQuorum',
-                  en: 'Quorum not reached • $totalVotes/$minQuorum',
-                ))
+            ? _localizedText(
+                l10n,
+                it: 'Quorum raggiunto • $totalVotes/$minQuorum',
+                en: 'Quorum reached • $totalVotes/$minQuorum',
+              )
+            : _localizedText(
+                l10n,
+                it: 'Quorum non raggiunto • $totalVotes/$minQuorum',
+                en: 'Quorum not reached • $totalVotes/$minQuorum',
+              ))
         : null;
 
     final titleColor = colorScheme.onSurface;
@@ -411,9 +411,8 @@ class PollDetailHeader extends StatelessWidget {
               _buildInfoStrip(
                 context,
                 text: quorumInfoText,
-                accentColor: isQuorumReached
-                    ? const Color(0xFF0E9F6E)
-                    : _softVioletFg,
+                accentColor:
+                    isQuorumReached ? const Color(0xFF0E9F6E) : _softVioletFg,
                 icon: isQuorumReached
                     ? Icons.check_circle_outline
                     : Icons.info_outline,
@@ -548,7 +547,8 @@ class PollDetailHeader extends StatelessWidget {
                                       : Icons.star_border_rounded,
                                   label: saveLabel,
                                   tooltip: isFavorite
-                                      ? l10n.pollDetail_removeFromFavoritesTooltip
+                                      ? l10n
+                                          .pollDetail_removeFromFavoritesTooltip
                                       : l10n.pollDetail_addToFavoritesTooltip,
                                   onPressed: onFavoritePressed,
                                   isActive: isFavorite,
@@ -982,9 +982,7 @@ class PollDetailHeader extends StatelessWidget {
     return _buildInfoPill(
       theme: theme,
       metrics: metrics,
-      icon: allowVoteChange
-          ? Icons.restart_alt_rounded
-          : Icons.block_outlined,
+      icon: allowVoteChange ? Icons.restart_alt_rounded : Icons.block_outlined,
       label: label,
       backgroundColor: tone.backgroundColor,
       foregroundColor: tone.foregroundColor,
@@ -1158,9 +1156,8 @@ class PollDetailHeader extends StatelessWidget {
     final enabled = onPressed != null;
     final activeTone = _participationTone(theme);
 
-    final backgroundColor = isActive
-        ? activeTone.backgroundColor
-        : colorScheme.surface;
+    final backgroundColor =
+        isActive ? activeTone.backgroundColor : colorScheme.surface;
     final borderColor = isActive
         ? activeTone.borderColor
         : colorScheme.outline.withOpacity(0.16);
@@ -1225,9 +1222,8 @@ class PollDetailHeader extends StatelessWidget {
     final enabled = onPressed != null;
     final activeTone = _participationTone(theme);
 
-    final backgroundColor = isActive
-        ? activeTone.backgroundColor
-        : colorScheme.surface;
+    final backgroundColor =
+        isActive ? activeTone.backgroundColor : colorScheme.surface;
     final borderColor = isActive
         ? activeTone.borderColor
         : colorScheme.outline.withOpacity(0.16);
@@ -1326,8 +1322,8 @@ class PollDetailHeader extends StatelessWidget {
   String _mapLocationLabel(AppLocalizations l10n) {
     final contentLocation = poll.contentLocation;
     final countryCode = contentLocation?.countryCode ?? poll.countryCode;
-    final cityName =
-        _normalizeString(contentLocation?.cityName) ?? _normalizeString(poll.cityId);
+    final cityName = _normalizeString(contentLocation?.cityName) ??
+        _normalizeString(poll.cityId);
 
     final country = _resolveCountryName(countryCode);
 
@@ -1463,7 +1459,7 @@ class PollDetailHeader extends StatelessWidget {
     return _localizedText(
       l10n,
       it: 'Fino ${_formatShortDate(endAt!)}',
-      en: 'Until ${_formatShortDate(endAt!)}',
+      en: 'Until ${_formatShortDate(endAt)}',
     );
   }
 

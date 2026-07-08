@@ -37,7 +37,7 @@ class HomeScopeHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
       child: Card(
         elevation: 0,
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),

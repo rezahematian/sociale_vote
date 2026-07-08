@@ -26,7 +26,7 @@ class ModerationRepositoryImpl implements ModerationRepository {
         .eq('user_id', userId)
         .limit(1);
 
-    if (existing is List && existing.isNotEmpty) {
+    if (existing.isNotEmpty) {
       return SubmitReportResult.alreadyReported;
     }
 
@@ -45,8 +45,7 @@ class ModerationRepositoryImpl implements ModerationRepository {
       final message = e.message.toLowerCase();
       final details = (e.details?.toString() ?? '').toLowerCase();
 
-      final isDuplicate =
-          message.contains('duplicate key') ||
+      final isDuplicate = message.contains('duplicate key') ||
           message.contains('unique constraint') ||
           details.contains('duplicate key') ||
           details.contains('unique constraint');

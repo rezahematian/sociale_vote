@@ -26,7 +26,7 @@ class VerificationRequestRepositoryImpl
       return null;
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     return _mapRequest(row);
   }
 
@@ -49,7 +49,7 @@ class VerificationRequestRepositoryImpl
       return null;
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     return _mapRequest(row);
   }
 
@@ -128,17 +128,14 @@ class VerificationRequestRepositoryImpl
       'status': VerificationRequestStatus.pending.storageKey,
     };
 
-    final rows = await AppSupabase.client
-        .from(_table)
-        .insert(payload)
-        .select()
-        .limit(1);
+    final rows =
+        await AppSupabase.client.from(_table).insert(payload).select().limit(1);
 
     if (rows.isEmpty) {
       throw Exception('Creazione richiesta verifica fallita.');
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     return _mapRequest(row);
   }
 
@@ -249,7 +246,8 @@ class VerificationRequestRepositoryImpl
     );
   }
 
-  Future<VerificationRequest> _getRequiredPendingRequest(String requestId) async {
+  Future<VerificationRequest> _getRequiredPendingRequest(
+      String requestId) async {
     final request = await getById(requestId);
 
     if (request == null) {

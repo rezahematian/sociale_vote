@@ -78,22 +78,20 @@ class PollCard extends StatelessWidget {
 
     final description = (poll.description ?? '').trim();
     final hasDescription = description.isNotEmpty;
-    final visibleOptionResults =
-        result == null ? const <PollOptionResult>[] : _sortedVisibleOptionResults(result!);
+    final visibleOptionResults = result == null
+        ? const <PollOptionResult>[]
+        : _sortedVisibleOptionResults(result!);
     final hasResults = visibleOptionResults.isNotEmpty;
 
-    final Color cardTopColor =
-        theme.brightness == Brightness.dark
-            ? const Color(0xFF18202B)
-            : const Color(0xFFFCFDFE);
-    final Color cardBottomColor =
-        theme.brightness == Brightness.dark
-            ? const Color(0xFF121A24)
-            : const Color(0xFFF0F4F9);
-    final Color cardBorderColor =
-        theme.brightness == Brightness.dark
-            ? const Color(0xFF2C3948)
-            : const Color(0xFFD7DFEA);
+    final Color cardTopColor = theme.brightness == Brightness.dark
+        ? const Color(0xFF18202B)
+        : const Color(0xFFFCFDFE);
+    final Color cardBottomColor = theme.brightness == Brightness.dark
+        ? const Color(0xFF121A24)
+        : const Color(0xFFF0F4F9);
+    final Color cardBorderColor = theme.brightness == Brightness.dark
+        ? const Color(0xFF2C3948)
+        : const Color(0xFFD7DFEA);
 
     final topChipItems = _buildTopChipItems(
       context: context,
@@ -393,10 +391,9 @@ class PollCard extends StatelessWidget {
   }) {
     double width = 0;
 
-    final horizontalPadding =
-        label == null
-            ? (metrics.horizontalPadding - 1) * 2
-            : metrics.horizontalPadding * 2;
+    final horizontalPadding = label == null
+        ? (metrics.horizontalPadding - 1) * 2
+        : metrics.horizontalPadding * 2;
 
     width += horizontalPadding;
     width += 2; // bordo + margine di sicurezza
@@ -563,7 +560,8 @@ class PollCard extends StatelessWidget {
     return l10n.pollCard_quorumLabel(minQuorum);
   }
 
-  String _formatChipDate(BuildContext context, DateTime date, {required bool compact}) {
+  String _formatChipDate(BuildContext context, DateTime date,
+      {required bool compact}) {
     final locale = Localizations.localeOf(context).languageCode.toLowerCase();
     final local = date.toLocal();
 
@@ -911,10 +909,9 @@ class PollCard extends StatelessWidget {
     return _buildInfoPill(
       theme: theme,
       metrics: _chipMetrics,
-      icon:
-          isAnonymous
-              ? Icons.visibility_off_outlined
-              : Icons.visibility_outlined,
+      icon: isAnonymous
+          ? Icons.visibility_off_outlined
+          : Icons.visibility_outlined,
       label: _anonymityLabel(l10n),
       backgroundColor: tone.backgroundColor,
       foregroundColor: tone.foregroundColor,
@@ -1163,7 +1160,8 @@ class _PollEngagementRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: AppDI.instance.getCommentsForTarget(TargetRef.poll(poll.id.value)),
+      future:
+          AppDI.instance.getCommentsForTarget(TargetRef.poll(poll.id.value)),
       builder: (context, snapshot) {
         final comments = snapshot.data as List<dynamic>? ?? const [];
         final commentCount = snapshot.hasError ? 0 : comments.length;
@@ -1266,9 +1264,7 @@ class _PollResultPreview extends StatelessWidget {
 
               return Padding(
                 padding: EdgeInsets.only(
-                  bottom: index == topOptions.length - 1
-                      ? 0
-                      : AppSpacing.unitS,
+                  bottom: index == topOptions.length - 1 ? 0 : AppSpacing.unitS,
                 ),
                 child: _PollResultRow(
                   option: option,
@@ -1329,7 +1325,8 @@ class _PollResultRow extends StatelessWidget {
           child: LinearProgressIndicator(
             value: percentage / 100,
             minHeight: 7,
-            backgroundColor: theme.colorScheme.surfaceVariant.withValues(
+            backgroundColor:
+                theme.colorScheme.surfaceContainerHighest.withValues(
               alpha: 0.55,
             ),
             valueColor: AlwaysStoppedAnimation<Color>(color),
@@ -1362,7 +1359,8 @@ class _PollResultDonut extends StatelessWidget {
         height: 112,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: theme.colorScheme.surfaceVariant.withValues(alpha: 0.45),
+          color:
+              theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
         ),
         alignment: Alignment.center,
         child: Text(
@@ -1453,7 +1451,7 @@ class _PollTimeRingPainter extends CustomPainter {
     final clamped = progress.clamp(0.0, 1.0).toDouble();
     final visibleProgress = clamped <= 0.0 ? 0.03 : clamped;
 
-    final strokeWidth = 5.0;
+    const strokeWidth = 5.0;
     final center = size.center(Offset.zero);
     final radius = (size.width - strokeWidth) / 2;
     final rect = Rect.fromCircle(center: center, radius: radius);
@@ -1466,17 +1464,17 @@ class _PollTimeRingPainter extends CustomPainter {
     canvas.drawCircle(center, radius, trackPaint);
 
     final gradientPaint = Paint()
-      ..shader = SweepGradient(
+      ..shader = const SweepGradient(
         startAngle: -math.pi / 2,
         endAngle: 3 * math.pi / 2,
-        colors: const [
+        colors: [
           Color(0xFF22C55E),
           Color(0xFF22C55E),
           Color(0xFFF59E0B),
           Color(0xFFEF4444),
         ],
-        stops: const [0.0, 0.45, 0.78, 1.0],
-        transform: const GradientRotation(-math.pi / 2),
+        stops: [0.0, 0.45, 0.78, 1.0],
+        transform: GradientRotation(-math.pi / 2),
       ).createShader(rect)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth

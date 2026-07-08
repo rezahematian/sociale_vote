@@ -35,7 +35,7 @@ class ReactionRepositoryImpl implements ReactionRepository {
       return null;
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     return _mapReaction(row);
   }
 
@@ -62,7 +62,7 @@ class ReactionRepositoryImpl implements ReactionRepository {
       throw Exception('Creazione reaction fallita.');
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     return _mapReaction(row);
   }
 
@@ -84,13 +84,16 @@ class ReactionRepositoryImpl implements ReactionRepository {
       throw StateError('Reaction not found: $reactionId');
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     return _mapReaction(row);
   }
 
   @override
   Future<void> delete(String reactionId) async {
-    await AppSupabase.client.from(_reactionsTable).delete().eq('id', reactionId);
+    await AppSupabase.client
+        .from(_reactionsTable)
+        .delete()
+        .eq('id', reactionId);
   }
 
   @override

@@ -181,17 +181,15 @@ class _MyProfileViewState extends State<_MyProfileView> {
 
     final actorTypeLabel =
         profile?.actorTypeLabel ?? _formatActorTypeLabel(actorType);
-    final verificationLevelLabel =
-        profile?.verificationLevelLabel ??
+    final verificationLevelLabel = profile?.verificationLevelLabel ??
         _formatVerificationLevelLabel(verificationLevel);
-    final institutionLevelLabel =
-        profile?.institutionLevelLabel ??
+    final institutionLevelLabel = profile?.institutionLevelLabel ??
         _formatInstitutionLevelLabel(institutionLevel);
     final identityDetailLabel = profile?.identityDetailLabel;
     final primaryIdentityBadgeLabel = profile?.primaryIdentityBadgeLabel;
     final secondaryIdentityBadgeLabel = profile?.secondaryIdentityBadgeLabel;
-    final hasIdentityBadges =
-        primaryIdentityBadgeLabel != null || secondaryIdentityBadgeLabel != null;
+    final hasIdentityBadges = primaryIdentityBadgeLabel != null ||
+        secondaryIdentityBadgeLabel != null;
 
     final hasPendingRequest = pendingRequest != null;
     final hasRejectedState =
@@ -526,7 +524,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<InstitutionLevel>(
-                      value: selectedLevel,
+                      initialValue: selectedLevel,
                       decoration: const InputDecoration(
                         labelText: 'Institution level',
                         border: OutlineInputBorder(),
@@ -597,7 +595,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
   }
 
   Future<void> _confirmCancelPendingRequest() async {
-    final verificationController = context.read<VerificationRequestsController>();
+    final verificationController =
+        context.read<VerificationRequestsController>();
 
     final shouldCancel = await showDialog<bool>(
           context: context,
@@ -692,8 +691,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
         profile?.verificationStatus ?? VerificationStatus.none;
     final pendingRequest = verificationController.pendingRequest;
 
-    final accountStatusLabel =
-        profile?.accountStatusLabel ??
+    final accountStatusLabel = profile?.accountStatusLabel ??
         _accountStatusLabel(
           actorType: actorType,
           verificationLevel: verificationLevel,
@@ -708,8 +706,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
     final identityDetailLabel = profile?.identityDetailLabel;
     final primaryIdentityBadgeLabel = profile?.primaryIdentityBadgeLabel;
     final secondaryIdentityBadgeLabel = profile?.secondaryIdentityBadgeLabel;
-    final hasIdentityBadges =
-        primaryIdentityBadgeLabel != null || secondaryIdentityBadgeLabel != null;
+    final hasIdentityBadges = primaryIdentityBadgeLabel != null ||
+        secondaryIdentityBadgeLabel != null;
 
     return Scaffold(
       appBar: AppBar(
@@ -719,9 +717,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
         onRefresh: () async {
           await Future.wait<void>([
             context.read<ProfileController>().loadProfile(currentUserId),
-            context
-                .read<VerificationRequestsController>()
-                .load(currentUserId),
+            context.read<VerificationRequestsController>().load(currentUserId),
           ]);
           _refreshUnreadNotificationsCount();
         },
@@ -1114,7 +1110,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
       _formatActorTypeLabel(actorType),
     ];
 
-    final institutionLevelLabel = _formatInstitutionLevelLabel(institutionLevel);
+    final institutionLevelLabel =
+        _formatInstitutionLevelLabel(institutionLevel);
     if (institutionLevelLabel != null) {
       parts.add(institutionLevelLabel);
     }
@@ -1265,9 +1262,8 @@ class _IdentityBadgeChip extends StatelessWidget {
     final borderColor = isPrimary
         ? theme.colorScheme.primary.withOpacity(0.22)
         : theme.colorScheme.outline.withOpacity(0.14);
-    final textColor = isPrimary
-        ? theme.colorScheme.primary
-        : theme.colorScheme.onSurface;
+    final textColor =
+        isPrimary ? theme.colorScheme.primary : theme.colorScheme.onSurface;
 
     return Container(
       padding: const EdgeInsets.symmetric(

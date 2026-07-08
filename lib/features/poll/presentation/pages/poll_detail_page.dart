@@ -694,8 +694,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
                 );
               }
 
-              final shouldInitFavorite =
-                  AppDI.instance.currentUserId != null &&
+              final shouldInitFavorite = AppDI.instance.currentUserId != null &&
                   (!_favoriteInitialized ||
                       _initializedFavoritePollId != poll.id.value);
 
@@ -759,7 +758,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
     String? userCountryCode;
     try {
       final profile = await AppDI.instance.getUserProfile(userId);
-      final normalizedCountry = profile?.country?.trim();
+      final normalizedCountry = profile.country?.trim();
       if (normalizedCountry != null && normalizedCountry.isNotEmpty) {
         userCountryCode = normalizedCountry.toUpperCase();
       }
@@ -792,7 +791,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
     final userReaction = _controller.userReaction;
     final int commentCount = discussionController.comments.length;
 
-    final String currentUserForComments = AppDI.instance.currentUserId ?? 'guest';
+    final String currentUserForComments =
+        AppDI.instance.currentUserId ?? 'guest';
 
     final l10n = AppLocalizations.of(context)!;
 
@@ -982,9 +982,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                onPressed: _canVote(poll)
-                    ? () => _onVotePressed(context, poll)
-                    : null,
+                onPressed:
+                    _canVote(poll) ? () => _onVotePressed(context, poll) : null,
                 child: _voteController.isSubmitting
                     ? const SizedBox(
                         width: 18,
@@ -1474,8 +1473,7 @@ class _PublicVotesBody extends StatelessWidget {
             },
           ),
         ),
-        if (resultController.isPublicVotesLoading &&
-            entries.isNotEmpty) ...[
+        if (resultController.isPublicVotesLoading && entries.isNotEmpty) ...[
           const SizedBox(height: 12),
           const SizedBox(
             width: 22,
@@ -1571,18 +1569,16 @@ class _PublicVoteTileState extends State<_PublicVoteTile> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final primaryLabel =
-        entry.displayName?.trim().isNotEmpty == true
-            ? entry.displayName!.trim()
-            : entry.username?.trim().isNotEmpty == true
-                ? '@${entry.username!.trim()}'
-                : 'Utente';
-
-    final secondaryLabel =
-        entry.displayName?.trim().isNotEmpty == true &&
-                entry.username?.trim().isNotEmpty == true
+    final primaryLabel = entry.displayName?.trim().isNotEmpty == true
+        ? entry.displayName!.trim()
+        : entry.username?.trim().isNotEmpty == true
             ? '@${entry.username!.trim()}'
-            : null;
+            : 'Utente';
+
+    final secondaryLabel = entry.displayName?.trim().isNotEmpty == true &&
+            entry.username?.trim().isNotEmpty == true
+        ? '@${entry.username!.trim()}'
+        : null;
 
     return Container(
       padding: const EdgeInsets.all(14),

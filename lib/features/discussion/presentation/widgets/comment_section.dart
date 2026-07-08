@@ -38,8 +38,7 @@ class CommentSection extends StatefulWidget {
 }
 
 class _CommentSectionState extends State<CommentSection> {
-  final TextEditingController _primaryInputController =
-      TextEditingController();
+  final TextEditingController _primaryInputController = TextEditingController();
   final TextEditingController _replyInputController = TextEditingController();
 
   final Map<String, String> _authorLabels = <String, String>{};
@@ -320,22 +319,19 @@ class _CommentSectionState extends State<CommentSection> {
                         authorLabel: _authorLabelFor(root),
                         authorProfile: _authorProfileFor(root),
                         isReply: false,
-                        isCurrentUser:
-                            currentUserId != null &&
+                        isCurrentUser: currentUserId != null &&
                             root.userId == currentUserId,
                         onReplyTap: () => _startReply(
                           parentForSubmit: root,
                           anchorComment: root,
                         ),
-                        canEdit:
-                            currentUserId != null &&
+                        canEdit: currentUserId != null &&
                             root.userId == currentUserId,
                         onEditTap: (currentUserId != null &&
                                 root.userId == currentUserId)
                             ? () => _startEdit(root)
                             : null,
-                        canDelete:
-                            currentUserId != null &&
+                        canDelete: currentUserId != null &&
                             root.userId == currentUserId,
                         onDeleteTap: (currentUserId != null &&
                                 root.userId == currentUserId)
@@ -445,8 +441,7 @@ class _CommentSectionState extends State<CommentSection> {
                                                               null &&
                                                           reply.userId ==
                                                               currentUserId)
-                                                      ? () =>
-                                                          _startEdit(reply)
+                                                      ? () => _startEdit(reply)
                                                       : null,
                                                   canDelete:
                                                       currentUserId != null &&
@@ -546,8 +541,7 @@ class _CommentSectionState extends State<CommentSection> {
                   child: Text(
                     _localizedText(
                       l10n,
-                      it:
-                          'Stai modificando: ${_shorten(_editingComment!.content)}',
+                      it: 'Stai modificando: ${_shorten(_editingComment!.content)}',
                       en: 'Editing: ${_shorten(_editingComment!.content)}',
                     ),
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -1323,7 +1317,8 @@ class _AuthorAvatar extends StatelessWidget {
         ? colorScheme.primary.withOpacity(isDark ? 0.18 : 0.14)
         : isReply
             ? colorScheme.primary.withOpacity(isDark ? 0.12 : 0.08)
-            : colorScheme.surfaceVariant.withOpacity(isDark ? 0.28 : 0.55);
+            : colorScheme.surfaceContainerHighest
+                .withOpacity(isDark ? 0.28 : 0.55);
 
     final borderColor = isCurrentUser
         ? colorScheme.primary.withOpacity(isDark ? 0.36 : 0.25)

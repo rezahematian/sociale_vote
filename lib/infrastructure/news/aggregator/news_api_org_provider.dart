@@ -23,7 +23,8 @@ class NewsApiOrgProvider implements NewsProvider {
     try {
       // Mapping paging: (limit/offset) -> (pageSize/page)
       final pageSize = (limit == null || limit <= 0) ? 10 : limit;
-      final page = (offset == null || offset < 0) ? 1 : (offset ~/ pageSize) + 1;
+      final page =
+          (offset == null || offset < 0) ? 1 : (offset ~/ pageSize) + 1;
 
       // Query strategy:
       // - se cityId presente: q=cityId
@@ -52,7 +53,7 @@ class NewsApiOrgProvider implements NewsProvider {
       final items = <Map<String, dynamic>>[];
       for (final a in articles) {
         if (a is! Map) continue;
-        final m = Map<String, dynamic>.from(a as Map);
+        final m = Map<String, dynamic>.from(a);
 
         final url = (m['url'] as String?) ?? '';
         if (url.isEmpty) {
@@ -61,9 +62,10 @@ class NewsApiOrgProvider implements NewsProvider {
         }
 
         final publishedAtRaw = (m['publishedAt'] as String?);
-        final publishedAt = (publishedAtRaw != null && publishedAtRaw.isNotEmpty)
-            ? publishedAtRaw
-            : DateTime.now().toUtc().toIso8601String();
+        final publishedAt =
+            (publishedAtRaw != null && publishedAtRaw.isNotEmpty)
+                ? publishedAtRaw
+                : DateTime.now().toUtc().toIso8601String();
 
         final source = (m['source'] is Map)
             ? Map<String, dynamic>.from(m['source'] as Map)

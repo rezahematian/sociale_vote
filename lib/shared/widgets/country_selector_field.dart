@@ -19,7 +19,7 @@ class CountrySelectorField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final countries = data.Countries.all;
+    const countries = data.Countries.all;
     final effectiveLabel = required ? '$label *' : label;
 
     final selected = countries.firstWhere(
@@ -48,7 +48,7 @@ class CountrySelectorField extends StatelessWidget {
   }
 
   Future<void> _openCountryPicker(BuildContext context) async {
-    final countries = data.Countries.all;
+    const countries = data.Countries.all;
 
     String query = '';
     final String? resultCode = await showDialog<String>(

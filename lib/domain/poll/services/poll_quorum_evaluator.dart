@@ -16,10 +16,10 @@ class PollQuorumEvaluator {
     required Poll poll,
     required PollResult result,
   }) {
-    final QuorumRules? rules = poll.configuration.quorumRules;
+    final QuorumRules rules = poll.configuration.quorumRules;
 
     // Nessuna regola di quorum configurata → non applicabile
-    if (rules == null || rules.minAbsoluteVotes == null) {
+    if (rules.minAbsoluteVotes == null) {
       return QuorumStatus.notApplicable;
     }
 

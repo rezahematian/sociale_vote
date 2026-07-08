@@ -223,8 +223,7 @@ class AppDI {
   String? _followScopeControllerUserId;
 
   final Map<String, _CachedTargetEngagementSnapshot>
-      _mapEngagementSnapshotCache =
-      <String, _CachedTargetEngagementSnapshot>{};
+      _mapEngagementSnapshotCache = <String, _CachedTargetEngagementSnapshot>{};
 
   GeoScopeController get geoScopeController => _geoScopeController;
 
@@ -315,7 +314,7 @@ class AppDI {
     postRepository: postRepository,
   );
   late final StorageService _storageService = StorageService(
-    const SharedPreferencesKeyValueStorage(),
+    SharedPreferencesKeyValueStorage(),
   );
 
   String? _currentUserId;
@@ -1244,7 +1243,8 @@ class AppDI {
     final scopeCountryCode = _normalizeGeoValue(_readScopeCountryCode(scope));
     final scopeCityId = _normalizeGeoValue(_readScopeCityId(scope));
 
-    final entityCountryCode = _normalizeGeoValue(_readEntityCountryCode(entity));
+    final entityCountryCode =
+        _normalizeGeoValue(_readEntityCountryCode(entity));
     final entityCityId = _normalizeGeoValue(_readEntityCityId(entity));
 
     if (levelName == 'country') {
@@ -2094,7 +2094,8 @@ class AppDI {
     }
 
     try {
-      final summaries = await reactionRepository.getSummariesForTargets(targets);
+      final summaries =
+          await reactionRepository.getSummariesForTargets(targets);
 
       for (var i = 0; i < targets.length; i++) {
         final summary = i < summaries.length ? summaries[i] : null;

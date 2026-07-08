@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/app/theme/colors.dart';
-import 'package:sociale_vote/app/theme/radius.dart';
 import 'package:sociale_vote/app/theme/spacing.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
@@ -352,7 +351,8 @@ class _PollListPageState extends State<PollListPage> {
             _PollFilterItem(
               label: _scopeFilterLabel(l10n, PollScopeFilter.currentScope),
               selected: controller.scopeFilter == PollScopeFilter.currentScope,
-              onTap: () => controller.setScopeFilter(PollScopeFilter.currentScope),
+              onTap: () =>
+                  controller.setScopeFilter(PollScopeFilter.currentScope),
             ),
             _PollFilterItem(
               label: _sortModeLabel(l10n, PollSortMode.hottest),
@@ -458,14 +458,13 @@ class _PollListPageState extends State<PollListPage> {
         ? colorScheme.primary
         : colorScheme.onSurface.withOpacity(isPrimary ? 0.86 : 0.72);
 
-    final textStyle = (isPrimary
-            ? theme.textTheme.labelLarge
-            : theme.textTheme.labelMedium)
-        ?.copyWith(
-          fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-          color: textColor,
-          height: 1,
-        );
+    final textStyle =
+        (isPrimary ? theme.textTheme.labelLarge : theme.textTheme.labelMedium)
+            ?.copyWith(
+      fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+      color: textColor,
+      height: 1,
+    );
 
     return Material(
       color: Colors.transparent,
@@ -579,7 +578,7 @@ class _PollListPageState extends State<PollListPage> {
     return AppCard(
       child: Column(
         children: [
-          Icon(
+          const Icon(
             Icons.inbox_outlined,
             size: 32,
             color: AppColors.textMuted,

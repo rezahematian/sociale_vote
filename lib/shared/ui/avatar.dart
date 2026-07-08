@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/theme/colors.dart';
-import 'package:sociale_vote/app/theme/radius.dart';
 
 /// Avatar standard dell'app.
 ///

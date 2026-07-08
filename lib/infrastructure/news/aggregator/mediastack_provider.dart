@@ -21,7 +21,8 @@ class MediaStackProvider implements NewsProvider {
     int? offset,
   }) async {
     try {
-      final keywords = (cityId != null && cityId.trim().isNotEmpty) ? cityId : null;
+      final keywords =
+          (cityId != null && cityId.trim().isNotEmpty) ? cityId : null;
 
       final json = await _api.fetchNews(
         countries: countryCode,
@@ -35,17 +36,14 @@ class MediaStackProvider implements NewsProvider {
       // mediastack error format: { "error": { "code": "...", ... } }
       final err = json['error'];
       final rateLimited = (err is Map) &&
-          ((err['code'] ?? '')
-              .toString()
-              .toLowerCase()
-              .contains('rate'));
+          ((err['code'] ?? '').toString().toLowerCase().contains('rate'));
 
       final data = (json['data'] is List) ? (json['data'] as List) : const [];
 
       final items = <Map<String, dynamic>>[];
       for (final a in data) {
         if (a is! Map) continue;
-        final m = Map<String, dynamic>.from(a as Map);
+        final m = Map<String, dynamic>.from(a);
 
         final url = (m['url'] as String?) ?? '';
         if (url.isEmpty) {
@@ -54,9 +52,10 @@ class MediaStackProvider implements NewsProvider {
         }
 
         final publishedAtRaw = (m['published_at'] as String?);
-        final publishedAt = (publishedAtRaw != null && publishedAtRaw.isNotEmpty)
-            ? publishedAtRaw
-            : DateTime.now().toUtc().toIso8601String();
+        final publishedAt =
+            (publishedAtRaw != null && publishedAtRaw.isNotEmpty)
+                ? publishedAtRaw
+                : DateTime.now().toUtc().toIso8601String();
 
         // Normalizzazione compatibile con NewsDto.fromJson (schema GNews-like)
         items.add(<String, dynamic>{

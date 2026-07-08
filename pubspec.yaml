@@ -80,6 +80,7 @@ dependencies:
   firebase_core: ^4.6.0
   firebase_analytics: ^12.2.0
 
+  meta: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

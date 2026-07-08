@@ -153,7 +153,8 @@ class AuthGuard {
 
     if (userId != null && role == null) {
       try {
-        final session = await AppDI.instance.sessionRepository.getCurrentSession();
+        final session =
+            await AppDI.instance.sessionRepository.getCurrentSession();
         resolvedRole = session?.role ?? Role.user;
       } catch (_) {
         resolvedRole = Role.user;
@@ -167,14 +168,11 @@ class AuthGuard {
 
     if (needsProfileLookup) {
       try {
-        final profile = await AppDI.instance.getUserProfile(userId!);
-        if (profile != null) {
-          resolvedActorType = actorType ?? profile.actorType;
-          resolvedVerificationLevel =
-              verificationLevel ?? profile.verificationLevel;
-          resolvedInstitutionLevel =
-              institutionLevel ?? profile.institutionLevel;
-        }
+        final profile = await AppDI.instance.getUserProfile(userId);
+        resolvedActorType = actorType ?? profile.actorType;
+        resolvedVerificationLevel =
+            verificationLevel ?? profile.verificationLevel;
+        resolvedInstitutionLevel = institutionLevel ?? profile.institutionLevel;
       } catch (_) {
         // Manteniamo i fallback safe già impostati sopra.
       }

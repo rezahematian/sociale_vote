@@ -26,7 +26,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       return null;
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     return _mapProfile(row);
   }
 
@@ -47,7 +47,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       return null;
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     return _mapProfile(row);
   }
 
@@ -95,17 +95,14 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       'updated_at': now,
     };
 
-    final rows = await AppSupabase.client
-        .from(_table)
-        .insert(payload)
-        .select()
-        .limit(1);
+    final rows =
+        await AppSupabase.client.from(_table).insert(payload).select().limit(1);
 
     if (rows.isEmpty) {
       throw Exception('Creazione profilo fallita.');
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     return _mapProfile(row);
   }
 
@@ -158,7 +155,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       throw Exception('Aggiornamento profilo fallito.');
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     return _mapProfile(row);
   }
 
@@ -217,7 +214,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       throw Exception('Aggiornamento stato identità fallito.');
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     return _mapProfile(row);
   }
 
@@ -287,8 +284,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
 
   VerificationStatus _readVerificationStatus(Map<String, dynamic> row) {
     final rawVerificationStatus = row['verification_status'] as String?;
-    if (rawVerificationStatus == null ||
-        rawVerificationStatus.trim().isEmpty) {
+    if (rawVerificationStatus == null || rawVerificationStatus.trim().isEmpty) {
       return VerificationStatus.none;
     }
 

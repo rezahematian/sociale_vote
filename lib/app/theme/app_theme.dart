@@ -79,14 +79,14 @@ class AppTheme {
       // =========================================================
       // CARD
       // =========================================================
-      cardTheme: CardThemeData(
+      cardTheme: const CardThemeData(
         color: AppColors.surface,
         shadowColor: Colors.transparent,
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.cardRadius,
-          side: const BorderSide(
+          side: BorderSide(
             color: AppColors.borderSoft,
             width: 1,
           ),
@@ -126,7 +126,7 @@ class AppTheme {
             return null;
           }),
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-            RoundedRectangleBorder(
+            const RoundedRectangleBorder(
               borderRadius: AppRadius.buttonRadius,
             ),
           ),
@@ -164,7 +164,7 @@ class AppTheme {
             return null;
           }),
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-            RoundedRectangleBorder(
+            const RoundedRectangleBorder(
               borderRadius: AppRadius.buttonRadius,
             ),
           ),
@@ -196,7 +196,7 @@ class AppTheme {
             return null;
           }),
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-            RoundedRectangleBorder(
+            const RoundedRectangleBorder(
               borderRadius: AppRadius.buttonRadius,
             ),
           ),
@@ -233,7 +233,7 @@ class AppTheme {
             return null;
           }),
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-            RoundedRectangleBorder(
+            const RoundedRectangleBorder(
               borderRadius: AppRadius.buttonRadius,
             ),
           ),
@@ -260,37 +260,37 @@ class AppTheme {
           horizontal: AppSpacing.s,
           vertical: AppSpacing.xs,
         ),
-        border: OutlineInputBorder(
+        border: const OutlineInputBorder(
           borderRadius: AppRadius.inputRadius,
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.borderSoft,
             width: 1,
           ),
         ),
-        enabledBorder: OutlineInputBorder(
+        enabledBorder: const OutlineInputBorder(
           borderRadius: AppRadius.inputRadius,
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.borderSoft,
             width: 1,
           ),
         ),
-        focusedBorder: OutlineInputBorder(
+        focusedBorder: const OutlineInputBorder(
           borderRadius: AppRadius.inputRadius,
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.primary,
             width: 1.2,
           ),
         ),
-        errorBorder: OutlineInputBorder(
+        errorBorder: const OutlineInputBorder(
           borderRadius: AppRadius.inputRadius,
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.error,
             width: 1.2,
           ),
         ),
-        focusedErrorBorder: OutlineInputBorder(
+        focusedErrorBorder: const OutlineInputBorder(
           borderRadius: AppRadius.inputRadius,
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.error,
             width: 1.2,
           ),
@@ -325,9 +325,9 @@ class AppTheme {
         secondaryLabelStyle: AppTypography.textTheme.labelMedium!.copyWith(
           color: AppColors.primary,
         ),
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.pillRadius,
-          side: const BorderSide(
+          side: BorderSide(
             color: AppColors.borderSoft,
             width: 1,
           ),
@@ -354,7 +354,7 @@ class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.dialogRadius,
         ),
         titleTextStyle: AppTypography.textTheme.headlineSmall,
@@ -376,7 +376,7 @@ class AppTheme {
         backgroundColor: AppColors.surface,
         contentTextStyle: AppTypography.textTheme.bodyMedium,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.buttonRadius,
         ),
       ),
@@ -444,14 +444,14 @@ class AppTheme {
       // =========================================================
       // CARD
       // =========================================================
-      cardTheme: CardThemeData(
+      cardTheme: const CardThemeData(
         color: AppColors.surfaceDark,
         shadowColor: Colors.transparent,
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.cardRadius,
-          side: const BorderSide(
+          side: BorderSide(
             color: AppColors.borderSoftDark,
             width: 1,
           ),
@@ -491,7 +491,7 @@ class AppTheme {
             return null;
           }),
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-            RoundedRectangleBorder(
+            const RoundedRectangleBorder(
               borderRadius: AppRadius.buttonRadius,
             ),
           ),
@@ -529,7 +529,7 @@ class AppTheme {
             return null;
           }),
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-            RoundedRectangleBorder(
+            const RoundedRectangleBorder(
               borderRadius: AppRadius.buttonRadius,
             ),
           ),
@@ -561,7 +561,7 @@ class AppTheme {
             return null;
           }),
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-            RoundedRectangleBorder(
+            const RoundedRectangleBorder(
               borderRadius: AppRadius.buttonRadius,
             ),
           ),
@@ -598,7 +598,7 @@ class AppTheme {
             return null;
           }),
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-            RoundedRectangleBorder(
+            const RoundedRectangleBorder(
               borderRadius: AppRadius.buttonRadius,
             ),
           ),
@@ -625,37 +625,37 @@ class AppTheme {
           horizontal: AppSpacing.s,
           vertical: AppSpacing.xs,
         ),
-        border: OutlineInputBorder(
+        border: const OutlineInputBorder(
           borderRadius: AppRadius.inputRadius,
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.borderSoftDark,
             width: 1,
           ),
         ),
-        enabledBorder: OutlineInputBorder(
+        enabledBorder: const OutlineInputBorder(
           borderRadius: AppRadius.inputRadius,
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.borderSoftDark,
             width: 1,
           ),
         ),
-        focusedBorder: OutlineInputBorder(
+        focusedBorder: const OutlineInputBorder(
           borderRadius: AppRadius.inputRadius,
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.primary,
             width: 1.2,
           ),
         ),
-        errorBorder: OutlineInputBorder(
+        errorBorder: const OutlineInputBorder(
           borderRadius: AppRadius.inputRadius,
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.error,
             width: 1.2,
           ),
         ),
-        focusedErrorBorder: OutlineInputBorder(
+        focusedErrorBorder: const OutlineInputBorder(
           borderRadius: AppRadius.inputRadius,
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.error,
             width: 1.2,
           ),
@@ -692,9 +692,9 @@ class AppTheme {
         secondaryLabelStyle: darkTextTheme.labelMedium!.copyWith(
           color: AppColors.primarySoftForegroundDark,
         ),
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.pillRadius,
-          side: const BorderSide(
+          side: BorderSide(
             color: AppColors.borderSoftDark,
             width: 1,
           ),
@@ -721,7 +721,7 @@ class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surfaceDark,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.dialogRadius,
         ),
         titleTextStyle: darkTextTheme.headlineSmall,
@@ -745,7 +745,7 @@ class AppTheme {
           color: AppColors.textPrimaryDark,
         ),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.buttonRadius,
         ),
       ),

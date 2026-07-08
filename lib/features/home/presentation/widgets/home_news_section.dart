@@ -1,5 +1,3 @@
-import 'dart:ui' show PointerDeviceKind;
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -110,7 +108,7 @@ class _HomeNewsSectionState extends State<HomeNewsSection> {
               child: LinearProgressIndicator(
                 minHeight: 3,
                 backgroundColor:
-                    theme.colorScheme.surfaceVariant.withOpacity(0.5),
+                    theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
               ),
             ),
             const SizedBox(height: 10),
@@ -346,8 +344,9 @@ class _SecondaryNewsCarouselState extends State<_SecondaryNewsCarousel> {
 
                               return Padding(
                                 padding: EdgeInsets.only(
-                                  right:
-                                      index == widget.newsList.length - 1 ? 0 : 10,
+                                  right: index == widget.newsList.length - 1
+                                      ? 0
+                                      : 10,
                                 ),
                                 child: _NewsCardBuilder(
                                   news: news,
@@ -602,7 +601,8 @@ class _HomeNewsHeader extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant.withOpacity(0.45),
+              color:
+                  theme.colorScheme.surfaceContainerHighest.withOpacity(0.45),
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
                 color: theme.dividerColor.withOpacity(0.35),
@@ -741,7 +741,8 @@ class _HomeNewsInlineStatus extends StatelessWidget {
                   Text(
                     subtitle,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.78),
+                      color:
+                          theme.textTheme.bodySmall?.color?.withOpacity(0.78),
                     ),
                   ),
                 ],
@@ -751,8 +752,7 @@ class _HomeNewsInlineStatus extends StatelessWidget {
             TextButton(
               onPressed: onRetryPressed,
               child: Text(
-                MaterialLocalizations.of(context)
-                    .refreshIndicatorSemanticLabel,
+                MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
               ),
             ),
           ],
@@ -767,8 +767,8 @@ class _HomeNewsLoadingState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: const [
+    return const Column(
+      children: [
         _HomeNewsLoadingCard(compact: false),
         SizedBox(height: 12),
         _HomeNewsLoadingCard(compact: true),
@@ -1038,9 +1038,10 @@ class _NewsCardTextBlock extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           news.title,
-          style:
-              (compact ? theme.textTheme.bodyMedium : theme.textTheme.titleSmall)
-                  ?.copyWith(
+          style: (compact
+                  ? theme.textTheme.bodyMedium
+                  : theme.textTheme.titleSmall)
+              ?.copyWith(
             fontWeight: FontWeight.w700,
             height: 1.15,
           ),

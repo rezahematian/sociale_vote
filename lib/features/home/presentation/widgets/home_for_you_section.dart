@@ -69,7 +69,7 @@ class HomeForYouSection extends StatelessWidget {
       content = Card(
         elevation: 0,
         margin: const EdgeInsets.only(top: 8),
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -82,7 +82,7 @@ class HomeForYouSection extends StatelessWidget {
       content = Card(
         elevation: 0,
         margin: const EdgeInsets.only(top: 8),
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),

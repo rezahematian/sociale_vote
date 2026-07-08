@@ -573,7 +573,7 @@ class _MapLanguageSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<NewsLanguage>(
-      value: selectedLanguage,
+      initialValue: selectedLanguage,
       isExpanded: true,
       decoration: InputDecoration(
         isDense: true,

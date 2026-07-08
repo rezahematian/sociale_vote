@@ -347,7 +347,7 @@ class CreatePollController extends ChangeNotifier {
 
     try {
       final location =
-          await _deviceLocationRepository!.getCurrentContentLocation();
+          await _deviceLocationRepository.getCurrentContentLocation();
 
       if (location == null || location.isEmpty) {
         _isResolvingContentLocation = false;
@@ -395,7 +395,7 @@ class CreatePollController extends ChangeNotifier {
 
     try {
       final geocoded =
-          await _geocodingRepository!.geocodeContentLocation(rawLocation);
+          await _geocodingRepository.geocodeContentLocation(rawLocation);
       return geocoded ?? rawLocation;
     } catch (_) {
       return rawLocation;
@@ -410,9 +410,6 @@ class CreatePollController extends ChangeNotifier {
 
     try {
       final profile = await AppDI.instance.getUserProfile(userId);
-      if (profile == null) {
-        return null;
-      }
 
       final canPublishAsRepresentative =
           _participationPolicy.canUseRepresentativeIdentityFeatures(
@@ -552,8 +549,7 @@ class CreatePollController extends ChangeNotifier {
         allowVoteChange: _allowVoteChange,
         participationRules: participationRules,
         anonymityRules: AnonymityRules(level: _anonymityLevel),
-        visibilityRules:
-            VisibilityRules(resultsVisibility: _resultsVisibility),
+        visibilityRules: VisibilityRules(resultsVisibility: _resultsVisibility),
         quorumRules: QuorumRules(minAbsoluteVotes: _minQuorumVotes),
       );
 

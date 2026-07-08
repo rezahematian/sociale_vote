@@ -7,19 +7,6 @@ import 'package:sociale_vote/domain/engagement/entities/reaction_summary.dart';
 import 'package:sociale_vote/domain/engagement/repositories/reaction_repository.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 
-/// Implementazione HTTP di [ReactionRepository].
-///
-/// Endpoint ipotizzati (da adattare al backend reale):
-///
-/// GET    /reactions/single?userId=...&type=poll&id=123
-/// POST   /reactions
-/// POST   /reactions/{id}           (update type)
-/// DELETE /reactions/{id}
-///
-/// GET    /reactions/summary?type=poll&id=123
-///
-/// Per il bulk summary (getSummariesForTargets) per ora
-/// chiamiamo getSummaryForTarget in loop (v1).
 class ReactionRepositoryHttp implements ReactionRepository {
   final ApiClient _apiClient;
 
@@ -90,13 +77,8 @@ class ReactionRepositoryHttp implements ReactionRepository {
     required String reactionId,
     required ReactionType type,
   }) async {
-    // ⚠️ v1: non implementiamo davvero la logica,
-    // perché qui non abbiamo il TargetRef.
-    // Quando abiliterai HTTP per le reazioni, potremo
-    // estendere il contratto o usare un endpoint che
-    // restituisce anche il target.
     throw UnimplementedError(
-      'ReactionRepositoryHttp.updateType non è ancora implementato (manca TargetRef).',
+      'ReactionRepositoryHttp.updateType non è ancora implementato.',
     );
   }
 
@@ -106,9 +88,7 @@ class ReactionRepositoryHttp implements ReactionRepository {
   }
 
   @override
-  Future<ReactionSummary> getSummaryForTarget(
-    TargetRef target,
-  ) async {
+  Future<ReactionSummary> getSummaryForTarget(TargetRef target) async {
     final response = await _apiClient.getJson(
       '/reactions/summary',
       query: {
@@ -123,18 +103,9 @@ class ReactionRepositoryHttp implements ReactionRepository {
       );
     }
 
-    final map = Map<String, dynamic>.from(response);
-
-    final likeCount = (map['likeCount'] as int?) ?? 0;
-    final dislikeCount = (map['dislikeCount'] as int?) ?? 0;
-    final String? rawUserReaction = map['userReaction'] as String?;
-    final ReactionType? userReaction = _parseReactionType(rawUserReaction);
-
-    return ReactionSummary.fromCounts(
-      target: target,
-      likeCount: likeCount,
-      dislikeCount: dislikeCount,
-      userReaction: userReaction,
+    return _mapReactionSummary(
+      Map<String, dynamic>.from(response),
+      target,
     );
   }
 
@@ -142,19 +113,30 @@ class ReactionRepositoryHttp implements ReactionRepository {
   Future<List<ReactionSummary>> getSummariesForTargets(
     List<TargetRef> targets,
   ) async {
-    // v1: semplice, chiamiamo getSummaryForTarget in loop.
-    // In futuro potremo usare un endpoint bulk (/reactions/summary/bulk).
     final List<ReactionSummary> summaries = [];
+
     for (final target in targets) {
-      final summary = await getSummaryForTarget(target);
-      summaries.add(summary);
+      summaries.add(await getSummaryForTarget(target));
     }
+
     return summaries;
   }
 
-  // ==========================================================
-  // Mapping helpers
-  // ==========================================================
+  @override
+  Future<ReactionSummary> getSummaryForTargetSince(
+    TargetRef target, {
+    required DateTime since,
+  }) {
+    return getSummaryForTarget(target);
+  }
+
+  @override
+  Future<List<ReactionSummary>> getSummariesForTargetsSince(
+    List<TargetRef> targets, {
+    required DateTime since,
+  }) {
+    return getSummariesForTargets(targets);
+  }
 
   String _mapTargetType(TargetRef target) {
     switch (target.type) {
@@ -173,7 +155,6 @@ class ReactionRepositoryHttp implements ReactionRepository {
       case TargetType.topic:
         return 'topic';
       default:
-        // Fallback per eventuali nuovi tipi futuri
         return target.type.name;
     }
   }
@@ -199,11 +180,34 @@ class ReactionRepositoryHttp implements ReactionRepository {
     );
   }
 
+  ReactionSummary _mapReactionSummary(
+    Map<String, dynamic> json,
+    TargetRef target,
+  ) {
+    final likeCount = _readInt(json['likeCount']);
+    final dislikeCount = _readInt(json['dislikeCount']);
+    final userReaction = _parseReactionType(json['userReaction'] as String?);
+
+    return ReactionSummary.fromCounts(
+      target: target,
+      likeCount: likeCount,
+      dislikeCount: dislikeCount,
+      userReaction: userReaction,
+    );
+  }
+
+  int _readInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
   ReactionType? _parseReactionType(String? raw) {
     if (raw == null) return null;
+
     try {
       return ReactionType.values.firstWhere(
-        (e) => e.name == raw,
+        (type) => type.name == raw,
       );
     } catch (_) {
       return null;

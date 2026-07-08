@@ -76,7 +76,7 @@ class _PollOptionTile extends StatelessWidget {
 
     final leadingBackground = isSelected
         ? colorScheme.primary.withOpacity(isDark ? 0.18 : 0.13)
-        : colorScheme.surfaceVariant.withOpacity(isDark ? 0.36 : 0.55);
+        : colorScheme.surfaceContainerHighest.withOpacity(isDark ? 0.36 : 0.55);
 
     final leadingBorder = isSelected
         ? colorScheme.primary.withOpacity(isDark ? 0.42 : 0.24)
@@ -154,11 +154,11 @@ class _PollOptionTile extends StatelessWidget {
                   child: Icon(
                     isSingleChoice
                         ? (isSelected
-                              ? Icons.radio_button_checked
-                              : Icons.radio_button_unchecked)
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_unchecked)
                         : (isSelected
-                              ? Icons.check_box_rounded
-                              : Icons.check_box_outline_blank_rounded),
+                            ? Icons.check_box_rounded
+                            : Icons.check_box_outline_blank_rounded),
                     size: 22,
                     color: controlColor,
                   ),
@@ -168,7 +168,8 @@ class _PollOptionTile extends StatelessWidget {
                   child: Text(
                     label,
                     style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w600,
                       height: 1.2,
                       color: textColor,
                     ),

@@ -22,6 +22,9 @@ class NewsRepositoryImpl implements NewsRepository {
   static const int _maxLocationCandidatesPerArticle = 3;
   static const int _targetResolvedLocationsPerRefresh = 8;
   static const Duration _perArticleGeocodeTimeout = Duration(seconds: 2);
+  static const Duration _maxPreservedLocatedArticleAge = Duration(days: 7);
+  static const Duration _maxPreservedLocatedLagFromNewestRefresh =
+      Duration(days: 3);
 
   static const String _locationLeadPrepositionPattern =
       r'(?:in|at|from|near|inside|outside|around|across|a|ad|da|nel|nella|nelle|nei|presso)';
@@ -441,6 +444,7 @@ class NewsRepositoryImpl implements NewsRepository {
     }
 
     var mergedResolved = refreshedResolved;
+    final newestRefreshedPublishedAt = _findNewestPublishedAt(refreshedItems);
 
     for (final previous in previousItems) {
       if (!_hasResolvedLocation(previous)) {
@@ -448,6 +452,14 @@ class NewsRepositoryImpl implements NewsRepository {
       }
 
       final copy = Map<String, dynamic>.from(previous);
+
+      if (!_isPreservablePreviousLocatedItem(
+        copy,
+        newestRefreshedPublishedAt: newestRefreshedPublishedAt,
+      )) {
+        continue;
+      }
+
       final keys = _buildStableArticleKeysFromJson(copy);
 
       final isDuplicate = keys.isNotEmpty && keys.any(seenKeys.contains);
@@ -482,6 +494,49 @@ class NewsRepositoryImpl implements NewsRepository {
     return location != null && (location.hasExactPoint || location.hasCenter);
   }
 
+  DateTime? _findNewestPublishedAt(List<Map<String, dynamic>> items) {
+    DateTime? newest;
+
+    for (final item in items) {
+      final publishedAt = _extractPublishedAtFromJson(item);
+      if (publishedAt == null) {
+        continue;
+      }
+
+      if (newest == null || publishedAt.isAfter(newest)) {
+        newest = publishedAt;
+      }
+    }
+
+    return newest;
+  }
+
+  bool _isPreservablePreviousLocatedItem(
+    Map<String, dynamic> item, {
+    required DateTime? newestRefreshedPublishedAt,
+  }) {
+    final publishedAt = _extractPublishedAtFromJson(item);
+    if (publishedAt == null) {
+      return false;
+    }
+
+    final now = DateTime.now().toUtc();
+    if (now.difference(publishedAt) > _maxPreservedLocatedArticleAge) {
+      return false;
+    }
+
+    if (newestRefreshedPublishedAt != null &&
+        publishedAt.isBefore(
+          newestRefreshedPublishedAt.subtract(
+            _maxPreservedLocatedLagFromNewestRefresh,
+          ),
+        )) {
+      return false;
+    }
+
+    return true;
+  }
+
   Future<_CachedNewsFeed?> _readExactCache({
     required String cacheKey,
     required String? requestedLanguage,
@@ -503,9 +558,6 @@ class NewsRepositoryImpl implements NewsRepository {
       }
 
       final row = rows.first;
-      if (row is! Map<String, dynamic>) {
-        return null;
-      }
 
       return _buildCachedNewsFeedFromRow(
         row,
@@ -540,10 +592,6 @@ class NewsRepositoryImpl implements NewsRepository {
       var bestScore = -1;
 
       for (final row in rows) {
-        if (row is! Map<String, dynamic>) {
-          continue;
-        }
-
         final cache = _buildCachedNewsFeedFromRow(
           row,
           requestedLanguage: requestedLanguage,
@@ -726,10 +774,6 @@ class NewsRepositoryImpl implements NewsRepository {
           .limit(40);
 
       for (final row in rows) {
-        if (row is! Map<String, dynamic>) {
-          continue;
-        }
-
         final payload = row['payload'];
         if (payload is! List) {
           continue;
@@ -1072,10 +1116,10 @@ class NewsRepositoryImpl implements NewsRepository {
       return List<Map<String, dynamic>>.unmodifiable(output);
     }
 
-    final maxGeocodeAttempts = (targetResolvedCount * 2) >
-            _maxArticlesToGeocodePerRefresh
-        ? _maxArticlesToGeocodePerRefresh
-        : (targetResolvedCount * 2);
+    final maxGeocodeAttempts =
+        (targetResolvedCount * 2) > _maxArticlesToGeocodePerRefresh
+            ? _maxArticlesToGeocodePerRefresh
+            : (targetResolvedCount * 2);
 
     var resolvedCount = 0;
     var geocodeAttempts = 0;
@@ -1538,9 +1582,8 @@ class NewsRepositoryImpl implements NewsRepository {
       return '';
     }
 
-    final window = cleaned.length <= maxLength
-        ? cleaned
-        : cleaned.substring(0, maxLength);
+    final window =
+        cleaned.length <= maxLength ? cleaned : cleaned.substring(0, maxLength);
 
     for (final match in RegExp(r'[.!?;]').allMatches(window)) {
       if (match.start >= 40) {
@@ -1561,9 +1604,8 @@ class NewsRepositoryImpl implements NewsRepository {
       return null;
     }
 
-    final openingWindow = cleaned.length <= 120
-        ? cleaned
-        : cleaned.substring(0, 120);
+    final openingWindow =
+        cleaned.length <= 120 ? cleaned : cleaned.substring(0, 120);
 
     final regex = RegExp(
       r"^\s*((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})\s*,\s*((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})\s*(?:-|—|:)",
@@ -1676,9 +1718,8 @@ class NewsRepositoryImpl implements NewsRepository {
       }
     }
 
-    final openingWindow = cleaned.length <= 160
-        ? cleaned
-        : cleaned.substring(0, 160);
+    final openingWindow =
+        cleaned.length <= 160 ? cleaned : cleaned.substring(0, 160);
 
     final datelineRegex = RegExp(
       r"^\s*((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2})(?:,\s*((?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})(?:\s+(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ'’\-]+|[A-Z]{2,})){0,2}))?\s*(?:-|—|:)",
@@ -2151,14 +2192,12 @@ class NewsRepositoryImpl implements NewsRepository {
 
     return _CachePayloadMetadata(
       itemCount: _readInt(row['item_count']) ?? fallback.itemCount,
-      resolvedLocationCount:
-          _readInt(row['resolved_location_count']) ??
-              fallback.resolvedLocationCount,
-      providerSignatures:
-          _readStringList(row['provider_signatures']) ??
-              fallback.providerSignatures,
-      languagesPresent:
-          _readStringList(row['languages_present']) ?? fallback.languagesPresent,
+      resolvedLocationCount: _readInt(row['resolved_location_count']) ??
+          fallback.resolvedLocationCount,
+      providerSignatures: _readStringList(row['provider_signatures']) ??
+          fallback.providerSignatures,
+      languagesPresent: _readStringList(row['languages_present']) ??
+          fallback.languagesPresent,
       payloadVersion:
           _readInt(row['payload_version']) ?? fallback.payloadVersion,
     );
@@ -2167,20 +2206,22 @@ class NewsRepositoryImpl implements NewsRepository {
   String? _extractProviderSignature(Map<String, dynamic> json) {
     final sourceName = _normalizeMetadataToken(
       _firstNonEmptyString(
-        json,
-        const <String>[
-          'sourceName',
-          'source_name',
-          'sourceId',
-          'source_id',
-          'providerSignature',
-          'provider_signature',
-          'providerName',
-          'provider_name',
-          'providerId',
-          'provider_id',
-        ],
-      ),
+            json,
+            const <String>[
+              'sourceId',
+              'source_id',
+              'sourceName',
+              'source_name',
+              'providerSignature',
+              'provider_signature',
+              'providerName',
+              'provider_name',
+              'providerId',
+              'provider_id',
+            ],
+          ) ??
+          _tryParseDto(json)?.sourceId ??
+          _tryParseDto(json)?.sourceName,
     );
 
     if (sourceName != null) {
@@ -2376,8 +2417,7 @@ class NewsRepositoryImpl implements NewsRepository {
       addKey('external:$sourceHint:${externalId.toLowerCase()}');
     }
 
-    final rawId =
-        dto?.id.trim() ??
+    final rawId = dto?.id.trim() ??
         _firstNonEmptyString(json, const <String>['id'])?.trim() ??
         '';
 
@@ -2385,10 +2425,9 @@ class NewsRepositoryImpl implements NewsRepository {
       addKey('id:$sourceHint:${rawId.toLowerCase()}');
     }
 
-    final title =
-        (dto?.title ??
-                _firstNonEmptyString(json, const <String>['title', 'headline']))
-            ?.trim();
+    final title = (dto?.title ??
+            _firstNonEmptyString(json, const <String>['title', 'headline']))
+        ?.trim();
 
     final publishedAt = dto?.publishedAt ?? _extractPublishedAtFromJson(json);
 
@@ -2450,9 +2489,7 @@ class NewsRepositoryImpl implements NewsRepository {
           dto?.url,
     );
 
-    return requestedUrl != null &&
-        itemUrl != null &&
-        requestedUrl == itemUrl;
+    return requestedUrl != null && itemUrl != null && requestedUrl == itemUrl;
   }
 
   int _countItemsWithResolvedLocation(List<Map<String, dynamic>> items) {
@@ -2498,9 +2535,8 @@ class NewsRepositoryImpl implements NewsRepository {
       return trimmed.toLowerCase();
     }
 
-    final normalizedPath = parsed.path.isEmpty
-        ? '/'
-        : parsed.path.replaceFirst(RegExp(r'/$'), '');
+    final normalizedPath =
+        parsed.path.isEmpty ? '/' : parsed.path.replaceFirst(RegExp(r'/$'), '');
 
     return Uri(
       scheme: parsed.scheme.toLowerCase(),

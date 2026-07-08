@@ -70,7 +70,7 @@ class HomeTrendingSection extends StatelessWidget {
       content = Card(
         elevation: 0,
         margin: const EdgeInsets.only(top: 8),
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -83,7 +83,7 @@ class HomeTrendingSection extends StatelessWidget {
       content = Card(
         elevation: 0,
         margin: const EdgeInsets.only(top: 8),
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -330,7 +330,7 @@ class _MetricPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.45),
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.45),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(

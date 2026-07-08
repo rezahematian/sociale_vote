@@ -40,7 +40,7 @@ class PollResultChart extends StatelessWidget {
             BarChartData(
               alignment: BarChartAlignment.spaceAround,
               maxY: maxPercentage > 0 ? maxPercentage : 100.0,
-              gridData: FlGridData(
+              gridData: const FlGridData(
                 show: true,
                 drawVerticalLine: false,
                 horizontalInterval: 20,

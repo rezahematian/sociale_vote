@@ -34,7 +34,7 @@ class CommentRepositoryImpl implements CommentRepository {
       throw Exception('Creazione commento fallita.');
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     return _mapComment(row);
   }
 
@@ -55,7 +55,7 @@ class CommentRepositoryImpl implements CommentRepository {
       return null;
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     return _mapComment(row);
   }
 
@@ -77,7 +77,7 @@ class CommentRepositoryImpl implements CommentRepository {
       throw Exception('Aggiornamento commento fallito.');
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     return _mapComment(row);
   }
 
@@ -140,10 +140,6 @@ class CommentRepositoryImpl implements CommentRepository {
           .inFilter('target_id', targetIds);
 
       for (final row in rows) {
-        if (row is! Map<String, dynamic>) {
-          continue;
-        }
-
         final targetId = (row['target_id'] as String?)?.trim();
         if (targetId == null || targetId.isEmpty) {
           continue;
@@ -195,7 +191,7 @@ class CommentRepositoryImpl implements CommentRepository {
       throw Exception('Commento padre non trovato.');
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     final parentDepth = (row['depth'] as int?) ?? 0;
     return parentDepth + 1;
   }

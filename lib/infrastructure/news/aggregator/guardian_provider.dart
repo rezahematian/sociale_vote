@@ -20,7 +20,8 @@ class GuardianProvider implements NewsProvider {
   }) async {
     try {
       final pageSize = (limit == null || limit <= 0) ? 20 : limit;
-      final page = (offset == null || offset < 0) ? 1 : (offset ~/ pageSize) + 1;
+      final page =
+          (offset == null || offset < 0) ? 1 : (offset ~/ pageSize) + 1;
 
       final json = await _api.fetchSearch(
         countryCode: countryCode,
@@ -40,8 +41,9 @@ class GuardianProvider implements NewsProvider {
       }
 
       final status = (response['status'] ?? '').toString().toLowerCase();
-      final results =
-          (response['results'] is List) ? (response['results'] as List) : const [];
+      final results = (response['results'] is List)
+          ? (response['results'] as List)
+          : const [];
 
       if (status != 'ok') {
         return ProviderFetchResult(
@@ -56,17 +58,18 @@ class GuardianProvider implements NewsProvider {
       for (final raw in results) {
         if (raw is! Map) continue;
 
-        final article = Map<String, dynamic>.from(raw as Map);
+        final article = Map<String, dynamic>.from(raw);
         final fields = (article['fields'] is Map)
             ? Map<String, dynamic>.from(article['fields'] as Map)
             : <String, dynamic>{};
 
-        final tags = (article['tags'] is List) ? (article['tags'] as List) : const [];
+        final tags =
+            (article['tags'] is List) ? (article['tags'] as List) : const [];
 
         String? contributorName;
         for (final tag in tags) {
           if (tag is! Map) continue;
-          final typedTag = Map<String, dynamic>.from(tag as Map);
+          final typedTag = Map<String, dynamic>.from(tag);
           final type = (typedTag['type'] ?? '').toString().toLowerCase();
           if (type == 'contributor') {
             final webTitle = typedTag['webTitle']?.toString();
@@ -79,9 +82,10 @@ class GuardianProvider implements NewsProvider {
 
         final articleId = article['id']?.toString();
         final webUrl = article['webUrl']?.toString();
-        final title = (fields['headline'] ?? article['webTitle'])?.toString() ?? '';
-        final publishedAt =
-            article['webPublicationDate']?.toString() ?? DateTime.now().toUtc().toIso8601String();
+        final title =
+            (fields['headline'] ?? article['webTitle'])?.toString() ?? '';
+        final publishedAt = article['webPublicationDate']?.toString() ??
+            DateTime.now().toUtc().toIso8601String();
 
         if (articleId == null || articleId.trim().isEmpty) {
           continue;
@@ -141,12 +145,13 @@ class GuardianProvider implements NewsProvider {
         ? Map<String, dynamic>.from(content['fields'] as Map)
         : <String, dynamic>{};
 
-    final tags = (content['tags'] is List) ? (content['tags'] as List) : const [];
+    final tags =
+        (content['tags'] is List) ? (content['tags'] as List) : const [];
 
     String? contributorName;
     for (final tag in tags) {
       if (tag is! Map) continue;
-      final typedTag = Map<String, dynamic>.from(tag as Map);
+      final typedTag = Map<String, dynamic>.from(tag);
       final type = (typedTag['type'] ?? '').toString().toLowerCase();
       if (type == 'contributor') {
         final webTitle = typedTag['webTitle']?.toString();

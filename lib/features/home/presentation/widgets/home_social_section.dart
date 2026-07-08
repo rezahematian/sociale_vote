@@ -88,7 +88,7 @@ class HomeSocialSection extends StatelessWidget {
         margin: const EdgeInsets.only(top: 4),
         padding: const EdgeInsets.symmetric(vertical: 24),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceVariant.withOpacity(0.18),
+          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.18),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: theme.colorScheme.outline.withOpacity(0.08),
@@ -112,60 +112,58 @@ class HomeSocialSection extends StatelessWidget {
       );
     } else {
       content = Column(
-        children: topPosts
-            .map(
-              (post) {
-                final fire = controller.likeCountForPost(post);
-                final ice = controller.dislikeCountForPost(post);
-                final commentCount = controller.commentCountForPost(post);
-                final previewPost = post.copyWith(commentCount: commentCount);
-                final ReactionType? userReaction =
-                    controller.userReactionForPost(post);
+        children: topPosts.map(
+          (post) {
+            final fire = controller.likeCountForPost(post);
+            final ice = controller.dislikeCountForPost(post);
+            final commentCount = controller.commentCountForPost(post);
+            final previewPost = post.copyWith(commentCount: commentCount);
+            final ReactionType? userReaction =
+                controller.userReactionForPost(post);
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: HomePostPreviewCard(
-                    post: previewPost,
-                    fireCount: fire,
-                    iceCount: ice,
-                    commentCount: commentCount,
-                    userReaction: userReaction,
-                    onReturnedFromDetail: () {
-                      controller.refresh(
-                        userId: AppDI.instance.currentUserId,
-                      );
-                    },
-                    onFireTap: () async {
-                      final allowed = await AuthGuard.ensureCanPerformAction(
-                        context,
-                        ParticipationAction.react,
-                      );
-                      if (!allowed) return;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: HomePostPreviewCard(
+                post: previewPost,
+                fireCount: fire,
+                iceCount: ice,
+                commentCount: commentCount,
+                userReaction: userReaction,
+                onReturnedFromDetail: () {
+                  controller.refresh(
+                    userId: AppDI.instance.currentUserId,
+                  );
+                },
+                onFireTap: () async {
+                  final allowed = await AuthGuard.ensureCanPerformAction(
+                    context,
+                    ParticipationAction.react,
+                  );
+                  if (!allowed) return;
 
-                      final userId = AppDI.instance.currentUserId!;
-                      await controller.toggleFireForPost(
-                        userId: userId,
-                        post: post,
-                      );
-                    },
-                    onIceTap: () async {
-                      final allowed = await AuthGuard.ensureCanPerformAction(
-                        context,
-                        ParticipationAction.react,
-                      );
-                      if (!allowed) return;
+                  final userId = AppDI.instance.currentUserId!;
+                  await controller.toggleFireForPost(
+                    userId: userId,
+                    post: post,
+                  );
+                },
+                onIceTap: () async {
+                  final allowed = await AuthGuard.ensureCanPerformAction(
+                    context,
+                    ParticipationAction.react,
+                  );
+                  if (!allowed) return;
 
-                      final userId = AppDI.instance.currentUserId!;
-                      await controller.toggleIceForPost(
-                        userId: userId,
-                        post: post,
-                      );
-                    },
-                  ),
-                );
-              },
-            )
-            .toList(),
+                  final userId = AppDI.instance.currentUserId!;
+                  await controller.toggleIceForPost(
+                    userId: userId,
+                    post: post,
+                  );
+                },
+              ),
+            );
+          },
+        ).toList(),
       );
     }
 
@@ -204,7 +202,7 @@ class HomeSocialSection extends StatelessWidget {
       width: double.infinity,
       margin: const EdgeInsets.only(top: 4),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.22),
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.22),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: theme.colorScheme.outline.withOpacity(0.08),

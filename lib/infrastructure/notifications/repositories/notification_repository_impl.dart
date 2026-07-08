@@ -34,7 +34,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
       throw Exception('Creazione notifica fallita.');
     }
 
-    final row = rows.first as Map<String, dynamic>;
+    final row = rows.first;
     return _mapNotification(row);
   }
 
@@ -76,8 +76,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
   Future<void> markAsRead(String notificationId) async {
     await AppSupabase.client
         .from(_notificationsTable)
-        .update({'is_read': true})
-        .eq('id', notificationId);
+        .update({'is_read': true}).eq('id', notificationId);
   }
 
   @override

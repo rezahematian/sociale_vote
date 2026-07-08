@@ -11,7 +11,7 @@ class NewsItem {
   /// Scope del feed / contesto da cui è stata caricata la news.
   /// Serve ancora per filtri e fallback.
   final String? countryCode;
-  final String? cityId;
+  final String? cityId; 
 
   /// Località reale di cui parla l'articolo.
   /// Questa è quella che la mappa deve usare per il marker.

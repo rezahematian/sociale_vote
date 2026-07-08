@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/engagement/entities/reaction_summary.dart';
 import 'package:sociale_vote/domain/engagement/usecases/get_reaction_summary.dart';

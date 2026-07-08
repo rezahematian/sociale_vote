@@ -23,7 +23,7 @@ class HomeEmptyState extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: Card(
           elevation: 0,
-          color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
