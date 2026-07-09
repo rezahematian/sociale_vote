@@ -144,7 +144,7 @@ class AuthApi {
     required User user,
   }) {
     final userMetadata = user.userMetadata ?? const <String, dynamic>{};
-    final appMetadata = user.appMetadata ?? const <String, dynamic>{};
+    final appMetadata = user.appMetadata;
 
     return AuthSession(
       userId: user.id,
