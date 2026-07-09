@@ -10,6 +10,7 @@ import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 /// - Tutti i metodi lanciano UnimplementedError finché
 ///   non vengono collegati agli endpoint reali.
 class FollowScopeRepositoryHttp implements FollowScopeRepository {
+  // ignore: unused_field
   final ApiClient _client;
 
   FollowScopeRepositoryHttp(this._client);

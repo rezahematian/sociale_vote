@@ -49,7 +49,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
   ];
 
   bool _isFavorite = false;
-  bool _favoriteInitialized = false;
+
   bool _favoriteLoading = false;
   int _commentCount = 0;
   String? _initializedNewsId;
@@ -170,9 +170,8 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
   Future<void> _onSharePressed() async {
     final summary = widget.news.summary?.trim();
     final content = widget.news.content.trim();
-    final previewSource = (summary != null && summary.isNotEmpty)
-        ? summary
-        : content;
+    final previewSource =
+        (summary != null && summary.isNotEmpty) ? summary : content;
     final preview = previewSource.length > 220
         ? '${previewSource.substring(0, 220).trim()}...'
         : previewSource;

@@ -56,8 +56,6 @@ class _SearchPageState extends State<SearchPage> {
       create: (_) => AppDI.instance.createSearchController(),
       child: Consumer<app_search.SearchController>(
         builder: (context, controller, _) {
-          final theme = Theme.of(context);
-
           return Scaffold(
             appBar: AppBar(
               title: const Text('Search'),

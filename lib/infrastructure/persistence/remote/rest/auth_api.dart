@@ -124,7 +124,7 @@ class AuthApi {
 
   Future<void> _upsertUserProfile(User user) async {
     final userMetadata = user.userMetadata ?? const <String, dynamic>{};
-    final appMetadata = user.appMetadata ?? const <String, dynamic>{};
+    final appMetadata = user.appMetadata;
     final displayName = _readDisplayName(userMetadata);
     final role = _readRole(appMetadata);
 

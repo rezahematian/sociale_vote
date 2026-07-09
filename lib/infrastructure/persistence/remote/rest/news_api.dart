@@ -28,21 +28,20 @@ class NewsApi {
     String? countryCode,
     String? cityId,
     String? topic, // ✅ NEW: GNews topic (world/nation/business/...)
-    String? language, // ✅ NEW: override lingua (it/en/es/fr/de/ar). null => AUTO
+    String?
+        language, // ✅ NEW: override lingua (it/en/es/fr/de/ar). null => AUTO
     int? limit,
     int? offset,
   }) async {
     final int rawLimit = limit ?? 10;
     final int effectiveLimit = rawLimit.clamp(1, 100).toInt();
 
-    final int? effectiveOffset =
-        (offset != null && limit != null && limit > 0)
-            ? (offset - (offset % limit))
-            : offset;
+    final int? effectiveOffset = (offset != null && limit != null && limit > 0)
+        ? (offset - (offset % limit))
+        : offset;
 
     // AUTO language: IT => it, else en
-    final String autoLang =
-        (countryCode?.toUpperCase() == 'IT') ? 'it' : 'en';
+    final String autoLang = (countryCode?.toUpperCase() == 'IT') ? 'it' : 'en';
 
     final String? requestedLanguage = _extractLanguageCode(language);
     final bool hasExplicitLanguage = requestedLanguage != null;
@@ -51,7 +50,8 @@ class NewsApi {
     // Se l'utente chiede una lingua esplicita non supportata (es. fa),
     // NON facciamo fallback silenzioso a en/it: meglio risposta vuota,
     // così l'aggregator può tentare altri provider senza mostrare lingua sbagliata.
-    if (hasExplicitLanguage && !_isSupportedLanguageByGNews(requestedLanguage)) {
+    if (hasExplicitLanguage &&
+        !_isSupportedLanguageByGNews(requestedLanguage)) {
       return const <dynamic>[];
     }
 
@@ -259,7 +259,7 @@ class NewsApi {
   }
 
   String _buildApiExceptionDebugMessage(ApiException e) {
-    final baseMessage = (e.message ?? '').trim();
+    final baseMessage = e.message.trim();
     final details = e.details;
 
     if (details == null) {
@@ -280,7 +280,7 @@ class NewsApi {
 
   bool _looksLikeRateLimitError(ApiException e) {
     final combined = <String>[
-      e.message ?? '',
+      e.message,
       e.details?.toString() ?? '',
     ].join(' | ').toLowerCase();
 
@@ -310,7 +310,7 @@ class NewsApi {
       return NewsApiErrorKind.serverError;
     }
 
-    final msg = (e.message ?? '').toLowerCase();
+    final msg = e.message.toLowerCase();
     if (msg.contains('timeout')) return NewsApiErrorKind.timeout;
     if (msg.contains('socket') || msg.contains('network')) {
       return NewsApiErrorKind.network;
@@ -373,10 +373,9 @@ class NewsApiException implements Exception {
 
   @override
   String toString() {
-    final suffix =
-        (debugMessage != null && debugMessage!.trim().isNotEmpty)
-            ? ', debugMessage=${debugMessage!.trim()}'
-            : '';
+    final suffix = (debugMessage != null && debugMessage!.trim().isNotEmpty)
+        ? ', debugMessage=${debugMessage!.trim()}'
+        : '';
 
     return 'NewsApiException(kind=$kind, statusCode=$statusCode, message=$message$suffix)';
   }

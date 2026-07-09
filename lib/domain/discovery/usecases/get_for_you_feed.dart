@@ -76,7 +76,8 @@ class GetForYouFeed {
       return const <FeedItem>[];
     }
 
-    final targets = candidates.map((item) => item.targetRef).toList(growable: false);
+    final targets =
+        candidates.map((item) => item.targetRef).toList(growable: false);
 
     final reactionResults = await Future.wait<List<ReactionSummary>>([
       _getReactionSummary(
@@ -100,7 +101,8 @@ class GetForYouFeed {
 
     Map<String, int> commentCountByTargetKey;
     try {
-      final rawCounts = await _commentRepository.countCommentsForTargets(targets);
+      final rawCounts =
+          await _commentRepository.countCommentsForTargets(targets);
       commentCountByTargetKey = _normalizeBatchCommentCounts(
         targets: targets,
         rawCounts: rawCounts,
@@ -121,7 +123,8 @@ class GetForYouFeed {
       final totalHeat = totalReaction?.heat.value ?? 0;
       final recentHeat = recentReaction?.heat.value ?? 0;
       final commentCount = commentCountByTargetKey[item.targetRef.key] ?? 0;
-      final voteCount = item.isPoll ? (item.poll?.voteCount ?? item.voteCount) : 0;
+      final voteCount =
+          item.isPoll ? (item.poll?.voteCount ?? item.voteCount) : 0;
 
       final breakdown = _buildForYouScoreBreakdown(
         item: item,
@@ -181,7 +184,8 @@ class GetForYouFeed {
     }
 
     try {
-      final followed = await _followScopeRepository.getFollowedScopesForUser(userId);
+      final followed =
+          await _followScopeRepository.getFollowedScopesForUser(userId);
       return followed.map((f) => f.scope).toList(growable: false);
     } catch (_) {
       return const <GeoScope>[];
@@ -203,7 +207,7 @@ class GetForYouFeed {
   }
 
   String _scopeKey(GeoScope scope) {
-    final level = _readScopeLevelName(scope) ?? 'unknown';
+    final level = _readScopeLevelName(scope);
     final country = (scope.countryCode ?? '').trim().toLowerCase();
     final city = (scope.cityId ?? '').trim().toLowerCase();
     final lat = scope.centerLat?.toStringAsFixed(4) ?? '';
@@ -389,11 +393,10 @@ class GetForYouFeed {
       halfLifeHours: _discoveryHalfLifeHours,
     );
 
-    final discoveryBoost =
-        discoveryFreshness * ((currentAffinity * 1.5) + (followedAffinity * 1.15));
+    final discoveryBoost = discoveryFreshness *
+        ((currentAffinity * 1.5) + (followedAffinity * 1.15));
 
-    final personalSignal =
-        (currentAffinity * 1.15) + (followedAffinity * 0.95);
+    final personalSignal = (currentAffinity * 1.15) + (followedAffinity * 0.95);
 
     final geoMultiplier =
         0.85 + (currentAffinity * 0.35) + (followedAffinity * 0.25);
@@ -602,8 +605,9 @@ class GetForYouFeed {
   }
 
   (double, double)? _readItemPoint(FeedItem item) {
-    final location =
-        item.post?.contentLocation ?? item.poll?.contentLocation ?? item.news?.contentLocation;
+    final location = item.post?.contentLocation ??
+        item.poll?.contentLocation ??
+        item.news?.contentLocation;
 
     if (location == null) {
       return null;

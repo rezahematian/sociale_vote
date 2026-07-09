@@ -441,7 +441,7 @@ class PollCard extends StatelessWidget {
         return l10n.pollType_ranked;
       case PollType.score:
         return l10n.pollType_score;
-      default:
+
         return type.name;
     }
   }
