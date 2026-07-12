@@ -36,10 +36,10 @@ class PollResultsSection extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface.withOpacity(0.45),
+          color: theme.colorScheme.surface.withValues(alpha: 0.45),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: theme.dividerColor.withOpacity(0.5),
+            color: theme.dividerColor.withValues(alpha: 0.5),
           ),
         ),
         child: Text(
@@ -100,10 +100,10 @@ class PollResultsSection extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: theme.colorScheme.error.withOpacity(0.06),
+              color: theme.colorScheme.error.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: theme.colorScheme.error.withOpacity(0.35),
+                color: theme.colorScheme.error.withValues(alpha: 0.35),
               ),
             ),
             child: Text(
@@ -145,10 +145,12 @@ class PollResultsSection extends StatelessWidget {
         vertical: 6,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(isDark ? 0.18 : 0.08),
+        color:
+            theme.colorScheme.primary.withValues(alpha: isDark ? 0.18 : 0.08),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: theme.colorScheme.primary.withOpacity(isDark ? 0.32 : 0.18),
+          color:
+              theme.colorScheme.primary.withValues(alpha: isDark ? 0.32 : 0.18),
         ),
       ),
       child: Text(
@@ -172,10 +174,12 @@ class PollResultsSection extends StatelessWidget {
         vertical: 7,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.secondary.withOpacity(isDark ? 0.18 : 0.08),
+        color:
+            theme.colorScheme.secondary.withValues(alpha: isDark ? 0.18 : 0.08),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: theme.colorScheme.secondary.withOpacity(isDark ? 0.32 : 0.18),
+          color: theme.colorScheme.secondary
+              .withValues(alpha: isDark ? 0.32 : 0.18),
         ),
       ),
       child: Text(
@@ -209,8 +213,7 @@ class PollResultsSection extends StatelessWidget {
     int computedVotes = 0;
 
     for (final item in items) {
-      final label =
-          _extractStringValue(item, const [
+      final label = _extractStringValue(item, const [
             'label',
             'title',
             'name',
@@ -220,8 +223,7 @@ class PollResultsSection extends StatelessWidget {
           ]) ??
           'Opzione';
 
-      final voteCount =
-          _extractIntValue(item, const [
+      final voteCount = _extractIntValue(item, const [
             'voteCount',
             'votes',
             'count',
@@ -251,8 +253,7 @@ class PollResultsSection extends StatelessWidget {
         : computedVotes;
 
     return tempRows.map((row) {
-      final resolvedPercentage =
-          row.percentage ??
+      final resolvedPercentage = row.percentage ??
           (denominator > 0 ? (row.voteCount / denominator) * 100 : 0.0);
 
       return _ResultRowData(
@@ -436,10 +437,10 @@ class _PremiumResultRow extends StatelessWidget {
         vertical: 14,
       ),
       decoration: BoxDecoration(
-        color: colorScheme.surface.withOpacity(isDark ? 0.38 : 0.45),
+        color: colorScheme.surface.withValues(alpha: isDark ? 0.38 : 0.45),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: colorScheme.outline.withOpacity(isDark ? 0.22 : 0.12),
+          color: colorScheme.outline.withValues(alpha: isDark ? 0.22 : 0.12),
         ),
       ),
       child: Column(
@@ -472,7 +473,8 @@ class _PremiumResultRow extends StatelessWidget {
             child: Container(
               height: 10,
               width: double.infinity,
-              color: colorScheme.outline.withOpacity(isDark ? 0.24 : 0.10),
+              color:
+                  colorScheme.outline.withValues(alpha: isDark ? 0.24 : 0.10),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: FractionallySizedBox(
@@ -491,7 +493,8 @@ class _PremiumResultRow extends StatelessWidget {
           Text(
             votesLabel,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurface.withOpacity(isDark ? 0.60 : 0.52),
+              color:
+                  colorScheme.onSurface.withValues(alpha: isDark ? 0.60 : 0.52),
               fontWeight: FontWeight.w600,
               height: 1.1,
             ),

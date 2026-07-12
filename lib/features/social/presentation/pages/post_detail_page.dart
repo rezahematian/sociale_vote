@@ -140,17 +140,19 @@ class _PostDetailViewState extends State<_PostDetailView> {
         const SnackBar(content: Text('Impossibile aggiornare i preferiti')),
       );
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _favoriteLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _favoriteLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _onSharePressed(Post post) async {
     final content = post.content.trim();
-    final preview =
-        content.length > 220 ? '${content.substring(0, 220).trim()}...' : content;
+    final preview = content.length > 220
+        ? '${content.substring(0, 220).trim()}...'
+        : content;
 
     final buffer = StringBuffer()..writeln(post.title);
 
@@ -306,10 +308,11 @@ class _PostDetailViewState extends State<_PostDetailView> {
         const SnackBar(content: Text('Impossibile aggiornare il post')),
       );
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _editLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _editLoading = false;
+        });
+      }
     }
   }
 
@@ -351,21 +354,28 @@ class _PostDetailViewState extends State<_PostDetailView> {
       _deleteLoading = true;
     });
 
+    var deleted = false;
+
     try {
       await context.read<PostDetailController>().delete();
 
       if (!mounted) return;
-      Navigator.of(context).pop(true);
+      deleted = true;
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Impossibile eliminare il post')),
       );
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _deleteLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _deleteLoading = false;
+        });
+      }
+    }
+
+    if (deleted && mounted) {
+      Navigator.of(context).pop(true);
     }
   }
 
@@ -374,7 +384,7 @@ class _PostDetailViewState extends State<_PostDetailView> {
       context,
       ParticipationAction.reportContent,
     );
-    if (!allowed) return;
+    if (!allowed || !mounted) return;
 
     final userId = AppDI.instance.currentUserId;
     if (userId == null) {
@@ -427,22 +437,24 @@ class _PostDetailViewState extends State<_PostDetailView> {
           builder: (context, setDialogState) {
             return AlertDialog(
               title: const Text('Segnala contenuto'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: _reportReasons.map((reason) {
-                  return RadioListTile<String>(
-                    value: reason,
-                    groupValue: selectedReason,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(_reportReasonLabel(reason)),
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setDialogState(() {
-                        selectedReason = value;
-                      });
-                    },
-                  );
-                }).toList(),
+              content: RadioGroup<String>(
+                groupValue: selectedReason,
+                onChanged: (value) {
+                  if (value == null) return;
+                  setDialogState(() {
+                    selectedReason = value;
+                  });
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: _reportReasons.map((reason) {
+                    return RadioListTile<String>(
+                      value: reason,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(_reportReasonLabel(reason)),
+                    );
+                  }).toList(),
+                ),
               ),
               actions: [
                 TextButton(
@@ -516,9 +528,8 @@ class _PostDetailViewState extends State<_PostDetailView> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final pageBackground = isDark
-        ? const Color(0xFF0F172A)
-        : const Color(0xFFF4F7FB);
+    final pageBackground =
+        isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F7FB);
 
     return Scaffold(
       backgroundColor: pageBackground,
@@ -612,14 +623,12 @@ class _PostDetailViewState extends State<_PostDetailView> {
 
           return ChangeNotifierProvider<DiscussionController>(
             key: ValueKey('discussion-post-${post.id.value}'),
-            create: (_) => AppDI.instance
-                .createDiscussionController(
-                  TargetRef.post(post.id.value),
-                  onCommentsChanged: () {
-                    _loadCommentCount(post);
-                  },
-                )
-              ..loadComments(),
+            create: (_) => AppDI.instance.createDiscussionController(
+              TargetRef.post(post.id.value),
+              onCommentsChanged: () {
+                _loadCommentCount(post);
+              },
+            )..loadComments(),
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -643,7 +652,7 @@ class _PostDetailViewState extends State<_PostDetailView> {
                         context,
                         ParticipationAction.react,
                       );
-                      if (!allowed) return;
+                      if (!context.mounted || !allowed) return;
 
                       final userId = AppDI.instance.currentUserId;
                       if (userId == null) return;
@@ -657,7 +666,7 @@ class _PostDetailViewState extends State<_PostDetailView> {
                         context,
                         ParticipationAction.react,
                       );
-                      if (!allowed) return;
+                      if (!context.mounted || !allowed) return;
 
                       final userId = AppDI.instance.currentUserId;
                       if (userId == null) return;
@@ -727,14 +736,14 @@ class _PostDetailHeroCard extends StatelessWidget {
     final authorName =
         post.authorName.trim().isNotEmpty ? post.authorName.trim() : 'Author';
 
-    final authorTextColor = theme.colorScheme.onSurface.withOpacity(
-      isDark ? 0.90 : 0.84,
+    final authorTextColor = theme.colorScheme.onSurface.withValues(
+      alpha: isDark ? 0.90 : 0.84,
     );
-    final metaTextColor = theme.colorScheme.onSurface.withOpacity(
-      isDark ? 0.62 : 0.58,
+    final metaTextColor = theme.colorScheme.onSurface.withValues(
+      alpha: isDark ? 0.62 : 0.58,
     );
-    final contentTextColor = theme.colorScheme.onSurface.withOpacity(
-      isDark ? 0.88 : 0.86,
+    final contentTextColor = theme.colorScheme.onSurface.withValues(
+      alpha: isDark ? 0.88 : 0.86,
     );
 
     return Container(
@@ -743,12 +752,14 @@ class _PostDetailHeroCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withOpacity(isDark ? 0.18 : 0.07),
+            color:
+                const Color(0xFF0F172A).withValues(alpha: isDark ? 0.18 : 0.07),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: const Color(0xFF94A3B8).withOpacity(isDark ? 0.06 : 0.10),
+            color:
+                const Color(0xFF94A3B8).withValues(alpha: isDark ? 0.06 : 0.10),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),
@@ -802,7 +813,8 @@ class _PostDetailHeroCard extends StatelessWidget {
                                       child: Text(
                                         authorName,
                                         overflow: TextOverflow.ellipsis,
-                                        style: theme.textTheme.titleSmall?.copyWith(
+                                        style: theme.textTheme.titleSmall
+                                            ?.copyWith(
                                           fontWeight: FontWeight.w700,
                                           color: authorTextColor,
                                         ),
@@ -866,8 +878,8 @@ class _PostDetailHeroCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         border: Border(
                           top: BorderSide(
-                            color: theme.colorScheme.outline.withOpacity(
-                              isDark ? 0.24 : 0.12,
+                            color: theme.colorScheme.outline.withValues(
+                              alpha: isDark ? 0.24 : 0.12,
                             ),
                             width: 1,
                           ),
@@ -985,7 +997,7 @@ class _AuthorAvatar extends StatelessWidget {
         shape: BoxShape.circle,
         color: theme.colorScheme.surface,
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.14),
+          color: theme.colorScheme.outline.withValues(alpha: 0.14),
           width: 1,
         ),
       ),
@@ -1022,16 +1034,16 @@ class _DetailActionPill extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final backgroundColor = isActive
-        ? colorScheme.primary.withOpacity(isDark ? 0.18 : 0.10)
-        : colorScheme.surface.withOpacity(isDark ? 0.30 : 0.82);
+        ? colorScheme.primary.withValues(alpha: isDark ? 0.18 : 0.10)
+        : colorScheme.surface.withValues(alpha: isDark ? 0.30 : 0.82);
 
     final borderColor = isActive
-        ? colorScheme.primary.withOpacity(isDark ? 0.32 : 0.22)
-        : colorScheme.outline.withOpacity(isDark ? 0.18 : 0.14);
+        ? colorScheme.primary.withValues(alpha: isDark ? 0.32 : 0.22)
+        : colorScheme.outline.withValues(alpha: isDark ? 0.18 : 0.14);
 
     final foregroundColor = isActive
         ? colorScheme.primary
-        : colorScheme.onSurface.withOpacity(0.84);
+        : colorScheme.onSurface.withValues(alpha: 0.84);
 
     return Material(
       color: Colors.transparent,
@@ -1106,16 +1118,16 @@ class _DetailActionIcon extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final backgroundColor = isActive
-        ? colorScheme.primary.withOpacity(isDark ? 0.18 : 0.10)
-        : colorScheme.surface.withOpacity(isDark ? 0.30 : 0.82);
+        ? colorScheme.primary.withValues(alpha: isDark ? 0.18 : 0.10)
+        : colorScheme.surface.withValues(alpha: isDark ? 0.30 : 0.82);
 
     final borderColor = isActive
-        ? colorScheme.primary.withOpacity(isDark ? 0.32 : 0.22)
-        : colorScheme.outline.withOpacity(isDark ? 0.18 : 0.14);
+        ? colorScheme.primary.withValues(alpha: isDark ? 0.32 : 0.22)
+        : colorScheme.outline.withValues(alpha: isDark ? 0.18 : 0.14);
 
     final foregroundColor = isActive
         ? colorScheme.primary
-        : colorScheme.onSurface.withOpacity(0.84);
+        : colorScheme.onSurface.withValues(alpha: 0.84);
 
     return Tooltip(
       message: tooltip,
@@ -1191,7 +1203,7 @@ class _PostDetailError extends StatelessWidget {
             Text(
               message,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),

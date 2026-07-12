@@ -32,6 +32,9 @@ class VoteController extends ChangeNotifier {
 
   VoteErrorType _errorType = VoteErrorType.none;
 
+  bool _isDisposed = false;
+  int _submitOperationId = 0;
+
   VoteController(this._submitVote);
 
   Set<String> get selectedOptionIds => _selectedOptionIds;
@@ -42,7 +45,7 @@ class VoteController extends ChangeNotifier {
 
   /// Seleziona/deseleziona un’opzione.
   void toggleOption(String optionId, {required bool allowMultiple}) {
-    if (_isSubmitting) return;
+    if (_isSubmitting || _isDisposed) return;
 
     _errorMessage = null;
     _errorType = VoteErrorType.none;
@@ -64,17 +67,20 @@ class VoteController extends ChangeNotifier {
       }
     }
 
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   /// Reset completo dello stato di selezione e invio.
   void reset() {
+    if (_isDisposed) return;
+
+    _submitOperationId++;
     _selectedOptionIds.clear();
     _isSubmitting = false;
     _errorMessage = null;
     _errorType = VoteErrorType.none;
     _submittedSuccessfully = false;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   /// Invia il voto per il [poll] indicato.
@@ -83,21 +89,23 @@ class VoteController extends ChangeNotifier {
     required String? userId,
     String? userCountryCode,
   }) async {
-    if (_isSubmitting) return;
+    if (_isSubmitting || _isDisposed) return;
 
     if (_selectedOptionIds.isEmpty) {
       _errorType = VoteErrorType.noSelection;
       _errorMessage = null;
       _submittedSuccessfully = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return;
     }
+
+    final operationId = ++_submitOperationId;
 
     _isSubmitting = true;
     _errorMessage = null;
     _errorType = VoteErrorType.none;
     _submittedSuccessfully = false;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final selectedCount = _selectedOptionIds.length;
@@ -114,6 +122,10 @@ class VoteController extends ChangeNotifier {
         userCountryCode: userCountryCode,
       );
 
+      if (!_isOperationCurrent(operationId)) {
+        return;
+      }
+
       _submittedSuccessfully = true;
 
       await _trackVoteSubmitted(
@@ -121,32 +133,56 @@ class VoteController extends ChangeNotifier {
         selectedCount: selectedCount,
       );
     } on UnauthorizedVoteException {
-      _errorType = VoteErrorType.unauthorized;
-      _errorMessage = null;
-      _submittedSuccessfully = false;
-    } on PollClosedException {
-      _errorType = VoteErrorType.closed;
-      _errorMessage = null;
-      _submittedSuccessfully = false;
-    } catch (e) {
-      final message = e.toString().toLowerCase();
-
-      if (message.contains('duplicate') ||
-          message.contains('unique') ||
-          message.contains('already voted') ||
-          message.contains('unique_vote') ||
-          message.contains('unique_vote_per_poll_user')) {
-        _errorType = VoteErrorType.alreadyVoted;
-      } else {
-        _errorType = VoteErrorType.generic;
+      if (_isOperationCurrent(operationId)) {
+        _errorType = VoteErrorType.unauthorized;
+        _errorMessage = null;
+        _submittedSuccessfully = false;
       }
+    } on PollClosedException {
+      if (_isOperationCurrent(operationId)) {
+        _errorType = VoteErrorType.closed;
+        _errorMessage = null;
+        _submittedSuccessfully = false;
+      }
+    } catch (e) {
+      if (_isOperationCurrent(operationId)) {
+        final message = e.toString().toLowerCase();
 
-      _errorMessage = null;
-      _submittedSuccessfully = false;
+        if (message.contains('duplicate') ||
+            message.contains('unique') ||
+            message.contains('already voted') ||
+            message.contains('unique_vote') ||
+            message.contains('unique_vote_per_poll_user')) {
+          _errorType = VoteErrorType.alreadyVoted;
+        } else {
+          _errorType = VoteErrorType.generic;
+        }
+
+        _errorMessage = null;
+        _submittedSuccessfully = false;
+      }
     } finally {
-      _isSubmitting = false;
-      notifyListeners();
+      if (_isOperationCurrent(operationId)) {
+        _isSubmitting = false;
+        _safeNotifyListeners();
+      }
     }
+  }
+
+  bool _isOperationCurrent(int operationId) {
+    return !_isDisposed && operationId == _submitOperationId;
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) return;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _submitOperationId++;
+    super.dispose();
   }
 
   Future<void> _trackVoteSubmitted({

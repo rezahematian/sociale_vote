@@ -50,6 +50,9 @@ class SearchController extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  bool _isDisposed = false;
+  int _searchOperationId = 0;
+
   bool get hasError => _errorMessage != null && _errorMessage!.isNotEmpty;
 
   bool get hasResults => _results.isNotEmpty;
@@ -61,28 +64,32 @@ class SearchController extends ChangeNotifier {
   ///
   /// Nota: per default la ricerca usa lo scope corrente.
   void setScope(GeoScope scope) {
+    if (_isDisposed) return;
     _filters = _filters.copyWith(scope: scope);
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   /// Aggiorna il sort (Latest / Hottest).
   void setSort(SearchSort sort) {
+    if (_isDisposed) return;
     _filters = _filters.copyWith(sort: sort);
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   /// Aggiorna il filtro stato Poll (All / Open / Closed).
   ///
   /// Applicato solo se contentType == poll.
   void setPollStatus(PollStatusFilter status) {
+    if (_isDisposed) return;
     _filters = _filters.copyWith(pollStatus: status);
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   /// Aggiorna il tipo contenuto (Poll / News / Post / All).
   void setContentType(SearchContentType type) {
+    if (_isDisposed) return;
     _filters = _filters.copyWith(contentType: type);
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   /// Esegue una ricerca globale in base a:
@@ -95,6 +102,9 @@ class SearchController extends ChangeNotifier {
     required String rawQuery,
     SearchContentType type = SearchContentType.all,
   }) async {
+    if (_isDisposed) return;
+
+    final operationId = ++_searchOperationId;
     final query = SearchQuery(
       rawText: rawQuery,
       type: type,
@@ -123,40 +133,48 @@ class SearchController extends ChangeNotifier {
       _results = [];
       _errorMessage = null;
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return;
     }
 
+    final appliedFilters = _filters;
+
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
-      final scope = _filters.scope;
-
       final items = await _searchContent(
         rawQuery: query.rawText,
-        type: _filters.contentType,
-        scope: scope,
+        type: appliedFilters.contentType,
+        scope: appliedFilters.scope,
         // V1: limiti base. In futuro parametri configurabili.
-        limit: _filters.limit,
-        offset: _filters.offset,
+        limit: appliedFilters.limit,
+        offset: appliedFilters.offset,
       );
+
+      if (!_isOperationCurrent(operationId)) {
+        return;
+      }
 
       // Applichiamo i filtri mancanti lato app (in-memory):
       // - sort latest/hottest
       // - poll status open/closed (solo per contentType poll)
       var filtered = items;
 
-      filtered = _applyPollStatusFilter(filtered, _filters);
-      filtered = _applySort(filtered, _filters);
+      filtered = _applyPollStatusFilter(filtered, appliedFilters);
+      filtered = _applySort(filtered, appliedFilters);
 
       _results = filtered;
     } catch (e, _) {
-      _errorMessage = e.toString();
+      if (_isOperationCurrent(operationId)) {
+        _errorMessage = e.toString();
+      }
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (_isOperationCurrent(operationId)) {
+        _isLoading = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
@@ -175,6 +193,9 @@ class SearchController extends ChangeNotifier {
   /// Svuota lo stato di ricerca (usato, per esempio,
   /// quando l’utente cancella completamente la query).
   void clear() {
+    if (_isDisposed) return;
+
+    _searchOperationId++;
     _currentQuery = null;
     _lastScope = null;
     _results = [];
@@ -184,7 +205,23 @@ class SearchController extends ChangeNotifier {
     // Reset filtri al solo scope corrente.
     _filters = SearchFilters(scope: _geoScopeController.scope);
 
+    _safeNotifyListeners();
+  }
+
+  bool _isOperationCurrent(int operationId) {
+    return !_isDisposed && operationId == _searchOperationId;
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) return;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _searchOperationId++;
+    super.dispose();
   }
 
   List<SearchResultItem> _applySort(

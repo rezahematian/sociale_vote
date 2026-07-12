@@ -28,6 +28,9 @@ class AuthController extends ChangeNotifier {
 
   StreamSubscription<String?>? _currentUserIdSubscription;
   bool _isDisposed = false;
+  bool _operationInProgress = false;
+  int _operationId = 0;
+  int _sessionEventId = 0;
 
   AuthController({
     required SessionRepository sessionRepository,
@@ -47,26 +50,87 @@ class AuthController extends ChangeNotifier {
   bool get isAuthenticated => _status == AuthStatus.authenticated;
 
   void _initialize() {
-    _currentUserIdSubscription?.cancel();
-    _currentUserIdSubscription =
-        _sessionRepository.watchCurrentUserId().listen((userId) {
-      _currentUserId = userId;
-      _status = _statusFromCurrentUser();
+    final previousSubscription = _currentUserIdSubscription;
+    if (previousSubscription != null) {
+      unawaited(previousSubscription.cancel());
+    }
+
+    _currentUserIdSubscription = _sessionRepository.watchCurrentUserId().listen(
+          _handleCurrentUserIdChanged,
+          onError: _handleSessionStreamError,
+        );
+
+    final operationId = _operationId;
+    final sessionEventId = _sessionEventId;
+    unawaited(
+      _restoreCurrentUserId(
+        operationId: operationId,
+        sessionEventId: sessionEventId,
+      ),
+    );
+  }
+
+  Future<void> _restoreCurrentUserId({
+    required int operationId,
+    required int sessionEventId,
+  }) async {
+    try {
+      final userId = await _sessionRepository.getCurrentUserId();
+
+      if (_isDisposed ||
+          operationId != _operationId ||
+          sessionEventId != _sessionEventId) {
+        return;
+      }
+
+      _applyCurrentUserId(userId);
+    } catch (_) {
+      if (_isDisposed ||
+          operationId != _operationId ||
+          sessionEventId != _sessionEventId) {
+        return;
+      }
+
+      _status = AuthStatus.error;
+      _errorMessage = 'Unable to restore the current session.';
       _safeNotifyListeners();
-    });
+    }
+  }
+
+  void _handleCurrentUserIdChanged(String? userId) {
+    if (_isDisposed) {
+      return;
+    }
+
+    _sessionEventId++;
+    _currentUserId = _normalizeUserId(userId);
+
+    if (!_operationInProgress) {
+      _status = _statusFromCurrentUser();
+      _errorMessage = null;
+    }
+
+    _safeNotifyListeners();
+  }
+
+  void _handleSessionStreamError(Object _, StackTrace __) {
+    if (_isDisposed || _operationInProgress) {
+      return;
+    }
+
+    _status = AuthStatus.error;
+    _errorMessage = 'Unable to update the current session.';
+    _safeNotifyListeners();
   }
 
   Future<void> login({
     required String email,
     required String password,
   }) async {
-    if (_status == AuthStatus.loading) {
+    final operationId = _beginOperation();
+    if (operationId == null) {
       return;
     }
-
-    _status = AuthStatus.loading;
-    _errorMessage = null;
-    _safeNotifyListeners();
 
     try {
       await _loginUser(
@@ -74,22 +138,43 @@ class AuthController extends ChangeNotifier {
         password: password,
       );
 
-      await _trackAuthEvent(
-        name: 'login',
-        parameters: <String, Object>{
-          'method': 'email',
-        },
+      final userId = await _sessionRepository.getCurrentUserId();
+      if (!_isOperationStillValid(operationId)) {
+        return;
+      }
+
+      if (_normalizeUserId(userId) == null) {
+        _finishOperationWithError(
+          operationId,
+          'Login completed but the user session is not available.',
+        );
+        return;
+      }
+
+      _currentUserId = _normalizeUserId(userId);
+      _finishOperation(
+        operationId,
+        status: AuthStatus.authenticated,
+      );
+
+      unawaited(
+        _trackAuthEvent(
+          name: 'login',
+          parameters: <String, Object>{
+            'method': 'email',
+          },
+        ),
       );
     } catch (e) {
-      if (_isDisposed) return;
-      _status = AuthStatus.error;
-      _errorMessage = _mapAuthError(
-        e,
-        isRegisterFlow: false,
-        isPasswordResetFlow: false,
-        isUpdatePasswordFlow: false,
+      _finishOperationWithError(
+        operationId,
+        _mapAuthError(
+          e,
+          isRegisterFlow: false,
+          isPasswordResetFlow: false,
+          isUpdatePasswordFlow: false,
+        ),
       );
-      _safeNotifyListeners();
     }
   }
 
@@ -98,13 +183,10 @@ class AuthController extends ChangeNotifier {
     required String password,
     required String displayName,
   }) async {
-    if (_status == AuthStatus.loading) {
+    final operationId = _beginOperation();
+    if (operationId == null) {
       return;
     }
-
-    _status = AuthStatus.loading;
-    _errorMessage = null;
-    _safeNotifyListeners();
 
     try {
       await _registerUser(
@@ -113,22 +195,43 @@ class AuthController extends ChangeNotifier {
         displayName: displayName,
       );
 
-      await _trackAuthEvent(
-        name: 'sign_up',
-        parameters: <String, Object>{
-          'method': 'email',
-        },
+      final userId = await _sessionRepository.getCurrentUserId();
+      if (!_isOperationStillValid(operationId)) {
+        return;
+      }
+
+      if (_normalizeUserId(userId) == null) {
+        _finishOperationWithError(
+          operationId,
+          'Registration completed but the user session is not available.',
+        );
+        return;
+      }
+
+      _currentUserId = _normalizeUserId(userId);
+      _finishOperation(
+        operationId,
+        status: AuthStatus.authenticated,
+      );
+
+      unawaited(
+        _trackAuthEvent(
+          name: 'sign_up',
+          parameters: <String, Object>{
+            'method': 'email',
+          },
+        ),
       );
     } catch (e) {
-      if (_isDisposed) return;
-      _status = AuthStatus.error;
-      _errorMessage = _mapAuthError(
-        e,
-        isRegisterFlow: true,
-        isPasswordResetFlow: false,
-        isUpdatePasswordFlow: false,
+      _finishOperationWithError(
+        operationId,
+        _mapAuthError(
+          e,
+          isRegisterFlow: true,
+          isPasswordResetFlow: false,
+          isUpdatePasswordFlow: false,
+        ),
       );
-      _safeNotifyListeners();
     }
   }
 
@@ -136,32 +239,36 @@ class AuthController extends ChangeNotifier {
     required String email,
     required String redirectTo,
   }) async {
-    if (_status == AuthStatus.loading) {
+    final operationId = _beginOperation();
+    if (operationId == null) {
       return false;
     }
-
-    _status = AuthStatus.loading;
-    _errorMessage = null;
-    _safeNotifyListeners();
 
     try {
       await _authApi.sendPasswordResetEmail(
         email: email,
         redirectTo: redirectTo,
       );
-      _status = _statusFromCurrentUser();
-      _safeNotifyListeners();
+
+      if (!_isOperationStillValid(operationId)) {
+        return false;
+      }
+
+      _finishOperation(
+        operationId,
+        status: _statusFromCurrentUser(),
+      );
       return true;
     } catch (e) {
-      if (_isDisposed) return false;
-      _status = AuthStatus.error;
-      _errorMessage = _mapAuthError(
-        e,
-        isRegisterFlow: false,
-        isPasswordResetFlow: true,
-        isUpdatePasswordFlow: false,
+      _finishOperationWithError(
+        operationId,
+        _mapAuthError(
+          e,
+          isRegisterFlow: false,
+          isPasswordResetFlow: true,
+          isUpdatePasswordFlow: false,
+        ),
       );
-      _safeNotifyListeners();
       return false;
     }
   }
@@ -169,48 +276,157 @@ class AuthController extends ChangeNotifier {
   Future<bool> updatePassword({
     required String newPassword,
   }) async {
-    if (_status == AuthStatus.loading) {
+    final operationId = _beginOperation();
+    if (operationId == null) {
       return false;
     }
 
-    _status = AuthStatus.loading;
-    _errorMessage = null;
-    _safeNotifyListeners();
-
     try {
       await _authApi.updatePassword(newPassword: newPassword);
-      _status = _statusFromCurrentUser();
-      _safeNotifyListeners();
+
+      if (!_isOperationStillValid(operationId)) {
+        return false;
+      }
+
+      _finishOperation(
+        operationId,
+        status: _statusFromCurrentUser(),
+      );
       return true;
     } catch (e) {
-      if (_isDisposed) return false;
-      _status = AuthStatus.error;
-      _errorMessage = _mapAuthError(
-        e,
-        isRegisterFlow: false,
-        isPasswordResetFlow: false,
-        isUpdatePasswordFlow: true,
+      _finishOperationWithError(
+        operationId,
+        _mapAuthError(
+          e,
+          isRegisterFlow: false,
+          isPasswordResetFlow: false,
+          isUpdatePasswordFlow: true,
+        ),
       );
-      _safeNotifyListeners();
       return false;
     }
   }
 
   Future<void> logout() async {
-    await _authApi.logout();
-    await _sessionRepository.clearSession();
+    final operationId = _beginOperation();
+    if (operationId == null) {
+      return;
+    }
 
-    await _trackAuthEvent(
-      name: 'logout',
-      parameters: const <String, Object>{
-        'method': 'manual',
-      },
+    Object? logoutError;
+
+    try {
+      await _authApi.logout();
+    } catch (e) {
+      logoutError = e;
+    }
+
+    try {
+      await _sessionRepository.clearSession();
+    } catch (e) {
+      logoutError ??= e;
+    }
+
+    if (!_isOperationStillValid(operationId)) {
+      return;
+    }
+
+    _currentUserId = null;
+
+    if (logoutError != null) {
+      _finishOperationWithError(
+        operationId,
+        _mapLogoutError(logoutError),
+      );
+      return;
+    }
+
+    _finishOperation(
+      operationId,
+      status: AuthStatus.unauthenticated,
+    );
+
+    unawaited(
+      _trackAuthEvent(
+        name: 'logout',
+        parameters: const <String, Object>{
+          'method': 'manual',
+        },
+      ),
     );
   }
 
   void clearError() {
+    if (_isDisposed || _errorMessage == null) {
+      return;
+    }
+
     _errorMessage = null;
     _safeNotifyListeners();
+  }
+
+  int? _beginOperation() {
+    if (_isDisposed || _operationInProgress) {
+      return null;
+    }
+
+    _operationInProgress = true;
+    final operationId = ++_operationId;
+    _status = AuthStatus.loading;
+    _errorMessage = null;
+    _safeNotifyListeners();
+    return operationId;
+  }
+
+  bool _isOperationStillValid(int operationId) {
+    return !_isDisposed && _operationInProgress && operationId == _operationId;
+  }
+
+  void _finishOperation(
+    int operationId, {
+    required AuthStatus status,
+  }) {
+    if (!_isOperationStillValid(operationId)) {
+      return;
+    }
+
+    _operationInProgress = false;
+    _status = status;
+    _errorMessage = null;
+    _safeNotifyListeners();
+  }
+
+  void _finishOperationWithError(
+    int operationId,
+    String message,
+  ) {
+    if (!_isOperationStillValid(operationId)) {
+      return;
+    }
+
+    _operationInProgress = false;
+    _status = AuthStatus.error;
+    _errorMessage = message;
+    _safeNotifyListeners();
+  }
+
+  void _applyCurrentUserId(String? userId) {
+    if (_isDisposed) {
+      return;
+    }
+
+    _currentUserId = _normalizeUserId(userId);
+    _status = _statusFromCurrentUser();
+    _errorMessage = null;
+    _safeNotifyListeners();
+  }
+
+  String? _normalizeUserId(String? userId) {
+    final normalized = userId?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
   }
 
   AuthStatus _statusFromCurrentUser() {
@@ -250,6 +466,20 @@ class AuthController extends ChangeNotifier {
         parameters: parameters,
       );
     } catch (_) {}
+  }
+
+  String _mapLogoutError(Object error) {
+    final normalized = error.toString().trim().toLowerCase();
+
+    if (normalized.contains('network') ||
+        normalized.contains('socket') ||
+        normalized.contains('timeout') ||
+        normalized.contains('timed out') ||
+        normalized.contains('failed host lookup')) {
+      return 'Logout could not be completed. Check your connection and try again.';
+    }
+
+    return 'Logout could not be completed. Please try again.';
   }
 
   String _mapAuthError(
@@ -327,15 +557,25 @@ class AuthController extends ChangeNotifier {
   }
 
   void _safeNotifyListeners() {
-    if (_isDisposed) return;
+    if (_isDisposed) {
+      return;
+    }
     notifyListeners();
   }
 
   @override
   void dispose() {
     _isDisposed = true;
-    _currentUserIdSubscription?.cancel();
+    _operationInProgress = false;
+    _operationId++;
+    _sessionEventId++;
+
+    final subscription = _currentUserIdSubscription;
     _currentUserIdSubscription = null;
+    if (subscription != null) {
+      unawaited(subscription.cancel());
+    }
+
     super.dispose();
   }
 }

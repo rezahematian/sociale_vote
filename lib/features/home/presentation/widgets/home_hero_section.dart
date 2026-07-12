@@ -42,37 +42,39 @@ class HomeHeroSection extends StatelessWidget {
           ];
 
     final heroBorderColor = isDark
-        ? Colors.white.withOpacity(0.12)
-        : theme.colorScheme.outline.withOpacity(0.18);
+        ? Colors.white.withValues(alpha: 0.12)
+        : theme.colorScheme.outline.withValues(alpha: 0.18);
 
     final heroShadowColor = isDark
-        ? Colors.black.withOpacity(0.24)
-        : const Color(0xFF0F172A).withOpacity(0.07);
+        ? Colors.black.withValues(alpha: 0.24)
+        : const Color(0xFF0F172A).withValues(alpha: 0.07);
 
     final chipBackgroundColor = isDark
-        ? Colors.white.withOpacity(0.08)
-        : Colors.white.withOpacity(0.94);
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.white.withValues(alpha: 0.94);
 
     final chipBorderColor = isDark
-        ? Colors.white.withOpacity(0.12)
-        : theme.colorScheme.outline.withOpacity(0.12);
+        ? Colors.white.withValues(alpha: 0.12)
+        : theme.colorScheme.outline.withValues(alpha: 0.12);
 
     final chipForegroundColor =
         isDark ? const Color(0xFFB5D0FF) : theme.colorScheme.primary;
 
-    final searchForegroundColor =
-        isDark ? Colors.white.withOpacity(0.94) : theme.colorScheme.primary;
+    final searchForegroundColor = isDark
+        ? Colors.white.withValues(alpha: 0.94)
+        : theme.colorScheme.primary;
 
     final searchBackgroundColor = isDark
-        ? Colors.white.withOpacity(0.08)
-        : Colors.white.withOpacity(0.96);
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.white.withValues(alpha: 0.96);
 
     final searchBorderColor = isDark
-        ? Colors.white.withOpacity(0.14)
-        : theme.colorScheme.outline.withOpacity(0.16);
+        ? Colors.white.withValues(alpha: 0.14)
+        : theme.colorScheme.outline.withValues(alpha: 0.16);
 
-    final titleColor =
-        isDark ? Colors.white.withOpacity(0.97) : theme.colorScheme.onSurface;
+    final titleColor = isDark
+        ? Colors.white.withValues(alpha: 0.97)
+        : theme.colorScheme.onSurface;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -112,8 +114,8 @@ class HomeHeroSection extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isDark
-                            ? Colors.white.withOpacity(0.05)
-                            : theme.colorScheme.primary.withOpacity(0.06),
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : theme.colorScheme.primary.withValues(alpha: 0.06),
                       ),
                     ),
                   ),
@@ -128,8 +130,8 @@ class HomeHeroSection extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isDark
-                            ? const Color(0xFF7C9BFF).withOpacity(0.07)
-                            : const Color(0xFF8B5CF6).withOpacity(0.05),
+                            ? const Color(0xFF7C9BFF).withValues(alpha: 0.07)
+                            : const Color(0xFF8B5CF6).withValues(alpha: 0.05),
                       ),
                     ),
                   ),
@@ -227,16 +229,16 @@ class HomeHeroSection extends StatelessWidget {
                             label: Text(l10n.homeNewsViewAllButton),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: isDark
-                                  ? Colors.white.withOpacity(0.92)
+                                  ? Colors.white.withValues(alpha: 0.92)
                                   : theme.colorScheme.onSurface,
                               backgroundColor: isDark
-                                  ? Colors.white.withOpacity(0.05)
-                                  : Colors.white.withOpacity(0.88),
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.white.withValues(alpha: 0.88),
                               side: BorderSide(
                                 color: isDark
-                                    ? Colors.white.withOpacity(0.12)
+                                    ? Colors.white.withValues(alpha: 0.12)
                                     : theme.colorScheme.outline
-                                        .withOpacity(0.16),
+                                        .withValues(alpha: 0.16),
                               ),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,

@@ -3,13 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/discovery/usecases/get_for_you_feed.dart';
+import 'package:sociale_vote/domain/discussion/usecases/get_comment_count_for_target.dart';
 import 'package:sociale_vote/domain/engagement/entities/reaction_summary.dart';
 import 'package:sociale_vote/domain/engagement/usecases/get_reaction_summary.dart';
 import 'package:sociale_vote/domain/engagement/usecases/toggle_reaction.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 import 'package:sociale_vote/features/home/application/feed_item.dart';
-import 'package:sociale_vote/domain/discussion/usecases/get_comment_count_for_target.dart';
 
 class ForYouFeedController extends ChangeNotifier {
   final GetForYouFeed _getForYouFeed;
@@ -44,12 +44,16 @@ class ForYouFeedController extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  bool get hasError => _errorMessage != null && _errorMessage!.isNotEmpty;
+  bool get hasError =>
+      _items.isEmpty && _errorMessage != null && _errorMessage!.isNotEmpty;
 
   final Map<String, ReactionSummary> _reactionSummaries =
       <String, ReactionSummary>{};
 
   final Map<String, int> _commentCounts = <String, int>{};
+
+  final Map<String, int> _reactionOperationIds = <String, int>{};
+  final Map<String, int> _commentOperationIds = <String, int>{};
 
   String? _lastKnownUserId;
   bool _isDisposed = false;
@@ -93,20 +97,32 @@ class ForYouFeedController extends ChangeNotifier {
     required String? userId,
     int limit = 10,
   }) async {
+    if (_isDisposed) {
+      return;
+    }
+
+    final normalizedUserId = _normalizeUserId(userId);
+    final userChanged = normalizedUserId != _lastKnownUserId;
     final int requestId = ++_requestId;
     final scope = _geoScopeController.scope;
+
+    _lastKnownUserId = normalizedUserId;
+    _reactionOperationIds.clear();
+    _commentOperationIds.clear();
+
+    if (userChanged) {
+      _items = [];
+      _reactionSummaries.clear();
+      _commentCounts.clear();
+    }
 
     _isLoading = true;
     _errorMessage = null;
     _safeNotifyListeners();
 
-    _lastKnownUserId = userId ?? _lastKnownUserId;
-    _reactionSummaries.clear();
-    _commentCounts.clear();
-
     try {
       final result = await _getForYouFeed(
-        userId: userId,
+        userId: normalizedUserId,
         currentScope: scope,
         limit: limit,
       );
@@ -116,29 +132,37 @@ class ForYouFeedController extends ChangeNotifier {
       }
 
       _items = result;
+      _reactionSummaries.clear();
+      _commentCounts.clear();
       _primeCommentCountsFromItems(result);
 
       await _loadReactionSummariesForPostItems(
         result,
-        userId: _lastKnownUserId,
+        userId: normalizedUserId,
         requestId: requestId,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (!_isRequestStillValid(requestId)) {
         return;
       }
 
       _errorMessage = e.toString();
-      _items = [];
-      _reactionSummaries.clear();
-      _commentCounts.clear();
-    } finally {
-      if (!_isRequestStillValid(requestId)) {
-        return;
+
+      if (userChanged || _items.isEmpty) {
+        _items = [];
+        _reactionSummaries.clear();
+        _commentCounts.clear();
       }
 
-      _isLoading = false;
-      _safeNotifyListeners();
+      if (kDebugMode) {
+        debugPrint('Error loading For You feed: $e');
+        debugPrint('$stackTrace');
+      }
+    } finally {
+      if (_isRequestStillValid(requestId)) {
+        _isLoading = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
@@ -166,30 +190,48 @@ class ForYouFeedController extends ChangeNotifier {
       return;
     }
 
-    final targets = postItems.map((item) => item.targetRef).toList(growable: false);
+    final targets =
+        postItems.map((item) => item.targetRef).toList(growable: false);
 
-    final summaries = await _getReactionSummary(
-      targets,
-      userId: userId,
-    );
+    try {
+      final summaries = await _getReactionSummary(
+        targets,
+        userId: userId,
+      );
 
-    if (!_isRequestStillValid(requestId)) {
-      return;
-    }
+      if (!_isRequestStillValid(requestId)) {
+        return;
+      }
 
-    for (final summary in summaries) {
-      _reactionSummaries[summary.target.key] = summary;
+      for (final summary in summaries) {
+        _reactionSummaries[summary.target.key] = summary;
+      }
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('Error loading For You reaction summaries: $e');
+        debugPrint('$stackTrace');
+      }
     }
   }
 
   Future<void> refreshCommentCountForPost(Post post) async {
-    if (!_containsPost(post)) {
+    if (_isDisposed || !_containsPost(post)) {
       return;
     }
 
+    final target = _targetForPost(post);
+    final requestId = _requestId;
+    final operationId = _beginCommentOperation(target);
+
     try {
-      final count = await _getCommentCountForTarget(_targetForPost(post));
-      if (_isDisposed || !_containsPost(post)) {
+      final count = await _getCommentCountForTarget(target);
+
+      if (!_isCommentOperationStillValid(
+            target: target,
+            operationId: operationId,
+            requestId: requestId,
+          ) ||
+          !_containsPost(post)) {
         return;
       }
 
@@ -199,42 +241,66 @@ class ForYouFeedController extends ChangeNotifier {
   }
 
   Future<void> refreshReactionSummaryForPost(Post post) async {
-    if (!_containsPost(post)) {
+    if (_isDisposed || !_containsPost(post)) {
       return;
     }
 
+    final target = _targetForPost(post);
+    final requestId = _requestId;
+    final operationId = _beginReactionOperation(target);
+
     try {
       final summaries = await _getReactionSummary(
-        [_targetForPost(post)],
+        [target],
         userId: _lastKnownUserId,
       );
 
-      if (_isDisposed || !_containsPost(post)) {
+      if (!_isReactionOperationStillValid(
+            target: target,
+            operationId: operationId,
+            requestId: requestId,
+          ) ||
+          !_containsPost(post)) {
         return;
       }
 
       if (summaries.isNotEmpty) {
-        _reactionSummaries[_targetForPost(post).key] = summaries.first;
+        _reactionSummaries[target.key] = summaries.first;
         _safeNotifyListeners();
       }
     } catch (_) {}
   }
 
   Future<void> refreshEngagementForPost(Post post) async {
-    if (!_containsPost(post)) {
+    if (_isDisposed || !_containsPost(post)) {
       return;
     }
+
+    final target = _targetForPost(post);
+    final requestId = _requestId;
+    final reactionOperationId = _beginReactionOperation(target);
+    final commentOperationId = _beginCommentOperation(target);
 
     try {
       final results = await Future.wait([
         _getReactionSummary(
-          [_targetForPost(post)],
+          [target],
           userId: _lastKnownUserId,
         ),
-        _getCommentCountForTarget(_targetForPost(post)),
+        _getCommentCountForTarget(target),
       ]);
 
-      if (_isDisposed || !_containsPost(post)) {
+      if (!_isReactionOperationStillValid(
+            target: target,
+            operationId: reactionOperationId,
+            requestId: requestId,
+          ) ||
+          !_isCommentOperationStillValid(
+            target: target,
+            operationId: commentOperationId,
+            requestId: requestId,
+          ) ||
+          !_containsPost(post)) {
         return;
       }
 
@@ -242,7 +308,7 @@ class ForYouFeedController extends ChangeNotifier {
       final commentCount = results[1] as int;
 
       if (summaries.isNotEmpty) {
-        _reactionSummaries[_targetForPost(post).key] = summaries.first;
+        _reactionSummaries[target.key] = summaries.first;
       }
 
       _commentCounts[_postId(post)] = commentCount;
@@ -256,20 +322,32 @@ class ForYouFeedController extends ChangeNotifier {
   }) async {
     assert(userId.isNotEmpty, 'toggleFireForPost richiede userId valido.');
 
+    final normalizedUserId = _normalizeUserId(userId);
+    if (_isDisposed || normalizedUserId == null || !_containsPost(post)) {
+      return;
+    }
+
     final target = _targetForPost(post);
+    final requestId = _requestId;
+    final operationId = _beginReactionOperation(target);
 
     final summary = await _toggleReaction(
-      userId: userId,
+      userId: normalizedUserId,
       target: target,
       type: ReactionType.like,
     );
 
-    if (_isDisposed || !_containsPost(post)) {
+    if (!_isReactionOperationStillValid(
+          target: target,
+          operationId: operationId,
+          requestId: requestId,
+        ) ||
+        !_containsPost(post)) {
       return;
     }
 
     _reactionSummaries[target.key] = summary;
-    _lastKnownUserId = userId;
+    _lastKnownUserId = normalizedUserId;
     _safeNotifyListeners();
   }
 
@@ -279,30 +357,88 @@ class ForYouFeedController extends ChangeNotifier {
   }) async {
     assert(userId.isNotEmpty, 'toggleIceForPost richiede userId valido.');
 
+    final normalizedUserId = _normalizeUserId(userId);
+    if (_isDisposed || normalizedUserId == null || !_containsPost(post)) {
+      return;
+    }
+
     final target = _targetForPost(post);
+    final requestId = _requestId;
+    final operationId = _beginReactionOperation(target);
 
     final summary = await _toggleReaction(
-      userId: userId,
+      userId: normalizedUserId,
       target: target,
       type: ReactionType.dislike,
     );
 
-    if (_isDisposed || !_containsPost(post)) {
+    if (!_isReactionOperationStillValid(
+          target: target,
+          operationId: operationId,
+          requestId: requestId,
+        ) ||
+        !_containsPost(post)) {
       return;
     }
 
     _reactionSummaries[target.key] = summary;
-    _lastKnownUserId = userId;
+    _lastKnownUserId = normalizedUserId;
     _safeNotifyListeners();
   }
 
   void clear() {
+    if (_isDisposed) {
+      return;
+    }
+
+    ++_requestId;
     _items = [];
     _isLoading = false;
     _errorMessage = null;
     _reactionSummaries.clear();
     _commentCounts.clear();
+    _reactionOperationIds.clear();
+    _commentOperationIds.clear();
+    _lastKnownUserId = null;
     _safeNotifyListeners();
+  }
+
+  String? _normalizeUserId(String? userId) {
+    final normalized = userId?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
+  }
+
+  int _beginReactionOperation(TargetRef target) {
+    final operationId = (_reactionOperationIds[target.key] ?? 0) + 1;
+    _reactionOperationIds[target.key] = operationId;
+    return operationId;
+  }
+
+  int _beginCommentOperation(TargetRef target) {
+    final operationId = (_commentOperationIds[target.key] ?? 0) + 1;
+    _commentOperationIds[target.key] = operationId;
+    return operationId;
+  }
+
+  bool _isReactionOperationStillValid({
+    required TargetRef target,
+    required int operationId,
+    required int requestId,
+  }) {
+    return _isRequestStillValid(requestId) &&
+        _reactionOperationIds[target.key] == operationId;
+  }
+
+  bool _isCommentOperationStillValid({
+    required TargetRef target,
+    required int operationId,
+    required int requestId,
+  }) {
+    return _isRequestStillValid(requestId) &&
+        _commentOperationIds[target.key] == operationId;
   }
 
   bool _isRequestStillValid(int requestId) {
@@ -318,7 +454,14 @@ class ForYouFeedController extends ChangeNotifier {
 
   @override
   void dispose() {
+    if (_isDisposed) {
+      return;
+    }
+
     _isDisposed = true;
+    ++_requestId;
+    _reactionOperationIds.clear();
+    _commentOperationIds.clear();
     super.dispose();
   }
 }

@@ -24,17 +24,17 @@ class AppButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
   final bool expanded;
-  final _AppButtonVariant variant;
+  final _AppButtonVariant _variant;
   final IconData? icon;
 
   const AppButton._({
     required this.label,
-    required this.variant,
+    required _AppButtonVariant variant,
     this.onPressed,
     this.isLoading = false,
     this.expanded = false,
     this.icon,
-  });
+  }) : _variant = variant;
 
   factory AppButton.primary({
     required String label,
@@ -101,7 +101,7 @@ class AppButton extends StatelessWidget {
         child: CircularProgressIndicator(
           strokeWidth: 2,
           valueColor: AlwaysStoppedAnimation<Color>(
-            variant == _AppButtonVariant.primary
+            _variant == _AppButtonVariant.primary
                 ? theme.colorScheme.onPrimary
                 : theme.colorScheme.primary,
           ),
@@ -121,12 +121,11 @@ class AppButton extends StatelessWidget {
       child = Text(label);
     }
 
-    final double height =
-        variant == _AppButtonVariant.text ? 40 : 44;
+    final double height = _variant == _AppButtonVariant.text ? 40 : 44;
 
     Widget button;
 
-    switch (variant) {
+    switch (_variant) {
       case _AppButtonVariant.primary:
         button = ElevatedButton(
           onPressed: disabled ? null : onPressed,

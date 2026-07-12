@@ -121,7 +121,7 @@ class _EngagementButton extends StatelessWidget {
           borderRadius: AppRadius.pillRadius,
           border: Border.all(
             color: isSelected
-                ? activeColor.withOpacity(0.4)
+                ? activeColor.withValues(alpha: 0.4)
                 : AppColors.borderSoft,
           ),
         ),

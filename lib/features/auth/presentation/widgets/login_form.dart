@@ -264,7 +264,7 @@ class _LoginFormState extends State<LoginForm> {
       redirectTo: _buildPasswordResetRedirectTo(),
     );
 
-    if (!mounted || !success) {
+    if (!context.mounted || !success) {
       return;
     }
 
@@ -300,7 +300,7 @@ class _LoginFormState extends State<LoginForm> {
         password: password,
       );
 
-      if (controller.isAuthenticated && mounted) {
+      if (controller.isAuthenticated && context.mounted) {
         TextInput.finishAutofillContext();
         Navigator.of(context).pop();
       }

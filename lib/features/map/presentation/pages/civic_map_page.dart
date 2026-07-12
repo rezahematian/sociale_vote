@@ -125,7 +125,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                   child: Text(
                     'Contenuti visibili: ${controller.visibleItems.length}',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -175,13 +175,11 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
 
       await controller.refresh();
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _isChangingLanguage = false;
+        });
       }
-
-      setState(() {
-        _isChangingLanguage = false;
-      });
     }
   }
 
@@ -654,7 +652,7 @@ class _MarkerPreviewCard extends StatelessWidget {
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: theme.colorScheme.outline.withOpacity(0.14),
+            color: theme.colorScheme.outline.withValues(alpha: 0.14),
           ),
         ),
         child: Column(
@@ -665,10 +663,10 @@ class _MarkerPreviewCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
               decoration: BoxDecoration(
-                color: typeColor.withOpacity(0.06),
+                color: typeColor.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: typeColor.withOpacity(0.16),
+                  color: typeColor.withValues(alpha: 0.16),
                 ),
               ),
               child: Row(
@@ -683,15 +681,15 @@ class _MarkerPreviewCard extends StatelessWidget {
                         _CompactBadge(
                           label: _typeLabel(item.type),
                           icon: _typeIcon(item.type),
-                          backgroundColor: typeColor.withOpacity(0.12),
+                          backgroundColor: typeColor.withValues(alpha: 0.12),
                           foregroundColor: typeColor,
                         ),
                         if (item.heatTier != CivicMapHeatTier.normal)
                           _CompactBadge(
                             label: _activityLabel(item.heatTier),
                             icon: _activityIcon(item.heatTier),
-                            backgroundColor:
-                                _activityColor(item.heatTier).withOpacity(0.12),
+                            backgroundColor: _activityColor(item.heatTier)
+                                .withValues(alpha: 0.12),
                             foregroundColor: _activityColor(item.heatTier),
                           ),
                       ],
@@ -704,7 +702,8 @@ class _MarkerPreviewCard extends StatelessWidget {
                     onPressed: onClose,
                     icon: Icon(
                       Icons.close,
-                      color: theme.colorScheme.onSurface.withOpacity(0.72),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.72),
                     ),
                   ),
                 ],
@@ -727,7 +726,7 @@ class _MarkerPreviewCard extends StatelessWidget {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.86),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.86),
                   height: 1.35,
                 ),
               ),
@@ -846,7 +845,7 @@ class _PreviewMetaRow extends StatelessWidget {
 
     return DefaultTextStyle(
       style: theme.textTheme.bodySmall!.copyWith(
-        color: theme.colorScheme.onSurface.withOpacity(0.72),
+        color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
         fontWeight: FontWeight.w600,
       ),
       child: Wrap(
@@ -907,7 +906,8 @@ class _MetaInlineItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.onSurface.withOpacity(0.72);
+    final color =
+        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -1021,10 +1021,12 @@ class _MapTypeFilters extends StatelessWidget {
         size: 18,
         color: active ? color : null,
       ),
-      selectedColor: color.withOpacity(0.15),
+      selectedColor: color.withValues(alpha: 0.15),
       checkmarkColor: color,
       side: BorderSide(
-        color: active ? color.withOpacity(0.45) : Colors.grey.withOpacity(0.25),
+        color: active
+            ? color.withValues(alpha: 0.45)
+            : Colors.grey.withValues(alpha: 0.25),
       ),
       labelStyle: TextStyle(
         color: active ? color : null,

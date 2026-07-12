@@ -30,6 +30,7 @@ class NotificationsController extends ChangeNotifier {
   bool _isMarkingAllAsRead = false;
   String? _errorMessage;
   int _unreadCount = 0;
+  bool _isDisposed = false;
 
   List<AppNotification> get notifications => List.unmodifiable(_notifications);
   bool get isLoading => _isLoading;
@@ -52,13 +53,13 @@ class NotificationsController extends ChangeNotifier {
       _notifications = <AppNotification>[];
       _unreadCount = 0;
       _errorMessage = null;
-      notifyListeners();
+      _safeNotifyListeners();
       return;
     }
 
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final results = await Future.wait<dynamic>([
@@ -78,7 +79,7 @@ class NotificationsController extends ChangeNotifier {
       _errorMessage = 'Impossibile caricare le notifiche.';
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -94,7 +95,7 @@ class NotificationsController extends ChangeNotifier {
     if (normalizedUserId.isEmpty) {
       if (_unreadCount != 0) {
         _unreadCount = 0;
-        notifyListeners();
+        _safeNotifyListeners();
       }
       return;
     }
@@ -103,7 +104,7 @@ class NotificationsController extends ChangeNotifier {
       final count = await _getUnreadNotificationsCount(normalizedUserId);
       if (_unreadCount != count) {
         _unreadCount = count;
-        notifyListeners();
+        _safeNotifyListeners();
       }
     } catch (_) {}
   }
@@ -131,7 +132,7 @@ class NotificationsController extends ChangeNotifier {
     if (_unreadCount > 0) {
       _unreadCount -= 1;
     }
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       await _markNotificationAsRead(normalizedId);
@@ -140,7 +141,7 @@ class NotificationsController extends ChangeNotifier {
         ..[index] = notification;
       _unreadCount = previousUnreadCount;
       _errorMessage = 'Impossibile aggiornare la notifica.';
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -163,7 +164,7 @@ class NotificationsController extends ChangeNotifier {
             : notification.copyWith(isRead: true))
         .toList(growable: false);
     _unreadCount = 0;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       await _markAllNotificationsAsRead(normalizedUserId);
@@ -173,12 +174,25 @@ class NotificationsController extends ChangeNotifier {
       _errorMessage = 'Impossibile aggiornare le notifiche.';
     } finally {
       _isMarkingAllAsRead = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
   void clearError() {
     _errorMessage = null;
+    _safeNotifyListeners();
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) {
+      return;
+    }
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 }

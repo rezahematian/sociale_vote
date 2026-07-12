@@ -217,7 +217,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
       context,
       ParticipationAction.createPost,
     );
-    if (!allowed) return;
+    if (!mounted || !allowed) return;
 
     final userId = AppDI.instance.currentUserId;
     if (userId == null) {
@@ -348,7 +348,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 Text(
                   'Condividi una proposta, un’idea o un commento per quest’area geografica.',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.8),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -407,8 +407,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
                         Text(
                           'Definisce dove il post deve apparire sulla mappa.',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color:
-                                theme.colorScheme.onSurface.withOpacity(0.75),
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.75),
                           ),
                         ),
                         const SizedBox(height: 14),
@@ -417,11 +417,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: theme.colorScheme.surfaceContainerHighest
-                                .withOpacity(0.35),
+                                .withValues(alpha: 0.35),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color:
-                                  theme.colorScheme.outline.withOpacity(0.15),
+                              color: theme.colorScheme.outline
+                                  .withValues(alpha: 0.15),
                             ),
                           ),
                           child: Column(
@@ -445,7 +445,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                 'Origine: ${location == null ? 'Nessuna' : _sourceLabel(location.source)}',
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.onSurface
-                                      .withOpacity(0.7),
+                                      .withValues(alpha: 0.7),
                                 ),
                               ),
                             ],

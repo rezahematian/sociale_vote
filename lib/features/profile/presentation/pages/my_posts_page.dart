@@ -88,7 +88,6 @@ class _MyPostsView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-
             if (controller.isLoading && posts.isEmpty) ...[
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
@@ -153,7 +152,7 @@ class _MyPostCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: theme.dividerColor.withOpacity(0.4),
+              color: theme.dividerColor.withValues(alpha: 0.4),
             ),
           ),
           padding: const EdgeInsets.all(12),
@@ -189,8 +188,8 @@ class _MyPostCard extends StatelessWidget {
                   Text(
                     _formatPostCreatedAt(post.createdAt),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color:
-                          theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                      color: theme.textTheme.bodySmall?.color
+                          ?.withValues(alpha: 0.7),
                     ),
                   ),
                 ],

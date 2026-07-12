@@ -16,7 +16,6 @@ import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/ui/app_card.dart';
 import 'package:sociale_vote/shared/ui/loading_indicator.dart';
-import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 
 class HomeNewsSection extends StatefulWidget {
   final String scopeShortLabel;
@@ -107,8 +106,8 @@ class _HomeNewsSectionState extends State<HomeNewsSection> {
               borderRadius: BorderRadius.circular(999),
               child: LinearProgressIndicator(
                 minHeight: 3,
-                backgroundColor:
-                    theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                backgroundColor: theme.colorScheme.surfaceContainerHighest
+                    .withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 10),
@@ -301,7 +300,8 @@ class _SecondaryNewsCarouselState extends State<_SecondaryNewsCarousel> {
         final sideGutter = isDesktop ? 52.0 : 0.0;
 
         final activeDotColor = theme.colorScheme.primary;
-        final inactiveDotColor = theme.colorScheme.outline.withOpacity(0.28);
+        final inactiveDotColor =
+            theme.colorScheme.outline.withValues(alpha: 0.28);
 
         final currentIndex =
             widget.currentIndex.clamp(0, widget.newsList.length - 1);
@@ -438,8 +438,8 @@ class _CarouselChevronButton extends StatelessWidget {
     final theme = Theme.of(context);
 
     final foregroundColor = enabled
-        ? theme.colorScheme.onSurface.withOpacity(0.88)
-        : theme.colorScheme.onSurface.withOpacity(0.32);
+        ? theme.colorScheme.onSurface.withValues(alpha: 0.88)
+        : theme.colorScheme.onSurface.withValues(alpha: 0.32);
 
     return Material(
       color: Colors.transparent,
@@ -450,14 +450,14 @@ class _CarouselChevronButton extends StatelessWidget {
           width: 38,
           height: 38,
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface.withOpacity(0.92),
+            color: theme.colorScheme.surface.withValues(alpha: 0.92),
             shape: BoxShape.circle,
             border: Border.all(
-              color: theme.colorScheme.outline.withOpacity(0.16),
+              color: theme.colorScheme.outline.withValues(alpha: 0.16),
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF0F172A).withOpacity(0.08),
+                color: const Color(0xFF0F172A).withValues(alpha: 0.08),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -517,7 +517,7 @@ class _HomeNewsHeader extends StatelessWidget {
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: theme.colorScheme.primary.withOpacity(0.08),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
                 ),
                 padding: const EdgeInsets.all(6),
                 child: Icon(
@@ -601,11 +601,11 @@ class _HomeNewsHeader extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color:
-                  theme.colorScheme.surfaceContainerHighest.withOpacity(0.45),
+              color: theme.colorScheme.surfaceContainerHighest
+                  .withValues(alpha: 0.45),
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
-                color: theme.dividerColor.withOpacity(0.35),
+                color: theme.dividerColor.withValues(alpha: 0.35),
               ),
             ),
             child: Row(
@@ -614,7 +614,7 @@ class _HomeNewsHeader extends StatelessWidget {
                 Icon(
                   Icons.language,
                   size: 16,
-                  color: theme.colorScheme.onSurface.withOpacity(0.75),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.75),
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -741,8 +741,8 @@ class _HomeNewsInlineStatus extends StatelessWidget {
                   Text(
                     subtitle,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color:
-                          theme.textTheme.bodySmall?.color?.withOpacity(0.78),
+                      color: theme.textTheme.bodySmall?.color
+                          ?.withValues(alpha: 0.78),
                     ),
                   ),
                 ],
@@ -793,7 +793,7 @@ class _HomeNewsLoadingCard extends StatelessWidget {
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: theme.colorScheme.onSurface.withOpacity(0.08),
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(999),
         ),
       );
@@ -830,7 +830,7 @@ class _HomeNewsLoadingCard extends StatelessWidget {
                   width: compact ? 78 : 108,
                   height: compact ? 78 : 92,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.onSurface.withOpacity(0.08),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
@@ -900,7 +900,8 @@ class HomeNewsPlaceholderCard extends StatelessWidget {
             Text(
               subtitle,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
+                color:
+                    theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
               ),
             ),
             if (actionLabel != null && onActionPressed != null) ...[
@@ -970,148 +971,6 @@ class NewsPreviewCard extends StatelessWidget {
       onCommentTap: openNewsDetail,
       onFireTap: onFireTap,
       onIceTap: onIceTap,
-    );
-  }
-}
-
-class _NewsPreviewEngagementBar extends StatelessWidget {
-  final int fireCount;
-  final int iceCount;
-  final int commentCount;
-  final ReactionType? userReaction;
-  final VoidCallback? onFireTap;
-  final VoidCallback? onIceTap;
-  final VoidCallback? onCommentTap;
-
-  const _NewsPreviewEngagementBar({
-    required this.fireCount,
-    required this.iceCount,
-    required this.commentCount,
-    required this.userReaction,
-    required this.onFireTap,
-    required this.onIceTap,
-    required this.onCommentTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return EngagementBar(
-      fireCount: fireCount,
-      iceCount: iceCount,
-      commentCount: commentCount,
-      userReaction: userReaction,
-      onFireTap: onFireTap,
-      onIceTap: onIceTap,
-      onCommentTap: onCommentTap,
-    );
-  }
-}
-
-class _NewsCardTextBlock extends StatelessWidget {
-  final NewsItem news;
-  final String source;
-  final bool compact;
-
-  const _NewsCardTextBlock({
-    required this.news,
-    required this.source,
-    required this.compact,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          source,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.primary,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 6),
-        Text(
-          news.title,
-          style: (compact
-                  ? theme.textTheme.bodyMedium
-                  : theme.textTheme.titleSmall)
-              ?.copyWith(
-            fontWeight: FontWeight.w700,
-            height: 1.15,
-          ),
-          maxLines: compact ? 3 : 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        if (news.summary != null && news.summary!.trim().isNotEmpty) ...[
-          const SizedBox(height: 6),
-          Text(
-            news.summary!,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.textTheme.bodySmall?.color?.withOpacity(0.82),
-              height: 1.25,
-            ),
-            maxLines: compact ? 3 : 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _NewsThumbnail extends StatelessWidget {
-  final String imageUrl;
-  final bool compact;
-
-  const _NewsThumbnail({
-    required this.imageUrl,
-    required this.compact,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    final double width = compact ? 78 : 108;
-    final double height = compact ? 78 : 92;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: SizedBox(
-        width: width,
-        height: height,
-        child: Image.network(
-          imageUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
-            color: theme.colorScheme.onSurface.withOpacity(0.06),
-            alignment: Alignment.center,
-            child: Icon(
-              Icons.image_not_supported_outlined,
-              size: 20,
-              color: theme.colorScheme.onSurface.withOpacity(0.35),
-            ),
-          ),
-          loadingBuilder: (context, child, progress) {
-            if (progress == null) return child;
-            return Container(
-              color: theme.colorScheme.onSurface.withOpacity(0.06),
-              alignment: Alignment.center,
-              child: const SizedBox(
-                width: 18,
-                height: 18,
-                child: LoadingIndicator(),
-              ),
-            );
-          },
-        ),
-      ),
     );
   }
 }

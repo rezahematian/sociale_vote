@@ -67,28 +67,29 @@ class _PollOptionTile extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final borderColor = isSelected
-        ? colorScheme.primary.withOpacity(isDark ? 0.78 : 0.82)
-        : colorScheme.outline.withOpacity(isDark ? 0.32 : 0.14);
+        ? colorScheme.primary.withValues(alpha: isDark ? 0.78 : 0.82)
+        : colorScheme.outline.withValues(alpha: isDark ? 0.32 : 0.14);
 
     final backgroundColor = isSelected
-        ? colorScheme.primary.withOpacity(isDark ? 0.12 : 0.07)
+        ? colorScheme.primary.withValues(alpha: isDark ? 0.12 : 0.07)
         : colorScheme.surface;
 
     final leadingBackground = isSelected
-        ? colorScheme.primary.withOpacity(isDark ? 0.18 : 0.13)
-        : colorScheme.surfaceContainerHighest.withOpacity(isDark ? 0.36 : 0.55);
+        ? colorScheme.primary.withValues(alpha: isDark ? 0.18 : 0.13)
+        : colorScheme.surfaceContainerHighest
+            .withValues(alpha: isDark ? 0.36 : 0.55);
 
     final leadingBorder = isSelected
-        ? colorScheme.primary.withOpacity(isDark ? 0.42 : 0.24)
-        : colorScheme.outline.withOpacity(isDark ? 0.28 : 0.12);
+        ? colorScheme.primary.withValues(alpha: isDark ? 0.42 : 0.24)
+        : colorScheme.outline.withValues(alpha: isDark ? 0.28 : 0.12);
 
     final controlColor = isSelected
         ? colorScheme.primary
-        : colorScheme.onSurface.withOpacity(isDark ? 0.64 : 0.52);
+        : colorScheme.onSurface.withValues(alpha: isDark ? 0.64 : 0.52);
 
     final textColor = isEnabled
         ? colorScheme.onSurface
-        : colorScheme.onSurface.withOpacity(0.48);
+        : colorScheme.onSurface.withValues(alpha: 0.48);
 
     final badgeText = String.fromCharCode(65 + (index % 26));
 
@@ -116,8 +117,8 @@ class _PollOptionTile extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(
-                    isDark
+                  color: Colors.black.withValues(
+                    alpha: isDark
                         ? (isSelected ? 0.16 : 0.10)
                         : (isSelected ? 0.035 : 0.018),
                   ),
@@ -143,7 +144,7 @@ class _PollOptionTile extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color: isSelected
                           ? colorScheme.primary
-                          : colorScheme.onSurface.withOpacity(0.78),
+                          : colorScheme.onSurface.withValues(alpha: 0.78),
                     ),
                   ),
                 ),

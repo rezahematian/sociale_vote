@@ -134,7 +134,7 @@ class _SocialFeedViewState extends State<_SocialFeedView> {
             context,
             ParticipationAction.createPost,
           );
-          if (!allowed) return;
+          if (!allowed || !context.mounted) return;
 
           final feedController = context.read<FeedController>();
 
@@ -172,7 +172,7 @@ class _SocialEmptyState extends StatelessWidget {
             Icon(
               Icons.forum_outlined,
               size: 40,
-              color: theme.colorScheme.onSurface.withOpacity(0.6),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
             const SizedBox(height: 12),
             Text(
@@ -183,7 +183,7 @@ class _SocialEmptyState extends StatelessWidget {
             Text(
               'Quando verranno pubblicati nuovi post per questo ambito geografico li vedrai qui.',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -229,7 +229,7 @@ class _SocialErrorState extends StatelessWidget {
             Text(
               message,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),

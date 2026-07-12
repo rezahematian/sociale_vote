@@ -58,15 +58,15 @@ class AppCard extends StatelessWidget {
     final Color baseBackgroundColor = theme.cardColor;
     final Color backgroundColor = selected
         ? (isDark
-              ? AppColors.primarySoftBackgroundDark
-              : AppColors.primarySoftBackground)
+            ? AppColors.primarySoftBackgroundDark
+            : AppColors.primarySoftBackground)
         : baseBackgroundColor;
 
     final BorderSide borderSide = BorderSide(
       color: selected
           ? (isDark
-                ? AppColors.primaryLight.withOpacity(0.52)
-                : AppColors.primary.withOpacity(0.42))
+              ? AppColors.primaryLight.withValues(alpha: 0.52)
+              : AppColors.primary.withValues(alpha: 0.42))
           : (isDark ? AppColors.borderSoftDark : AppColors.borderSoft),
       width: selected ? 1.2 : 1,
     );
@@ -77,14 +77,14 @@ class AppCard extends StatelessWidget {
             backgroundColor,
           ]
         : isDark
-        ? <Color>[
-            _blend(baseBackgroundColor, Colors.white, 0.035),
-            _blend(baseBackgroundColor, const Color(0xFF020617), 0.16),
-          ]
-        : <Color>[
-            _blend(baseBackgroundColor, Colors.white, 0.72),
-            _blend(baseBackgroundColor, AppColors.backgroundAlt, 0.30),
-          ];
+            ? <Color>[
+                _blend(baseBackgroundColor, Colors.white, 0.035),
+                _blend(baseBackgroundColor, const Color(0xFF020617), 0.16),
+              ]
+            : <Color>[
+                _blend(baseBackgroundColor, Colors.white, 0.72),
+                _blend(baseBackgroundColor, AppColors.backgroundAlt, 0.30),
+              ];
 
     final List<BoxShadow> shadows = elevated
         ? <BoxShadow>[
@@ -92,8 +92,8 @@ class AppCard extends StatelessWidget {
               blurRadius: isDark ? 28 : 20,
               offset: const Offset(0, 10),
               color: isDark
-                  ? Colors.black.withOpacity(0.24)
-                  : Colors.black.withOpacity(0.06),
+                  ? Colors.black.withValues(alpha: 0.24)
+                  : Colors.black.withValues(alpha: 0.06),
             ),
           ]
         : <BoxShadow>[
@@ -101,8 +101,8 @@ class AppCard extends StatelessWidget {
               blurRadius: isDark ? 16 : 12,
               offset: const Offset(0, 4),
               color: isDark
-                  ? Colors.black.withOpacity(0.16)
-                  : Colors.black.withOpacity(0.028),
+                  ? Colors.black.withValues(alpha: 0.16)
+                  : Colors.black.withValues(alpha: 0.028),
             ),
           ];
 
@@ -112,8 +112,8 @@ class AppCard extends StatelessWidget {
     );
 
     final Color overlayColor = isDark
-        ? AppColors.primarySoftBackgroundDark.withOpacity(0.34)
-        : AppColors.primarySoftBackground.withOpacity(0.72);
+        ? AppColors.primarySoftBackgroundDark.withValues(alpha: 0.34)
+        : AppColors.primarySoftBackground.withValues(alpha: 0.72);
 
     Widget cardChild = Padding(
       padding: effectivePadding,
@@ -125,8 +125,8 @@ class AppCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: AppRadius.cardRadius,
         splashColor: overlayColor,
-        highlightColor: overlayColor.withOpacity(0.75),
-        hoverColor: overlayColor.withOpacity(0.45),
+        highlightColor: overlayColor.withValues(alpha: 0.75),
+        hoverColor: overlayColor.withValues(alpha: 0.45),
         child: cardChild,
       );
     }

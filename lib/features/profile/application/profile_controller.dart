@@ -19,6 +19,9 @@ class ProfileController extends ChangeNotifier {
   bool _isSaving = false;
   String? _errorMessage;
 
+  bool _isDisposed = false;
+  int _profileOperationId = 0;
+
   UserProfile? get profile => _profile;
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
@@ -26,19 +29,29 @@ class ProfileController extends ChangeNotifier {
   bool get hasProfile => _profile != null;
 
   Future<void> loadProfile(String userId) async {
-    if (_isLoading) return;
+    if (_isLoading || _isDisposed) return;
+
+    final operationId = ++_profileOperationId;
 
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
-      _profile = await _getUserProfile(userId);
+      final loadedProfile = await _getUserProfile(userId);
+
+      if (_isOperationCurrent(operationId)) {
+        _profile = loadedProfile;
+      }
     } catch (e) {
-      _errorMessage = 'Impossibile caricare il profilo.';
+      if (_isOperationCurrent(operationId)) {
+        _errorMessage = 'Impossibile caricare il profilo.';
+      }
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (!_isDisposed) {
+        _isLoading = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
@@ -51,14 +64,16 @@ class ProfileController extends ChangeNotifier {
     String? country,
     String? city,
   }) async {
-    if (_isSaving) return;
+    if (_isSaving || _isDisposed) return;
+
+    final operationId = ++_profileOperationId;
 
     _isSaving = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
-      _profile = await _updateUserProfile(
+      final updatedProfile = await _updateUserProfile(
         userId: userId,
         displayName: displayName,
         username: username,
@@ -67,17 +82,41 @@ class ProfileController extends ChangeNotifier {
         country: country,
         city: city,
       );
+
+      if (_isOperationCurrent(operationId)) {
+        _profile = updatedProfile;
+      }
     } catch (e) {
-      _errorMessage = 'Impossibile aggiornare il profilo.';
+      if (_isOperationCurrent(operationId)) {
+        _errorMessage = 'Impossibile aggiornare il profilo.';
+      }
     } finally {
-      _isSaving = false;
-      notifyListeners();
+      if (!_isDisposed) {
+        _isSaving = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
   void clearError() {
-    if (_errorMessage == null) return;
+    if (_errorMessage == null || _isDisposed) return;
     _errorMessage = null;
+    _safeNotifyListeners();
+  }
+
+  bool _isOperationCurrent(int operationId) {
+    return !_isDisposed && operationId == _profileOperationId;
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) return;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _profileOperationId++;
+    super.dispose();
   }
 }

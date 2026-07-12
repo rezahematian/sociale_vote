@@ -33,6 +33,9 @@ class VerificationRequestsController extends ChangeNotifier {
   String? _errorMessage;
   Future<void>? _activeLoadFuture;
 
+  bool _isDisposed = false;
+  int _loadOperationId = 0;
+
   VerificationRequest? get pendingRequest => _pendingRequest;
   List<VerificationRequest> get requests => _requests;
 
@@ -61,14 +64,20 @@ class VerificationRequestsController extends ChangeNotifier {
   }
 
   Future<void> load(String userId) {
+    if (_isDisposed) {
+      return Future<void>.value();
+    }
+
     final activeLoad = _activeLoadFuture;
     if (activeLoad != null) {
       return activeLoad;
     }
 
+    final operationId = ++_loadOperationId;
     final future = _runLoad(
       userId,
       showLoadingState: true,
+      operationId: operationId,
     );
 
     _activeLoadFuture = future;
@@ -81,25 +90,34 @@ class VerificationRequestsController extends ChangeNotifier {
   }
 
   Future<void> _refreshAfterMutation(String userId) async {
+    if (_isDisposed) return;
+
     final activeLoad = _activeLoadFuture;
     if (activeLoad != null) {
       await activeLoad;
     }
 
+    if (_isDisposed) return;
+
+    final operationId = ++_loadOperationId;
     await _runLoad(
       userId,
       showLoadingState: false,
+      operationId: operationId,
     );
   }
 
   Future<void> _runLoad(
     String userId, {
     required bool showLoadingState,
+    required int operationId,
   }) async {
+    if (_isDisposed) return;
+
     if (showLoadingState) {
       _isLoading = true;
       _errorMessage = null;
-      notifyListeners();
+      _safeNotifyListeners();
     }
 
     try {
@@ -108,17 +126,25 @@ class VerificationRequestsController extends ChangeNotifier {
         _getVerificationRequestsForUser.call(userId),
       ]);
 
+      if (!_isLoadOperationCurrent(operationId)) {
+        return;
+      }
+
       _pendingRequest = results[0] as VerificationRequest?;
       _requests = (results[1] as List<VerificationRequest>).toList(
         growable: false,
       );
     } catch (_) {
-      _errorMessage = 'Impossibile caricare le richieste di verifica.';
-    } finally {
-      if (showLoadingState) {
-        _isLoading = false;
+      if (_isLoadOperationCurrent(operationId)) {
+        _errorMessage = 'Impossibile caricare le richieste di verifica.';
       }
-      notifyListeners();
+    } finally {
+      if (_isLoadOperationCurrent(operationId)) {
+        if (showLoadingState) {
+          _isLoading = false;
+        }
+        _safeNotifyListeners();
+      }
     }
   }
 
@@ -129,11 +155,11 @@ class VerificationRequestsController extends ChangeNotifier {
     String? institutionName,
     InstitutionLevel? targetInstitutionLevel,
   }) async {
-    if (_isCreating) return false;
+    if (_isCreating || _isDisposed) return false;
 
     _isCreating = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       await _createVerificationRequest.call(
@@ -144,43 +170,74 @@ class VerificationRequestsController extends ChangeNotifier {
         targetInstitutionLevel: targetInstitutionLevel,
       );
 
-      await _refreshAfterMutation(userId);
+      if (!_isDisposed) {
+        await _refreshAfterMutation(userId);
+      }
+
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      if (!_isDisposed) {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      }
       return false;
     } finally {
-      _isCreating = false;
-      notifyListeners();
+      if (!_isDisposed) {
+        _isCreating = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
   Future<bool> cancelPendingRequest(String userId) async {
     final request = _pendingRequest;
-    if (request == null || _isCancelling) {
+    if (request == null || _isCancelling || _isDisposed) {
       return false;
     }
 
     _isCancelling = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       await _cancelVerificationRequest.call(requestId: request.id);
-      await _refreshAfterMutation(userId);
+
+      if (!_isDisposed) {
+        await _refreshAfterMutation(userId);
+      }
+
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      if (!_isDisposed) {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      }
       return false;
     } finally {
-      _isCancelling = false;
-      notifyListeners();
+      if (!_isDisposed) {
+        _isCancelling = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
   void clearError() {
-    if (_errorMessage == null) return;
+    if (_errorMessage == null || _isDisposed) return;
     _errorMessage = null;
+    _safeNotifyListeners();
+  }
+
+  bool _isLoadOperationCurrent(int operationId) {
+    return !_isDisposed && operationId == _loadOperationId;
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) return;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _loadOperationId++;
+    super.dispose();
   }
 }

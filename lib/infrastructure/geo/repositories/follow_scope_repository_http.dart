@@ -3,12 +3,11 @@ import 'package:sociale_vote/domain/geo/entities/follow_scope.dart';
 import 'package:sociale_vote/domain/geo/repositories/follow_scope_repository.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 
-/// Implementazione HTTP-ready del FollowScopeRepository.
+/// Stub HTTP del [FollowScopeRepository].
 ///
-/// ⚠️ V1:
-/// - Solo wiring, nessuna vera chiamata al backend.
-/// - Tutti i metodi lanciano UnimplementedError finché
-///   non vengono collegati agli endpoint reali.
+/// La configurazione R1 usa [FollowScopeRepositoryInMemory] tramite AppDI.
+/// Questo adapter resta intenzionalmente non collegato finché non saranno
+/// definiti endpoint REST reali per i follow geografici.
 class FollowScopeRepositoryHttp implements FollowScopeRepository {
   // ignore: unused_field
   final ApiClient _client;
@@ -20,7 +19,7 @@ class FollowScopeRepositoryHttp implements FollowScopeRepository {
     required String userId,
     required GeoScope scope,
   }) async {
-    // TODO: implementare chiamata REST al backend reale.
+    // Adapter non attivo in R1: nessun endpoint REST disponibile.
     throw UnimplementedError(
       'FollowScopeRepositoryHttp.isFollowing non è ancora implementato.',
     );
@@ -28,7 +27,7 @@ class FollowScopeRepositoryHttp implements FollowScopeRepository {
 
   @override
   Future<void> addFollow(FollowScope follow) async {
-    // TODO: implementare chiamata REST al backend reale.
+    // Adapter non attivo in R1: nessun endpoint REST disponibile.
     throw UnimplementedError(
       'FollowScopeRepositoryHttp.addFollow non è ancora implementato.',
     );
@@ -39,7 +38,7 @@ class FollowScopeRepositoryHttp implements FollowScopeRepository {
     required String userId,
     required GeoScope scope,
   }) async {
-    // TODO: implementare chiamata REST al backend reale.
+    // Adapter non attivo in R1: nessun endpoint REST disponibile.
     throw UnimplementedError(
       'FollowScopeRepositoryHttp.removeFollow non è ancora implementato.',
     );
@@ -49,7 +48,7 @@ class FollowScopeRepositoryHttp implements FollowScopeRepository {
   Future<List<FollowScope>> getFollowedScopesForUser(
     String userId,
   ) async {
-    // TODO: implementare chiamata REST al backend reale.
+    // Adapter non attivo in R1: nessun endpoint REST disponibile.
     throw UnimplementedError(
       'FollowScopeRepositoryHttp.getFollowedScopesForUser non è ancora implementato.',
     );

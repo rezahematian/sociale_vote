@@ -49,7 +49,6 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
   ];
 
   bool _isFavorite = false;
-  bool _favoriteInitialized = false;
   bool _favoriteLoading = false;
   int _commentCount = 0;
   String? _initializedNewsId;
@@ -66,7 +65,6 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
 
     if (oldWidget.news.id.value != widget.news.id.value) {
       _isFavorite = false;
-      _favoriteInitialized = false;
       _favoriteLoading = false;
       _commentCount = 0;
       _initializedNewsId = null;
@@ -87,7 +85,6 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
       if (!mounted) return;
       setState(() {
         _isFavorite = false;
-        _favoriteInitialized = true;
       });
       return;
     }
@@ -100,13 +97,10 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
       if (!mounted) return;
       setState(() {
         _isFavorite = isFav;
-        _favoriteInitialized = true;
       });
     } catch (_) {
       if (!mounted) return;
-      setState(() {
-        _favoriteInitialized = true;
-      });
+      setState(() {});
     }
   }
 
@@ -160,10 +154,11 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
         const SnackBar(content: Text('Impossibile aggiornare i preferiti')),
       );
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _favoriteLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _favoriteLoading = false;
+        });
+      }
     }
   }
 
@@ -213,7 +208,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
       context,
       ParticipationAction.reportContent,
     );
-    if (!allowed) return;
+    if (!allowed || !mounted) return;
 
     final userId = AppDI.instance.currentUserId;
     if (userId == null) {
@@ -266,22 +261,24 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
           builder: (context, setDialogState) {
             return AlertDialog(
               title: const Text('Segnala contenuto'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: _reportReasons.map((reason) {
-                  return RadioListTile<String>(
-                    value: reason,
-                    groupValue: selectedReason,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(_reportReasonLabel(reason)),
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setDialogState(() {
-                        selectedReason = value;
-                      });
-                    },
-                  );
-                }).toList(),
+              content: RadioGroup<String>(
+                groupValue: selectedReason,
+                onChanged: (value) {
+                  if (value == null) return;
+                  setDialogState(() {
+                    selectedReason = value;
+                  });
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: _reportReasons.map((reason) {
+                    return RadioListTile<String>(
+                      value: reason,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(_reportReasonLabel(reason)),
+                    );
+                  }).toList(),
+                ),
               ),
               actions: [
                 TextButton(
@@ -379,7 +376,6 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
         if (!mounted) return;
         setState(() {
           _isFavorite = false;
-          _favoriteInitialized = false;
           _favoriteLoading = false;
           _commentCount = 0;
           _initializedNewsId = news.id.value;
@@ -527,7 +523,8 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                       child: Container(
                         height: 2,
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withOpacity(0.2),
+                          color:
+                              theme.colorScheme.primary.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(999),
                         ),
                       ),
@@ -541,7 +538,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                     side: BorderSide(
-                      color: theme.dividerColor.withOpacity(0.4),
+                      color: theme.dividerColor.withValues(alpha: 0.4),
                     ),
                   ),
                   child: Padding(

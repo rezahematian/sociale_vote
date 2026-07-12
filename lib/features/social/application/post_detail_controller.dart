@@ -41,6 +41,8 @@ class PostDetailController extends ChangeNotifier {
 
   bool _isLoading = false;
   bool _hasError = false;
+  bool _isDisposed = false;
+  int _loadOperationId = 0;
   String? _errorMessage;
   Post? _post;
   ReactionSummary? _reactionSummary;
@@ -71,10 +73,19 @@ class PostDetailController extends ChangeNotifier {
   }
 
   Future<void> load() async {
+    if (_isDisposed) {
+      return;
+    }
+
+    final operationId = ++_loadOperationId;
     _setLoading(true);
 
     try {
       final result = await _getPostDetail(_postId);
+
+      if (!_isLoadOperationCurrent(operationId)) {
+        return;
+      }
 
       if (result == null) {
         _hasError = true;
@@ -88,14 +99,26 @@ class PostDetailController extends ChangeNotifier {
       _hasError = false;
       _errorMessage = null;
 
-      await _loadReactionSummaryForPost(result);
+      final summary = await _loadReactionSummaryForPost(result);
+
+      if (!_isLoadOperationCurrent(operationId)) {
+        return;
+      }
+
+      _reactionSummary = summary;
     } catch (e) {
+      if (!_isLoadOperationCurrent(operationId)) {
+        return;
+      }
+
       _hasError = true;
       _errorMessage = 'Impossibile caricare il post.';
       _post = null;
       _reactionSummary = null;
     } finally {
-      _setLoading(false);
+      if (_isLoadOperationCurrent(operationId)) {
+        _setLoading(false);
+      }
     }
   }
 
@@ -126,8 +149,12 @@ class PostDetailController extends ChangeNotifier {
       content: content,
     );
 
+    if (_isDisposed) {
+      return updated;
+    }
+
     _post = updated;
-    notifyListeners();
+    _safeNotifyListeners();
     return updated;
   }
 
@@ -169,8 +196,12 @@ class PostDetailController extends ChangeNotifier {
       type: ReactionType.like,
     );
 
+    if (_isDisposed) {
+      return;
+    }
+
     _reactionSummary = summary;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> toggleIce({
@@ -193,28 +224,49 @@ class PostDetailController extends ChangeNotifier {
       type: ReactionType.dislike,
     );
 
+    if (_isDisposed) {
+      return;
+    }
+
     _reactionSummary = summary;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
-  Future<void> _loadReactionSummaryForPost(Post post) async {
+  Future<ReactionSummary?> _loadReactionSummaryForPost(Post post) async {
     final target = _targetForPost(post);
     final summaries = await _getReactionSummary(<TargetRef>[target]);
 
     if (summaries.isEmpty) {
-      _reactionSummary = null;
-      return;
+      return null;
     }
 
     final postId = _postIdFromPost(post);
-    _reactionSummary = summaries.firstWhere(
-      (s) => s.target.id == postId,
+    return summaries.firstWhere(
+      (summary) => summary.target.id == postId,
       orElse: () => summaries.first,
     );
   }
 
+  bool _isLoadOperationCurrent(int operationId) {
+    return !_isDisposed && operationId == _loadOperationId;
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) {
+      return;
+    }
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _loadOperationId++;
+    super.dispose();
+  }
+
   void _setLoading(bool value) {
     _isLoading = value;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 }

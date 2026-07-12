@@ -38,7 +38,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Questa notifica non ha ancora una destinazione apribile.'),
+        content:
+            Text('Questa notifica non ha ancora una destinazione apribile.'),
       ),
     );
   }
@@ -193,7 +194,7 @@ class _NotificationTile extends StatelessWidget {
     return Container(
       color: notification.isRead
           ? null
-          : theme.colorScheme.primary.withOpacity(0.06),
+          : theme.colorScheme.primary.withValues(alpha: 0.06),
       child: ListTile(
         leading: CircleAvatar(
           child: Icon(_iconForType(notification.type)),

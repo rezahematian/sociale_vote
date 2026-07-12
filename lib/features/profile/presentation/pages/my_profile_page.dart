@@ -123,42 +123,32 @@ class _MyProfileViewState extends State<_MyProfileView> {
       showDragHandle: true,
       builder: (sheetContext) {
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              RadioListTile<ThemeMode>(
-                value: ThemeMode.system,
-                groupValue: currentMode,
-                title: const Text('Sistema'),
-                subtitle: const Text('Segue il tema del dispositivo'),
-                onChanged: (value) {
-                  if (value == null) return;
-                  AppThemeModeController.setThemeMode(value);
-                  Navigator.of(sheetContext).pop();
-                },
-              ),
-              RadioListTile<ThemeMode>(
-                value: ThemeMode.light,
-                groupValue: currentMode,
-                title: const Text('Chiaro'),
-                onChanged: (value) {
-                  if (value == null) return;
-                  AppThemeModeController.setThemeMode(value);
-                  Navigator.of(sheetContext).pop();
-                },
-              ),
-              RadioListTile<ThemeMode>(
-                value: ThemeMode.dark,
-                groupValue: currentMode,
-                title: const Text('Scuro'),
-                onChanged: (value) {
-                  if (value == null) return;
-                  AppThemeModeController.setThemeMode(value);
-                  Navigator.of(sheetContext).pop();
-                },
-              ),
-              const SizedBox(height: 8),
-            ],
+          child: RadioGroup<ThemeMode>(
+            groupValue: currentMode,
+            onChanged: (value) {
+              if (value == null) return;
+              AppThemeModeController.setThemeMode(value);
+              Navigator.of(sheetContext).pop();
+            },
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RadioListTile<ThemeMode>(
+                  value: ThemeMode.system,
+                  title: Text('Sistema'),
+                  subtitle: Text('Segue il tema del dispositivo'),
+                ),
+                RadioListTile<ThemeMode>(
+                  value: ThemeMode.light,
+                  title: Text('Chiaro'),
+                ),
+                RadioListTile<ThemeMode>(
+                  value: ThemeMode.dark,
+                  title: Text('Scuro'),
+                ),
+                SizedBox(height: 8),
+              ],
+            ),
           ),
         );
       },
@@ -1216,10 +1206,10 @@ class _StatusChip extends StatelessWidget {
         vertical: 6,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.08),
+        color: theme.colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: theme.colorScheme.primary.withOpacity(0.18),
+          color: theme.colorScheme.primary.withValues(alpha: 0.18),
         ),
       ),
       child: Row(
@@ -1257,11 +1247,11 @@ class _IdentityBadgeChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final backgroundColor = isPrimary
-        ? theme.colorScheme.primary.withOpacity(0.10)
-        : theme.colorScheme.surfaceContainerHighest.withOpacity(0.45);
+        ? theme.colorScheme.primary.withValues(alpha: 0.10)
+        : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.45);
     final borderColor = isPrimary
-        ? theme.colorScheme.primary.withOpacity(0.22)
-        : theme.colorScheme.outline.withOpacity(0.14);
+        ? theme.colorScheme.primary.withValues(alpha: 0.22)
+        : theme.colorScheme.outline.withValues(alpha: 0.14);
     final textColor =
         isPrimary ? theme.colorScheme.primary : theme.colorScheme.onSurface;
 

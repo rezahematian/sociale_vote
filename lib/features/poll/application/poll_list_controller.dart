@@ -152,9 +152,10 @@ class PollListController extends ChangeNotifier {
       _currentOffset = 0;
       _hasMoreFromSource = false;
     } finally {
-      if (_isDisposed) return;
-      _isLoading = false;
-      _safeNotifyListeners();
+      if (!_isDisposed) {
+        _isLoading = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
@@ -174,9 +175,10 @@ class PollListController extends ChangeNotifier {
         debugPrint('$stackTrace');
       }
     } finally {
-      if (_isDisposed) return;
-      _isLoading = false;
-      _safeNotifyListeners();
+      if (!_isDisposed) {
+        _isLoading = false;
+        _safeNotifyListeners();
+      }
     }
   }
 

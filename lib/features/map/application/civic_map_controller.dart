@@ -294,6 +294,7 @@ class CivicMapController extends ChangeNotifier {
   int _loadRequestId = 0;
   Future<void>? _activeLoadFuture;
   String? _activeLoadScopeKey;
+  bool _activeLoadIsExplicitRefresh = false;
 
   CivicMapItem? get selectedItem {
     if (_selectedItemId == null && _selectedTargetRefKey == null) {
@@ -329,6 +330,7 @@ class CivicMapController extends ChangeNotifier {
     _loadRequestId++;
     _activeLoadFuture = null;
     _activeLoadScopeKey = null;
+    _activeLoadIsExplicitRefresh = false;
     super.dispose();
   }
 
@@ -340,8 +342,7 @@ class CivicMapController extends ChangeNotifier {
     if (scope == null) return;
 
     final sameScope = _isSameScope(_currentScope, scope);
-    final shouldSkip =
-        !forceReload &&
+    final shouldSkip = !forceReload &&
         sameScope &&
         _status != CivicMapStatus.initial &&
         !_shouldRetryCurrentScope();
@@ -388,6 +389,8 @@ class CivicMapController extends ChangeNotifier {
     double? heat,
     int? commentCount,
   }) {
+    if (_isDisposed) return;
+
     final targetKey = _targetRefKey(targetRef);
     if (targetKey == null) return;
 
@@ -454,30 +457,53 @@ class CivicMapController extends ChangeNotifier {
     required bool clearSelection,
     required bool explicitRefresh,
   }) {
-    final scopeKey = _scopeKey(scope);
-
-    if (!explicitRefresh &&
-        _activeLoadFuture != null &&
-        _activeLoadScopeKey == scopeKey) {
-      return _activeLoadFuture!;
+    if (_isDisposed) {
+      return Future<void>.value();
     }
 
-    final future = _performLoadForScope(
+    final scopeKey = _scopeKey(scope);
+    final activeLoad = _activeLoadFuture;
+
+    if (activeLoad != null &&
+        _activeLoadScopeKey == scopeKey &&
+        (!explicitRefresh || _activeLoadIsExplicitRefresh)) {
+      return activeLoad;
+    }
+
+    late final Future<void> future;
+    future = _performLoadForScope(
       scope,
       clearSelection: clearSelection,
       explicitRefresh: explicitRefresh,
-    );
+    ).catchError((Object error, StackTrace stackTrace) {
+      if (_isDisposed || !identical(_activeLoadFuture, future)) {
+        return;
+      }
+
+      if (kDebugMode) {
+        debugPrint('CivicMap unexpected load failure: $error');
+        debugPrint('$stackTrace');
+      }
+
+      _isRefreshing = false;
+      _errorMessage = error.toString();
+      _setStatus(
+        _allItems.isNotEmpty ? CivicMapStatus.loaded : CivicMapStatus.error,
+      );
+      _notifySafely();
+    }).whenComplete(() {
+      if (_isDisposed || !identical(_activeLoadFuture, future)) {
+        return;
+      }
+
+      _activeLoadFuture = null;
+      _activeLoadScopeKey = null;
+      _activeLoadIsExplicitRefresh = false;
+    });
 
     _activeLoadFuture = future;
     _activeLoadScopeKey = scopeKey;
-
-    future.whenComplete(() {
-      final current = _activeLoadFuture;
-      if (identical(current, future)) {
-        _activeLoadFuture = null;
-        _activeLoadScopeKey = null;
-      }
-    });
+    _activeLoadIsExplicitRefresh = explicitRefresh;
 
     return future;
   }
@@ -487,6 +513,8 @@ class CivicMapController extends ChangeNotifier {
     required bool clearSelection,
     required bool explicitRefresh,
   }) async {
+    if (_isDisposed) return;
+
     final totalStopwatch = Stopwatch()..start();
     final requestId = ++_loadRequestId;
     final scopeChanged = !_isSameScope(_currentScope, scope);
@@ -536,6 +564,11 @@ class CivicMapController extends ChangeNotifier {
       }
     }
 
+    if (!_isLatestRequest(requestId, scope)) {
+      totalStopwatch.stop();
+      return;
+    }
+
     _CivicMapLoadResult pollResult = const _CivicMapLoadResult(
       sourceName: 'poll',
       items: <CivicMapItem>[],
@@ -578,7 +611,7 @@ class CivicMapController extends ChangeNotifier {
       final storeChanged = _applySourceResult(
         store: store,
         result: result,
-        preservePreviousOnError: sameScope && !explicitRefresh,
+        preservePreviousOnError: sameScope,
         preservePreviousOnEmpty: sameScope && !explicitRefresh,
       );
 
@@ -740,6 +773,8 @@ class CivicMapController extends ChangeNotifier {
   }
 
   void setVisibleTypes(Set<CivicMapItemType> types) {
+    if (_isDisposed) return;
+
     final nextVisibleTypes = types.isEmpty
         ? <CivicMapItemType>{
             CivicMapItemType.poll,
@@ -785,6 +820,8 @@ class CivicMapController extends ChangeNotifier {
   }
 
   void selectMarker(String itemId) {
+    if (_isDisposed) return;
+
     CivicMapItem? matchedItem;
 
     for (final item in _allItems) {
@@ -807,6 +844,8 @@ class CivicMapController extends ChangeNotifier {
   }
 
   void selectItem(CivicMapItem item) {
+    if (_isDisposed) return;
+
     final nextTargetRefKey = _targetRefKey(item.targetRef);
 
     if (_selectedItemId == item.id &&
@@ -820,6 +859,8 @@ class CivicMapController extends ChangeNotifier {
   }
 
   void clearSelection() {
+    if (_isDisposed) return;
+
     if (_selectedItemId == null && _selectedTargetRefKey == null) return;
     _selectedItemId = null;
     _selectedTargetRefKey = null;
@@ -879,9 +920,7 @@ class CivicMapController extends ChangeNotifier {
 
     final items = await loader(scope);
 
-    final sanitized = items
-        .map(_sanitizeItemMetrics)
-        .toList(growable: false);
+    final sanitized = items.map(_sanitizeItemMetrics).toList(growable: false);
 
     final normalized = _normalizeAndSpreadItems(sanitized, scope)
         .where((item) => _isValidLatLng(item.latitude, item.longitude))
@@ -1124,6 +1163,13 @@ class CivicMapController extends ChangeNotifier {
       return (value ?? '').toString().trim().toLowerCase();
     }
 
+    String normalizeNum(Object? value) {
+      if (value is num && value.isFinite) {
+        return value.toStringAsFixed(6);
+      }
+      return '';
+    }
+
     return <String>[
       normalizeText(readSafely(() => dynamicScope.level) ?? scope.level),
       normalizeText(readSafely(() => dynamicScope.id)),
@@ -1134,6 +1180,9 @@ class CivicMapController extends ChangeNotifier {
       normalizeText(readSafely(() => dynamicScope.countryName)),
       normalizeText(readSafely(() => dynamicScope.cityId)),
       normalizeText(readSafely(() => dynamicScope.cityName)),
+      normalizeNum(readSafely(() => dynamicScope.centerLat) ?? scope.centerLat),
+      normalizeNum(readSafely(() => dynamicScope.centerLng) ?? scope.centerLng),
+      normalizeNum(readSafely(() => dynamicScope.radiusKm) ?? scope.radiusKm),
     ].join('|');
   }
 

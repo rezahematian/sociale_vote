@@ -23,7 +23,8 @@ class HomeEmptyState extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: Card(
           elevation: 0,
-          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+          color:
+              theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -50,7 +51,7 @@ class HomeEmptyState extends StatelessWidget {
                   subtitle,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.75),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.75),
                     height: 1.4,
                   ),
                 ),

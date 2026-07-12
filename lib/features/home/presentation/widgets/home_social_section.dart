@@ -45,7 +45,7 @@ class HomeSocialSection extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: theme.colorScheme.primary.withOpacity(0.08),
+            color: theme.colorScheme.primary.withValues(alpha: 0.08),
           ),
           padding: const EdgeInsets.all(8),
           child: Icon(
@@ -88,10 +88,11 @@ class HomeSocialSection extends StatelessWidget {
         margin: const EdgeInsets.only(top: 4),
         padding: const EdgeInsets.symmetric(vertical: 24),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.18),
+          color:
+              theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.18),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: theme.colorScheme.outline.withOpacity(0.08),
+            color: theme.colorScheme.outline.withValues(alpha: 0.08),
           ),
         ),
         child: const Center(
@@ -202,10 +203,11 @@ class HomeSocialSection extends StatelessWidget {
       width: double.infinity,
       margin: const EdgeInsets.only(top: 4),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.22),
+        color:
+            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.22),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.08),
+          color: theme.colorScheme.outline.withValues(alpha: 0.08),
         ),
       ),
       child: Padding(

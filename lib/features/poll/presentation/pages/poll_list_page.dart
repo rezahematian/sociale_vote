@@ -157,7 +157,7 @@ class _PollListPageState extends State<PollListPage> {
       context,
       ParticipationAction.createPoll,
     );
-    if (!allowed) return;
+    if (!allowed || !mounted) return;
 
     final result = await Navigator.of(context).pushNamed(AppRouter.createPoll);
 
@@ -196,7 +196,7 @@ class _PollListPageState extends State<PollListPage> {
           final isDark = theme.brightness == Brightness.dark;
 
           final pageBackground = Color.alphaBlend(
-            colorScheme.primary.withOpacity(isDark ? 0.035 : 0.012),
+            colorScheme.primary.withValues(alpha: isDark ? 0.035 : 0.012),
             theme.scaffoldBackgroundColor,
           );
 
@@ -447,16 +447,16 @@ class _PollListPageState extends State<PollListPage> {
     final isDark = theme.brightness == Brightness.dark;
 
     final backgroundColor = selected
-        ? colorScheme.primary.withOpacity(isPrimary ? 0.12 : 0.10)
-        : colorScheme.surface.withOpacity(isDark ? 0.28 : 0.82);
+        ? colorScheme.primary.withValues(alpha: isPrimary ? 0.12 : 0.10)
+        : colorScheme.surface.withValues(alpha: isDark ? 0.28 : 0.82);
 
     final borderColor = selected
         ? colorScheme.primary
-        : colorScheme.outline.withOpacity(isDark ? 0.24 : 0.14);
+        : colorScheme.outline.withValues(alpha: isDark ? 0.24 : 0.14);
 
     final textColor = selected
         ? colorScheme.primary
-        : colorScheme.onSurface.withOpacity(isPrimary ? 0.86 : 0.72);
+        : colorScheme.onSurface.withValues(alpha: isPrimary ? 0.86 : 0.72);
 
     final textStyle =
         (isPrimary ? theme.textTheme.labelLarge : theme.textTheme.labelMedium)
@@ -536,8 +536,8 @@ class _PollListPageState extends State<PollListPage> {
                     Text(
                       scopeDescription,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                        color: theme.textTheme.bodySmall?.color
+                            ?.withValues(alpha: 0.7),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

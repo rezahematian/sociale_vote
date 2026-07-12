@@ -33,7 +33,7 @@ class HomeForYouSection extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: theme.colorScheme.secondary.withOpacity(0.08),
+            color: theme.colorScheme.secondary.withValues(alpha: 0.08),
           ),
           padding: const EdgeInsets.all(6),
           child: Icon(
@@ -69,7 +69,7 @@ class HomeForYouSection extends StatelessWidget {
       content = Card(
         elevation: 0,
         margin: const EdgeInsets.only(top: 8),
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -82,7 +82,7 @@ class HomeForYouSection extends StatelessWidget {
       content = Card(
         elevation: 0,
         margin: const EdgeInsets.only(top: 8),
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),

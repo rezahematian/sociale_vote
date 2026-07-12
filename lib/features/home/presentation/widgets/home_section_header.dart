@@ -23,7 +23,8 @@ class HomeSectionHeader extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: (iconColor ?? theme.colorScheme.primary).withOpacity(0.08),
+            color: (iconColor ?? theme.colorScheme.primary)
+                .withValues(alpha: 0.08),
           ),
           padding: const EdgeInsets.all(6),
           child: Icon(

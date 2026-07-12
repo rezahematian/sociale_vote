@@ -330,7 +330,7 @@ class _SearchPageState extends State<SearchPage> {
         child: Text(
           'Digita qualcosa per iniziare una ricerca.',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
           ),
         ),
       );
@@ -363,7 +363,8 @@ class _SearchPageState extends State<SearchPage> {
               Text(
                 controller.errorMessage ?? '',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                  color:
+                      theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -384,7 +385,7 @@ class _SearchPageState extends State<SearchPage> {
         child: Text(
           'Nessun risultato trovato per questa ricerca.',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
           ),
         ),
       );
@@ -544,8 +545,8 @@ class _SearchResultTile extends StatelessWidget {
                     Text(
                       dateText,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                        color: theme.textTheme.bodySmall?.color
+                            ?.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -583,7 +584,6 @@ class _SearchResultTile extends StatelessWidget {
       case SearchContentType.post:
         return Icons.forum;
       case SearchContentType.all:
-      default:
         return Icons.search;
     }
   }
@@ -597,7 +597,6 @@ class _SearchResultTile extends StatelessWidget {
       case SearchContentType.post:
         return 'Post';
       case SearchContentType.all:
-      default:
         return 'Mixed';
     }
   }

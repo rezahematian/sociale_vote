@@ -205,9 +205,14 @@ class _CachedTargetEngagementSnapshot {
 
 class AppDI {
   AppDI._internal() {
-    _sessionRepository.watchCurrentUserId().listen((userId) {
-      _currentUserId = userId;
-    });
+    _sessionRepository.watchCurrentUserId().listen(
+      _handleCurrentUserIdChanged,
+      onError: (Object error, StackTrace stackTrace) {
+        if (kDebugMode) {
+          debugPrint('AppDI session stream error: $error\n$stackTrace');
+        }
+      },
+    );
   }
 
   static final AppDI instance = AppDI._internal();
@@ -230,7 +235,7 @@ class AppDI {
   FollowScopeController get followScopeController {
     if (_followScopeController == null ||
         _followScopeControllerUserId != currentUserId) {
-      _followScopeController?.dispose();
+      _disposeFollowScopeController();
       _followScopeControllerUserId = currentUserId;
       _followScopeController = FollowScopeController(
         geoScopeController: geoScopeController,
@@ -313,7 +318,7 @@ class AppDI {
     newsRepository: newsRepository,
     postRepository: postRepository,
   );
-  late final StorageService _storageService = StorageService(
+  final StorageService _storageService = const StorageService(
     SharedPreferencesKeyValueStorage(),
   );
 
@@ -341,6 +346,22 @@ class AppDI {
   StorageService get storageService => _storageService;
 
   String? get currentUserId => _currentUserId;
+
+  void _handleCurrentUserIdChanged(String? userId) {
+    if (_currentUserId == userId) {
+      return;
+    }
+
+    _currentUserId = userId;
+    _disposeFollowScopeController();
+  }
+
+  void _disposeFollowScopeController() {
+    final controller = _followScopeController;
+    _followScopeController = null;
+    _followScopeControllerUserId = null;
+    controller?.dispose();
+  }
 
   Future<void> setContentLanguagePreference(String value) {
     return _storageService.writeContentLanguagePreference(value);
@@ -436,8 +457,12 @@ class AppDI {
   }
 
   Future<void> logoutCurrentUser() async {
-    await _authApi.logout();
-    await _sessionRepository.clearSession();
+    try {
+      await _authApi.logout();
+    } finally {
+      await _sessionRepository.clearSession();
+      _handleCurrentUserIdChanged(null);
+    }
   }
 
   VoteAggregator get voteAggregator => VoteAggregator();

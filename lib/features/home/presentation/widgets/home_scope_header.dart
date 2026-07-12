@@ -37,7 +37,7 @@ class HomeScopeHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
       child: Card(
         elevation: 0,
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -122,14 +122,14 @@ class HomeScopeHeader extends StatelessWidget {
         fontWeight: FontWeight.w600,
         color: selected
             ? theme.colorScheme.primary
-            : theme.colorScheme.onSurface.withOpacity(0.82),
+            : theme.colorScheme.onSurface.withValues(alpha: 0.82),
       ),
-      backgroundColor: theme.colorScheme.surface.withOpacity(0.82),
-      selectedColor: theme.colorScheme.primary.withOpacity(0.12),
+      backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.82),
+      selectedColor: theme.colorScheme.primary.withValues(alpha: 0.12),
       side: BorderSide(
         color: selected
-            ? theme.colorScheme.primary.withOpacity(0.45)
-            : theme.dividerColor.withOpacity(0.6),
+            ? theme.colorScheme.primary.withValues(alpha: 0.45)
+            : theme.dividerColor.withValues(alpha: 0.6),
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(999),
@@ -205,7 +205,7 @@ class FollowScopeButton extends StatelessWidget {
         side: BorderSide(
           color: isFollowed
               ? theme.colorScheme.primary
-              : theme.dividerColor.withOpacity(0.6),
+              : theme.dividerColor.withValues(alpha: 0.6),
         ),
         visualDensity: VisualDensity.compact,
       ),

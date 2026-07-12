@@ -22,7 +22,7 @@ class HomeTrendingSection extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: theme.colorScheme.primary.withOpacity(0.08),
+            color: theme.colorScheme.primary.withValues(alpha: 0.08),
           ),
           padding: const EdgeInsets.all(6),
           child: Icon(
@@ -70,7 +70,7 @@ class HomeTrendingSection extends StatelessWidget {
       content = Card(
         elevation: 0,
         margin: const EdgeInsets.only(top: 8),
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -83,7 +83,7 @@ class HomeTrendingSection extends StatelessWidget {
       content = Card(
         elevation: 0,
         margin: const EdgeInsets.only(top: 8),
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -218,8 +218,8 @@ class TrendingFeedItemCard extends StatelessWidget {
                     child: Text(
                       _formatItemCreatedAt(item.createdAt),
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                        color: theme.textTheme.bodySmall?.color
+                            ?.withValues(alpha: 0.7),
                       ),
                     ),
                   ),
@@ -330,7 +330,8 @@ class _MetricPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.45),
+        color:
+            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(

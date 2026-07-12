@@ -278,7 +278,7 @@ class _MapMarkerVisual extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF111827).withOpacity(0.24),
+                      color: const Color(0xFF111827).withValues(alpha: 0.24),
                       blurRadius: 16,
                       spreadRadius: 1,
                     ),
@@ -398,20 +398,20 @@ class _MapMarkerVisual extends StatelessWidget {
       case CivicMapHeatTier.normal:
         return Colors.transparent;
       case CivicMapHeatTier.active:
-        return Colors.amber.shade700.withOpacity(0.78);
+        return Colors.amber.shade700.withValues(alpha: 0.78);
       case CivicMapHeatTier.hot:
-        return Colors.deepOrangeAccent.withOpacity(0.90);
+        return Colors.deepOrangeAccent.withValues(alpha: 0.90);
     }
   }
 
   Color _glowColor() {
     switch (tier) {
       case CivicMapHeatTier.normal:
-        return color.withOpacity(selected ? 0.26 : 0.16);
+        return color.withValues(alpha: selected ? 0.26 : 0.16);
       case CivicMapHeatTier.active:
-        return Colors.amber.withOpacity(selected ? 0.42 : 0.30);
+        return Colors.amber.withValues(alpha: selected ? 0.42 : 0.30);
       case CivicMapHeatTier.hot:
-        return Colors.deepOrange.withOpacity(selected ? 0.52 : 0.40);
+        return Colors.deepOrange.withValues(alpha: selected ? 0.52 : 0.40);
     }
   }
 

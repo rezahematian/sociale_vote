@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
@@ -247,7 +246,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
             Text(
               l10n.newsFeed_scopeLabel(scopeLabel),
               style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -415,12 +414,12 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                   borderRadius: BorderRadius.circular(999),
                   side: BorderSide(
                     color: selected
-                        ? accent.withOpacity(0.38)
-                        : accent.withOpacity(0.18),
+                        ? accent.withValues(alpha: 0.38)
+                        : accent.withValues(alpha: 0.18),
                   ),
                 ),
                 backgroundColor: theme.colorScheme.surface,
-                selectedColor: accent.withOpacity(0.14),
+                selectedColor: accent.withValues(alpha: 0.14),
                 checkmarkColor: accent,
                 labelStyle: theme.textTheme.labelMedium?.copyWith(
                   color: selected ? accent : theme.colorScheme.onSurface,
@@ -433,8 +432,8 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                 ),
                 side: BorderSide(
                   color: selected
-                      ? accent.withOpacity(0.38)
-                      : accent.withOpacity(0.18),
+                      ? accent.withValues(alpha: 0.38)
+                      : accent.withValues(alpha: 0.18),
                 ),
               ),
             );
@@ -465,14 +464,14 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
         decoration: BoxDecoration(
           borderRadius: borderRadius,
           border: Border.all(
-            color: primary.withOpacity(0.10),
+            color: primary.withValues(alpha: 0.10),
           ),
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              primary.withOpacity(0.10),
-              primary.withOpacity(0.04),
+              primary.withValues(alpha: 0.10),
+              primary.withValues(alpha: 0.04),
             ],
           ),
         ),
@@ -486,7 +485,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                 height: 118,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: primary.withOpacity(0.08),
+                  color: primary.withValues(alpha: 0.08),
                 ),
               ),
             ),
@@ -498,7 +497,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                 height: 96,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: primary.withOpacity(0.05),
+                  color: primary.withValues(alpha: 0.05),
                 ),
               ),
             ),
@@ -518,12 +517,12 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.surface.withOpacity(
-                                  0.72,
+                                color: theme.colorScheme.surface.withValues(
+                                  alpha: 0.72,
                                 ),
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: primary.withOpacity(0.16),
+                                  color: primary.withValues(alpha: 0.16),
                                 ),
                               ),
                               child: Icon(
@@ -548,7 +547,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                                   Text(
                                     scopeDescription,
                                     style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: onSurface.withOpacity(0.76),
+                                      color: onSurface.withValues(alpha: 0.76),
                                       height: 1.25,
                                     ),
                                   ),
@@ -573,10 +572,10 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.surface.withOpacity(0.72),
+                      color: theme.colorScheme.surface.withValues(alpha: 0.72),
                       borderRadius: BorderRadius.circular(999),
                       border: Border.all(
-                        color: primary.withOpacity(0.12),
+                        color: primary.withValues(alpha: 0.12),
                       ),
                     ),
                     child: Row(
@@ -655,10 +654,10 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface.withOpacity(0.78),
+          color: theme.colorScheme.surface.withValues(alpha: 0.78),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: theme.colorScheme.primary.withOpacity(0.14),
+            color: theme.colorScheme.primary.withValues(alpha: 0.14),
           ),
         ),
         child: Row(
@@ -681,7 +680,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
             Icon(
               Icons.arrow_drop_down_rounded,
               size: 18,
-              color: theme.colorScheme.onSurface.withOpacity(0.72),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
             ),
           ],
         ),
@@ -703,7 +702,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
             Icon(
               Icons.inbox_outlined,
               size: 32,
-              color: theme.colorScheme.onSurface.withOpacity(0.6),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
             const SizedBox(height: 8),
             Text(
@@ -717,7 +716,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
             Text(
               l10n.newsFeed_emptySubtitle,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.textTheme.bodySmall?.color?.withOpacity(0.8),
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
               ),
               textAlign: TextAlign.center,
             ),
@@ -795,51 +794,6 @@ class _NewsCard extends StatelessWidget {
     required this.news,
   });
 
-  Future<void> _openOriginalArticle(BuildContext context) async {
-    final rawUrl = news.articleUrl?.trim();
-
-    if (rawUrl == null || rawUrl.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Link articolo originale non disponibile'),
-        ),
-      );
-      return;
-    }
-
-    final uri = Uri.tryParse(rawUrl);
-    if (uri == null || !uri.hasScheme || uri.host.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Link articolo non valido'),
-        ),
-      );
-      return;
-    }
-
-    try {
-      final opened = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
-
-      if (!opened && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Impossibile aprire l’articolo originale'),
-          ),
-        );
-      }
-    } catch (_) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Impossibile aprire l’articolo originale'),
-        ),
-      );
-    }
-  }
-
   Future<void> _openDetailAndRefresh(BuildContext context) async {
     final newsController = context.read<NewsController>();
 
@@ -906,98 +860,4 @@ class _NewsCard extends StatelessWidget {
       },
     );
   }
-}
-
-class _SourceDot extends StatelessWidget {
-  final String label;
-
-  const _SourceDot({
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    final hash = label.hashCode.abs();
-    final hue = (hash % 360).toDouble();
-    final color = HSVColor.fromAHSV(1.0, hue, 0.55, 0.85).toColor();
-
-    return Container(
-      width: 10,
-      height: 10,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: theme.dividerColor.withOpacity(0.5),
-          width: 0.8,
-        ),
-      ),
-    );
-  }
-}
-
-class _NewsCardMoreButton extends StatelessWidget {
-  final NewsItem news;
-  final Future<void> Function() onCopyTitle;
-  final VoidCallback onRefresh;
-
-  const _NewsCardMoreButton({
-    required this.news,
-    required this.onCopyTitle,
-    required this.onRefresh,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-
-    return PopupMenuButton<_NewsCardAction>(
-      tooltip: l10n.newsFeed_moreTooltip,
-      icon: Icon(
-        Icons.more_horiz,
-        size: 18,
-        color: theme.hintColor,
-      ),
-      itemBuilder: (context) => [
-        PopupMenuItem<_NewsCardAction>(
-          value: _NewsCardAction.copyTitle,
-          child: Row(
-            children: [
-              const Icon(Icons.copy, size: 18),
-              const SizedBox(width: 10),
-              Text(l10n.newsFeed_actionCopyTitle),
-            ],
-          ),
-        ),
-        PopupMenuItem<_NewsCardAction>(
-          value: _NewsCardAction.refreshFeed,
-          child: Row(
-            children: [
-              const Icon(Icons.refresh, size: 18),
-              const SizedBox(width: 10),
-              Text(l10n.newsFeed_actionRefreshFeed),
-            ],
-          ),
-        ),
-      ],
-      onSelected: (value) {
-        switch (value) {
-          case _NewsCardAction.copyTitle:
-            onCopyTitle();
-            break;
-          case _NewsCardAction.refreshFeed:
-            onRefresh();
-            break;
-        }
-      },
-    );
-  }
-}
-
-enum _NewsCardAction {
-  copyTitle,
-  refreshFeed,
 }

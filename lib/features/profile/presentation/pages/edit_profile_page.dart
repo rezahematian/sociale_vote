@@ -309,7 +309,9 @@ class _EditProfileViewState extends State<_EditProfileView> {
                       controller: _cityController,
                       textInputAction: TextInputAction.done,
                       onChanged: (_) {
-                        if (_cityError == null && _locationError == null) return;
+                        if (_cityError == null && _locationError == null) {
+                          return;
+                        }
                         setState(() {
                           _cityError = null;
                           _locationError = null;
@@ -354,8 +356,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
                               bool hasValidationError = false;
 
                               if (normalizedDisplayName == null) {
-                                _displayNameError =
-                                    'Display name is required.';
+                                _displayNameError = 'Display name is required.';
                                 hasValidationError = true;
                               }
 
@@ -502,10 +503,11 @@ class _EditProfileViewState extends State<_EditProfileView> {
         _avatarUploadError = 'Impossibile caricare l’avatar.';
       });
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _isUploadingAvatar = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isUploadingAvatar = false;
+        });
+      }
     }
   }
 

@@ -23,11 +23,9 @@ class PollDetailController extends ChangeNotifier {
   PollDetailState _state = const PollDetailInitial();
   PollDetailState get state => _state;
 
-  /// Reaction summary per il poll corrente (se caricato).
   ReactionSummary? _reactionSummary;
   ReactionSummary? get reactionSummary => _reactionSummary;
 
-  /// Per supportare eventuale refresh: ricordiamo l'ultimo pollId e userId.
   PollId? _currentPollId;
   String? _lastUserId;
 
@@ -37,6 +35,9 @@ class PollDetailController extends ChangeNotifier {
   bool _isUpdating = false;
   bool get isUpdating => _isUpdating;
 
+  bool _isDisposed = false;
+  int _loadRequestId = 0;
+
   PollDetailController(
     this._getPollDetail,
     this._updatePollText,
@@ -45,55 +46,75 @@ class PollDetailController extends ChangeNotifier {
     this._getReactionSummary,
   );
 
-  /// Carica il poll + reaction summary.
-  ///
-  /// [userId] è opzionale:
-  /// - se valorizzato, viene usato per ottenere anche userReaction
-  /// - viene memorizzato in [_lastUserId] per futuri reload/refresh
   Future<void> loadPoll(
     PollId pollId, {
     String? userId,
   }) async {
+    if (_isDisposed) {
+      return;
+    }
+
+    final requestId = ++_loadRequestId;
+
     _currentPollId = pollId;
     _lastUserId = userId ?? _lastUserId;
 
     _state = const PollDetailLoading();
     _reactionSummary = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final poll = await _getPollDetail(pollId);
+
+      if (!_isLoadRequestCurrent(requestId)) {
+        return;
+      }
 
       if (poll == null) {
         _state = const PollDetailError('Poll not found');
       } else {
         _state = PollDetailLoaded(poll);
 
-        // Dopo aver caricato il poll, carichiamo anche il reaction summary.
         try {
           final target = TargetRef.poll(poll.id.value);
           final summaries = await _getReactionSummary(
             [target],
             userId: _lastUserId,
           );
-          _reactionSummary =
-              summaries.isNotEmpty ? summaries.first : null;
+
+          if (!_isLoadRequestCurrent(requestId)) {
+            return;
+          }
+
+          _reactionSummary = summaries.isNotEmpty ? summaries.first : null;
         } catch (_) {
-          // In caso di errore sulle reazioni non blocchiamo il dettaglio poll.
+          if (!_isLoadRequestCurrent(requestId)) {
+            return;
+          }
+
           _reactionSummary = null;
         }
       }
     } catch (_) {
+      if (!_isLoadRequestCurrent(requestId)) {
+        return;
+      }
+
       _state = const PollDetailError('Failed to load poll');
     }
 
-    notifyListeners();
+    if (_isLoadRequestCurrent(requestId)) {
+      _safeNotifyListeners();
+    }
   }
 
-  /// Comodo per pull-to-refresh, se hai già chiamato loadPoll una volta.
   Future<void> refresh() async {
-    if (_currentPollId == null) return;
-    await loadPoll(_currentPollId!, userId: _lastUserId);
+    final pollId = _currentPollId;
+    if (pollId == null || _isDisposed) {
+      return;
+    }
+
+    await loadPoll(pollId, userId: _lastUserId);
   }
 
   int likeCount() {
@@ -104,7 +125,6 @@ class PollDetailController extends ChangeNotifier {
     return _reactionSummary?.dislikeCount ?? 0;
   }
 
-  /// Reazione corrente dell'utente sul poll (se presente).
   ReactionType? get userReaction => _reactionSummary?.userReaction;
 
   bool canDelete({required String userId}) {
@@ -160,7 +180,7 @@ class PollDetailController extends ChangeNotifier {
     }
 
     _isUpdating = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final updatedPoll = await _updatePollText(
@@ -169,11 +189,16 @@ class PollDetailController extends ChangeNotifier {
         description: description,
       );
 
-      _state = PollDetailLoaded(updatedPoll);
+      if (!_isDisposed && _currentPollId?.value == updatedPoll.id.value) {
+        _state = PollDetailLoaded(updatedPoll);
+      }
+
       return updatedPoll;
     } finally {
-      _isUpdating = false;
-      notifyListeners();
+      if (!_isDisposed) {
+        _isUpdating = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
@@ -183,7 +208,7 @@ class PollDetailController extends ChangeNotifier {
       return false;
     }
 
-    if (_isDeleting) {
+    if (_isDeleting || _isDisposed) {
       return false;
     }
 
@@ -192,7 +217,7 @@ class PollDetailController extends ChangeNotifier {
     }
 
     _isDeleting = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       await _deletePoll(currentState.poll.id.value);
@@ -200,54 +225,70 @@ class PollDetailController extends ChangeNotifier {
     } catch (_) {
       return false;
     } finally {
-      _isDeleting = false;
-      notifyListeners();
+      if (!_isDisposed) {
+        _isDeleting = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
-  /// Toggle 🔥 per il poll corrente.
   Future<void> toggleFire({required String userId}) async {
-    final currentState = _state;
-    if (currentState is! PollDetailLoaded) return;
-
-    if (userId.isEmpty) {
-      return;
-    }
-
-    final poll = currentState.poll;
-    final target = TargetRef.poll(poll.id.value);
-
-    final summary = await _toggleReaction(
+    await _toggleCurrentReaction(
       userId: userId,
-      target: target,
       type: ReactionType.like,
     );
-
-    _reactionSummary = summary;
-    _lastUserId = userId;
-    notifyListeners();
   }
 
-  /// Toggle ❄ per il poll corrente.
   Future<void> toggleIce({required String userId}) async {
-    final currentState = _state;
-    if (currentState is! PollDetailLoaded) return;
+    await _toggleCurrentReaction(
+      userId: userId,
+      type: ReactionType.dislike,
+    );
+  }
 
-    if (userId.isEmpty) {
+  Future<void> _toggleCurrentReaction({
+    required String userId,
+    required ReactionType type,
+  }) async {
+    final currentState = _state;
+    if (currentState is! PollDetailLoaded || userId.isEmpty || _isDisposed) {
       return;
     }
 
-    final poll = currentState.poll;
-    final target = TargetRef.poll(poll.id.value);
+    final pollId = currentState.poll.id.value;
+    final target = TargetRef.poll(pollId);
 
     final summary = await _toggleReaction(
       userId: userId,
       target: target,
-      type: ReactionType.dislike,
+      type: type,
     );
+
+    if (_isDisposed || _currentPollId?.value != pollId) {
+      return;
+    }
 
     _reactionSummary = summary;
     _lastUserId = userId;
+    _safeNotifyListeners();
+  }
+
+  bool _isLoadRequestCurrent(int requestId) {
+    return !_isDisposed && requestId == _loadRequestId;
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) {
+      return;
+    }
+
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _loadRequestId++;
+    super.dispose();
   }
 }

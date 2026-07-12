@@ -25,6 +25,9 @@ class FollowScopeController extends ChangeNotifier {
   bool _isFollowingCurrentScope = false;
   bool _isLoading = false;
 
+  bool _isDisposed = false;
+  int _operationId = 0;
+
   FollowScopeController({
     required GeoScopeController geoScopeController,
     required ToggleFollowScope toggleFollowScope,
@@ -58,6 +61,10 @@ class FollowScopeController extends ChangeNotifier {
   }
 
   void _onScopeChanged() {
+    if (_isDisposed) {
+      return;
+    }
+
     // Ogni volta che cambia lo scope (World / Country / City / Area),
     // ricalcoliamo se l'utente segue o meno lo scope corrente.
     if (_userId != null) {
@@ -65,31 +72,43 @@ class FollowScopeController extends ChangeNotifier {
     } else {
       // Se è guest non segue nulla.
       _isFollowingCurrentScope = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
   Future<void> _loadFollowStateForCurrentScope() async {
-    final userId = _userId;
-    if (userId == null) {
-      _isFollowingCurrentScope = false;
-      notifyListeners();
+    if (_isDisposed) {
       return;
     }
 
+    final userId = _userId;
+    if (userId == null) {
+      _isFollowingCurrentScope = false;
+      _safeNotifyListeners();
+      return;
+    }
+
+    final requestedScope = _geoScopeController.scope;
+    final operationId = ++_operationId;
+
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final follows = await _getFollowedScopesForUser(userId);
-      final currentScope = _geoScopeController.scope;
+
+      if (!_isOperationCurrent(operationId)) {
+        return;
+      }
 
       _isFollowingCurrentScope = follows.any(
-        (FollowScope f) => f.scope == currentScope,
+        (FollowScope follow) => follow.scope == requestedScope,
       );
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (_isOperationCurrent(operationId)) {
+        _isLoading = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
@@ -113,14 +132,20 @@ class FollowScopeController extends ChangeNotifier {
   ///
   /// Se l'utente è guest, non fa nulla (la UI deve bloccare o mostrare login).
   Future<void> toggleFollowForScope(GeoScope scope) async {
+    if (_isDisposed) {
+      return;
+    }
+
     final userId = _userId;
     if (userId == null) {
       // guest: niente follow
       return;
     }
 
+    final operationId = ++_operationId;
+
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final result = await _toggleFollowScope(
@@ -128,13 +153,19 @@ class FollowScopeController extends ChangeNotifier {
         scope: scope,
       );
 
+      if (!_isOperationCurrent(operationId)) {
+        return;
+      }
+
       // result = true → dopo la chiamata STA seguendo quello scope
       if (scope == _geoScopeController.scope) {
         _isFollowingCurrentScope = result;
       }
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (_isOperationCurrent(operationId)) {
+        _isLoading = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
@@ -153,8 +184,21 @@ class FollowScopeController extends ChangeNotifier {
     await _loadFollowStateForCurrentScope();
   }
 
+  bool _isOperationCurrent(int operationId) {
+    return !_isDisposed && operationId == _operationId;
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) {
+      return;
+    }
+    notifyListeners();
+  }
+
   @override
   void dispose() {
+    _isDisposed = true;
+    _operationId++;
     _geoScopeController.removeListener(_onScopeChanged);
     super.dispose();
   }

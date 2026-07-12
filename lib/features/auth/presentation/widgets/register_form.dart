@@ -341,7 +341,7 @@ class _RegisterFormState extends State<RegisterForm> {
         displayName: displayName,
       );
 
-      if (controller.isAuthenticated && mounted) {
+      if (controller.isAuthenticated && context.mounted) {
         TextInput.finishAutofillContext();
         Navigator.of(context).pop();
       }

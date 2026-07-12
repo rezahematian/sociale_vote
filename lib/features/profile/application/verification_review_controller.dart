@@ -20,7 +20,11 @@ class VerificationReviewController extends ChangeNotifier {
   List<VerificationRequest> _pendingRequests = const [];
   bool _isLoading = false;
   final Set<String> _processingRequestIds = <String>{};
+  final Set<String> _resolvedRequestIds = <String>{};
   String? _errorMessage;
+
+  bool _isDisposed = false;
+  int _loadOperationId = 0;
 
   List<VerificationRequest> get pendingRequests => _pendingRequests;
   bool get isLoading => _isLoading;
@@ -35,22 +39,40 @@ class VerificationReviewController extends ChangeNotifier {
     int limit = 50,
     int offset = 0,
   }) async {
-    if (_isLoading) return;
+    if (_isLoading || _isDisposed) return;
+
+    final operationId = ++_loadOperationId;
 
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
-      _pendingRequests = await _getPendingVerificationRequests.call(
+      final loadedRequests = await _getPendingVerificationRequests.call(
         limit: limit,
         offset: offset,
       );
+
+      if (!_isLoadOperationCurrent(operationId)) {
+        return;
+      }
+
+      _pendingRequests = loadedRequests
+          .where(
+            (request) =>
+                !_processingRequestIds.contains(request.id) &&
+                !_resolvedRequestIds.contains(request.id),
+          )
+          .toList(growable: false);
     } catch (_) {
-      _errorMessage = 'Impossibile caricare le richieste pending.';
+      if (_isLoadOperationCurrent(operationId)) {
+        _errorMessage = 'Impossibile caricare le richieste pending.';
+      }
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (_isLoadOperationCurrent(operationId)) {
+        _isLoading = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
@@ -86,18 +108,20 @@ class VerificationReviewController extends ChangeNotifier {
     required VerificationRequestStatus status,
     String? reviewNote,
   }) async {
+    if (_isDisposed) return null;
+
     final normalizedRequestId = requestId.trim();
     final normalizedReviewedBy = reviewedBy.trim();
 
     if (normalizedRequestId.isEmpty) {
       _errorMessage = 'Request id non valido.';
-      notifyListeners();
+      _safeNotifyListeners();
       return null;
     }
 
     if (normalizedReviewedBy.isEmpty) {
       _errorMessage = 'Reviewed by non valido.';
-      notifyListeners();
+      _safeNotifyListeners();
       return null;
     }
 
@@ -107,7 +131,7 @@ class VerificationReviewController extends ChangeNotifier {
 
     _processingRequestIds.add(normalizedRequestId);
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final reviewedRequest =
@@ -118,24 +142,49 @@ class VerificationReviewController extends ChangeNotifier {
         reviewNote: _normalizeNullable(reviewNote),
       );
 
+      if (_isDisposed) {
+        return null;
+      }
+
+      _resolvedRequestIds.add(normalizedRequestId);
       _pendingRequests = _pendingRequests
           .where((request) => request.id != normalizedRequestId)
           .toList(growable: false);
 
       return reviewedRequest;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      if (!_isDisposed) {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      }
       return null;
     } finally {
-      _processingRequestIds.remove(normalizedRequestId);
-      notifyListeners();
+      if (!_isDisposed) {
+        _processingRequestIds.remove(normalizedRequestId);
+        _safeNotifyListeners();
+      }
     }
   }
 
   void clearError() {
-    if (_errorMessage == null) return;
+    if (_errorMessage == null || _isDisposed) return;
     _errorMessage = null;
+    _safeNotifyListeners();
+  }
+
+  bool _isLoadOperationCurrent(int operationId) {
+    return !_isDisposed && operationId == _loadOperationId;
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) return;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _loadOperationId++;
+    super.dispose();
   }
 
   String? _normalizeNullable(String? value) {

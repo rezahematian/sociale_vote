@@ -53,6 +53,10 @@ class AuthGuard {
       return true;
     }
 
+    if (!context.mounted) {
+      return false;
+    }
+
     if (resolvedIdentity.userId == null) {
       await _showLoginRequiredSheet(context, action);
 

@@ -137,12 +137,14 @@ class NewsController extends ChangeNotifier {
         fallbackMessage: 'Unable to refresh news at the moment.',
       );
     } finally {
-      if (_isDisposed) {
-        return;
+      if (!_isDisposed) {
+        _isLoading = false;
+        _safeNotifyListeners();
       }
+    }
 
-      _isLoading = false;
-      _safeNotifyListeners();
+    if (_isDisposed) {
+      return;
     }
 
     await loadNews(userId: effectiveUserId);
@@ -304,12 +306,10 @@ class NewsController extends ChangeNotifier {
 
       _applyError(e, fallbackMessage: 'Unable to load news at the moment.');
     } finally {
-      if (!_isRequestStillValid(requestId)) {
-        return;
+      if (_isRequestStillValid(requestId)) {
+        _isLoading = false;
+        _safeNotifyListeners();
       }
-
-      _isLoading = false;
-      _safeNotifyListeners();
     }
   }
 
@@ -338,12 +338,10 @@ class NewsController extends ChangeNotifier {
 
       _applyError(e, fallbackMessage: 'Unable to load more news.');
     } finally {
-      if (!_isRequestStillValid(requestId)) {
-        return;
+      if (_isRequestStillValid(requestId)) {
+        _isLoading = false;
+        _safeNotifyListeners();
       }
-
-      _isLoading = false;
-      _safeNotifyListeners();
     }
   }
 
@@ -443,8 +441,8 @@ class NewsController extends ChangeNotifier {
     if (items.isEmpty) return;
 
     final targets = items.map(_targetForNews).toList(growable: false);
-    final batchCounts = await AppDI.instance.commentRepository
-        .countCommentsForTargets(targets);
+    final batchCounts =
+        await AppDI.instance.commentRepository.countCommentsForTargets(targets);
 
     if (!_isRequestStillValid(requestId)) {
       return;

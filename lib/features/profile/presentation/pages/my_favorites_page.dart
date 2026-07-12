@@ -46,8 +46,8 @@ class _MyFavoritesPageState extends State<MyFavoritesPage> {
     }
 
     try {
-      final result = await AppDI.instance.favoriteRepository
-          .getFavoritesForUser(userId);
+      final result =
+          await AppDI.instance.favoriteRepository.getFavoritesForUser(userId);
 
       if (!mounted) return;
       setState(() {
@@ -97,10 +97,11 @@ class _MyFavoritesPageState extends State<MyFavoritesPage> {
         const SnackBar(content: Text('Unable to remove favorite')),
       );
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _removingKeys.remove(key);
-      });
+      if (mounted) {
+        setState(() {
+          _removingKeys.remove(key);
+        });
+      }
     }
   }
 
@@ -126,7 +127,7 @@ class _MyFavoritesPageState extends State<MyFavoritesPage> {
         try {
           final news = await AppDI.instance.getNewsDetail(EntityId(target.id));
 
-          if (!mounted) return;
+          if (!context.mounted) return;
 
           await Navigator.of(context).push(
             MaterialPageRoute(
@@ -134,7 +135,7 @@ class _MyFavoritesPageState extends State<MyFavoritesPage> {
             ),
           );
         } catch (_) {
-          if (!mounted) return;
+          if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Unable to open news detail')),
           );
@@ -263,7 +264,8 @@ class _MyFavoritesPageState extends State<MyFavoritesPage> {
                                     )
                                   : IconButton(
                                       tooltip: 'Remove favorite',
-                                      onPressed: () => _removeFavorite(favorite),
+                                      onPressed: () =>
+                                          _removeFavorite(favorite),
                                       icon: const Icon(Icons.star_border),
                                     ),
                             ),

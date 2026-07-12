@@ -26,8 +26,7 @@ class PollResultController extends ChangeNotifier {
   final PollOutcomeCalculator _outcomeCalculator;
   final PollResultsVisibilityResolver _visibilityResolver;
 
-  static const Duration _realtimeReloadDebounce =
-      Duration(milliseconds: 250);
+  static const Duration _realtimeReloadDebounce = Duration(milliseconds: 250);
   static const int _publicVotesPageSize = 50;
 
   StreamSubscription<void>? _votesSubscription;
@@ -120,8 +119,7 @@ class PollResultController extends ChangeNotifier {
     _safeNotifyListeners();
 
     try {
-      final repositoryUserHasVoted =
-          await _resolveCurrentUserHasVoted(poll);
+      final repositoryUserHasVoted = await _resolveCurrentUserHasVoted(poll);
 
       if (!_isRequestStillValid(requestId)) return;
 
@@ -163,14 +161,14 @@ class PollResultController extends ChangeNotifier {
       _canShowResults = false;
       _resetPublicVotesState(notify: false);
     } finally {
-      if (!_isRequestStillValid(requestId)) return;
+      if (_isRequestStillValid(requestId)) {
+        _isLoading = false;
+        _safeNotifyListeners();
 
-      _isLoading = false;
-      _safeNotifyListeners();
-
-      if (_reloadQueued) {
-        _reloadQueued = false;
-        unawaited(reload());
+        if (_reloadQueued) {
+          _reloadQueued = false;
+          unawaited(reload());
+        }
       }
     }
   }
@@ -233,18 +231,18 @@ class PollResultController extends ChangeNotifier {
       if (!_isPublicVotesRequestStillValid(requestId)) return;
       _publicVotesError = 'Failed to load public votes';
     } finally {
-      if (!_isPublicVotesRequestStillValid(requestId)) return;
+      if (_isPublicVotesRequestStillValid(requestId)) {
+        _isPublicVotesLoading = false;
+        _safeNotifyListeners();
 
-      _isPublicVotesLoading = false;
-      _safeNotifyListeners();
-
-      if (_publicVotesReloadQueued && canShowPublicVotes) {
-        _publicVotesReloadQueued = false;
-        unawaited(
-          loadPublicVotes(
-            query: _publicVotesQuery,
-          ),
-        );
+        if (_publicVotesReloadQueued && canShowPublicVotes) {
+          _publicVotesReloadQueued = false;
+          unawaited(
+            loadPublicVotes(
+              query: _publicVotesQuery,
+            ),
+          );
+        }
       }
     }
   }
@@ -335,8 +333,7 @@ class PollResultController extends ChangeNotifier {
     try {
       final dynamic config = poll.configuration;
       final dynamic rules = config.anonymityRules;
-      final dynamic level =
-          rules?.level ??
+      final dynamic level = rules?.level ??
           rules?.anonymityLevel ??
           config.anonymityLevel ??
           config.anonymityRules;

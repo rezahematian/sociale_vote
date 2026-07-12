@@ -37,6 +37,10 @@ class TrendingController extends ChangeNotifier {
   bool get hasError => _hasError;
 
   Future<void> loadTrending() async {
+    if (_isDisposed) {
+      return;
+    }
+
     final requestId = ++_requestId;
 
     _isLoading = true;
@@ -64,16 +68,17 @@ class TrendingController extends ChangeNotifier {
       }
       _hasError = true;
     } finally {
-      if (!_isRequestStillValid(requestId)) {
-        return;
+      if (_isRequestStillValid(requestId)) {
+        _isLoading = false;
+        _safeNotifyListeners();
       }
-
-      _isLoading = false;
-      _safeNotifyListeners();
     }
   }
 
   void _onScopeChanged() {
+    if (_isDisposed) {
+      return;
+    }
     loadTrending();
   }
 

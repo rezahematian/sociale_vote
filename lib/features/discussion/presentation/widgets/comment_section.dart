@@ -81,10 +81,10 @@ class _CommentSectionState extends State<CommentSection> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: colorScheme.surface.withOpacity(isDark ? 0.38 : 0.45),
+        color: colorScheme.surface.withValues(alpha: isDark ? 0.38 : 0.45),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: colorScheme.outline.withOpacity(isDark ? 0.22 : 0.12),
+          color: colorScheme.outline.withValues(alpha: isDark ? 0.22 : 0.12),
         ),
       ),
       child: Padding(
@@ -116,13 +116,13 @@ class _CommentSectionState extends State<CommentSection> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(
-                      isDark ? 0.18 : 0.08,
+                    color: colorScheme.primary.withValues(
+                      alpha: isDark ? 0.18 : 0.08,
                     ),
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(
-                      color: colorScheme.primary.withOpacity(
-                        isDark ? 0.32 : 0.18,
+                      color: colorScheme.primary.withValues(
+                        alpha: isDark ? 0.32 : 0.18,
                       ),
                     ),
                   ),
@@ -163,10 +163,10 @@ class _CommentSectionState extends State<CommentSection> {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: colorScheme.error.withOpacity(0.06),
+                  color: colorScheme.error.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: colorScheme.error.withOpacity(0.35),
+                    color: colorScheme.error.withValues(alpha: 0.35),
                   ),
                 ),
                 child: Row(
@@ -241,8 +241,8 @@ class _CommentSectionState extends State<CommentSection> {
                   Text(
                     l10n.commentSection_sortLabel,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(
-                        isDark ? 0.62 : 0.52,
+                      color: colorScheme.onSurface.withValues(
+                        alpha: isDark ? 0.62 : 0.52,
                       ),
                     ),
                   ),
@@ -281,7 +281,8 @@ class _CommentSectionState extends State<CommentSection> {
               const SizedBox(height: 14),
               Divider(
                 height: 1,
-                color: colorScheme.outline.withOpacity(isDark ? 0.18 : 0.08),
+                color:
+                    colorScheme.outline.withValues(alpha: isDark ? 0.18 : 0.08),
               ),
               const SizedBox(height: 14),
               if (!controller.hasComments && !isLoading) ...[
@@ -292,19 +293,20 @@ class _CommentSectionState extends State<CommentSection> {
                     vertical: 14,
                   ),
                   decoration: BoxDecoration(
-                    color: colorScheme.surface.withOpacity(isDark ? 0.30 : 0.5),
+                    color: colorScheme.surface
+                        .withValues(alpha: isDark ? 0.30 : 0.5),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: colorScheme.outline.withOpacity(
-                        isDark ? 0.22 : 0.12,
+                      color: colorScheme.outline.withValues(
+                        alpha: isDark ? 0.22 : 0.12,
                       ),
                     ),
                   ),
                   child: Text(
                     l10n.commentSection_empty,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(
-                        isDark ? 0.60 : 0.52,
+                      color: colorScheme.onSurface.withValues(
+                        alpha: isDark ? 0.60 : 0.52,
                       ),
                     ),
                   ),
@@ -408,7 +410,7 @@ class _CommentSectionState extends State<CommentSection> {
                                             ),
                                             decoration: BoxDecoration(
                                               color: colorScheme.primary
-                                                  .withOpacity(0.18),
+                                                  .withValues(alpha: 0.18),
                                               borderRadius:
                                                   BorderRadius.circular(999),
                                             ),
@@ -523,10 +525,10 @@ class _CommentSectionState extends State<CommentSection> {
               vertical: 6,
             ),
             decoration: BoxDecoration(
-              color: colorScheme.secondary.withOpacity(0.08),
+              color: colorScheme.secondary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
-                color: colorScheme.secondary.withOpacity(0.14),
+                color: colorScheme.secondary.withValues(alpha: 0.14),
               ),
             ),
             child: Row(
@@ -601,7 +603,7 @@ class _CommentSectionState extends State<CommentSection> {
               width: 44,
               child: IconButton(
                 style: IconButton.styleFrom(
-                  backgroundColor: colorScheme.primary.withOpacity(0.10),
+                  backgroundColor: colorScheme.primary.withValues(alpha: 0.10),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -642,10 +644,10 @@ class _CommentSectionState extends State<CommentSection> {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: colorScheme.primary.withOpacity(0.04),
+        color: colorScheme.primary.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: colorScheme.primary.withOpacity(0.18),
+          color: colorScheme.primary.withValues(alpha: 0.18),
         ),
       ),
       child: Column(
@@ -709,7 +711,8 @@ class _CommentSectionState extends State<CommentSection> {
                 width: 44,
                 child: IconButton(
                   style: IconButton.styleFrom(
-                    backgroundColor: colorScheme.primary.withOpacity(0.10),
+                    backgroundColor:
+                        colorScheme.primary.withValues(alpha: 0.10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -758,19 +761,19 @@ class _CommentSectionState extends State<CommentSection> {
       hintText: hintText,
       isDense: true,
       filled: true,
-      fillColor: colorScheme.surface.withOpacity(isDark ? 0.92 : 1),
+      fillColor: colorScheme.surface.withValues(alpha: isDark ? 0.92 : 1),
       border: border(
-        colorScheme.outline.withOpacity(isDark ? 0.26 : 0.12),
+        colorScheme.outline.withValues(alpha: isDark ? 0.26 : 0.12),
       ),
       enabledBorder: border(
-        colorScheme.outline.withOpacity(isDark ? 0.26 : 0.12),
+        colorScheme.outline.withValues(alpha: isDark ? 0.26 : 0.12),
       ),
       focusedBorder: border(
-        colorScheme.primary.withOpacity(0.42),
+        colorScheme.primary.withValues(alpha: 0.42),
         width: 1.2,
       ),
       disabledBorder: border(
-        colorScheme.outline.withOpacity(isDark ? 0.18 : 0.08),
+        colorScheme.outline.withValues(alpha: isDark ? 0.18 : 0.08),
       ),
       contentPadding: const EdgeInsets.symmetric(
         horizontal: 12,
@@ -950,7 +953,7 @@ class _CommentSectionState extends State<CommentSection> {
       context,
       ParticipationAction.comment,
     );
-    if (!allowed) {
+    if (!mounted || !context.mounted || !allowed) {
       return;
     }
 
@@ -973,6 +976,10 @@ class _CommentSectionState extends State<CommentSection> {
       );
     }
 
+    if (!mounted || !context.mounted) {
+      return;
+    }
+
     if (controller.errorMessage == null) {
       _primaryInputController.clear();
       setState(() {
@@ -993,7 +1000,7 @@ class _CommentSectionState extends State<CommentSection> {
       context,
       ParticipationAction.comment,
     );
-    if (!allowed) {
+    if (!mounted || !context.mounted || !allowed) {
       return;
     }
 
@@ -1009,6 +1016,10 @@ class _CommentSectionState extends State<CommentSection> {
       parent: _replyParent!,
       content: text,
     );
+
+    if (!mounted || !context.mounted) {
+      return;
+    }
 
     if (controller.errorMessage == null) {
       final rootId = _replyParent!.id;
@@ -1082,16 +1093,19 @@ class _CommentTile extends StatelessWidget {
 
     final Color backgroundColor;
     if (isCurrentUser) {
-      backgroundColor = colorScheme.primary.withOpacity(isDark ? 0.10 : 0.05);
+      backgroundColor =
+          colorScheme.primary.withValues(alpha: isDark ? 0.10 : 0.05);
     } else if (isReply) {
-      backgroundColor = colorScheme.primary.withOpacity(isDark ? 0.07 : 0.025);
+      backgroundColor =
+          colorScheme.primary.withValues(alpha: isDark ? 0.07 : 0.025);
     } else {
-      backgroundColor = colorScheme.surface.withOpacity(isDark ? 0.30 : 0.72);
+      backgroundColor =
+          colorScheme.surface.withValues(alpha: isDark ? 0.30 : 0.72);
     }
 
     final Color borderColor = isReply
-        ? colorScheme.primary.withOpacity(isDark ? 0.26 : 0.18)
-        : colorScheme.outline.withOpacity(isDark ? 0.18 : 0.10);
+        ? colorScheme.primary.withValues(alpha: isDark ? 0.26 : 0.18)
+        : colorScheme.outline.withValues(alpha: isDark ? 0.18 : 0.10);
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
@@ -1143,7 +1157,8 @@ class _CommentTile extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: colorScheme.primary.withOpacity(0.15),
+                              color:
+                                  colorScheme.primary.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
@@ -1161,7 +1176,8 @@ class _CommentTile extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: colorScheme.primary.withOpacity(0.08),
+                              color:
+                                  colorScheme.primary.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
@@ -1182,8 +1198,8 @@ class _CommentTile extends StatelessWidget {
                     Text(
                       _formatTime(comment.createdAt),
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(
-                          isDark ? 0.56 : 0.48,
+                        color: colorScheme.onSurface.withValues(
+                          alpha: isDark ? 0.56 : 0.48,
                         ),
                         fontSize: 11,
                       ),
@@ -1223,8 +1239,8 @@ class _CommentTile extends StatelessWidget {
                   icon: Icon(
                     Icons.more_horiz,
                     size: 18,
-                    color: colorScheme.onSurface.withOpacity(
-                      isDark ? 0.56 : 0.48,
+                    color: colorScheme.onSurface.withValues(
+                      alpha: isDark ? 0.56 : 0.48,
                     ),
                   ),
                   padding: EdgeInsets.zero,
@@ -1314,15 +1330,15 @@ class _AuthorAvatar extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final bgColor = isCurrentUser
-        ? colorScheme.primary.withOpacity(isDark ? 0.18 : 0.14)
+        ? colorScheme.primary.withValues(alpha: isDark ? 0.18 : 0.14)
         : isReply
-            ? colorScheme.primary.withOpacity(isDark ? 0.12 : 0.08)
+            ? colorScheme.primary.withValues(alpha: isDark ? 0.12 : 0.08)
             : colorScheme.surfaceContainerHighest
-                .withOpacity(isDark ? 0.28 : 0.55);
+                .withValues(alpha: isDark ? 0.28 : 0.55);
 
     final borderColor = isCurrentUser
-        ? colorScheme.primary.withOpacity(isDark ? 0.36 : 0.25)
-        : colorScheme.outline.withOpacity(isDark ? 0.22 : 0.12);
+        ? colorScheme.primary.withValues(alpha: isDark ? 0.36 : 0.25)
+        : colorScheme.outline.withValues(alpha: isDark ? 0.22 : 0.12);
 
     return Container(
       width: 32,

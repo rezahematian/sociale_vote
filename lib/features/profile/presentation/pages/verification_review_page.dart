@@ -53,7 +53,8 @@ class _VerificationReviewGate extends StatefulWidget {
   });
 
   @override
-  State<_VerificationReviewGate> createState() => _VerificationReviewGateState();
+  State<_VerificationReviewGate> createState() =>
+      _VerificationReviewGateState();
 }
 
 class _VerificationReviewGateState extends State<_VerificationReviewGate> {
@@ -153,9 +154,8 @@ class _VerificationReviewView extends StatelessWidget {
         title: const Text('Verification Review'),
       ),
       body: RefreshIndicator(
-        onRefresh: () => context
-            .read<VerificationReviewController>()
-            .loadPendingRequests(),
+        onRefresh: () =>
+            context.read<VerificationReviewController>().loadPendingRequests(),
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -372,7 +372,7 @@ class _VerificationRequestCard extends StatelessWidget {
     final noteController = TextEditingController();
 
     try {
-      final note = await showDialog<String?>(
+      final reviewResult = await showDialog<({bool confirmed, String? note})>(
         context: context,
         builder: (dialogContext) {
           final isApprove = status == VerificationRequestStatus.approved;
@@ -407,9 +407,8 @@ class _VerificationRequestCard extends StatelessWidget {
                         labelText: isApprove
                             ? 'Review note opzionale'
                             : 'Reason / review note',
-                        helperText: isApprove
-                            ? 'Opzionale'
-                            : 'Obbligatoria per reject',
+                        helperText:
+                            isApprove ? 'Opzionale' : 'Obbligatoria per reject',
                         errorText: hasValidationError
                             ? 'La review note è obbligatoria per reject.'
                             : null,
@@ -426,7 +425,9 @@ class _VerificationRequestCard extends StatelessWidget {
                 ),
                 actions: [
                   TextButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(null),
+                    onPressed: () => Navigator.of(dialogContext).pop(
+                      (confirmed: false, note: null),
+                    ),
                     child: const Text('Annulla'),
                   ),
                   FilledButton(
@@ -441,7 +442,10 @@ class _VerificationRequestCard extends StatelessWidget {
                       }
 
                       Navigator.of(dialogContext).pop(
-                        normalizedNote.isEmpty ? null : normalizedNote,
+                        (
+                          confirmed: true,
+                          note: normalizedNote.isEmpty ? null : normalizedNote,
+                        ),
                       );
                     },
                     child: Text(isApprove ? 'Approve' : 'Reject'),
@@ -453,28 +457,11 @@ class _VerificationRequestCard extends StatelessWidget {
         },
       );
 
-      if (!context.mounted || note == null && status == VerificationRequestStatus.rejected && false) {
+      if (!context.mounted || reviewResult == null || !reviewResult.confirmed) {
         return;
       }
 
-      if (!context.mounted) return;
-
-      final wasCancelled = note == null &&
-          status == VerificationRequestStatus.rejected &&
-          false;
-      if (wasCancelled) {
-        return;
-      }
-
-      if (note == null && status == VerificationRequestStatus.approved) {
-        // ok: approve con nota opzionale vuota
-      }
-
-      if (note == null &&
-          status == VerificationRequestStatus.rejected) {
-        return;
-      }
-
+      final note = reviewResult.note;
       final controller = context.read<VerificationReviewController>();
 
       final result = status == VerificationRequestStatus.approved
@@ -590,10 +577,10 @@ class _InfoChip extends StatelessWidget {
         vertical: 6,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.08),
+        color: theme.colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: theme.colorScheme.primary.withOpacity(0.18),
+          color: theme.colorScheme.primary.withValues(alpha: 0.18),
         ),
       ),
       child: Row(

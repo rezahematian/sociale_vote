@@ -24,8 +24,7 @@ class _ResetPasswordView extends StatefulWidget {
 }
 
 class _ResetPasswordViewState extends State<_ResetPasswordView> {
-  final TextEditingController _newPasswordController =
-      TextEditingController();
+  final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
@@ -128,8 +127,7 @@ class _ResetPasswordViewState extends State<_ResetPasswordView> {
                               suffixIcon: IconButton(
                                 onPressed: () {
                                   setState(() {
-                                    _obscureNewPassword =
-                                        !_obscureNewPassword;
+                                    _obscureNewPassword = !_obscureNewPassword;
                                   });
                                 },
                                 icon: Icon(
@@ -237,7 +235,7 @@ class _ResetPasswordViewState extends State<_ResetPasswordView> {
         newPassword: newPassword,
       );
 
-      if (!mounted || !success) {
+      if (!context.mounted || !success) {
         return;
       }
 

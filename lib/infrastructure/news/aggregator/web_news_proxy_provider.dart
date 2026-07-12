@@ -147,10 +147,7 @@ class WebNewsProxyProvider implements NewsProvider {
       );
     }
 
-    throw authFailure ??
-        StateError(
-          'Impossibile invocare la Edge Function "$functionName".',
-        );
+    throw authFailure;
   }
 
   Future<FunctionResponse> _invoke({

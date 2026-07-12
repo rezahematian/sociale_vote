@@ -86,6 +86,9 @@ class CivicFeedController extends ChangeNotifier {
   String? _errorMessage;
   GeoScope? _currentScope;
 
+  bool _isDisposed = false;
+  int _feedOperationId = 0;
+
   List<FeedItem> get items => List.unmodifiable(_items);
   bool get isLoading => _isLoading;
   bool get isRefreshing => _isRefreshing;
@@ -95,45 +98,90 @@ class CivicFeedController extends ChangeNotifier {
   bool get isEmpty => _items.isEmpty && !_isLoading;
 
   Future<void> load({GeoScope? scope}) async {
+    if (_isDisposed) return;
+
+    final operationId = ++_feedOperationId;
+
     _currentScope = scope;
     _isLoading = true;
+    _isRefreshing = false;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final items = await _buildFeed(scope: scope);
+
+      if (!_isOperationCurrent(operationId)) {
+        return;
+      }
+
       _items
         ..clear()
         ..addAll(items);
     } catch (error) {
-      _errorMessage = error.toString();
-      _items.clear();
+      if (_isOperationCurrent(operationId)) {
+        _errorMessage = error.toString();
+        _items.clear();
+      }
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (_isOperationCurrent(operationId)) {
+        _isLoading = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
   Future<void> refresh() async {
+    if (_isDisposed) return;
+
+    final operationId = ++_feedOperationId;
+    final scope = _currentScope;
+
+    _isLoading = false;
     _isRefreshing = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
-      final items = await _buildFeed(scope: _currentScope);
+      final items = await _buildFeed(scope: scope);
+
+      if (!_isOperationCurrent(operationId)) {
+        return;
+      }
+
       _items
         ..clear()
         ..addAll(items);
     } catch (error) {
-      _errorMessage = error.toString();
+      if (_isOperationCurrent(operationId)) {
+        _errorMessage = error.toString();
+      }
     } finally {
-      _isRefreshing = false;
-      notifyListeners();
+      if (_isOperationCurrent(operationId)) {
+        _isRefreshing = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
   Future<void> reloadForScope(GeoScope? scope) async {
     await load(scope: scope);
+  }
+
+  bool _isOperationCurrent(int operationId) {
+    return !_isDisposed && operationId == _feedOperationId;
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) return;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _feedOperationId++;
+    super.dispose();
   }
 
   Future<List<FeedItem>> _buildFeed({GeoScope? scope}) async {
@@ -244,10 +292,12 @@ class CivicFeedController extends ChangeNotifier {
       now.difference(createdAt).inHours,
     );
 
-    final recencyWeight = math.max(
-      0,
-      72 - ageHours,
-    ).toDouble();
+    final recencyWeight = math
+        .max(
+          0,
+          72 - ageHours,
+        )
+        .toDouble();
 
     return (reactionCount * 2) + commentCount + recencyWeight;
   }

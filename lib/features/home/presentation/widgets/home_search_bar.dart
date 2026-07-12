@@ -22,16 +22,16 @@ class HomeSearchBar extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.58),
+            color: Colors.white.withValues(alpha: 0.58),
             borderRadius: BorderRadius.circular(22),
             border: Border.all(
-              color: Colors.white.withOpacity(0.22),
+              color: Colors.white.withValues(alpha: 0.22),
             ),
             boxShadow: [
               BoxShadow(
                 blurRadius: 24,
                 offset: const Offset(0, 10),
-                color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withValues(alpha: 0.06),
               ),
             ],
           ),

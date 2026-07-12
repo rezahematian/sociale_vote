@@ -176,7 +176,7 @@ class _ColorfulBrand extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: theme.textTheme.labelMedium?.copyWith(
-            color: Colors.white.withOpacity(0.72),
+            color: Colors.white.withValues(alpha: 0.72),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -353,32 +353,6 @@ class _AccountMenuButton extends StatelessWidget {
   }
 }
 
-class _TopBarIconButton extends StatelessWidget {
-  final String tooltip;
-  final IconData icon;
-  final VoidCallback? onPressed;
-
-  const _TopBarIconButton({
-    required this.tooltip,
-    required this.icon,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(999),
-        child: _TopBarIconShell(
-          icon: icon,
-        ),
-      ),
-    );
-  }
-}
-
 class _TopBarIconShell extends StatelessWidget {
   final IconData icon;
 
@@ -392,16 +366,16 @@ class _TopBarIconShell extends StatelessWidget {
       width: 36,
       height: 36,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: Colors.white.withOpacity(0.14),
+          color: Colors.white.withValues(alpha: 0.14),
         ),
       ),
       child: Icon(
         icon,
         size: 18,
-        color: Colors.white.withOpacity(0.92),
+        color: Colors.white.withValues(alpha: 0.92),
       ),
     );
   }

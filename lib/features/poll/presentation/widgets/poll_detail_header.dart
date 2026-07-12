@@ -183,11 +183,11 @@ class PollDetailHeader extends StatelessWidget {
         : null;
 
     final titleColor = colorScheme.onSurface;
-    final descriptionColor = colorScheme.onSurface.withOpacity(
-      isDark ? 0.76 : 0.72,
+    final descriptionColor = colorScheme.onSurface.withValues(
+      alpha: isDark ? 0.76 : 0.72,
     );
-    final metaTextColor = colorScheme.onSurface.withOpacity(
-      isDark ? 0.60 : 0.58,
+    final metaTextColor = colorScheme.onSurface.withValues(
+      alpha: isDark ? 0.60 : 0.58,
     );
 
     return LayoutBuilder(
@@ -369,8 +369,8 @@ class PollDetailHeader extends StatelessWidget {
                     child: Text(
                       representativeInfoText,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(
-                          isDark ? 0.78 : 0.72,
+                        color: colorScheme.onSurface.withValues(
+                          alpha: isDark ? 0.78 : 0.72,
                         ),
                         fontWeight: FontWeight.w700,
                         height: 1.35,
@@ -425,8 +425,8 @@ class PollDetailHeader extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border(
                   top: BorderSide(
-                    color: colorScheme.outline.withOpacity(
-                      isDark ? 0.24 : 0.12,
+                    color: colorScheme.outline.withValues(
+                      alpha: isDark ? 0.24 : 0.12,
                     ),
                     width: 1,
                   ),
@@ -577,10 +577,10 @@ class PollDetailHeader extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: colorScheme.surface.withOpacity(isDark ? 0.36 : 0.92),
+        color: colorScheme.surface.withValues(alpha: isDark ? 0.36 : 0.92),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: colorScheme.outline.withOpacity(isDark ? 0.22 : 0.10),
+          color: colorScheme.outline.withValues(alpha: isDark ? 0.22 : 0.10),
           width: 1,
         ),
       ),
@@ -602,7 +602,8 @@ class PollDetailHeader extends StatelessWidget {
               Divider(
                 height: 1,
                 thickness: 1,
-                color: colorScheme.outline.withOpacity(isDark ? 0.18 : 0.08),
+                color:
+                    colorScheme.outline.withValues(alpha: isDark ? 0.18 : 0.08),
               ),
               const SizedBox(height: 10),
             ],
@@ -626,7 +627,7 @@ class PollDetailHeader extends StatelessWidget {
           width: 30,
           height: 30,
           decoration: BoxDecoration(
-            color: colorScheme.primary.withOpacity(0.08),
+            color: colorScheme.primary.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
@@ -643,7 +644,7 @@ class PollDetailHeader extends StatelessWidget {
               Text(
                 item.label,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.62),
+                  color: colorScheme.onSurface.withValues(alpha: 0.62),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -1160,12 +1161,12 @@ class PollDetailHeader extends StatelessWidget {
         isActive ? activeTone.backgroundColor : colorScheme.surface;
     final borderColor = isActive
         ? activeTone.borderColor
-        : colorScheme.outline.withOpacity(0.16);
+        : colorScheme.outline.withValues(alpha: 0.16);
     final foregroundColor = !enabled
-        ? colorScheme.onSurface.withOpacity(0.34)
+        ? colorScheme.onSurface.withValues(alpha: 0.34)
         : isActive
             ? activeTone.foregroundColor
-            : colorScheme.onSurface.withOpacity(0.84);
+            : colorScheme.onSurface.withValues(alpha: 0.84);
 
     return Tooltip(
       message: tooltip,
@@ -1226,12 +1227,12 @@ class PollDetailHeader extends StatelessWidget {
         isActive ? activeTone.backgroundColor : colorScheme.surface;
     final borderColor = isActive
         ? activeTone.borderColor
-        : colorScheme.outline.withOpacity(0.16);
+        : colorScheme.outline.withValues(alpha: 0.16);
     final foregroundColor = !enabled
-        ? colorScheme.onSurface.withOpacity(0.34)
+        ? colorScheme.onSurface.withValues(alpha: 0.34)
         : isActive
             ? activeTone.foregroundColor
-            : colorScheme.onSurface.withOpacity(0.84);
+            : colorScheme.onSurface.withValues(alpha: 0.84);
 
     return Tooltip(
       message: tooltip,
@@ -1277,10 +1278,10 @@ class PollDetailHeader extends StatelessWidget {
         vertical: 10,
       ),
       decoration: BoxDecoration(
-        color: accentColor.withOpacity(0.08),
+        color: accentColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: accentColor.withOpacity(0.18),
+          color: accentColor.withValues(alpha: 0.18),
           width: 1,
         ),
       ),

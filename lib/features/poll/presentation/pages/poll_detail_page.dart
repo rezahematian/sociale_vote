@@ -158,7 +158,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
     await animateToBottom(duration: const Duration(milliseconds: 220));
 
     final commentContext = _commentSectionKey.currentContext;
-    if (commentContext != null && mounted) {
+    if (commentContext != null && commentContext.mounted) {
       await Scrollable.ensureVisible(
         commentContext,
         duration: const Duration(milliseconds: 180),
@@ -209,7 +209,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
       context,
       ParticipationAction.react,
     );
-    if (!allowed) return;
+    if (!allowed || !mounted) return;
 
     final userId = AppDI.instance.currentUserId;
     if (userId == null) return;
@@ -233,10 +233,11 @@ class _PollDetailPageState extends State<PollDetailPage> {
         const SnackBar(content: Text('Impossibile aggiornare i preferiti')),
       );
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _favoriteLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _favoriteLoading = false;
+        });
+      }
     }
   }
 
@@ -448,7 +449,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
       context,
       ParticipationAction.reportContent,
     );
-    if (!allowed) return;
+    if (!allowed || !mounted) return;
 
     final userId = AppDI.instance.currentUserId;
     if (userId == null) {
@@ -501,22 +502,24 @@ class _PollDetailPageState extends State<PollDetailPage> {
           builder: (context, setDialogState) {
             return AlertDialog(
               title: const Text('Segnala contenuto'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: _reportReasons.map((reason) {
-                  return RadioListTile<String>(
-                    value: reason,
-                    groupValue: selectedReason,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(_reportReasonLabel(reason)),
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setDialogState(() {
-                        selectedReason = value;
-                      });
-                    },
-                  );
-                }).toList(),
+              content: RadioGroup<String>(
+                groupValue: selectedReason,
+                onChanged: (value) {
+                  if (value == null) return;
+                  setDialogState(() {
+                    selectedReason = value;
+                  });
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: _reportReasons.map((reason) {
+                    return RadioListTile<String>(
+                      value: reason,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(_reportReasonLabel(reason)),
+                    );
+                  }).toList(),
+                ),
               ),
               actions: [
                 TextButton(
@@ -580,7 +583,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
     final isDark = theme.brightness == Brightness.dark;
 
     final pageBackground = Color.alphaBlend(
-      colorScheme.primary.withOpacity(isDark ? 0.035 : 0.012),
+      colorScheme.primary.withValues(alpha: isDark ? 0.035 : 0.012),
       theme.scaffoldBackgroundColor,
     );
 
@@ -1042,10 +1045,10 @@ class _PollDetailPageState extends State<PollDetailPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: colorScheme.primary.withOpacity(0.06),
+        color: colorScheme.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: colorScheme.primary.withOpacity(0.16),
+          color: colorScheme.primary.withValues(alpha: 0.16),
         ),
       ),
       child: Column(
@@ -1097,15 +1100,16 @@ class _PollDetailPageState extends State<PollDetailPage> {
     final isDark = theme.brightness == Brightness.dark;
 
     final surfaceColor = Color.alphaBlend(
-      colorScheme.primary.withOpacity(isDark ? 0.05 : 0.014),
+      colorScheme.primary.withValues(alpha: isDark ? 0.05 : 0.014),
       colorScheme.surface,
     );
 
-    final borderColor = colorScheme.outline.withOpacity(isDark ? 0.26 : 0.12);
+    final borderColor =
+        colorScheme.outline.withValues(alpha: isDark ? 0.26 : 0.12);
 
     final shadowColor = isDark
-        ? Colors.black.withOpacity(0.18)
-        : Colors.black.withOpacity(0.045);
+        ? Colors.black.withValues(alpha: 0.18)
+        : Colors.black.withValues(alpha: 0.045);
 
     return Container(
       width: double.infinity,
@@ -1150,10 +1154,10 @@ class _PollDetailPageState extends State<PollDetailPage> {
         vertical: 11,
       ),
       decoration: BoxDecoration(
-        color: baseColor.withOpacity(0.08),
+        color: baseColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: baseColor.withOpacity(0.22),
+          color: baseColor.withValues(alpha: 0.22),
         ),
       ),
       child: Row(
@@ -1583,10 +1587,10 @@ class _PublicVoteTileState extends State<_PublicVoteTile> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.35),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: colorScheme.outline.withOpacity(0.12),
+          color: colorScheme.outline.withValues(alpha: 0.12),
         ),
       ),
       child: Column(
@@ -1596,7 +1600,7 @@ class _PublicVoteTileState extends State<_PublicVoteTile> {
             children: [
               CircleAvatar(
                 radius: 18,
-                backgroundColor: colorScheme.primary.withOpacity(0.12),
+                backgroundColor: colorScheme.primary.withValues(alpha: 0.12),
                 child: Icon(
                   Icons.person_outline,
                   size: 18,
@@ -1633,8 +1637,8 @@ class _PublicVoteTileState extends State<_PublicVoteTile> {
                       Text(
                         secondaryLabel,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.textTheme.bodySmall?.color?.withOpacity(
-                            0.75,
+                          color: theme.textTheme.bodySmall?.color?.withValues(
+                            alpha: 0.75,
                           ),
                         ),
                       ),
@@ -1660,10 +1664,10 @@ class _PublicVoteTileState extends State<_PublicVoteTile> {
                   vertical: 7,
                 ),
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withOpacity(0.08),
+                  color: colorScheme.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(
-                    color: colorScheme.primary.withOpacity(0.16),
+                    color: colorScheme.primary.withValues(alpha: 0.16),
                   ),
                 ),
                 child: Text(

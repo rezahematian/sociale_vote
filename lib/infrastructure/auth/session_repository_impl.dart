@@ -18,12 +18,6 @@ class SessionRepositoryImpl implements SessionRepository {
   final StreamController<String?> _currentUserIdController =
       StreamController<String?>.broadcast();
 
-  SessionRepositoryImpl() {
-    _currentSession = null;
-    _sessionController.add(_currentSession);
-    _currentUserIdController.add(_currentSession?.userId);
-  }
-
   @override
   Future<AuthSession?> getCurrentSession() async {
     return _currentSession;
@@ -31,9 +25,7 @@ class SessionRepositoryImpl implements SessionRepository {
 
   @override
   Future<void> saveSession(AuthSession session) async {
-    _currentSession = session;
-    _sessionController.add(_currentSession);
-    _currentUserIdController.add(_currentSession?.userId);
+    _setCurrentSession(session);
   }
 
   @override
@@ -43,28 +35,103 @@ class SessionRepositoryImpl implements SessionRepository {
 
   @override
   Future<void> saveCurrentUserId(String userId) async {
-    _currentSession = AuthSession(
-      userId: userId,
-      accessToken: '',
+    final currentSession = _currentSession;
+    if (currentSession?.userId == userId) {
+      return;
+    }
+
+    _setCurrentSession(
+      AuthSession(
+        userId: userId,
+        accessToken: '',
+      ),
     );
-    _sessionController.add(_currentSession);
-    _currentUserIdController.add(_currentSession?.userId);
   }
 
   @override
   Future<void> clearSession() async {
-    _currentSession = null;
-    _sessionController.add(_currentSession);
-    _currentUserIdController.add(_currentSession?.userId);
+    _setCurrentSession(null);
   }
 
   @override
   Stream<AuthSession?> watchSession() {
-    return _sessionController.stream;
+    return _watchWithCurrentValue<AuthSession?>(
+      currentValue: () => _currentSession,
+      changes: _sessionController.stream,
+    );
   }
 
   @override
   Stream<String?> watchCurrentUserId() {
-    return _currentUserIdController.stream;
+    return _watchWithCurrentValue<String?>(
+      currentValue: () => _currentSession?.userId,
+      changes: _currentUserIdController.stream,
+    );
+  }
+
+  void _setCurrentSession(AuthSession? session) {
+    final previousSession = _currentSession;
+    final sessionChanged = !_areSessionsEqual(previousSession, session);
+    if (!sessionChanged) {
+      return;
+    }
+
+    final previousUserId = previousSession?.userId;
+    final nextUserId = session?.userId;
+
+    _currentSession = session;
+    _sessionController.add(session);
+
+    if (previousUserId != nextUserId) {
+      _currentUserIdController.add(nextUserId);
+    }
+  }
+
+  bool _areSessionsEqual(AuthSession? first, AuthSession? second) {
+    if (identical(first, second)) {
+      return true;
+    }
+
+    if (first == null || second == null) {
+      return false;
+    }
+
+    return first.userId == second.userId &&
+        first.accessToken == second.accessToken &&
+        first.refreshToken == second.refreshToken &&
+        first.email == second.email &&
+        first.displayName == second.displayName &&
+        first.role == second.role;
+  }
+
+  Stream<T> _watchWithCurrentValue<T>({
+    required T Function() currentValue,
+    required Stream<T> changes,
+  }) {
+    late final StreamController<T> controller;
+    StreamSubscription<T>? subscription;
+
+    controller = StreamController<T>(
+      sync: true,
+      onListen: () {
+        subscription = changes.listen(
+          controller.add,
+          onError: controller.addError,
+          onDone: controller.close,
+        );
+        controller.add(currentValue());
+      },
+      onPause: () {
+        subscription?.pause();
+      },
+      onResume: () {
+        subscription?.resume();
+      },
+      onCancel: () {
+        return subscription?.cancel();
+      },
+    );
+
+    return controller.stream;
   }
 }

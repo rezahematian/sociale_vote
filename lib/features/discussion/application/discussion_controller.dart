@@ -38,6 +38,7 @@ class DiscussionController extends ChangeNotifier {
   List<Comment> _comments = [];
   bool _isLoading = false;
   bool _isSubmitting = false;
+  bool _isDisposed = false;
   String? _errorMessage;
 
   CommentSortOrder _sortOrder = CommentSortOrder.oldestFirst;
@@ -62,7 +63,7 @@ class DiscussionController extends ChangeNotifier {
   void setSortOrder(CommentSortOrder order) {
     if (_sortOrder == order) return;
     _sortOrder = order;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   List<Comment> get rootComments {
@@ -104,10 +105,14 @@ class DiscussionController extends ChangeNotifier {
 
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final result = await _getCommentsForTarget(target);
+      if (_isDisposed) {
+        return;
+      }
+
       _comments = List<Comment>.from(result)..sort(_compareByCreatedAt);
 
       final totalRoots = _allRootCommentsCount();
@@ -116,7 +121,7 @@ class DiscussionController extends ChangeNotifier {
       _errorMessage = 'Impossibile caricare i commenti.';
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -125,7 +130,7 @@ class DiscussionController extends ChangeNotifier {
     if (_visibleRootCount >= totalRoots) return;
 
     _visibleRootCount = (_visibleRootCount + _pageSize).clamp(0, totalRoots);
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> addRootComment({
@@ -141,7 +146,7 @@ class DiscussionController extends ChangeNotifier {
 
     _isSubmitting = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final newComment = await _addComment(
@@ -150,6 +155,10 @@ class DiscussionController extends ChangeNotifier {
         content: trimmed,
         parentId: null,
       );
+
+      if (_isDisposed) {
+        return;
+      }
 
       _comments = List<Comment>.from(_comments)..add(newComment);
       _comments.sort(_compareByCreatedAt);
@@ -170,7 +179,7 @@ class DiscussionController extends ChangeNotifier {
       _errorMessage = 'Impossibile aggiungere il commento.';
     } finally {
       _isSubmitting = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -189,13 +198,13 @@ class DiscussionController extends ChangeNotifier {
     if (parent.parentId != null && parent.depth >= 1) {
       _errorMessage =
           'Le risposte nidificate oltre un livello non sono supportate.';
-      notifyListeners();
+      _safeNotifyListeners();
       return;
     }
 
     _isSubmitting = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final reply = await _addComment(
@@ -204,6 +213,10 @@ class DiscussionController extends ChangeNotifier {
         content: trimmed,
         parentId: parent.id,
       );
+
+      if (_isDisposed) {
+        return;
+      }
 
       _comments = List<Comment>.from(_comments)..add(reply);
       _comments.sort(_compareByCreatedAt);
@@ -217,7 +230,7 @@ class DiscussionController extends ChangeNotifier {
       _errorMessage = 'Impossibile aggiungere la risposta.';
     } finally {
       _isSubmitting = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -234,13 +247,17 @@ class DiscussionController extends ChangeNotifier {
 
     _isSubmitting = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final updatedComment = await _updateComment(
         commentId: comment.id,
         content: trimmed,
       );
+
+      if (_isDisposed) {
+        return;
+      }
 
       _comments = _comments
           .map((c) => c.id == updatedComment.id ? updatedComment : c)
@@ -252,7 +269,7 @@ class DiscussionController extends ChangeNotifier {
       _errorMessage = 'Impossibile modificare il commento.';
     } finally {
       _isSubmitting = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -261,7 +278,7 @@ class DiscussionController extends ChangeNotifier {
 
     _isSubmitting = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final id = comment.id;
@@ -279,13 +296,26 @@ class DiscussionController extends ChangeNotifier {
       _errorMessage = 'Impossibile eliminare il commento.';
     } finally {
       _isSubmitting = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
   void clearError() {
     _errorMessage = null;
+    _safeNotifyListeners();
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) {
+      return;
+    }
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 
   Future<void> _trackCommentAdded({

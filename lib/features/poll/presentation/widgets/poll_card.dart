@@ -441,8 +441,6 @@ class PollCard extends StatelessWidget {
         return l10n.pollType_ranked;
       case PollType.score:
         return l10n.pollType_score;
-      default:
-        return type.name;
     }
   }
 
@@ -456,8 +454,6 @@ class PollCard extends StatelessWidget {
         return l10n.pollStatus_open;
       case PollStatus.closed:
         return l10n.pollStatus_closed;
-      default:
-        return status.name;
     }
   }
 
@@ -475,8 +471,6 @@ class PollCard extends StatelessWidget {
         return isItalian ? 'Dopo voto' : 'After vote';
       case ResultsVisibilityMode.afterClose:
         return isItalian ? 'Dopo chiusura' : 'After close';
-      default:
-        return mode.name;
     }
   }
 
@@ -775,7 +769,6 @@ class PollCard extends StatelessWidget {
       case PollStatus.scheduled:
         return _neutralBlueTone(theme);
       case PollStatus.draft:
-      default:
         if (theme.brightness == Brightness.dark) {
           return const _PollChipTone(
             backgroundColor: Color(0xFF232A35),
