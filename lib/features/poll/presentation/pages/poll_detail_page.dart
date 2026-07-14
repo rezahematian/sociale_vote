@@ -1269,14 +1269,19 @@ class _PublicVotesSheetContentState extends State<_PublicVotesSheetContent> {
     );
     _searchController.addListener(_handleSearchTextChanged);
 
-    if (!widget.resultController.publicVotesInitialized &&
-        !widget.resultController.isPublicVotesLoading) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          widget.resultController.publicVotesInitialized ||
+          widget.resultController.isPublicVotesLoading) {
+        return;
+      }
+
       unawaited(
         widget.resultController.loadPublicVotes(
           query: _searchController.text,
         ),
       );
-    }
+    });
   }
 
   void _handleSearchTextChanged() {

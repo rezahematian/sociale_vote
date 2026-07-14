@@ -12,6 +12,7 @@ enum AuthStatus {
   unknown,
   authenticated,
   unauthenticated,
+  emailConfirmationRequired,
   loading,
   error,
 }
@@ -25,6 +26,7 @@ class AuthController extends ChangeNotifier {
   AuthStatus _status = AuthStatus.unknown;
   String? _errorMessage;
   String? _currentUserId;
+  String? _pendingEmailConfirmation;
 
   StreamSubscription<String?>? _currentUserIdSubscription;
   bool _isDisposed = false;
@@ -47,7 +49,10 @@ class AuthController extends ChangeNotifier {
   AuthStatus get status => _status;
   String? get errorMessage => _errorMessage;
   String? get currentUserId => _currentUserId;
+  String? get pendingEmailConfirmation => _pendingEmailConfirmation;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
+  bool get requiresEmailConfirmation =>
+      _status == AuthStatus.emailConfirmationRequired;
 
   void _initialize() {
     final previousSubscription = _currentUserIdSubscription;
@@ -104,6 +109,9 @@ class AuthController extends ChangeNotifier {
 
     _sessionEventId++;
     _currentUserId = _normalizeUserId(userId);
+    if (_currentUserId != null) {
+      _pendingEmailConfirmation = null;
+    }
 
     if (!_operationInProgress) {
       _status = _statusFromCurrentUser();
@@ -132,6 +140,8 @@ class AuthController extends ChangeNotifier {
       return;
     }
 
+    _pendingEmailConfirmation = null;
+
     try {
       await _loginUser(
         email: email,
@@ -152,6 +162,7 @@ class AuthController extends ChangeNotifier {
       }
 
       _currentUserId = _normalizeUserId(userId);
+      _pendingEmailConfirmation = null;
       _finishOperation(
         operationId,
         status: AuthStatus.authenticated,
@@ -188,6 +199,8 @@ class AuthController extends ChangeNotifier {
       return;
     }
 
+    _pendingEmailConfirmation = null;
+
     try {
       await _registerUser(
         email: email,
@@ -209,6 +222,7 @@ class AuthController extends ChangeNotifier {
       }
 
       _currentUserId = _normalizeUserId(userId);
+      _pendingEmailConfirmation = null;
       _finishOperation(
         operationId,
         status: AuthStatus.authenticated,
@@ -219,6 +233,27 @@ class AuthController extends ChangeNotifier {
           name: 'sign_up',
           parameters: <String, Object>{
             'method': 'email',
+          },
+        ),
+      );
+    } on EmailConfirmationRequiredException catch (e) {
+      if (!_isOperationStillValid(operationId)) {
+        return;
+      }
+
+      _currentUserId = null;
+      _pendingEmailConfirmation = e.email.trim();
+      _finishOperation(
+        operationId,
+        status: AuthStatus.emailConfirmationRequired,
+      );
+
+      unawaited(
+        _trackAuthEvent(
+          name: 'sign_up',
+          parameters: const <String, Object>{
+            'method': 'email',
+            'email_confirmation_required': 1,
           },
         ),
       );
@@ -332,6 +367,7 @@ class AuthController extends ChangeNotifier {
     }
 
     _currentUserId = null;
+    _pendingEmailConfirmation = null;
 
     if (logoutError != null) {
       _finishOperationWithError(
@@ -354,6 +390,16 @@ class AuthController extends ChangeNotifier {
         },
       ),
     );
+  }
+
+  void clearEmailConfirmationState() {
+    if (_isDisposed || _pendingEmailConfirmation == null) {
+      return;
+    }
+
+    _pendingEmailConfirmation = null;
+    _status = _statusFromCurrentUser();
+    _safeNotifyListeners();
   }
 
   void clearError() {
@@ -416,6 +462,9 @@ class AuthController extends ChangeNotifier {
     }
 
     _currentUserId = _normalizeUserId(userId);
+    if (_currentUserId != null) {
+      _pendingEmailConfirmation = null;
+    }
     _status = _statusFromCurrentUser();
     _errorMessage = null;
     _safeNotifyListeners();
@@ -430,9 +479,13 @@ class AuthController extends ChangeNotifier {
   }
 
   AuthStatus _statusFromCurrentUser() {
-    return _currentUserId == null
-        ? AuthStatus.unauthenticated
-        : AuthStatus.authenticated;
+    if (_currentUserId != null) {
+      return AuthStatus.authenticated;
+    }
+    if (_pendingEmailConfirmation != null) {
+      return AuthStatus.emailConfirmationRequired;
+    }
+    return AuthStatus.unauthenticated;
   }
 
   bool get _supportsFirebaseAnalytics {
@@ -530,7 +583,7 @@ class AuthController extends ChangeNotifier {
     if (normalized.contains('email not confirmed')) {
       return isRegisterFlow
           ? 'Registration failed. Check your details and try again.'
-          : 'Email or password not valid.';
+          : 'Email not confirmed. Check your inbox and confirm your email before signing in.';
     }
 
     if (isPasswordResetFlow) {

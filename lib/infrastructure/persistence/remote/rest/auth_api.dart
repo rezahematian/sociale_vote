@@ -4,6 +4,17 @@ import 'package:sociale_vote/core/supabase/supabase_client.dart';
 import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
 import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 
+class EmailConfirmationRequiredException implements Exception {
+  final String email;
+
+  const EmailConfirmationRequiredException(this.email);
+
+  @override
+  String toString() {
+    return 'Email confirmation required for $email.';
+  }
+}
+
 class AuthApi {
   const AuthApi();
 
@@ -52,9 +63,8 @@ class AuthApi {
     }
 
     if (session == null) {
-      throw Exception(
-        'Registrazione completata ma sessione non disponibile. '
-        'Controlla se la conferma email è attiva in Supabase.',
+      throw EmailConfirmationRequiredException(
+        user.email ?? email.trim(),
       );
     }
 

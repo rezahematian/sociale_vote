@@ -36,6 +36,8 @@ class PostDetailPage extends StatelessWidget {
   }
 }
 
+enum _DeletePostDialogResult { cancel, confirm }
+
 class _PostDetailView extends StatefulWidget {
   const _PostDetailView();
 
@@ -316,9 +318,10 @@ class _PostDetailViewState extends State<_PostDetailView> {
     }
   }
 
-  Future<bool> _showDeleteConfirmationDialog() async {
-    final result = await showDialog<bool>(
+  Future<_DeletePostDialogResult> _showDeleteConfirmationDialog() async {
+    final result = await showDialog<_DeletePostDialogResult>(
       context: context,
+      barrierDismissible: false,
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Eliminare il post?'),
@@ -327,11 +330,15 @@ class _PostDetailViewState extends State<_PostDetailView> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
+              onPressed: () => Navigator.of(dialogContext).pop(
+                _DeletePostDialogResult.cancel,
+              ),
               child: const Text('Annulla'),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
+              onPressed: () => Navigator.of(dialogContext).pop(
+                _DeletePostDialogResult.confirm,
+              ),
               child: const Text('Elimina'),
             ),
           ],
@@ -339,7 +346,7 @@ class _PostDetailViewState extends State<_PostDetailView> {
       },
     );
 
-    return result == true;
+    return result ?? _DeletePostDialogResult.cancel;
   }
 
   Future<void> _onDeletePressed() async {
@@ -347,8 +354,10 @@ class _PostDetailViewState extends State<_PostDetailView> {
       return;
     }
 
-    final confirmed = await _showDeleteConfirmationDialog();
-    if (!mounted || !confirmed) return;
+    final dialogResult = await _showDeleteConfirmationDialog();
+    if (!mounted || dialogResult != _DeletePostDialogResult.confirm) {
+      return;
+    }
 
     setState(() {
       _deleteLoading = true;

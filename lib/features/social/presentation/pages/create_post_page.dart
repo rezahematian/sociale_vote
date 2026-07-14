@@ -315,9 +315,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
       parameters: <String, Object?>{
         'title_length': title.length,
         'content_length': content.length,
-        'has_content_country': contentLocation.hasCountry,
-        'has_content_city': contentLocation.hasCityName,
-        'has_exact_point': contentLocation.hasExactPoint,
+        'has_content_country': contentLocation.hasCountry ? 1 : 0,
+        'has_content_city': contentLocation.hasCityName ? 1 : 0,
+        'has_exact_point': contentLocation.hasExactPoint ? 1 : 0,
       },
     );
   }

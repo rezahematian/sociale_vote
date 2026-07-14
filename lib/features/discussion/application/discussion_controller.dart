@@ -327,7 +327,7 @@ class DiscussionController extends ChangeNotifier {
       parameters: <String, Object?>{
         'target_type': target.type.name,
         'target_id': target.id,
-        'is_reply': isReply,
+        'is_reply': isReply ? 1 : 0,
         'content_length': contentLength,
       },
     );

@@ -178,10 +178,16 @@ class HomeSocialSection extends StatelessWidget {
         Align(
           alignment: Alignment.centerRight,
           child: TextButton.icon(
-            onPressed: () {
-              Navigator.pushNamed(
+            onPressed: () async {
+              await Navigator.pushNamed(
                 context,
                 AppRouter.social,
+              );
+
+              if (!context.mounted) return;
+
+              await controller.refresh(
+                userId: AppDI.instance.currentUserId,
               );
             },
             icon: const Icon(Icons.arrow_outward_rounded, size: 18),

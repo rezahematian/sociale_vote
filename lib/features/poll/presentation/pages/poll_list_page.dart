@@ -163,7 +163,7 @@ class _PollListPageState extends State<PollListPage> {
 
     if (!mounted) return;
 
-    final pollListController = context.read<PollListController>();
+    final pollListController = _pollListController;
     final userId = AppDI.instance.currentUserId;
 
     if (result is PollId) {

@@ -434,7 +434,10 @@ class _CreatePollViewState extends State<_CreatePollView> {
           ),
         ],
       ),
-      child: child,
+      child: Material(
+        color: Colors.transparent,
+        child: child,
+      ),
     );
   }
 

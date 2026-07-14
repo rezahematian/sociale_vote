@@ -13,14 +13,27 @@ class GetUserProfile {
 
   Future<UserProfile> call(String userId) async {
     final existing = await _repository.getUserProfile(userId);
+    final existingDisplayName = _normalizeNullable(existing?.displayName);
 
-    if (existing != null) {
+    if (existing != null && existingDisplayName != null) {
       return existing;
     }
 
     final session = await _sessionRepository.getCurrentSession();
-    final bootstrapDisplayName =
-        session?.userId == userId ? _normalizeNullable(session?.displayName) : null;
+    final bootstrapDisplayName = session?.userId == userId
+        ? _normalizeNullable(session?.displayName)
+        : null;
+
+    if (existing != null) {
+      if (bootstrapDisplayName == null) {
+        return existing;
+      }
+
+      return _repository.updateUserProfile(
+        userId: userId,
+        displayName: bootstrapDisplayName,
+      );
+    }
 
     return _repository.createUserProfile(
       userId: userId,

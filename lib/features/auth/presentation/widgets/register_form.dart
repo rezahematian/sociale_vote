@@ -136,6 +136,15 @@ class _RegisterFormState extends State<RegisterForm> {
     final isBusy = _isSubmitting || controller.status == AuthStatus.loading;
     final friendlyError = _buildFriendlyRegisterError(controller.errorMessage);
 
+    if (controller.requiresEmailConfirmation) {
+      return _buildEmailConfirmationView(
+        context,
+        controller: controller,
+        email:
+            controller.pendingEmailConfirmation ?? _emailController.text.trim(),
+      );
+    }
+
     return AutofillGroup(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -316,6 +325,81 @@ class _RegisterFormState extends State<RegisterForm> {
     );
   }
 
+  Widget _buildEmailConfirmationView(
+    BuildContext context, {
+    required AuthController controller,
+    required String email,
+  }) {
+    final theme = Theme.of(context);
+    final normalizedEmail = email.trim();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Icon(
+          Icons.mark_email_read_outlined,
+          size: 64,
+          color: theme.colorScheme.primary,
+        ),
+        const SizedBox(height: 20),
+        Text(
+          'Check your email',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'We sent a confirmation link to:',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyLarge,
+        ),
+        if (normalizedEmail.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          SelectableText(
+            normalizedEmail,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+        ],
+        const SizedBox(height: 16),
+        Text(
+          'Open the link in that message to verify your address. '
+          'After confirmation, return to the app and sign in.',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 24),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              controller.clearEmailConfirmationState();
+              Navigator.of(context).pop();
+            },
+            icon: const Icon(Icons.login),
+            label: const Text('Back to login'),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: () {
+            _emailController.clear();
+            _passwordController.clear();
+            _passwordConfirmController.clear();
+            controller.clearEmailConfirmationState();
+          },
+          child: const Text('Use another email address'),
+        ),
+      ],
+    );
+  }
+
   Future<void> _submit(BuildContext context) async {
     if (_isSubmitting) {
       return;
@@ -341,9 +425,19 @@ class _RegisterFormState extends State<RegisterForm> {
         displayName: displayName,
       );
 
-      if (controller.isAuthenticated && context.mounted) {
+      if (!context.mounted) {
+        return;
+      }
+
+      if (controller.isAuthenticated) {
         TextInput.finishAutofillContext();
         Navigator.of(context).pop();
+        return;
+      }
+
+      if (controller.requiresEmailConfirmation) {
+        TextInput.finishAutofillContext();
+        FocusScope.of(context).unfocus();
       }
     } finally {
       if (mounted) {
