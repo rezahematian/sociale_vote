@@ -11,7 +11,6 @@ import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart'
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/civic_map_widget.dart';
 import 'package:sociale_vote/features/news/domain/news_language.dart';
-import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
 
 class CivicMapPage extends StatelessWidget {
   const CivicMapPage({super.key});
@@ -368,10 +367,9 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
           return;
         }
 
-        await Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => NewsDetailPage(news: newsItem),
-          ),
+        await Navigator.of(context).pushNamed(
+          AppRouter.newsDetail,
+          arguments: newsItem,
         );
         return;
 

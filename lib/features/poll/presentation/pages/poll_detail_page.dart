@@ -309,80 +309,16 @@ class _PollDetailPageState extends State<PollDetailPage> {
   Future<_EditPollFormResult?> _showEditPollDialog(
     BuildContext context,
     Poll poll,
-  ) async {
-    final titleController = TextEditingController(text: poll.title);
-    final descriptionController = TextEditingController(
-      text: poll.description ?? '',
-    );
-    final formKey = GlobalKey<FormState>();
-
-    final result = await showDialog<_EditPollFormResult>(
+  ) {
+    return showDialog<_EditPollFormResult>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Modifica sondaggio'),
-          content: Form(
-            key: formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: titleController,
-                    autofocus: true,
-                    textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
-                      labelText: 'Titolo',
-                    ),
-                    validator: (value) {
-                      final normalized = value?.trim() ?? '';
-                      if (normalized.isEmpty) {
-                        return 'Il titolo è obbligatorio';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: descriptionController,
-                    minLines: 3,
-                    maxLines: 5,
-                    decoration: const InputDecoration(
-                      labelText: 'Descrizione',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Annulla'),
-            ),
-            FilledButton(
-              onPressed: () {
-                if (!(formKey.currentState?.validate() ?? false)) {
-                  return;
-                }
-
-                Navigator.of(dialogContext).pop(
-                  _EditPollFormResult(
-                    title: titleController.text.trim(),
-                    description: descriptionController.text.trim().isEmpty
-                        ? null
-                        : descriptionController.text.trim(),
-                  ),
-                );
-              },
-              child: const Text('Salva'),
-            ),
-          ],
+        return _EditPollDialog(
+          initialTitle: poll.title,
+          initialDescription: poll.description ?? '',
         );
       },
     );
-
-    return result;
   }
 
   Future<void> _onDeletePressed(Poll poll) async {
@@ -1800,6 +1736,110 @@ class _PublicVoteTileState extends State<_PublicVoteTile> {
 
     return '${twoDigits(local.day)}/${twoDigits(local.month)} '
         '${twoDigits(local.hour)}:${twoDigits(local.minute)}';
+  }
+}
+
+class _EditPollDialog extends StatefulWidget {
+  final String initialTitle;
+  final String initialDescription;
+
+  const _EditPollDialog({
+    required this.initialTitle,
+    required this.initialDescription,
+  });
+
+  @override
+  State<_EditPollDialog> createState() => _EditPollDialogState();
+}
+
+class _EditPollDialogState extends State<_EditPollDialog> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  late final TextEditingController _titleController;
+  late final TextEditingController _descriptionController;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.initialTitle);
+    _descriptionController = TextEditingController(
+      text: widget.initialDescription,
+    );
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+
+    final title = _titleController.text.trim();
+    final normalizedDescription = _descriptionController.text.trim();
+
+    Navigator.of(context).pop(
+      _EditPollFormResult(
+        title: title,
+        description:
+            normalizedDescription.isEmpty ? null : normalizedDescription,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Modifica sondaggio'),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _titleController,
+                autofocus: true,
+                textInputAction: TextInputAction.next,
+                decoration: const InputDecoration(
+                  labelText: 'Titolo',
+                ),
+                validator: (value) {
+                  final normalized = value?.trim() ?? '';
+                  if (normalized.isEmpty) {
+                    return 'Il titolo è obbligatorio';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: _descriptionController,
+                minLines: 3,
+                maxLines: 5,
+                decoration: const InputDecoration(
+                  labelText: 'Descrizione',
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Annulla'),
+        ),
+        FilledButton(
+          onPressed: _save,
+          child: const Text('Salva'),
+        ),
+      ],
+    );
   }
 }
 

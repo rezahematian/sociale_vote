@@ -272,6 +272,12 @@ class FeedController extends ChangeNotifier {
     _currentOffset += result.length;
     _posts.addAll(result);
 
+    // Mostra subito i post ricevuti dalla query principale.
+    // Reazioni e conteggi commenti sono dati secondari e non devono
+    // bloccare il primo render della Home o del Social Feed.
+    _sortPosts();
+    notifyListeners();
+
     await Future.wait<void>([
       _loadReactionSummariesForPosts(
         result,
@@ -280,7 +286,9 @@ class FeedController extends ChangeNotifier {
       _loadCommentCountsForPosts(result),
     ]);
 
+    // Aggiorna le card quando arrivano i dati secondari.
     _sortPosts();
+    notifyListeners();
   }
 
   Future<void> _loadReactionSummariesForPosts(
@@ -309,8 +317,8 @@ class FeedController extends ChangeNotifier {
     }
 
     final targets = posts.map(_targetForPost).toList(growable: false);
-    final batchCounts = await AppDI.instance.commentRepository
-        .countCommentsForTargets(targets);
+    final batchCounts =
+        await AppDI.instance.commentRepository.countCommentsForTargets(targets);
 
     for (final post in posts) {
       final target = _targetForPost(post);
@@ -418,8 +426,7 @@ class FeedController extends ChangeNotifier {
     required String userId,
     required Post post,
   }) async {
-    assert(userId.isNotEmpty,
-        'toggleFireForPost richiede userId valido.');
+    assert(userId.isNotEmpty, 'toggleFireForPost richiede userId valido.');
 
     final target = _targetForPost(post);
 
@@ -443,8 +450,7 @@ class FeedController extends ChangeNotifier {
     required String userId,
     required Post post,
   }) async {
-    assert(userId.isNotEmpty,
-        'toggleIceForPost richiede userId valido.');
+    assert(userId.isNotEmpty, 'toggleIceForPost richiede userId valido.');
 
     final target = _targetForPost(post);
 

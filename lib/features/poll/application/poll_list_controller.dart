@@ -233,13 +233,21 @@ class PollListController extends ChangeNotifier {
 
     _allPolls.addAll(uniqueNewPolls);
 
+    // Mostra subito i poll ricevuti dalla query principale.
+    // Reazioni e risultati sono dati secondari e non devono bloccare
+    // il primo render della Home o della Poll List.
+    _recomputeVisiblePolls();
+    _safeNotifyListeners();
+
     await Future.wait<void>([
       _loadReactionSummariesForPolls(uniqueNewPolls),
       _loadPollResultsForPolls(uniqueNewPolls),
     ]);
     if (_isDisposed) return;
 
+    // Aggiorna le card quando arrivano i dati secondari.
     _recomputeVisiblePolls();
+    _safeNotifyListeners();
   }
 
   Future<void> _loadReactionSummariesForPolls(List<Poll> newPolls) async {
