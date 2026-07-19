@@ -253,36 +253,30 @@ class VoteRepositoryImpl implements VoteRepository {
       }
     }
 
-    final channel = _supabase.channel('votes_poll_$key');
+    Future<void> subscribeToVoteChanges() async {
+      await _supabase.realtime.setAuth(
+        _supabase.auth.currentSession?.accessToken,
+      );
 
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.insert,
-      schema: 'public',
-      table: 'votes',
-      filter: PostgresChangeFilter(
-        type: PostgresChangeFilterType.eq,
-        column: 'poll_id',
-        value: key,
-      ),
-      callback: (_) => emitChange(),
-    );
+      if (controller.isClosed) return;
 
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.update,
-      schema: 'public',
-      table: 'votes',
-      filter: PostgresChangeFilter(
-        type: PostgresChangeFilterType.eq,
-        column: 'poll_id',
-        value: key,
-      ),
-      callback: (_) => emitChange(),
-    );
+      final channel = _supabase.channel(
+        'poll_votes:$key',
+        opts: const RealtimeChannelConfig(private: true),
+      );
 
-    channel.subscribe();
+      channel.onBroadcast(
+        event: 'vote_changed',
+        callback: (_) => emitChange(),
+      );
 
-    _voteChannels[key] = channel;
+      channel.subscribe();
+
+      _voteChannels[key] = channel;
+    }
+
     _voteWatchControllers[key] = controller;
+    unawaited(subscribeToVoteChanges());
 
     return controller.stream;
   }

@@ -6,8 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/app/theme/app_theme.dart';
+import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
+import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/navigation_service.dart';
 
@@ -96,25 +99,59 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
   void _listenAuthRecovery() {
     _authStateSubscription =
         Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-      if (!_hasRecoverySignal(Uri.base)) {
-        return;
-      }
-
-      if (data.session == null) {
-        return;
-      }
-
-      switch (data.event) {
-        case AuthChangeEvent.initialSession:
-        case AuthChangeEvent.signedIn:
-        case AuthChangeEvent.passwordRecovery:
-        case AuthChangeEvent.tokenRefreshed:
-          _openResetPasswordPage();
-          break;
-        default:
-          break;
-      }
+      unawaited(_handleAuthStateChange(data));
     });
+  }
+
+  Future<void> _handleAuthStateChange(AuthState data) async {
+    if (data.event != AuthChangeEvent.initialSession) {
+      await _syncAppSession(data.session);
+    }
+
+    if (!_hasRecoverySignal(Uri.base) || data.session == null) {
+      return;
+    }
+
+    switch (data.event) {
+      case AuthChangeEvent.initialSession:
+      case AuthChangeEvent.signedIn:
+      case AuthChangeEvent.passwordRecovery:
+      case AuthChangeEvent.tokenRefreshed:
+        _openResetPasswordPage();
+        break;
+      default:
+        break;
+    }
+  }
+
+  Future<void> _syncAppSession(Session? supabaseSession) async {
+    final sessionRepository = AppDI.instance.sessionRepository;
+
+    if (supabaseSession == null) {
+      await sessionRepository.clearSession();
+      return;
+    }
+
+    final user = supabaseSession.user;
+    final userMetadata = user.userMetadata ?? const <String, dynamic>{};
+    final appMetadata = user.appMetadata;
+    final rawDisplayName = userMetadata['display_name'];
+    final rawRole = appMetadata['role'];
+    final displayName =
+        rawDisplayName is String && rawDisplayName.trim().isNotEmpty
+            ? rawDisplayName.trim()
+            : null;
+
+    await sessionRepository.saveSession(
+      AuthSession(
+        userId: user.id,
+        accessToken: supabaseSession.accessToken,
+        refreshToken: supabaseSession.refreshToken,
+        email: user.email,
+        displayName: displayName,
+        role: RoleX.fromStorageKey(rawRole is String ? rawRole : null),
+      ),
+    );
   }
 
   Future<void> _bootstrapRecoveryFlow() async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/engagement/entities/reaction_summary.dart';
@@ -7,6 +9,7 @@ import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart'
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/poll_result.dart';
+import 'package:sociale_vote/domain/poll/repositories/vote_repository.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_poll_results.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_polls.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_status.dart';
@@ -34,6 +37,7 @@ enum PollStatusFilter {
 class PollListController extends ChangeNotifier {
   final GetPolls getPollsUseCase;
   final GetPollResults getPollResults;
+  final VoteRepository voteRepository;
   final GeoScopeController geoScopeController;
   final ToggleReaction toggleReaction;
   final GetReactionSummary getReactionSummary;
@@ -64,9 +68,17 @@ class PollListController extends ChangeNotifier {
   final Map<String, ReactionSummary> _reactionSummaries = {};
   final Map<String, PollResult> _pollResults = {};
 
+  static const Duration _realtimeReloadDebounce = Duration(milliseconds: 250);
+
+  final Map<String, StreamSubscription<void>> _voteSubscriptions = {};
+  final Map<String, Timer> _voteReloadDebounceTimers = {};
+  final Set<String> _pollResultReloading = {};
+  final Set<String> _pollResultReloadQueued = {};
+
   PollListController({
     required this.getPollsUseCase,
     required this.getPollResults,
+    required this.voteRepository,
     required this.geoScopeController,
     required this.toggleReaction,
     required this.getReactionSummary,
@@ -129,6 +141,8 @@ class PollListController extends ChangeNotifier {
 
     _isLoading = true;
     _safeNotifyListeners();
+
+    _clearVoteSubscriptions();
 
     _allPolls.clear();
     _visiblePolls.clear();
@@ -232,6 +246,7 @@ class PollListController extends ChangeNotifier {
     }
 
     _allPolls.addAll(uniqueNewPolls);
+    _ensureVoteSubscriptions(uniqueNewPolls);
 
     // Mostra subito i poll ricevuti dalla query principale.
     // Reazioni e risultati sono dati secondari e non devono bloccare
@@ -285,6 +300,99 @@ class PollListController extends ChangeNotifier {
         }
       }),
     );
+  }
+
+  // ===== Realtime voti =====
+
+  void _ensureVoteSubscriptions(List<Poll> polls) {
+    if (_isDisposed || polls.isEmpty) return;
+
+    for (final poll in polls) {
+      final pollId = poll.id.value;
+      if (_voteSubscriptions.containsKey(pollId)) continue;
+
+      final subscription = voteRepository.watchVotesForPoll(poll.id).listen(
+        (_) => _schedulePollResultReload(pollId),
+        onError: (Object error, StackTrace stackTrace) {
+          if (kDebugMode) {
+            debugPrint('Poll realtime error for $pollId: $error');
+            debugPrint('$stackTrace');
+          }
+        },
+      );
+
+      _voteSubscriptions[pollId] = subscription;
+    }
+  }
+
+  void _schedulePollResultReload(String pollId) {
+    if (_isDisposed) return;
+
+    _voteReloadDebounceTimers.remove(pollId)?.cancel();
+    _voteReloadDebounceTimers[pollId] = Timer(
+      _realtimeReloadDebounce,
+      () {
+        _voteReloadDebounceTimers.remove(pollId);
+        if (_isDisposed) return;
+        unawaited(_reloadPollResult(pollId));
+      },
+    );
+  }
+
+  Future<void> _reloadPollResult(String pollId) async {
+    if (_isDisposed) return;
+
+    if (!_pollResultReloading.add(pollId)) {
+      _pollResultReloadQueued.add(pollId);
+      return;
+    }
+
+    try {
+      final index = _allPolls.indexWhere((poll) => poll.id.value == pollId);
+      if (index < 0) return;
+
+      final currentPoll = _allPolls[index];
+      final result = await getPollResults(currentPoll);
+      if (_isDisposed) return;
+
+      final currentIndex =
+          _allPolls.indexWhere((poll) => poll.id.value == pollId);
+      if (currentIndex < 0) return;
+
+      _pollResults[pollId] = result;
+      _allPolls[currentIndex] = _allPolls[currentIndex].copyWith(
+        voteCount: result.totalVotes,
+      );
+
+      _recomputeVisiblePolls();
+      _safeNotifyListeners();
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('Error reloading realtime poll result for $pollId: $error');
+        debugPrint('$stackTrace');
+      }
+    } finally {
+      _pollResultReloading.remove(pollId);
+
+      if (!_isDisposed && _pollResultReloadQueued.remove(pollId)) {
+        _schedulePollResultReload(pollId);
+      }
+    }
+  }
+
+  void _clearVoteSubscriptions() {
+    for (final timer in _voteReloadDebounceTimers.values) {
+      timer.cancel();
+    }
+    _voteReloadDebounceTimers.clear();
+
+    for (final subscription in _voteSubscriptions.values) {
+      unawaited(subscription.cancel());
+    }
+    _voteSubscriptions.clear();
+
+    _pollResultReloading.clear();
+    _pollResultReloadQueued.clear();
   }
 
   // ===== Reaction helpers =====
@@ -415,6 +523,7 @@ class PollListController extends ChangeNotifier {
   void dispose() {
     _isDisposed = true;
     geoScopeController.removeListener(_geoScopeListener);
+    _clearVoteSubscriptions();
     super.dispose();
   }
 }
