@@ -35,6 +35,7 @@ class CountrySelectorField extends StatelessWidget {
       onTap: () => _openCountryPicker(context),
       child: AbsorbPointer(
         child: TextFormField(
+          key: ValueKey(textValue),
           readOnly: true,
           initialValue: textValue,
           decoration: InputDecoration(

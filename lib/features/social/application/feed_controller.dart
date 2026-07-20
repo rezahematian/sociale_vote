@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:sociale_vote/app/di.dart';
@@ -52,14 +54,25 @@ class FeedController extends ChangeNotifier {
         _geoScopeController = geoScopeController,
         _toggleReaction = toggleReaction,
         _getReactionSummary = getReactionSummary,
-        _getCommentCountForTarget = getCommentCountForTarget;
+        _getCommentCountForTarget = getCommentCountForTarget {
+    _geoScopeController.addListener(_handleScopeChanged);
+  }
 
   bool _isLoading = false;
   bool _hasError = false;
   String? _errorMessage;
+  bool _isDisposed = false;
+
+  /// Incrementato a ogni caricamento completo.
+  /// I risultati appartenenti a richieste precedenti vengono ignorati.
+  int _requestGeneration = 0;
 
   /// Post caricati finora (aggregato delle pagine).
   final List<Post> _posts = <Post>[];
+
+  /// Ordine sorgente stabile, utile sia per latest sia come tie-break hottest.
+  final Map<String, int> _sourceOrderByPostId = <String, int>{};
+  int _nextSourceOrder = 0;
 
   /// Reaction summary per postId.
   final Map<String, ReactionSummary> _reactionSummaries =
@@ -68,7 +81,7 @@ class FeedController extends ChangeNotifier {
   /// Comment count per postId.
   final Map<String, int> _commentCounts = <String, int>{};
 
-  /// Paging reale (Fase 4.3).
+  /// Paging reale.
   static const int _pageSize = 10;
   int _currentOffset = 0;
   bool _hasMoreFromSource = true;
@@ -99,9 +112,10 @@ class FeedController extends ChangeNotifier {
   /// Cambia modalità di ordinamento e riordina la lista in memoria.
   void setSortMode(FeedSortMode mode) {
     if (_sortMode == mode) return;
+
     _sortMode = mode;
     _sortPosts();
-    notifyListeners();
+    _notifyListeners();
   }
 
   // ===== REACTION SUMMARY =====
@@ -147,9 +161,8 @@ class FeedController extends ChangeNotifier {
     return summary.likeCount;
   }
 
-  int _sourceIndexForPost(Post post) {
-    final index = _posts.indexWhere((item) => item.id.value == post.id.value);
-    return index < 0 ? 1 << 30 : index;
+  int _sourceOrderForPost(Post post) {
+    return _sourceOrderByPostId[_postId(post)] ?? (1 << 30);
   }
 
   int _comparePostPriority(Post a, Post b) {
@@ -164,38 +177,45 @@ class FeedController extends ChangeNotifier {
       return commentCompare;
     }
 
-    // Tie-break finale: manteniamo l'ordine sorgente del backend,
-    // che assumiamo già in recency desc.
-    return _sourceIndexForPost(a).compareTo(_sourceIndexForPost(b));
+    return _sourceOrderForPost(a).compareTo(_sourceOrderForPost(b));
   }
 
   // ===== CARICAMENTO FEED (PAGINAZIONE REALE) =====
 
-  /// Carica la **prima pagina** di feed per lo scope corrente.
+  /// Carica la prima pagina di feed per lo scope corrente.
   ///
   /// [userId] è opzionale:
   /// - se presente → GetReactionSummary può valorizzare anche userReaction
   /// - se nullo   → avremo solo i count globali (no stato utente)
   Future<void> loadFeed({String? userId}) async {
-    _setLoading(true);
+    final generation = ++_requestGeneration;
+
+    _isLoading = true;
     _hasError = false;
     _errorMessage = null;
-    notifyListeners();
 
-    // Reset stato paging + lista corrente
     _posts.clear();
+    _sourceOrderByPostId.clear();
+    _nextSourceOrder = 0;
     _reactionSummaries.clear();
     _commentCounts.clear();
     _currentOffset = 0;
     _hasMoreFromSource = true;
     _lastKnownUserId = userId ?? _lastKnownUserId;
 
+    _notifyListeners();
+
     try {
-      await _loadNextPage();
+      await _loadNextPage(generation: generation);
     } catch (e, stackTrace) {
+      if (!_isCurrentRequest(generation)) {
+        return;
+      }
+
       _hasError = true;
       _errorMessage = 'Impossibile caricare il feed.';
       _posts.clear();
+      _sourceOrderByPostId.clear();
       _reactionSummaries.clear();
       _commentCounts.clear();
       _currentOffset = 0;
@@ -206,39 +226,62 @@ class FeedController extends ChangeNotifier {
         debugPrint('$stackTrace');
       }
     } finally {
-      _setLoading(false);
+      if (_isCurrentRequest(generation)) {
+        _setLoading(false);
+      }
     }
   }
 
-  /// Ricarica il feed da zero (shortcut per pull-to-refresh).
+  /// Ricarica il feed da zero.
   Future<void> refresh({String? userId}) async {
     await loadFeed(userId: userId);
   }
 
-  /// Carica la **pagina successiva** del feed, se disponibile.
+  /// Carica la pagina successiva del feed, se disponibile.
   Future<void> loadMorePosts() async {
-    if (_isLoading) return;
-    if (!_hasMoreFromSource) return;
+    if (_isDisposed || _isLoading || !_hasMoreFromSource) {
+      return;
+    }
 
+    final generation = _requestGeneration;
     _setLoading(true);
 
     try {
-      await _loadNextPage();
+      await _loadNextPage(generation: generation);
     } catch (e, stackTrace) {
-      _hasError = true;
-      _errorMessage ??= 'Impossibile caricare altri post.';
+      if (!_isCurrentRequest(generation)) {
+        return;
+      }
+
+      // Un errore transitorio di paginazione non deve sostituire
+      // i post già visibili con una schermata di errore globale.
+      _hasError = _posts.isEmpty;
+      _errorMessage = _posts.isEmpty
+          ? 'Impossibile caricare il feed.'
+          : 'Impossibile caricare altri post.';
 
       if (kDebugMode) {
         debugPrint('Error loading more posts: $e');
         debugPrint('$stackTrace');
       }
+
+      _notifyListeners();
     } finally {
-      _setLoading(false);
+      if (_isCurrentRequest(generation)) {
+        _setLoading(false);
+      }
     }
   }
 
-  Future<void> _loadNextPage() async {
+  Future<void> _loadNextPage({
+    required int generation,
+  }) async {
+    if (!_isCurrentRequest(generation)) {
+      return;
+    }
+
     final scope = _geoScopeController.scope;
+    final requestedOffset = _currentOffset;
 
     String? countryCode;
     String? cityId;
@@ -262,92 +305,167 @@ class FeedController extends ChangeNotifier {
       countryCode: countryCode,
       cityId: cityId,
       limit: _pageSize,
-      offset: _currentOffset,
+      offset: requestedOffset,
     );
 
-    if (result.length < _pageSize) {
+    if (!_isCurrentRequest(generation)) {
+      return;
+    }
+
+    final existingIds = _posts.map(_postId).toSet();
+    final pageIds = <String>{};
+    final uniquePosts = <Post>[];
+
+    for (final post in result) {
+      final postId = _postId(post);
+      if (postId.trim().isEmpty) {
+        continue;
+      }
+      if (!existingIds.add(postId)) {
+        continue;
+      }
+      if (!pageIds.add(postId)) {
+        continue;
+      }
+
+      _sourceOrderByPostId.putIfAbsent(
+        postId,
+        () => _nextSourceOrder++,
+      );
+      uniquePosts.add(post);
+    }
+
+    _currentOffset = requestedOffset + result.length;
+
+    if (result.length < _pageSize || uniquePosts.isEmpty) {
       _hasMoreFromSource = false;
     }
 
-    _currentOffset += result.length;
-    _posts.addAll(result);
+    _posts.addAll(uniquePosts);
+    _hasError = false;
+    _errorMessage = null;
 
-    // Mostra subito i post ricevuti dalla query principale.
-    // Reazioni e conteggi commenti sono dati secondari e non devono
-    // bloccare il primo render della Home o del Social Feed.
+    // I post principali diventano visibili prima dei dati secondari.
     _sortPosts();
-    notifyListeners();
+    _notifyListeners();
+
+    if (uniquePosts.isEmpty) {
+      return;
+    }
 
     await Future.wait<void>([
       _loadReactionSummariesForPosts(
-        result,
+        uniquePosts,
+        generation: generation,
         userId: _lastKnownUserId,
       ),
-      _loadCommentCountsForPosts(result),
+      _loadCommentCountsForPosts(
+        uniquePosts,
+        generation: generation,
+      ),
     ]);
 
-    // Aggiorna le card quando arrivano i dati secondari.
+    if (!_isCurrentRequest(generation)) {
+      return;
+    }
+
     _sortPosts();
-    notifyListeners();
+    _notifyListeners();
   }
 
   Future<void> _loadReactionSummariesForPosts(
     List<Post> posts, {
+    required int generation,
     String? userId,
   }) async {
-    if (posts.isEmpty) {
+    if (posts.isEmpty || !_isCurrentRequest(generation)) {
       return;
     }
 
-    final targets = posts.map(_targetForPost).toList(growable: false);
+    try {
+      final targets = posts.map(_targetForPost).toList(growable: false);
+      final summaries = await _getReactionSummary(
+        targets,
+        userId: userId,
+      );
 
-    final summaries = await _getReactionSummary(
-      targets,
-      userId: userId,
-    );
+      if (!_isCurrentRequest(generation)) {
+        return;
+      }
 
-    for (final summary in summaries) {
-      _reactionSummaries[summary.target.id] = summary;
+      for (final summary in summaries) {
+        _reactionSummaries[summary.target.id] = summary;
+      }
+    } catch (e, stackTrace) {
+      // I dati di engagement sono secondari:
+      // un loro errore non deve nascondere il feed principale.
+      if (kDebugMode) {
+        debugPrint('Error loading feed reaction summaries: $e');
+        debugPrint('$stackTrace');
+      }
     }
   }
 
-  Future<void> _loadCommentCountsForPosts(List<Post> posts) async {
-    if (posts.isEmpty) {
+  Future<void> _loadCommentCountsForPosts(
+    List<Post> posts, {
+    required int generation,
+  }) async {
+    if (posts.isEmpty || !_isCurrentRequest(generation)) {
       return;
     }
 
-    final targets = posts.map(_targetForPost).toList(growable: false);
-    final batchCounts =
-        await AppDI.instance.commentRepository.countCommentsForTargets(targets);
+    try {
+      final targets = posts.map(_targetForPost).toList(growable: false);
+      final batchCounts =
+          await AppDI.instance.commentRepository.countCommentsForTargets(
+        targets,
+      );
 
-    for (final post in posts) {
-      final target = _targetForPost(post);
-      final batchKey = _targetBatchKey(target);
-      _commentCounts[_postId(post)] = batchCounts[batchKey] ?? 0;
+      if (!_isCurrentRequest(generation)) {
+        return;
+      }
+
+      for (final post in posts) {
+        final target = _targetForPost(post);
+        final batchKey = _targetBatchKey(target);
+        _commentCounts[_postId(post)] = batchCounts[batchKey] ?? 0;
+      }
+    } catch (e, stackTrace) {
+      // Il conteggio commenti è secondario:
+      // il feed resta utilizzabile anche se il batch fallisce.
+      if (kDebugMode) {
+        debugPrint('Error loading feed comment counts: $e');
+        debugPrint('$stackTrace');
+      }
     }
   }
 
   Future<void> refreshCommentCountForPost(Post post) async {
-    if (!_containsPost(post)) {
+    if (_isDisposed || !_containsPost(post)) {
       return;
     }
 
     try {
       final count = await _getCommentCountForTarget(_targetForPost(post));
+
+      if (_isDisposed || !_containsPost(post)) {
+        return;
+      }
+
       _commentCounts[_postId(post)] = count;
 
       if (_sortMode == FeedSortMode.hottest) {
         _sortPosts();
       }
 
-      notifyListeners();
+      _notifyListeners();
     } catch (_) {
       // Refresh puntuale: manteniamo il valore corrente senza rompere il feed.
     }
   }
 
   Future<void> refreshReactionSummaryForPost(Post post) async {
-    if (!_containsPost(post)) {
+    if (_isDisposed || !_containsPost(post)) {
       return;
     }
 
@@ -357,6 +475,10 @@ class FeedController extends ChangeNotifier {
         userId: _lastKnownUserId,
       );
 
+      if (_isDisposed || !_containsPost(post)) {
+        return;
+      }
+
       if (summaries.isNotEmpty) {
         _reactionSummaries[_postId(post)] = summaries.first;
 
@@ -364,7 +486,7 @@ class FeedController extends ChangeNotifier {
           _sortPosts();
         }
 
-        notifyListeners();
+        _notifyListeners();
       }
     } catch (_) {
       // Refresh puntuale: manteniamo lo stato corrente senza errori globali.
@@ -372,7 +494,7 @@ class FeedController extends ChangeNotifier {
   }
 
   Future<void> refreshEngagementForPost(Post post) async {
-    if (!_containsPost(post)) {
+    if (_isDisposed || !_containsPost(post)) {
       return;
     }
 
@@ -384,6 +506,10 @@ class FeedController extends ChangeNotifier {
         ),
         _getCommentCountForTarget(_targetForPost(post)),
       ]);
+
+      if (_isDisposed || !_containsPost(post)) {
+        return;
+      }
 
       final summaries = results[0] as List<ReactionSummary>;
       final commentCount = results[1] as int;
@@ -397,7 +523,7 @@ class FeedController extends ChangeNotifier {
         _sortPosts();
       }
 
-      notifyListeners();
+      _notifyListeners();
     } catch (_) {
       // Nessun errore globale sul feed per refresh locale fallito.
     }
@@ -405,14 +531,17 @@ class FeedController extends ChangeNotifier {
 
   // ===== SORTING =====
 
-  /// Ordina la lista interna _posts in base a [_sortMode].
+  /// Ordina la lista interna in base a [_sortMode].
   void _sortPosts() {
     if (_posts.isEmpty) return;
 
     switch (_sortMode) {
       case FeedSortMode.latest:
-        // Assumiamo che il repository restituisca già i post in ordine
-        // di recency (createdAt desc). Non forziamo sort extra.
+        _posts.sort(
+          (a, b) => _sourceOrderForPost(a).compareTo(
+            _sourceOrderForPost(b),
+          ),
+        );
         break;
       case FeedSortMode.hottest:
         _posts.sort(_comparePostPriority);
@@ -428,13 +557,15 @@ class FeedController extends ChangeNotifier {
   }) async {
     assert(userId.isNotEmpty, 'toggleFireForPost richiede userId valido.');
 
-    final target = _targetForPost(post);
-
     final summary = await _toggleReaction(
       userId: userId,
-      target: target,
+      target: _targetForPost(post),
       type: ReactionType.like,
     );
+
+    if (_isDisposed || !_containsPost(post)) {
+      return;
+    }
 
     _reactionSummaries[_postId(post)] = summary;
     _lastKnownUserId = userId;
@@ -443,7 +574,7 @@ class FeedController extends ChangeNotifier {
       _sortPosts();
     }
 
-    notifyListeners();
+    _notifyListeners();
   }
 
   Future<void> toggleIceForPost({
@@ -452,13 +583,15 @@ class FeedController extends ChangeNotifier {
   }) async {
     assert(userId.isNotEmpty, 'toggleIceForPost richiede userId valido.');
 
-    final target = _targetForPost(post);
-
     final summary = await _toggleReaction(
       userId: userId,
-      target: target,
+      target: _targetForPost(post),
       type: ReactionType.dislike,
     );
+
+    if (_isDisposed || !_containsPost(post)) {
+      return;
+    }
 
     _reactionSummaries[_postId(post)] = summary;
     _lastKnownUserId = userId;
@@ -467,11 +600,43 @@ class FeedController extends ChangeNotifier {
       _sortPosts();
     }
 
-    notifyListeners();
+    _notifyListeners();
+  }
+
+  void _handleScopeChanged() {
+    if (_isDisposed) {
+      return;
+    }
+
+    unawaited(
+      loadFeed(userId: _lastKnownUserId),
+    );
+  }
+
+  bool _isCurrentRequest(int generation) {
+    return !_isDisposed && generation == _requestGeneration;
   }
 
   void _setLoading(bool value) {
+    if (_isDisposed || _isLoading == value) {
+      return;
+    }
+
     _isLoading = value;
-    notifyListeners();
+    _notifyListeners();
+  }
+
+  void _notifyListeners() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _requestGeneration++;
+    _geoScopeController.removeListener(_handleScopeChanged);
+    super.dispose();
   }
 }

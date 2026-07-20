@@ -7,6 +7,7 @@ import 'package:sociale_vote/domain/geo/value_objects/content_location_source.da
 import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
 import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
+import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
 import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 import 'package:sociale_vote/features/poll/application/create_poll_controller.dart';
@@ -163,10 +164,17 @@ class _CreatePollViewState extends State<_CreatePollView> {
     }
 
     if (parts.isEmpty) {
-      if (location.hasCenter) {
-        return 'Coordinate scope disponibili';
+      if (location.source == ContentLocationSource.geoScopeFallback) {
+        return 'Globale (scope World)';
       }
-      return 'Località non definita';
+      if (location.source == ContentLocationSource.device &&
+          location.hasExactPoint) {
+        return 'Coordinate GPS disponibili';
+      }
+      if (location.hasCenter) {
+        return 'Coordinate disponibili';
+      }
+      return 'Globale / nessuna località';
     }
 
     return parts.join(', ');
@@ -441,6 +449,67 @@ class _CreatePollViewState extends State<_CreatePollView> {
     );
   }
 
+  void _showSnackBarMessage(
+    String message, {
+    SnackBarBehavior? behavior,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: behavior,
+        content: Text(message),
+      ),
+    );
+  }
+
+  void _applyCurrentDeviceLocation(CreatePollController controller) {
+    final location = controller.contentLocation;
+    _contentCityController.text = location?.cityName ?? '';
+    setState(() {});
+  }
+
+  void _showCurrentDeviceLocationError(CreatePollController controller) {
+    final message = controller.errorMessage ??
+        'Impossibile recuperare la posizione attuale.';
+    _showSnackBarMessage(message);
+  }
+
+  Future<void> _useCurrentDeviceLocation(
+    CreatePollController controller,
+  ) async {
+    final success = await controller.useCurrentDeviceLocation();
+    if (!mounted) return;
+
+    if (success) {
+      _applyCurrentDeviceLocation(controller);
+      return;
+    }
+
+    _showCurrentDeviceLocationError(controller);
+  }
+
+  void _completePollSubmission(
+    PollId pollId,
+    String successMessage,
+  ) {
+    _showSnackBarMessage(
+      successMessage,
+      behavior: SnackBarBehavior.floating,
+    );
+    Navigator.of(context).pop(pollId);
+  }
+
+  Future<void> _submitPoll(
+    CreatePollController controller,
+    String successMessage,
+  ) async {
+    FocusScope.of(context).unfocus();
+
+    final pollId = await controller.submit();
+    if (!mounted || pollId == null) return;
+
+    _completePollSubmission(pollId, successMessage);
+  }
+
   Widget _buildContentLocationCard(
     BuildContext context,
     CreatePollController controller,
@@ -449,7 +518,13 @@ class _CreatePollViewState extends State<_CreatePollView> {
     final theme = Theme.of(context);
     final effectiveLocation = controller.effectiveContentLocation;
     final explicitLocation = controller.contentLocation;
-    final selectedContentCountryCode = controller.contentLocation?.countryCode;
+    final selectedContentCountryCode = explicitLocation?.countryCode;
+    final selectedSource = explicitLocation?.source;
+    final isScopeSelected =
+        selectedSource == ContentLocationSource.geoScopeFallback;
+    final isDeviceSelected = selectedSource == ContentLocationSource.device;
+    final isGlobalSelected = controller.isContentLocationGlobal &&
+        selectedSource == ContentLocationSource.manual;
 
     return _buildSectionCard(
       context,
@@ -532,6 +607,17 @@ class _CreatePollViewState extends State<_CreatePollView> {
                           vertical: 10,
                         ),
                         visualDensity: VisualDensity.compact,
+                        backgroundColor: isScopeSelected
+                            ? theme.colorScheme.primaryContainer
+                            : null,
+                        foregroundColor: isScopeSelected
+                            ? theme.colorScheme.onPrimaryContainer
+                            : null,
+                        side: BorderSide(
+                          color: isScopeSelected
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.outline,
+                        ),
                       ),
                       icon: const Icon(Icons.public, size: 16),
                       label: Text(
@@ -543,27 +629,27 @@ class _CreatePollViewState extends State<_CreatePollView> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: isSubmitting ||
-                              controller.isResolvingContentLocation
-                          ? null
-                          : () async {
-                              final success =
-                                  await controller.useCurrentDeviceLocation();
-                              if (!mounted) return;
-
-                              if (success) {
-                                final location = controller.contentLocation;
-                                _contentCityController.text =
-                                    location?.cityName ?? '';
-                                setState(() {});
-                              }
-                            },
+                      onPressed:
+                          isSubmitting || controller.isResolvingContentLocation
+                              ? null
+                              : () => _useCurrentDeviceLocation(controller),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 10,
                         ),
                         visualDensity: VisualDensity.compact,
+                        backgroundColor: isDeviceSelected
+                            ? theme.colorScheme.primaryContainer
+                            : null,
+                        foregroundColor: isDeviceSelected
+                            ? theme.colorScheme.onPrimaryContainer
+                            : null,
+                        side: BorderSide(
+                          color: isDeviceSelected
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.outline,
+                        ),
                       ),
                       icon: controller.isResolvingContentLocation
                           ? const SizedBox(
@@ -583,7 +669,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  TextButton.icon(
+                  OutlinedButton.icon(
                     onPressed: isSubmitting
                         ? null
                         : () {
@@ -591,15 +677,26 @@ class _CreatePollViewState extends State<_CreatePollView> {
                             _contentCityController.clear();
                             setState(() {});
                           },
-                    style: TextButton.styleFrom(
+                    style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
                         vertical: 10,
                       ),
                       visualDensity: VisualDensity.compact,
+                      backgroundColor: isGlobalSelected
+                          ? theme.colorScheme.primaryContainer
+                          : null,
+                      foregroundColor: isGlobalSelected
+                          ? theme.colorScheme.onPrimaryContainer
+                          : null,
+                      side: BorderSide(
+                        color: isGlobalSelected
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.outline,
+                      ),
                     ),
-                    icon: const Icon(Icons.restart_alt, size: 16),
-                    label: const Text('Reset'),
+                    icon: const Icon(Icons.public_off, size: 16),
+                    label: Text(compact ? 'Globale' : 'Rendi globale'),
                   ),
                 ],
               );
@@ -1381,24 +1478,10 @@ class _CreatePollViewState extends State<_CreatePollView> {
                             width: double.infinity,
                             child: ElevatedButton.icon(
                               onPressed: canSubmitPoll && !isSubmitting
-                                  ? () async {
-                                      FocusScope.of(context).unfocus();
-
-                                      final pollId = await controller.submit();
-                                      if (!context.mounted) return;
-                                      if (pollId != null) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            behavior: SnackBarBehavior.floating,
-                                            content: Text(
-                                              l10n.createPollSuccessMessage,
-                                            ),
-                                          ),
-                                        );
-                                        Navigator.of(context).pop(pollId);
-                                      }
-                                    }
+                                  ? () => _submitPoll(
+                                        controller,
+                                        l10n.createPollSuccessMessage,
+                                      )
                                   : null,
                               icon: isSubmitting
                                   ? const SizedBox(

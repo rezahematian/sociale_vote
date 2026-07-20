@@ -42,25 +42,33 @@ class _CreatePostPageState extends State<CreatePostPage> {
     super.dispose();
   }
 
-  void _applyScopeAsDefaultLocation() {
+  void _applyScopeAsDefaultLocation({bool showFeedback = false}) {
     final scope = AppDI.instance.geoScopeController.scope;
     final location = _contentLocationFromScope(scope);
 
     setState(() {
       _contentLocation = location;
-      _selectedCountryCode = location.countryCode;
-      _cityController.text = location.cityName ?? '';
+      _selectedCountryCode = location?.countryCode;
+      _cityController.text = location?.cityName ?? '';
     });
+
+    if (!showFeedback || !mounted) {
+      return;
+    }
+
+    final message = location == null
+        ? 'Scope World applicato: il post sarà globale.'
+        : 'Scope corrente applicato: ${_locationSummary(location)}.';
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
-  ContentLocation _contentLocationFromScope(GeoScope scope) {
+  ContentLocation? _contentLocationFromScope(GeoScope scope) {
     switch (scope.level) {
       case GeoScopeLevel.world:
-        return ContentLocation(
-          source: ContentLocationSource.geoScopeFallback,
-          centerLat: scope.centerLat ?? 20.0,
-          centerLng: scope.centerLng ?? 0.0,
-        );
+        return null;
       case GeoScopeLevel.country:
         return ContentLocation(
           source: ContentLocationSource.geoScopeFallback,
@@ -73,6 +81,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
           source: ContentLocationSource.geoScopeFallback,
           countryCode: scope.countryCode,
           cityId: scope.cityId,
+          cityName: scope.cityId,
           centerLat: scope.centerLat,
           centerLng: scope.centerLng,
         );
@@ -110,8 +119,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
   }
 
   String _locationSummary(ContentLocation? location) {
-    if (location == null) {
-      return 'Località non definita';
+    if (location == null || location.isEmpty) {
+      return 'Globale / nessuna località specifica';
     }
 
     final parts = <String>[];
@@ -148,15 +157,53 @@ class _CreatePostPageState extends State<CreatePostPage> {
     });
 
     try {
-      final location = await AppDI.instance.deviceLocationRepository
-          .getCurrentContentLocation();
+      final repository = AppDI.instance.deviceLocationRepository;
+      final serviceEnabled = await repository.isLocationServiceEnabled();
+
+      if (!mounted) return;
+
+      if (!serviceEnabled) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Attiva i servizi di localizzazione e riprova.',
+            ),
+          ),
+        );
+        return;
+      }
+
+      final hasPermission = await repository.hasPermission();
+
+      if (!mounted) return;
+
+      if (!hasPermission) {
+        final permissionGranted = await repository.requestPermission();
+
+        if (!mounted) return;
+
+        if (!permissionGranted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Permesso posizione non concesso. Abilitalo nelle impostazioni di sistema.',
+              ),
+            ),
+          );
+          return;
+        }
+      }
+
+      final location = await repository.getCurrentContentLocation();
 
       if (!mounted) return;
 
       if (location == null || location.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Impossibile leggere la posizione attuale.'),
+            content: Text(
+              'Impossibile determinare la posizione attuale.',
+            ),
           ),
         );
         return;
@@ -167,6 +214,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
         _selectedCountryCode = location.countryCode;
         _cityController.text = location.cityName ?? '';
       });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Posizione attuale applicata: ${_locationSummary(location)}.',
+          ),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -183,31 +238,37 @@ class _CreatePostPageState extends State<CreatePostPage> {
     }
   }
 
-  Future<ContentLocation> _resolveLocationBeforeSubmit() async {
-    final fallbackScopeLocation =
-        _contentLocationFromScope(AppDI.instance.geoScopeController.scope);
+  Future<ContentLocation?> _resolveLocationBeforeSubmit() async {
+    final currentLocation = _contentLocation;
 
-    final rawLocation = (_contentLocation == null || _contentLocation!.isEmpty)
-        ? fallbackScopeLocation
-        : _contentLocation!;
-
-    if (rawLocation.source != ContentLocationSource.manual) {
-      return rawLocation;
+    if (currentLocation == null || currentLocation.isEmpty) {
+      return null;
     }
 
-    if (rawLocation.hasExactPoint || rawLocation.hasCenter) {
-      return rawLocation;
+    if (currentLocation.source != ContentLocationSource.manual) {
+      return currentLocation;
     }
 
-    final hasEnoughData = rawLocation.hasCountry || rawLocation.hasCityName;
-    if (!hasEnoughData) {
-      return rawLocation;
+    final rawLocation = ContentLocation(
+      source: ContentLocationSource.manual,
+      countryCode: _normalizeString(_selectedCountryCode),
+      cityName: _normalizeString(_cityController.text),
+    );
+
+    if (rawLocation.isEmpty) {
+      return null;
     }
 
     final geocoded = await AppDI.instance.geocodingRepository
         .geocodeContentLocation(rawLocation);
 
-    return geocoded ?? rawLocation;
+    if (geocoded == null) {
+      throw StateError(
+        'Paese o città non validi. Controlla la località inserita.',
+      );
+    }
+
+    return geocoded;
   }
 
   Future<void> _onSubmit() async {
@@ -240,25 +301,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
       final effectiveLocation = await _resolveLocationBeforeSubmit();
 
-      String? countryCode = effectiveLocation.countryCode;
-      String? cityId = effectiveLocation.cityId;
-
-      if ((countryCode == null || countryCode.trim().isEmpty) ||
-          (cityId == null || cityId.trim().isEmpty)) {
-        final scope = AppDI.instance.geoScopeController.scope;
-
-        switch (scope.level) {
-          case GeoScopeLevel.world:
-            break;
-          case GeoScopeLevel.country:
-            countryCode = countryCode ?? scope.countryCode;
-            break;
-          case GeoScopeLevel.city:
-            countryCode = countryCode ?? scope.countryCode;
-            cityId = cityId ?? scope.cityId;
-            break;
-        }
-      }
+      final countryCode = effectiveLocation?.countryCode;
+      final cityId = effectiveLocation?.cityId;
 
       await AppDI.instance.createPost(
         authorId: userId,
@@ -281,9 +325,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            effectiveLocation.hasExactPoint || effectiveLocation.hasCenter
-                ? 'Post creato con successo.'
-                : 'Post creato con successo. Località salvata senza coordinate precise.',
+            effectiveLocation == null
+                ? 'Post globale creato con successo.'
+                : effectiveLocation.hasExactPoint || effectiveLocation.hasCenter
+                    ? 'Post creato con successo.'
+                    : 'Post creato con successo. Località salvata senza coordinate precise.',
           ),
         ),
       );
@@ -308,16 +354,16 @@ class _CreatePostPageState extends State<CreatePostPage> {
   Future<void> _trackPostCreated({
     required String title,
     required String content,
-    required ContentLocation contentLocation,
+    required ContentLocation? contentLocation,
   }) async {
     await AnalyticsService.instance.logEvent(
       'post_created',
       parameters: <String, Object?>{
         'title_length': title.length,
         'content_length': content.length,
-        'has_content_country': contentLocation.hasCountry ? 1 : 0,
-        'has_content_city': contentLocation.hasCityName ? 1 : 0,
-        'has_exact_point': contentLocation.hasExactPoint ? 1 : 0,
+        'has_content_country': contentLocation?.hasCountry == true ? 1 : 0,
+        'has_content_city': contentLocation?.hasCityName == true ? 1 : 0,
+        'has_exact_point': contentLocation?.hasExactPoint == true ? 1 : 0,
       },
     );
   }
@@ -442,7 +488,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Origine: ${location == null ? 'Nessuna' : _sourceLabel(location.source)}',
+                                'Origine: ${location == null || location.isEmpty ? 'Globale' : _sourceLabel(location.source)}',
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.onSurface
                                       .withValues(alpha: 0.7),
@@ -459,7 +505,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
                             OutlinedButton.icon(
                               onPressed: _isSubmitting
                                   ? null
-                                  : _applyScopeAsDefaultLocation,
+                                  : () => _applyScopeAsDefaultLocation(
+                                        showFeedback: true,
+                                      ),
                               icon: const Icon(Icons.public),
                               label: const Text('Usa scope corrente'),
                             ),
@@ -491,9 +539,18 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                         _selectedCountryCode = null;
                                         _cityController.clear();
                                       });
+
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Il post è impostato come globale.',
+                                          ),
+                                        ),
+                                      );
                                     },
-                              icon: const Icon(Icons.restart_alt),
-                              label: const Text('Reset'),
+                              icon: const Icon(Icons.public_off_outlined),
+                              label: const Text('Rendi globale'),
                             ),
                           ],
                         ),
@@ -502,7 +559,13 @@ class _CreatePostPageState extends State<CreatePostPage> {
                           selectedCountryCode: _selectedCountryCode,
                           onCountrySelected: (code) {
                             setState(() {
+                              final countryChanged =
+                                  _selectedCountryCode != code;
                               _selectedCountryCode = code;
+
+                              if (countryChanged) {
+                                _cityController.clear();
+                              }
                             });
                             _setManualLocation();
                           },
@@ -516,7 +579,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                             labelText: 'Città del contenuto',
                             border: OutlineInputBorder(),
                             helperText:
-                                'Facoltativo. Serve per posizionare meglio il post.',
+                                'Facoltativo. Lascia paese e città vuoti per un post globale.',
                           ),
                           onChanged: (_) => _setManualLocation(),
                         ),

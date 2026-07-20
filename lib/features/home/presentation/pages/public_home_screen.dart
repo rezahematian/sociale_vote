@@ -8,6 +8,8 @@ import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/app/theme/colors.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/login_page.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/register_page.dart';
@@ -30,6 +32,7 @@ import 'package:sociale_vote/features/poll/application/poll_list_controller.dart
 import 'package:sociale_vote/features/search/presentation/pages/search_page.dart';
 import 'package:sociale_vote/features/social/application/feed_controller.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/data/countries.dart' as country_data;
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 
 class PublicHomeScreen extends StatefulWidget {
@@ -116,7 +119,53 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
   void _setWorld() => _geoScopeController.setWorld();
 
-  void _setItaly() => _geoScopeController.setCountry('IT');
+  Future<void> _selectCountryScope() async {
+    final countryCode = await showDialog<String>(
+      context: context,
+      builder: (_) => _CountryScopeDialog(
+        selectedCountryCode: _geoScopeController.scope.countryCode,
+      ),
+    );
+
+    if (!mounted || countryCode == null) {
+      return;
+    }
+
+    _geoScopeController.setCountry(countryCode);
+  }
+
+  Future<void> _selectCityScope() async {
+    var countryCode =
+        _geoScopeController.scope.countryCode?.trim().toUpperCase();
+
+    if (countryCode == null || countryCode.isEmpty) {
+      countryCode = await showDialog<String>(
+        context: context,
+        builder: (_) => const _CountryScopeDialog(),
+      );
+    }
+
+    if (!mounted || countryCode == null || countryCode.isEmpty) {
+      return;
+    }
+
+    final cityScope = await showDialog<GeoScope>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _CityScopeDialog(
+        countryCode: countryCode!,
+        initialCityName: _geoScopeController.scope.level == GeoScopeLevel.city
+            ? _geoScopeController.scope.cityId
+            : null,
+      ),
+    );
+
+    if (!mounted || cityScope == null) {
+      return;
+    }
+
+    _geoScopeController.setScope(cityScope);
+  }
 
   Future<void> _openSearchPage() async {
     await Navigator.of(context).push(
@@ -212,9 +261,18 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       case GeoScopeLevel.world:
         return l10n.homeScopeLabelWorld;
       case GeoScopeLevel.country:
-        return l10n.homeScopeLabelCountry;
+        return _countryName(scope.countryCode) ?? l10n.homeScopeLabelCountry;
       case GeoScopeLevel.city:
-        return l10n.homeScopeLabelCity;
+        final cityName = scope.cityId?.trim();
+        final countryName = _countryName(scope.countryCode);
+
+        if (cityName != null && cityName.isNotEmpty && countryName != null) {
+          return '$cityName, $countryName';
+        }
+        if (cityName != null && cityName.isNotEmpty) {
+          return cityName;
+        }
+        return countryName ?? l10n.homeScopeLabelCity;
     }
   }
 
@@ -225,10 +283,27 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       case GeoScopeLevel.world:
         return l10n.homeScopeShortWorld;
       case GeoScopeLevel.country:
-        return scope.countryCode ?? l10n.homeScopeShortCountry;
+        return _countryName(scope.countryCode) ??
+            scope.countryCode ??
+            l10n.homeScopeShortCountry;
       case GeoScopeLevel.city:
         return scope.cityId ?? l10n.homeScopeShortCity;
     }
+  }
+
+  String? _countryName(String? countryCode) {
+    final normalizedCode = countryCode?.trim().toUpperCase();
+    if (normalizedCode == null || normalizedCode.isEmpty) {
+      return null;
+    }
+
+    for (final country in country_data.Countries.all) {
+      if (country.code.toUpperCase() == normalizedCode) {
+        return country.name;
+      }
+    }
+
+    return normalizedCode;
   }
 
   String? _normalizeHeroChipText(String? value) {
@@ -537,13 +612,15 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                         ),
                         scopeShortLabel: scopeShortLabel,
                       ),
-                      HomeScopeHeader(
+                      _HomeScopeSelector(
                         scope: scope,
                         scopeLabel: scopeLabel,
+                        countryLabel: _countryName(scope.countryCode),
                         isFollowed: _isScopeFollowed(scope),
                         onToggleFollow: () => _onToggleFollowScope(scope),
                         onSetWorld: _setWorld,
-                        onSetItaly: _setItaly,
+                        onSelectCountry: _selectCountryScope,
+                        onSelectCity: _selectCityScope,
                       ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -599,6 +676,384 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+class _HomeScopeSelector extends StatelessWidget {
+  final GeoScope scope;
+  final String scopeLabel;
+  final String? countryLabel;
+  final bool isFollowed;
+  final VoidCallback onToggleFollow;
+  final VoidCallback onSetWorld;
+  final Future<void> Function() onSelectCountry;
+  final Future<void> Function() onSelectCity;
+
+  const _HomeScopeSelector({
+    required this.scope,
+    required this.scopeLabel,
+    required this.countryLabel,
+    required this.isFollowed,
+    required this.onToggleFollow,
+    required this.onSetWorld,
+    required this.onSelectCountry,
+    required this.onSelectCity,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final isWorld = scope.level == GeoScopeLevel.world;
+    final isCountry = scope.level == GeoScopeLevel.country;
+    final isCity = scope.level == GeoScopeLevel.city;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      child: Card(
+        elevation: 0,
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    _scopeIcon(),
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      scopeLabel,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  if (!isWorld) ...[
+                    const SizedBox(width: 8),
+                    FollowScopeButton(
+                      isFollowed: isFollowed,
+                      onToggle: onToggleFollow,
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _scopeChip(
+                    context,
+                    label: l10n.homeScopeChipWorld,
+                    icon: Icons.public,
+                    selected: isWorld,
+                    onTap: onSetWorld,
+                  ),
+                  _scopeChip(
+                    context,
+                    label: isCountry || isCity
+                        ? (countryLabel ?? 'Paese')
+                        : 'Scegli paese',
+                    icon: Icons.flag_outlined,
+                    selected: isCountry,
+                    onTap: () => onSelectCountry(),
+                  ),
+                  _scopeChip(
+                    context,
+                    label: isCity ? (scope.cityId ?? 'Città') : 'Scegli città',
+                    icon: Icons.location_city_outlined,
+                    selected: isCity,
+                    onTap: () => onSelectCity(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _scopeChip(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+
+    return ChoiceChip(
+      avatar: Icon(icon, size: 18),
+      label: Text(label),
+      selected: selected,
+      showCheckmark: false,
+      onSelected: (_) => onTap(),
+      labelStyle: theme.textTheme.labelLarge?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: selected
+            ? theme.colorScheme.primary
+            : theme.colorScheme.onSurface.withValues(alpha: 0.82),
+      ),
+      backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.82),
+      selectedColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+      side: BorderSide(
+        color: selected
+            ? theme.colorScheme.primary.withValues(alpha: 0.45)
+            : theme.dividerColor.withValues(alpha: 0.6),
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(999),
+      ),
+      visualDensity: VisualDensity.compact,
+    );
+  }
+
+  IconData _scopeIcon() {
+    switch (scope.level) {
+      case GeoScopeLevel.world:
+        return Icons.public;
+      case GeoScopeLevel.country:
+        return Icons.flag_outlined;
+      case GeoScopeLevel.city:
+        return Icons.location_city_outlined;
+    }
+  }
+}
+
+class _CountryScopeDialog extends StatefulWidget {
+  final String? selectedCountryCode;
+
+  const _CountryScopeDialog({
+    this.selectedCountryCode,
+  });
+
+  @override
+  State<_CountryScopeDialog> createState() => _CountryScopeDialogState();
+}
+
+class _CountryScopeDialogState extends State<_CountryScopeDialog> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final normalizedQuery = _query.trim().toLowerCase();
+    final countries = country_data.Countries.all.where((country) {
+      if (normalizedQuery.isEmpty) {
+        return true;
+      }
+
+      return country.name.toLowerCase().contains(normalizedQuery) ||
+          country.code.toLowerCase().contains(normalizedQuery);
+    }).toList(growable: false);
+
+    return AlertDialog(
+      title: const Text('Scegli paese'),
+      content: SizedBox(
+        width: 480,
+        height: 460,
+        child: Column(
+          children: [
+            TextField(
+              autofocus: true,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.search),
+                hintText: 'Cerca paese o codice...',
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _query = value;
+                });
+              },
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView.builder(
+                itemCount: countries.length,
+                itemBuilder: (context, index) {
+                  final country = countries[index];
+                  final selected = country.code.toUpperCase() ==
+                      widget.selectedCountryCode?.trim().toUpperCase();
+
+                  return ListTile(
+                    leading: selected
+                        ? Icon(
+                            Icons.check_circle,
+                            color: Theme.of(context).colorScheme.primary,
+                          )
+                        : const Icon(Icons.flag_outlined),
+                    title: Text(country.name),
+                    subtitle: Text(country.code),
+                    onTap: () => Navigator.of(context).pop(country.code),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Annulla'),
+        ),
+      ],
+    );
+  }
+}
+
+class _CityScopeDialog extends StatefulWidget {
+  final String countryCode;
+  final String? initialCityName;
+
+  const _CityScopeDialog({
+    required this.countryCode,
+    this.initialCityName,
+  });
+
+  @override
+  State<_CityScopeDialog> createState() => _CityScopeDialogState();
+}
+
+class _CityScopeDialogState extends State<_CityScopeDialog> {
+  late final TextEditingController _cityController;
+  bool _isResolving = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _cityController = TextEditingController(text: widget.initialCityName ?? '');
+  }
+
+  @override
+  void dispose() {
+    _cityController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final cityName = _cityController.text.trim();
+    if (cityName.isEmpty || _isResolving) {
+      setState(() {
+        _errorMessage = 'Inserisci una città.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isResolving = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final resolved =
+          await AppDI.instance.geocodingRepository.geocodeContentLocation(
+        ContentLocation(
+          source: ContentLocationSource.manual,
+          countryCode: widget.countryCode,
+          cityName: cityName,
+        ),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (resolved == null ||
+          (!resolved.hasCenter && !resolved.hasExactPoint)) {
+        setState(() {
+          _errorMessage = 'Città non trovata nel paese selezionato.';
+        });
+        return;
+      }
+
+      final resolvedCityName = resolved.cityName?.trim();
+      final effectiveCityName =
+          resolvedCityName == null || resolvedCityName.isEmpty
+              ? cityName
+              : resolvedCityName;
+      final latitude = resolved.centerLat ?? resolved.latitude;
+      final longitude = resolved.centerLng ?? resolved.longitude;
+
+      Navigator.of(context).pop(
+        GeoScope.city(
+          countryCode: widget.countryCode,
+          cityId: effectiveCityName,
+          centerLat: latitude,
+          centerLng: longitude,
+          radiusKm: 35,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _errorMessage = 'Impossibile verificare la città. Riprova.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isResolving = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Scegli città'),
+      content: SizedBox(
+        width: 420,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Paese: ${widget.countryCode.toUpperCase()}'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _cityController,
+              autofocus: true,
+              enabled: !_isResolving,
+              textInputAction: TextInputAction.done,
+              decoration: InputDecoration(
+                labelText: 'Città',
+                hintText: 'Es. Roma, São Paulo, Tehran',
+                errorText: _errorMessage,
+              ),
+              onSubmitted: (_) => _submit(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isResolving ? null : () => Navigator.of(context).pop(),
+          child: const Text('Annulla'),
+        ),
+        FilledButton.icon(
+          onPressed: _isResolving ? null : _submit,
+          icon: _isResolving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.check),
+          label: Text(_isResolving ? 'Verifica...' : 'Applica'),
+        ),
+      ],
     );
   }
 }

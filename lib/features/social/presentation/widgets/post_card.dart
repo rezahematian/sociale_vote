@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
+import 'package:sociale_vote/shared/data/countries.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
@@ -132,6 +133,7 @@ class PostCard extends StatelessWidget {
                     children: [
                       _buildDiscussionIconChip(theme),
                       _buildAuthorChip(theme, authorName),
+                      _buildLocationChip(theme),
                     ],
                   ),
                   if (hasTitle || hasContent) const SizedBox(height: 12),
@@ -227,18 +229,15 @@ class PostCard extends StatelessWidget {
       theme: theme,
       icon: Icons.person_outline_rounded,
       label: authorName,
-      backgroundColor:
-          theme.brightness == Brightness.dark
-              ? const Color(0xFF1C2836)
-              : const Color(0xFFEFF4FB),
-      foregroundColor:
-          theme.brightness == Brightness.dark
-              ? const Color(0xFFB7C4D6)
-              : const Color(0xFF667085),
-      borderColor:
-          theme.brightness == Brightness.dark
-              ? const Color(0xFF314255)
-              : const Color(0xFFD9E3EF),
+      backgroundColor: theme.brightness == Brightness.dark
+          ? const Color(0xFF1C2836)
+          : const Color(0xFFEFF4FB),
+      foregroundColor: theme.brightness == Brightness.dark
+          ? const Color(0xFFB7C4D6)
+          : const Color(0xFF667085),
+      borderColor: theme.brightness == Brightness.dark
+          ? const Color(0xFF314255)
+          : const Color(0xFFD9E3EF),
       identityMark: UserIdentityMark.shouldShow(
         actorType: post.authorActorType,
         verificationLevel: post.authorVerificationLevel,
@@ -251,6 +250,44 @@ class PostCard extends StatelessWidget {
               size: 14,
             )
           : null,
+    );
+  }
+
+  Widget _buildLocationChip(ThemeData theme) {
+    final countryCode = post.countryCode?.trim().isNotEmpty == true
+        ? post.countryCode!.trim()
+        : post.contentLocation?.countryCode?.trim();
+    final cityName = post.contentLocation?.cityName?.trim().isNotEmpty == true
+        ? post.contentLocation!.cityName!.trim()
+        : post.cityId?.trim();
+    final countryName = countryCode == null || countryCode.isEmpty
+        ? null
+        : Countries.findByCode(countryCode)?.name ?? countryCode;
+
+    final String label;
+    if (cityName != null && cityName.isNotEmpty) {
+      label = countryName == null || countryName.isEmpty
+          ? cityName
+          : '$cityName, $countryName';
+    } else if (countryName != null && countryName.isNotEmpty) {
+      label = countryName;
+    } else {
+      label = 'Globale';
+    }
+
+    return _buildHeaderChip(
+      theme: theme,
+      icon: Icons.location_on_outlined,
+      label: label,
+      backgroundColor: theme.brightness == Brightness.dark
+          ? const Color(0xFF182B27)
+          : const Color(0xFFEDF8F4),
+      foregroundColor: theme.brightness == Brightness.dark
+          ? const Color(0xFF9AD8C3)
+          : const Color(0xFF287A62),
+      borderColor: theme.brightness == Brightness.dark
+          ? const Color(0xFF2E5148)
+          : const Color(0xFFCFE9DF),
     );
   }
 
@@ -367,7 +404,8 @@ class _PostEngagementRow extends StatelessWidget {
     }
 
     return FutureBuilder(
-      future: AppDI.instance.getCommentsForTarget(TargetRef.post(post.id.value)),
+      future:
+          AppDI.instance.getCommentsForTarget(TargetRef.post(post.id.value)),
       builder: (context, snapshot) {
         final comments = snapshot.data as List<dynamic>? ?? const [];
         final resolvedCommentCount = snapshot.hasError ? 0 : comments.length;

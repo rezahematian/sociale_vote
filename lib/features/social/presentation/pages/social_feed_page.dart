@@ -110,20 +110,40 @@ class _SocialFeedViewState extends State<_SocialFeedView> {
               );
             }
 
-            return RefreshIndicator(
-              onRefresh: () {
-                final userId = AppDI.instance.currentUserId;
-                return controller.refresh(userId: userId);
-              },
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(16),
-                itemCount: allPosts.length,
-                itemBuilder: (context, index) {
-                  final post = allPosts[index];
-                  return _PostCard(post: post);
-                },
-              ),
+            return Column(
+              children: [
+                _FeedSortBar(
+                  selectedMode: controller.sortMode,
+                  onSelected: controller.setSortMode,
+                ),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () {
+                      final userId = AppDI.instance.currentUserId;
+                      return controller.refresh(userId: userId);
+                    },
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                      itemCount:
+                          allPosts.length + (controller.isLoading ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index >= allPosts.length) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+
+                        final post = allPosts[index];
+                        return _PostCard(post: post);
+                      },
+                    ),
+                  ),
+                ),
+              ],
             );
           },
         ),
@@ -136,21 +156,70 @@ class _SocialFeedViewState extends State<_SocialFeedView> {
           );
           if (!allowed || !context.mounted) return;
 
-          final feedController = context.read<FeedController>();
-
           final result = await Navigator.of(context).push<bool>(
             MaterialPageRoute(
               builder: (_) => const CreatePostPage(),
             ),
           );
 
-          if (result == true) {
-            final userId = AppDI.instance.currentUserId;
-            await feedController.refresh(userId: userId);
+          if (!context.mounted || result != true) {
+            return;
           }
+
+          final userId = AppDI.instance.currentUserId;
+          await context.read<FeedController>().refresh(userId: userId);
         },
         icon: const Icon(Icons.add),
         label: const Text('Create post'),
+      ),
+    );
+  }
+}
+
+class _FeedSortBar extends StatelessWidget {
+  final FeedSortMode selectedMode;
+  final ValueChanged<FeedSortMode> onSelected;
+
+  const _FeedSortBar({
+    required this.selectedMode,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Material(
+      color: theme.colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ChoiceChip(
+                avatar: const Icon(
+                  Icons.local_fire_department_outlined,
+                  size: 18,
+                ),
+                label: const Text('Più caldi'),
+                selected: selectedMode == FeedSortMode.hottest,
+                onSelected: (_) => onSelected(FeedSortMode.hottest),
+              ),
+              ChoiceChip(
+                avatar: const Icon(
+                  Icons.schedule_outlined,
+                  size: 18,
+                ),
+                label: const Text('Più recenti'),
+                selected: selectedMode == FeedSortMode.latest,
+                onSelected: (_) => onSelected(FeedSortMode.latest),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -258,18 +327,38 @@ class _PostCard extends StatefulWidget {
 }
 
 class _PostCardState extends State<_PostCard> {
+  bool _isOpeningDetail = false;
+
   Post get post => widget.post;
 
   Future<void> _openDetailAndRefresh() async {
-    final controller = context.read<FeedController>();
+    if (_isOpeningDetail) {
+      return;
+    }
 
-    await Navigator.of(context).pushNamed(
-      AppRouter.socialDetail,
-      arguments: post.id.value,
-    );
+    setState(() {
+      _isOpeningDetail = true;
+    });
 
-    final userId = AppDI.instance.currentUserId;
-    await controller.refresh(userId: userId);
+    try {
+      await Navigator.of(context).pushNamed(
+        AppRouter.socialDetail,
+        arguments: post.id.value,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      final userId = AppDI.instance.currentUserId;
+      await context.read<FeedController>().refresh(userId: userId);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isOpeningDetail = false;
+        });
+      }
+    }
   }
 
   @override
@@ -278,15 +367,16 @@ class _PostCardState extends State<_PostCard> {
 
     final fireCount = feedController.likeCountForPost(post);
     final iceCount = feedController.dislikeCountForPost(post);
+    final commentCount = feedController.commentCountForPost(post);
     final userReaction = feedController.userReactionForPost(post);
 
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: _openDetailAndRefresh,
+    return AbsorbPointer(
+      absorbing: _isOpeningDetail,
       child: PostCard(
         post: post,
         fireCount: fireCount,
         iceCount: iceCount,
+        commentCount: commentCount,
         userReaction: userReaction,
         onFireTap: () async {
           final userId = AppDI.instance.currentUserId;

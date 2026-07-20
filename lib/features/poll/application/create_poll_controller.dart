@@ -1,6 +1,7 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
+
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/core/analytics/analytics_service.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/geo/repositories/device_location_repository.dart';
 import 'package:sociale_vote/domain/geo/repositories/geocoding_repository.dart';
@@ -30,7 +31,7 @@ class CreatePollController extends ChangeNotifier {
   final GeoScopeController _geoScopeController;
   final DeviceLocationRepository? _deviceLocationRepository;
   final GeocodingRepository? _geocodingRepository;
-  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
+  final AnalyticsService _analytics = AnalyticsService.instance;
 
   final String? _createdByUserId;
 
@@ -68,6 +69,7 @@ class CreatePollController extends ChangeNotifier {
   String? _countryCodeForParticipation;
 
   ContentLocation? _contentLocation;
+  bool _useGeoScopeFallback = true;
   bool _isResolvingContentLocation = false;
 
   bool _isSubmitting = false;
@@ -96,7 +98,11 @@ class CreatePollController extends ChangeNotifier {
   String? get countryCodeForParticipation => _countryCodeForParticipation;
 
   ContentLocation? get contentLocation => _contentLocation;
-  bool get hasExplicitContentLocation => _contentLocation != null;
+  bool get hasExplicitContentLocation => !_useGeoScopeFallback;
+  bool get usesGeoScopeFallback => _useGeoScopeFallback;
+  bool get isContentLocationGlobal =>
+      !_useGeoScopeFallback &&
+      (_contentLocation == null || _contentLocation!.isEmpty);
   bool get isResolvingContentLocation => _isResolvingContentLocation;
 
   bool get isSubmitting => _isSubmitting;
@@ -137,11 +143,17 @@ class CreatePollController extends ChangeNotifier {
       _isTimeWindowWithinLimit;
 
   ContentLocation get effectiveContentLocation {
-    if (_contentLocation != null && !_contentLocation!.isEmpty) {
+    if (_contentLocation != null) {
       return _contentLocation!;
     }
 
-    return _locationFromScope(_geoScopeController.scope);
+    if (_useGeoScopeFallback) {
+      return _locationFromScope(_geoScopeController.scope);
+    }
+
+    return const ContentLocation(
+      source: ContentLocationSource.manual,
+    );
   }
 
   void setTitle(String value) {
@@ -297,6 +309,7 @@ class CreatePollController extends ChangeNotifier {
     double? latitude,
     double? longitude,
   }) {
+    _useGeoScopeFallback = false;
     _contentLocation = ContentLocation(
       source: ContentLocationSource.manual,
       countryCode: _normalizeCountryCode(countryCode),
@@ -313,18 +326,26 @@ class CreatePollController extends ChangeNotifier {
   }
 
   void setContentLocation(ContentLocation? location) {
-    _contentLocation = location;
+    _useGeoScopeFallback = false;
+    _contentLocation = location ??
+        const ContentLocation(
+          source: ContentLocationSource.manual,
+        );
     _errorMessage = null;
     notifyListeners();
   }
 
   void clearContentLocation() {
-    _contentLocation = null;
+    _useGeoScopeFallback = false;
+    _contentLocation = const ContentLocation(
+      source: ContentLocationSource.manual,
+    );
     _errorMessage = null;
     notifyListeners();
   }
 
   void useGeoScopeAsContentLocation() {
+    _useGeoScopeFallback = false;
     _contentLocation = _locationFromScope(_geoScopeController.scope);
     _errorMessage = null;
     notifyListeners();
@@ -346,6 +367,28 @@ class CreatePollController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final serviceEnabled =
+          await _deviceLocationRepository.isLocationServiceEnabled();
+
+      if (!serviceEnabled) {
+        _isResolvingContentLocation = false;
+        _errorMessage = 'Location services are disabled.';
+        notifyListeners();
+        return false;
+      }
+
+      var hasPermission = await _deviceLocationRepository.hasPermission();
+      if (!hasPermission) {
+        hasPermission = await _deviceLocationRepository.requestPermission();
+      }
+
+      if (!hasPermission) {
+        _isResolvingContentLocation = false;
+        _errorMessage = 'Location permission was denied.';
+        notifyListeners();
+        return false;
+      }
+
       final location =
           await _deviceLocationRepository.getCurrentContentLocation();
 
@@ -356,6 +399,7 @@ class CreatePollController extends ChangeNotifier {
         return false;
       }
 
+      _useGeoScopeFallback = false;
       _contentLocation = location;
       _isResolvingContentLocation = false;
       notifyListeners();
@@ -373,7 +417,7 @@ class CreatePollController extends ChangeNotifier {
     }
   }
 
-  Future<ContentLocation> _resolveLocationBeforeSubmit() async {
+  Future<ContentLocation?> _resolveLocationBeforeSubmit() async {
     final rawLocation = effectiveContentLocation;
 
     if (rawLocation.source != ContentLocationSource.manual) {
@@ -385,7 +429,8 @@ class CreatePollController extends ChangeNotifier {
     }
 
     if (_geocodingRepository == null) {
-      return rawLocation;
+      _errorMessage = 'Location validation is not available.';
+      return null;
     }
 
     final hasEnoughData = rawLocation.hasCountry || rawLocation.hasCityName;
@@ -393,12 +438,24 @@ class CreatePollController extends ChangeNotifier {
       return rawLocation;
     }
 
+    if (rawLocation.hasCityName && !rawLocation.hasCountry) {
+      _errorMessage = 'Please select a country before entering a city.';
+      return null;
+    }
+
     try {
       final geocoded =
           await _geocodingRepository.geocodeContentLocation(rawLocation);
-      return geocoded ?? rawLocation;
+
+      if (geocoded == null || geocoded.isEmpty) {
+        _errorMessage = 'Unable to validate the selected location.';
+        return null;
+      }
+
+      return geocoded;
     } catch (_) {
-      return rawLocation;
+      _errorMessage = 'Unable to validate the selected location.';
+      return null;
     }
   }
 
@@ -494,20 +551,27 @@ class CreatePollController extends ChangeNotifier {
       final scope = _geoScopeController.scope;
       final effectiveLocation = await _resolveLocationBeforeSubmit();
 
+      if (effectiveLocation == null) {
+        _isSubmitting = false;
+        notifyListeners();
+        return null;
+      }
+
       String? geoCountryCode =
           _normalizeCountryCode(effectiveLocation.countryCode);
       String? cityId = effectiveLocation.cityId;
 
-      if (geoCountryCode == null) {
-        if (scope.level == GeoScopeLevel.country ||
-            scope.level == GeoScopeLevel.city) {
+      if (_useGeoScopeFallback) {
+        if (geoCountryCode == null &&
+            (scope.level == GeoScopeLevel.country ||
+                scope.level == GeoScopeLevel.city)) {
           geoCountryCode = _normalizeCountryCode(scope.countryCode);
         }
-      }
 
-      if ((cityId == null || cityId.trim().isEmpty) &&
-          scope.level == GeoScopeLevel.city) {
-        cityId = scope.cityId;
+        if ((cityId == null || cityId.trim().isEmpty) &&
+            scope.level == GeoScopeLevel.city) {
+          cityId = scope.cityId;
+        }
       }
 
       final effectiveParticipationCountry =
@@ -593,7 +657,7 @@ class CreatePollController extends ChangeNotifier {
         endAt: effectiveEndAt,
         countryCode: geoCountryCode,
         cityId: cityId,
-        contentLocation: effectiveLocation,
+        contentLocation: effectiveLocation.isEmpty ? null : effectiveLocation,
         createdByUserId: _createdByUserId,
         publishedAsActorType: representativeProfile?.actorType,
         publishedAsInstitutionLevel:
@@ -638,8 +702,8 @@ class CreatePollController extends ChangeNotifier {
   }) async {
     try {
       await _analytics.logEvent(
-        name: 'create_poll',
-        parameters: <String, Object>{
+        'create_poll',
+        parameters: <String, Object?>{
           'poll_id': createdPoll.id.value,
           'poll_type': _type.name,
           'option_count': optionCount,
@@ -658,10 +722,8 @@ class CreatePollController extends ChangeNotifier {
   ContentLocation _locationFromScope(GeoScope scope) {
     switch (scope.level) {
       case GeoScopeLevel.world:
-        return ContentLocation(
+        return const ContentLocation(
           source: ContentLocationSource.geoScopeFallback,
-          centerLat: scope.centerLat ?? 20.0,
-          centerLng: scope.centerLng ?? 0.0,
         );
 
       case GeoScopeLevel.country:

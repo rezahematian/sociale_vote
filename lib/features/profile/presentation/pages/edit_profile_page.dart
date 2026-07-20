@@ -265,10 +265,20 @@ class _EditProfileViewState extends State<_EditProfileView> {
                         'edit-profile-country-${_selectedCountryCode ?? 'none'}',
                       ),
                       selectedCountryCode: _selectedCountryCode,
-                      label: 'Country',
+                      label: 'Country of residence',
+                      required: true,
                       onCountrySelected: (code) {
+                        final normalizedCountryCode =
+                            _normalizeCountryCode(code);
+                        final countryChanged =
+                            normalizedCountryCode != _selectedCountryCode;
+
                         setState(() {
-                          _selectedCountryCode = _normalizeCountryCode(code);
+                          _selectedCountryCode = normalizedCountryCode;
+                          if (countryChanged) {
+                            _cityController.clear();
+                            _cityError = null;
+                          }
                           _countryError = null;
                           _locationError = null;
                         });
@@ -295,7 +305,9 @@ class _EditProfileViewState extends State<_EditProfileView> {
                               : () {
                                   setState(() {
                                     _selectedCountryCode = null;
+                                    _cityController.clear();
                                     _countryError = null;
+                                    _cityError = null;
                                     _locationError = null;
                                   });
                                 },
@@ -318,9 +330,9 @@ class _EditProfileViewState extends State<_EditProfileView> {
                         });
                       },
                       decoration: InputDecoration(
-                        labelText: 'City',
+                        labelText: 'City of residence *',
                         helperText:
-                            'City is validated against the selected country before save.',
+                            'Residence city is validated against the selected country before save.',
                         errorText: _cityError,
                         border: const OutlineInputBorder(),
                       ),
@@ -391,8 +403,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
                                     .instance.geocodingRepository
                                     .geocodeContentLocation(
                                   ContentLocation(
-                                    source:
-                                        ContentLocationSource.geoScopeFallback,
+                                    source: ContentLocationSource.manual,
                                     countryCode: normalizedCountryCode,
                                     cityName: normalizedCityInput,
                                   ),
