@@ -220,111 +220,120 @@ class _PollListPageState extends State<PollListPage> {
 
                 return ColoredBox(
                   color: pageBackground,
-                  child: RefreshIndicator(
-                    onRefresh: _reloadPolls,
-                    child: ListView(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
-                      children: [
-                        _buildScopeHeader(
-                          context,
-                          l10n: l10n,
-                          scopeLabel: scopeLabel,
-                          scopeDescription: scopeDescription,
-                          pollCount: visiblePolls.length,
-                        ),
-                        const SizedBox(height: 14),
-                        _buildFiltersBlock(context, controller),
-                        const SizedBox(height: 18),
-                        if (controller.isLoading && visiblePolls.isEmpty)
-                          const LoadingIndicator(
-                            padding: EdgeInsets.only(top: AppSpacing.l),
-                          ),
-                        if (!controller.isLoading && visiblePolls.isEmpty)
-                          _buildEmptyStateCard(context),
-                        if (visiblePolls.isNotEmpty)
-                          ...visiblePolls.map(
-                            (poll) {
-                              final fire = controller.likeCountForPoll(poll);
-                              final ice = controller.dislikeCountForPoll(poll);
-                              final userReaction =
-                                  controller.userReactionForPoll(poll);
-
-                              return PollCard(
-                                poll: poll,
-                                onTap: () async {
-                                  await _openPollDetail(poll);
-                                },
-                                result: controller.resultForPoll(poll),
-                                fireCount: fire,
-                                iceCount: ice,
-                                userReaction: userReaction,
-                                onFireTap: () async {
-                                  final allowed =
-                                      await AuthGuard.ensureCanPerformAction(
-                                    context,
-                                    ParticipationAction.react,
-                                  );
-                                  if (!allowed) return;
-
-                                  final userId = AppDI.instance.currentUserId;
-                                  if (userId == null || userId.isEmpty) {
-                                    return;
-                                  }
-
-                                  await controller.toggleFireForPoll(
-                                    userId: userId,
-                                    poll: poll,
-                                  );
-                                },
-                                onIceTap: () async {
-                                  final allowed =
-                                      await AuthGuard.ensureCanPerformAction(
-                                    context,
-                                    ParticipationAction.react,
-                                  );
-                                  if (!allowed) return;
-
-                                  final userId = AppDI.instance.currentUserId;
-                                  if (userId == null || userId.isEmpty) {
-                                    return;
-                                  }
-
-                                  await controller.toggleIceForPoll(
-                                    userId: userId,
-                                    poll: poll,
-                                  );
-                                },
-                                onCommentTap: () async {
-                                  await _openPollDetail(
-                                    poll,
-                                    openCommentsOnLoad: true,
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        if (hasMore &&
-                            !controller.isLoading &&
-                            visiblePolls.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: AppSpacing.xs,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1120),
+                      child: RefreshIndicator(
+                        onRefresh: _reloadPolls,
+                        child: ListView(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
+                          children: [
+                            _buildScopeHeader(
+                              context,
+                              l10n: l10n,
+                              scopeLabel: scopeLabel,
+                              scopeDescription: scopeDescription,
+                              pollCount: visiblePolls.length,
                             ),
-                            child: Center(
-                              child: Text(
-                                l10n.pollList_paginationHint,
-                                style: const TextStyle(fontSize: 11),
+                            const SizedBox(height: 14),
+                            _buildFiltersBlock(context, controller),
+                            const SizedBox(height: 18),
+                            if (controller.isLoading && visiblePolls.isEmpty)
+                              const LoadingIndicator(
+                                padding: EdgeInsets.only(top: AppSpacing.l),
                               ),
-                            ),
-                          ),
-                        if (controller.isLoading && visiblePolls.isNotEmpty)
-                          const LoadingIndicator.inline(
-                            padding: EdgeInsets.symmetric(
-                              vertical: AppSpacing.s,
-                            ),
-                          ),
-                      ],
+                            if (!controller.isLoading && visiblePolls.isEmpty)
+                              _buildEmptyStateCard(context),
+                            if (visiblePolls.isNotEmpty)
+                              ...visiblePolls.map(
+                                (poll) {
+                                  final fire =
+                                      controller.likeCountForPoll(poll);
+                                  final ice =
+                                      controller.dislikeCountForPoll(poll);
+                                  final userReaction =
+                                      controller.userReactionForPoll(poll);
+
+                                  return PollCard(
+                                    poll: poll,
+                                    onTap: () async {
+                                      await _openPollDetail(poll);
+                                    },
+                                    result: controller.resultForPoll(poll),
+                                    fireCount: fire,
+                                    iceCount: ice,
+                                    userReaction: userReaction,
+                                    onFireTap: () async {
+                                      final allowed = await AuthGuard
+                                          .ensureCanPerformAction(
+                                        context,
+                                        ParticipationAction.react,
+                                      );
+                                      if (!allowed) return;
+
+                                      final userId =
+                                          AppDI.instance.currentUserId;
+                                      if (userId == null || userId.isEmpty) {
+                                        return;
+                                      }
+
+                                      await controller.toggleFireForPoll(
+                                        userId: userId,
+                                        poll: poll,
+                                      );
+                                    },
+                                    onIceTap: () async {
+                                      final allowed = await AuthGuard
+                                          .ensureCanPerformAction(
+                                        context,
+                                        ParticipationAction.react,
+                                      );
+                                      if (!allowed) return;
+
+                                      final userId =
+                                          AppDI.instance.currentUserId;
+                                      if (userId == null || userId.isEmpty) {
+                                        return;
+                                      }
+
+                                      await controller.toggleIceForPoll(
+                                        userId: userId,
+                                        poll: poll,
+                                      );
+                                    },
+                                    onCommentTap: () async {
+                                      await _openPollDetail(
+                                        poll,
+                                        openCommentsOnLoad: true,
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            if (hasMore &&
+                                !controller.isLoading &&
+                                visiblePolls.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: AppSpacing.xs,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    l10n.pollList_paginationHint,
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
+                                ),
+                              ),
+                            if (controller.isLoading && visiblePolls.isNotEmpty)
+                              const LoadingIndicator.inline(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: AppSpacing.s,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 );

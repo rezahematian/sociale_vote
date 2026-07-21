@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
+import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/search/entities/search_result_item.dart';
 import 'package:sociale_vote/domain/search/value_objects/search_query.dart';
 import 'package:sociale_vote/domain/search/value_objects/search_filters.dart';
@@ -22,6 +25,7 @@ class _SearchPageState extends State<SearchPage> {
   // Nuovi stati locale per i filtri
   SearchSort _selectedSort = SearchSort.hottest;
   PollStatusFilter _selectedPollStatus = PollStatusFilter.all;
+  String? _openingTargetKey;
 
   @override
   void dispose() {
@@ -48,6 +52,82 @@ class _SearchPageState extends State<SearchPage> {
       rawQuery: raw,
       type: _selectedType,
     );
+  }
+
+  Future<void> _openResult(SearchResultItem item) async {
+    if (_openingTargetKey != null) {
+      return;
+    }
+
+    setState(() {
+      _openingTargetKey = item.target.key;
+    });
+
+    try {
+      switch (item.contentType) {
+        case SearchContentType.poll:
+          await Navigator.of(context).pushNamed(
+            AppRouter.pollDetail,
+            arguments: item.target.id,
+          );
+          break;
+
+        case SearchContentType.post:
+          await Navigator.of(context).pushNamed(
+            AppRouter.socialDetail,
+            arguments: item.target.id,
+          );
+          break;
+
+        case SearchContentType.news:
+          final scope = AppDI.instance.geoScopeController.scope;
+          final newsItems = await AppDI.instance.getNewsFeed(
+            countryCode: scope.countryCode,
+            cityId: scope.cityId,
+          );
+
+          NewsItem? news;
+          for (final candidate in newsItems) {
+            if (candidate.id.value == item.target.id) {
+              news = candidate;
+              break;
+            }
+          }
+
+          news ??= await AppDI.instance.getNewsDetail(
+            EntityId(item.target.id),
+          );
+
+          if (!mounted) {
+            return;
+          }
+
+          await Navigator.of(context).pushNamed(
+            AppRouter.newsDetail,
+            arguments: news,
+          );
+          break;
+
+        case SearchContentType.all:
+          throw StateError('Unsupported mixed search result');
+      }
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Contenuto non disponibile'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _openingTargetKey = null;
+        });
+      }
+    }
   }
 
   @override
@@ -399,7 +479,13 @@ class _SearchPageState extends State<SearchPage> {
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final item = results[index];
-        return _SearchResultTile(item: item);
+        final isOpening = _openingTargetKey == item.target.key;
+
+        return _SearchResultTile(
+          item: item,
+          isOpening: isOpening,
+          onTap: isOpening ? null : () => _openResult(item),
+        );
       },
     );
   }
@@ -482,9 +568,13 @@ class _PollStatusFilterChip extends StatelessWidget {
 
 class _SearchResultTile extends StatelessWidget {
   final SearchResultItem item;
+  final bool isOpening;
+  final VoidCallback? onTap;
 
   const _SearchResultTile({
     required this.item,
+    required this.isOpening,
+    required this.onTap,
   });
 
   @override
@@ -502,17 +592,7 @@ class _SearchResultTile extends StatelessWidget {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          // V1: niente navigazione complessa.
-          // In futuro: router verso PollDetail / NewsDetail / PostDetail.
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Open ${typeLabel.toLowerCase()}: ${item.title}',
-              ),
-            ),
-          );
-        },
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -535,7 +615,15 @@ class _SearchResultTile extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  if (dateText != null) ...[
+                  if (isOpening)
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    )
+                  else if (dateText != null) ...[
                     Icon(
                       Icons.schedule,
                       size: 14,

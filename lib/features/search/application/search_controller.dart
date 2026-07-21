@@ -148,6 +148,8 @@ class SearchController extends ChangeNotifier {
         rawQuery: query.rawText,
         type: appliedFilters.contentType,
         scope: appliedFilters.scope,
+        sort: appliedFilters.sort,
+        pollStatus: appliedFilters.pollStatus,
         // V1: limiti base. In futuro parametri configurabili.
         limit: appliedFilters.limit,
         offset: appliedFilters.offset,
@@ -251,20 +253,29 @@ class SearchController extends ChangeNotifier {
     List<SearchResultItem> items,
     SearchFilters filters,
   ) {
-    if (filters.contentType != SearchContentType.poll) {
+    final supportsPollStatus = filters.contentType == SearchContentType.poll ||
+        filters.contentType == SearchContentType.all;
+
+    if (!supportsPollStatus || filters.pollStatus == PollStatusFilter.all) {
       return items;
     }
 
-    switch (filters.pollStatus) {
-      case PollStatusFilter.all:
-        return items;
+    bool keepItem(SearchResultItem item) {
+      if (item.contentType != SearchContentType.poll) {
+        return true;
+      }
 
-      case PollStatusFilter.open:
-        return items.where(_isPollOpen).toList();
-
-      case PollStatusFilter.closed:
-        return items.where(_isPollClosed).toList();
+      switch (filters.pollStatus) {
+        case PollStatusFilter.all:
+          return true;
+        case PollStatusFilter.open:
+          return _isPollOpen(item);
+        case PollStatusFilter.closed:
+          return _isPollClosed(item);
+      }
     }
+
+    return items.where(keepItem).toList();
   }
 
   // ---- Helpers "safe" per non crashare se mancano campi nel SearchResultItem.

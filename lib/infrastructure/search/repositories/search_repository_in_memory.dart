@@ -25,7 +25,9 @@ import 'package:sociale_vote/domain/search/value_objects/search_query.dart';
 ///   - [SearchResultItem.createdAt] dove possibile
 ///   - [SearchResultItem.heat] se l’entità espone un campo compatibile
 ///   - [SearchResultItem.pollStatus] per i Poll (se disponibile)
-/// - ordina i risultati per data decrescente (fallback neutro).
+/// - ordina i risultati prima della paginazione:
+///   - latest per data decrescente
+///   - hottest per segnale engagement, con data come spareggio.
 class SearchRepositoryInMemory implements SearchRepository {
   final PollRepository _pollRepository;
   final NewsRepository _newsRepository;
@@ -55,14 +57,11 @@ class SearchRepositoryInMemory implements SearchRepository {
     final List<SearchResultItem> results = [];
 
     // Decidiamo quali tipi includere in base al contentType.
-    final includePolls =
-        query.type == SearchContentType.all ||
+    final includePolls = query.type == SearchContentType.all ||
         query.type == SearchContentType.poll;
-    final includeNews =
-        query.type == SearchContentType.all ||
+    final includeNews = query.type == SearchContentType.all ||
         query.type == SearchContentType.news;
-    final includePosts =
-        query.type == SearchContentType.all ||
+    final includePosts = query.type == SearchContentType.all ||
         query.type == SearchContentType.post;
 
     // Parametri di scope per i repository.
@@ -156,21 +155,26 @@ class SearchRepositoryInMemory implements SearchRepository {
       }
     }
 
-    // Ordine di fallback: data decrescente (se presente).
-    // Il controller può poi ri-ordinare in base a sort (latest/hottest)
-    // usando i segnali [createdAt] e [heat].
-    results.sort((a, b) {
-      final ad = a.date ?? a.createdAt;
-      final bd = b.date ?? b.createdAt;
+    // Ordinamento applicato sull'intero dataset prima di offset/limit.
+    // In questo modo Hottest e Latest non lavorano solo sui primi risultati
+    // già tagliati dalla paginazione.
+    switch (filters.sort) {
+      case SearchSort.hottest:
+        results.sort((a, b) {
+          final heatComparison = (b.heat ?? 0).compareTo(a.heat ?? 0);
+          if (heatComparison != 0) {
+            return heatComparison;
+          }
+          return _compareByDateDescending(a, b);
+        });
+        break;
 
-      if (ad == null && bd == null) return 0;
-      if (ad == null) return 1;
-      if (bd == null) return -1;
+      case SearchSort.latest:
+        results.sort(_compareByDateDescending);
+        break;
+    }
 
-      return bd.compareTo(ad);
-    });
-
-    // Applichiamo offset + limit in memoria.
+    // Applichiamo offset + limit in memoria solo dopo l'ordinamento.
     final start = filters.offset;
     if (start >= results.length) {
       return [];
@@ -238,30 +242,60 @@ class SearchRepositoryInMemory implements SearchRepository {
 
   /// Estrae un segnale di "heat" generico dall'entità, se presente.
   ///
-  /// Prova in ordine:
-  /// - field `heat` (int / double)
-  /// - field `heatScore.value`
+  /// Ordine:
+  /// - field `heat` (int / double), se disponibile
+  /// - field `heatScore.value`, se disponibile
+  /// - Poll: numero voti
+  /// - Post: numero commenti
+  ///
+  /// News non espone ancora un segnale engagement nel modello corrente:
+  /// in quel caso il valore resta null e la data viene usata come spareggio.
   int? _extractHeat(Object entity) {
     try {
       // ignore: avoid_dynamic_calls
-      final dynamic any = entity;
-
-      // Primo tentativo: field diretto `heat`.
-      final dynamic heatField = any.heat;
+      final dynamic heatField = (entity as dynamic).heat;
       if (heatField is int) return heatField;
       if (heatField is double) return heatField.round();
+    } catch (_) {
+      // Getter non presente sull'entità.
+    }
 
-      // Secondo tentativo: value object `heatScore.value`.
-      final dynamic heatScore = any.heatScore;
+    try {
+      // ignore: avoid_dynamic_calls
+      final dynamic heatScore = (entity as dynamic).heatScore;
       if (heatScore != null) {
+        // ignore: avoid_dynamic_calls
         final dynamic value = heatScore.value;
         if (value is int) return value;
         if (value is double) return value.round();
       }
     } catch (_) {
-      // Ignoriamo errori riflessivi: significa solo "heat non disponibile".
+      // Value object non presente sull'entità.
     }
+
+    if (entity is Poll) {
+      return entity.voteCount;
+    }
+
+    if (entity is Post) {
+      return entity.commentCount;
+    }
+
     return null;
+  }
+
+  int _compareByDateDescending(
+    SearchResultItem a,
+    SearchResultItem b,
+  ) {
+    final ad = a.createdAt ?? a.date;
+    final bd = b.createdAt ?? b.date;
+
+    if (ad == null && bd == null) return 0;
+    if (ad == null) return 1;
+    if (bd == null) return -1;
+
+    return bd.compareTo(ad);
   }
 
   /// Estrae una data di creazione/pubblicazione generica, se possibile.

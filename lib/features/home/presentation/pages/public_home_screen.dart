@@ -464,46 +464,14 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
             isLoggedIn ? 74.0 : (isCompactGuestTopBar ? 104.0 : 74.0);
 
         final backgroundGradient = isDark
-            ? [
-                Color.alphaBlend(
-                  AppColors.primary.withValues(alpha: 0.10),
-                  AppColors.backgroundDark,
-                ),
-                Color.alphaBlend(
-                  AppColors.cool.withValues(alpha: 0.10),
-                  AppColors.backgroundAltDark,
-                ),
-                Color.alphaBlend(
-                  AppColors.primaryLight.withValues(alpha: 0.08),
-                  AppColors.surfaceDark,
-                ),
+            ? const [
+                AppColors.backgroundDark,
+                AppColors.backgroundAltDark,
               ]
-            : [
-                Color.alphaBlend(
-                  AppColors.primary.withValues(alpha: 0.07),
-                  AppColors.background,
-                ),
-                Color.alphaBlend(
-                  AppColors.cool.withValues(alpha: 0.06),
-                  AppColors.backgroundAlt,
-                ),
-                Color.alphaBlend(
-                  AppColors.primaryLight.withValues(alpha: 0.10),
-                  AppColors.surfaceVariant,
-                ),
+            : const [
+                AppColors.background,
+                AppColors.backgroundAlt,
               ];
-
-        final topGlowColor = isDark
-            ? AppColors.primary.withValues(alpha: 0.14)
-            : AppColors.primaryLight.withValues(alpha: 0.14);
-
-        final sideGlowColor = isDark
-            ? AppColors.cool.withValues(alpha: 0.11)
-            : AppColors.cool.withValues(alpha: 0.10);
-
-        final bottomGlowColor = isDark
-            ? AppColors.primaryLight.withValues(alpha: 0.07)
-            : AppColors.primary.withValues(alpha: 0.07);
 
         return Scaffold(
           backgroundColor: Colors.transparent,
@@ -542,48 +510,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                       colors: backgroundGradient,
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: -72,
-                right: -44,
-                child: IgnorePointer(
-                  child: Container(
-                    width: 240,
-                    height: 240,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: topGlowColor,
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 210,
-                left: -76,
-                child: IgnorePointer(
-                  child: Container(
-                    width: 220,
-                    height: 220,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: sideGlowColor,
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: -90,
-                right: 40,
-                child: IgnorePointer(
-                  child: Container(
-                    width: 260,
-                    height: 260,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: bottomGlowColor,
                     ),
                   ),
                 ),

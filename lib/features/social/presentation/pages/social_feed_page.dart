@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/app/theme/spacing.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/features/social/application/feed_controller.dart';
@@ -35,6 +36,7 @@ class _SocialFeedView extends StatefulWidget {
 }
 
 class _SocialFeedViewState extends State<_SocialFeedView> {
+  static const double _maxContentWidth = 1120;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -63,6 +65,27 @@ class _SocialFeedViewState extends State<_SocialFeedView> {
     }
   }
 
+  Future<void> _createPost() async {
+    final allowed = await AuthGuard.ensureCanPerformAction(
+      context,
+      ParticipationAction.createPost,
+    );
+    if (!allowed || !mounted) return;
+
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => const CreatePostPage(),
+      ),
+    );
+
+    if (!mounted || result != true) {
+      return;
+    }
+
+    final userId = AppDI.instance.currentUserId;
+    await context.read<FeedController>().refresh(userId: userId);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -71,154 +94,184 @@ class _SocialFeedViewState extends State<_SocialFeedView> {
       appBar: AppBar(
         title: const Text('Social Feed'),
       ),
-      body: Container(
-        color: theme.colorScheme.surface,
-        child: Consumer<FeedController>(
-          builder: (context, controller, _) {
-            final allPosts = controller.posts;
-
-            if (controller.isLoading && allPosts.isEmpty) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-
-            if (controller.hasError) {
-              return _SocialErrorState(
-                message: controller.errorMessage ??
-                    'Si è verificato un errore nel caricamento del feed.',
-                onRetry: () {
-                  final userId = AppDI.instance.currentUserId;
-                  return controller.loadFeed(userId: userId);
-                },
-              );
-            }
-
-            if (allPosts.isEmpty) {
-              return RefreshIndicator(
-                onRefresh: () {
-                  final userId = AppDI.instance.currentUserId;
-                  return controller.refresh(userId: userId);
-                },
-                child: ListView(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(16),
-                  children: const [
-                    _SocialEmptyState(),
-                  ],
-                ),
-              );
-            }
-
-            return Column(
-              children: [
-                _FeedSortBar(
-                  selectedMode: controller.sortMode,
-                  onSelected: controller.setSortMode,
-                ),
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () {
-                      final userId = AppDI.instance.currentUserId;
-                      return controller.refresh(userId: userId);
-                    },
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                      itemCount:
-                          allPosts.length + (controller.isLoading ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index >= allPosts.length) {
-                          return const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            child: Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          );
-                        }
-
-                        final post = allPosts[index];
-                        return _PostCard(post: post);
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final allowed = await AuthGuard.ensureCanPerformAction(
-            context,
-            ParticipationAction.createPost,
-          );
-          if (!allowed || !context.mounted) return;
-
-          final result = await Navigator.of(context).push<bool>(
-            MaterialPageRoute(
-              builder: (_) => const CreatePostPage(),
+      body: ColoredBox(
+        color: theme.scaffoldBackgroundColor,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: _maxContentWidth,
             ),
-          );
+            child: SizedBox(
+              width: double.infinity,
+              child: Consumer<FeedController>(
+                builder: (context, controller, _) {
+                  final allPosts = controller.posts;
+                  Widget content;
 
-          if (!context.mounted || result != true) {
-            return;
-          }
+                  if (controller.isLoading && allPosts.isEmpty) {
+                    content = const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (controller.hasError) {
+                    content = _SocialErrorState(
+                      message: controller.errorMessage ??
+                          'Si è verificato un errore nel caricamento del feed.',
+                      onRetry: () {
+                        final userId = AppDI.instance.currentUserId;
+                        return controller.loadFeed(userId: userId);
+                      },
+                    );
+                  } else if (allPosts.isEmpty) {
+                    content = RefreshIndicator(
+                      onRefresh: () {
+                        final userId = AppDI.instance.currentUserId;
+                        return controller.refresh(userId: userId);
+                      },
+                      child: ListView(
+                        controller: _scrollController,
+                        padding: AppSpacing.page,
+                        children: const [
+                          _SocialEmptyState(),
+                        ],
+                      ),
+                    );
+                  } else {
+                    content = RefreshIndicator(
+                      onRefresh: () {
+                        final userId = AppDI.instance.currentUserId;
+                        return controller.refresh(userId: userId);
+                      },
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.pagePadding,
+                          AppSpacing.xxs,
+                          AppSpacing.pagePadding,
+                          AppSpacing.l,
+                        ),
+                        itemCount:
+                            allPosts.length + (controller.isLoading ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index >= allPosts.length) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(
+                                vertical: AppSpacing.m,
+                              ),
+                              child: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
 
-          final userId = AppDI.instance.currentUserId;
-          await context.read<FeedController>().refresh(userId: userId);
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Create post'),
+                          final post = allPosts[index];
+                          return _PostCard(post: post);
+                        },
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: [
+                      _FeedToolbar(
+                        selectedMode: controller.sortMode,
+                        onSelected: controller.setSortMode,
+                        onCreatePost: _createPost,
+                      ),
+                      Expanded(child: content),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-class _FeedSortBar extends StatelessWidget {
+class _FeedToolbar extends StatelessWidget {
+  static const double _singleRowMinWidth = 520;
+
   final FeedSortMode selectedMode;
   final ValueChanged<FeedSortMode> onSelected;
+  final Future<void> Function() onCreatePost;
 
-  const _FeedSortBar({
+  const _FeedToolbar({
     required this.selectedMode,
     required this.onSelected,
+    required this.onCreatePost,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final filters = Wrap(
+      spacing: AppSpacing.xs,
+      runSpacing: AppSpacing.xs,
+      children: [
+        ChoiceChip(
+          avatar: const Icon(
+            Icons.local_fire_department_outlined,
+            size: 18,
+          ),
+          label: const Text('Più caldi'),
+          selected: selectedMode == FeedSortMode.hottest,
+          onSelected: (_) => onSelected(FeedSortMode.hottest),
+        ),
+        ChoiceChip(
+          avatar: const Icon(
+            Icons.schedule_outlined,
+            size: 18,
+          ),
+          label: const Text('Più recenti'),
+          selected: selectedMode == FeedSortMode.latest,
+          onSelected: (_) => onSelected(FeedSortMode.latest),
+        ),
+      ],
+    );
+
+    final createButton = FilledButton.icon(
+      onPressed: () async {
+        await onCreatePost();
+      },
+      icon: const Icon(Icons.add),
+      label: const Text('Crea post'),
+    );
 
     return Material(
-      color: theme.colorScheme.surface,
+      color: theme.scaffoldBackgroundColor,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              ChoiceChip(
-                avatar: const Icon(
-                  Icons.local_fire_department_outlined,
-                  size: 18,
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.pagePadding,
+          AppSpacing.s,
+          AppSpacing.pagePadding,
+          AppSpacing.xs,
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth >= _singleRowMinWidth) {
+              return Row(
+                children: [
+                  Expanded(child: filters),
+                  const SizedBox(width: AppSpacing.m),
+                  createButton,
+                ],
+              );
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                filters,
+                const SizedBox(height: AppSpacing.xs),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: createButton,
                 ),
-                label: const Text('Più caldi'),
-                selected: selectedMode == FeedSortMode.hottest,
-                onSelected: (_) => onSelected(FeedSortMode.hottest),
-              ),
-              ChoiceChip(
-                avatar: const Icon(
-                  Icons.schedule_outlined,
-                  size: 18,
-                ),
-                label: const Text('Più recenti'),
-                selected: selectedMode == FeedSortMode.latest,
-                onSelected: (_) => onSelected(FeedSortMode.latest),
-              ),
-            ],
-          ),
+              ],
+            );
+          },
         ),
       ),
     );

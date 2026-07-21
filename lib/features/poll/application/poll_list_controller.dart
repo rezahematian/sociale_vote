@@ -494,9 +494,14 @@ class PollListController extends ChangeNotifier {
   void _sortPolls(List<Poll> list) {
     switch (_sortMode) {
       case PollSortMode.latest:
-        list.sort(
-          (a, b) => _sourceIndexForPoll(a).compareTo(_sourceIndexForPoll(b)),
-        );
+        list.sort((a, b) {
+          final dateCompare = b.rankingDate.compareTo(a.rankingDate);
+          if (dateCompare != 0) {
+            return dateCompare;
+          }
+
+          return _sourceIndexForPoll(a).compareTo(_sourceIndexForPoll(b));
+        });
         break;
       case PollSortMode.hottest:
         list.sort(_comparePollPriority);

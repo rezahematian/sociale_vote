@@ -59,6 +59,7 @@ class FeedController extends ChangeNotifier {
   }
 
   bool _isLoading = false;
+  bool _isPreparingHottest = false;
   bool _hasError = false;
   String? _errorMessage;
   bool _isDisposed = false;
@@ -116,6 +117,10 @@ class FeedController extends ChangeNotifier {
     _sortMode = mode;
     _sortPosts();
     _notifyListeners();
+
+    if (mode == FeedSortMode.hottest && _hasMoreFromSource) {
+      unawaited(_loadAllRemainingPostsForHottest());
+    }
   }
 
   // ===== REACTION SUMMARY =====
@@ -206,7 +211,19 @@ class FeedController extends ChangeNotifier {
     _notifyListeners();
 
     try {
+      _isPreparingHottest = _sortMode == FeedSortMode.hottest;
+
       await _loadNextPage(generation: generation);
+
+      while (_isCurrentRequest(generation) &&
+          _sortMode == FeedSortMode.hottest &&
+          _hasMoreFromSource) {
+        await _loadNextPage(generation: generation);
+      }
+
+      if (_isCurrentRequest(generation)) {
+        _sortPosts();
+      }
     } catch (e, stackTrace) {
       if (!_isCurrentRequest(generation)) {
         return;
@@ -226,6 +243,7 @@ class FeedController extends ChangeNotifier {
         debugPrint('$stackTrace');
       }
     } finally {
+      _isPreparingHottest = false;
       if (_isCurrentRequest(generation)) {
         _setLoading(false);
       }
@@ -267,6 +285,47 @@ class FeedController extends ChangeNotifier {
 
       _notifyListeners();
     } finally {
+      if (_isCurrentRequest(generation)) {
+        _setLoading(false);
+      }
+    }
+  }
+
+  Future<void> _loadAllRemainingPostsForHottest() async {
+    if (_isDisposed || _isLoading || !_hasMoreFromSource) {
+      return;
+    }
+
+    final generation = _requestGeneration;
+    _isPreparingHottest = true;
+    _setLoading(true);
+
+    try {
+      while (_isCurrentRequest(generation) &&
+          _sortMode == FeedSortMode.hottest &&
+          _hasMoreFromSource) {
+        await _loadNextPage(generation: generation);
+      }
+
+      if (_isCurrentRequest(generation)) {
+        _sortPosts();
+      }
+    } catch (e, stackTrace) {
+      if (!_isCurrentRequest(generation)) {
+        return;
+      }
+
+      _hasError = _posts.isEmpty;
+      _errorMessage = _posts.isEmpty
+          ? 'Impossibile caricare il feed.'
+          : 'Impossibile completare l’ordinamento dei post più caldi.';
+
+      if (kDebugMode) {
+        debugPrint('Error loading remaining hottest posts: $e');
+        debugPrint('$stackTrace');
+      }
+    } finally {
+      _isPreparingHottest = false;
       if (_isCurrentRequest(generation)) {
         _setLoading(false);
       }
@@ -345,9 +404,13 @@ class FeedController extends ChangeNotifier {
     _hasError = false;
     _errorMessage = null;
 
-    // I post principali diventano visibili prima dei dati secondari.
+    // In modalità latest manteniamo il caricamento progressivo.
+    // In modalità hottest pubblichiamo la lista solo dopo avere caricato
+    // tutte le pagine, così l'ordine non cambia durante lo scroll.
     _sortPosts();
-    _notifyListeners();
+    if (!_isPreparingHottest) {
+      _notifyListeners();
+    }
 
     if (uniquePosts.isEmpty) {
       return;
@@ -370,7 +433,9 @@ class FeedController extends ChangeNotifier {
     }
 
     _sortPosts();
-    _notifyListeners();
+    if (!_isPreparingHottest) {
+      _notifyListeners();
+    }
   }
 
   Future<void> _loadReactionSummariesForPosts(

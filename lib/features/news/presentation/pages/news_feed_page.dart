@@ -250,75 +250,43 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
           ],
         ),
       ),
-      body: Container(
-        color: theme.colorScheme.surface,
-        child: Consumer<NewsController>(
-          builder: (context, controller, _) {
-            final scope = AppDI.instance.geoScopeController.scope;
-            final scopeLabel = _scopeShortLabel(context, scope);
-            final scopeDescription = _scopeDescription(context, scope);
-            final currentUserId = AppDI.instance.currentUserId;
+      body: ColoredBox(
+        color: theme.scaffoldBackgroundColor,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1120),
+            child: Consumer<NewsController>(
+              builder: (context, controller, _) {
+                final scope = AppDI.instance.geoScopeController.scope;
+                final scopeLabel = _scopeShortLabel(context, scope);
+                final scopeDescription = _scopeDescription(context, scope);
+                final currentUserId = AppDI.instance.currentUserId;
 
-            final allNews = controller.news;
+                final allNews = controller.news;
 
-            if (controller.isLoading && allNews.isEmpty) {
-              return const Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: LoadingIndicator(),
-                ),
-              );
-            }
-
-            if (controller.hasError) {
-              return _NewsErrorView(
-                message: _localizedErrorMessage(context, controller),
-                onRetry: () => controller.loadNews(userId: currentUserId),
-              );
-            }
-
-            if (allNews.isEmpty) {
-              return RefreshIndicator(
-                onRefresh: () => controller.loadNews(userId: currentUserId),
-                child: ListView(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: _buildScopeHeader(
-                        context,
-                        scopeLabel: scopeLabel,
-                        scopeDescription: scopeDescription,
-                        newsCount: 0,
-                        selectedLanguage: controller.selectedLanguage,
-                        onLanguageSelected: (lang) {
-                          controller.setLanguage(lang, userId: currentUserId);
-                        },
-                      ),
+                if (controller.isLoading && allNews.isEmpty) {
+                  return const Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: LoadingIndicator(),
                     ),
-                    const SizedBox(height: 14),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: _buildTopicChips(context, controller),
-                    ),
-                    const SizedBox(height: 24),
-                    _buildEmptyStateCard(context),
-                  ],
-                ),
-              );
-            }
+                  );
+                }
 
-            return RefreshIndicator(
-              onRefresh: () => controller.loadNews(userId: currentUserId),
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                itemCount: allNews.length + 2,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return Column(
+                if (controller.hasError) {
+                  return _NewsErrorView(
+                    message: _localizedErrorMessage(context, controller),
+                    onRetry: () => controller.loadNews(userId: currentUserId),
+                  );
+                }
+
+                if (allNews.isEmpty) {
+                  return RefreshIndicator(
+                    onRefresh: () => controller.loadNews(userId: currentUserId),
+                    child: ListView(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -326,13 +294,11 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                             context,
                             scopeLabel: scopeLabel,
                             scopeDescription: scopeDescription,
-                            newsCount: allNews.length,
+                            newsCount: 0,
                             selectedLanguage: controller.selectedLanguage,
                             onLanguageSelected: (lang) {
-                              controller.setLanguage(
-                                lang,
-                                userId: currentUserId,
-                              );
+                              controller.setLanguage(lang,
+                                  userId: currentUserId);
                             },
                           ),
                         ),
@@ -341,46 +307,88 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           child: _buildTopicChips(context, controller),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 24),
+                        _buildEmptyStateCard(context),
                       ],
-                    );
-                  }
+                    ),
+                  );
+                }
 
-                  if (index == allNews.length + 1) {
-                    if (controller.isLoading && allNews.isNotEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Center(
-                          child: SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: LoadingIndicator(),
-                          ),
-                        ),
-                      );
-                    }
+                return RefreshIndicator(
+                  onRefresh: () => controller.loadNews(userId: currentUserId),
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                    itemCount: allNews.length + 2,
+                    itemBuilder: (context, index) {
+                      if (index == 0) {
+                        return Column(
+                          children: [
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 2),
+                              child: _buildScopeHeader(
+                                context,
+                                scopeLabel: scopeLabel,
+                                scopeDescription: scopeDescription,
+                                newsCount: allNews.length,
+                                selectedLanguage: controller.selectedLanguage,
+                                onLanguageSelected: (lang) {
+                                  controller.setLanguage(
+                                    lang,
+                                    userId: currentUserId,
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 2),
+                              child: _buildTopicChips(context, controller),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                        );
+                      }
 
-                    if (controller.hasMoreFromSource) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Center(
-                          child: Text(
-                            l10n.newsFeed_loadingMoreHint,
-                            style: const TextStyle(fontSize: 11),
-                          ),
-                        ),
-                      );
-                    }
+                      if (index == allNews.length + 1) {
+                        if (controller.isLoading && allNews.isNotEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            child: Center(
+                              child: SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: LoadingIndicator(),
+                              ),
+                            ),
+                          );
+                        }
 
-                    return const SizedBox.shrink();
-                  }
+                        if (controller.hasMoreFromSource) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Center(
+                              child: Text(
+                                l10n.newsFeed_loadingMoreHint,
+                                style: const TextStyle(fontSize: 11),
+                              ),
+                            ),
+                          );
+                        }
 
-                  final news = allNews[index - 1];
-                  return _NewsCard(news: news);
-                },
-              ),
-            );
-          },
+                        return const SizedBox.shrink();
+                      }
+
+                      final news = allNews[index - 1];
+                      return _NewsCard(news: news);
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
         ),
       ),
     );
