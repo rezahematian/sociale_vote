@@ -50,11 +50,13 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
   void initState() {
     super.initState();
     _lastScope = AppDI.instance.geoScopeController.scope;
+    AppDI.instance.geoScopeController.addListener(_onScopeChanged);
     _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
+    AppDI.instance.geoScopeController.removeListener(_onScopeChanged);
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
@@ -73,28 +75,26 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
     }
   }
 
-  void _reloadIfScopeChanged(GeoScope currentScope) {
-    final last = _lastScope;
-    if (last == null) {
-      _lastScope = currentScope;
-      return;
-    }
+  void _onScopeChanged() {
+    if (!mounted) return;
 
-    final changed = last.level != currentScope.level ||
+    final currentScope = AppDI.instance.geoScopeController.scope;
+    final last = _lastScope;
+
+    final changed = last == null ||
+        last.level != currentScope.level ||
         last.countryCode != currentScope.countryCode ||
         last.cityId != currentScope.cityId;
 
     if (!changed) return;
 
-    _lastScope = currentScope;
+    setState(() {
+      _lastScope = currentScope;
+    });
 
     final controller = context.read<NewsController>();
     final userId = AppDI.instance.currentUserId;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      controller.loadNews(userId: userId);
-    });
+    controller.loadNews(userId: userId);
   }
 
   String _scopeShortLabel(BuildContext context, GeoScope scope) {
@@ -231,8 +231,6 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
     final l10n = AppLocalizations.of(context)!;
 
     final scope = AppDI.instance.geoScopeController.scope;
-    _reloadIfScopeChanged(scope);
-
     final scopeLabel = _scopeShortLabel(context, scope);
 
     return Scaffold(

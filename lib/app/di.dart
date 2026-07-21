@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -205,6 +207,7 @@ class _CachedTargetEngagementSnapshot {
 
 class AppDI {
   AppDI._internal() {
+    _geoScopeController.addListener(_handleGeoScopeChanged);
     _sessionRepository.watchCurrentUserId().listen(
       _handleCurrentUserIdChanged,
       onError: (Object error, StackTrace stackTrace) {
@@ -217,6 +220,7 @@ class AppDI {
 
   static final AppDI instance = AppDI._internal();
 
+  static const String _geoScopeStorageKeyPrefix = 'geo_scope_v1';
   static const int _pollMapBatchSize = 120;
   static const int _postMapBatchSize = 120;
   static const int _newsMapBatchSize = 80;
@@ -323,6 +327,9 @@ class AppDI {
   );
 
   String? _currentUserId;
+  bool _hasResolvedInitialUserId = false;
+  bool _isRestoringGeoScope = false;
+  int _geoScopeRestoreRequestId = 0;
 
   SessionRepository get sessionRepository => _sessionRepository;
   UserRepository get userRepository => _userRepository;
@@ -348,12 +355,177 @@ class AppDI {
   String? get currentUserId => _currentUserId;
 
   void _handleCurrentUserIdChanged(String? userId) {
-    if (_currentUserId == userId) {
+    if (_hasResolvedInitialUserId && _currentUserId == userId) {
       return;
     }
 
+    _hasResolvedInitialUserId = true;
     _currentUserId = userId;
     _disposeFollowScopeController();
+    unawaited(_restoreGeoScopeForUser(userId));
+  }
+
+  void _handleGeoScopeChanged() {
+    if (_isRestoringGeoScope) {
+      return;
+    }
+
+    unawaited(
+      _persistGeoScope(
+        userId: _currentUserId,
+        scope: _geoScopeController.scope,
+      ),
+    );
+  }
+
+  Future<void> _persistGeoScope({
+    required String? userId,
+    required GeoScope scope,
+  }) async {
+    try {
+      await _storageService.writeString(
+        _geoScopeStorageKey(userId),
+        _encodeGeoScope(scope),
+      );
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('AppDI geo scope persist error: $error\n$stackTrace');
+      }
+    }
+  }
+
+  Future<void> _restoreGeoScopeForUser(String? userId) async {
+    final requestId = ++_geoScopeRestoreRequestId;
+
+    try {
+      final storedValue = await _storageService.readString(
+        _geoScopeStorageKey(userId),
+      );
+
+      if (requestId != _geoScopeRestoreRequestId || _currentUserId != userId) {
+        return;
+      }
+
+      final restoredScope = _decodeGeoScope(storedValue) ?? GeoScope.world();
+
+      _isRestoringGeoScope = true;
+      try {
+        _geoScopeController.setScope(restoredScope);
+      } finally {
+        _isRestoringGeoScope = false;
+      }
+    } catch (error, stackTrace) {
+      if (requestId != _geoScopeRestoreRequestId || _currentUserId != userId) {
+        return;
+      }
+
+      if (kDebugMode) {
+        debugPrint('AppDI geo scope restore error: $error\n$stackTrace');
+      }
+
+      _isRestoringGeoScope = true;
+      try {
+        _geoScopeController.setWorld();
+      } finally {
+        _isRestoringGeoScope = false;
+      }
+    }
+  }
+
+  String _geoScopeStorageKey(String? userId) {
+    final normalizedUserId = userId?.trim();
+    final ownerKey = normalizedUserId == null || normalizedUserId.isEmpty
+        ? 'guest'
+        : normalizedUserId;
+    return '$_geoScopeStorageKeyPrefix:$ownerKey';
+  }
+
+  String _encodeGeoScope(GeoScope scope) {
+    return jsonEncode(<String, Object?>{
+      'level': scope.level.name,
+      'countryCode': scope.countryCode,
+      'cityId': scope.cityId,
+      'centerLat': scope.centerLat,
+      'centerLng': scope.centerLng,
+      'radiusKm': scope.radiusKm,
+    });
+  }
+
+  GeoScope? _decodeGeoScope(String? storedValue) {
+    final normalizedValue = storedValue?.trim();
+    if (normalizedValue == null || normalizedValue.isEmpty) {
+      return null;
+    }
+
+    try {
+      final decoded = jsonDecode(normalizedValue);
+      if (decoded is! Map) {
+        return null;
+      }
+
+      final map = Map<String, Object?>.from(decoded);
+      final level = map['level']?.toString().trim().toLowerCase();
+      final countryCode = _normalizeStoredGeoText(map['countryCode']);
+      final cityId = _normalizeStoredGeoText(map['cityId']);
+      final centerLat = _storedGeoDouble(map['centerLat']);
+      final centerLng = _storedGeoDouble(map['centerLng']);
+      final radiusKm = _storedGeoDouble(map['radiusKm']);
+
+      switch (level) {
+        case 'world':
+          return GeoScope.world();
+        case 'country':
+          if (countryCode == null) {
+            return null;
+          }
+          return GeoScope.country(
+            countryCode,
+            centerLat: centerLat,
+            centerLng: centerLng,
+            radiusKm: radiusKm,
+          );
+        case 'city':
+          if (countryCode != null && cityId != null) {
+            return GeoScope.city(
+              countryCode: countryCode,
+              cityId: cityId,
+              centerLat: centerLat,
+              centerLng: centerLng,
+              radiusKm: radiusKm,
+            );
+          }
+          if (centerLat != null && centerLng != null && radiusKm != null) {
+            return GeoScope.area(
+              centerLat: centerLat,
+              centerLng: centerLng,
+              radiusKm: radiusKm,
+            );
+          }
+          return null;
+        default:
+          return null;
+      }
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('AppDI invalid stored geo scope: $error\n$stackTrace');
+      }
+      return null;
+    }
+  }
+
+  String? _normalizeStoredGeoText(Object? value) {
+    final normalized = value?.toString().trim();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
+  }
+
+  double? _storedGeoDouble(Object? value) {
+    if (value is num) {
+      return value.toDouble();
+    }
+    return double.tryParse(value?.toString() ?? '');
   }
 
   void _disposeFollowScopeController() {

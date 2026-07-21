@@ -116,9 +116,8 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
 
     for (final request in requests) {
       final sortedKeys = request.keys.toList()..sort();
-      final signature = sortedKeys
-          .map((key) => '$key=${request[key]}')
-          .join('&');
+      final signature =
+          sortedKeys.map((key) => '$key=${request[key]}').join('&');
 
       if (seen.add(signature)) {
         output.add(request);
@@ -136,15 +135,13 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
       queryParameters: queryParameters,
     );
 
-    final response = await _httpClient
-        .get(
-          uri,
-          headers: <String, String>{
-            'User-Agent': _userAgent,
-            'Accept': 'application/json',
-          },
-        )
-        .timeout(_timeout);
+    final response = await _httpClient.get(
+      uri,
+      headers: <String, String>{
+        'User-Agent': _userAgent,
+        'Accept': 'application/json',
+      },
+    ).timeout(_timeout);
 
     if (response.statusCode != 200) {
       return null;
@@ -198,6 +195,7 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
 
     return seed.copyWith(
       countryCode: resolvedCountryCode,
+      cityId: _normalize(seed.cityId) ?? resolvedCityName,
       cityName: resolvedCityName,
       centerLat: lat,
       centerLng: lon,
@@ -262,8 +260,8 @@ class GeocodingRepositoryImpl implements GeocodingRepository {
     final candidateCountryCode =
         _normalize(address?['country_code']?.toString())?.toLowerCase();
     final candidateLocality = _extractLocality(address)?.toLowerCase();
-    final displayName = _normalize(candidate['display_name']?.toString())
-        ?.toLowerCase();
+    final displayName =
+        _normalize(candidate['display_name']?.toString())?.toLowerCase();
 
     if (seedCountryCode != null) {
       if (candidateCountryCode == seedCountryCode) {

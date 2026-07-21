@@ -46,6 +46,7 @@ class PollListController extends ChangeNotifier {
 
   String? _lastKnownUserId;
   bool _isDisposed = false;
+  int _loadGeneration = 0;
 
   // ===== Filtri / ordinamento =====
   PollSortMode _sortMode = PollSortMode.hottest;
@@ -109,6 +110,10 @@ class PollListController extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool _isCurrentLoad(int generation) {
+    return !_isDisposed && generation == _loadGeneration;
+  }
+
   // ===== Setter filtri / ordinamento =====
 
   void setSortMode(PollSortMode mode) {
@@ -137,6 +142,7 @@ class PollListController extends ChangeNotifier {
   Future<void> loadPolls({String? userId}) async {
     if (_isDisposed) return;
 
+    final generation = ++_loadGeneration;
     _lastKnownUserId = userId ?? _lastKnownUserId;
 
     _isLoading = true;
@@ -152,8 +158,10 @@ class PollListController extends ChangeNotifier {
     _hasMoreFromSource = true;
 
     try {
-      await _loadNextPage();
+      await _loadNextPage(generation);
     } catch (e, stackTrace) {
+      if (!_isCurrentLoad(generation)) return;
+
       if (kDebugMode) {
         debugPrint('Error loading polls: $e');
         debugPrint('$stackTrace');
@@ -166,7 +174,7 @@ class PollListController extends ChangeNotifier {
       _currentOffset = 0;
       _hasMoreFromSource = false;
     } finally {
-      if (!_isDisposed) {
+      if (_isCurrentLoad(generation)) {
         _isLoading = false;
         _safeNotifyListeners();
       }
@@ -178,26 +186,30 @@ class PollListController extends ChangeNotifier {
     if (_isLoading) return;
     if (!_hasMoreFromSource) return;
 
+    final generation = _loadGeneration;
+
     _isLoading = true;
     _safeNotifyListeners();
 
     try {
-      await _loadNextPage();
+      await _loadNextPage(generation);
     } catch (e, stackTrace) {
+      if (!_isCurrentLoad(generation)) return;
+
       if (kDebugMode) {
         debugPrint('Error loading more polls: $e');
         debugPrint('$stackTrace');
       }
     } finally {
-      if (!_isDisposed) {
+      if (_isCurrentLoad(generation)) {
         _isLoading = false;
         _safeNotifyListeners();
       }
     }
   }
 
-  Future<void> _loadNextPage() async {
-    if (_isDisposed) return;
+  Future<void> _loadNextPage(int generation) async {
+    if (!_isCurrentLoad(generation)) return;
 
     final scope = geoScopeController.scope;
 
@@ -222,7 +234,7 @@ class PollListController extends ChangeNotifier {
       limit: _pageSize,
       offset: _currentOffset,
     );
-    if (_isDisposed) return;
+    if (!_isCurrentLoad(generation)) return;
 
     if (result.length < _pageSize) {
       _hasMoreFromSource = false;
@@ -255,45 +267,58 @@ class PollListController extends ChangeNotifier {
     _safeNotifyListeners();
 
     await Future.wait<void>([
-      _loadReactionSummariesForPolls(uniqueNewPolls),
-      _loadPollResultsForPolls(uniqueNewPolls),
+      _loadReactionSummariesForPolls(uniqueNewPolls, generation),
+      _loadPollResultsForPolls(uniqueNewPolls, generation),
     ]);
-    if (_isDisposed) return;
+    if (!_isCurrentLoad(generation)) return;
 
     // Aggiorna le card quando arrivano i dati secondari.
     _recomputeVisiblePolls();
     _safeNotifyListeners();
   }
 
-  Future<void> _loadReactionSummariesForPolls(List<Poll> newPolls) async {
-    if (_isDisposed) return;
+  Future<void> _loadReactionSummariesForPolls(
+    List<Poll> newPolls,
+    int generation,
+  ) async {
+    if (!_isCurrentLoad(generation)) return;
     if (newPolls.isEmpty) return;
 
     final targets = newPolls.map((p) => TargetRef.poll(p.id.value)).toList();
 
-    final summaries = await getReactionSummary(
-      targets,
-      userId: _lastKnownUserId,
-    );
-    if (_isDisposed) return;
+    try {
+      final summaries = await getReactionSummary(
+        targets,
+        userId: _lastKnownUserId,
+      );
+      if (!_isCurrentLoad(generation)) return;
 
-    for (final summary in summaries) {
-      _reactionSummaries[summary.target.id] = summary;
+      for (final summary in summaries) {
+        _reactionSummaries[summary.target.id] = summary;
+      }
+    } catch (error, stackTrace) {
+      if (kDebugMode && _isCurrentLoad(generation)) {
+        debugPrint('Error loading poll reaction summaries: $error');
+        debugPrint('$stackTrace');
+      }
     }
   }
 
-  Future<void> _loadPollResultsForPolls(List<Poll> newPolls) async {
-    if (_isDisposed) return;
+  Future<void> _loadPollResultsForPolls(
+    List<Poll> newPolls,
+    int generation,
+  ) async {
+    if (!_isCurrentLoad(generation)) return;
     if (newPolls.isEmpty) return;
 
     await Future.wait<void>(
       newPolls.map((poll) async {
-        if (_isDisposed) return;
+        if (!_isCurrentLoad(generation)) return;
         if (_pollResults.containsKey(poll.id.value)) return;
 
         try {
           final pollResult = await getPollResults(poll);
-          if (_isDisposed) return;
+          if (!_isCurrentLoad(generation)) return;
           _pollResults[poll.id.value] = pollResult;
         } catch (_) {
           // Se un poll fallisce, non blocchiamo tutta la lista.
@@ -522,6 +547,7 @@ class PollListController extends ChangeNotifier {
   @override
   void dispose() {
     _isDisposed = true;
+    _loadGeneration++;
     geoScopeController.removeListener(_geoScopeListener);
     _clearVoteSubscriptions();
     super.dispose();

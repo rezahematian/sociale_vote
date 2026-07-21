@@ -448,6 +448,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     return AnimatedBuilder(
       animation: Listenable.merge([
         _geoScopeController,
+        _followScopeController,
         AppThemeModeController.themeMode,
       ]),
       builder: (context, _) {
