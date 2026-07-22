@@ -91,7 +91,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get createPollCountryFieldLabel => 'Paese per questo sondaggio';
 
   @override
-  String get createPollCountryFieldHelper => 'Questo Paese definirà chi è autorizzato a partecipare a questo sondaggio (integrazione backend futura).';
+  String get createPollCountryFieldHelper => 'Questo Paese definirà chi è autorizzato a partecipare a questo sondaggio (funzionalità futura).';
 
   @override
   String get createPollVoteAnonymityTitle => 'Anonimato del voto';
@@ -196,13 +196,126 @@ class AppLocalizationsIt extends AppLocalizations {
   String get homeProfileButton => 'Profilo';
 
   @override
-  String get homeLogoutButton => 'Logout';
+  String get homeLogoutButton => 'Esci';
 
   @override
-  String get homeLogoutMessage => 'Logout eseguito. Ora stai usando l’app come ospite (solo lettura).';
+  String get homeLogoutMessage => 'Disconnessione completata. Ora stai usando l’app come ospite (sola lettura).';
 
   @override
-  String get homeSearchHint => 'Cerca città, Paese, sondaggi, news, post...';
+  String get homeSearchHint => 'Cerca città, Paese, sondaggi, notizie, pubblicazioni...';
+
+  @override
+  String get commonCancel => 'Annulla';
+
+  @override
+  String get commonApply => 'Applica';
+
+  @override
+  String get commonVerifying => 'Verifica in corso...';
+
+  @override
+  String get homeScopeChooseCountry => 'Choose country';
+
+  @override
+  String get homeScopeChooseCity => 'Choose city';
+
+  @override
+  String get homeScopeCountrySearchHint => 'Search country or code...';
+
+  @override
+  String get homeScopeCityRequiredError => 'Enter a city.';
+
+  @override
+  String get homeScopeCityNotFoundError => 'City not found in the selected country.';
+
+  @override
+  String get homeScopeCityVerificationError => 'Unable to verify the city. Try again.';
+
+  @override
+  String homeScopeSelectedCountryLabel(Object countryCode) {
+    return 'Country: $countryCode';
+  }
+
+  @override
+  String get homeScopeCityFieldHint => 'E.g. Rome, São Paulo, Tehran';
+
+  @override
+  String get homeForYouPageTitle => 'Per te';
+
+  @override
+  String get homeTrendingRefreshTooltip => 'Aggiorna contenuti di tendenza';
+
+  @override
+  String get contentTypePoll => 'Sondaggio';
+
+  @override
+  String get contentTypeNews => 'Notizia';
+
+  @override
+  String get contentTypePost => 'Pubblicazione';
+
+  @override
+  String get searchPageTitle => 'Cerca';
+
+  @override
+  String get searchInputHint => 'Cerca sondaggi, notizie, pubblicazioni...';
+
+  @override
+  String get searchClearTooltip => 'Cancella ricerca';
+
+  @override
+  String get searchTypeAll => 'Tutti';
+
+  @override
+  String get searchTypePolls => 'Sondaggi';
+
+  @override
+  String get searchTypeNews => 'Notizie';
+
+  @override
+  String get searchTypePosts => 'Pubblicazioni';
+
+  @override
+  String get searchSortHottest => 'Più caldi';
+
+  @override
+  String get searchSortLatest => 'Più recenti';
+
+  @override
+  String get searchPollStatusAll => 'Tutti i sondaggi';
+
+  @override
+  String get searchPollStatusOpen => 'Aperti';
+
+  @override
+  String get searchPollStatusClosed => 'Chiusi';
+
+  @override
+  String get searchIdleMessage => 'Inserisci un termine per iniziare la ricerca.';
+
+  @override
+  String get searchErrorMessage => 'Si è verificato un problema durante la ricerca.';
+
+  @override
+  String get searchRetryButton => 'Riprova';
+
+  @override
+  String get searchEmptyMessage => 'Nessun risultato trovato per questa ricerca.';
+
+  @override
+  String get searchContentUnavailable => 'Contenuto non disponibile';
+
+  @override
+  String get searchResultTypePoll => 'Sondaggio';
+
+  @override
+  String get searchResultTypeNews => 'Notizia';
+
+  @override
+  String get searchResultTypePost => 'Pubblicazione';
+
+  @override
+  String get searchResultTypeMixed => 'Misto';
 
   @override
   String homeUserStatusLoggedIn(Object userId) {
@@ -213,16 +326,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get homeUserStatusGuest => 'Modalità ospite: puoi solo leggere. Accedi o registrati per votare, commentare e reagire.';
 
   @override
-  String get homeScopeLabelWorld => 'World – Votazioni e news globali';
+  String get homeScopeLabelWorld => 'Mondo – Votazioni e notizie globali';
 
   @override
-  String get homeScopeLabelCountry => 'Country – Votazioni e news del Paese';
+  String get homeScopeLabelCountry => 'Paese – Votazioni e notizie nazionali';
 
   @override
-  String get homeScopeLabelCity => 'City – Votazioni e news della città';
+  String get homeScopeLabelCity => 'Città – Votazioni e notizie locali';
 
   @override
-  String get homeScopeShortWorld => 'World';
+  String get homeScopeShortWorld => 'Mondo';
 
   @override
   String get homeScopeShortCountry => 'Paese';
@@ -231,7 +344,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get homeScopeShortCity => 'Città';
 
   @override
-  String get homeScopeChipWorld => 'World';
+  String get homeScopeChipWorld => 'Mondo';
 
   @override
   String get homeScopeChipItaly => 'Italia';
@@ -240,13 +353,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get homeScopeChipTorino => 'Torino';
 
   @override
-  String get homeScopeChangedWorld => 'Scope cambiato su World';
+  String get homeScopeChangedWorld => 'Ambito impostato su Mondo';
 
   @override
-  String get homeScopeChangedItaly => 'Scope cambiato su Italy';
+  String get homeScopeChangedItaly => 'Ambito impostato su Italia';
 
   @override
-  String get homeScopeChangedTorino => 'Scope cambiato su Torino';
+  String get homeScopeChangedTorino => 'Ambito impostato su Torino';
 
   @override
   String get followScopeButtonFollowed => 'Seguito';
@@ -255,81 +368,81 @@ class AppLocalizationsIt extends AppLocalizations {
   String get followScopeButtonFollow => 'Segui quest’area';
 
   @override
-  String get homeTrendingTitle => 'Trending now';
+  String get homeTrendingTitle => 'Di tendenza';
 
   @override
-  String get homeTrendingError => 'Impossibile caricare i contenuti trending per quest’area.';
+  String get homeTrendingError => 'Impossibile caricare i contenuti di tendenza per quest’area.';
 
   @override
-  String get homeTrendingEmpty => 'Nessun contenuto trending per questo scope al momento.';
+  String get homeTrendingEmpty => 'Nessun contenuto di tendenza per quest’area al momento.';
 
   @override
   String homeForYouTitle(Object scope) {
-    return 'For You ($scope)';
+    return 'Per te ($scope)';
   }
 
   @override
-  String get homeForYouError => 'Impossibile caricare il feed \"For You\" per quest’area.';
+  String get homeForYouError => 'Impossibile caricare i contenuti Per te per quest’area.';
 
   @override
-  String get homeForYouEmpty => 'Nessun contenuto suggerito \"For You\" per questo scope al momento.';
+  String get homeForYouEmpty => 'Nessun contenuto suggerito per te in quest’area al momento.';
 
   @override
   String homePollsTitle(Object scope) {
-    return 'Highlighted Polls ($scope)';
+    return 'Sondaggi in evidenza ($scope)';
   }
 
   @override
   String get homePollsEmptyTitle => 'Nessun sondaggio per quest’area';
 
   @override
-  String get homePollsEmptySubtitle => 'Non ci sono votazioni per questo scope.';
+  String get homePollsEmptySubtitle => 'Non ci sono votazioni per quest’area.';
 
   @override
   String get homePollsViewAllButton => 'Vedi tutti i sondaggi';
 
   @override
   String homeNewsTitle(Object scope) {
-    return 'Top News ($scope)';
+    return 'Notizie principali ($scope)';
   }
 
   @override
-  String get homeNewsErrorTitle => 'Impossibile caricare le news';
+  String get homeNewsErrorTitle => 'Impossibile caricare le notizie';
 
   @override
-  String get homeNewsErrorSubtitle => 'Si è verificato un problema nel caricamento delle news per quest’area.';
+  String get homeNewsErrorSubtitle => 'Si è verificato un problema nel caricamento delle notizie per quest’area.';
 
   @override
-  String get homeNewsEmptyTitle => 'Nessuna news per quest’area';
+  String get homeNewsEmptyTitle => 'Nessuna notizia per quest’area';
 
   @override
-  String get homeNewsEmptySubtitle => 'Non ci sono news per questo scope al momento.';
+  String get homeNewsEmptySubtitle => 'Non ci sono notizie per quest’area al momento.';
 
   @override
-  String get homeNewsViewAllButton => 'Vedi tutte le news';
+  String get homeNewsViewAllButton => 'Vedi tutte le notizie';
 
   @override
-  String get homeNewsBreakingBadge => 'BREAKING';
+  String get homeNewsBreakingBadge => 'ULTIM’ORA';
 
   @override
   String homeSocialTitle(Object scope) {
-    return 'Discussions / Feed ($scope)';
+    return 'Discussioni ($scope)';
   }
 
   @override
   String get homeSocialErrorTitle => 'Impossibile caricare le discussioni';
 
   @override
-  String get homeSocialErrorSubtitle => 'Si è verificato un problema nel caricamento del feed sociale per quest’area.';
+  String get homeSocialErrorSubtitle => 'Si è verificato un problema nel caricamento delle discussioni per quest’area.';
 
   @override
   String get homeSocialEmptyTitle => 'Nessuna discussione per quest’area';
 
   @override
-  String get homeSocialEmptySubtitle => 'Non ci sono discussioni per questo scope al momento.';
+  String get homeSocialEmptySubtitle => 'Non ci sono discussioni per quest’area al momento.';
 
   @override
-  String get homeSocialViewFeedButton => 'Vedi il social feed';
+  String get homeSocialViewFeedButton => 'Vedi tutte le discussioni';
 
   @override
   String get pollDetail_title => 'Dettaglio sondaggio';
@@ -666,13 +779,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get newsCard_headerTitle => 'Notizia';
 
   @override
-  String get newsFeed_errorUnauthorized => 'Configurazione News non valida (API key).';
+  String get newsFeed_errorUnauthorized => 'Configurazione delle notizie non valida (chiave API).';
 
   @override
   String get newsFeed_errorRateLimited => 'Troppe richieste. Riprova tra poco.';
 
   @override
-  String get newsFeed_errorServerUnavailable => 'Servizio News temporaneamente non disponibile. Riprova più tardi.';
+  String get newsFeed_errorServerUnavailable => 'Servizio notizie temporaneamente non disponibile. Riprova più tardi.';
 
   @override
   String get newsFeed_errorTimeout => 'La richiesta sta impiegando troppo tempo. Riprova.';
@@ -687,7 +800,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get newsFeed_actionCopyTitle => 'Copia titolo';
 
   @override
-  String get newsFeed_actionRefreshFeed => 'Aggiorna feed';
+  String get newsFeed_actionRefreshFeed => 'Aggiorna notizie';
 
   @override
   String get newsFeed_copiedTitleToast => 'Titolo copiato';

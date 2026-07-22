@@ -205,6 +205,119 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeSearchHint => 'Search city, country, polls, news, posts...';
 
   @override
+  String get commonCancel => 'Cancel';
+
+  @override
+  String get commonApply => 'Apply';
+
+  @override
+  String get commonVerifying => 'Verifying...';
+
+  @override
+  String get homeScopeChooseCountry => 'Choose country';
+
+  @override
+  String get homeScopeChooseCity => 'Choose city';
+
+  @override
+  String get homeScopeCountrySearchHint => 'Search country or code...';
+
+  @override
+  String get homeScopeCityRequiredError => 'Enter a city.';
+
+  @override
+  String get homeScopeCityNotFoundError => 'City not found in the selected country.';
+
+  @override
+  String get homeScopeCityVerificationError => 'Unable to verify the city. Try again.';
+
+  @override
+  String homeScopeSelectedCountryLabel(Object countryCode) {
+    return 'Country: $countryCode';
+  }
+
+  @override
+  String get homeScopeCityFieldHint => 'E.g. Rome, São Paulo, Tehran';
+
+  @override
+  String get homeForYouPageTitle => 'For You';
+
+  @override
+  String get homeTrendingRefreshTooltip => 'Refresh trending content';
+
+  @override
+  String get contentTypePoll => 'Poll';
+
+  @override
+  String get contentTypeNews => 'News';
+
+  @override
+  String get contentTypePost => 'Post';
+
+  @override
+  String get searchPageTitle => 'Search';
+
+  @override
+  String get searchInputHint => 'Search polls, news, posts...';
+
+  @override
+  String get searchClearTooltip => 'Clear search';
+
+  @override
+  String get searchTypeAll => 'All';
+
+  @override
+  String get searchTypePolls => 'Polls';
+
+  @override
+  String get searchTypeNews => 'News';
+
+  @override
+  String get searchTypePosts => 'Posts';
+
+  @override
+  String get searchSortHottest => 'Hottest';
+
+  @override
+  String get searchSortLatest => 'Latest';
+
+  @override
+  String get searchPollStatusAll => 'All polls';
+
+  @override
+  String get searchPollStatusOpen => 'Open';
+
+  @override
+  String get searchPollStatusClosed => 'Closed';
+
+  @override
+  String get searchIdleMessage => 'Enter a term to start searching.';
+
+  @override
+  String get searchErrorMessage => 'Something went wrong while searching.';
+
+  @override
+  String get searchRetryButton => 'Try again';
+
+  @override
+  String get searchEmptyMessage => 'No results found for this search.';
+
+  @override
+  String get searchContentUnavailable => 'Content unavailable';
+
+  @override
+  String get searchResultTypePoll => 'Poll';
+
+  @override
+  String get searchResultTypeNews => 'News';
+
+  @override
+  String get searchResultTypePost => 'Post';
+
+  @override
+  String get searchResultTypeMixed => 'Mixed';
+
+  @override
   String homeUserStatusLoggedIn(Object userId) {
     return 'Logged in as: $userId';
   }

@@ -3,13 +3,16 @@ import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/app/theme/radius.dart';
+import 'package:sociale_vote/app/theme/spacing.dart';
 import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/search/entities/search_result_item.dart';
-import 'package:sociale_vote/domain/search/value_objects/search_query.dart';
 import 'package:sociale_vote/domain/search/value_objects/search_filters.dart';
+import 'package:sociale_vote/domain/search/value_objects/search_query.dart';
 import 'package:sociale_vote/features/search/application/search_controller.dart'
     as app_search;
+import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -19,10 +22,11 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+  static const double _maxContentWidth = 1120;
+  static const double _singleRowFiltersMinWidth = 720;
+
   final TextEditingController _queryController = TextEditingController();
   SearchContentType _selectedType = SearchContentType.all;
-
-  // Nuovi stati locale per i filtri
   SearchSort _selectedSort = SearchSort.hottest;
   PollStatusFilter _selectedPollStatus = PollStatusFilter.all;
   String? _openingTargetKey;
@@ -36,11 +40,9 @@ class _SearchPageState extends State<SearchPage> {
   void _onSubmit(app_search.SearchController controller) {
     final raw = _queryController.text.trim();
 
-    // Sync filtri nel controller prima di eseguire la ricerca
     controller.setContentType(_selectedType);
     controller.setSort(_selectedSort);
 
-    // Filtro Poll open/closed ha senso solo per Poll / All
     if (_selectedType == SearchContentType.poll ||
         _selectedType == SearchContentType.all) {
       controller.setPollStatus(_selectedPollStatus);
@@ -116,9 +118,10 @@ class _SearchPageState extends State<SearchPage> {
         return;
       }
 
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Contenuto non disponibile'),
+        SnackBar(
+          content: Text(l10n.searchContentUnavailable),
         ),
       );
     } finally {
@@ -132,208 +135,95 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
     return ChangeNotifierProvider<app_search.SearchController>(
       create: (_) => AppDI.instance.createSearchController(),
       child: Consumer<app_search.SearchController>(
         builder: (context, controller, _) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Search'),
+              title: Text(l10n.searchPageTitle),
             ),
-            body: SafeArea(
-              child: Column(
-                children: [
-                  // ========= SEARCH BAR + CLEAR =========
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _queryController,
-                            textInputAction: TextInputAction.search,
-                            onSubmitted: (_) => _onSubmit(controller),
-                            decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.search),
-                              hintText: 'Search polls, news, posts...',
-                              isDense: true,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+            body: ColoredBox(
+              color: theme.scaffoldBackgroundColor,
+              child: SafeArea(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: _maxContentWidth,
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.pagePadding,
+                              AppSpacing.s,
+                              AppSpacing.pagePadding,
+                              AppSpacing.xxs,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _queryController,
+                                    textInputAction: TextInputAction.search,
+                                    onSubmitted: (_) => _onSubmit(controller),
+                                    decoration: InputDecoration(
+                                      prefixIcon: const Icon(Icons.search),
+                                      hintText: l10n.searchInputHint,
+                                      isDense: true,
+                                      border: const OutlineInputBorder(
+                                        borderRadius: AppRadius.inputRadius,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.xs),
+                                IconButton(
+                                  onPressed: () {
+                                    _queryController.clear();
+                                    controller.clear();
+
+                                    setState(() {
+                                      _selectedType = SearchContentType.all;
+                                      _selectedSort = SearchSort.hottest;
+                                      _selectedPollStatus =
+                                          PollStatusFilter.all;
+                                    });
+                                  },
+                                  tooltip: l10n.searchClearTooltip,
+                                  icon: const Icon(Icons.close),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          onPressed: () {
-                            _queryController.clear();
-                            controller.clear();
-
-                            setState(() {
-                              _selectedType = SearchContentType.all;
-                              _selectedSort = SearchSort.hottest;
-                              _selectedPollStatus = PollStatusFilter.all;
-                            });
-                          },
-                          tooltip: 'Clear',
-                          icon: const Icon(Icons.close),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // ========= FILTER CHIPS (CONTENT TYPE) =========
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _TypeFilterChip(
-                            label: 'All',
-                            type: SearchContentType.all,
-                            selectedType: _selectedType,
-                            onSelected: (t) {
-                              setState(() {
-                                _selectedType = t;
-                                // Per sicurezza, se usciamo dal mondo Poll,
-                                // azzeriamo il filtro stato poll.
-                                if (_selectedType != SearchContentType.poll &&
-                                    _selectedType != SearchContentType.all) {
-                                  _selectedPollStatus = PollStatusFilter.all;
-                                }
-                              });
-                              controller.setContentType(t);
-                              if (_queryController.text.trim().isNotEmpty) {
-                                _onSubmit(controller);
-                              }
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                          _TypeFilterChip(
-                            label: 'Polls',
-                            type: SearchContentType.poll,
-                            selectedType: _selectedType,
-                            onSelected: (t) {
-                              setState(() {
-                                _selectedType = t;
-                              });
-                              controller.setContentType(t);
-                              if (_queryController.text.trim().isNotEmpty) {
-                                _onSubmit(controller);
-                              }
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                          _TypeFilterChip(
-                            label: 'News',
-                            type: SearchContentType.news,
-                            selectedType: _selectedType,
-                            onSelected: (t) {
-                              setState(() {
-                                _selectedType = t;
-                                if (_selectedType != SearchContentType.poll &&
-                                    _selectedType != SearchContentType.all) {
-                                  _selectedPollStatus = PollStatusFilter.all;
-                                }
-                              });
-                              controller.setContentType(t);
-                              if (_queryController.text.trim().isNotEmpty) {
-                                _onSubmit(controller);
-                              }
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                          _TypeFilterChip(
-                            label: 'Posts',
-                            type: SearchContentType.post,
-                            selectedType: _selectedType,
-                            onSelected: (t) {
-                              setState(() {
-                                _selectedType = t;
-                                if (_selectedType != SearchContentType.poll &&
-                                    _selectedType != SearchContentType.all) {
-                                  _selectedPollStatus = PollStatusFilter.all;
-                                }
-                              });
-                              controller.setContentType(t);
-                              if (_queryController.text.trim().isNotEmpty) {
-                                _onSubmit(controller);
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // ========= FILTER BAR (SORT + POLL STATUS) =========
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    child: Row(
-                      children: [
-                        // Sort (Latest / Hottest)
-                        Expanded(
-                          child: Wrap(
-                            spacing: 8,
-                            runSpacing: 4,
-                            children: [
-                              _SortFilterChip(
-                                label: 'Hottest',
-                                sort: SearchSort.hottest,
-                                selectedSort: _selectedSort,
-                                onSelected: (s) {
-                                  setState(() {
-                                    _selectedSort = s;
-                                  });
-                                  controller.setSort(s);
-                                  if (_queryController.text.trim().isNotEmpty) {
-                                    _onSubmit(controller);
-                                  }
-                                },
-                              ),
-                              _SortFilterChip(
-                                label: 'Latest',
-                                sort: SearchSort.latest,
-                                selectedSort: _selectedSort,
-                                onSelected: (s) {
-                                  setState(() {
-                                    _selectedSort = s;
-                                  });
-                                  controller.setSort(s);
-                                  if (_queryController.text.trim().isNotEmpty) {
-                                    _onSubmit(controller);
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Poll status (All / Open / Closed) → solo per Poll / All
-                        if (_selectedType == SearchContentType.poll ||
-                            _selectedType == SearchContentType.all) ...[
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Wrap(
-                              spacing: 8,
-                              runSpacing: 4,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.pagePadding,
+                              vertical: AppSpacing.xxs,
+                            ),
+                            child: _HorizontalChipGroup(
                               children: [
-                                _PollStatusFilterChip(
-                                  label: 'All Polls',
-                                  status: PollStatusFilter.all,
-                                  selectedStatus: _selectedPollStatus,
-                                  onSelected: (s) {
+                                _TypeFilterChip(
+                                  label: l10n.searchTypeAll,
+                                  type: SearchContentType.all,
+                                  selectedType: _selectedType,
+                                  onSelected: (type) {
                                     setState(() {
-                                      _selectedPollStatus = s;
+                                      _selectedType = type;
+                                      if (_selectedType !=
+                                              SearchContentType.poll &&
+                                          _selectedType !=
+                                              SearchContentType.all) {
+                                        _selectedPollStatus =
+                                            PollStatusFilter.all;
+                                      }
                                     });
-                                    controller.setPollStatus(s);
+                                    controller.setContentType(type);
                                     if (_queryController.text
                                         .trim()
                                         .isNotEmpty) {
@@ -341,15 +231,15 @@ class _SearchPageState extends State<SearchPage> {
                                     }
                                   },
                                 ),
-                                _PollStatusFilterChip(
-                                  label: 'Open',
-                                  status: PollStatusFilter.open,
-                                  selectedStatus: _selectedPollStatus,
-                                  onSelected: (s) {
+                                _TypeFilterChip(
+                                  label: l10n.searchTypePolls,
+                                  type: SearchContentType.poll,
+                                  selectedType: _selectedType,
+                                  onSelected: (type) {
                                     setState(() {
-                                      _selectedPollStatus = s;
+                                      _selectedType = type;
                                     });
-                                    controller.setPollStatus(s);
+                                    controller.setContentType(type);
                                     if (_queryController.text
                                         .trim()
                                         .isNotEmpty) {
@@ -357,15 +247,35 @@ class _SearchPageState extends State<SearchPage> {
                                     }
                                   },
                                 ),
-                                _PollStatusFilterChip(
-                                  label: 'Closed',
-                                  status: PollStatusFilter.closed,
-                                  selectedStatus: _selectedPollStatus,
-                                  onSelected: (s) {
+                                _TypeFilterChip(
+                                  label: l10n.searchTypeNews,
+                                  type: SearchContentType.news,
+                                  selectedType: _selectedType,
+                                  onSelected: (type) {
                                     setState(() {
-                                      _selectedPollStatus = s;
+                                      _selectedType = type;
+                                      _selectedPollStatus =
+                                          PollStatusFilter.all;
                                     });
-                                    controller.setPollStatus(s);
+                                    controller.setContentType(type);
+                                    if (_queryController.text
+                                        .trim()
+                                        .isNotEmpty) {
+                                      _onSubmit(controller);
+                                    }
+                                  },
+                                ),
+                                _TypeFilterChip(
+                                  label: l10n.searchTypePosts,
+                                  type: SearchContentType.post,
+                                  selectedType: _selectedType,
+                                  onSelected: (type) {
+                                    setState(() {
+                                      _selectedType = type;
+                                      _selectedPollStatus =
+                                          PollStatusFilter.all;
+                                    });
+                                    controller.setContentType(type);
                                     if (_queryController.text
                                         .trim()
                                         .isNotEmpty) {
@@ -376,21 +286,146 @@ class _SearchPageState extends State<SearchPage> {
                               ],
                             ),
                           ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.pagePadding,
+                              vertical: AppSpacing.xxs,
+                            ),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final sortFilters = _HorizontalChipGroup(
+                                  children: [
+                                    _SortFilterChip(
+                                      label: l10n.searchSortHottest,
+                                      sort: SearchSort.hottest,
+                                      selectedSort: _selectedSort,
+                                      onSelected: (sort) {
+                                        setState(() {
+                                          _selectedSort = sort;
+                                        });
+                                        controller.setSort(sort);
+                                        if (_queryController.text
+                                            .trim()
+                                            .isNotEmpty) {
+                                          _onSubmit(controller);
+                                        }
+                                      },
+                                    ),
+                                    _SortFilterChip(
+                                      label: l10n.searchSortLatest,
+                                      sort: SearchSort.latest,
+                                      selectedSort: _selectedSort,
+                                      onSelected: (sort) {
+                                        setState(() {
+                                          _selectedSort = sort;
+                                        });
+                                        controller.setSort(sort);
+                                        if (_queryController.text
+                                            .trim()
+                                            .isNotEmpty) {
+                                          _onSubmit(controller);
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                );
+
+                                final showsPollStatus =
+                                    _selectedType == SearchContentType.poll ||
+                                        _selectedType == SearchContentType.all;
+
+                                if (!showsPollStatus) {
+                                  return sortFilters;
+                                }
+
+                                final pollStatusFilters = _HorizontalChipGroup(
+                                  children: [
+                                    _PollStatusFilterChip(
+                                      label: l10n.searchPollStatusAll,
+                                      status: PollStatusFilter.all,
+                                      selectedStatus: _selectedPollStatus,
+                                      onSelected: (status) {
+                                        setState(() {
+                                          _selectedPollStatus = status;
+                                        });
+                                        controller.setPollStatus(status);
+                                        if (_queryController.text
+                                            .trim()
+                                            .isNotEmpty) {
+                                          _onSubmit(controller);
+                                        }
+                                      },
+                                    ),
+                                    _PollStatusFilterChip(
+                                      label: l10n.searchPollStatusOpen,
+                                      status: PollStatusFilter.open,
+                                      selectedStatus: _selectedPollStatus,
+                                      onSelected: (status) {
+                                        setState(() {
+                                          _selectedPollStatus = status;
+                                        });
+                                        controller.setPollStatus(status);
+                                        if (_queryController.text
+                                            .trim()
+                                            .isNotEmpty) {
+                                          _onSubmit(controller);
+                                        }
+                                      },
+                                    ),
+                                    _PollStatusFilterChip(
+                                      label: l10n.searchPollStatusClosed,
+                                      status: PollStatusFilter.closed,
+                                      selectedStatus: _selectedPollStatus,
+                                      onSelected: (status) {
+                                        setState(() {
+                                          _selectedPollStatus = status;
+                                        });
+                                        controller.setPollStatus(status);
+                                        if (_queryController.text
+                                            .trim()
+                                            .isNotEmpty) {
+                                          _onSubmit(controller);
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                );
+
+                                if (constraints.maxWidth >=
+                                    _singleRowFiltersMinWidth) {
+                                  return Row(
+                                    children: [
+                                      Expanded(child: sortFilters),
+                                      const SizedBox(width: AppSpacing.m),
+                                      Expanded(child: pollStatusFilters),
+                                    ],
+                                  );
+                                }
+
+                                return Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    sortFilters,
+                                    const SizedBox(height: AppSpacing.xs),
+                                    pollStatusFilters,
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Expanded(
+                            child: _buildResultsArea(
+                              context: context,
+                              controller: controller,
+                            ),
+                          ),
                         ],
-                      ],
+                      ),
                     ),
                   ),
-
-                  const SizedBox(height: 8),
-
-                  // ========= RESULTS / STATES =========
-                  Expanded(
-                    child: _buildResultsArea(
-                      context: context,
-                      controller: controller,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           );
@@ -404,13 +439,20 @@ class _SearchPageState extends State<SearchPage> {
     required app_search.SearchController controller,
   }) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     if (controller.isIdle) {
       return Center(
-        child: Text(
-          'Digita qualcosa per iniziare una ricerca.',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.l,
+          ),
+          child: Text(
+            l10n.searchIdleMessage,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+            ),
+            textAlign: TextAlign.center,
           ),
         ),
       );
@@ -425,7 +467,9 @@ class _SearchPageState extends State<SearchPage> {
     if (controller.hasError) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.l,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -433,26 +477,17 @@ class _SearchPageState extends State<SearchPage> {
                 Icons.error_outline,
                 size: 40,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.xs),
               Text(
-                'Si è verificato un errore durante la ricerca.',
+                l10n.searchErrorMessage,
                 style: theme.textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 4),
-              Text(
-                controller.errorMessage ?? '',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color:
-                      theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.s),
               ElevatedButton.icon(
                 onPressed: controller.retry,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Riprova'),
+                label: Text(l10n.searchRetryButton),
               ),
             ],
           ),
@@ -462,10 +497,16 @@ class _SearchPageState extends State<SearchPage> {
 
     if (!controller.isLoading && controller.results.isEmpty) {
       return Center(
-        child: Text(
-          'Nessun risultato trovato per questa ricerca.',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.l,
+          ),
+          child: Text(
+            l10n.searchEmptyMessage,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+            ),
+            textAlign: TextAlign.center,
           ),
         ),
       );
@@ -474,9 +515,14 @@ class _SearchPageState extends State<SearchPage> {
     final results = controller.results;
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pagePadding,
+        AppSpacing.xxs,
+        AppSpacing.pagePadding,
+        AppSpacing.pagePadding,
+      ),
       itemCount: results.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.xs),
       itemBuilder: (context, index) {
         final item = results[index];
         final isOpening = _openingTargetKey == item.target.key;
@@ -487,6 +533,29 @@ class _SearchPageState extends State<SearchPage> {
           onTap: isOpening ? null : () => _openResult(item),
         );
       },
+    );
+  }
+}
+
+class _HorizontalChipGroup extends StatelessWidget {
+  final List<Widget> children;
+
+  const _HorizontalChipGroup({
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (var index = 0; index < children.length; index++) ...[
+            if (index > 0) const SizedBox(width: AppSpacing.xs),
+            children[index],
+          ],
+        ],
+      ),
     );
   }
 }
@@ -582,23 +651,22 @@ class _SearchResultTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     final icon = _iconForType(item.contentType);
-    final typeLabel = _labelForType(item.contentType);
-    final dateText = _formatDate(item.date);
+    final typeLabel = _labelForType(context, item.contentType);
+    final dateText = _formatDate(context, item.date);
 
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+      shape: const RoundedRectangleBorder(
+        borderRadius: AppRadius.inputRadius,
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.inputRadius,
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.s),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Type + date
               Row(
                 children: [
                   Icon(
@@ -629,7 +697,7 @@ class _SearchResultTile extends StatelessWidget {
                       size: 14,
                       color: theme.hintColor,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: AppSpacing.xxs),
                     Text(
                       dateText,
                       style: theme.textTheme.bodySmall?.copyWith(
@@ -648,7 +716,7 @@ class _SearchResultTile extends StatelessWidget {
                 ),
               ),
               if (item.hasSnippet) ...[
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xxs),
                 Text(
                   item.snippet!,
                   maxLines: 2,
@@ -676,27 +744,34 @@ class _SearchResultTile extends StatelessWidget {
     }
   }
 
-  String _labelForType(SearchContentType type) {
+  String _labelForType(BuildContext context, SearchContentType type) {
+    final l10n = AppLocalizations.of(context)!;
+
     switch (type) {
       case SearchContentType.poll:
-        return 'Poll';
+        return l10n.searchResultTypePoll;
       case SearchContentType.news:
-        return 'News';
+        return l10n.searchResultTypeNews;
       case SearchContentType.post:
-        return 'Post';
+        return l10n.searchResultTypePost;
       case SearchContentType.all:
-        return 'Mixed';
+        return l10n.searchResultTypeMixed;
     }
   }
 
-  String? _formatDate(DateTime? dateTime) {
-    if (dateTime == null) return null;
+  String? _formatDate(BuildContext context, DateTime? dateTime) {
+    if (dateTime == null) {
+      return null;
+    }
+
     final local = dateTime.toLocal();
-    final day = local.day.toString().padLeft(2, '0');
-    final month = local.month.toString().padLeft(2, '0');
-    final year = local.year.toString();
-    final hour = local.hour.toString().padLeft(2, '0');
-    final minute = local.minute.toString().padLeft(2, '0');
-    return '$day/$month/$year $hour:$minute';
+    final materialLocalizations = MaterialLocalizations.of(context);
+    final date = materialLocalizations.formatCompactDate(local);
+    final time = materialLocalizations.formatTimeOfDay(
+      TimeOfDay.fromDateTime(local),
+      alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+
+    return '$date $time';
   }
 }

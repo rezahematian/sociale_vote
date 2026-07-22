@@ -479,6 +479,228 @@ abstract class AppLocalizations {
   /// **'Search city, country, polls, news, posts...'**
   String get homeSearchHint;
 
+  /// No description provided for @commonCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get commonCancel;
+
+  /// No description provided for @commonApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get commonApply;
+
+  /// No description provided for @commonVerifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying...'**
+  String get commonVerifying;
+
+  /// No description provided for @homeScopeChooseCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose country'**
+  String get homeScopeChooseCountry;
+
+  /// No description provided for @homeScopeChooseCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose city'**
+  String get homeScopeChooseCity;
+
+  /// No description provided for @homeScopeCountrySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search country or code...'**
+  String get homeScopeCountrySearchHint;
+
+  /// No description provided for @homeScopeCityRequiredError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a city.'**
+  String get homeScopeCityRequiredError;
+
+  /// No description provided for @homeScopeCityNotFoundError.
+  ///
+  /// In en, this message translates to:
+  /// **'City not found in the selected country.'**
+  String get homeScopeCityNotFoundError;
+
+  /// No description provided for @homeScopeCityVerificationError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to verify the city. Try again.'**
+  String get homeScopeCityVerificationError;
+
+  /// No description provided for @homeScopeSelectedCountryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Country: {countryCode}'**
+  String homeScopeSelectedCountryLabel(Object countryCode);
+
+  /// No description provided for @homeScopeCityFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'E.g. Rome, São Paulo, Tehran'**
+  String get homeScopeCityFieldHint;
+
+  /// No description provided for @homeForYouPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'For You'**
+  String get homeForYouPageTitle;
+
+  /// No description provided for @homeTrendingRefreshTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh trending content'**
+  String get homeTrendingRefreshTooltip;
+
+  /// No description provided for @contentTypePoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Poll'**
+  String get contentTypePoll;
+
+  /// No description provided for @contentTypeNews.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get contentTypeNews;
+
+  /// No description provided for @contentTypePost.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get contentTypePost;
+
+  /// No description provided for @searchPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get searchPageTitle;
+
+  /// No description provided for @searchInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search polls, news, posts...'**
+  String get searchInputHint;
+
+  /// No description provided for @searchClearTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get searchClearTooltip;
+
+  /// No description provided for @searchTypeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get searchTypeAll;
+
+  /// No description provided for @searchTypePolls.
+  ///
+  /// In en, this message translates to:
+  /// **'Polls'**
+  String get searchTypePolls;
+
+  /// No description provided for @searchTypeNews.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get searchTypeNews;
+
+  /// No description provided for @searchTypePosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts'**
+  String get searchTypePosts;
+
+  /// No description provided for @searchSortHottest.
+  ///
+  /// In en, this message translates to:
+  /// **'Hottest'**
+  String get searchSortHottest;
+
+  /// No description provided for @searchSortLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest'**
+  String get searchSortLatest;
+
+  /// No description provided for @searchPollStatusAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All polls'**
+  String get searchPollStatusAll;
+
+  /// No description provided for @searchPollStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get searchPollStatusOpen;
+
+  /// No description provided for @searchPollStatusClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get searchPollStatusClosed;
+
+  /// No description provided for @searchIdleMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a term to start searching.'**
+  String get searchIdleMessage;
+
+  /// No description provided for @searchErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while searching.'**
+  String get searchErrorMessage;
+
+  /// No description provided for @searchRetryButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get searchRetryButton;
+
+  /// No description provided for @searchEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found for this search.'**
+  String get searchEmptyMessage;
+
+  /// No description provided for @searchContentUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Content unavailable'**
+  String get searchContentUnavailable;
+
+  /// No description provided for @searchResultTypePoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Poll'**
+  String get searchResultTypePoll;
+
+  /// No description provided for @searchResultTypeNews.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get searchResultTypeNews;
+
+  /// No description provided for @searchResultTypePost.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get searchResultTypePost;
+
+  /// No description provided for @searchResultTypeMixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed'**
+  String get searchResultTypeMixed;
+
   /// No description provided for @homeUserStatusLoggedIn.
   ///
   /// In en, this message translates to:

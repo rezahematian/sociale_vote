@@ -101,6 +101,28 @@
 
   "homeSearchHint": "Search city, country, polls, news, posts...",
 
+  "searchPageTitle": "Search",
+  "searchInputHint": "Search polls, news, posts...",
+  "searchClearTooltip": "Clear search",
+  "searchTypeAll": "All",
+  "searchTypePolls": "Polls",
+  "searchTypeNews": "News",
+  "searchTypePosts": "Posts",
+  "searchSortHottest": "Hottest",
+  "searchSortLatest": "Latest",
+  "searchPollStatusAll": "All polls",
+  "searchPollStatusOpen": "Open",
+  "searchPollStatusClosed": "Closed",
+  "searchIdleMessage": "Enter a term to start searching.",
+  "searchErrorMessage": "Something went wrong while searching.",
+  "searchRetryButton": "Try again",
+  "searchEmptyMessage": "No results found for this search.",
+  "searchContentUnavailable": "Content unavailable",
+  "searchResultTypePoll": "Poll",
+  "searchResultTypeNews": "News",
+  "searchResultTypePost": "Post",
+  "searchResultTypeMixed": "Mixed",
+
   "homeUserStatusLoggedIn": "Logged in as: {userId}",
   "@homeUserStatusLoggedIn": {
     "placeholders": { "userId": {} }

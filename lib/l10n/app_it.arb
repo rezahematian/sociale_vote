@@ -50,7 +50,7 @@
   "createPollParticipationGeoScopeSubtitle": "Limita questo sondaggio alle persone di uno specifico Paese.",
 
   "createPollCountryFieldLabel": "Paese per questo sondaggio",
-  "createPollCountryFieldHelper": "Questo Paese definirà chi è autorizzato a partecipare a questo sondaggio (integrazione backend futura).",
+  "createPollCountryFieldHelper": "Questo Paese definirà chi è autorizzato a partecipare a questo sondaggio (funzionalità futura).",
 
   "createPollVoteAnonymityTitle": "Anonimato del voto",
   "createPollAnonymityAnonymousSubtitle": "Impostazione predefinita consigliata per piattaforme di voto civico.",
@@ -95,11 +95,33 @@
   "homeLoginButton": "Accedi",
   "homeRegisterButton": "Registrati",
   "homeProfileButton": "Profilo",
-  "homeLogoutButton": "Logout",
+  "homeLogoutButton": "Esci",
 
-  "homeLogoutMessage": "Logout eseguito. Ora stai usando l’app come ospite (solo lettura).",
+  "homeLogoutMessage": "Disconnessione completata. Ora stai usando l’app come ospite (sola lettura).",
 
-  "homeSearchHint": "Cerca città, Paese, sondaggi, news, post...",
+  "homeSearchHint": "Cerca città, Paese, sondaggi, notizie, pubblicazioni...",
+
+  "searchPageTitle": "Cerca",
+  "searchInputHint": "Cerca sondaggi, notizie, pubblicazioni...",
+  "searchClearTooltip": "Cancella ricerca",
+  "searchTypeAll": "Tutti",
+  "searchTypePolls": "Sondaggi",
+  "searchTypeNews": "Notizie",
+  "searchTypePosts": "Pubblicazioni",
+  "searchSortHottest": "Più caldi",
+  "searchSortLatest": "Più recenti",
+  "searchPollStatusAll": "Tutti i sondaggi",
+  "searchPollStatusOpen": "Aperti",
+  "searchPollStatusClosed": "Chiusi",
+  "searchIdleMessage": "Inserisci un termine per iniziare la ricerca.",
+  "searchErrorMessage": "Si è verificato un problema durante la ricerca.",
+  "searchRetryButton": "Riprova",
+  "searchEmptyMessage": "Nessun risultato trovato per questa ricerca.",
+  "searchContentUnavailable": "Contenuto non disponibile",
+  "searchResultTypePoll": "Sondaggio",
+  "searchResultTypeNews": "Notizia",
+  "searchResultTypePost": "Pubblicazione",
+  "searchResultTypeMixed": "Misto",
 
   "homeUserStatusLoggedIn": "Accesso effettuato come: {userId}",
   "@homeUserStatusLoggedIn": {
@@ -110,72 +132,72 @@
 
   "homeUserStatusGuest": "Modalità ospite: puoi solo leggere. Accedi o registrati per votare, commentare e reagire.",
 
-  "homeScopeLabelWorld": "World – Votazioni e news globali",
-  "homeScopeLabelCountry": "Country – Votazioni e news del Paese",
-  "homeScopeLabelCity": "City – Votazioni e news della città",
+  "homeScopeLabelWorld": "Mondo – Votazioni e notizie globali",
+  "homeScopeLabelCountry": "Paese – Votazioni e notizie nazionali",
+  "homeScopeLabelCity": "Città – Votazioni e notizie locali",
 
-  "homeScopeShortWorld": "World",
+  "homeScopeShortWorld": "Mondo",
   "homeScopeShortCountry": "Paese",
   "homeScopeShortCity": "Città",
 
-  "homeScopeChipWorld": "World",
+  "homeScopeChipWorld": "Mondo",
   "homeScopeChipItaly": "Italia",
   "homeScopeChipTorino": "Torino",
 
-  "homeScopeChangedWorld": "Scope cambiato su World",
-  "homeScopeChangedItaly": "Scope cambiato su Italy",
-  "homeScopeChangedTorino": "Scope cambiato su Torino",
+  "homeScopeChangedWorld": "Ambito impostato su Mondo",
+  "homeScopeChangedItaly": "Ambito impostato su Italia",
+  "homeScopeChangedTorino": "Ambito impostato su Torino",
 
   "followScopeButtonFollowed": "Seguito",
   "followScopeButtonFollow": "Segui quest’area",
 
-  "homeTrendingTitle": "Trending now",
-  "homeTrendingError": "Impossibile caricare i contenuti trending per quest’area.",
-  "homeTrendingEmpty": "Nessun contenuto trending per questo scope al momento.",
+  "homeTrendingTitle": "Di tendenza",
+  "homeTrendingError": "Impossibile caricare i contenuti di tendenza per quest’area.",
+  "homeTrendingEmpty": "Nessun contenuto di tendenza per quest’area al momento.",
 
-  "homeForYouTitle": "For You ({scope})",
+  "homeForYouTitle": "Per te ({scope})",
   "@homeForYouTitle": {
     "placeholders": {
       "scope": {}
     }
   },
-  "homeForYouError": "Impossibile caricare il feed \"For You\" per quest’area.",
-  "homeForYouEmpty": "Nessun contenuto suggerito \"For You\" per questo scope al momento.",
+  "homeForYouError": "Impossibile caricare i contenuti Per te per quest’area.",
+  "homeForYouEmpty": "Nessun contenuto suggerito per te in quest’area al momento.",
 
-  "homePollsTitle": "Highlighted Polls ({scope})",
+  "homePollsTitle": "Sondaggi in evidenza ({scope})",
   "@homePollsTitle": {
     "placeholders": {
       "scope": {}
     }
   },
   "homePollsEmptyTitle": "Nessun sondaggio per quest’area",
-  "homePollsEmptySubtitle": "Non ci sono votazioni per questo scope.",
+  "homePollsEmptySubtitle": "Non ci sono votazioni per quest’area.",
   "homePollsViewAllButton": "Vedi tutti i sondaggi",
 
-  "homeNewsTitle": "Top News ({scope})",
+  "homeNewsTitle": "Notizie principali ({scope})",
   "@homeNewsTitle": {
     "placeholders": {
       "scope": {}
     }
   },
-  "homeNewsErrorTitle": "Impossibile caricare le news",
-  "homeNewsErrorSubtitle": "Si è verificato un problema nel caricamento delle news per quest’area.",
-  "homeNewsEmptyTitle": "Nessuna news per quest’area",
-  "homeNewsEmptySubtitle": "Non ci sono news per questo scope al momento.",
-  "homeNewsViewAllButton": "Vedi tutte le news",
-  "homeNewsBreakingBadge": "BREAKING",
+  "homeNewsErrorTitle": "Impossibile caricare le notizie",
+  "homeNewsErrorSubtitle": "Si è verificato un problema nel caricamento delle notizie per quest’area.",
+  "homeNewsEmptyTitle": "Nessuna notizia per quest’area",
+  "homeNewsEmptySubtitle": "Non ci sono notizie per quest’area al momento.",
+  "homeNewsViewAllButton": "Vedi tutte le notizie",
+  "homeNewsBreakingBadge": "ULTIM’ORA",
 
-  "homeSocialTitle": "Discussions / Feed ({scope})",
+  "homeSocialTitle": "Discussioni ({scope})",
   "@homeSocialTitle": {
     "placeholders": {
       "scope": {}
     }
   },
   "homeSocialErrorTitle": "Impossibile caricare le discussioni",
-  "homeSocialErrorSubtitle": "Si è verificato un problema nel caricamento del feed sociale per quest’area.",
+  "homeSocialErrorSubtitle": "Si è verificato un problema nel caricamento delle discussioni per quest’area.",
   "homeSocialEmptyTitle": "Nessuna discussione per quest’area",
-  "homeSocialEmptySubtitle": "Non ci sono discussioni per questo scope al momento.",
-  "homeSocialViewFeedButton": "Vedi il social feed",
+  "homeSocialEmptySubtitle": "Non ci sono discussioni per quest’area al momento.",
+  "homeSocialViewFeedButton": "Vedi tutte le discussioni",
 
   "pollDetail_title": "Dettaglio sondaggio",
 
@@ -377,15 +399,15 @@
 
   "newsCard_headerTitle": "Notizia",
 
-  "newsFeed_errorUnauthorized": "Configurazione News non valida (API key).",
+  "newsFeed_errorUnauthorized": "Configurazione delle notizie non valida (chiave API).",
   "newsFeed_errorRateLimited": "Troppe richieste. Riprova tra poco.",
-  "newsFeed_errorServerUnavailable": "Servizio News temporaneamente non disponibile. Riprova più tardi.",
+  "newsFeed_errorServerUnavailable": "Servizio notizie temporaneamente non disponibile. Riprova più tardi.",
   "newsFeed_errorTimeout": "La richiesta sta impiegando troppo tempo. Riprova.",
   "newsFeed_errorNetwork": "Nessuna connessione. Controlla internet e riprova.",
 
   "newsFeed_moreTooltip": "Altro",
   "newsFeed_actionCopyTitle": "Copia titolo",
-  "newsFeed_actionRefreshFeed": "Aggiorna feed",
+  "newsFeed_actionRefreshFeed": "Aggiorna notizie",
   "newsFeed_copiedTitleToast": "Titolo copiato",
 
   "newsFeed_languageTooltip": "Lingua notizie",

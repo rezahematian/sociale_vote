@@ -5,6 +5,7 @@ import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/content/news/repositories/news_repository.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/content/social/repositories/post_repository.dart';
+import 'package:sociale_vote/domain/discussion/repositories/comment_repository.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/repositories/poll_repository.dart';
@@ -32,14 +33,17 @@ class SearchRepositoryInMemory implements SearchRepository {
   final PollRepository _pollRepository;
   final NewsRepository _newsRepository;
   final PostRepository _postRepository;
+  final CommentRepository _commentRepository;
 
   SearchRepositoryInMemory({
     required PollRepository pollRepository,
     required NewsRepository newsRepository,
     required PostRepository postRepository,
+    required CommentRepository commentRepository,
   })  : _pollRepository = pollRepository,
         _newsRepository = newsRepository,
-        _postRepository = postRepository;
+        _postRepository = postRepository,
+        _commentRepository = commentRepository;
 
   @override
   Future<List<SearchResultItem>> search({
@@ -134,24 +138,28 @@ class SearchRepositoryInMemory implements SearchRepository {
         cityId: cityId,
       );
 
-      for (final post in posts) {
-        final text = _buildPostSearchText(post);
-        if (text.contains(normalized)) {
-          final createdAt = post.createdAt;
-          final heat = _extractHeat(post);
+      final matchingPosts = posts
+          .where((post) => _buildPostSearchText(post).contains(normalized))
+          .toList(growable: false);
+      final commentCounts = await _loadPostCommentCounts(matchingPosts);
 
-          results.add(
-            SearchResultItem(
-              target: TargetRef.post(post.id.value),
-              contentType: SearchContentType.post,
-              title: post.title,
-              snippet: _postSnippet(post),
-              date: createdAt,
-              createdAt: createdAt,
-              heat: heat,
-            ),
-          );
-        }
+      for (final post in matchingPosts) {
+        final createdAt = post.createdAt;
+        final target = TargetRef.post(post.id.value);
+        final heat =
+            commentCounts[_targetBatchKey(target)] ?? post.commentCount;
+
+        results.add(
+          SearchResultItem(
+            target: target,
+            contentType: SearchContentType.post,
+            title: post.title,
+            snippet: _postSnippet(post),
+            date: createdAt,
+            createdAt: createdAt,
+            heat: heat,
+          ),
+        );
       }
     }
 
@@ -234,6 +242,31 @@ class SearchRepositoryInMemory implements SearchRepository {
       return post.content;
     }
     return post.title;
+  }
+
+  Future<Map<String, int>> _loadPostCommentCounts(
+    List<Post> posts,
+  ) async {
+    if (posts.isEmpty) {
+      return const <String, int>{};
+    }
+
+    final targets = posts
+        .map((post) => TargetRef.post(post.id.value))
+        .toList(growable: false);
+
+    try {
+      return await _commentRepository.countCommentsForTargets(targets);
+    } catch (_) {
+      // Il conteggio commenti è un segnale di ranking secondario.
+      // Se non è disponibile, la ricerca resta utilizzabile e usa il
+      // valore già presente sul Post come fallback.
+      return const <String, int>{};
+    }
+  }
+
+  String _targetBatchKey(TargetRef target) {
+    return '${target.type.name}|${target.id.trim()}';
   }
 
   // ----------------------------------------------------------

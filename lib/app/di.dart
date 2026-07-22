@@ -321,6 +321,7 @@ class AppDI {
     pollRepository: pollRepository,
     newsRepository: newsRepository,
     postRepository: postRepository,
+    commentRepository: commentRepository,
   );
   final StorageService _storageService = const StorageService(
     SharedPreferencesKeyValueStorage(),
