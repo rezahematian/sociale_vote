@@ -94,6 +94,7 @@ class HomeTopBar extends StatelessWidget {
         if (onTrendingPressed != null || onForYouPressed != null) ...[
           const SizedBox(width: 4),
           _DiscoverMenuIconButton(
+            scopeShortLabel: scopeShortLabel,
             onTrendingPressed: onTrendingPressed,
             onForYouPressed: onForYouPressed,
           ),
@@ -186,18 +187,23 @@ class _ColorfulBrand extends StatelessWidget {
 }
 
 class _DiscoverMenuIconButton extends StatelessWidget {
+  final String scopeShortLabel;
   final VoidCallback? onTrendingPressed;
   final VoidCallback? onForYouPressed;
 
   const _DiscoverMenuIconButton({
+    required this.scopeShortLabel,
     required this.onTrendingPressed,
     required this.onForYouPressed,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return PopupMenuButton<_TopBarMenuAction>(
-      tooltip: 'Discover',
+      tooltip:
+          '${l10n.homeTrendingTitle} / ${l10n.homeForYouTitle(scopeShortLabel)}',
       onSelected: (value) {
         switch (value) {
           case _TopBarMenuAction.trending:
@@ -210,24 +216,24 @@ class _DiscoverMenuIconButton extends StatelessWidget {
       },
       itemBuilder: (context) => [
         if (onTrendingPressed != null)
-          const PopupMenuItem<_TopBarMenuAction>(
+          PopupMenuItem<_TopBarMenuAction>(
             value: _TopBarMenuAction.trending,
             child: Row(
               children: [
-                Icon(Icons.local_fire_department_outlined, size: 18),
-                SizedBox(width: 8),
-                Text('Trending'),
+                const Icon(Icons.local_fire_department_outlined, size: 18),
+                const SizedBox(width: 8),
+                Text(l10n.homeTrendingTitle),
               ],
             ),
           ),
         if (onForYouPressed != null)
-          const PopupMenuItem<_TopBarMenuAction>(
+          PopupMenuItem<_TopBarMenuAction>(
             value: _TopBarMenuAction.forYou,
             child: Row(
               children: [
-                Icon(Icons.auto_awesome_outlined, size: 18),
-                SizedBox(width: 8),
-                Text('For You'),
+                const Icon(Icons.auto_awesome_outlined, size: 18),
+                const SizedBox(width: 8),
+                Text(l10n.homeForYouTitle(scopeShortLabel)),
               ],
             ),
           ),

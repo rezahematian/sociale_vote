@@ -9,6 +9,7 @@ import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/features/social/application/feed_controller.dart';
 import 'package:sociale_vote/features/social/presentation/pages/create_post_page.dart';
 import 'package:sociale_vote/features/social/presentation/widgets/post_card.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 
 class SocialFeedPage extends StatelessWidget {
@@ -89,10 +90,11 @@ class _SocialFeedViewState extends State<_SocialFeedView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Social Feed'),
+        title: Text(l10n.searchTypePosts),
       ),
       body: ColoredBox(
         color: theme.scaffoldBackgroundColor,
@@ -115,7 +117,7 @@ class _SocialFeedViewState extends State<_SocialFeedView> {
                   } else if (controller.hasError) {
                     content = _SocialErrorState(
                       message: controller.errorMessage ??
-                          'Si è verificato un errore nel caricamento del feed.',
+                          l10n.homeSocialErrorSubtitle,
                       onRetry: () {
                         final userId = AppDI.instance.currentUserId;
                         return controller.loadFeed(userId: userId);
@@ -206,6 +208,7 @@ class _FeedToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final filters = Wrap(
       spacing: AppSpacing.xs,
       runSpacing: AppSpacing.xs,
@@ -215,7 +218,7 @@ class _FeedToolbar extends StatelessWidget {
             Icons.local_fire_department_outlined,
             size: 18,
           ),
-          label: const Text('Più caldi'),
+          label: Text(l10n.searchSortHottest),
           selected: selectedMode == FeedSortMode.hottest,
           onSelected: (_) => onSelected(FeedSortMode.hottest),
         ),
@@ -224,7 +227,7 @@ class _FeedToolbar extends StatelessWidget {
             Icons.schedule_outlined,
             size: 18,
           ),
-          label: const Text('Più recenti'),
+          label: Text(l10n.searchSortLatest),
           selected: selectedMode == FeedSortMode.latest,
           onSelected: (_) => onSelected(FeedSortMode.latest),
         ),
@@ -236,7 +239,7 @@ class _FeedToolbar extends StatelessWidget {
         await onCreatePost();
       },
       icon: const Icon(Icons.add),
-      label: const Text('Crea post'),
+      label: Text(l10n.searchResultTypePost),
     );
 
     return Material(
@@ -284,6 +287,7 @@ class _SocialEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Center(
       child: Padding(
@@ -298,12 +302,12 @@ class _SocialEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Nessun post per quest’area',
+              l10n.homeSocialEmptyTitle,
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'Quando verranno pubblicati nuovi post per questo ambito geografico li vedrai qui.',
+              l10n.homeSocialEmptySubtitle,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
@@ -328,6 +332,7 @@ class _SocialErrorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Center(
       child: Padding(
@@ -342,7 +347,7 @@ class _SocialErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Impossibile caricare il feed',
+              l10n.homeSocialErrorTitle,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.error,
               ),
@@ -359,7 +364,7 @@ class _SocialErrorState extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: () => onRetry(),
               icon: const Icon(Icons.refresh),
-              label: const Text('Riprova'),
+              label: Text(l10n.searchRetryButton),
             ),
           ],
         ),

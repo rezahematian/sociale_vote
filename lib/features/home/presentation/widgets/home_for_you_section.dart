@@ -100,7 +100,10 @@ class HomeForYouSection extends StatelessWidget {
             .map(
               (item) => Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: TrendingFeedItemCard(item: item),
+                child: TrendingFeedItemCard(
+                  item: item,
+                  onReturnRefresh: () => controller.load(userId: userId),
+                ),
               ),
             )
             .toList(),

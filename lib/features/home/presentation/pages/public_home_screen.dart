@@ -992,15 +992,31 @@ class _TrendingNowPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Trending Now'),
+        title: Text(
+          AppLocalizations.of(context)!.homeTrendingTitle,
+        ),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          child: ChangeNotifierProvider<TrendingController>(
-            create: (_) => AppDI.instance.createTrendingController(),
-            child: const HomeTrendingSection(),
-          ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final contentWidth =
+                constraints.maxWidth > 1120.0 ? 1120.0 : constraints.maxWidth;
+
+            return Align(
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: contentWidth,
+                height: constraints.maxHeight,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  child: ChangeNotifierProvider<TrendingController>(
+                    create: (_) => AppDI.instance.createTrendingController(),
+                    child: const HomeTrendingSection(),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -1020,21 +1036,38 @@ class _ForYouPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('For You'),
+        title: Text(
+          AppLocalizations.of(context)!.homeForYouTitle(scopeShortLabel),
+        ),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          child: ChangeNotifierProvider<ForYouFeedController>(
-            create: (_) {
-              final controller = AppDI.instance.createForYouFeedController();
-              controller.load(userId: userId);
-              return controller;
-            },
-            child: HomeForYouSection(
-              scopeShortLabel: scopeShortLabel,
-            ),
-          ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final contentWidth =
+                constraints.maxWidth > 1120.0 ? 1120.0 : constraints.maxWidth;
+
+            return Align(
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: contentWidth,
+                height: constraints.maxHeight,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  child: ChangeNotifierProvider<ForYouFeedController>(
+                    create: (_) {
+                      final controller =
+                          AppDI.instance.createForYouFeedController();
+                      controller.load(userId: userId);
+                      return controller;
+                    },
+                    child: HomeForYouSection(
+                      scopeShortLabel: scopeShortLabel,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

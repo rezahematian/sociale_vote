@@ -48,7 +48,8 @@ class HomeTrendingSection extends StatelessWidget {
           )
         else
           IconButton(
-            tooltip: 'Refresh trending',
+            tooltip:
+                MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
             onPressed: () {
               context.read<TrendingController>().loadTrending();
             },
@@ -101,7 +102,10 @@ class HomeTrendingSection extends StatelessWidget {
             .map(
               (item) => Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: TrendingFeedItemCard(item: item),
+                child: TrendingFeedItemCard(
+                  item: item,
+                  onReturnRefresh: controller.loadTrending,
+                ),
               ),
             )
             .toList(),
@@ -121,10 +125,12 @@ class HomeTrendingSection extends StatelessWidget {
 
 class TrendingFeedItemCard extends StatelessWidget {
   final FeedItem item;
+  final Future<void> Function()? onReturnRefresh;
 
   const TrendingFeedItemCard({
     super.key,
     required this.item,
+    this.onReturnRefresh,
   });
 
   @override
@@ -132,10 +138,11 @@ class TrendingFeedItemCard extends StatelessWidget {
     final theme = Theme.of(context);
     final title = _titleForItem(item);
     final subtitle = _subtitleForItem(item);
-    final typeLabel = _typeLabel(item);
+    final typeLabel = _typeLabel(context, item);
     final typeIcon = _typeIcon(item);
 
-    final canOpen = item.isPost || item.isPoll || item.isNews;
+    final canOpen =
+        item.isPost || item.isPoll || (item.isNews && item.news != null);
 
     return Card(
       elevation: 0,
@@ -232,32 +239,37 @@ class TrendingFeedItemCard extends StatelessWidget {
     );
   }
 
-  void _openItem(BuildContext context, FeedItem item) {
+  Future<void> _openItem(BuildContext context, FeedItem item) async {
+    var openedDetail = false;
+
     if (item.isPost) {
-      Navigator.pushNamed(
+      openedDetail = true;
+      await Navigator.pushNamed(
         context,
         AppRouter.socialDetail,
         arguments: item.id,
       );
-      return;
-    }
-
-    if (item.isPoll) {
-      Navigator.pushNamed(
+    } else if (item.isPoll) {
+      openedDetail = true;
+      await Navigator.pushNamed(
         context,
         AppRouter.pollDetail,
         arguments: item.id,
       );
-      return;
-    }
-
-    if (item.isNews && item.news != null) {
-      Navigator.pushNamed(
+    } else if (item.isNews && item.news != null) {
+      openedDetail = true;
+      await Navigator.pushNamed(
         context,
         AppRouter.newsDetail,
         arguments: item.news,
       );
     }
+
+    if (!openedDetail || !context.mounted) {
+      return;
+    }
+
+    await onReturnRefresh?.call();
   }
 
   String _titleForItem(FeedItem item) {
@@ -290,10 +302,12 @@ class TrendingFeedItemCard extends StatelessWidget {
     return (description == null || description.isEmpty) ? null : description;
   }
 
-  String _typeLabel(FeedItem item) {
-    if (item.isPost) return 'Post';
-    if (item.isNews) return 'News';
-    return 'Poll';
+  String _typeLabel(BuildContext context, FeedItem item) {
+    final l10n = AppLocalizations.of(context)!;
+
+    if (item.isPost) return l10n.searchResultTypePost;
+    if (item.isNews) return l10n.searchResultTypeNews;
+    return l10n.searchResultTypePoll;
   }
 
   IconData _typeIcon(FeedItem item) {
