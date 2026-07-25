@@ -8,6 +8,7 @@ import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 
 class NewsCard extends StatelessWidget {
@@ -42,6 +43,7 @@ class NewsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     VoidCallback? wrapReactCallback(VoidCallback? original) {
       if (original == null) return null;
@@ -79,8 +81,9 @@ class NewsCard extends StatelessWidget {
       openDetail();
     }
 
-    final String title =
-        news.title.trim().isNotEmpty ? news.title.trim() : 'News';
+    final String title = news.title.trim().isNotEmpty
+        ? news.title.trim()
+        : l10n.newsCard_headerTitle;
 
     final String? summary =
         news.summary != null && news.summary!.trim().isNotEmpty
@@ -92,21 +95,21 @@ class NewsCard extends StatelessWidget {
             ? news.imageUrl!.trim()
             : null;
 
-    final String sourceName = _sourceLabel(news);
+    final String sourceName = _sourceLabel(
+      news,
+      fallbackLabel: l10n.newsCard_headerTitle,
+    );
     final String publishedLabel = _formatPublishedAt(news.publishedAt);
 
-    final Color cardTopColor =
-        theme.brightness == Brightness.dark
-            ? const Color(0xFF18202B)
-            : const Color(0xFFFCFDFE);
-    final Color cardBottomColor =
-        theme.brightness == Brightness.dark
-            ? const Color(0xFF121A24)
-            : const Color(0xFFF0F4F9);
-    final Color cardBorderColor =
-        theme.brightness == Brightness.dark
-            ? const Color(0xFF2C3948)
-            : const Color(0xFFD7DFEA);
+    final Color cardTopColor = theme.brightness == Brightness.dark
+        ? const Color(0xFF18202B)
+        : const Color(0xFFFCFDFE);
+    final Color cardBottomColor = theme.brightness == Brightness.dark
+        ? const Color(0xFF121A24)
+        : const Color(0xFFF0F4F9);
+    final Color cardBorderColor = theme.brightness == Brightness.dark
+        ? const Color(0xFF2C3948)
+        : const Color(0xFFD7DFEA);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -154,7 +157,8 @@ class NewsCard extends StatelessWidget {
                   final bool narrow = constraints.maxWidth < 560;
 
                   final double imageWidth = compact ? 96 : (narrow ? 132 : 188);
-                  final double imageHeight = compact ? 96 : (narrow ? 112 : 164);
+                  final double imageHeight =
+                      compact ? 96 : (narrow ? 112 : 164);
 
                   final int titleMaxLines = compact ? 2 : 2;
                   final int summaryMaxLines = compact ? 2 : 2;
@@ -194,7 +198,8 @@ class NewsCard extends StatelessWidget {
                                     const SizedBox(height: 8),
                                     Text(
                                       publishedLabel,
-                                      style: theme.textTheme.bodySmall?.copyWith(
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
                                         color: theme.colorScheme.onSurface
                                             .withValues(alpha: 0.58),
                                         fontWeight: FontWeight.w500,
@@ -287,16 +292,14 @@ class NewsCard extends StatelessWidget {
       height: 32,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color:
-            theme.brightness == Brightness.dark
-                ? const Color(0xFF1C2836)
-                : const Color(0xFFEFF4FB),
+        color: theme.brightness == Brightness.dark
+            ? const Color(0xFF1C2836)
+            : const Color(0xFFEFF4FB),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color:
-              theme.brightness == Brightness.dark
-                  ? const Color(0xFF314255)
-                  : const Color(0xFFD9E3EF),
+          color: theme.brightness == Brightness.dark
+              ? const Color(0xFF314255)
+              : const Color(0xFFD9E3EF),
           width: 1,
         ),
       ),
@@ -326,7 +329,10 @@ class NewsCard extends StatelessWidget {
     );
   }
 
-  static String _sourceLabel(NewsItem news) {
+  static String _sourceLabel(
+    NewsItem news, {
+    required String fallbackLabel,
+  }) {
     final effective = news.effectiveSourceLabel?.trim();
     if (effective != null && effective.isNotEmpty) {
       return effective;
@@ -337,7 +343,7 @@ class NewsCard extends StatelessWidget {
       return author.length <= 28 ? author : author.substring(0, 28);
     }
 
-    return 'News';
+    return fallbackLabel;
   }
 
   String _formatPublishedAt(DateTime dateTime) {
@@ -376,12 +382,13 @@ class _NewsTextBlock extends StatelessWidget {
       children: [
         Text(
           title,
-          style:
-              (compact ? theme.textTheme.bodyMedium : theme.textTheme.titleSmall)
-                  ?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    height: 1.15,
-                  ),
+          style: (compact
+                  ? theme.textTheme.bodyMedium
+                  : theme.textTheme.titleSmall)
+              ?.copyWith(
+            fontWeight: FontWeight.w700,
+            height: 1.15,
+          ),
           maxLines: titleMaxLines,
           overflow: TextOverflow.ellipsis,
         ),
@@ -423,10 +430,9 @@ class _NewsThumbnail extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color:
-              theme.brightness == Brightness.dark
-                  ? const Color(0xFF314255)
-                  : const Color(0xFFD7E0EA),
+          color: theme.brightness == Brightness.dark
+              ? const Color(0xFF314255)
+              : const Color(0xFFD7E0EA),
           width: 1,
         ),
       ),
@@ -488,7 +494,8 @@ class _NewsEngagementBar extends StatelessWidget {
     }
 
     return FutureBuilder(
-      future: AppDI.instance.getCommentsForTarget(TargetRef.news(news.id.value)),
+      future:
+          AppDI.instance.getCommentsForTarget(TargetRef.news(news.id.value)),
       builder: (context, snapshot) {
         final comments = snapshot.data as List<dynamic>? ?? const [];
         final resolvedCommentCount = snapshot.hasError ? 0 : comments.length;

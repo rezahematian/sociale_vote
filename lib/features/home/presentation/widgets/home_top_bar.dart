@@ -287,8 +287,10 @@ class _AccountMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return PopupMenuButton<_AccountMenuAction>(
-      tooltip: 'Account',
+      tooltip: l10n.homeAccountMenuLabel,
       onSelected: (value) {
         switch (value) {
           case _AccountMenuAction.account:
@@ -309,13 +311,13 @@ class _AccountMenuButton extends StatelessWidget {
         }
       },
       itemBuilder: (context) => [
-        const PopupMenuItem<_AccountMenuAction>(
+        PopupMenuItem<_AccountMenuAction>(
           value: _AccountMenuAction.account,
           child: Row(
             children: [
-              Icon(Icons.manage_accounts_outlined, size: 18),
-              SizedBox(width: 8),
-              Text('Account'),
+              const Icon(Icons.manage_accounts_outlined, size: 18),
+              const SizedBox(width: 8),
+              Text(l10n.homeAccountMenuLabel),
             ],
           ),
         ),
@@ -324,30 +326,30 @@ class _AccountMenuButton extends StatelessWidget {
           _themeItem(
             action: _AccountMenuAction.themeSystem,
             icon: Icons.brightness_auto,
-            label: 'Tema: sistema',
+            label: l10n.homeThemeSystemMenuItem,
             selected: _isSelectedTheme(ThemeMode.system),
           ),
           _themeItem(
             action: _AccountMenuAction.themeLight,
             icon: Icons.light_mode_outlined,
-            label: 'Tema: chiaro',
+            label: l10n.homeThemeLightMenuItem,
             selected: _isSelectedTheme(ThemeMode.light),
           ),
           _themeItem(
             action: _AccountMenuAction.themeDark,
             icon: Icons.dark_mode_outlined,
-            label: 'Tema: scuro',
+            label: l10n.homeThemeDarkMenuItem,
             selected: _isSelectedTheme(ThemeMode.dark),
           ),
         ],
         const PopupMenuDivider(),
-        const PopupMenuItem<_AccountMenuAction>(
+        PopupMenuItem<_AccountMenuAction>(
           value: _AccountMenuAction.logout,
           child: Row(
             children: [
-              Icon(Icons.logout_rounded, size: 18),
-              SizedBox(width: 8),
-              Text('Logout'),
+              const Icon(Icons.logout_rounded, size: 18),
+              const SizedBox(width: 8),
+              Text(l10n.homeLogoutButton),
             ],
           ),
         ),
@@ -399,10 +401,11 @@ class _NotificationsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final displayCount = unreadCount > 99 ? '99+' : unreadCount.toString();
 
     return Tooltip(
-      message: 'Notifiche',
+      message: l10n.homeNotificationsTooltip,
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(999),

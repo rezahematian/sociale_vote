@@ -461,30 +461,24 @@ class PollCard extends StatelessWidget {
     AppLocalizations l10n,
     ResultsVisibilityMode mode,
   ) {
-    final locale = l10n.localeName.toLowerCase();
-    final isItalian = locale.startsWith('it');
-
     switch (mode) {
       case ResultsVisibilityMode.always:
-        return isItalian ? 'Risultati visibili' : 'Results visible';
+        return l10n.pollCard_resultsVisibleChip;
       case ResultsVisibilityMode.afterVote:
-        return isItalian ? 'Dopo voto' : 'After vote';
+        return l10n.pollCard_resultsAfterVoteChip;
       case ResultsVisibilityMode.afterClose:
-        return isItalian ? 'Dopo chiusura' : 'After close';
+        return l10n.pollCard_resultsAfterCloseChip;
     }
   }
 
   String _representativeLabel(AppLocalizations l10n) {
-    final locale = l10n.localeName.toLowerCase();
-    final isItalian = locale.startsWith('it');
-
     switch (poll.publishedAsActorType) {
       case ActorType.publicOfficial:
-        return isItalian ? 'Public Official' : 'Public Official';
+        return l10n.pollCard_publicOfficialPublisher;
       case ActorType.institution:
-        return isItalian ? 'Institution' : 'Institution';
+        return l10n.pollCard_institutionPublisher;
       default:
-        return isItalian ? 'Representative' : 'Representative';
+        return l10n.pollCard_representativePublisher;
     }
   }
 
@@ -499,22 +493,18 @@ class PollCard extends StatelessWidget {
     }
   }
 
-  String? _resolveCountryName(String? code) {
+  String? _resolveCountryName(AppLocalizations l10n, String? code) {
     if (code == null) return null;
 
-    final upper = code.toUpperCase();
-
-    try {
-      final country =
-          Countries.all.firstWhere((c) => c.code.toUpperCase() == upper);
-      return country.name;
-    } catch (_) {
-      return code;
-    }
+    return Countries.nameForCode(
+      code,
+      languageCode: l10n.localeName,
+      fallback: code,
+    );
   }
 
   String _scopeLabel(AppLocalizations l10n) {
-    final country = _resolveCountryName(poll.countryCode);
+    final country = _resolveCountryName(l10n, poll.countryCode);
     final city = poll.cityId;
 
     if (country == null && city == null) {
@@ -528,14 +518,15 @@ class PollCard extends StatelessWidget {
     }
   }
 
-  String? _resolveParticipationCountryName() {
+  String? _resolveParticipationCountryName(AppLocalizations l10n) {
     return _resolveCountryName(
+      l10n,
       poll.configuration.participationRules.countryCode,
     );
   }
 
   String _participationLabel(AppLocalizations l10n) {
-    final countryName = _resolveParticipationCountryName();
+    final countryName = _resolveParticipationCountryName(l10n);
     return countryName != null
         ? l10n.pollCard_restrictedToCountry(countryName)
         : l10n.pollCard_countryRestricted;
@@ -1344,6 +1335,7 @@ class _PollResultDonut extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final progress = _resolveTimeProgress(poll);
 
     if (sortedOptions.isEmpty) {
@@ -1413,7 +1405,7 @@ class _PollResultDonut extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'votes',
+                      l10n.pollCard_voteCountLabel(result.totalVotes),
                       style: theme.textTheme.labelSmall?.copyWith(
                         color:
                             theme.colorScheme.onSurface.withValues(alpha: 0.6),

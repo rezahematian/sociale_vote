@@ -57,10 +57,13 @@ class HomePollSection extends StatelessWidget {
     Widget content;
 
     if (controller.isLoading && allPolls.isEmpty) {
-      content = const Padding(
-        padding: EdgeInsets.symmetric(vertical: 20),
-        child: Center(
-          child: CircularProgressIndicator(),
+      content = const SizedBox(
+        width: double.infinity,
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: Center(
+            child: CircularProgressIndicator(),
+          ),
         ),
       );
     } else if (allPolls.isEmpty) {
@@ -254,33 +257,36 @@ class HomePollsPlaceholderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(top: 8),
-      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w600,
+    return SizedBox(
+      width: double.infinity,
+      child: Card(
+        elevation: 0,
+        margin: const EdgeInsets.only(top: 8),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              subtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color:
-                    theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+              const SizedBox(height: 6),
+              Text(
+                subtitle,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color:
+                      theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

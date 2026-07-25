@@ -13,6 +13,7 @@ import 'package:sociale_vote/domain/moderation/repositories/moderation_repositor
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
 import 'package:sociale_vote/features/discussion/presentation/widgets/comment_section.dart';
 import 'package:sociale_vote/features/social/application/post_detail_controller.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 
@@ -139,7 +140,11 @@ class _PostDetailViewState extends State<_PostDetailView> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossibile aggiornare i preferiti')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.postDetail_favoriteUpdateError,
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -166,7 +171,7 @@ class _PostDetailViewState extends State<_PostDetailView> {
 
     buffer
       ..writeln()
-      ..writeln('Apri Sociale_Vote per vedere questo post.');
+      ..writeln(AppLocalizations.of(context)!.postDetail_shareMessage);
 
     try {
       await Share.share(
@@ -176,7 +181,9 @@ class _PostDetailViewState extends State<_PostDetailView> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossibile condividere il post')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.postDetail_shareError),
+        ),
       );
     }
   }
@@ -209,7 +216,10 @@ class _PostDetailViewState extends State<_PostDetailView> {
           return StatefulBuilder(
             builder: (context, setDialogState) {
               return AlertDialog(
-                title: const Text('Modifica post'),
+                title: Text(
+                  AppLocalizations.of(dialogContext)!
+                      .postDetail_editDialogTitle,
+                ),
                 content: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -217,8 +227,9 @@ class _PostDetailViewState extends State<_PostDetailView> {
                       TextField(
                         controller: titleController,
                         textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(
-                          labelText: 'Titolo',
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(dialogContext)!
+                              .postDetail_editTitleFieldLabel,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -226,8 +237,9 @@ class _PostDetailViewState extends State<_PostDetailView> {
                         controller: contentController,
                         minLines: 4,
                         maxLines: 8,
-                        decoration: const InputDecoration(
-                          labelText: 'Contenuto',
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(dialogContext)!
+                              .postDetail_editContentFieldLabel,
                           alignLabelWithHint: true,
                         ),
                       ),
@@ -246,7 +258,8 @@ class _PostDetailViewState extends State<_PostDetailView> {
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: const Text('Annulla'),
+                    child: Text(
+                        AppLocalizations.of(dialogContext)!.commonCancelButton),
                   ),
                   FilledButton(
                     onPressed: () {
@@ -256,7 +269,8 @@ class _PostDetailViewState extends State<_PostDetailView> {
                       if (title.isEmpty || content.isEmpty) {
                         setDialogState(() {
                           validationMessage =
-                              'Titolo e contenuto sono obbligatori.';
+                              AppLocalizations.of(dialogContext)!
+                                  .postDetail_editRequiredError;
                         });
                         return;
                       }
@@ -266,7 +280,8 @@ class _PostDetailViewState extends State<_PostDetailView> {
                         content: content,
                       ));
                     },
-                    child: const Text('Salva'),
+                    child: Text(
+                        AppLocalizations.of(dialogContext)!.commonSaveButton),
                   ),
                 ],
               );
@@ -302,12 +317,16 @@ class _PostDetailViewState extends State<_PostDetailView> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Post aggiornato')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.postDetail_updateSuccess),
+        ),
       );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossibile aggiornare il post')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.postDetail_updateError),
+        ),
       );
     } finally {
       if (mounted) {
@@ -324,22 +343,26 @@ class _PostDetailViewState extends State<_PostDetailView> {
       barrierDismissible: false,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Eliminare il post?'),
-          content: const Text(
-            'Questa azione non può essere annullata.',
+          title: Text(
+            AppLocalizations.of(dialogContext)!.postDetail_deleteDialogTitle,
+          ),
+          content: Text(
+            AppLocalizations.of(dialogContext)!.postDetail_deleteDialogMessage,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(
                 _DeletePostDialogResult.cancel,
               ),
-              child: const Text('Annulla'),
+              child:
+                  Text(AppLocalizations.of(dialogContext)!.commonCancelButton),
             ),
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(
                 _DeletePostDialogResult.confirm,
               ),
-              child: const Text('Elimina'),
+              child:
+                  Text(AppLocalizations.of(dialogContext)!.commonDeleteButton),
             ),
           ],
         );
@@ -373,7 +396,9 @@ class _PostDetailViewState extends State<_PostDetailView> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossibile eliminare il post')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.postDetail_deleteError),
+        ),
       );
     } finally {
       if (mounted) {
@@ -399,7 +424,11 @@ class _PostDetailViewState extends State<_PostDetailView> {
     if (userId == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Devi essere autenticato per segnalare')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.contentReport_authenticationRequired,
+          ),
+        ),
       );
       return;
     }
@@ -420,9 +449,10 @@ class _PostDetailViewState extends State<_PostDetailView> {
       if (!mounted) return;
 
       final message = switch (result) {
-        SubmitReportResult.submitted => 'Segnalazione inviata',
+        SubmitReportResult.submitted =>
+          AppLocalizations.of(context)!.contentReport_submittedMessage,
         SubmitReportResult.alreadyReported =>
-          'Hai già segnalato questo contenuto',
+          AppLocalizations.of(context)!.contentReport_alreadySubmittedMessage,
       };
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -431,7 +461,10 @@ class _PostDetailViewState extends State<_PostDetailView> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossibile inviare la segnalazione')),
+        SnackBar(
+          content:
+              Text(AppLocalizations.of(context)!.contentReport_submitError),
+        ),
       );
     }
   }
@@ -445,7 +478,9 @@ class _PostDetailViewState extends State<_PostDetailView> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('Segnala contenuto'),
+              title: Text(
+                AppLocalizations.of(dialogContext)!.contentReport_dialogTitle,
+              ),
               content: RadioGroup<String>(
                 groupValue: selectedReason,
                 onChanged: (value) {
@@ -460,7 +495,7 @@ class _PostDetailViewState extends State<_PostDetailView> {
                     return RadioListTile<String>(
                       value: reason,
                       contentPadding: EdgeInsets.zero,
-                      title: Text(_reportReasonLabel(reason)),
+                      title: Text(_reportReasonLabel(dialogContext, reason)),
                     );
                   }).toList(),
                 ),
@@ -468,13 +503,17 @@ class _PostDetailViewState extends State<_PostDetailView> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Annulla'),
+                  child: Text(
+                      AppLocalizations.of(dialogContext)!.commonCancelButton),
                 ),
                 FilledButton(
                   onPressed: () {
                     Navigator.of(dialogContext).pop(selectedReason);
                   },
-                  child: const Text('Invia'),
+                  child: Text(
+                    AppLocalizations.of(dialogContext)!
+                        .contentReport_sendButton,
+                  ),
                 ),
               ],
             );
@@ -484,22 +523,17 @@ class _PostDetailViewState extends State<_PostDetailView> {
     );
   }
 
-  String _reportReasonLabel(String reason) {
-    switch (reason) {
-      case 'spam':
-        return 'Spam';
-      case 'harassment':
-        return 'Molestie o abuso';
-      case 'hate_speech':
-        return 'Incitamento all’odio';
-      case 'misinformation':
-        return 'Disinformazione';
-      case 'violence':
-        return 'Violenza';
-      case 'other':
-        return 'Altro';
-    }
-    return reason;
+  String _reportReasonLabel(BuildContext context, String reason) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (reason) {
+      'spam' => l10n.contentReport_reasonSpam,
+      'harassment' => l10n.contentReport_reasonHarassment,
+      'hate_speech' => l10n.contentReport_reasonHateSpeech,
+      'misinformation' => l10n.contentReport_reasonMisinformation,
+      'violence' => l10n.contentReport_reasonViolence,
+      'other' => l10n.contentReport_reasonOther,
+      _ => reason,
+    };
   }
 
   void _ensurePostInitialized(Post post) {
@@ -535,6 +569,7 @@ class _PostDetailViewState extends State<_PostDetailView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final isDark = theme.brightness == Brightness.dark;
 
     final pageBackground =
@@ -543,7 +578,7 @@ class _PostDetailViewState extends State<_PostDetailView> {
     return Scaffold(
       backgroundColor: pageBackground,
       appBar: AppBar(
-        title: const Text('Dettaglio post'),
+        title: Text(l10n.postDetail_title),
         actions: [
           Consumer<PostDetailController>(
             builder: (context, controller, _) {
@@ -575,22 +610,22 @@ class _PostDetailViewState extends State<_PostDetailView> {
 
                   if (isOwner) {
                     items.addAll(
-                      const [
+                      [
                         PopupMenuItem<String>(
                           value: 'edit',
-                          child: Text('Modifica post'),
+                          child: Text(l10n.postDetail_editMenuItem),
                         ),
                         PopupMenuItem<String>(
                           value: 'delete',
-                          child: Text('Elimina post'),
+                          child: Text(l10n.postDetail_deleteMenuItem),
                         ),
                       ],
                     );
                   } else {
                     items.add(
-                      const PopupMenuItem<String>(
+                      PopupMenuItem<String>(
                         value: 'report',
-                        child: Text('Report content'),
+                        child: Text(l10n.contentReport_menuAction),
                       ),
                     );
                   }
@@ -612,15 +647,14 @@ class _PostDetailViewState extends State<_PostDetailView> {
 
           if (controller.hasError) {
             return _PostDetailError(
-              message: controller.errorMessage ??
-                  'Si è verificato un errore nel caricamento del post.',
+              message: controller.errorMessage ?? l10n.postDetail_loadError,
             );
           }
 
           final Post? post = controller.post;
           if (post == null) {
-            return const _PostDetailError(
-              message: 'Post non trovato.',
+            return _PostDetailError(
+              message: l10n.postDetail_notFound,
             );
           }
 
@@ -640,56 +674,63 @@ class _PostDetailViewState extends State<_PostDetailView> {
             )..loadComments(),
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _PostDetailHeroCard(
-                    post: post,
-                    isFavorite: _isFavorite,
-                    favoriteLoading: _favoriteLoading,
-                    commentCount: _commentCount,
-                    fireCount: fireCount,
-                    iceCount: iceCount,
-                    userReaction: userReaction,
-                    showIdentityMark: _shouldShowIdentityMark(post),
-                    onSharePressed: () => _onSharePressed(post),
-                    onFavoritePressed: _favoriteLoading
-                        ? null
-                        : () => _onFavoritePressed(post),
-                    onFireTap: () async {
-                      final allowed = await AuthGuard.ensureCanPerformAction(
-                        context,
-                        ParticipationAction.react,
-                      );
-                      if (!context.mounted || !allowed) return;
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 960),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _PostDetailHeroCard(
+                        post: post,
+                        isFavorite: _isFavorite,
+                        favoriteLoading: _favoriteLoading,
+                        commentCount: _commentCount,
+                        fireCount: fireCount,
+                        iceCount: iceCount,
+                        userReaction: userReaction,
+                        showIdentityMark: _shouldShowIdentityMark(post),
+                        onSharePressed: () => _onSharePressed(post),
+                        onFavoritePressed: _favoriteLoading
+                            ? null
+                            : () => _onFavoritePressed(post),
+                        onFireTap: () async {
+                          final allowed =
+                              await AuthGuard.ensureCanPerformAction(
+                            context,
+                            ParticipationAction.react,
+                          );
+                          if (!context.mounted || !allowed) return;
 
-                      final userId = AppDI.instance.currentUserId;
-                      if (userId == null) return;
+                          final userId = AppDI.instance.currentUserId;
+                          if (userId == null) return;
 
-                      await context
-                          .read<PostDetailController>()
-                          .toggleFire(userId: userId);
-                    },
-                    onIceTap: () async {
-                      final allowed = await AuthGuard.ensureCanPerformAction(
-                        context,
-                        ParticipationAction.react,
-                      );
-                      if (!context.mounted || !allowed) return;
+                          await context
+                              .read<PostDetailController>()
+                              .toggleFire(userId: userId);
+                        },
+                        onIceTap: () async {
+                          final allowed =
+                              await AuthGuard.ensureCanPerformAction(
+                            context,
+                            ParticipationAction.react,
+                          );
+                          if (!context.mounted || !allowed) return;
 
-                      final userId = AppDI.instance.currentUserId;
-                      if (userId == null) return;
+                          final userId = AppDI.instance.currentUserId;
+                          if (userId == null) return;
 
-                      await context
-                          .read<PostDetailController>()
-                          .toggleIce(userId: userId);
-                    },
+                          await context
+                              .read<PostDetailController>()
+                              .toggleIce(userId: userId);
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      CommentSection(
+                        userId: AppDI.instance.currentUserId ?? 'guest',
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                  CommentSection(
-                    userId: AppDI.instance.currentUserId ?? 'guest',
-                  ),
-                ],
+                ),
               ),
             ),
           );
@@ -731,6 +772,7 @@ class _PostDetailHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final isDark = theme.brightness == Brightness.dark;
 
     final cardTopColor =
@@ -742,8 +784,9 @@ class _PostDetailHeroCard extends StatelessWidget {
 
     final title = post.title.trim();
     final content = post.content.trim();
-    final authorName =
-        post.authorName.trim().isNotEmpty ? post.authorName.trim() : 'Author';
+    final authorName = post.authorName.trim().isNotEmpty
+        ? post.authorName.trim()
+        : l10n.postDetail_authorFallback;
 
     final authorTextColor = theme.colorScheme.onSurface.withValues(
       alpha: isDark ? 0.90 : 0.84,
@@ -911,7 +954,7 @@ class _PostDetailHeroCard extends StatelessWidget {
                                 const SizedBox(width: 8),
                                 _DetailActionIcon(
                                   icon: Icons.share_outlined,
-                                  tooltip: 'Condividi',
+                                  tooltip: l10n.postDetail_shareAction,
                                   onPressed: onSharePressed,
                                 ),
                                 const SizedBox(width: 8),
@@ -920,8 +963,9 @@ class _PostDetailHeroCard extends StatelessWidget {
                                       ? Icons.star_rounded
                                       : Icons.star_border_rounded,
                                   tooltip: isFavorite
-                                      ? 'Rimuovi dai preferiti'
-                                      : 'Salva',
+                                      ? l10n
+                                          .postDetail_removeFromFavoritesTooltip
+                                      : l10n.postDetail_addToFavoritesTooltip,
                                   onPressed: onFavoritePressed,
                                   isActive: isFavorite,
                                   isLoading: favoriteLoading,
@@ -947,7 +991,7 @@ class _PostDetailHeroCard extends StatelessWidget {
                                   children: [
                                     _DetailActionPill(
                                       icon: Icons.share_outlined,
-                                      label: 'Condividi',
+                                      label: l10n.postDetail_shareAction,
                                       onPressed: onSharePressed,
                                     ),
                                     const SizedBox(width: 8),
@@ -955,7 +999,7 @@ class _PostDetailHeroCard extends StatelessWidget {
                                       icon: isFavorite
                                           ? Icons.star_rounded
                                           : Icons.star_border_rounded,
-                                      label: 'Salva',
+                                      label: l10n.postDetail_saveAction,
                                       onPressed: onFavoritePressed,
                                       isActive: isFavorite,
                                       isLoading: favoriteLoading,
@@ -1203,7 +1247,7 @@ class _PostDetailError extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Errore',
+              AppLocalizations.of(context)!.postDetail_errorTitle,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.error,
               ),

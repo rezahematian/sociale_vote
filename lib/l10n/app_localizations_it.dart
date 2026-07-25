@@ -205,56 +205,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get homeSearchHint => 'Cerca città, Paese, sondaggi, notizie, pubblicazioni...';
 
   @override
-  String get commonCancel => 'Annulla';
-
-  @override
-  String get commonApply => 'Applica';
-
-  @override
-  String get commonVerifying => 'Verifica in corso...';
-
-  @override
-  String get homeScopeChooseCountry => 'Choose country';
-
-  @override
-  String get homeScopeChooseCity => 'Choose city';
-
-  @override
-  String get homeScopeCountrySearchHint => 'Search country or code...';
-
-  @override
-  String get homeScopeCityRequiredError => 'Enter a city.';
-
-  @override
-  String get homeScopeCityNotFoundError => 'City not found in the selected country.';
-
-  @override
-  String get homeScopeCityVerificationError => 'Unable to verify the city. Try again.';
-
-  @override
-  String homeScopeSelectedCountryLabel(Object countryCode) {
-    return 'Country: $countryCode';
-  }
-
-  @override
-  String get homeScopeCityFieldHint => 'E.g. Rome, São Paulo, Tehran';
-
-  @override
-  String get homeForYouPageTitle => 'Per te';
-
-  @override
-  String get homeTrendingRefreshTooltip => 'Aggiorna contenuti di tendenza';
-
-  @override
-  String get contentTypePoll => 'Sondaggio';
-
-  @override
-  String get contentTypeNews => 'Notizia';
-
-  @override
-  String get contentTypePost => 'Pubblicazione';
-
-  @override
   String get searchPageTitle => 'Cerca';
 
   @override
@@ -641,6 +591,35 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get pollCard_resultsVisibleChip => 'Risultati visibili';
+
+  @override
+  String get pollCard_resultsAfterVoteChip => 'Dopo il voto';
+
+  @override
+  String get pollCard_resultsAfterCloseChip => 'Dopo la chiusura';
+
+  @override
+  String get pollCard_publicOfficialPublisher => 'Rappresentante pubblico';
+
+  @override
+  String get pollCard_institutionPublisher => 'Istituzione';
+
+  @override
+  String get pollCard_representativePublisher => 'Rappresentante';
+
+  @override
+  String pollCard_voteCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'voti',
+      one: 'voto',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get pollCard_viewDetails => 'Vedi dettagli';
 
   @override
@@ -867,4 +846,201 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get newsDetail_openSourceUnavailable => 'Impossibile aprire la fonte';
+
+  @override
+  String get socialFeedTitle => 'Discussioni';
+
+  @override
+  String get socialFeedCreatePostButton => 'Crea post';
+
+  @override
+  String get commonCancelButton => 'Annulla';
+
+  @override
+  String get commonApplyButton => 'Applica';
+
+  @override
+  String get homeScopeChooseCountry => 'Scegli paese';
+
+  @override
+  String get homeScopeCountrySearchHint => 'Cerca paese o codice...';
+
+  @override
+  String get homeScopeChooseCity => 'Scegli città';
+
+  @override
+  String homeScopeCountryWithCode(String code) {
+    return 'Paese: $code';
+  }
+
+  @override
+  String get homeScopeCityFieldLabel => 'Città';
+
+  @override
+  String get homeScopeCityExampleHint => 'Es. Roma, São Paulo, Tehran';
+
+  @override
+  String get homeScopeCityRequiredError => 'Inserisci una città.';
+
+  @override
+  String get homeScopeCityNotFoundError => 'Città non trovata nel paese selezionato.';
+
+  @override
+  String get homeScopeCityVerificationError => 'Impossibile verificare la città. Riprova.';
+
+  @override
+  String get homeScopeVerifyingButton => 'Verifica...';
+
+  @override
+  String get homeMapOpenButton => 'Apri mappa';
+
+  @override
+  String get homeHeroHeadline => 'Decidi il futuro.\nInsieme.';
+
+  @override
+  String get homeAccountMenuLabel => 'Account';
+
+  @override
+  String get homeThemeSystemMenuItem => 'Tema: sistema';
+
+  @override
+  String get homeThemeLightMenuItem => 'Tema: chiaro';
+
+  @override
+  String get homeThemeDarkMenuItem => 'Tema: scuro';
+
+  @override
+  String get homeNotificationsTooltip => 'Notifiche';
+
+  @override
+  String get postCard_authorFallback => 'Autore';
+
+  @override
+  String get postCard_globalLocation => 'Globale';
+
+  @override
+  String get commonSaveButton => 'Salva';
+
+  @override
+  String get commonDeleteButton => 'Elimina';
+
+  @override
+  String get contentReport_menuAction => 'Segnala contenuto';
+
+  @override
+  String get contentReport_dialogTitle => 'Segnala contenuto';
+
+  @override
+  String get contentReport_authenticationRequired => 'Devi essere autenticato per segnalare';
+
+  @override
+  String get contentReport_submittedMessage => 'Segnalazione inviata';
+
+  @override
+  String get contentReport_alreadySubmittedMessage => 'Hai già segnalato questo contenuto';
+
+  @override
+  String get contentReport_submitError => 'Impossibile inviare la segnalazione';
+
+  @override
+  String get contentReport_sendButton => 'Invia';
+
+  @override
+  String get contentReport_reasonSpam => 'Spam';
+
+  @override
+  String get contentReport_reasonHarassment => 'Molestie o abuso';
+
+  @override
+  String get contentReport_reasonHateSpeech => 'Incitamento all’odio';
+
+  @override
+  String get contentReport_reasonMisinformation => 'Disinformazione';
+
+  @override
+  String get contentReport_reasonViolence => 'Violenza';
+
+  @override
+  String get contentReport_reasonOther => 'Altro';
+
+  @override
+  String get postDetail_title => 'Dettaglio post';
+
+  @override
+  String get postDetail_favoriteUpdateError => 'Impossibile aggiornare i preferiti';
+
+  @override
+  String get postDetail_shareMessage => 'Apri Sociale_Vote per vedere questo post.';
+
+  @override
+  String get postDetail_shareError => 'Impossibile condividere il post';
+
+  @override
+  String get postDetail_editDialogTitle => 'Modifica post';
+
+  @override
+  String get postDetail_editTitleFieldLabel => 'Titolo';
+
+  @override
+  String get postDetail_editContentFieldLabel => 'Contenuto';
+
+  @override
+  String get postDetail_editRequiredError => 'Titolo e contenuto sono obbligatori.';
+
+  @override
+  String get postDetail_updateSuccess => 'Post aggiornato';
+
+  @override
+  String get postDetail_updateError => 'Impossibile aggiornare il post';
+
+  @override
+  String get postDetail_deleteDialogTitle => 'Eliminare il post?';
+
+  @override
+  String get postDetail_deleteDialogMessage => 'Questa azione non può essere annullata.';
+
+  @override
+  String get postDetail_deleteError => 'Impossibile eliminare il post';
+
+  @override
+  String get postDetail_editMenuItem => 'Modifica post';
+
+  @override
+  String get postDetail_deleteMenuItem => 'Elimina post';
+
+  @override
+  String get postDetail_loadError => 'Si è verificato un errore nel caricamento del post.';
+
+  @override
+  String get postDetail_notFound => 'Post non trovato.';
+
+  @override
+  String get postDetail_errorTitle => 'Errore';
+
+  @override
+  String get postDetail_authorFallback => 'Autore';
+
+  @override
+  String get postDetail_shareAction => 'Condividi';
+
+  @override
+  String get postDetail_saveAction => 'Salva';
+
+  @override
+  String get postDetail_addToFavoritesTooltip => 'Aggiungi ai preferiti';
+
+  @override
+  String get postDetail_removeFromFavoritesTooltip => 'Rimuovi dai preferiti';
+
+  @override
+  String get newsDetail_favoriteUpdateError => 'Impossibile aggiornare i preferiti';
+
+  @override
+  String get newsDetail_shareMessage => 'Apri Sociale_Vote per vedere questa notizia.';
+
+  @override
+  String get newsDetail_shareError => 'Impossibile condividere la notizia';
+
+  @override
+  String get newsDetail_shareTooltip => 'Condividi';
 }

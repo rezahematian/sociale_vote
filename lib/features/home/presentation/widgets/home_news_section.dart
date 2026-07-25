@@ -714,48 +714,52 @@ class _HomeNewsInlineStatus extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return AppCard(
-      elevated: false,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              icon,
-              size: 18,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.textTheme.bodySmall?.color
-                          ?.withValues(alpha: 0.78),
-                    ),
-                  ),
-                ],
+    return SizedBox(
+      width: double.infinity,
+      child: AppCard(
+        elevated: false,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: theme.colorScheme.primary,
               ),
-            ),
-            const SizedBox(width: 8),
-            TextButton(
-              onPressed: onRetryPressed,
-              child: Text(
-                MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.textTheme.bodySmall?.color
+                            ?.withValues(alpha: 0.78),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: onRetryPressed,
+                child: Text(
+                  MaterialLocalizations.of(context)
+                      .refreshIndicatorSemanticLabel,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -799,58 +803,62 @@ class _HomeNewsLoadingCard extends StatelessWidget {
       );
     }
 
-    return AppCard(
-      elevated: true,
-      child: Padding(
-        padding: EdgeInsets.all(compact ? 12 : 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      bar(56, height: 8),
-                      const SizedBox(height: 8),
-                      bar(double.infinity, height: 12),
-                      const SizedBox(height: 6),
-                      bar(compact ? 110 : 160, height: 12),
-                      const SizedBox(height: 8),
-                      bar(double.infinity, height: 9),
-                      const SizedBox(height: 5),
-                      bar(compact ? 100 : 180, height: 9),
-                    ],
+    return SizedBox(
+      width: double.infinity,
+      child: AppCard(
+        elevated: true,
+        child: Padding(
+          padding: EdgeInsets.all(compact ? 12 : 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        bar(56, height: 8),
+                        const SizedBox(height: 8),
+                        bar(double.infinity, height: 12),
+                        const SizedBox(height: 6),
+                        bar(compact ? 110 : 160, height: 12),
+                        const SizedBox(height: 8),
+                        bar(double.infinity, height: 9),
+                        const SizedBox(height: 5),
+                        bar(compact ? 100 : 180, height: 9),
+                      ],
+                    ),
                   ),
-                ),
-                SizedBox(width: compact ? 10 : 12),
-                Container(
-                  width: compact ? 78 : 108,
-                  height: compact ? 78 : 92,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
+                  SizedBox(width: compact ? 10 : 12),
+                  Container(
+                    width: compact ? 78 : 108,
+                    height: compact ? 78 : 92,
+                    decoration: BoxDecoration(
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: compact ? 10 : 12),
-            bar(92, height: 8),
-            SizedBox(height: compact ? 8 : 10),
-            const Divider(height: 1),
-            SizedBox(height: compact ? 8 : 10),
-            Row(
-              children: [
-                bar(52, height: 8),
-                const SizedBox(width: 10),
-                bar(52, height: 8),
-                const SizedBox(width: 10),
-                bar(52, height: 8),
-              ],
-            ),
-          ],
+                ],
+              ),
+              SizedBox(height: compact ? 10 : 12),
+              bar(92, height: 8),
+              SizedBox(height: compact ? 8 : 10),
+              const Divider(height: 1),
+              SizedBox(height: compact ? 8 : 10),
+              Row(
+                children: [
+                  bar(52, height: 8),
+                  const SizedBox(width: 10),
+                  bar(52, height: 8),
+                  const SizedBox(width: 10),
+                  bar(52, height: 8),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -877,42 +885,45 @@ class HomeNewsPlaceholderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return AppCard(
-      elevated: false,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              icon,
-              size: 22,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w600,
+    return SizedBox(
+      width: double.infinity,
+      child: AppCard(
+        elevated: false,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                icon,
+                size: 22,
+                color: theme.colorScheme.primary,
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color:
-                    theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
-              ),
-            ),
-            if (actionLabel != null && onActionPressed != null) ...[
               const SizedBox(height: 10),
-              TextButton.icon(
-                onPressed: onActionPressed,
-                icon: const Icon(Icons.refresh_rounded),
-                label: Text(actionLabel!),
+              Text(
+                title,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color:
+                      theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                ),
+              ),
+              if (actionLabel != null && onActionPressed != null) ...[
+                const SizedBox(height: 10),
+                TextButton.icon(
+                  onPressed: onActionPressed,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: Text(actionLabel!),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

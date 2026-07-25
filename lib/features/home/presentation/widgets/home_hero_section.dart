@@ -192,7 +192,7 @@ class HomeHeroSection extends StatelessWidget {
                           maxWidth: isCompact ? double.infinity : 520,
                         ),
                         child: Text(
-                          'Decidi il futuro.\nInsieme.',
+                          l10n.homeHeroHeadline,
                           style: theme.textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.w800,
                             height: 0.98,

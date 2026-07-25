@@ -192,7 +192,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
       return l10n.newsFeed_errorNetwork;
     }
 
-    return controller.errorMessage ?? l10n.newsFeed_errorGeneric;
+    return l10n.newsFeed_errorGeneric;
   }
 
   String _languageTooltip(BuildContext context) {

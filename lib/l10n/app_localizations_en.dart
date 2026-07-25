@@ -205,56 +205,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeSearchHint => 'Search city, country, polls, news, posts...';
 
   @override
-  String get commonCancel => 'Cancel';
-
-  @override
-  String get commonApply => 'Apply';
-
-  @override
-  String get commonVerifying => 'Verifying...';
-
-  @override
-  String get homeScopeChooseCountry => 'Choose country';
-
-  @override
-  String get homeScopeChooseCity => 'Choose city';
-
-  @override
-  String get homeScopeCountrySearchHint => 'Search country or code...';
-
-  @override
-  String get homeScopeCityRequiredError => 'Enter a city.';
-
-  @override
-  String get homeScopeCityNotFoundError => 'City not found in the selected country.';
-
-  @override
-  String get homeScopeCityVerificationError => 'Unable to verify the city. Try again.';
-
-  @override
-  String homeScopeSelectedCountryLabel(Object countryCode) {
-    return 'Country: $countryCode';
-  }
-
-  @override
-  String get homeScopeCityFieldHint => 'E.g. Rome, São Paulo, Tehran';
-
-  @override
-  String get homeForYouPageTitle => 'For You';
-
-  @override
-  String get homeTrendingRefreshTooltip => 'Refresh trending content';
-
-  @override
-  String get contentTypePoll => 'Poll';
-
-  @override
-  String get contentTypeNews => 'News';
-
-  @override
-  String get contentTypePost => 'Post';
-
-  @override
   String get searchPageTitle => 'Search';
 
   @override
@@ -641,6 +591,35 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get pollCard_resultsVisibleChip => 'Results visible';
+
+  @override
+  String get pollCard_resultsAfterVoteChip => 'After vote';
+
+  @override
+  String get pollCard_resultsAfterCloseChip => 'After close';
+
+  @override
+  String get pollCard_publicOfficialPublisher => 'Public Official';
+
+  @override
+  String get pollCard_institutionPublisher => 'Institution';
+
+  @override
+  String get pollCard_representativePublisher => 'Representative';
+
+  @override
+  String pollCard_voteCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'votes',
+      one: 'vote',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get pollCard_viewDetails => 'View details';
 
   @override
@@ -867,4 +846,201 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newsDetail_openSourceUnavailable => 'Unable to open the source article';
+
+  @override
+  String get socialFeedTitle => 'Social Feed';
+
+  @override
+  String get socialFeedCreatePostButton => 'Create post';
+
+  @override
+  String get commonCancelButton => 'Cancel';
+
+  @override
+  String get commonApplyButton => 'Apply';
+
+  @override
+  String get homeScopeChooseCountry => 'Choose country';
+
+  @override
+  String get homeScopeCountrySearchHint => 'Search country or code...';
+
+  @override
+  String get homeScopeChooseCity => 'Choose city';
+
+  @override
+  String homeScopeCountryWithCode(String code) {
+    return 'Country: $code';
+  }
+
+  @override
+  String get homeScopeCityFieldLabel => 'City';
+
+  @override
+  String get homeScopeCityExampleHint => 'E.g. Rome, São Paulo, Tehran';
+
+  @override
+  String get homeScopeCityRequiredError => 'Enter a city.';
+
+  @override
+  String get homeScopeCityNotFoundError => 'City not found in the selected country.';
+
+  @override
+  String get homeScopeCityVerificationError => 'Unable to verify the city. Try again.';
+
+  @override
+  String get homeScopeVerifyingButton => 'Verifying...';
+
+  @override
+  String get homeMapOpenButton => 'Open map';
+
+  @override
+  String get homeHeroHeadline => 'Shape the future.\nTogether.';
+
+  @override
+  String get homeAccountMenuLabel => 'Account';
+
+  @override
+  String get homeThemeSystemMenuItem => 'Theme: system';
+
+  @override
+  String get homeThemeLightMenuItem => 'Theme: light';
+
+  @override
+  String get homeThemeDarkMenuItem => 'Theme: dark';
+
+  @override
+  String get homeNotificationsTooltip => 'Notifications';
+
+  @override
+  String get postCard_authorFallback => 'Author';
+
+  @override
+  String get postCard_globalLocation => 'Global';
+
+  @override
+  String get commonSaveButton => 'Save';
+
+  @override
+  String get commonDeleteButton => 'Delete';
+
+  @override
+  String get contentReport_menuAction => 'Report content';
+
+  @override
+  String get contentReport_dialogTitle => 'Report content';
+
+  @override
+  String get contentReport_authenticationRequired => 'You must be signed in to report content';
+
+  @override
+  String get contentReport_submittedMessage => 'Report submitted';
+
+  @override
+  String get contentReport_alreadySubmittedMessage => 'You have already reported this content';
+
+  @override
+  String get contentReport_submitError => 'Unable to submit the report';
+
+  @override
+  String get contentReport_sendButton => 'Submit';
+
+  @override
+  String get contentReport_reasonSpam => 'Spam';
+
+  @override
+  String get contentReport_reasonHarassment => 'Harassment or abuse';
+
+  @override
+  String get contentReport_reasonHateSpeech => 'Hate speech';
+
+  @override
+  String get contentReport_reasonMisinformation => 'Misinformation';
+
+  @override
+  String get contentReport_reasonViolence => 'Violence';
+
+  @override
+  String get contentReport_reasonOther => 'Other';
+
+  @override
+  String get postDetail_title => 'Post detail';
+
+  @override
+  String get postDetail_favoriteUpdateError => 'Unable to update favorites';
+
+  @override
+  String get postDetail_shareMessage => 'Open Sociale_Vote to view this post.';
+
+  @override
+  String get postDetail_shareError => 'Unable to share the post';
+
+  @override
+  String get postDetail_editDialogTitle => 'Edit post';
+
+  @override
+  String get postDetail_editTitleFieldLabel => 'Title';
+
+  @override
+  String get postDetail_editContentFieldLabel => 'Content';
+
+  @override
+  String get postDetail_editRequiredError => 'Title and content are required.';
+
+  @override
+  String get postDetail_updateSuccess => 'Post updated';
+
+  @override
+  String get postDetail_updateError => 'Unable to update the post';
+
+  @override
+  String get postDetail_deleteDialogTitle => 'Delete this post?';
+
+  @override
+  String get postDetail_deleteDialogMessage => 'This action cannot be undone.';
+
+  @override
+  String get postDetail_deleteError => 'Unable to delete the post';
+
+  @override
+  String get postDetail_editMenuItem => 'Edit post';
+
+  @override
+  String get postDetail_deleteMenuItem => 'Delete post';
+
+  @override
+  String get postDetail_loadError => 'An error occurred while loading the post.';
+
+  @override
+  String get postDetail_notFound => 'Post not found.';
+
+  @override
+  String get postDetail_errorTitle => 'Error';
+
+  @override
+  String get postDetail_authorFallback => 'Author';
+
+  @override
+  String get postDetail_shareAction => 'Share';
+
+  @override
+  String get postDetail_saveAction => 'Save';
+
+  @override
+  String get postDetail_addToFavoritesTooltip => 'Add to favorites';
+
+  @override
+  String get postDetail_removeFromFavoritesTooltip => 'Remove from favorites';
+
+  @override
+  String get newsDetail_favoriteUpdateError => 'Unable to update favorites';
+
+  @override
+  String get newsDetail_shareMessage => 'Open Sociale_Vote to view this news item.';
+
+  @override
+  String get newsDetail_shareError => 'Unable to share the news item';
+
+  @override
+  String get newsDetail_shareTooltip => 'Share';
 }

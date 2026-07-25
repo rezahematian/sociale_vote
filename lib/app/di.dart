@@ -371,6 +371,11 @@ class AppDI {
       return;
     }
 
+    // A manual scope change must win over an older asynchronous restore.
+    // Otherwise a stored scope can arrive late and overwrite the user's
+    // latest selection (for example World reverting to a saved city).
+    _geoScopeRestoreRequestId++;
+
     unawaited(
       _persistGeoScope(
         userId: _currentUserId,

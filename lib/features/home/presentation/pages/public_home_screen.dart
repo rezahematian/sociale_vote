@@ -297,13 +297,11 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       return null;
     }
 
-    for (final country in country_data.Countries.all) {
-      if (country.code.toUpperCase() == normalizedCode) {
-        return country.name;
-      }
-    }
-
-    return normalizedCode;
+    return country_data.Countries.nameForCode(
+      normalizedCode,
+      languageCode: Localizations.localeOf(context).languageCode,
+      fallback: normalizedCode,
+    );
   }
 
   String? _normalizeHeroChipText(String? value) {
@@ -533,12 +531,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                           onOpenSearch: _openSearchPage,
                         ),
                       ),
-                      HomeMapSection(
-                        key: ValueKey(
-                          'home_map_${scope.level}_${scope.countryCode}_${scope.cityId}_$_homeRefreshVersion',
-                        ),
-                        scopeShortLabel: scopeShortLabel,
-                      ),
                       _HomeScopeSelector(
                         scope: scope,
                         scopeLabel: scopeLabel,
@@ -548,6 +540,12 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                         onSetWorld: _setWorld,
                         onSelectCountry: _selectCountryScope,
                         onSelectCity: _selectCityScope,
+                      ),
+                      HomeMapSection(
+                        key: ValueKey(
+                          'home_map_${scope.level}_${scope.countryCode}_${scope.cityId}_$_homeRefreshVersion',
+                        ),
+                        scopeShortLabel: scopeShortLabel,
                       ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -637,7 +635,7 @@ class _HomeScopeSelector extends StatelessWidget {
     final isCity = scope.level == GeoScopeLevel.city;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(30, 16, 30, 0),
       child: Card(
         elevation: 0,
         color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
@@ -688,15 +686,17 @@ class _HomeScopeSelector extends StatelessWidget {
                   _scopeChip(
                     context,
                     label: isCountry || isCity
-                        ? (countryLabel ?? 'Paese')
-                        : 'Scegli paese',
+                        ? (countryLabel ?? l10n.homeScopeShortCountry)
+                        : l10n.homeScopeChooseCountry,
                     icon: Icons.flag_outlined,
                     selected: isCountry,
                     onTap: () => onSelectCountry(),
                   ),
                   _scopeChip(
                     context,
-                    label: isCity ? (scope.cityId ?? 'Città') : 'Scegli città',
+                    label: isCity
+                        ? (scope.cityId ?? l10n.homeScopeShortCity)
+                        : l10n.homeScopeChooseCity,
                     icon: Icons.location_city_outlined,
                     selected: isCity,
                     onTap: () => onSelectCity(),
@@ -773,18 +773,22 @@ class _CountryScopeDialogState extends State<_CountryScopeDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final languageCode = Localizations.localeOf(context).languageCode;
     final normalizedQuery = _query.trim().toLowerCase();
     final countries = country_data.Countries.all.where((country) {
       if (normalizedQuery.isEmpty) {
         return true;
       }
 
-      return country.name.toLowerCase().contains(normalizedQuery) ||
+      final localizedName = country.localizedName(languageCode).toLowerCase();
+      return localizedName.contains(normalizedQuery) ||
+          country.name.toLowerCase().contains(normalizedQuery) ||
           country.code.toLowerCase().contains(normalizedQuery);
     }).toList(growable: false);
 
     return AlertDialog(
-      title: const Text('Scegli paese'),
+      title: Text(l10n.homeScopeChooseCountry),
       content: SizedBox(
         width: 480,
         height: 460,
@@ -792,9 +796,9 @@ class _CountryScopeDialogState extends State<_CountryScopeDialog> {
           children: [
             TextField(
               autofocus: true,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search),
-                hintText: 'Cerca paese o codice...',
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
+                hintText: l10n.homeScopeCountrySearchHint,
               ),
               onChanged: (value) {
                 setState(() {
@@ -818,7 +822,7 @@ class _CountryScopeDialogState extends State<_CountryScopeDialog> {
                             color: Theme.of(context).colorScheme.primary,
                           )
                         : const Icon(Icons.flag_outlined),
-                    title: Text(country.name),
+                    title: Text(country.localizedName(languageCode)),
                     subtitle: Text(country.code),
                     onTap: () => Navigator.of(context).pop(country.code),
                   );
@@ -831,7 +835,7 @@ class _CountryScopeDialogState extends State<_CountryScopeDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Annulla'),
+          child: Text(l10n.commonCancelButton),
         ),
       ],
     );
@@ -869,10 +873,11 @@ class _CityScopeDialogState extends State<_CityScopeDialog> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     final cityName = _cityController.text.trim();
     if (cityName.isEmpty || _isResolving) {
       setState(() {
-        _errorMessage = 'Inserisci una città.';
+        _errorMessage = l10n.homeScopeCityRequiredError;
       });
       return;
     }
@@ -899,7 +904,7 @@ class _CityScopeDialogState extends State<_CityScopeDialog> {
       if (resolved == null ||
           (!resolved.hasCenter && !resolved.hasExactPoint)) {
         setState(() {
-          _errorMessage = 'Città non trovata nel paese selezionato.';
+          _errorMessage = l10n.homeScopeCityNotFoundError;
         });
         return;
       }
@@ -926,7 +931,7 @@ class _CityScopeDialogState extends State<_CityScopeDialog> {
         return;
       }
       setState(() {
-        _errorMessage = 'Impossibile verificare la città. Riprova.';
+        _errorMessage = l10n.homeScopeCityVerificationError;
       });
     } finally {
       if (mounted) {
@@ -939,15 +944,21 @@ class _CityScopeDialogState extends State<_CityScopeDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return AlertDialog(
-      title: const Text('Scegli città'),
+      title: Text(l10n.homeScopeChooseCity),
       content: SizedBox(
         width: 420,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Paese: ${widget.countryCode.toUpperCase()}'),
+            Text(
+              l10n.homeScopeCountryWithCode(
+                widget.countryCode.toUpperCase(),
+              ),
+            ),
             const SizedBox(height: 12),
             TextField(
               controller: _cityController,
@@ -955,8 +966,8 @@ class _CityScopeDialogState extends State<_CityScopeDialog> {
               enabled: !_isResolving,
               textInputAction: TextInputAction.done,
               decoration: InputDecoration(
-                labelText: 'Città',
-                hintText: 'Es. Roma, São Paulo, Tehran',
+                labelText: l10n.homeScopeCityFieldLabel,
+                hintText: l10n.homeScopeCityExampleHint,
                 errorText: _errorMessage,
               ),
               onSubmitted: (_) => _submit(),
@@ -967,7 +978,7 @@ class _CityScopeDialogState extends State<_CityScopeDialog> {
       actions: [
         TextButton(
           onPressed: _isResolving ? null : () => Navigator.of(context).pop(),
-          child: const Text('Annulla'),
+          child: Text(l10n.commonCancelButton),
         ),
         FilledButton.icon(
           onPressed: _isResolving ? null : _submit,
@@ -978,7 +989,11 @@ class _CityScopeDialogState extends State<_CityScopeDialog> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.check),
-          label: Text(_isResolving ? 'Verifica...' : 'Applica'),
+          label: Text(
+            _isResolving
+                ? l10n.homeScopeVerifyingButton
+                : l10n.commonApplyButton,
+          ),
         ),
       ],
     );

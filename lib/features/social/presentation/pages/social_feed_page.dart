@@ -94,7 +94,7 @@ class _SocialFeedViewState extends State<_SocialFeedView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.searchTypePosts),
+        title: Text(l10n.socialFeedTitle),
       ),
       body: ColoredBox(
         color: theme.scaffoldBackgroundColor,
@@ -239,7 +239,7 @@ class _FeedToolbar extends StatelessWidget {
         await onCreatePost();
       },
       icon: const Icon(Icons.add),
-      label: Text(l10n.searchResultTypePost),
+      label: Text(l10n.socialFeedCreatePostButton),
     );
 
     return Material(

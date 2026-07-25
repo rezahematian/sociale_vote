@@ -8,6 +8,7 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 
@@ -52,10 +53,13 @@ class PostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final languageCode = Localizations.localeOf(context).languageCode;
     final title = post.title.trim();
     final content = post.content.trim();
-    final authorName =
-        post.authorName.trim().isNotEmpty ? post.authorName.trim() : 'Author';
+    final authorName = post.authorName.trim().isNotEmpty
+        ? post.authorName.trim()
+        : l10n.postCard_authorFallback;
     final hasTitle = title.isNotEmpty;
     final hasContent = content.isNotEmpty;
     final isDark = theme.brightness == Brightness.dark;
@@ -133,7 +137,11 @@ class PostCard extends StatelessWidget {
                     children: [
                       _buildDiscussionIconChip(theme),
                       _buildAuthorChip(theme, authorName),
-                      _buildLocationChip(theme),
+                      _buildLocationChip(
+                        theme,
+                        languageCode: languageCode,
+                        globalLabel: l10n.postCard_globalLocation,
+                      ),
                     ],
                   ),
                   if (hasTitle || hasContent) const SizedBox(height: 12),
@@ -253,7 +261,11 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  Widget _buildLocationChip(ThemeData theme) {
+  Widget _buildLocationChip(
+    ThemeData theme, {
+    required String languageCode,
+    required String globalLabel,
+  }) {
     final countryCode = post.countryCode?.trim().isNotEmpty == true
         ? post.countryCode!.trim()
         : post.contentLocation?.countryCode?.trim();
@@ -262,7 +274,11 @@ class PostCard extends StatelessWidget {
         : post.cityId?.trim();
     final countryName = countryCode == null || countryCode.isEmpty
         ? null
-        : Countries.findByCode(countryCode)?.name ?? countryCode;
+        : Countries.nameForCode(
+            countryCode,
+            languageCode: languageCode,
+            fallback: countryCode,
+          );
 
     final String label;
     if (cityName != null && cityName.isNotEmpty) {
@@ -272,7 +288,7 @@ class PostCard extends StatelessWidget {
     } else if (countryName != null && countryName.isNotEmpty) {
       label = countryName;
     } else {
-      label = 'Globale';
+      label = globalLabel;
     }
 
     return _buildHeaderChip(

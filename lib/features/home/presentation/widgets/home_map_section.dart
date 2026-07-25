@@ -7,6 +7,7 @@ import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/civic_map_widget.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class HomeMapSection extends StatelessWidget {
   final String scopeShortLabel;
@@ -54,55 +55,74 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
       scopeKey: activeScopeKey,
     );
 
-    return SizedBox(
-      height: 360,
-      child: Padding(
-        padding: const EdgeInsets.all(30.0),
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Stack(
-            children: [
-              CivicMapWidget(
-                controller: controller,
-                currentScopeLabel: widget.scopeShortLabel,
-                onTap: () async {
-                  await _openFullMap(
-                    context,
+    final l10n = AppLocalizations.of(context)!;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 720;
+        final isVeryNarrow = constraints.maxWidth < 480;
+        final sectionHeight = isCompact ? 310.0 : 340.0;
+        final horizontalPadding = isVeryNarrow ? 16.0 : 30.0;
+
+        return SizedBox(
+          height: sectionHeight,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              16,
+              horizontalPadding,
+              16,
+            ),
+            child: Card(
+              clipBehavior: Clip.antiAlias,
+              child: Stack(
+                children: [
+                  CivicMapWidget(
                     controller: controller,
-                    scope: activeScope,
-                  );
-                },
-                onItemTap: (_) async {
-                  await _openFullMap(
-                    context,
-                    controller: controller,
-                    scope: activeScope,
-                  );
-                },
+                    currentScopeLabel: widget.scopeShortLabel,
+                    onTap: () async {
+                      await _openFullMap(
+                        context,
+                        controller: controller,
+                        scope: activeScope,
+                      );
+                    },
+                    onItemTap: (_) async {
+                      await _openFullMap(
+                        context,
+                        controller: controller,
+                        scope: activeScope,
+                      );
+                    },
+                  ),
+                  Positioned(
+                    right: 12,
+                    bottom: 12,
+                    child: FilledButton.icon(
+                      onPressed: () async {
+                        await _openFullMap(
+                          context,
+                          controller: controller,
+                          scope: activeScope,
+                        );
+                      },
+                      style: FilledButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isVeryNarrow ? 12 : 14,
+                          vertical: 10,
+                        ),
+                      ),
+                      icon: const Icon(Icons.open_in_full, size: 18),
+                      label: Text(l10n.homeMapOpenButton),
+                    ),
+                  ),
+                ],
               ),
-              Positioned(
-                right: 12,
-                bottom: 12,
-                child: FilledButton.icon(
-                  onPressed: () async {
-                    await _openFullMap(
-                      context,
-                      controller: controller,
-                      scope: activeScope,
-                    );
-                  },
-                  icon: const Icon(Icons.open_in_full),
-                  label: const Text('Apri mappa'),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/data/countries.dart' as data;
 
 /// Campo riutilizzabile per selezionare un paese.
@@ -6,21 +7,24 @@ import 'package:sociale_vote/shared/data/countries.dart' as data;
 class CountrySelectorField extends StatelessWidget {
   final String? selectedCountryCode;
   final ValueChanged<String> onCountrySelected;
-  final String label;
+  final String? label;
   final bool required;
 
   const CountrySelectorField({
     super.key,
     required this.selectedCountryCode,
     required this.onCountrySelected,
-    this.label = 'Country',
+    this.label,
     this.required = false,
   });
 
   @override
   Widget build(BuildContext context) {
     const countries = data.Countries.all;
-    final effectiveLabel = required ? '$label *' : label;
+    final l10n = AppLocalizations.of(context)!;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final baseLabel = label ?? l10n.homeScopeShortCountry;
+    final effectiveLabel = required ? '$baseLabel *' : baseLabel;
 
     final selected = countries.firstWhere(
       (c) => c.code.toUpperCase() == (selectedCountryCode ?? '').toUpperCase(),
@@ -28,8 +32,8 @@ class CountrySelectorField extends StatelessWidget {
     );
 
     final hasSelected = selected.code.isNotEmpty && selected.name.isNotEmpty;
-
-    final textValue = hasSelected ? '${selected.name} (${selected.code})' : '';
+    final selectedName = selected.localizedName(languageCode);
+    final textValue = hasSelected ? '$selectedName (${selected.code})' : '';
 
     return GestureDetector(
       onTap: () => _openCountryPicker(context),
@@ -40,7 +44,7 @@ class CountrySelectorField extends StatelessWidget {
           initialValue: textValue,
           decoration: InputDecoration(
             labelText: effectiveLabel,
-            helperText: 'Tap to search and choose a country.',
+            helperText: l10n.homeScopeChooseCountry,
             suffixIcon: const Icon(Icons.arrow_drop_down),
           ),
         ),
@@ -50,6 +54,8 @@ class CountrySelectorField extends StatelessWidget {
 
   Future<void> _openCountryPicker(BuildContext context) async {
     const countries = data.Countries.all;
+    final l10n = AppLocalizations.of(context)!;
+    final languageCode = Localizations.localeOf(context).languageCode;
 
     String query = '';
     final String? resultCode = await showDialog<String>(
@@ -57,16 +63,27 @@ class CountrySelectorField extends StatelessWidget {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setState) {
-            final filtered = countries.where((c) {
+            final filtered = countries.where((country) {
               if (query.isEmpty) return true;
-              final q = query.toLowerCase();
 
-              return c.name.toLowerCase().startsWith(q) ||
-                  c.code.toLowerCase().startsWith(q);
-            }).toList();
+              final normalizedQuery = query.trim().toLowerCase();
+              final localizedName =
+                  country.localizedName(languageCode).toLowerCase();
+              final englishName = country.name.toLowerCase();
+              final countryCode = country.code.toLowerCase();
+
+              return localizedName.contains(normalizedQuery) ||
+                  englishName.contains(normalizedQuery) ||
+                  countryCode.contains(normalizedQuery);
+            }).toList()
+              ..sort(
+                (a, b) => a
+                    .localizedName(languageCode)
+                    .compareTo(b.localizedName(languageCode)),
+              );
 
             return AlertDialog(
-              title: const Text('Select country'),
+              title: Text(l10n.homeScopeChooseCountry),
               content: SizedBox(
                 width: double.maxFinite,
                 height: 400,
@@ -74,9 +91,9 @@ class CountrySelectorField extends StatelessWidget {
                   children: [
                     TextField(
                       autofocus: true,
-                      decoration: const InputDecoration(
-                        prefixIcon: Icon(Icons.search),
-                        hintText: 'Type to filter countries...',
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.search),
+                        hintText: l10n.homeScopeCountrySearchHint,
                       ),
                       onChanged: (value) {
                         setState(() {
@@ -91,7 +108,7 @@ class CountrySelectorField extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final country = filtered[index];
                           return ListTile(
-                            title: Text(country.name),
+                            title: Text(country.localizedName(languageCode)),
                             subtitle: Text(country.code),
                             onTap: () {
                               Navigator.of(dialogContext).pop(country.code);
@@ -106,7 +123,7 @@ class CountrySelectorField extends StatelessWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.commonCancelButton),
                 ),
               ],
             );

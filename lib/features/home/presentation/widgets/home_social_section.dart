@@ -40,42 +40,28 @@ class HomeSocialSection extends StatelessWidget {
         sorted.length <= 3 ? sorted : sorted.take(3).toList(growable: false);
 
     final header = Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: theme.colorScheme.primary.withValues(alpha: 0.08),
           ),
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(6),
           child: Icon(
             Icons.forum_rounded,
             size: 18,
             color: theme.colorScheme.primary,
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.homeSocialTitle(scopeShortLabel),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                scopeShortLabel,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+          child: Text(
+            l10n.homeSocialTitle(scopeShortLabel),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],
@@ -123,7 +109,7 @@ class HomeSocialSection extends StatelessWidget {
                 controller.userReactionForPost(post);
 
             return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(bottom: 14),
               child: HomePostPreviewCard(
                 post: previewPost,
                 fireCount: fire,
@@ -176,7 +162,7 @@ class HomeSocialSection extends StatelessWidget {
         content,
         const SizedBox(height: 6),
         Align(
-          alignment: Alignment.centerRight,
+          alignment: Alignment.centerLeft,
           child: TextButton.icon(
             onPressed: () async {
               await Navigator.pushNamed(
@@ -190,7 +176,7 @@ class HomeSocialSection extends StatelessWidget {
                 userId: AppDI.instance.currentUserId,
               );
             },
-            icon: const Icon(Icons.arrow_outward_rounded, size: 18),
+            icon: const Icon(Icons.arrow_forward),
             label: Text(l10n.homeSocialViewFeedButton),
           ),
         ),

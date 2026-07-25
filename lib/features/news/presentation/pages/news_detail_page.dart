@@ -151,7 +151,11 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossibile aggiornare i preferiti')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.newsDetail_favoriteUpdateError,
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -188,7 +192,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
 
     buffer
       ..writeln()
-      ..writeln('Apri Sociale_Vote per vedere questa news.');
+      ..writeln(AppLocalizations.of(context)!.newsDetail_shareMessage);
 
     try {
       await Share.share(
@@ -198,7 +202,9 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossibile condividere la news')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.newsDetail_shareError),
+        ),
       );
     }
   }
@@ -214,7 +220,11 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     if (userId == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Devi essere autenticato per segnalare')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.contentReport_authenticationRequired,
+          ),
+        ),
       );
       return;
     }
@@ -235,9 +245,10 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
       if (!mounted) return;
 
       final message = switch (result) {
-        SubmitReportResult.submitted => 'Segnalazione inviata',
+        SubmitReportResult.submitted =>
+          AppLocalizations.of(context)!.contentReport_submittedMessage,
         SubmitReportResult.alreadyReported =>
-          'Hai già segnalato questo contenuto',
+          AppLocalizations.of(context)!.contentReport_alreadySubmittedMessage,
       };
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -246,7 +257,10 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossibile inviare la segnalazione')),
+        SnackBar(
+          content:
+              Text(AppLocalizations.of(context)!.contentReport_submitError),
+        ),
       );
     }
   }
@@ -260,7 +274,9 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('Segnala contenuto'),
+              title: Text(
+                AppLocalizations.of(dialogContext)!.contentReport_dialogTitle,
+              ),
               content: RadioGroup<String>(
                 groupValue: selectedReason,
                 onChanged: (value) {
@@ -275,7 +291,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     return RadioListTile<String>(
                       value: reason,
                       contentPadding: EdgeInsets.zero,
-                      title: Text(_reportReasonLabel(reason)),
+                      title: Text(_reportReasonLabel(dialogContext, reason)),
                     );
                   }).toList(),
                 ),
@@ -283,13 +299,17 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Annulla'),
+                  child: Text(
+                      AppLocalizations.of(dialogContext)!.commonCancelButton),
                 ),
                 FilledButton(
                   onPressed: () {
                     Navigator.of(dialogContext).pop(selectedReason);
                   },
-                  child: const Text('Invia'),
+                  child: Text(
+                    AppLocalizations.of(dialogContext)!
+                        .contentReport_sendButton,
+                  ),
                 ),
               ],
             );
@@ -305,8 +325,10 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     if (rawUrl == null || rawUrl.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Link articolo originale non disponibile'),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.newsDetail_openSourceUnavailable,
+          ),
         ),
       );
       return;
@@ -316,8 +338,10 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     if (uri == null || !uri.hasScheme || uri.host.trim().isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Link articolo non valido'),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.newsDetail_openSourceUnavailable,
+          ),
         ),
       );
       return;
@@ -331,37 +355,36 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
 
       if (!opened && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Impossibile aprire l’articolo originale'),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.newsDetail_openSourceUnavailable,
+            ),
           ),
         );
       }
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Impossibile aprire l’articolo originale'),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.newsDetail_openSourceUnavailable,
+          ),
         ),
       );
     }
   }
 
-  String _reportReasonLabel(String reason) {
-    switch (reason) {
-      case 'spam':
-        return 'Spam';
-      case 'harassment':
-        return 'Molestie o abuso';
-      case 'hate_speech':
-        return 'Incitamento all’odio';
-      case 'misinformation':
-        return 'Disinformazione';
-      case 'violence':
-        return 'Violenza';
-      case 'other':
-        return 'Altro';
-    }
-    return reason;
+  String _reportReasonLabel(BuildContext context, String reason) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (reason) {
+      'spam' => l10n.contentReport_reasonSpam,
+      'harassment' => l10n.contentReport_reasonHarassment,
+      'hate_speech' => l10n.contentReport_reasonHateSpeech,
+      'misinformation' => l10n.contentReport_reasonMisinformation,
+      'violence' => l10n.contentReport_reasonViolence,
+      'other' => l10n.contentReport_reasonOther,
+      _ => reason,
+    };
   }
 
   @override
@@ -370,6 +393,9 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     final l10n = AppLocalizations.of(context)!;
     final news = widget.news;
     final sourceLabel = news.effectiveSourceLabel;
+    final isDark = theme.brightness == Brightness.dark;
+    final pageBackground =
+        isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F7FB);
 
     if (_initializedNewsId != news.id.value) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -384,12 +410,28 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
       });
     }
 
+    NewsController? newsController;
+    try {
+      newsController = Provider.of<NewsController>(
+        context,
+        listen: true,
+      );
+    } catch (_) {
+      newsController = null;
+    }
+
+    final summary = newsController?.summaryForNews(news);
+    final fireCount = summary?.likeCount ?? 0;
+    final iceCount = summary?.dislikeCount ?? 0;
+    final userReaction = summary?.userReaction;
+
     return ChangeNotifierProvider<DiscussionController>(
       create: (_) => AppDI.instance.createDiscussionController(
         TargetRef.news(news.id.value),
         onCommentsChanged: _loadCommentCount,
       )..loadComments(),
       child: Scaffold(
+        backgroundColor: pageBackground,
         appBar: AppBar(
           title: Text(
             l10n.newsDetail_title,
@@ -403,10 +445,10 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                   _onReportPressed();
                 }
               },
-              itemBuilder: (context) => const [
+              itemBuilder: (context) => [
                 PopupMenuItem<String>(
                   value: 'report',
-                  child: Text('Report content'),
+                  child: Text(l10n.contentReport_menuAction),
                 ),
               ],
             ),
@@ -415,238 +457,74 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (news.isBreaking) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.error,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      l10n.newsDetail_breakingBadge,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onError,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.6,
-                      ),
-                    ),
-                  ),
-                ],
-                Row(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 960),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        news.title,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                    _NewsDetailHeroCard(
+                      news: news,
+                      sourceLabel: sourceLabel,
+                      bodyText: _resolveBodyText(l10n),
+                      publishedAtLabel: _formatPublishedAt(news.publishedAt),
+                      isFavorite: _isFavorite,
+                      favoriteLoading: _favoriteLoading,
+                      showEngagement: newsController != null,
+                      fireCount: fireCount,
+                      iceCount: iceCount,
+                      commentCount: _commentCount,
+                      userReaction: userReaction,
+                      onSharePressed: _onSharePressed,
+                      onFavoritePressed:
+                          _favoriteLoading ? null : _onFavoritePressed,
+                      onOpenSourcePressed: news.hasOriginalArticleUrl
+                          ? _openOriginalArticle
+                          : null,
+                      onFireTap: newsController == null
+                          ? null
+                          : () async {
+                              final allowed =
+                                  await AuthGuard.ensureCanPerformAction(
+                                context,
+                                ParticipationAction.react,
+                              );
+                              if (!context.mounted || !allowed) return;
+
+                              final userId = AppDI.instance.currentUserId;
+                              if (userId == null) return;
+
+                              newsController!.toggleFireForNews(
+                                userId: userId,
+                                newsItem: news,
+                              );
+                            },
+                      onIceTap: newsController == null
+                          ? null
+                          : () async {
+                              final allowed =
+                                  await AuthGuard.ensureCanPerformAction(
+                                context,
+                                ParticipationAction.react,
+                              );
+                              if (!context.mounted || !allowed) return;
+
+                              final userId = AppDI.instance.currentUserId;
+                              if (userId == null) return;
+
+                              newsController!.toggleIceForNews(
+                                userId: userId,
+                                newsItem: news,
+                              );
+                            },
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.share_outlined),
-                      tooltip: 'Condividi',
-                      onPressed: _onSharePressed,
-                    ),
-                    IconButton(
-                      icon: _favoriteLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Icon(
-                              _isFavorite ? Icons.star : Icons.star_border,
-                              color: _isFavorite
-                                  ? theme.colorScheme.primary
-                                  : theme.iconTheme.color,
-                            ),
-                      tooltip: _isFavorite
-                          ? l10n.newsDetail_removeFromFavoritesTooltip
-                          : l10n.newsDetail_addToFavoritesTooltip,
-                      onPressed: _favoriteLoading ? null : _onFavoritePressed,
+                    const SizedBox(height: 20),
+                    CommentSection(
+                      userId: AppDI.instance.currentUserId ?? 'guest',
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.schedule,
-                      size: 14,
-                      color: theme.hintColor,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _formatPublishedAt(news.publishedAt),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.hintColor,
-                      ),
-                    ),
-                  ],
-                ),
-                if (sourceLabel != null && sourceLabel.trim().isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.newspaper,
-                        size: 14,
-                        color: theme.hintColor,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          sourceLabel.trim(),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.hintColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 2,
-                        decoration: BoxDecoration(
-                          color:
-                              theme.colorScheme.primary.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Card(
-                  elevation: 0,
-                  margin: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(
-                      color: theme.dividerColor.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 20,
-                    ),
-                    child: Text(
-                      _resolveBodyText(l10n),
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                ),
-                if (news.hasOriginalArticleUrl) ...[
-                  const SizedBox(height: 16),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: OutlinedButton.icon(
-                      onPressed: _openOriginalArticle,
-                      icon: const Icon(Icons.open_in_new),
-                      label: const Text('Leggi articolo originale'),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 24),
-                Builder(
-                  builder: (context) {
-                    NewsController? newsController;
-                    try {
-                      newsController = Provider.of<NewsController>(
-                        context,
-                        listen: true,
-                      );
-                    } catch (_) {
-                      newsController = null;
-                    }
-
-                    if (newsController == null) {
-                      return const SizedBox.shrink();
-                    }
-
-                    final summary = newsController.summaryForNews(news);
-                    final fireCount = summary?.likeCount ?? 0;
-                    final iceCount = summary?.dislikeCount ?? 0;
-                    final userReaction = summary?.userReaction;
-
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: EngagementBar(
-                        fireCount: fireCount,
-                        iceCount: iceCount,
-                        commentCount: _commentCount,
-                        userReaction: userReaction,
-                        onFireTap: () async {
-                          final allowed =
-                              await AuthGuard.ensureCanPerformAction(
-                            context,
-                            ParticipationAction.react,
-                          );
-                          if (!allowed) return;
-
-                          final String? userId = AppDI.instance.currentUserId;
-                          if (userId == null) return;
-
-                          newsController!.toggleFireForNews(
-                            userId: userId,
-                            newsItem: news,
-                          );
-                        },
-                        onIceTap: () async {
-                          final allowed =
-                              await AuthGuard.ensureCanPerformAction(
-                            context,
-                            ParticipationAction.react,
-                          );
-                          if (!allowed) return;
-
-                          final String? userId = AppDI.instance.currentUserId;
-                          if (userId == null) return;
-
-                          newsController!.toggleIceForNews(
-                            userId: userId,
-                            newsItem: news,
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    l10n.newsDetail_footerMoreContext,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.hintColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                const Divider(),
-                const SizedBox(height: 16),
-                CommentSection(
-                  userId: AppDI.instance.currentUserId ?? 'guest',
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -677,5 +555,394 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     final minute = local.minute.toString().padLeft(2, '0');
 
     return '$day/$month/$year $hour:$minute';
+  }
+}
+
+class _NewsDetailHeroCard extends StatelessWidget {
+  final NewsItem news;
+  final String? sourceLabel;
+  final String bodyText;
+  final String publishedAtLabel;
+  final bool isFavorite;
+  final bool favoriteLoading;
+  final bool showEngagement;
+  final int fireCount;
+  final int iceCount;
+  final int commentCount;
+  final dynamic userReaction;
+  final VoidCallback onSharePressed;
+  final VoidCallback? onFavoritePressed;
+  final VoidCallback? onOpenSourcePressed;
+  final Future<void> Function()? onFireTap;
+  final Future<void> Function()? onIceTap;
+
+  const _NewsDetailHeroCard({
+    required this.news,
+    required this.sourceLabel,
+    required this.bodyText,
+    required this.publishedAtLabel,
+    required this.isFavorite,
+    required this.favoriteLoading,
+    required this.showEngagement,
+    required this.fireCount,
+    required this.iceCount,
+    required this.commentCount,
+    required this.userReaction,
+    required this.onSharePressed,
+    required this.onFavoritePressed,
+    required this.onOpenSourcePressed,
+    required this.onFireTap,
+    required this.onIceTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final cardTopColor =
+        isDark ? const Color(0xFF162130) : const Color(0xFFFCFDFE);
+    final cardBottomColor =
+        isDark ? const Color(0xFF101927) : const Color(0xFFF1F5FA);
+    final cardBorderColor =
+        isDark ? const Color(0xFF2C3948) : const Color(0xFFD7DFEA);
+    final metaColor = theme.colorScheme.onSurface.withValues(
+      alpha: isDark ? 0.64 : 0.58,
+    );
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color:
+                const Color(0xFF0F172A).withValues(alpha: isDark ? 0.18 : 0.07),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color:
+                const Color(0xFF94A3B8).withValues(alpha: isDark ? 0.06 : 0.10),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(22),
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: cardBorderColor,
+              width: 1.2,
+            ),
+            gradient: LinearGradient(
+              colors: [cardTopColor, cardBottomColor],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 20, 18, 16),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < 640;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        if (news.isBreaking)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.error,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              l10n.newsDetail_breakingBadge,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onError,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        if (sourceLabel != null &&
+                            sourceLabel!.trim().isNotEmpty)
+                          _NewsMetaChip(
+                            icon: Icons.newspaper_outlined,
+                            label: sourceLabel!.trim(),
+                          ),
+                        _NewsMetaChip(
+                          icon: Icons.schedule_outlined,
+                          label: publishedAtLabel,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      news.title.trim(),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        height: 1.18,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 18,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface.withValues(
+                          alpha: isDark ? 0.30 : 0.68,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: theme.colorScheme.outline.withValues(
+                            alpha: isDark ? 0.18 : 0.12,
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        bodyText,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          height: 1.48,
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: isDark ? 0.88 : 0.86,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (onOpenSourcePressed != null) ...[
+                      const SizedBox(height: 14),
+                      OutlinedButton.icon(
+                        onPressed: onOpenSourcePressed,
+                        icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                        label: Text(l10n.newsDetail_openSource),
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+                    Divider(
+                      height: 1,
+                      color: theme.colorScheme.outline.withValues(
+                        alpha: isDark ? 0.20 : 0.14,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    if (isCompact)
+                      Row(
+                        children: [
+                          if (showEngagement)
+                            Expanded(
+                              child: EngagementBar(
+                                fireCount: fireCount,
+                                iceCount: iceCount,
+                                commentCount: commentCount,
+                                userReaction: userReaction,
+                                onFireTap: onFireTap,
+                                onIceTap: onIceTap,
+                              ),
+                            )
+                          else
+                            const Spacer(),
+                          const SizedBox(width: 8),
+                          _NewsDetailActionIcon(
+                            icon: Icons.share_outlined,
+                            tooltip: l10n.newsDetail_shareTooltip,
+                            onPressed: onSharePressed,
+                          ),
+                          const SizedBox(width: 8),
+                          _NewsDetailActionIcon(
+                            icon: isFavorite
+                                ? Icons.star_rounded
+                                : Icons.star_border_rounded,
+                            tooltip: isFavorite
+                                ? l10n.newsDetail_removeFromFavoritesTooltip
+                                : l10n.newsDetail_addToFavoritesTooltip,
+                            onPressed: onFavoritePressed,
+                            isActive: isFavorite,
+                            isLoading: favoriteLoading,
+                          ),
+                        ],
+                      )
+                    else
+                      Row(
+                        children: [
+                          if (showEngagement)
+                            EngagementBar(
+                              fireCount: fireCount,
+                              iceCount: iceCount,
+                              commentCount: commentCount,
+                              userReaction: userReaction,
+                              onFireTap: onFireTap,
+                              onIceTap: onIceTap,
+                            ),
+                          const Spacer(),
+                          _NewsDetailActionIcon(
+                            icon: Icons.share_outlined,
+                            tooltip: l10n.newsDetail_shareTooltip,
+                            onPressed: onSharePressed,
+                          ),
+                          const SizedBox(width: 8),
+                          _NewsDetailActionIcon(
+                            icon: isFavorite
+                                ? Icons.star_rounded
+                                : Icons.star_border_rounded,
+                            tooltip: isFavorite
+                                ? l10n.newsDetail_removeFromFavoritesTooltip
+                                : l10n.newsDetail_addToFavoritesTooltip,
+                            onPressed: onFavoritePressed,
+                            isActive: isFavorite,
+                            isLoading: favoriteLoading,
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 14),
+                    Text(
+                      l10n.newsDetail_footerMoreContext,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: metaColor,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NewsMetaChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _NewsMetaChip({
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(
+          alpha: isDark ? 0.34 : 0.72,
+        ),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(
+            alpha: isDark ? 0.18 : 0.12,
+          ),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.66),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NewsDetailActionIcon extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onPressed;
+  final bool isActive;
+  final bool isLoading;
+
+  const _NewsDetailActionIcon({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+    this.isActive = false,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final backgroundColor = isActive
+        ? colorScheme.primary.withValues(alpha: isDark ? 0.18 : 0.10)
+        : colorScheme.surface.withValues(alpha: isDark ? 0.30 : 0.82);
+    final borderColor = isActive
+        ? colorScheme.primary.withValues(alpha: isDark ? 0.32 : 0.22)
+        : colorScheme.outline.withValues(alpha: isDark ? 0.18 : 0.14);
+    final foregroundColor = isActive
+        ? colorScheme.primary
+        : colorScheme.onSurface.withValues(alpha: 0.84);
+
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isLoading ? null : onPressed,
+          borderRadius: BorderRadius.circular(999),
+          child: Ink(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: borderColor),
+            ),
+            child: Center(
+              child: isLoading
+                  ? SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: foregroundColor,
+                      ),
+                    )
+                  : Icon(
+                      icon,
+                      size: 18,
+                      color: foregroundColor,
+                    ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

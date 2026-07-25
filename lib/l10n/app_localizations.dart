@@ -479,102 +479,6 @@ abstract class AppLocalizations {
   /// **'Search city, country, polls, news, posts...'**
   String get homeSearchHint;
 
-  /// No description provided for @commonCancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get commonCancel;
-
-  /// No description provided for @commonApply.
-  ///
-  /// In en, this message translates to:
-  /// **'Apply'**
-  String get commonApply;
-
-  /// No description provided for @commonVerifying.
-  ///
-  /// In en, this message translates to:
-  /// **'Verifying...'**
-  String get commonVerifying;
-
-  /// No description provided for @homeScopeChooseCountry.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose country'**
-  String get homeScopeChooseCountry;
-
-  /// No description provided for @homeScopeChooseCity.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose city'**
-  String get homeScopeChooseCity;
-
-  /// No description provided for @homeScopeCountrySearchHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Search country or code...'**
-  String get homeScopeCountrySearchHint;
-
-  /// No description provided for @homeScopeCityRequiredError.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter a city.'**
-  String get homeScopeCityRequiredError;
-
-  /// No description provided for @homeScopeCityNotFoundError.
-  ///
-  /// In en, this message translates to:
-  /// **'City not found in the selected country.'**
-  String get homeScopeCityNotFoundError;
-
-  /// No description provided for @homeScopeCityVerificationError.
-  ///
-  /// In en, this message translates to:
-  /// **'Unable to verify the city. Try again.'**
-  String get homeScopeCityVerificationError;
-
-  /// No description provided for @homeScopeSelectedCountryLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Country: {countryCode}'**
-  String homeScopeSelectedCountryLabel(Object countryCode);
-
-  /// No description provided for @homeScopeCityFieldHint.
-  ///
-  /// In en, this message translates to:
-  /// **'E.g. Rome, São Paulo, Tehran'**
-  String get homeScopeCityFieldHint;
-
-  /// No description provided for @homeForYouPageTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'For You'**
-  String get homeForYouPageTitle;
-
-  /// No description provided for @homeTrendingRefreshTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Refresh trending content'**
-  String get homeTrendingRefreshTooltip;
-
-  /// No description provided for @contentTypePoll.
-  ///
-  /// In en, this message translates to:
-  /// **'Poll'**
-  String get contentTypePoll;
-
-  /// No description provided for @contentTypeNews.
-  ///
-  /// In en, this message translates to:
-  /// **'News'**
-  String get contentTypeNews;
-
-  /// No description provided for @contentTypePost.
-  ///
-  /// In en, this message translates to:
-  /// **'Post'**
-  String get contentTypePost;
-
   /// No description provided for @searchPageTitle.
   ///
   /// In en, this message translates to:
@@ -1289,6 +1193,48 @@ abstract class AppLocalizations {
   /// **'Quorum {minVotes}'**
   String pollCard_quorumLabel(int minVotes);
 
+  /// Compact PollCard label used when results are always visible
+  ///
+  /// In en, this message translates to:
+  /// **'Results visible'**
+  String get pollCard_resultsVisibleChip;
+
+  /// Compact PollCard label used when results are visible after voting
+  ///
+  /// In en, this message translates to:
+  /// **'After vote'**
+  String get pollCard_resultsAfterVoteChip;
+
+  /// Compact PollCard label used when results are visible after the poll closes
+  ///
+  /// In en, this message translates to:
+  /// **'After close'**
+  String get pollCard_resultsAfterCloseChip;
+
+  /// PollCard label for a poll published by a public official
+  ///
+  /// In en, this message translates to:
+  /// **'Public Official'**
+  String get pollCard_publicOfficialPublisher;
+
+  /// PollCard label for a poll published by an institution
+  ///
+  /// In en, this message translates to:
+  /// **'Institution'**
+  String get pollCard_institutionPublisher;
+
+  /// Fallback PollCard label for representative publishing
+  ///
+  /// In en, this message translates to:
+  /// **'Representative'**
+  String get pollCard_representativePublisher;
+
+  /// Singular or plural label shown below the vote count in PollCard
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1 {vote} other {votes}}'**
+  String pollCard_voteCountLabel(int count);
+
   /// No description provided for @pollCard_viewDetails.
   ///
   /// In en, this message translates to:
@@ -1714,6 +1660,396 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to open the source article'**
   String get newsDetail_openSourceUnavailable;
+
+  /// Title of the main social feed page
+  ///
+  /// In en, this message translates to:
+  /// **'Social Feed'**
+  String get socialFeedTitle;
+
+  /// Button that opens the post creation flow
+  ///
+  /// In en, this message translates to:
+  /// **'Create post'**
+  String get socialFeedCreatePostButton;
+
+  /// Generic Cancel button label
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get commonCancelButton;
+
+  /// Generic Apply button label
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get commonApplyButton;
+
+  /// Title and action for choosing the Home scope country
+  ///
+  /// In en, this message translates to:
+  /// **'Choose country'**
+  String get homeScopeChooseCountry;
+
+  /// Hint shown in the country search field
+  ///
+  /// In en, this message translates to:
+  /// **'Search country or code...'**
+  String get homeScopeCountrySearchHint;
+
+  /// Title and action for choosing the Home scope city
+  ///
+  /// In en, this message translates to:
+  /// **'Choose city'**
+  String get homeScopeChooseCity;
+
+  /// Selected country shown in the city selection dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Country: {code}'**
+  String homeScopeCountryWithCode(String code);
+
+  /// City field label in the Home scope selector
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get homeScopeCityFieldLabel;
+
+  /// Examples shown in the city field
+  ///
+  /// In en, this message translates to:
+  /// **'E.g. Rome, São Paulo, Tehran'**
+  String get homeScopeCityExampleHint;
+
+  /// Error shown when the city field is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a city.'**
+  String get homeScopeCityRequiredError;
+
+  /// Error shown when the city does not belong to the selected country
+  ///
+  /// In en, this message translates to:
+  /// **'City not found in the selected country.'**
+  String get homeScopeCityNotFoundError;
+
+  /// Generic error shown while verifying the city
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to verify the city. Try again.'**
+  String get homeScopeCityVerificationError;
+
+  /// Label shown while the city is being verified
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying...'**
+  String get homeScopeVerifyingButton;
+
+  /// Button label that opens the full Civic Map from Home
+  ///
+  /// In en, this message translates to:
+  /// **'Open map'**
+  String get homeMapOpenButton;
+
+  /// Main headline shown in the Home hero
+  ///
+  /// In en, this message translates to:
+  /// **'Shape the future.\nTogether.'**
+  String get homeHeroHeadline;
+
+  /// Label and tooltip for the Account entry in the Home top bar
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get homeAccountMenuLabel;
+
+  /// Account menu item for using the system theme
+  ///
+  /// In en, this message translates to:
+  /// **'Theme: system'**
+  String get homeThemeSystemMenuItem;
+
+  /// Account menu item for using the light theme
+  ///
+  /// In en, this message translates to:
+  /// **'Theme: light'**
+  String get homeThemeLightMenuItem;
+
+  /// Account menu item for using the dark theme
+  ///
+  /// In en, this message translates to:
+  /// **'Theme: dark'**
+  String get homeThemeDarkMenuItem;
+
+  /// Tooltip for the notifications button in the Home top bar
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get homeNotificationsTooltip;
+
+  /// Fallback author name shown in the PostCard when no name is available
+  ///
+  /// In en, this message translates to:
+  /// **'Author'**
+  String get postCard_authorFallback;
+
+  /// Global location label shown in the PostCard
+  ///
+  /// In en, this message translates to:
+  /// **'Global'**
+  String get postCard_globalLocation;
+
+  /// Generic Save button label
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get commonSaveButton;
+
+  /// Generic Delete button label
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get commonDeleteButton;
+
+  /// Menu action used to report content
+  ///
+  /// In en, this message translates to:
+  /// **'Report content'**
+  String get contentReport_menuAction;
+
+  /// Content report dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Report content'**
+  String get contentReport_dialogTitle;
+
+  /// Message shown to a signed-out user
+  ///
+  /// In en, this message translates to:
+  /// **'You must be signed in to report content'**
+  String get contentReport_authenticationRequired;
+
+  /// Report submission confirmation
+  ///
+  /// In en, this message translates to:
+  /// **'Report submitted'**
+  String get contentReport_submittedMessage;
+
+  /// Message shown when the content was already reported
+  ///
+  /// In en, this message translates to:
+  /// **'You have already reported this content'**
+  String get contentReport_alreadySubmittedMessage;
+
+  /// Generic error while submitting a report
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to submit the report'**
+  String get contentReport_submitError;
+
+  /// Report submission button
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get contentReport_sendButton;
+
+  /// Spam report reason
+  ///
+  /// In en, this message translates to:
+  /// **'Spam'**
+  String get contentReport_reasonSpam;
+
+  /// Harassment or abuse report reason
+  ///
+  /// In en, this message translates to:
+  /// **'Harassment or abuse'**
+  String get contentReport_reasonHarassment;
+
+  /// Hate speech report reason
+  ///
+  /// In en, this message translates to:
+  /// **'Hate speech'**
+  String get contentReport_reasonHateSpeech;
+
+  /// Misinformation report reason
+  ///
+  /// In en, this message translates to:
+  /// **'Misinformation'**
+  String get contentReport_reasonMisinformation;
+
+  /// Violence report reason
+  ///
+  /// In en, this message translates to:
+  /// **'Violence'**
+  String get contentReport_reasonViolence;
+
+  /// Other report reason
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get contentReport_reasonOther;
+
+  /// Post detail page title
+  ///
+  /// In en, this message translates to:
+  /// **'Post detail'**
+  String get postDetail_title;
+
+  /// Favorites update error on the post detail page
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to update favorites'**
+  String get postDetail_favoriteUpdateError;
+
+  /// Text appended when sharing a post
+  ///
+  /// In en, this message translates to:
+  /// **'Open Sociale_Vote to view this post.'**
+  String get postDetail_shareMessage;
+
+  /// Post sharing error
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to share the post'**
+  String get postDetail_shareError;
+
+  /// Edit post dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Edit post'**
+  String get postDetail_editDialogTitle;
+
+  /// Title field label in the edit post dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get postDetail_editTitleFieldLabel;
+
+  /// Content field label in the edit post dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Content'**
+  String get postDetail_editContentFieldLabel;
+
+  /// Required fields error in the edit post dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Title and content are required.'**
+  String get postDetail_editRequiredError;
+
+  /// Post update confirmation
+  ///
+  /// In en, this message translates to:
+  /// **'Post updated'**
+  String get postDetail_updateSuccess;
+
+  /// Post update error
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to update the post'**
+  String get postDetail_updateError;
+
+  /// Post deletion confirmation title
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this post?'**
+  String get postDetail_deleteDialogTitle;
+
+  /// Post deletion confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone.'**
+  String get postDetail_deleteDialogMessage;
+
+  /// Post deletion error
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to delete the post'**
+  String get postDetail_deleteError;
+
+  /// Edit post menu item
+  ///
+  /// In en, this message translates to:
+  /// **'Edit post'**
+  String get postDetail_editMenuItem;
+
+  /// Delete post menu item
+  ///
+  /// In en, this message translates to:
+  /// **'Delete post'**
+  String get postDetail_deleteMenuItem;
+
+  /// Generic post detail loading error
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred while loading the post.'**
+  String get postDetail_loadError;
+
+  /// Post not found message
+  ///
+  /// In en, this message translates to:
+  /// **'Post not found.'**
+  String get postDetail_notFound;
+
+  /// Post detail error state title
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get postDetail_errorTitle;
+
+  /// Fallback author name on the post detail page
+  ///
+  /// In en, this message translates to:
+  /// **'Author'**
+  String get postDetail_authorFallback;
+
+  /// Share action on the post detail page
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get postDetail_shareAction;
+
+  /// Save action on the post detail page
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get postDetail_saveAction;
+
+  /// Add to favorites tooltip on the post detail page
+  ///
+  /// In en, this message translates to:
+  /// **'Add to favorites'**
+  String get postDetail_addToFavoritesTooltip;
+
+  /// Remove from favorites tooltip on the post detail page
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from favorites'**
+  String get postDetail_removeFromFavoritesTooltip;
+
+  /// Favorites update error on the news detail page
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to update favorites'**
+  String get newsDetail_favoriteUpdateError;
+
+  /// Text appended when sharing a news item
+  ///
+  /// In en, this message translates to:
+  /// **'Open Sociale_Vote to view this news item.'**
+  String get newsDetail_shareMessage;
+
+  /// News sharing error
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to share the news item'**
+  String get newsDetail_shareError;
+
+  /// Share tooltip on the news detail page
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get newsDetail_shareTooltip;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
