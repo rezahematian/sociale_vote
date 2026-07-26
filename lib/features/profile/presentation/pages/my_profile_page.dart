@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+// R3_ACCOUNT_GROUPED_LAYOUT_V2
 import 'package:provider/provider.dart';
 import 'package:sociale_vote/app/app.dart';
 import 'package:sociale_vote/app/di.dart';
@@ -712,7 +714,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
           _refreshUnreadNotificationsCount();
         },
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
           children: [
             Card(
               child: Padding(
@@ -881,134 +883,142 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 ),
               ),
             ],
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
             const _SectionTitle('Profile'),
-            _ProfileSectionTile(
-              title: 'Edit Profile',
-              subtitle: 'Nome, username, avatar, bio, paese e città',
-              icon: Icons.edit_outlined,
-              onTap: _openEditProfile,
+            _SettingsGroup(
+              children: [
+                _SettingsTile(
+                  title: 'Verification & account type',
+                  subtitle: verificationTileSubtitle,
+                  icon: Icons.verified_user_outlined,
+                  trailing: verificationController.isLoading
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : null,
+                  onTap: () => _showVerificationCenter(
+                    profile: profile,
+                    pendingRequest: pendingRequest,
+                  ),
+                ),
+              ],
             ),
-            _ProfileSectionTile(
-              title: 'Verification & account type',
-              subtitle: verificationTileSubtitle,
-              icon: Icons.verified_user_outlined,
-              trailing: verificationController.isLoading
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : null,
-              onTap: () => _showVerificationCenter(
-                profile: profile,
-                pendingRequest: pendingRequest,
-              ),
-            ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
             const _SectionTitle('App'),
             ValueListenableBuilder<ThemeMode>(
               valueListenable: AppThemeModeController.themeMode,
               builder: (context, mode, _) {
-                return _ProfileSectionTile(
-                  title: 'Theme',
-                  subtitle: _themeModeLabel(mode),
-                  icon: Icons.palette_outlined,
-                  onTap: _showThemeModeSheet,
-                );
-              },
-            ),
-            FutureBuilder<int>(
-              future: _unreadNotificationsFuture,
-              builder: (context, snapshot) {
-                final unreadCount = snapshot.data ?? 0;
+                return _SettingsGroup(
+                  children: [
+                    _SettingsTile(
+                      title: 'Theme',
+                      subtitle: _themeModeLabel(mode),
+                      icon: Icons.palette_outlined,
+                      onTap: _showThemeModeSheet,
+                    ),
+                    const Divider(height: 1),
+                    FutureBuilder<int>(
+                      future: _unreadNotificationsFuture,
+                      builder: (context, snapshot) {
+                        final unreadCount = snapshot.data ?? 0;
 
-                return _ProfileSectionTile(
-                  title: 'Notifications',
-                  subtitle: unreadCount > 0
-                      ? '$unreadCount non lette'
-                      : 'Nessuna notifica non letta',
-                  icon: Icons.notifications_none,
-                  trailing: _NotificationsTrailingBadge(
-                    unreadCount: unreadCount,
-                  ),
-                  onTap: _openNotifications,
+                        return _SettingsTile(
+                          title: 'Notifications',
+                          subtitle: unreadCount > 0
+                              ? '$unreadCount non lette'
+                              : 'Nessuna notifica non letta',
+                          icon: Icons.notifications_none,
+                          trailing: _NotificationsTrailingBadge(
+                            unreadCount: unreadCount,
+                          ),
+                          onTap: _openNotifications,
+                        );
+                      },
+                    ),
+                  ],
                 );
               },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
             const _SectionTitle('My activity'),
-            _ProfileSectionTile(
-              title: 'My Polls',
-              icon: Icons.how_to_vote,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const MyPollsPage(),
-                  ),
-                );
-              },
+            _SettingsGroup(
+              children: [
+                _SettingsTile(
+                  title: 'My Polls',
+                  icon: Icons.how_to_vote,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MyPollsPage(),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                _SettingsTile(
+                  title: 'My Posts',
+                  icon: Icons.forum_outlined,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MyPostsPage(),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                _SettingsTile(
+                  title: 'My Comments',
+                  icon: Icons.comment_outlined,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MyCommentsPage(),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                _SettingsTile(
+                  title: 'My Favorites',
+                  icon: Icons.star_border_rounded,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MyFavoritesPage(),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                _SettingsTile(
+                  title: 'My Followed Scopes',
+                  icon: Icons.public,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MyFollowedScopesPage(),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
-            _ProfileSectionTile(
-              title: 'My Posts',
-              icon: Icons.forum_outlined,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const MyPostsPage(),
-                  ),
-                );
-              },
-            ),
-            _ProfileSectionTile(
-              title: 'My Comments',
-              icon: Icons.comment_outlined,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const MyCommentsPage(),
-                  ),
-                );
-              },
-            ),
-            _ProfileSectionTile(
-              title: 'My Favorites',
-              icon: Icons.star_border_rounded,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const MyFavoritesPage(),
-                  ),
-                );
-              },
-            ),
-            _ProfileSectionTile(
-              title: 'My Followed Scopes',
-              icon: Icons.public,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const MyFollowedScopesPage(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
             const _SectionTitle('Account'),
-            _ProfileSectionTile(
-              title: 'Account ID',
-              subtitle: currentUserId,
-              icon: Icons.badge_outlined,
-              trailing: const SizedBox.shrink(),
-              onTap: null,
-            ),
-            _ProfileSectionTile(
-              title: 'Logout',
-              subtitle: 'Esci dall’account corrente',
-              icon: Icons.logout_rounded,
-              iconColor: theme.colorScheme.error,
-              textColor: theme.colorScheme.error,
-              onTap: _confirmLogout,
+            _SettingsGroup(
+              children: [
+                _SettingsTile(
+                  title: 'Logout',
+                  subtitle: 'Esci dall’account corrente',
+                  icon: Icons.logout_rounded,
+                  iconColor: theme.colorScheme.error,
+                  textColor: theme.colorScheme.error,
+                  onTap: _confirmLogout,
+                ),
+              ],
             ),
           ],
         ),
@@ -1304,7 +1314,27 @@ class _VerificationActionTile extends StatelessWidget {
   }
 }
 
-class _ProfileSectionTile extends StatelessWidget {
+class _SettingsGroup extends StatelessWidget {
+  final List<Widget> children;
+
+  const _SettingsGroup({
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: children,
+      ),
+    );
+  }
+}
+
+class _SettingsTile extends StatelessWidget {
   final String title;
   final String? subtitle;
   final IconData icon;
@@ -1313,7 +1343,7 @@ class _ProfileSectionTile extends StatelessWidget {
   final Color? iconColor;
   final Color? textColor;
 
-  const _ProfileSectionTile({
+  const _SettingsTile({
     required this.title,
     required this.icon,
     this.subtitle,
@@ -1327,25 +1357,33 @@ class _ProfileSectionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      child: ListTile(
-        leading: Icon(
-          icon,
-          color: iconColor,
-        ),
-        title: Text(
-          title,
-          style: textColor != null
-              ? theme.textTheme.bodyLarge?.copyWith(
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                )
-              : null,
-        ),
-        subtitle: subtitle != null ? Text(subtitle!) : null,
-        trailing: trailing ?? const Icon(Icons.chevron_right),
-        onTap: onTap,
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 2,
       ),
+      leading: Icon(
+        icon,
+        color: iconColor,
+      ),
+      title: Text(
+        title,
+        style: textColor != null
+            ? theme.textTheme.bodyLarge?.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.w600,
+              )
+            : theme.textTheme.bodyLarge,
+      ),
+      subtitle: subtitle != null
+          ? Text(
+              subtitle!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            )
+          : null,
+      trailing: trailing ?? const Icon(Icons.chevron_right),
+      onTap: onTap,
     );
   }
 }

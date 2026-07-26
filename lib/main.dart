@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -31,16 +32,7 @@ Future<void> main() async {
     ),
   );
 
-  final rememberMe = await AppDI.instance.storageService.readRememberMe();
-
-  if (rememberMe) {
-    final existingSession = await const AuthApi().getCurrentSession();
-    if (existingSession != null) {
-      await AppDI.instance.sessionRepository.saveSession(existingSession);
-    }
-  } else {
-    await AppDI.instance.sessionRepository.clearSession();
-  }
+  await _restoreStartupAuthSession();
 
   runApp(
     ChangeNotifierProvider<GeoScopeController>.value(
@@ -48,4 +40,39 @@ Future<void> main() async {
       child: const SocialeVoteApp(),
     ),
   );
+}
+
+Future<void> _restoreStartupAuthSession() async {
+  final storageService = AppDI.instance.storageService;
+  final sessionRepository = AppDI.instance.sessionRepository;
+  const authApi = AuthApi();
+  final rememberMe = await storageService.readRememberMe();
+
+  if (!rememberMe) {
+    try {
+      await authApi.logout();
+    } catch (_) {
+      // The app must still start unauthenticated even if the remote sign-out
+      // request cannot be completed. Supabase clears its local session during
+      // sign-out, while the app session is cleared explicitly below.
+    }
+
+    await sessionRepository.clearSession();
+    return;
+  }
+
+  try {
+    final existingSession = await authApi.getCurrentSession();
+
+    if (existingSession == null) {
+      await sessionRepository.clearSession();
+      return;
+    }
+
+    await sessionRepository.saveSession(existingSession);
+  } catch (_) {
+    // A stale, invalid or temporarily unavailable remembered session must
+    // never block app startup.
+    await sessionRepository.clearSession();
+  }
 }

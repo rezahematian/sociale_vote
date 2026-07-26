@@ -214,6 +214,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
     final userId = AppDI.instance.currentUserId;
     if (userId == null) return;
 
+    final l10n = AppLocalizations.of(context)!;
+
     setState(() {
       _favoriteLoading = true;
     });
@@ -230,7 +232,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossibile aggiornare i preferiti')),
+        SnackBar(content: Text(l10n.pollDetail_favoriteUpdateError)),
       );
     } finally {
       if (mounted) {
@@ -242,6 +244,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
   }
 
   Future<void> _onSharePressed(Poll poll) async {
+    final l10n = AppLocalizations.of(context)!;
     final description = poll.description?.trim();
     final buffer = StringBuffer()..writeln(poll.title);
 
@@ -253,7 +256,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
     buffer
       ..writeln()
-      ..writeln('Apri Sociale_Vote per vedere e votare questo sondaggio.');
+      ..writeln(l10n.pollDetail_shareMessage);
 
     try {
       await Share.share(
@@ -263,20 +266,20 @@ class _PollDetailPageState extends State<PollDetailPage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossibile condividere il sondaggio')),
+        SnackBar(content: Text(l10n.pollDetail_shareError)),
       );
     }
   }
 
   Future<void> _onEditPressed(Poll poll) async {
+    final l10n = AppLocalizations.of(context)!;
     final userId = AppDI.instance.currentUserId;
+
     if (userId == null || !_controller.canEdit(userId: userId)) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Puoi modificare solo i tuoi sondaggi senza voti',
-          ),
+        SnackBar(
+          content: Text(l10n.pollDetail_editPermissionError),
         ),
       );
       return;
@@ -296,12 +299,12 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sondaggio aggiornato')),
+        SnackBar(content: Text(l10n.pollDetail_editSuccessMessage)),
       );
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        SnackBar(content: Text(l10n.pollDetail_editError)),
       );
     }
   }
@@ -322,12 +325,14 @@ class _PollDetailPageState extends State<PollDetailPage> {
   }
 
   Future<void> _onDeletePressed(Poll poll) async {
+    final l10n = AppLocalizations.of(context)!;
     final userId = AppDI.instance.currentUserId;
+
     if (userId == null || !_controller.canDelete(userId: userId)) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Puoi eliminare solo i tuoi sondaggi'),
+        SnackBar(
+          content: Text(l10n.pollDetail_deletePermissionError),
         ),
       );
       return;
@@ -347,8 +352,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Impossibile eliminare il sondaggio'),
+      SnackBar(
+        content: Text(l10n.pollDetail_deleteError),
       ),
     );
   }
@@ -357,22 +362,24 @@ class _PollDetailPageState extends State<PollDetailPage> {
     BuildContext context,
     Poll poll,
   ) {
+    final l10n = AppLocalizations.of(context)!;
+
     return showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Elimina sondaggio'),
+          title: Text(l10n.pollDetail_deleteDialogTitle),
           content: Text(
-            'Vuoi davvero eliminare "${poll.title}"? Questa azione non può essere annullata.',
+            l10n.pollDetail_deleteDialogMessage(poll.title),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Annulla'),
+              child: Text(l10n.commonCancelButton),
             ),
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Elimina'),
+              child: Text(l10n.commonDeleteButton),
             ),
           ],
         );
@@ -381,6 +388,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
   }
 
   Future<void> _onReportPressed(Poll poll) async {
+    final l10n = AppLocalizations.of(context)!;
+
     final allowed = await AuthGuard.ensureCanPerformAction(
       context,
       ParticipationAction.reportContent,
@@ -389,9 +398,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
     final userId = AppDI.instance.currentUserId;
     if (userId == null) {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Devi essere autenticato per segnalare')),
+        SnackBar(content: Text(l10n.contentReport_authenticationRequired)),
       );
       return;
     }
@@ -412,9 +420,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
       if (!mounted) return;
 
       final message = switch (result) {
-        SubmitReportResult.submitted => 'Segnalazione inviata',
+        SubmitReportResult.submitted => l10n.contentReport_submittedMessage,
         SubmitReportResult.alreadyReported =>
-          'Hai già segnalato questo contenuto',
+          l10n.contentReport_alreadySubmittedMessage,
       };
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -423,12 +431,13 @@ class _PollDetailPageState extends State<PollDetailPage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossibile inviare la segnalazione')),
+        SnackBar(content: Text(l10n.contentReport_submitError)),
       );
     }
   }
 
   Future<String?> _showReportReasonDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     String selectedReason = _reportReasons.first;
 
     return showDialog<String>(
@@ -437,7 +446,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('Segnala contenuto'),
+              title: Text(l10n.contentReport_dialogTitle),
               content: RadioGroup<String>(
                 groupValue: selectedReason,
                 onChanged: (value) {
@@ -452,7 +461,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
                     return RadioListTile<String>(
                       value: reason,
                       contentPadding: EdgeInsets.zero,
-                      title: Text(_reportReasonLabel(reason)),
+                      title: Text(_reportReasonLabel(l10n, reason)),
                     );
                   }).toList(),
                 ),
@@ -460,13 +469,13 @@ class _PollDetailPageState extends State<PollDetailPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Annulla'),
+                  child: Text(l10n.commonCancelButton),
                 ),
                 FilledButton(
                   onPressed: () {
                     Navigator.of(dialogContext).pop(selectedReason);
                   },
-                  child: const Text('Invia'),
+                  child: Text(l10n.contentReport_sendButton),
                 ),
               ],
             );
@@ -476,20 +485,23 @@ class _PollDetailPageState extends State<PollDetailPage> {
     );
   }
 
-  String _reportReasonLabel(String reason) {
+  String _reportReasonLabel(
+    AppLocalizations l10n,
+    String reason,
+  ) {
     switch (reason) {
       case 'spam':
-        return 'Spam';
+        return l10n.contentReport_reasonSpam;
       case 'harassment':
-        return 'Molestie o abuso';
+        return l10n.contentReport_reasonHarassment;
       case 'hate_speech':
-        return 'Incitamento all’odio';
+        return l10n.contentReport_reasonHateSpeech;
       case 'misinformation':
-        return 'Disinformazione';
+        return l10n.contentReport_reasonMisinformation;
       case 'violence':
-        return 'Violenza';
+        return l10n.contentReport_reasonViolence;
       case 'other':
-        return 'Altro';
+        return l10n.contentReport_reasonOther;
     }
     return reason;
   }
@@ -570,9 +582,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
                   }
                 },
                 itemBuilder: (context) => [
-                  const PopupMenuItem<String>(
+                  PopupMenuItem<String>(
                     value: 'report',
-                    child: Text('Report content'),
+                    child: Text(l10n.contentReport_menuAction),
                   ),
                   if (canEdit)
                     PopupMenuItem<String>(
@@ -580,8 +592,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
                       enabled: !_controller.isUpdating,
                       child: Text(
                         _controller.isUpdating
-                            ? 'Salvataggio...'
-                            : 'Modifica sondaggio',
+                            ? l10n.pollDetail_editSavingMenuItem
+                            : l10n.pollDetail_editMenuItem,
                       ),
                     ),
                   if (canDelete)
@@ -590,8 +602,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
                       enabled: !_controller.isDeleting,
                       child: Text(
                         _controller.isDeleting
-                            ? 'Eliminazione...'
-                            : 'Elimina sondaggio',
+                            ? l10n.pollDetail_deleteDeletingMenuItem
+                            : l10n.pollDetail_deleteMenuItem,
                       ),
                     ),
                 ],
@@ -612,9 +624,13 @@ class _PollDetailPageState extends State<PollDetailPage> {
             }
 
             if (state is PollDetailError) {
+              final errorMessage = state.message == 'Poll not found'
+                  ? l10n.pollDetail_notFound
+                  : l10n.pollDetail_loadError;
+
               return _buildErrorState(
                 context,
-                message: state.message,
+                message: errorMessage,
                 onRetry: () {
                   final userId = AppDI.instance.currentUserId;
                   _controller.loadPoll(widget.pollId, userId: userId);
@@ -976,6 +992,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       width: double.infinity,
@@ -1000,7 +1017,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Voti pubblici disponibili',
+                  l10n.pollDetail_publicVotesAvailableTitle,
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                     color: colorScheme.primary,
@@ -1011,7 +1028,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Questo sondaggio permette di vedere chi ha votato cosa.',
+            l10n.pollDetail_publicVotesAvailableMessage,
             style: theme.textTheme.bodySmall?.copyWith(
               fontWeight: FontWeight.w600,
             ),
@@ -1020,7 +1037,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
           OutlinedButton.icon(
             onPressed: () => _showPublicVotesSheet(context, poll),
             icon: const Icon(Icons.person_search_outlined),
-            label: const Text('Vedi voti pubblici'),
+            label: Text(l10n.pollDetail_publicVotesAction),
           ),
         ],
       ),
@@ -1150,7 +1167,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
                 const SizedBox(height: 18),
                 FilledButton(
                   onPressed: onRetry,
-                  child: const Text('Riprova'),
+                  child: Text(
+                    AppLocalizations.of(context)!.pollDetail_retryButton,
+                  ),
                 ),
               ],
             ),
@@ -1165,15 +1184,15 @@ class _PollDetailPageState extends State<PollDetailPage> {
       case VoteErrorType.none:
         return null;
       case VoteErrorType.noSelection:
-        return "Seleziona almeno un'opzione";
+        return l10n.pollDetail_voteErrorNoOption;
       case VoteErrorType.unauthorized:
-        return 'Devi essere autenticato per votare';
+        return l10n.pollDetail_voteErrorAuthenticationRequired;
       case VoteErrorType.closed:
-        return 'Questo sondaggio è chiuso';
+        return l10n.pollDetail_voteErrorClosed;
       case VoteErrorType.alreadyVoted:
-        return 'Hai già votato in questo sondaggio';
+        return l10n.pollDetail_voteErrorAlreadyVoted;
       case VoteErrorType.generic:
-        return 'Impossibile registrare il voto';
+        return l10n.pollDetail_voteErrorGeneric;
     }
   }
 }
@@ -1258,6 +1277,7 @@ class _PublicVotesSheetContentState extends State<_PublicVotesSheetContent> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return SafeArea(
       child: FractionallySizedBox(
@@ -1273,7 +1293,7 @@ class _PublicVotesSheetContentState extends State<_PublicVotesSheetContent> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Voti pubblici',
+                l10n.pollDetail_publicVotesSheetTitle,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.2,
@@ -1281,7 +1301,7 @@ class _PublicVotesSheetContentState extends State<_PublicVotesSheetContent> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Qui puoi vedere chi ha votato cosa in questo sondaggio.',
+                l10n.pollDetail_publicVotesSheetDescription,
                 style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
@@ -1290,7 +1310,7 @@ class _PublicVotesSheetContentState extends State<_PublicVotesSheetContent> {
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.search),
-                  hintText: 'Cerca utente',
+                  hintText: l10n.pollDetail_publicVotesSearchHint,
                   suffixIcon: _searchController.text.trim().isEmpty
                       ? null
                       : IconButton(
@@ -1333,6 +1353,7 @@ class _PublicVotesBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     if (resultController.isPublicVotesLoading &&
         resultController.publicVotes.isEmpty) {
@@ -1356,7 +1377,7 @@ class _PublicVotesBody extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Impossibile caricare i voti pubblici',
+                l10n.pollDetail_publicVotesLoadError,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium,
               ),
@@ -1367,7 +1388,7 @@ class _PublicVotesBody extends StatelessWidget {
                     query: resultController.publicVotesQuery,
                   );
                 },
-                child: const Text('Riprova'),
+                child: Text(l10n.pollDetail_retryButton),
               ),
             ],
           ),
@@ -1381,8 +1402,8 @@ class _PublicVotesBody extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           child: Text(
             resultController.publicVotesQuery.trim().isEmpty
-                ? 'Nessun voto pubblico disponibile'
-                : 'Nessun utente trovato per questa ricerca',
+                ? l10n.pollDetail_publicVotesEmpty
+                : l10n.pollDetail_publicVotesSearchEmpty,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium,
           ),
@@ -1397,7 +1418,7 @@ class _PublicVotesBody extends StatelessWidget {
         Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            '${entries.length} risultati caricati',
+            l10n.pollDetail_publicVotesResultsCount(entries.length),
             style: theme.textTheme.bodySmall?.copyWith(
               fontWeight: FontWeight.w600,
             ),
@@ -1434,7 +1455,7 @@ class _PublicVotesBody extends StatelessWidget {
                 loadMore: true,
               );
             },
-            child: const Text('Carica altri'),
+            child: Text(l10n.pollDetail_publicVotesLoadMore),
           ),
         ],
       ],
@@ -1512,13 +1533,14 @@ class _PublicVoteTileState extends State<_PublicVoteTile> {
     final poll = widget.poll;
     final entry = widget.entry;
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final colorScheme = theme.colorScheme;
 
     final primaryLabel = entry.displayName?.trim().isNotEmpty == true
         ? entry.displayName!.trim()
         : entry.username?.trim().isNotEmpty == true
             ? '@${entry.username!.trim()}'
-            : 'Utente';
+            : l10n.pollDetail_publicVotesUserFallback;
 
     final secondaryLabel = entry.displayName?.trim().isNotEmpty == true &&
             entry.username?.trim().isNotEmpty == true
@@ -1793,8 +1815,10 @@ class _EditPollDialogState extends State<_EditPollDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return AlertDialog(
-      title: const Text('Modifica sondaggio'),
+      title: Text(l10n.pollDetail_editDialogTitle),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -1805,13 +1829,13 @@ class _EditPollDialogState extends State<_EditPollDialog> {
                 controller: _titleController,
                 autofocus: true,
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  labelText: 'Titolo',
+                decoration: InputDecoration(
+                  labelText: l10n.pollDetail_editTitleFieldLabel,
                 ),
                 validator: (value) {
                   final normalized = value?.trim() ?? '';
                   if (normalized.isEmpty) {
-                    return 'Il titolo è obbligatorio';
+                    return l10n.pollDetail_editTitleRequired;
                   }
                   return null;
                 },
@@ -1821,8 +1845,8 @@ class _EditPollDialogState extends State<_EditPollDialog> {
                 controller: _descriptionController,
                 minLines: 3,
                 maxLines: 5,
-                decoration: const InputDecoration(
-                  labelText: 'Descrizione',
+                decoration: InputDecoration(
+                  labelText: l10n.pollDetail_editDescriptionFieldLabel,
                 ),
               ),
             ],
@@ -1832,11 +1856,11 @@ class _EditPollDialogState extends State<_EditPollDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Annulla'),
+          child: Text(l10n.commonCancelButton),
         ),
         FilledButton(
           onPressed: _save,
-          child: const Text('Salva'),
+          child: Text(l10n.commonSaveButton),
         ),
       ],
     );

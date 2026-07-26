@@ -20,13 +20,20 @@ abstract class UserRepository {
     required String password,
   });
 
-  /// Registra un nuovo utente.
+  /// Registra un nuovo utente con i dati minimi necessari
+  /// per creare anche il profilo civico iniziale.
+  ///
+  /// [country] usa il codice paese ISO già adottato dal profilo
+  /// e [city] contiene la città di residenza validata dal create flow.
   ///
   /// Restituisce la sessione autenticata completa del nuovo utente.
   Future<AuthSession> register({
     required String email,
     required String password,
     required String displayName,
+    required String username,
+    required String country,
+    required String city,
   });
 
   /// Recupera i dati aggiornati dell'utente autenticato corrente

@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 import 'package:sociale_vote/features/profile/application/profile_controller.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/data/countries.dart' as data;
 import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -16,18 +18,19 @@ class EditProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final String? currentUserId = AppDI.instance.currentUserId;
 
     if (currentUserId == null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Edit Profile'),
+          title: Text(l10n.profileEditPageTitle),
         ),
-        body: const Center(
+        body: Center(
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Text(
-              'You must be logged in to edit your profile.',
+              l10n.profileLoginRequiredMessage,
               textAlign: TextAlign.center,
             ),
           ),
@@ -68,6 +71,66 @@ class _EditProfileView extends StatefulWidget {
   State<_EditProfileView> createState() => _EditProfileViewState();
 }
 
+class _EditProfileSectionTitle extends StatelessWidget {
+  final String title;
+
+  const _EditProfileSectionTitle({
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+      ),
+    );
+  }
+}
+
+class _EditProfileErrorCard extends StatelessWidget {
+  final String message;
+
+  const _EditProfileErrorCard({
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      color: theme.colorScheme.errorContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.error_outline,
+              color: theme.colorScheme.onErrorContainer,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onErrorContainer,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _EditProfileViewState extends State<_EditProfileView> {
   final _displayNameController = TextEditingController();
   final _usernameController = TextEditingController();
@@ -100,9 +163,12 @@ class _EditProfileViewState extends State<_EditProfileView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<ProfileController>(
       builder: (context, controller, _) {
         final profile = controller.profile;
+        final theme = Theme.of(context);
 
         if (!_didInitForm && profile != null) {
           _didInitForm = true;
@@ -115,354 +181,477 @@ class _EditProfileViewState extends State<_EditProfileView> {
         }
 
         final avatarUrl = _avatarUrlController.text.trim();
+        final accountEmail =
+            Supabase.instance.client.auth.currentUser?.email?.trim() ?? '';
+        final actionsDisabled = controller.isSaving || _isUploadingAvatar;
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Edit Profile'),
+            title: Text(l10n.profileEditPageTitle),
           ),
           body: controller.isLoading && profile == null
               ? const Center(
                   child: CircularProgressIndicator(),
                 )
-              : ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    if (controller.errorMessage != null) ...[
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Text(
-                            controller.errorMessage!,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    if (_avatarUploadError != null) ...[
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Text(
-                            _avatarUploadError!,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    if (_locationError != null) ...[
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Text(
-                            _locationError!,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    Center(
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 680),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          CircleAvatar(
-                            radius: 40,
-                            backgroundImage: avatarUrl.isNotEmpty
-                                ? NetworkImage(avatarUrl)
-                                : null,
-                            child: avatarUrl.isEmpty
-                                ? const Icon(Icons.person, size: 40)
-                                : null,
+                          if (controller.errorMessage != null) ...[
+                            _EditProfileErrorCard(
+                              message: controller.errorMessage!,
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                          if (_avatarUploadError != null) ...[
+                            _EditProfileErrorCard(
+                              message: _avatarUploadError!,
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                          if (_locationError != null) ...[
+                            _EditProfileErrorCard(
+                              message: _locationError!,
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                          _EditProfileSectionTitle(
+                            title: l10n.homeProfileButton,
                           ),
-                          const SizedBox(height: 12),
-                          OutlinedButton.icon(
-                            onPressed: _isUploadingAvatar || controller.isSaving
-                                ? null
-                                : _uploadAvatar,
-                            icon: _isUploadingAvatar
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
+                          Card(
+                            margin: EdgeInsets.zero,
+                            clipBehavior: Clip.antiAlias,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 38,
+                                        backgroundImage: avatarUrl.isNotEmpty
+                                            ? NetworkImage(avatarUrl)
+                                            : null,
+                                        child: avatarUrl.isEmpty
+                                            ? const Icon(
+                                                Icons.person,
+                                                size: 38,
+                                              )
+                                            : null,
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              _displayNameController.text
+                                                      .trim()
+                                                      .isNotEmpty
+                                                  ? _displayNameController.text
+                                                      .trim()
+                                                  : l10n
+                                                      .profileDisplayNameLabel,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: theme.textTheme.titleMedium
+                                                  ?.copyWith(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            OutlinedButton.icon(
+                                              onPressed: actionsDisabled
+                                                  ? null
+                                                  : _uploadAvatar,
+                                              icon: _isUploadingAvatar
+                                                  ? const SizedBox(
+                                                      width: 16,
+                                                      height: 16,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                      ),
+                                                    )
+                                                  : const Icon(
+                                                      Icons.upload_outlined,
+                                                    ),
+                                              label: Text(
+                                                _isUploadingAvatar
+                                                    ? l10n
+                                                        .profileAvatarUploading
+                                                    : l10n
+                                                        .profileUploadAvatarButton,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 20),
+                                  TextField(
+                                    controller: _displayNameController,
+                                    textInputAction: TextInputAction.next,
+                                    onChanged: (_) {
+                                      if (_displayNameError == null) return;
+                                      setState(() {
+                                        _displayNameError = null;
+                                      });
+                                    },
+                                    decoration: InputDecoration(
+                                      labelText: l10n.profileDisplayNameLabel,
+                                      errorText: _displayNameError,
                                     ),
-                                  )
-                                : const Icon(Icons.upload_outlined),
-                            label: Text(
-                              _isUploadingAvatar
-                                  ? 'Uploading...'
-                                  : 'Upload Avatar',
+                                  ),
+                                  const SizedBox(height: 14),
+                                  TextField(
+                                    controller: _usernameController,
+                                    textInputAction: TextInputAction.next,
+                                    onChanged: (_) {
+                                      if (_usernameError == null) return;
+                                      setState(() {
+                                        _usernameError = null;
+                                      });
+                                    },
+                                    decoration: InputDecoration(
+                                      labelText: l10n.authUsernameLabel,
+                                      hintText: l10n.profileUsernameHint,
+                                      helperText: l10n.profileUsernameHelper,
+                                      errorText: _usernameError,
+                                      prefixText: '@',
+                                    ),
+                                  ),
+                                  const SizedBox(height: 14),
+                                  TextField(
+                                    controller: _bioController,
+                                    minLines: 3,
+                                    maxLines: 5,
+                                    textInputAction: TextInputAction.newline,
+                                    decoration: InputDecoration(
+                                      labelText: l10n.profileBioLabel,
+                                      alignLabelWithHint: true,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          _EditProfileSectionTitle(
+                            title: l10n.authCountryOfResidenceLabel,
+                          ),
+                          Card(
+                            margin: EdgeInsets.zero,
+                            clipBehavior: Clip.antiAlias,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  CountrySelectorField(
+                                    key: ValueKey(
+                                      'edit-profile-country-'
+                                      '${_selectedCountryCode ?? 'none'}',
+                                    ),
+                                    selectedCountryCode: _selectedCountryCode,
+                                    label: l10n.authCountryOfResidenceLabel,
+                                    required: true,
+                                    onCountrySelected: (code) {
+                                      final normalizedCountryCode =
+                                          _normalizeCountryCode(code);
+                                      final countryChanged =
+                                          normalizedCountryCode !=
+                                              _selectedCountryCode;
+
+                                      setState(() {
+                                        _selectedCountryCode =
+                                            normalizedCountryCode;
+                                        if (countryChanged) {
+                                          _cityController.clear();
+                                          _cityError = null;
+                                        }
+                                        _countryError = null;
+                                        _locationError = null;
+                                      });
+                                    },
+                                  ),
+                                  if (_countryError != null) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      _countryError!,
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.colorScheme.error,
+                                      ),
+                                    ),
+                                  ],
+                                  if (_selectedCountryCode != null &&
+                                      _selectedCountryCode!
+                                          .trim()
+                                          .isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: TextButton.icon(
+                                        onPressed: actionsDisabled
+                                            ? null
+                                            : () {
+                                                setState(() {
+                                                  _selectedCountryCode = null;
+                                                  _cityController.clear();
+                                                  _countryError = null;
+                                                  _cityError = null;
+                                                  _locationError = null;
+                                                });
+                                              },
+                                        icon: const Icon(
+                                          Icons.clear,
+                                          size: 18,
+                                        ),
+                                        label: Text(
+                                          l10n.profileClearCountryButton,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 8),
+                                  TextField(
+                                    controller: _cityController,
+                                    textInputAction: TextInputAction.done,
+                                    onChanged: (_) {
+                                      if (_cityError == null &&
+                                          _locationError == null) {
+                                        return;
+                                      }
+                                      setState(() {
+                                        _cityError = null;
+                                        _locationError = null;
+                                      });
+                                    },
+                                    decoration: InputDecoration(
+                                      labelText:
+                                          '${l10n.authCityOfResidenceLabel} *',
+                                      helperText:
+                                          l10n.profileCityResidenceHelper,
+                                      errorText: _cityError,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          _EditProfileSectionTitle(
+                            title: l10n.profileAccountSectionTitle,
+                          ),
+                          Card(
+                            margin: EdgeInsets.zero,
+                            clipBehavior: Clip.antiAlias,
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 4,
+                                  ),
+                                  leading: const Icon(Icons.email_outlined),
+                                  title: Text(
+                                    accountEmail.isNotEmpty
+                                        ? accountEmail
+                                        : l10n.authEmailLabel,
+                                  ),
+                                  subtitle: Text(
+                                    l10n.profileAccountEmailHelper,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const Divider(height: 1),
+                                ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 4,
+                                  ),
+                                  enabled: !actionsDisabled,
+                                  leading: const Icon(
+                                    Icons.lock_reset_outlined,
+                                  ),
+                                  title: Text(
+                                    l10n.profileChangePasswordAction,
+                                  ),
+                                  subtitle: Text(
+                                    l10n.profileChangePasswordDescription,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  trailing: const Icon(Icons.chevron_right),
+                                  onTap: actionsDisabled
+                                      ? null
+                                      : () {
+                                          Navigator.of(context).pushNamed(
+                                            AppRouter.resetPassword,
+                                          );
+                                        },
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            height: 50,
+                            child: FilledButton(
+                              onPressed: actionsDisabled
+                                  ? null
+                                  : () async {
+                                      controller.clearError();
+                                      setState(() {
+                                        _avatarUploadError = null;
+                                        _displayNameError = null;
+                                        _usernameError = null;
+                                        _countryError = null;
+                                        _cityError = null;
+                                        _locationError = null;
+                                      });
+
+                                      final normalizedDisplayName =
+                                          _normalizeNullable(
+                                        _displayNameController.text,
+                                      );
+                                      final normalizedUsername =
+                                          _normalizeUsernameInput(
+                                        _usernameController.text,
+                                      );
+                                      final normalizedCountryCode =
+                                          _normalizeCountryCode(
+                                        _selectedCountryCode,
+                                      );
+                                      final normalizedCityInput =
+                                          _normalizeNullable(
+                                        _cityController.text,
+                                      );
+
+                                      bool hasValidationError = false;
+
+                                      if (normalizedDisplayName == null) {
+                                        _displayNameError = l10n
+                                            .profileDisplayNameRequiredError;
+                                        hasValidationError = true;
+                                      }
+
+                                      final usernameValidationError =
+                                          _validateUsername(
+                                        normalizedUsername,
+                                        l10n,
+                                      );
+
+                                      if (usernameValidationError != null) {
+                                        _usernameError =
+                                            usernameValidationError;
+                                        hasValidationError = true;
+                                      }
+
+                                      if (normalizedCountryCode == null) {
+                                        _countryError =
+                                            l10n.authCountryRequiredError;
+                                        hasValidationError = true;
+                                      }
+
+                                      if (normalizedCityInput == null) {
+                                        _cityError = l10n.authCityRequiredError;
+                                        hasValidationError = true;
+                                      }
+
+                                      if (hasValidationError) {
+                                        setState(() {});
+                                        return;
+                                      }
+
+                                      String? effectiveCountry =
+                                          normalizedCountryCode;
+                                      String? effectiveCity =
+                                          normalizedCityInput;
+
+                                      try {
+                                        final resolved = await AppDI
+                                            .instance.geocodingRepository
+                                            .geocodeContentLocation(
+                                          ContentLocation(
+                                            source:
+                                                ContentLocationSource.manual,
+                                            countryCode: normalizedCountryCode,
+                                            cityName: normalizedCityInput,
+                                          ),
+                                        );
+
+                                        if (resolved == null) {
+                                          setState(() {
+                                            _cityError =
+                                                l10n.profileCityNotFoundError;
+                                          });
+                                          return;
+                                        }
+
+                                        effectiveCountry =
+                                            _normalizeCountryCode(
+                                          resolved.countryCode ??
+                                              normalizedCountryCode,
+                                        );
+
+                                        effectiveCity = _normalizeNullable(
+                                          resolved.cityName ??
+                                              normalizedCityInput ??
+                                              '',
+                                        );
+                                      } catch (_) {
+                                        setState(() {
+                                          _locationError =
+                                              l10n.profileCityVerificationError;
+                                        });
+                                        return;
+                                      }
+
+                                      await controller.updateProfile(
+                                        userId: widget.currentUserId,
+                                        displayName: normalizedDisplayName,
+                                        username: normalizedUsername,
+                                        avatarUrl: _normalizeNullable(
+                                          _avatarUrlController.text,
+                                        ),
+                                        bio: _normalizeNullable(
+                                          _bioController.text,
+                                        ),
+                                        country: effectiveCountry,
+                                        city: effectiveCity,
+                                      );
+
+                                      if (!context.mounted) return;
+
+                                      if (controller.errorMessage == null) {
+                                        Navigator.of(context).pop(true);
+                                      }
+                                    },
+                              child: controller.isSaving
+                                  ? const SizedBox(
+                                      height: 18,
+                                      width: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Text(l10n.commonSaveButton),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _displayNameController,
-                      textInputAction: TextInputAction.next,
-                      onChanged: (_) {
-                        if (_displayNameError == null) return;
-                        setState(() {
-                          _displayNameError = null;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        labelText: 'Display name',
-                        border: const OutlineInputBorder(),
-                        errorText: _displayNameError,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _usernameController,
-                      textInputAction: TextInputAction.next,
-                      onChanged: (_) {
-                        if (_usernameError == null) return;
-                        setState(() {
-                          _usernameError = null;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        labelText: 'Username',
-                        hintText: 'es. mario_roma',
-                        helperText:
-                            '3-20 caratteri: lettere, numeri, underscore',
-                        errorText: _usernameError,
-                        prefixText: '@',
-                        border: const OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _avatarUrlController,
-                      textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        labelText: 'Avatar URL',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _bioController,
-                      maxLines: 3,
-                      textInputAction: TextInputAction.newline,
-                      decoration: const InputDecoration(
-                        labelText: 'Bio',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    CountrySelectorField(
-                      key: ValueKey(
-                        'edit-profile-country-${_selectedCountryCode ?? 'none'}',
-                      ),
-                      selectedCountryCode: _selectedCountryCode,
-                      label: 'Country of residence',
-                      required: true,
-                      onCountrySelected: (code) {
-                        final normalizedCountryCode =
-                            _normalizeCountryCode(code);
-                        final countryChanged =
-                            normalizedCountryCode != _selectedCountryCode;
-
-                        setState(() {
-                          _selectedCountryCode = normalizedCountryCode;
-                          if (countryChanged) {
-                            _cityController.clear();
-                            _cityError = null;
-                          }
-                          _countryError = null;
-                          _locationError = null;
-                        });
-                      },
-                    ),
-                    if (_countryError != null) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        _countryError!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                    if (_selectedCountryCode != null &&
-                        _selectedCountryCode!.trim().isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton.icon(
-                          onPressed: controller.isSaving || _isUploadingAvatar
-                              ? null
-                              : () {
-                                  setState(() {
-                                    _selectedCountryCode = null;
-                                    _cityController.clear();
-                                    _countryError = null;
-                                    _cityError = null;
-                                    _locationError = null;
-                                  });
-                                },
-                          icon: const Icon(Icons.clear),
-                          label: const Text('Clear country'),
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _cityController,
-                      textInputAction: TextInputAction.done,
-                      onChanged: (_) {
-                        if (_cityError == null && _locationError == null) {
-                          return;
-                        }
-                        setState(() {
-                          _cityError = null;
-                          _locationError = null;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        labelText: 'City of residence *',
-                        helperText:
-                            'Residence city is validated against the selected country before save.',
-                        errorText: _cityError,
-                        border: const OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    FilledButton(
-                      onPressed: controller.isSaving || _isUploadingAvatar
-                          ? null
-                          : () async {
-                              controller.clearError();
-                              setState(() {
-                                _avatarUploadError = null;
-                                _displayNameError = null;
-                                _usernameError = null;
-                                _countryError = null;
-                                _cityError = null;
-                                _locationError = null;
-                              });
-
-                              final normalizedDisplayName = _normalizeNullable(
-                                _displayNameController.text,
-                              );
-                              final normalizedUsername =
-                                  _normalizeUsernameInput(
-                                _usernameController.text,
-                              );
-                              final normalizedCountryCode =
-                                  _normalizeCountryCode(_selectedCountryCode);
-                              final normalizedCityInput = _normalizeNullable(
-                                _cityController.text,
-                              );
-
-                              bool hasValidationError = false;
-
-                              if (normalizedDisplayName == null) {
-                                _displayNameError = 'Display name is required.';
-                                hasValidationError = true;
-                              }
-
-                              final usernameValidationError =
-                                  _validateUsername(normalizedUsername);
-
-                              if (usernameValidationError != null) {
-                                _usernameError = usernameValidationError;
-                                hasValidationError = true;
-                              }
-
-                              if (normalizedCountryCode == null) {
-                                _countryError = 'Country is required.';
-                                hasValidationError = true;
-                              }
-
-                              if (normalizedCityInput == null) {
-                                _cityError = 'City is required.';
-                                hasValidationError = true;
-                              }
-
-                              if (hasValidationError) {
-                                setState(() {});
-                                return;
-                              }
-
-                              String? effectiveCountry = normalizedCountryCode;
-                              String? effectiveCity = normalizedCityInput;
-
-                              try {
-                                final resolved = await AppDI
-                                    .instance.geocodingRepository
-                                    .geocodeContentLocation(
-                                  ContentLocation(
-                                    source: ContentLocationSource.manual,
-                                    countryCode: normalizedCountryCode,
-                                    cityName: normalizedCityInput,
-                                  ),
-                                );
-
-                                if (resolved == null) {
-                                  setState(() {
-                                    _cityError =
-                                        'Città non riconosciuta per il paese selezionato.';
-                                  });
-                                  return;
-                                }
-
-                                effectiveCountry = _normalizeCountryCode(
-                                  resolved.countryCode ?? normalizedCountryCode,
-                                );
-
-                                effectiveCity = _normalizeNullable(
-                                  resolved.cityName ??
-                                      normalizedCityInput ??
-                                      '',
-                                );
-                              } catch (_) {
-                                setState(() {
-                                  _locationError =
-                                      'Impossibile verificare la città in questo momento.';
-                                });
-                                return;
-                              }
-
-                              await controller.updateProfile(
-                                userId: widget.currentUserId,
-                                displayName: normalizedDisplayName,
-                                username: normalizedUsername,
-                                avatarUrl: _normalizeNullable(
-                                  _avatarUrlController.text,
-                                ),
-                                bio: _normalizeNullable(_bioController.text),
-                                country: effectiveCountry,
-                                city: effectiveCity,
-                              );
-
-                              if (!context.mounted) return;
-
-                              if (controller.errorMessage == null) {
-                                Navigator.of(context).pop(true);
-                              }
-                            },
-                      child: controller.isSaving
-                          ? const SizedBox(
-                              height: 18,
-                              width: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text('Save'),
-                    ),
-                  ],
+                  ),
                 ),
         );
       },
@@ -470,6 +659,9 @@ class _EditProfileViewState extends State<_EditProfileView> {
   }
 
   Future<void> _uploadAvatar() async {
+    final uploadErrorMessage =
+        AppLocalizations.of(context)!.profileAvatarUploadError;
+
     setState(() {
       _avatarUploadError = null;
     });
@@ -511,7 +703,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _avatarUploadError = 'Impossibile caricare l’avatar.';
+        _avatarUploadError = uploadErrorMessage;
       });
     } finally {
       if (mounted) {
@@ -560,14 +752,17 @@ class _EditProfileViewState extends State<_EditProfileView> {
     return normalized.isEmpty ? null : normalized;
   }
 
-  String? _validateUsername(String? username) {
+  String? _validateUsername(
+    String? username,
+    AppLocalizations l10n,
+  ) {
     if (username == null) {
-      return 'Username is required.';
+      return l10n.authUsernameRequiredError;
     }
 
     final regex = RegExp(r'^[a-z0-9_]{3,20}$');
     if (!regex.hasMatch(username)) {
-      return 'Username non valido. Usa 3-20 caratteri: lettere, numeri, underscore.';
+      return l10n.authUsernameInvalidError;
     }
 
     return null;

@@ -46,12 +46,24 @@ class AuthApi {
     required String email,
     required String password,
     required String displayName,
+    required String username,
+    required String country,
+    required String city,
   }) async {
+    final normalizedEmail = email.trim();
+    final normalizedDisplayName = displayName.trim();
+    final normalizedUsername = _normalizeUsername(username);
+    final normalizedCountry = country.trim();
+    final normalizedCity = city.trim();
+
     final response = await AppSupabase.auth.signUp(
-      email: email,
+      email: normalizedEmail,
       password: password,
       data: <String, dynamic>{
-        'display_name': displayName,
+        'display_name': normalizedDisplayName,
+        'username': normalizedUsername,
+        'country': normalizedCountry,
+        'city': normalizedCity,
       },
     );
 
@@ -64,7 +76,7 @@ class AuthApi {
 
     if (session == null) {
       throw EmailConfirmationRequiredException(
-        user.email ?? email.trim(),
+        user.email ?? normalizedEmail,
       );
     }
 
@@ -136,6 +148,9 @@ class AuthApi {
     final userMetadata = user.userMetadata ?? const <String, dynamic>{};
     final appMetadata = user.appMetadata;
     final displayName = _readDisplayName(userMetadata);
+    final username = _readUsername(userMetadata);
+    final country = _readOptionalString(userMetadata, 'country');
+    final city = _readOptionalString(userMetadata, 'city');
     final role = _readRole(appMetadata);
 
     await Supabase.instance.client.from('users').upsert(
@@ -147,6 +162,68 @@ class AuthApi {
       },
       onConflict: 'id',
     );
+
+    final existingRows = await AppSupabase.client
+        .from('user_profiles')
+        .select('id, display_name, username, country, city')
+        .eq('id', user.id)
+        .limit(1);
+
+    final now = DateTime.now().toUtc().toIso8601String();
+
+    if (existingRows.isEmpty) {
+      await AppSupabase.client.from('user_profiles').insert(
+        <String, dynamic>{
+          'id': user.id,
+          'display_name': displayName,
+          'username': username,
+          'avatar_url': null,
+          'bio': null,
+          'country': country,
+          'city': city,
+          'actor_type': 'citizen',
+          'verification_level': 'none',
+          'institution_level': null,
+          'verification_status': 'none',
+          'verification_requested_at': null,
+          'verified_at': null,
+          'official_title': null,
+          'institution_name': null,
+          'account_type': 'citizen',
+          'is_verified': false,
+          'created_at': now,
+          'updated_at': now,
+        },
+      );
+      return;
+    }
+
+    final existing = existingRows.first;
+    final updates = <String, dynamic>{};
+
+    if (_isMissing(existing['display_name']) && displayName != null) {
+      updates['display_name'] = displayName;
+    }
+    if (_isMissing(existing['username']) && username != null) {
+      updates['username'] = username;
+    }
+    if (_isMissing(existing['country']) && country != null) {
+      updates['country'] = country;
+    }
+    if (_isMissing(existing['city']) && city != null) {
+      updates['city'] = city;
+    }
+
+    if (updates.isEmpty) {
+      return;
+    }
+
+    updates['updated_at'] = now;
+
+    await AppSupabase.client
+        .from('user_profiles')
+        .update(updates)
+        .eq('id', user.id);
   }
 
   AuthSession _mapToAuthSession({
@@ -167,11 +244,38 @@ class AuthApi {
   }
 
   String? _readDisplayName(Map<String, dynamic> metadata) {
-    final value = metadata['display_name'];
+    return _readOptionalString(metadata, 'display_name');
+  }
+
+  String? _readUsername(Map<String, dynamic> metadata) {
+    final value = _readOptionalString(metadata, 'username');
+    if (value == null) {
+      return null;
+    }
+    return _normalizeUsername(value);
+  }
+
+  String? _readOptionalString(
+    Map<String, dynamic> metadata,
+    String key,
+  ) {
+    final value = metadata[key];
     if (value is String && value.trim().isNotEmpty) {
       return value.trim();
     }
     return null;
+  }
+
+  String _normalizeUsername(String value) {
+    var normalized = value.trim().toLowerCase();
+    if (normalized.startsWith('@')) {
+      normalized = normalized.substring(1);
+    }
+    return normalized;
+  }
+
+  bool _isMissing(dynamic value) {
+    return value == null || value is String && value.trim().isEmpty;
   }
 
   Role _readRole(Map<String, dynamic> appMetadata) {

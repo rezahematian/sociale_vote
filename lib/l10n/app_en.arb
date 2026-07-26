@@ -670,5 +670,600 @@
   "newsDetail_shareTooltip": "Share",
   "@newsDetail_shareTooltip": {
     "description": "Share tooltip on the news detail page"
+  },
+  "authLoginPageTitle": "Log in",
+  "@authLoginPageTitle": {
+    "description": "Auth UI: authLoginPageTitle"
+  },
+  "authLoginHeadline": "Welcome back",
+  "@authLoginHeadline": {
+    "description": "Auth UI: authLoginHeadline"
+  },
+  "authEmailLabel": "Email",
+  "@authEmailLabel": {
+    "description": "Auth UI: authEmailLabel"
+  },
+  "authPasswordLabel": "Password",
+  "@authPasswordLabel": {
+    "description": "Auth UI: authPasswordLabel"
+  },
+  "authRememberMeLabel": "Remember me",
+  "@authRememberMeLabel": {
+    "description": "Auth UI: authRememberMeLabel"
+  },
+  "authForgotPasswordAction": "Forgot password?",
+  "@authForgotPasswordAction": {
+    "description": "Auth UI: authForgotPasswordAction"
+  },
+  "authLoginButton": "Log in",
+  "@authLoginButton": {
+    "description": "Auth UI: authLoginButton"
+  },
+  "authRegisterPrompt": "Don't have an account?",
+  "@authRegisterPrompt": {
+    "description": "Auth UI: authRegisterPrompt"
+  },
+  "authRegisterAction": "Sign up",
+  "@authRegisterAction": {
+    "description": "Auth UI: authRegisterAction"
+  },
+  "authRegisterPageTitle": "Sign up",
+  "@authRegisterPageTitle": {
+    "description": "Auth UI: authRegisterPageTitle"
+  },
+  "authRegisterHeadline": "Create an account",
+  "@authRegisterHeadline": {
+    "description": "Auth UI: authRegisterHeadline"
+  },
+  "authDisplayNameLabel": "Display name",
+  "@authDisplayNameLabel": {
+    "description": "Auth UI: authDisplayNameLabel"
+  },
+  "authUsernameLabel": "Username",
+  "@authUsernameLabel": {
+    "description": "Auth UI: authUsernameLabel"
+  },
+  "authCountryOfResidenceLabel": "Country of residence",
+  "@authCountryOfResidenceLabel": {
+    "description": "Auth UI: authCountryOfResidenceLabel"
+  },
+  "authCityOfResidenceLabel": "City of residence",
+  "@authCityOfResidenceLabel": {
+    "description": "Auth UI: authCityOfResidenceLabel"
+  },
+  "authConfirmPasswordLabel": "Confirm password",
+  "@authConfirmPasswordLabel": {
+    "description": "Auth UI: authConfirmPasswordLabel"
+  },
+  "authLegalConsentPrefix": "I have read and accept",
+  "@authLegalConsentPrefix": {
+    "description": "Auth UI: authLegalConsentPrefix"
+  },
+  "authTermsOfServiceAction": "the Terms of Service",
+  "@authTermsOfServiceAction": {
+    "description": "Auth UI: authTermsOfServiceAction"
+  },
+  "authPrivacyPolicyAction": "the Privacy Policy",
+  "@authPrivacyPolicyAction": {
+    "description": "Auth UI: authPrivacyPolicyAction"
+  },
+  "authRegisterButton": "Sign up",
+  "@authRegisterButton": {
+    "description": "Auth UI: authRegisterButton"
+  },
+  "authLoginPrompt": "Already have an account?",
+  "@authLoginPrompt": {
+    "description": "Auth UI: authLoginPrompt"
+  },
+  "authLoginAction": "Log in",
+  "@authLoginAction": {
+    "description": "Auth UI: authLoginAction"
+  },
+  "authForgotPasswordDialogTitle": "Reset password",
+  "@authForgotPasswordDialogTitle": {
+    "description": "Auth UI: authForgotPasswordDialogTitle"
+  },
+  "authForgotPasswordDialogBody": "Enter the email address linked to your account. We will send you a link to choose a new password.",
+  "@authForgotPasswordDialogBody": {
+    "description": "Auth UI: authForgotPasswordDialogBody"
+  },
+  "authForgotPasswordSendButton": "Send link",
+  "@authForgotPasswordSendButton": {
+    "description": "Auth UI: authForgotPasswordSendButton"
+  },
+  "authPasswordResetEmailSent": "Password reset email sent. Check your inbox.",
+  "@authPasswordResetEmailSent": {
+    "description": "Auth UI: authPasswordResetEmailSent"
+  },
+  "authResetPasswordPageTitle": "Reset password",
+  "@authResetPasswordPageTitle": {
+    "description": "Auth UI: authResetPasswordPageTitle"
+  },
+  "authResetPasswordHeadline": "Choose a new password",
+  "@authResetPasswordHeadline": {
+    "description": "Auth UI: authResetPasswordHeadline"
+  },
+  "authNewPasswordLabel": "New password",
+  "@authNewPasswordLabel": {
+    "description": "Auth UI: authNewPasswordLabel"
+  },
+  "authConfirmNewPasswordLabel": "Confirm new password",
+  "@authConfirmNewPasswordLabel": {
+    "description": "Auth UI: authConfirmNewPasswordLabel"
+  },
+  "authUpdatePasswordButton": "Update password",
+  "@authUpdatePasswordButton": {
+    "description": "Auth UI: authUpdatePasswordButton"
+  },
+  "authPasswordUpdated": "Password updated successfully.",
+  "@authPasswordUpdated": {
+    "description": "Auth UI: authPasswordUpdated"
+  },
+  "authEmailConfirmationTitle": "Check your email",
+  "@authEmailConfirmationTitle": {
+    "description": "Auth UI: authEmailConfirmationTitle"
+  },
+  "authEmailConfirmationIntro": "We sent a confirmation link to:",
+  "@authEmailConfirmationIntro": {
+    "description": "Auth UI: authEmailConfirmationIntro"
+  },
+  "authEmailConfirmationInstructions": "Open the link in the message to verify your address. After confirmation, return to the app and log in.",
+  "@authEmailConfirmationInstructions": {
+    "description": "Auth UI: authEmailConfirmationInstructions"
+  },
+  "authBackToLoginButton": "Back to login",
+  "@authBackToLoginButton": {
+    "description": "Auth UI: authBackToLoginButton"
+  },
+  "authUseAnotherEmailButton": "Use another email address",
+  "@authUseAnotherEmailButton": {
+    "description": "Auth UI: authUseAnotherEmailButton"
+  },
+  "authEmailRequiredError": "Enter your email.",
+  "@authEmailRequiredError": {
+    "description": "Auth UI: authEmailRequiredError"
+  },
+  "authEmailInvalidError": "Enter a valid email address.",
+  "@authEmailInvalidError": {
+    "description": "Auth UI: authEmailInvalidError"
+  },
+  "authPasswordRequiredError": "Enter your password.",
+  "@authPasswordRequiredError": {
+    "description": "Auth UI: authPasswordRequiredError"
+  },
+  "authPasswordTooShortError": "Password must be at least 8 characters.",
+  "@authPasswordTooShortError": {
+    "description": "Auth UI: authPasswordTooShortError"
+  },
+  "authDisplayNameRequiredError": "Enter your display name.",
+  "@authDisplayNameRequiredError": {
+    "description": "Auth UI: authDisplayNameRequiredError"
+  },
+  "authDisplayNameTooShortError": "Display name is too short.",
+  "@authDisplayNameTooShortError": {
+    "description": "Auth UI: authDisplayNameTooShortError"
+  },
+  "authUsernameRequiredError": "Enter a username.",
+  "@authUsernameRequiredError": {
+    "description": "Auth UI: authUsernameRequiredError"
+  },
+  "authUsernameInvalidError": "Use 3 to 20 characters: lowercase letters, numbers and underscores.",
+  "@authUsernameInvalidError": {
+    "description": "Auth UI: authUsernameInvalidError"
+  },
+  "authCountryRequiredError": "Select your country of residence.",
+  "@authCountryRequiredError": {
+    "description": "Auth UI: authCountryRequiredError"
+  },
+  "authCityRequiredError": "Enter your city of residence.",
+  "@authCityRequiredError": {
+    "description": "Auth UI: authCityRequiredError"
+  },
+  "authConfirmPasswordRequiredError": "Confirm your password.",
+  "@authConfirmPasswordRequiredError": {
+    "description": "Auth UI: authConfirmPasswordRequiredError"
+  },
+  "authPasswordsDoNotMatchError": "Passwords do not match.",
+  "@authPasswordsDoNotMatchError": {
+    "description": "Auth UI: authPasswordsDoNotMatchError"
+  },
+  "authLegalConsentRequiredError": "You must read and accept the Terms of Service and Privacy Policy.",
+  "@authLegalConsentRequiredError": {
+    "description": "Auth UI: authLegalConsentRequiredError"
+  },
+  "authForgotPasswordEmailRequiredError": "Enter the email for the account you want to recover.",
+  "@authForgotPasswordEmailRequiredError": {
+    "description": "Auth UI: authForgotPasswordEmailRequiredError"
+  },
+  "authInvalidCredentialsError": "Email or password is not valid.",
+  "@authInvalidCredentialsError": {
+    "description": "Auth UI: authInvalidCredentialsError"
+  },
+  "authEmailAlreadyRegisteredError": "This email is already registered.",
+  "@authEmailAlreadyRegisteredError": {
+    "description": "Auth UI: authEmailAlreadyRegisteredError"
+  },
+  "authEmailNotConfirmedError": "Email not confirmed. Check your inbox before logging in.",
+  "@authEmailNotConfirmedError": {
+    "description": "Auth UI: authEmailNotConfirmedError"
+  },
+  "authTooManyAttemptsError": "Too many attempts. Wait a few minutes and try again.",
+  "@authTooManyAttemptsError": {
+    "description": "Auth UI: authTooManyAttemptsError"
+  },
+  "authNetworkError": "Network error. Check your connection and try again.",
+  "@authNetworkError": {
+    "description": "Auth UI: authNetworkError"
+  },
+  "authLoginGenericError": "Login failed. Try again.",
+  "@authLoginGenericError": {
+    "description": "Auth UI: authLoginGenericError"
+  },
+  "authRegisterGenericError": "Registration failed. Try again.",
+  "@authRegisterGenericError": {
+    "description": "Auth UI: authRegisterGenericError"
+  },
+  "authPasswordResetGenericError": "Unable to send the reset link. Try again.",
+  "@authPasswordResetGenericError": {
+    "description": "Auth UI: authPasswordResetGenericError"
+  },
+  "authPasswordUpdateGenericError": "Unable to update the password. Try again.",
+  "@authPasswordUpdateGenericError": {
+    "description": "Auth UI: authPasswordUpdateGenericError"
+  },
+  "authShowPasswordTooltip": "Show password",
+  "@authShowPasswordTooltip": {
+    "description": "Auth UI: authShowPasswordTooltip"
+  },
+  "authHidePasswordTooltip": "Hide password",
+  "@authHidePasswordTooltip": {
+    "description": "Auth UI: authHidePasswordTooltip"
+  },
+  "authTermsPageTitle": "Terms of Service",
+  "@authTermsPageTitle": {
+    "description": "Auth UI: authTermsPageTitle"
+  },
+  "authPrivacyPageTitle": "Privacy Policy",
+  "@authPrivacyPageTitle": {
+    "description": "Auth UI: authPrivacyPageTitle"
+  },
+  "authCloseButton": "Close",
+  "@authCloseButton": {
+    "description": "Auth UI: authCloseButton"
+  },
+  "pollDetail_favoriteUpdateError": "Unable to update favorites",
+  "@pollDetail_favoriteUpdateError": {
+    "description": "Poll detail UI: pollDetail_favoriteUpdateError"
+  },
+  "pollDetail_shareMessage": "Open Sociale_Vote to view and vote in this poll.",
+  "@pollDetail_shareMessage": {
+    "description": "Poll detail UI: pollDetail_shareMessage"
+  },
+  "pollDetail_shareError": "Unable to share the poll",
+  "@pollDetail_shareError": {
+    "description": "Poll detail UI: pollDetail_shareError"
+  },
+  "pollDetail_editPermissionError": "You can edit only your own polls that have no votes",
+  "@pollDetail_editPermissionError": {
+    "description": "Poll detail UI: pollDetail_editPermissionError"
+  },
+  "pollDetail_editSuccessMessage": "Poll updated",
+  "@pollDetail_editSuccessMessage": {
+    "description": "Poll detail UI: pollDetail_editSuccessMessage"
+  },
+  "pollDetail_editMenuItem": "Edit poll",
+  "@pollDetail_editMenuItem": {
+    "description": "Poll detail UI: pollDetail_editMenuItem"
+  },
+  "pollDetail_editSavingMenuItem": "Saving...",
+  "@pollDetail_editSavingMenuItem": {
+    "description": "Poll detail UI: pollDetail_editSavingMenuItem"
+  },
+  "pollDetail_deletePermissionError": "You can delete only your own polls",
+  "@pollDetail_deletePermissionError": {
+    "description": "Poll detail UI: pollDetail_deletePermissionError"
+  },
+  "pollDetail_deleteError": "Unable to delete the poll",
+  "@pollDetail_deleteError": {
+    "description": "Poll detail UI: pollDetail_deleteError"
+  },
+  "pollDetail_deleteDialogTitle": "Delete poll",
+  "@pollDetail_deleteDialogTitle": {
+    "description": "Poll detail UI: pollDetail_deleteDialogTitle"
+  },
+  "pollDetail_deleteDialogMessage": "Do you really want to delete \"{title}\"? This action cannot be undone.",
+  "@pollDetail_deleteDialogMessage": {
+    "description": "Poll detail UI: pollDetail_deleteDialogMessage",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "pollDetail_deleteMenuItem": "Delete poll",
+  "@pollDetail_deleteMenuItem": {
+    "description": "Poll detail UI: pollDetail_deleteMenuItem"
+  },
+  "pollDetail_deleteDeletingMenuItem": "Deleting...",
+  "@pollDetail_deleteDeletingMenuItem": {
+    "description": "Poll detail UI: pollDetail_deleteDeletingMenuItem"
+  },
+  "pollDetail_publicVotesAvailableTitle": "Public votes available",
+  "@pollDetail_publicVotesAvailableTitle": {
+    "description": "Poll detail UI: pollDetail_publicVotesAvailableTitle"
+  },
+  "pollDetail_publicVotesAvailableMessage": "This poll allows you to see who voted for each option.",
+  "@pollDetail_publicVotesAvailableMessage": {
+    "description": "Poll detail UI: pollDetail_publicVotesAvailableMessage"
+  },
+  "pollDetail_publicVotesAction": "View public votes",
+  "@pollDetail_publicVotesAction": {
+    "description": "Poll detail UI: pollDetail_publicVotesAction"
+  },
+  "pollDetail_retryButton": "Try again",
+  "@pollDetail_retryButton": {
+    "description": "Poll detail UI: pollDetail_retryButton"
+  },
+  "pollDetail_voteErrorNoOption": "Select at least one option",
+  "@pollDetail_voteErrorNoOption": {
+    "description": "Poll detail UI: pollDetail_voteErrorNoOption"
+  },
+  "pollDetail_voteErrorAuthenticationRequired": "You must be signed in to vote",
+  "@pollDetail_voteErrorAuthenticationRequired": {
+    "description": "Poll detail UI: pollDetail_voteErrorAuthenticationRequired"
+  },
+  "pollDetail_voteErrorClosed": "This poll is closed",
+  "@pollDetail_voteErrorClosed": {
+    "description": "Poll detail UI: pollDetail_voteErrorClosed"
+  },
+  "pollDetail_voteErrorAlreadyVoted": "You have already voted in this poll",
+  "@pollDetail_voteErrorAlreadyVoted": {
+    "description": "Poll detail UI: pollDetail_voteErrorAlreadyVoted"
+  },
+  "pollDetail_voteErrorGeneric": "Unable to submit the vote",
+  "@pollDetail_voteErrorGeneric": {
+    "description": "Poll detail UI: pollDetail_voteErrorGeneric"
+  },
+  "pollDetail_publicVotesSheetTitle": "Public votes",
+  "@pollDetail_publicVotesSheetTitle": {
+    "description": "Poll detail UI: pollDetail_publicVotesSheetTitle"
+  },
+  "pollDetail_publicVotesSheetDescription": "Here you can see who voted for each option in this poll.",
+  "@pollDetail_publicVotesSheetDescription": {
+    "description": "Poll detail UI: pollDetail_publicVotesSheetDescription"
+  },
+  "pollDetail_publicVotesSearchHint": "Search users",
+  "@pollDetail_publicVotesSearchHint": {
+    "description": "Poll detail UI: pollDetail_publicVotesSearchHint"
+  },
+  "pollDetail_publicVotesLoadError": "Unable to load public votes",
+  "@pollDetail_publicVotesLoadError": {
+    "description": "Poll detail UI: pollDetail_publicVotesLoadError"
+  },
+  "pollDetail_publicVotesEmpty": "No public votes available",
+  "@pollDetail_publicVotesEmpty": {
+    "description": "Poll detail UI: pollDetail_publicVotesEmpty"
+  },
+  "pollDetail_publicVotesSearchEmpty": "No users found for this search",
+  "@pollDetail_publicVotesSearchEmpty": {
+    "description": "Poll detail UI: pollDetail_publicVotesSearchEmpty"
+  },
+  "pollDetail_publicVotesResultsCount": "{count} results loaded",
+  "@pollDetail_publicVotesResultsCount": {
+    "description": "Poll detail UI: pollDetail_publicVotesResultsCount",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_publicVotesLoadMore": "Load more",
+  "@pollDetail_publicVotesLoadMore": {
+    "description": "Poll detail UI: pollDetail_publicVotesLoadMore"
+  },
+  "pollDetail_publicVotesUserFallback": "User",
+  "@pollDetail_publicVotesUserFallback": {
+    "description": "Poll detail UI: pollDetail_publicVotesUserFallback"
+  },
+  "pollDetail_editDialogTitle": "Edit poll",
+  "@pollDetail_editDialogTitle": {
+    "description": "Poll detail UI: pollDetail_editDialogTitle"
+  },
+  "pollDetail_editTitleFieldLabel": "Title",
+  "@pollDetail_editTitleFieldLabel": {
+    "description": "Poll detail UI: pollDetail_editTitleFieldLabel"
+  },
+  "pollDetail_editTitleRequired": "Title is required",
+  "@pollDetail_editTitleRequired": {
+    "description": "Poll detail UI: pollDetail_editTitleRequired"
+  },
+  "pollDetail_editDescriptionFieldLabel": "Description",
+  "@pollDetail_editDescriptionFieldLabel": {
+    "description": "Poll detail UI: pollDetail_editDescriptionFieldLabel"
+  },
+  "pollDetail_editError": "Unable to update the poll",
+  "@pollDetail_editError": {
+    "description": "Poll detail UI: pollDetail_editError"
+  },
+  "pollDetail_loadError": "Unable to load the poll",
+  "@pollDetail_loadError": {
+    "description": "Poll detail UI: pollDetail_loadError"
+  },
+  "pollDetail_notFound": "Poll not found",
+  "@pollDetail_notFound": {
+    "description": "Poll detail UI: pollDetail_notFound"
+  },
+  "profileEditPageTitle": "Edit profile",
+  "@profileEditPageTitle": {
+    "description": "Edit profile UI: profileEditPageTitle"
+  },
+  "profileLoginRequiredMessage": "You must be signed in to edit your profile.",
+  "@profileLoginRequiredMessage": {
+    "description": "Edit profile UI: profileLoginRequiredMessage"
+  },
+  "profileAvatarUploading": "Uploading...",
+  "@profileAvatarUploading": {
+    "description": "Edit profile UI: profileAvatarUploading"
+  },
+  "profileUploadAvatarButton": "Upload avatar",
+  "@profileUploadAvatarButton": {
+    "description": "Edit profile UI: profileUploadAvatarButton"
+  },
+  "profileDisplayNameLabel": "Display name",
+  "@profileDisplayNameLabel": {
+    "description": "Edit profile UI: profileDisplayNameLabel"
+  },
+  "profileDisplayNameRequiredError": "Display name is required.",
+  "@profileDisplayNameRequiredError": {
+    "description": "Edit profile UI: profileDisplayNameRequiredError"
+  },
+  "profileUsernameHint": "e.g. mario_roma",
+  "@profileUsernameHint": {
+    "description": "Edit profile UI: profileUsernameHint"
+  },
+  "profileUsernameHelper": "3–20 characters: lowercase letters, numbers and underscores",
+  "@profileUsernameHelper": {
+    "description": "Edit profile UI: profileUsernameHelper"
+  },
+  "profileAvatarUrlLabel": "Avatar URL",
+  "@profileAvatarUrlLabel": {
+    "description": "Edit profile UI: profileAvatarUrlLabel"
+  },
+  "profileBioLabel": "Bio",
+  "@profileBioLabel": {
+    "description": "Edit profile UI: profileBioLabel"
+  },
+  "profileClearCountryButton": "Clear country",
+  "@profileClearCountryButton": {
+    "description": "Edit profile UI: profileClearCountryButton"
+  },
+  "profileCityResidenceHelper": "The city of residence is checked against the selected country before saving.",
+  "@profileCityResidenceHelper": {
+    "description": "Edit profile UI: profileCityResidenceHelper"
+  },
+  "profileCityNotFoundError": "City not found in the selected country.",
+  "@profileCityNotFoundError": {
+    "description": "Edit profile UI: profileCityNotFoundError"
+  },
+  "profileCityVerificationError": "Unable to verify the city right now.",
+  "@profileCityVerificationError": {
+    "description": "Edit profile UI: profileCityVerificationError"
+  },
+  "profileAvatarUploadError": "Unable to upload the avatar.",
+  "@profileAvatarUploadError": {
+    "description": "Edit profile UI: profileAvatarUploadError"
+  },
+  "profileAccountSectionTitle": "Account",
+  "@profileAccountSectionTitle": {
+    "description": "Edit profile UI: profileAccountSectionTitle"
+  },
+  "profileAccountEmailHelper": "The account email address cannot be changed from this screen.",
+  "@profileAccountEmailHelper": {
+    "description": "Edit profile UI: profileAccountEmailHelper"
+  },
+  "profileChangePasswordAction": "Change password",
+  "@profileChangePasswordAction": {
+    "description": "Edit profile UI: profileChangePasswordAction"
+  },
+  "profileChangePasswordDescription": "Set a new password for this account.",
+  "@profileChangePasswordDescription": {
+    "description": "Edit profile UI: profileChangePasswordDescription"
+  },
+  "notificationsPageTitle": "Notifications",
+  "@notificationsPageTitle": {
+    "description": "Notifications UI: notificationsPageTitle"
+  },
+  "notificationsMarkAllReadAction": "Mark all as read",
+  "@notificationsMarkAllReadAction": {
+    "description": "Notifications UI: notificationsMarkAllReadAction"
+  },
+  "notificationsNoTargetMessage": "This notification does not have an available destination.",
+  "@notificationsNoTargetMessage": {
+    "description": "Notifications UI: notificationsNoTargetMessage"
+  },
+  "notificationsTargetUnavailableMessage": "The content linked to this notification is unavailable.",
+  "@notificationsTargetUnavailableMessage": {
+    "description": "Notifications UI: notificationsTargetUnavailableMessage"
+  },
+  "notificationsLoadError": "Unable to load notifications.",
+  "@notificationsLoadError": {
+    "description": "Notifications UI: notificationsLoadError"
+  },
+  "notificationsRetryButton": "Try again",
+  "@notificationsRetryButton": {
+    "description": "Notifications UI: notificationsRetryButton"
+  },
+  "notificationsEmptyMessage": "No notifications available.",
+  "@notificationsEmptyMessage": {
+    "description": "Notifications UI: notificationsEmptyMessage"
+  },
+  "notificationsCommentReplyTitle": "New reply to your comment",
+  "@notificationsCommentReplyTitle": {
+    "description": "Notifications UI: notificationsCommentReplyTitle"
+  },
+  "notificationsMentionTitle": "You were mentioned",
+  "@notificationsMentionTitle": {
+    "description": "Notifications UI: notificationsMentionTitle"
+  },
+  "notificationsPollResultTitle": "Poll update",
+  "@notificationsPollResultTitle": {
+    "description": "Notifications UI: notificationsPollResultTitle"
+  },
+  "notificationsCommentReplySubtitle": "User {actor} replied in {target}",
+  "@notificationsCommentReplySubtitle": {
+    "description": "Notifications UI: notificationsCommentReplySubtitle",
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsMentionSubtitle": "User {actor} mentioned you in {target}",
+  "@notificationsMentionSubtitle": {
+    "description": "Notifications UI: notificationsMentionSubtitle",
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsPollResultSubtitle": "A new result is available in {target}",
+  "@notificationsPollResultSubtitle": {
+    "description": "Notifications UI: notificationsPollResultSubtitle",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsTargetPost": "a post",
+  "@notificationsTargetPost": {
+    "description": "Notifications UI: notificationsTargetPost"
+  },
+  "notificationsTargetNews": "a news article",
+  "@notificationsTargetNews": {
+    "description": "Notifications UI: notificationsTargetNews"
+  },
+  "notificationsTargetPoll": "a poll",
+  "@notificationsTargetPoll": {
+    "description": "Notifications UI: notificationsTargetPoll"
+  },
+  "notificationsTargetVideo": "a video",
+  "@notificationsTargetVideo": {
+    "description": "Notifications UI: notificationsTargetVideo"
+  },
+  "notificationsTargetContent": "some content",
+  "@notificationsTargetContent": {
+    "description": "Notifications UI: notificationsTargetContent"
+  },
+  "notificationsUserFallback": "user",
+  "@notificationsUserFallback": {
+    "description": "Notifications UI: notificationsUserFallback"
   }
 }

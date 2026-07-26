@@ -1043,4 +1043,437 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get newsDetail_shareTooltip => 'Condividi';
+
+  @override
+  String get authLoginPageTitle => 'Accedi';
+
+  @override
+  String get authLoginHeadline => 'Bentornato';
+
+  @override
+  String get authEmailLabel => 'Email';
+
+  @override
+  String get authPasswordLabel => 'Password';
+
+  @override
+  String get authRememberMeLabel => 'Ricordami';
+
+  @override
+  String get authForgotPasswordAction => 'Password dimenticata?';
+
+  @override
+  String get authLoginButton => 'Accedi';
+
+  @override
+  String get authRegisterPrompt => 'Non hai un account?';
+
+  @override
+  String get authRegisterAction => 'Registrati';
+
+  @override
+  String get authRegisterPageTitle => 'Registrazione';
+
+  @override
+  String get authRegisterHeadline => 'Crea un account';
+
+  @override
+  String get authDisplayNameLabel => 'Nome visualizzato';
+
+  @override
+  String get authUsernameLabel => 'Nome utente';
+
+  @override
+  String get authCountryOfResidenceLabel => 'Paese di residenza';
+
+  @override
+  String get authCityOfResidenceLabel => 'Città di residenza';
+
+  @override
+  String get authConfirmPasswordLabel => 'Conferma password';
+
+  @override
+  String get authLegalConsentPrefix => 'Ho letto e accetto';
+
+  @override
+  String get authTermsOfServiceAction => 'i Termini di servizio';
+
+  @override
+  String get authPrivacyPolicyAction => 'l’Informativa sulla privacy';
+
+  @override
+  String get authRegisterButton => 'Registrati';
+
+  @override
+  String get authLoginPrompt => 'Hai già un account?';
+
+  @override
+  String get authLoginAction => 'Accedi';
+
+  @override
+  String get authForgotPasswordDialogTitle => 'Reimposta la password';
+
+  @override
+  String get authForgotPasswordDialogBody => 'Inserisci l’indirizzo email associato al tuo account. Ti invieremo un link per scegliere una nuova password.';
+
+  @override
+  String get authForgotPasswordSendButton => 'Invia link';
+
+  @override
+  String get authPasswordResetEmailSent => 'Email di reimpostazione inviata. Controlla la posta in arrivo.';
+
+  @override
+  String get authResetPasswordPageTitle => 'Reimposta password';
+
+  @override
+  String get authResetPasswordHeadline => 'Scegli una nuova password';
+
+  @override
+  String get authNewPasswordLabel => 'Nuova password';
+
+  @override
+  String get authConfirmNewPasswordLabel => 'Conferma nuova password';
+
+  @override
+  String get authUpdatePasswordButton => 'Aggiorna password';
+
+  @override
+  String get authPasswordUpdated => 'Password aggiornata correttamente.';
+
+  @override
+  String get authEmailConfirmationTitle => 'Controlla la tua email';
+
+  @override
+  String get authEmailConfirmationIntro => 'Abbiamo inviato un link di conferma a:';
+
+  @override
+  String get authEmailConfirmationInstructions => 'Apri il link nel messaggio per verificare l’indirizzo. Dopo la conferma, torna nell’app e accedi.';
+
+  @override
+  String get authBackToLoginButton => 'Torna all’accesso';
+
+  @override
+  String get authUseAnotherEmailButton => 'Usa un altro indirizzo email';
+
+  @override
+  String get authEmailRequiredError => 'Inserisci la tua email.';
+
+  @override
+  String get authEmailInvalidError => 'Inserisci un indirizzo email valido.';
+
+  @override
+  String get authPasswordRequiredError => 'Inserisci la password.';
+
+  @override
+  String get authPasswordTooShortError => 'La password deve contenere almeno 8 caratteri.';
+
+  @override
+  String get authDisplayNameRequiredError => 'Inserisci il nome visualizzato.';
+
+  @override
+  String get authDisplayNameTooShortError => 'Il nome visualizzato è troppo corto.';
+
+  @override
+  String get authUsernameRequiredError => 'Inserisci un nome utente.';
+
+  @override
+  String get authUsernameInvalidError => 'Usa da 3 a 20 caratteri: lettere minuscole, numeri e underscore.';
+
+  @override
+  String get authCountryRequiredError => 'Seleziona il Paese di residenza.';
+
+  @override
+  String get authCityRequiredError => 'Inserisci la città di residenza.';
+
+  @override
+  String get authConfirmPasswordRequiredError => 'Conferma la password.';
+
+  @override
+  String get authPasswordsDoNotMatchError => 'Le password non coincidono.';
+
+  @override
+  String get authLegalConsentRequiredError => 'Devi leggere e accettare i Termini di servizio e l’Informativa sulla privacy.';
+
+  @override
+  String get authForgotPasswordEmailRequiredError => 'Inserisci l’email dell’account da recuperare.';
+
+  @override
+  String get authInvalidCredentialsError => 'Email o password non valide.';
+
+  @override
+  String get authEmailAlreadyRegisteredError => 'Questa email è già registrata.';
+
+  @override
+  String get authEmailNotConfirmedError => 'Email non confermata. Controlla la posta in arrivo prima di accedere.';
+
+  @override
+  String get authTooManyAttemptsError => 'Troppi tentativi. Attendi qualche minuto e riprova.';
+
+  @override
+  String get authNetworkError => 'Errore di rete. Controlla la connessione e riprova.';
+
+  @override
+  String get authLoginGenericError => 'Accesso non riuscito. Riprova.';
+
+  @override
+  String get authRegisterGenericError => 'Registrazione non riuscita. Riprova.';
+
+  @override
+  String get authPasswordResetGenericError => 'Impossibile inviare il link di reimpostazione. Riprova.';
+
+  @override
+  String get authPasswordUpdateGenericError => 'Impossibile aggiornare la password. Riprova.';
+
+  @override
+  String get authShowPasswordTooltip => 'Mostra password';
+
+  @override
+  String get authHidePasswordTooltip => 'Nascondi password';
+
+  @override
+  String get authTermsPageTitle => 'Termini di servizio';
+
+  @override
+  String get authPrivacyPageTitle => 'Informativa sulla privacy';
+
+  @override
+  String get authCloseButton => 'Chiudi';
+
+  @override
+  String get pollDetail_favoriteUpdateError => 'Impossibile aggiornare i preferiti';
+
+  @override
+  String get pollDetail_shareMessage => 'Apri Sociale_Vote per vedere e votare questo sondaggio.';
+
+  @override
+  String get pollDetail_shareError => 'Impossibile condividere il sondaggio';
+
+  @override
+  String get pollDetail_editPermissionError => 'Puoi modificare solo i tuoi sondaggi senza voti';
+
+  @override
+  String get pollDetail_editSuccessMessage => 'Sondaggio aggiornato';
+
+  @override
+  String get pollDetail_editMenuItem => 'Modifica sondaggio';
+
+  @override
+  String get pollDetail_editSavingMenuItem => 'Salvataggio...';
+
+  @override
+  String get pollDetail_deletePermissionError => 'Puoi eliminare solo i tuoi sondaggi';
+
+  @override
+  String get pollDetail_deleteError => 'Impossibile eliminare il sondaggio';
+
+  @override
+  String get pollDetail_deleteDialogTitle => 'Elimina sondaggio';
+
+  @override
+  String pollDetail_deleteDialogMessage(String title) {
+    return 'Vuoi davvero eliminare \"$title\"? Questa azione non può essere annullata.';
+  }
+
+  @override
+  String get pollDetail_deleteMenuItem => 'Elimina sondaggio';
+
+  @override
+  String get pollDetail_deleteDeletingMenuItem => 'Eliminazione...';
+
+  @override
+  String get pollDetail_publicVotesAvailableTitle => 'Voti pubblici disponibili';
+
+  @override
+  String get pollDetail_publicVotesAvailableMessage => 'Questo sondaggio permette di vedere chi ha votato cosa.';
+
+  @override
+  String get pollDetail_publicVotesAction => 'Vedi voti pubblici';
+
+  @override
+  String get pollDetail_retryButton => 'Riprova';
+
+  @override
+  String get pollDetail_voteErrorNoOption => 'Seleziona almeno un\'opzione';
+
+  @override
+  String get pollDetail_voteErrorAuthenticationRequired => 'Devi essere autenticato per votare';
+
+  @override
+  String get pollDetail_voteErrorClosed => 'Questo sondaggio è chiuso';
+
+  @override
+  String get pollDetail_voteErrorAlreadyVoted => 'Hai già votato in questo sondaggio';
+
+  @override
+  String get pollDetail_voteErrorGeneric => 'Impossibile registrare il voto';
+
+  @override
+  String get pollDetail_publicVotesSheetTitle => 'Voti pubblici';
+
+  @override
+  String get pollDetail_publicVotesSheetDescription => 'Qui puoi vedere chi ha votato cosa in questo sondaggio.';
+
+  @override
+  String get pollDetail_publicVotesSearchHint => 'Cerca utente';
+
+  @override
+  String get pollDetail_publicVotesLoadError => 'Impossibile caricare i voti pubblici';
+
+  @override
+  String get pollDetail_publicVotesEmpty => 'Nessun voto pubblico disponibile';
+
+  @override
+  String get pollDetail_publicVotesSearchEmpty => 'Nessun utente trovato per questa ricerca';
+
+  @override
+  String pollDetail_publicVotesResultsCount(int count) {
+    return '$count risultati caricati';
+  }
+
+  @override
+  String get pollDetail_publicVotesLoadMore => 'Carica altri';
+
+  @override
+  String get pollDetail_publicVotesUserFallback => 'Utente';
+
+  @override
+  String get pollDetail_editDialogTitle => 'Modifica sondaggio';
+
+  @override
+  String get pollDetail_editTitleFieldLabel => 'Titolo';
+
+  @override
+  String get pollDetail_editTitleRequired => 'Il titolo è obbligatorio';
+
+  @override
+  String get pollDetail_editDescriptionFieldLabel => 'Descrizione';
+
+  @override
+  String get pollDetail_editError => 'Impossibile aggiornare il sondaggio';
+
+  @override
+  String get pollDetail_loadError => 'Impossibile caricare il sondaggio';
+
+  @override
+  String get pollDetail_notFound => 'Sondaggio non trovato';
+
+  @override
+  String get profileEditPageTitle => 'Modifica profilo';
+
+  @override
+  String get profileLoginRequiredMessage => 'Devi accedere per modificare il profilo.';
+
+  @override
+  String get profileAvatarUploading => 'Caricamento...';
+
+  @override
+  String get profileUploadAvatarButton => 'Carica avatar';
+
+  @override
+  String get profileDisplayNameLabel => 'Nome visualizzato';
+
+  @override
+  String get profileDisplayNameRequiredError => 'Il nome visualizzato è obbligatorio.';
+
+  @override
+  String get profileUsernameHint => 'es. mario_roma';
+
+  @override
+  String get profileUsernameHelper => '3–20 caratteri: lettere minuscole, numeri e underscore';
+
+  @override
+  String get profileAvatarUrlLabel => 'URL avatar';
+
+  @override
+  String get profileBioLabel => 'Bio';
+
+  @override
+  String get profileClearCountryButton => 'Rimuovi Paese';
+
+  @override
+  String get profileCityResidenceHelper => 'La città di residenza viene verificata rispetto al Paese selezionato prima del salvataggio.';
+
+  @override
+  String get profileCityNotFoundError => 'Città non riconosciuta per il Paese selezionato.';
+
+  @override
+  String get profileCityVerificationError => 'Impossibile verificare la città in questo momento.';
+
+  @override
+  String get profileAvatarUploadError => 'Impossibile caricare l’avatar.';
+
+  @override
+  String get profileAccountSectionTitle => 'Account';
+
+  @override
+  String get profileAccountEmailHelper => 'L’indirizzo email dell’account non può essere modificato da questa schermata.';
+
+  @override
+  String get profileChangePasswordAction => 'Cambia password';
+
+  @override
+  String get profileChangePasswordDescription => 'Imposta una nuova password per questo account.';
+
+  @override
+  String get notificationsPageTitle => 'Notifiche';
+
+  @override
+  String get notificationsMarkAllReadAction => 'Segna tutte come lette';
+
+  @override
+  String get notificationsNoTargetMessage => 'Questa notifica non ha una destinazione apribile.';
+
+  @override
+  String get notificationsTargetUnavailableMessage => 'Il contenuto collegato alla notifica non è disponibile.';
+
+  @override
+  String get notificationsLoadError => 'Impossibile caricare le notifiche.';
+
+  @override
+  String get notificationsRetryButton => 'Riprova';
+
+  @override
+  String get notificationsEmptyMessage => 'Nessuna notifica disponibile.';
+
+  @override
+  String get notificationsCommentReplyTitle => 'Nuova risposta al tuo commento';
+
+  @override
+  String get notificationsMentionTitle => 'Sei stato menzionato';
+
+  @override
+  String get notificationsPollResultTitle => 'Aggiornamento sondaggio';
+
+  @override
+  String notificationsCommentReplySubtitle(String actor, String target) {
+    return 'Utente $actor ha risposto in $target';
+  }
+
+  @override
+  String notificationsMentionSubtitle(String actor, String target) {
+    return 'Utente $actor ti ha menzionato in $target';
+  }
+
+  @override
+  String notificationsPollResultSubtitle(String target) {
+    return 'Nuovo risultato disponibile in $target';
+  }
+
+  @override
+  String get notificationsTargetPost => 'un post';
+
+  @override
+  String get notificationsTargetNews => 'una notizia';
+
+  @override
+  String get notificationsTargetPoll => 'un sondaggio';
+
+  @override
+  String get notificationsTargetVideo => 'un video';
+
+  @override
+  String get notificationsTargetContent => 'un contenuto';
+
+  @override
+  String get notificationsUserFallback => 'utente';
 }

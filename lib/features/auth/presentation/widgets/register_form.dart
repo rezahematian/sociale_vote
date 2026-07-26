@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 import 'package:sociale_vote/features/auth/application/auth_controller.dart';
+import 'package:sociale_vote/features/auth/presentation/pages/legal_document_page.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
 
 class RegisterForm extends StatefulWidget {
   const RegisterForm({super.key});
@@ -13,18 +19,27 @@ class RegisterForm extends StatefulWidget {
 
 class _RegisterFormState extends State<RegisterForm> {
   final TextEditingController _displayNameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _passwordConfirmController =
       TextEditingController();
+
+  String? _selectedCountryCode;
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isSubmitting = false;
   bool _acceptedLegal = false;
+  bool _openedTerms = false;
+  bool _openedPrivacy = false;
 
   String? _displayNameError;
+  String? _usernameError;
   String? _emailError;
+  String? _countryError;
+  String? _cityError;
   String? _passwordError;
   String? _confirmPasswordError;
   String? _legalError;
@@ -32,7 +47,9 @@ class _RegisterFormState extends State<RegisterForm> {
   @override
   void dispose() {
     _displayNameController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
+    _cityController.dispose();
     _passwordController.dispose();
     _passwordConfirmController.dispose();
     super.dispose();
@@ -43,98 +60,163 @@ class _RegisterFormState extends State<RegisterForm> {
     return emailRegex.hasMatch(value);
   }
 
-  bool _validateInputs() {
+  String _normalizeUsername(String value) {
+    var normalized = value.trim().toLowerCase();
+
+    if (normalized.startsWith('@')) {
+      normalized = normalized.substring(1);
+    }
+
+    return normalized;
+  }
+
+  bool _isValidUsername(String value) {
+    return RegExp(r'^[a-z0-9_]{3,20}$').hasMatch(value);
+  }
+
+  void _clearControllerError(BuildContext context) {
+    final controller = context.read<AuthController>();
+    if (controller.errorMessage != null) {
+      controller.clearError();
+    }
+  }
+
+  bool _validateInputs(AppLocalizations l10n) {
     final displayName = _displayNameController.text.trim();
+    final username = _normalizeUsername(_usernameController.text);
     final email = _emailController.text.trim();
+    final city = _cityController.text.trim();
     final password = _passwordController.text.trim();
-    final confirm = _passwordConfirmController.text.trim();
+    final confirmPassword = _passwordConfirmController.text.trim();
+    final countryCode = _selectedCountryCode?.trim();
 
     String? displayNameError;
+    String? usernameError;
     String? emailError;
+    String? countryError;
+    String? cityError;
     String? passwordError;
     String? confirmPasswordError;
     String? legalError;
 
     if (displayName.isEmpty) {
-      displayNameError = 'Enter your display name';
+      displayNameError = l10n.authDisplayNameRequiredError;
     } else if (displayName.length < 2) {
-      displayNameError = 'Display name is too short';
+      displayNameError = l10n.authDisplayNameTooShortError;
+    }
+
+    if (username.isEmpty) {
+      usernameError = l10n.authUsernameRequiredError;
+    } else if (!_isValidUsername(username)) {
+      usernameError = l10n.authUsernameInvalidError;
     }
 
     if (email.isEmpty) {
-      emailError = 'Enter your email';
+      emailError = l10n.authEmailRequiredError;
     } else if (!_isValidEmail(email)) {
-      emailError = 'Enter a valid email';
+      emailError = l10n.authEmailInvalidError;
+    }
+
+    if (countryCode == null || countryCode.isEmpty) {
+      countryError = l10n.authCountryRequiredError;
+    }
+
+    if (city.isEmpty) {
+      cityError = l10n.authCityRequiredError;
     }
 
     if (password.isEmpty) {
-      passwordError = 'Enter your password';
+      passwordError = l10n.authPasswordRequiredError;
     } else if (password.length < 8) {
-      passwordError = 'Password must be at least 8 characters';
+      passwordError = l10n.authPasswordTooShortError;
     }
 
-    if (confirm.isEmpty) {
-      confirmPasswordError = 'Confirm your password';
-    } else if (password != confirm) {
-      confirmPasswordError = 'Passwords do not match';
+    if (confirmPassword.isEmpty) {
+      confirmPasswordError = l10n.authConfirmPasswordRequiredError;
+    } else if (password != confirmPassword) {
+      confirmPasswordError = l10n.authPasswordsDoNotMatchError;
     }
 
-    if (!_acceptedLegal) {
-      legalError = 'You must accept Terms and Privacy Policy';
+    if (!_openedTerms || !_openedPrivacy || !_acceptedLegal) {
+      legalError = l10n.authLegalConsentRequiredError;
     }
 
     setState(() {
       _displayNameError = displayNameError;
+      _usernameError = usernameError;
       _emailError = emailError;
+      _countryError = countryError;
+      _cityError = cityError;
       _passwordError = passwordError;
       _confirmPasswordError = confirmPasswordError;
       _legalError = legalError;
     });
 
     return displayNameError == null &&
+        usernameError == null &&
         emailError == null &&
+        countryError == null &&
+        cityError == null &&
         passwordError == null &&
         confirmPasswordError == null &&
         legalError == null;
   }
 
-  String? _buildFriendlyRegisterError(String? rawError) {
+  String? _buildFriendlyRegisterError(
+    AppLocalizations l10n,
+    String? rawError,
+  ) {
     if (rawError == null) {
       return null;
     }
 
-    final normalized = rawError.toLowerCase();
+    final normalized = rawError.trim().toLowerCase();
 
     if (normalized.contains('user already registered') ||
         normalized.contains('already been registered') ||
-        normalized.contains('already exists')) {
-      return 'This email is already registered.';
+        normalized.contains('email already') ||
+        normalized.contains('already exists') && normalized.contains('email')) {
+      return l10n.authEmailAlreadyRegisteredError;
     }
 
-    if (normalized.contains('invalid email')) {
-      return 'Enter a valid email address.';
+    if (normalized.contains('invalid email') ||
+        normalized.contains('email_address_invalid')) {
+      return l10n.authEmailInvalidError;
     }
 
-    if (normalized.contains('password')) {
-      return 'Check your password and try again.';
+    if (normalized.contains('username') &&
+        (normalized.contains('duplicate') ||
+            normalized.contains('already') ||
+            normalized.contains('unique'))) {
+      return l10n.authUsernameInvalidError;
+    }
+
+    if (normalized.contains('rate limit') || normalized.contains('too many')) {
+      return l10n.authTooManyAttemptsError;
     }
 
     if (normalized.contains('network') ||
         normalized.contains('socket') ||
         normalized.contains('timeout') ||
-        normalized.contains('failed host lookup')) {
-      return 'Network error. Check your connection and try again.';
+        normalized.contains('timed out') ||
+        normalized.contains('failed host lookup') ||
+        normalized.contains('failed to fetch')) {
+      return l10n.authNetworkError;
     }
 
-    return 'Registration failed. Please try again.';
+    return l10n.authRegisterGenericError;
   }
 
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<AuthController>();
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final isBusy = _isSubmitting || controller.status == AuthStatus.loading;
-    final friendlyError = _buildFriendlyRegisterError(controller.errorMessage);
+    final friendlyError = _buildFriendlyRegisterError(
+      l10n,
+      controller.errorMessage,
+    );
 
     if (controller.requiresEmailConfirmation) {
       return _buildEmailConfirmationView(
@@ -151,7 +233,7 @@ class _RegisterFormState extends State<RegisterForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Create an account',
+            l10n.authRegisterHeadline,
             textAlign: TextAlign.center,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w600,
@@ -160,9 +242,11 @@ class _RegisterFormState extends State<RegisterForm> {
           const SizedBox(height: 24),
           TextField(
             controller: _displayNameController,
+            enabled: !isBusy,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.name],
             onChanged: (_) {
+              _clearControllerError(context);
               if (_displayNameError != null) {
                 setState(() {
                   _displayNameError = null;
@@ -170,18 +254,51 @@ class _RegisterFormState extends State<RegisterForm> {
               }
             },
             decoration: InputDecoration(
-              labelText: 'Display name',
+              labelText: l10n.authDisplayNameLabel,
               border: const OutlineInputBorder(),
               errorText: _displayNameError,
             ),
           ),
           const SizedBox(height: 16),
           TextField(
+            controller: _usernameController,
+            enabled: !isBusy,
+            textInputAction: TextInputAction.next,
+            autocorrect: false,
+            enableSuggestions: false,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(
+                RegExp(r'[a-zA-Z0-9_@]'),
+              ),
+              LengthLimitingTextInputFormatter(21),
+            ],
+            onChanged: (_) {
+              _clearControllerError(context);
+              if (_usernameError != null) {
+                setState(() {
+                  _usernameError = null;
+                });
+              }
+            },
+            decoration: InputDecoration(
+              labelText: l10n.authUsernameLabel,
+              prefixText: '@',
+              border: const OutlineInputBorder(),
+              errorText: _usernameError,
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
             controller: _emailController,
+            enabled: !isBusy,
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.username, AutofillHints.email],
+            autofillHints: const [
+              AutofillHints.username,
+              AutofillHints.email,
+            ],
             onChanged: (_) {
+              _clearControllerError(context);
               if (_emailError != null) {
                 setState(() {
                   _emailError = null;
@@ -189,18 +306,78 @@ class _RegisterFormState extends State<RegisterForm> {
               }
             },
             decoration: InputDecoration(
-              labelText: 'Email',
+              labelText: l10n.authEmailLabel,
               border: const OutlineInputBorder(),
               errorText: _emailError,
             ),
           ),
           const SizedBox(height: 16),
+          IgnorePointer(
+            ignoring: isBusy,
+            child: Opacity(
+              opacity: isBusy ? 0.6 : 1,
+              child: CountrySelectorField(
+                selectedCountryCode: _selectedCountryCode,
+                required: true,
+                label: l10n.authCountryOfResidenceLabel,
+                onCountrySelected: (countryCode) {
+                  _clearControllerError(context);
+
+                  setState(() {
+                    final normalized = countryCode.trim().toUpperCase();
+
+                    if (_selectedCountryCode != normalized) {
+                      _cityController.clear();
+                    }
+
+                    _selectedCountryCode = normalized;
+                    _countryError = null;
+                    _cityError = null;
+                  });
+                },
+              ),
+            ),
+          ),
+          if (_countryError != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              _countryError!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          TextField(
+            controller: _cityController,
+            enabled: !isBusy,
+            textCapitalization: TextCapitalization.words,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.addressCity],
+            onChanged: (_) {
+              _clearControllerError(context);
+              if (_cityError != null) {
+                setState(() {
+                  _cityError = null;
+                });
+              }
+            },
+            decoration: InputDecoration(
+              labelText: l10n.authCityOfResidenceLabel,
+              hintText: l10n.homeScopeCityExampleHint,
+              border: const OutlineInputBorder(),
+              errorText: _cityError,
+            ),
+          ),
+          const SizedBox(height: 16),
           TextField(
             controller: _passwordController,
+            enabled: !isBusy,
             obscureText: _obscurePassword,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.newPassword],
             onChanged: (_) {
+              _clearControllerError(context);
               if (_passwordError != null || _confirmPasswordError != null) {
                 setState(() {
                   _passwordError = null;
@@ -209,15 +386,20 @@ class _RegisterFormState extends State<RegisterForm> {
               }
             },
             decoration: InputDecoration(
-              labelText: 'Password',
+              labelText: l10n.authPasswordLabel,
               border: const OutlineInputBorder(),
               errorText: _passwordError,
               suffixIcon: IconButton(
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
+                tooltip: _obscurePassword
+                    ? l10n.authShowPasswordTooltip
+                    : l10n.authHidePasswordTooltip,
+                onPressed: isBusy
+                    ? null
+                    : () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
                 icon: Icon(
                   _obscurePassword ? Icons.visibility_off : Icons.visibility,
                 ),
@@ -227,10 +409,12 @@ class _RegisterFormState extends State<RegisterForm> {
           const SizedBox(height: 16),
           TextField(
             controller: _passwordConfirmController,
+            enabled: !isBusy,
             obscureText: _obscureConfirmPassword,
             textInputAction: TextInputAction.done,
             autofillHints: const [AutofillHints.newPassword],
             onChanged: (_) {
+              _clearControllerError(context);
               if (_confirmPasswordError != null) {
                 setState(() {
                   _confirmPasswordError = null;
@@ -243,15 +427,20 @@ class _RegisterFormState extends State<RegisterForm> {
               }
             },
             decoration: InputDecoration(
-              labelText: 'Confirm password',
+              labelText: l10n.authConfirmPasswordLabel,
               border: const OutlineInputBorder(),
               errorText: _confirmPasswordError,
               suffixIcon: IconButton(
-                onPressed: () {
-                  setState(() {
-                    _obscureConfirmPassword = !_obscureConfirmPassword;
-                  });
-                },
+                tooltip: _obscureConfirmPassword
+                    ? l10n.authShowPasswordTooltip
+                    : l10n.authHidePasswordTooltip,
+                onPressed: isBusy
+                    ? null
+                    : () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
                 icon: Icon(
                   _obscureConfirmPassword
                       ? Icons.visibility_off
@@ -261,30 +450,16 @@ class _RegisterFormState extends State<RegisterForm> {
             ),
           ),
           const SizedBox(height: 16),
-          CheckboxListTile(
-            value: _acceptedLegal,
-            contentPadding: EdgeInsets.zero,
-            controlAffinity: ListTileControlAffinity.leading,
-            onChanged: isBusy
-                ? null
-                : (value) {
-                    setState(() {
-                      _acceptedLegal = value ?? false;
-                      _legalError = null;
-                    });
-                  },
-            title: const Text(
-              'I accept the Terms and Privacy Policy',
-            ),
+          _buildLegalConsent(
+            context,
+            isBusy: isBusy,
           ),
           if (_legalError != null) ...[
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                _legalError!,
-                style: TextStyle(
-                  color: theme.colorScheme.error,
-                ),
+            const SizedBox(height: 6),
+            Text(
+              _legalError!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
               ),
             ),
           ],
@@ -304,25 +479,135 @@ class _RegisterFormState extends State<RegisterForm> {
             child: ElevatedButton(
               onPressed: isBusy ? null : () => _submit(context),
               child: isBusy
-                  ? const SizedBox(
-                      height: 18,
+                  ? SizedBox(
                       width: 18,
+                      height: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.white,
+                        color: theme.colorScheme.onPrimary,
                       ),
                     )
-                  : const Text('Register'),
+                  : Text(l10n.authRegisterButton),
             ),
           ),
           const SizedBox(height: 12),
           TextButton(
             onPressed: isBusy ? null : () => Navigator.of(context).pop(),
-            child: const Text('Already have an account? Login'),
+            child: Text(
+              '${l10n.authLoginPrompt} ${l10n.authLoginAction}',
+            ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildLegalConsent(
+    BuildContext context, {
+    required bool isBusy,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final canAccept = _openedTerms && _openedPrivacy && !isBusy;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: _legalError == null
+              ? theme.dividerColor
+              : theme.colorScheme.error,
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                TextButton.icon(
+                  onPressed: isBusy
+                      ? null
+                      : () => _openLegalDocument(
+                            context,
+                            type: LegalDocumentType.terms,
+                          ),
+                  icon: Icon(
+                    _openedTerms
+                        ? Icons.check_circle_outline
+                        : Icons.description_outlined,
+                  ),
+                  label: Text(l10n.authTermsOfServiceAction),
+                ),
+                TextButton.icon(
+                  onPressed: isBusy
+                      ? null
+                      : () => _openLegalDocument(
+                            context,
+                            type: LegalDocumentType.privacy,
+                          ),
+                  icon: Icon(
+                    _openedPrivacy
+                        ? Icons.check_circle_outline
+                        : Icons.privacy_tip_outlined,
+                  ),
+                  label: Text(l10n.authPrivacyPolicyAction),
+                ),
+              ],
+            ),
+            CheckboxListTile(
+              value: _acceptedLegal,
+              enabled: canAccept,
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: Text(
+                '${l10n.authLegalConsentPrefix} '
+                '${l10n.authTermsOfServiceAction} / '
+                '${l10n.authPrivacyPolicyAction}.',
+              ),
+              onChanged: canAccept
+                  ? (value) {
+                      setState(() {
+                        _acceptedLegal = value ?? false;
+                        _legalError = null;
+                      });
+                    }
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openLegalDocument(
+    BuildContext context, {
+    required LegalDocumentType type,
+  }) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => LegalDocumentPage(type: type),
+      ),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      if (type == LegalDocumentType.terms) {
+        _openedTerms = true;
+      } else {
+        _openedPrivacy = true;
+      }
+
+      if (_openedTerms && _openedPrivacy && _acceptedLegal) {
+        _legalError = null;
+      }
+    });
   }
 
   Widget _buildEmailConfirmationView(
@@ -331,6 +616,7 @@ class _RegisterFormState extends State<RegisterForm> {
     required String email,
   }) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final normalizedEmail = email.trim();
 
     return Column(
@@ -344,7 +630,7 @@ class _RegisterFormState extends State<RegisterForm> {
         ),
         const SizedBox(height: 20),
         Text(
-          'Check your email',
+          l10n.authEmailConfirmationTitle,
           textAlign: TextAlign.center,
           style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w600,
@@ -352,7 +638,7 @@ class _RegisterFormState extends State<RegisterForm> {
         ),
         const SizedBox(height: 12),
         Text(
-          'We sent a confirmation link to:',
+          l10n.authEmailConfirmationIntro,
           textAlign: TextAlign.center,
           style: theme.textTheme.bodyLarge,
         ),
@@ -369,8 +655,7 @@ class _RegisterFormState extends State<RegisterForm> {
         ],
         const SizedBox(height: 16),
         Text(
-          'Open the link in that message to verify your address. '
-          'After confirmation, return to the app and sign in.',
+          l10n.authEmailConfirmationInstructions,
           textAlign: TextAlign.center,
           style: theme.textTheme.bodyMedium,
         ),
@@ -383,7 +668,7 @@ class _RegisterFormState extends State<RegisterForm> {
               Navigator.of(context).pop();
             },
             icon: const Icon(Icons.login),
-            label: const Text('Back to login'),
+            label: Text(l10n.authBackToLoginButton),
           ),
         ),
         const SizedBox(height: 8),
@@ -394,7 +679,7 @@ class _RegisterFormState extends State<RegisterForm> {
             _passwordConfirmController.clear();
             controller.clearEmailConfirmationState();
           },
-          child: const Text('Use another email address'),
+          child: Text(l10n.authUseAnotherEmailButton),
         ),
       ],
     );
@@ -405,24 +690,80 @@ class _RegisterFormState extends State<RegisterForm> {
       return;
     }
 
-    if (!_validateInputs()) {
+    final l10n = AppLocalizations.of(context)!;
+
+    if (!_validateInputs(l10n)) {
       return;
     }
 
     final controller = context.read<AuthController>();
     final displayName = _displayNameController.text.trim();
+    final username = _normalizeUsername(_usernameController.text);
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
+    final countryCode = _selectedCountryCode!.trim().toUpperCase();
+    final cityInput = _cityController.text.trim();
+
+    _clearControllerError(context);
 
     setState(() {
       _isSubmitting = true;
+      _cityError = null;
     });
+
+    ContentLocation? resolvedLocation;
+
+    try {
+      resolvedLocation =
+          await AppDI.instance.geocodingRepository.geocodeContentLocation(
+        ContentLocation(
+          source: ContentLocationSource.manual,
+          countryCode: countryCode,
+          cityName: cityInput,
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _cityError = l10n.homeScopeCityVerificationError;
+          _isSubmitting = false;
+        });
+      }
+      return;
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+
+    if (resolvedLocation == null) {
+      setState(() {
+        _cityError = l10n.homeScopeCityNotFoundError;
+        _isSubmitting = false;
+      });
+      return;
+    }
+
+    final resolvedCountry =
+        (resolvedLocation.countryCode ?? countryCode).trim().toUpperCase();
+    final resolvedCity = (resolvedLocation.cityName ?? cityInput).trim();
+
+    if (resolvedCountry.isEmpty || resolvedCity.isEmpty) {
+      setState(() {
+        _cityError = l10n.homeScopeCityNotFoundError;
+        _isSubmitting = false;
+      });
+      return;
+    }
 
     try {
       await controller.register(
         email: email,
         password: password,
         displayName: displayName,
+        username: username,
+        country: resolvedCountry,
+        city: resolvedCity,
       );
 
       if (!context.mounted) {

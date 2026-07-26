@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/features/auth/application/auth_controller.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class ResetPasswordPage extends StatelessWidget {
   const ResetPasswordPage({super.key});
@@ -42,7 +44,7 @@ class _ResetPasswordViewState extends State<_ResetPasswordView> {
     super.dispose();
   }
 
-  bool _validateInputs() {
+  bool _validateInputs(AppLocalizations l10n) {
     final newPassword = _newPasswordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
@@ -50,15 +52,15 @@ class _ResetPasswordViewState extends State<_ResetPasswordView> {
     String? confirmPasswordError;
 
     if (newPassword.isEmpty) {
-      newPasswordError = 'Enter your new password';
+      newPasswordError = l10n.authPasswordRequiredError;
     } else if (newPassword.length < 8) {
-      newPasswordError = 'Password must be at least 8 characters';
+      newPasswordError = l10n.authPasswordTooShortError;
     }
 
     if (confirmPassword.isEmpty) {
-      confirmPasswordError = 'Confirm your new password';
+      confirmPasswordError = l10n.authConfirmPasswordRequiredError;
     } else if (newPassword != confirmPassword) {
-      confirmPasswordError = 'Passwords do not match';
+      confirmPasswordError = l10n.authPasswordsDoNotMatchError;
     }
 
     setState(() {
@@ -69,139 +71,194 @@ class _ResetPasswordViewState extends State<_ResetPasswordView> {
     return newPasswordError == null && confirmPasswordError == null;
   }
 
+  void _clearControllerError(BuildContext context) {
+    final controller = context.read<AuthController>();
+
+    if (controller.errorMessage != null) {
+      controller.clearError();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<AuthController>();
-    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final mediaQuery = MediaQuery.of(context);
+    final bottomInset = mediaQuery.viewInsets.bottom;
+    final isNarrow = mediaQuery.size.width < 600;
     final isBusy = _isSubmitting || controller.status == AuthStatus.loading;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reset password'),
+        title: Text(l10n.authResetPasswordPageTitle),
       ),
       body: SafeArea(
         child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
           onTap: () => FocusScope.of(context).unfocus(),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+              final horizontalPadding = isNarrow ? 20.0 : 32.0;
+              final verticalPadding = isNarrow ? 24.0 : 40.0;
+              final availableHeight =
+                  constraints.maxHeight - bottomInset - (verticalPadding * 2);
 
               return SingleChildScrollView(
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomInset),
+                padding: EdgeInsets.fromLTRB(
+                  horizontalPadding,
+                  verticalPadding,
+                  horizontalPadding,
+                  verticalPadding + bottomInset,
+                ),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - bottomInset - 48,
+                    minHeight: availableHeight > 0 ? availableHeight : 0,
                   ),
-                  child: Center(
+                  child: Align(
+                    alignment:
+                        isNarrow ? Alignment.topCenter : Alignment.center,
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 420),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'Choose a new password',
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          TextField(
-                            controller: _newPasswordController,
-                            obscureText: _obscureNewPassword,
-                            textInputAction: TextInputAction.next,
-                            onChanged: (_) {
-                              if (_newPasswordError != null) {
-                                setState(() {
-                                  _newPasswordError = null;
-                                });
-                              }
-                            },
-                            decoration: InputDecoration(
-                              labelText: 'New password',
-                              border: const OutlineInputBorder(),
-                              errorText: _newPasswordError,
-                              suffixIcon: IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _obscureNewPassword = !_obscureNewPassword;
-                                  });
-                                },
-                                icon: Icon(
-                                  _obscureNewPassword
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: _confirmPasswordController,
-                            obscureText: _obscureConfirmPassword,
-                            textInputAction: TextInputAction.done,
-                            onChanged: (_) {
-                              if (_confirmPasswordError != null) {
-                                setState(() {
-                                  _confirmPasswordError = null;
-                                });
-                              }
-                            },
-                            onSubmitted: (_) {
-                              if (!isBusy) {
-                                _submit(context);
-                              }
-                            },
-                            decoration: InputDecoration(
-                              labelText: 'Confirm new password',
-                              border: const OutlineInputBorder(),
-                              errorText: _confirmPasswordError,
-                              suffixIcon: IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _obscureConfirmPassword =
-                                        !_obscureConfirmPassword;
-                                  });
-                                },
-                                icon: Icon(
-                                  _obscureConfirmPassword
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          if (controller.errorMessage != null) ...[
+                      constraints: const BoxConstraints(maxWidth: 520),
+                      child: AutofillGroup(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
                             Text(
-                              controller.errorMessage!,
+                              l10n.authResetPasswordHeadline,
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: theme.colorScheme.error,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                            const SizedBox(height: 24),
+                            TextField(
+                              controller: _newPasswordController,
+                              enabled: !isBusy,
+                              obscureText: _obscureNewPassword,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [
+                                AutofillHints.newPassword,
+                              ],
+                              onChanged: (_) {
+                                _clearControllerError(context);
+
+                                if (_newPasswordError != null ||
+                                    _confirmPasswordError != null) {
+                                  setState(() {
+                                    _newPasswordError = null;
+                                    _confirmPasswordError = null;
+                                  });
+                                }
+                              },
+                              decoration: InputDecoration(
+                                labelText: l10n.authNewPasswordLabel,
+                                border: const OutlineInputBorder(),
+                                errorText: _newPasswordError,
+                                suffixIcon: IconButton(
+                                  tooltip: _obscureNewPassword
+                                      ? l10n.authShowPasswordTooltip
+                                      : l10n.authHidePasswordTooltip,
+                                  onPressed: isBusy
+                                      ? null
+                                      : () {
+                                          setState(() {
+                                            _obscureNewPassword =
+                                                !_obscureNewPassword;
+                                          });
+                                        },
+                                  icon: Icon(
+                                    _obscureNewPassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 12),
-                          ],
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: isBusy ? null : () => _submit(context),
-                              child: isBusy
-                                  ? const SizedBox(
-                                      height: 18,
-                                      width: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text('Update password'),
+                            const SizedBox(height: 16),
+                            TextField(
+                              controller: _confirmPasswordController,
+                              enabled: !isBusy,
+                              obscureText: _obscureConfirmPassword,
+                              textInputAction: TextInputAction.done,
+                              autofillHints: const [
+                                AutofillHints.newPassword,
+                              ],
+                              onChanged: (_) {
+                                _clearControllerError(context);
+
+                                if (_confirmPasswordError != null) {
+                                  setState(() {
+                                    _confirmPasswordError = null;
+                                  });
+                                }
+                              },
+                              onSubmitted: (_) {
+                                if (!isBusy) {
+                                  _submit(context);
+                                }
+                              },
+                              decoration: InputDecoration(
+                                labelText: l10n.authConfirmNewPasswordLabel,
+                                border: const OutlineInputBorder(),
+                                errorText: _confirmPasswordError,
+                                suffixIcon: IconButton(
+                                  tooltip: _obscureConfirmPassword
+                                      ? l10n.authShowPasswordTooltip
+                                      : l10n.authHidePasswordTooltip,
+                                  onPressed: isBusy
+                                      ? null
+                                      : () {
+                                          setState(() {
+                                            _obscureConfirmPassword =
+                                                !_obscureConfirmPassword;
+                                          });
+                                        },
+                                  icon: Icon(
+                                    _obscureConfirmPassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 24),
+                            if (controller.errorMessage != null) ...[
+                              Text(
+                                l10n.authPasswordUpdateGenericError,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed:
+                                    isBusy ? null : () => _submit(context),
+                                child: isBusy
+                                    ? SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary,
+                                        ),
+                                      )
+                                    : Text(l10n.authUpdatePasswordButton),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -219,12 +276,16 @@ class _ResetPasswordViewState extends State<_ResetPasswordView> {
       return;
     }
 
-    if (!_validateInputs()) {
+    final l10n = AppLocalizations.of(context)!;
+
+    if (!_validateInputs(l10n)) {
       return;
     }
 
     final controller = context.read<AuthController>();
     final newPassword = _newPasswordController.text.trim();
+
+    _clearControllerError(context);
 
     setState(() {
       _isSubmitting = true;
@@ -239,9 +300,11 @@ class _ResetPasswordViewState extends State<_ResetPasswordView> {
         return;
       }
 
+      TextInput.finishAutofillContext();
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password updated successfully.'),
+        SnackBar(
+          content: Text(l10n.authPasswordUpdated),
         ),
       );
 

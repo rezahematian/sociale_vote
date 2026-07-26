@@ -63,24 +63,52 @@ class CountrySelectorField extends StatelessWidget {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setState) {
-            final filtered = countries.where((country) {
-              if (query.isEmpty) return true;
+            final normalizedQuery = query.trim().toLowerCase();
 
-              final normalizedQuery = query.trim().toLowerCase();
+            int matchPriority(data.Country country) {
+              if (normalizedQuery.isEmpty) {
+                return 0;
+              }
+
               final localizedName =
                   country.localizedName(languageCode).toLowerCase();
               final englishName = country.name.toLowerCase();
               final countryCode = country.code.toLowerCase();
 
-              return localizedName.contains(normalizedQuery) ||
-                  englishName.contains(normalizedQuery) ||
-                  countryCode.contains(normalizedQuery);
+              if (localizedName.startsWith(normalizedQuery)) return 0;
+              if (englishName.startsWith(normalizedQuery)) return 1;
+              if (countryCode.startsWith(normalizedQuery)) return 2;
+              if (localizedName.contains(normalizedQuery)) return 3;
+              if (englishName.contains(normalizedQuery)) return 4;
+              return 5;
+            }
+
+            final filtered = countries.where((country) {
+              if (normalizedQuery.isEmpty) {
+                return true;
+              }
+
+              final localizedName =
+                  country.localizedName(languageCode).toLowerCase();
+              final englishName = country.name.toLowerCase();
+              final countryCode = country.code.toLowerCase();
+
+              return localizedName.startsWith(normalizedQuery) ||
+                  englishName.startsWith(normalizedQuery) ||
+                  countryCode.startsWith(normalizedQuery);
             }).toList()
-              ..sort(
-                (a, b) => a
+              ..sort((a, b) {
+                final priorityComparison =
+                    matchPriority(a).compareTo(matchPriority(b));
+
+                if (priorityComparison != 0) {
+                  return priorityComparison;
+                }
+
+                return a
                     .localizedName(languageCode)
-                    .compareTo(b.localizedName(languageCode)),
-              );
+                    .compareTo(b.localizedName(languageCode));
+              });
 
             return AlertDialog(
               title: Text(l10n.homeScopeChooseCountry),

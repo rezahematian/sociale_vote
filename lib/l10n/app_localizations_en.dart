@@ -1043,4 +1043,437 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newsDetail_shareTooltip => 'Share';
+
+  @override
+  String get authLoginPageTitle => 'Log in';
+
+  @override
+  String get authLoginHeadline => 'Welcome back';
+
+  @override
+  String get authEmailLabel => 'Email';
+
+  @override
+  String get authPasswordLabel => 'Password';
+
+  @override
+  String get authRememberMeLabel => 'Remember me';
+
+  @override
+  String get authForgotPasswordAction => 'Forgot password?';
+
+  @override
+  String get authLoginButton => 'Log in';
+
+  @override
+  String get authRegisterPrompt => 'Don\'t have an account?';
+
+  @override
+  String get authRegisterAction => 'Sign up';
+
+  @override
+  String get authRegisterPageTitle => 'Sign up';
+
+  @override
+  String get authRegisterHeadline => 'Create an account';
+
+  @override
+  String get authDisplayNameLabel => 'Display name';
+
+  @override
+  String get authUsernameLabel => 'Username';
+
+  @override
+  String get authCountryOfResidenceLabel => 'Country of residence';
+
+  @override
+  String get authCityOfResidenceLabel => 'City of residence';
+
+  @override
+  String get authConfirmPasswordLabel => 'Confirm password';
+
+  @override
+  String get authLegalConsentPrefix => 'I have read and accept';
+
+  @override
+  String get authTermsOfServiceAction => 'the Terms of Service';
+
+  @override
+  String get authPrivacyPolicyAction => 'the Privacy Policy';
+
+  @override
+  String get authRegisterButton => 'Sign up';
+
+  @override
+  String get authLoginPrompt => 'Already have an account?';
+
+  @override
+  String get authLoginAction => 'Log in';
+
+  @override
+  String get authForgotPasswordDialogTitle => 'Reset password';
+
+  @override
+  String get authForgotPasswordDialogBody => 'Enter the email address linked to your account. We will send you a link to choose a new password.';
+
+  @override
+  String get authForgotPasswordSendButton => 'Send link';
+
+  @override
+  String get authPasswordResetEmailSent => 'Password reset email sent. Check your inbox.';
+
+  @override
+  String get authResetPasswordPageTitle => 'Reset password';
+
+  @override
+  String get authResetPasswordHeadline => 'Choose a new password';
+
+  @override
+  String get authNewPasswordLabel => 'New password';
+
+  @override
+  String get authConfirmNewPasswordLabel => 'Confirm new password';
+
+  @override
+  String get authUpdatePasswordButton => 'Update password';
+
+  @override
+  String get authPasswordUpdated => 'Password updated successfully.';
+
+  @override
+  String get authEmailConfirmationTitle => 'Check your email';
+
+  @override
+  String get authEmailConfirmationIntro => 'We sent a confirmation link to:';
+
+  @override
+  String get authEmailConfirmationInstructions => 'Open the link in the message to verify your address. After confirmation, return to the app and log in.';
+
+  @override
+  String get authBackToLoginButton => 'Back to login';
+
+  @override
+  String get authUseAnotherEmailButton => 'Use another email address';
+
+  @override
+  String get authEmailRequiredError => 'Enter your email.';
+
+  @override
+  String get authEmailInvalidError => 'Enter a valid email address.';
+
+  @override
+  String get authPasswordRequiredError => 'Enter your password.';
+
+  @override
+  String get authPasswordTooShortError => 'Password must be at least 8 characters.';
+
+  @override
+  String get authDisplayNameRequiredError => 'Enter your display name.';
+
+  @override
+  String get authDisplayNameTooShortError => 'Display name is too short.';
+
+  @override
+  String get authUsernameRequiredError => 'Enter a username.';
+
+  @override
+  String get authUsernameInvalidError => 'Use 3 to 20 characters: lowercase letters, numbers and underscores.';
+
+  @override
+  String get authCountryRequiredError => 'Select your country of residence.';
+
+  @override
+  String get authCityRequiredError => 'Enter your city of residence.';
+
+  @override
+  String get authConfirmPasswordRequiredError => 'Confirm your password.';
+
+  @override
+  String get authPasswordsDoNotMatchError => 'Passwords do not match.';
+
+  @override
+  String get authLegalConsentRequiredError => 'You must read and accept the Terms of Service and Privacy Policy.';
+
+  @override
+  String get authForgotPasswordEmailRequiredError => 'Enter the email for the account you want to recover.';
+
+  @override
+  String get authInvalidCredentialsError => 'Email or password is not valid.';
+
+  @override
+  String get authEmailAlreadyRegisteredError => 'This email is already registered.';
+
+  @override
+  String get authEmailNotConfirmedError => 'Email not confirmed. Check your inbox before logging in.';
+
+  @override
+  String get authTooManyAttemptsError => 'Too many attempts. Wait a few minutes and try again.';
+
+  @override
+  String get authNetworkError => 'Network error. Check your connection and try again.';
+
+  @override
+  String get authLoginGenericError => 'Login failed. Try again.';
+
+  @override
+  String get authRegisterGenericError => 'Registration failed. Try again.';
+
+  @override
+  String get authPasswordResetGenericError => 'Unable to send the reset link. Try again.';
+
+  @override
+  String get authPasswordUpdateGenericError => 'Unable to update the password. Try again.';
+
+  @override
+  String get authShowPasswordTooltip => 'Show password';
+
+  @override
+  String get authHidePasswordTooltip => 'Hide password';
+
+  @override
+  String get authTermsPageTitle => 'Terms of Service';
+
+  @override
+  String get authPrivacyPageTitle => 'Privacy Policy';
+
+  @override
+  String get authCloseButton => 'Close';
+
+  @override
+  String get pollDetail_favoriteUpdateError => 'Unable to update favorites';
+
+  @override
+  String get pollDetail_shareMessage => 'Open Sociale_Vote to view and vote in this poll.';
+
+  @override
+  String get pollDetail_shareError => 'Unable to share the poll';
+
+  @override
+  String get pollDetail_editPermissionError => 'You can edit only your own polls that have no votes';
+
+  @override
+  String get pollDetail_editSuccessMessage => 'Poll updated';
+
+  @override
+  String get pollDetail_editMenuItem => 'Edit poll';
+
+  @override
+  String get pollDetail_editSavingMenuItem => 'Saving...';
+
+  @override
+  String get pollDetail_deletePermissionError => 'You can delete only your own polls';
+
+  @override
+  String get pollDetail_deleteError => 'Unable to delete the poll';
+
+  @override
+  String get pollDetail_deleteDialogTitle => 'Delete poll';
+
+  @override
+  String pollDetail_deleteDialogMessage(String title) {
+    return 'Do you really want to delete \"$title\"? This action cannot be undone.';
+  }
+
+  @override
+  String get pollDetail_deleteMenuItem => 'Delete poll';
+
+  @override
+  String get pollDetail_deleteDeletingMenuItem => 'Deleting...';
+
+  @override
+  String get pollDetail_publicVotesAvailableTitle => 'Public votes available';
+
+  @override
+  String get pollDetail_publicVotesAvailableMessage => 'This poll allows you to see who voted for each option.';
+
+  @override
+  String get pollDetail_publicVotesAction => 'View public votes';
+
+  @override
+  String get pollDetail_retryButton => 'Try again';
+
+  @override
+  String get pollDetail_voteErrorNoOption => 'Select at least one option';
+
+  @override
+  String get pollDetail_voteErrorAuthenticationRequired => 'You must be signed in to vote';
+
+  @override
+  String get pollDetail_voteErrorClosed => 'This poll is closed';
+
+  @override
+  String get pollDetail_voteErrorAlreadyVoted => 'You have already voted in this poll';
+
+  @override
+  String get pollDetail_voteErrorGeneric => 'Unable to submit the vote';
+
+  @override
+  String get pollDetail_publicVotesSheetTitle => 'Public votes';
+
+  @override
+  String get pollDetail_publicVotesSheetDescription => 'Here you can see who voted for each option in this poll.';
+
+  @override
+  String get pollDetail_publicVotesSearchHint => 'Search users';
+
+  @override
+  String get pollDetail_publicVotesLoadError => 'Unable to load public votes';
+
+  @override
+  String get pollDetail_publicVotesEmpty => 'No public votes available';
+
+  @override
+  String get pollDetail_publicVotesSearchEmpty => 'No users found for this search';
+
+  @override
+  String pollDetail_publicVotesResultsCount(int count) {
+    return '$count results loaded';
+  }
+
+  @override
+  String get pollDetail_publicVotesLoadMore => 'Load more';
+
+  @override
+  String get pollDetail_publicVotesUserFallback => 'User';
+
+  @override
+  String get pollDetail_editDialogTitle => 'Edit poll';
+
+  @override
+  String get pollDetail_editTitleFieldLabel => 'Title';
+
+  @override
+  String get pollDetail_editTitleRequired => 'Title is required';
+
+  @override
+  String get pollDetail_editDescriptionFieldLabel => 'Description';
+
+  @override
+  String get pollDetail_editError => 'Unable to update the poll';
+
+  @override
+  String get pollDetail_loadError => 'Unable to load the poll';
+
+  @override
+  String get pollDetail_notFound => 'Poll not found';
+
+  @override
+  String get profileEditPageTitle => 'Edit profile';
+
+  @override
+  String get profileLoginRequiredMessage => 'You must be signed in to edit your profile.';
+
+  @override
+  String get profileAvatarUploading => 'Uploading...';
+
+  @override
+  String get profileUploadAvatarButton => 'Upload avatar';
+
+  @override
+  String get profileDisplayNameLabel => 'Display name';
+
+  @override
+  String get profileDisplayNameRequiredError => 'Display name is required.';
+
+  @override
+  String get profileUsernameHint => 'e.g. mario_roma';
+
+  @override
+  String get profileUsernameHelper => '3–20 characters: lowercase letters, numbers and underscores';
+
+  @override
+  String get profileAvatarUrlLabel => 'Avatar URL';
+
+  @override
+  String get profileBioLabel => 'Bio';
+
+  @override
+  String get profileClearCountryButton => 'Clear country';
+
+  @override
+  String get profileCityResidenceHelper => 'The city of residence is checked against the selected country before saving.';
+
+  @override
+  String get profileCityNotFoundError => 'City not found in the selected country.';
+
+  @override
+  String get profileCityVerificationError => 'Unable to verify the city right now.';
+
+  @override
+  String get profileAvatarUploadError => 'Unable to upload the avatar.';
+
+  @override
+  String get profileAccountSectionTitle => 'Account';
+
+  @override
+  String get profileAccountEmailHelper => 'The account email address cannot be changed from this screen.';
+
+  @override
+  String get profileChangePasswordAction => 'Change password';
+
+  @override
+  String get profileChangePasswordDescription => 'Set a new password for this account.';
+
+  @override
+  String get notificationsPageTitle => 'Notifications';
+
+  @override
+  String get notificationsMarkAllReadAction => 'Mark all as read';
+
+  @override
+  String get notificationsNoTargetMessage => 'This notification does not have an available destination.';
+
+  @override
+  String get notificationsTargetUnavailableMessage => 'The content linked to this notification is unavailable.';
+
+  @override
+  String get notificationsLoadError => 'Unable to load notifications.';
+
+  @override
+  String get notificationsRetryButton => 'Try again';
+
+  @override
+  String get notificationsEmptyMessage => 'No notifications available.';
+
+  @override
+  String get notificationsCommentReplyTitle => 'New reply to your comment';
+
+  @override
+  String get notificationsMentionTitle => 'You were mentioned';
+
+  @override
+  String get notificationsPollResultTitle => 'Poll update';
+
+  @override
+  String notificationsCommentReplySubtitle(String actor, String target) {
+    return 'User $actor replied in $target';
+  }
+
+  @override
+  String notificationsMentionSubtitle(String actor, String target) {
+    return 'User $actor mentioned you in $target';
+  }
+
+  @override
+  String notificationsPollResultSubtitle(String target) {
+    return 'A new result is available in $target';
+  }
+
+  @override
+  String get notificationsTargetPost => 'a post';
+
+  @override
+  String get notificationsTargetNews => 'a news article';
+
+  @override
+  String get notificationsTargetPoll => 'a poll';
+
+  @override
+  String get notificationsTargetVideo => 'a video';
+
+  @override
+  String get notificationsTargetContent => 'some content';
+
+  @override
+  String get notificationsUserFallback => 'user';
 }

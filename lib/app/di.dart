@@ -165,11 +165,17 @@ class UserRepositoryImpl implements UserRepository {
     required String email,
     required String password,
     required String displayName,
+    required String username,
+    required String country,
+    required String city,
   }) {
     return _authApi.register(
       email: email,
       password: password,
       displayName: displayName,
+      username: username,
+      country: country,
+      city: city,
     );
   }
 

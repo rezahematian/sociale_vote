@@ -5,6 +5,7 @@ import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/notifications/entities/app_notification.dart';
 import 'package:sociale_vote/features/notifications/application/notifications_controller.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class NotificationsPage extends StatefulWidget {
   final NotificationsController controller;
@@ -48,21 +49,19 @@ class _NotificationsPageState extends State<NotificationsPage> {
         return;
       }
 
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Questa notifica non ha una destinazione apribile.',
-          ),
+        SnackBar(
+          content: Text(l10n.notificationsNoTargetMessage),
         ),
       );
     } catch (_) {
       if (!mounted) return;
 
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Il contenuto collegato alla notifica non è disponibile.',
-          ),
+        SnackBar(
+          content: Text(l10n.notificationsTargetUnavailableMessage),
         ),
       );
     } finally {
@@ -123,12 +122,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Notifiche'),
+            title: Text(l10n.notificationsPageTitle),
             actions: [
               if (_controller.isMarkingAllAsRead)
                 const Padding(
@@ -142,22 +143,26 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   ),
                 )
               else if (_controller.canMarkAllAsRead)
-                TextButton(
+                IconButton(
+                  tooltip: l10n.notificationsMarkAllReadAction,
                   onPressed: _controller.markAllAsRead,
-                  child: const Text('Segna tutte'),
+                  icon: const Icon(Icons.done_all),
                 ),
             ],
           ),
           body: RefreshIndicator(
             onRefresh: _controller.refresh,
-            child: _buildBody(context),
+            child: _buildBody(context, l10n),
           ),
         );
       },
     );
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget _buildBody(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
     if (_controller.isLoading && !_controller.hasNotifications) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -169,20 +174,26 @@ class _NotificationsPageState extends State<NotificationsPage> {
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           SizedBox(
-            height: MediaQuery.of(context).size.height * 0.35,
+            height: MediaQuery.of(context).size.height * 0.30,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 40,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                const SizedBox(height: 12),
                 Text(
-                  _controller.errorMessage!,
+                  l10n.notificationsLoadError,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
                 ElevatedButton(
                   onPressed: _controller.refresh,
-                  child: const Text('Riprova'),
+                  child: Text(l10n.notificationsRetryButton),
                 ),
               ],
             ),
@@ -196,13 +207,23 @@ class _NotificationsPageState extends State<NotificationsPage> {
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           SizedBox(
-            height: MediaQuery.of(context).size.height * 0.35,
+            height: MediaQuery.of(context).size.height * 0.30,
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
-            child: Text(
-              'Nessuna notifica disponibile.',
-              textAlign: TextAlign.center,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.notifications_none,
+                  size: 40,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  l10n.notificationsEmptyMessage,
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
           ),
         ],
@@ -240,8 +261,9 @@ class _NotificationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = _buildTitle(notification);
-    final subtitle = _buildSubtitle(notification);
+    final l10n = AppLocalizations.of(context)!;
+    final title = _buildTitle(notification, l10n);
+    final subtitle = _buildSubtitle(notification, l10n);
     final trailing = _formatDateTime(notification.createdAt);
     final theme = Theme.of(context);
 
@@ -295,48 +317,72 @@ class _NotificationTile extends StatelessWidget {
     );
   }
 
-  String _buildTitle(AppNotification notification) {
+  String _buildTitle(
+    AppNotification notification,
+    AppLocalizations l10n,
+  ) {
     switch (notification.type) {
       case AppNotificationType.commentReply:
-        return 'Nuova risposta al tuo commento';
+        return l10n.notificationsCommentReplyTitle;
       case AppNotificationType.mention:
-        return 'Sei stato menzionato';
+        return l10n.notificationsMentionTitle;
       case AppNotificationType.pollResult:
-        return 'Aggiornamento sondaggio';
+        return l10n.notificationsPollResultTitle;
     }
   }
 
-  String _buildSubtitle(AppNotification notification) {
-    final actorLabel = _shortUserId(notification.actorUserId);
-    final targetLabel = _targetLabel(notification);
+  String _buildSubtitle(
+    AppNotification notification,
+    AppLocalizations l10n,
+  ) {
+    final actorLabel = _shortUserId(
+      notification.actorUserId,
+      l10n.notificationsUserFallback,
+    );
+    final targetLabel = _targetLabel(notification, l10n);
 
     switch (notification.type) {
       case AppNotificationType.commentReply:
-        return 'Utente $actorLabel ha risposto in $targetLabel';
+        return l10n.notificationsCommentReplySubtitle(
+          actorLabel,
+          targetLabel,
+        );
       case AppNotificationType.mention:
-        return 'Utente $actorLabel ti ha menzionato in $targetLabel';
+        return l10n.notificationsMentionSubtitle(
+          actorLabel,
+          targetLabel,
+        );
       case AppNotificationType.pollResult:
-        return 'Nuovo risultato disponibile in $targetLabel';
+        return l10n.notificationsPollResultSubtitle(targetLabel);
     }
   }
 
-  String _targetLabel(AppNotification notification) {
+  String _targetLabel(
+    AppNotification notification,
+    AppLocalizations l10n,
+  ) {
     switch (notification.target.type) {
       case TargetType.post:
-        return 'un post';
+        return l10n.notificationsTargetPost;
       case TargetType.news:
-        return 'una news';
+        return l10n.notificationsTargetNews;
       case TargetType.poll:
-        return 'un sondaggio';
+        return l10n.notificationsTargetPoll;
       case TargetType.video:
-        return 'un video';
+        return l10n.notificationsTargetVideo;
       default:
-        return 'un contenuto';
+        return l10n.notificationsTargetContent;
     }
   }
 
-  String _shortUserId(String value) {
+  String _shortUserId(
+    String value,
+    String fallback,
+  ) {
     final normalized = value.trim();
+    if (normalized.isEmpty) {
+      return fallback;
+    }
     if (normalized.length <= 8) {
       return normalized;
     }

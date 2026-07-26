@@ -193,6 +193,9 @@ class AuthController extends ChangeNotifier {
     required String email,
     required String password,
     required String displayName,
+    required String username,
+    required String country,
+    required String city,
   }) async {
     final operationId = _beginOperation();
     if (operationId == null) {
@@ -206,6 +209,9 @@ class AuthController extends ChangeNotifier {
         email: email,
         password: password,
         displayName: displayName,
+        username: username,
+        country: country,
+        city: city,
       );
 
       final userId = await _sessionRepository.getCurrentUserId();

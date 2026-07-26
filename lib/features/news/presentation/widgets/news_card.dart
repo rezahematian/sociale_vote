@@ -158,7 +158,7 @@ class NewsCard extends StatelessWidget {
 
                   final double imageWidth = compact ? 96 : (narrow ? 132 : 188);
                   final double imageHeight =
-                      compact ? 96 : (narrow ? 112 : 164);
+                      compact ? 104 : (narrow ? 112 : 164);
 
                   final int titleMaxLines = compact ? 2 : 2;
                   final int summaryMaxLines = compact ? 2 : 2;

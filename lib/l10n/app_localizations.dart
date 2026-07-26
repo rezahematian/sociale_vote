@@ -2050,6 +2050,852 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share'**
   String get newsDetail_shareTooltip;
+
+  /// Auth UI: authLoginPageTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get authLoginPageTitle;
+
+  /// Auth UI: authLoginHeadline
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get authLoginHeadline;
+
+  /// Auth UI: authEmailLabel
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get authEmailLabel;
+
+  /// Auth UI: authPasswordLabel
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get authPasswordLabel;
+
+  /// Auth UI: authRememberMeLabel
+  ///
+  /// In en, this message translates to:
+  /// **'Remember me'**
+  String get authRememberMeLabel;
+
+  /// Auth UI: authForgotPasswordAction
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get authForgotPasswordAction;
+
+  /// Auth UI: authLoginButton
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get authLoginButton;
+
+  /// Auth UI: authRegisterPrompt
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get authRegisterPrompt;
+
+  /// Auth UI: authRegisterAction
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get authRegisterAction;
+
+  /// Auth UI: authRegisterPageTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get authRegisterPageTitle;
+
+  /// Auth UI: authRegisterHeadline
+  ///
+  /// In en, this message translates to:
+  /// **'Create an account'**
+  String get authRegisterHeadline;
+
+  /// Auth UI: authDisplayNameLabel
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get authDisplayNameLabel;
+
+  /// Auth UI: authUsernameLabel
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get authUsernameLabel;
+
+  /// Auth UI: authCountryOfResidenceLabel
+  ///
+  /// In en, this message translates to:
+  /// **'Country of residence'**
+  String get authCountryOfResidenceLabel;
+
+  /// Auth UI: authCityOfResidenceLabel
+  ///
+  /// In en, this message translates to:
+  /// **'City of residence'**
+  String get authCityOfResidenceLabel;
+
+  /// Auth UI: authConfirmPasswordLabel
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get authConfirmPasswordLabel;
+
+  /// Auth UI: authLegalConsentPrefix
+  ///
+  /// In en, this message translates to:
+  /// **'I have read and accept'**
+  String get authLegalConsentPrefix;
+
+  /// Auth UI: authTermsOfServiceAction
+  ///
+  /// In en, this message translates to:
+  /// **'the Terms of Service'**
+  String get authTermsOfServiceAction;
+
+  /// Auth UI: authPrivacyPolicyAction
+  ///
+  /// In en, this message translates to:
+  /// **'the Privacy Policy'**
+  String get authPrivacyPolicyAction;
+
+  /// Auth UI: authRegisterButton
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get authRegisterButton;
+
+  /// Auth UI: authLoginPrompt
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get authLoginPrompt;
+
+  /// Auth UI: authLoginAction
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get authLoginAction;
+
+  /// Auth UI: authForgotPasswordDialogTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password'**
+  String get authForgotPasswordDialogTitle;
+
+  /// Auth UI: authForgotPasswordDialogBody
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the email address linked to your account. We will send you a link to choose a new password.'**
+  String get authForgotPasswordDialogBody;
+
+  /// Auth UI: authForgotPasswordSendButton
+  ///
+  /// In en, this message translates to:
+  /// **'Send link'**
+  String get authForgotPasswordSendButton;
+
+  /// Auth UI: authPasswordResetEmailSent
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset email sent. Check your inbox.'**
+  String get authPasswordResetEmailSent;
+
+  /// Auth UI: authResetPasswordPageTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password'**
+  String get authResetPasswordPageTitle;
+
+  /// Auth UI: authResetPasswordHeadline
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a new password'**
+  String get authResetPasswordHeadline;
+
+  /// Auth UI: authNewPasswordLabel
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get authNewPasswordLabel;
+
+  /// Auth UI: authConfirmNewPasswordLabel
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm new password'**
+  String get authConfirmNewPasswordLabel;
+
+  /// Auth UI: authUpdatePasswordButton
+  ///
+  /// In en, this message translates to:
+  /// **'Update password'**
+  String get authUpdatePasswordButton;
+
+  /// Auth UI: authPasswordUpdated
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated successfully.'**
+  String get authPasswordUpdated;
+
+  /// Auth UI: authEmailConfirmationTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Check your email'**
+  String get authEmailConfirmationTitle;
+
+  /// Auth UI: authEmailConfirmationIntro
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a confirmation link to:'**
+  String get authEmailConfirmationIntro;
+
+  /// Auth UI: authEmailConfirmationInstructions
+  ///
+  /// In en, this message translates to:
+  /// **'Open the link in the message to verify your address. After confirmation, return to the app and log in.'**
+  String get authEmailConfirmationInstructions;
+
+  /// Auth UI: authBackToLoginButton
+  ///
+  /// In en, this message translates to:
+  /// **'Back to login'**
+  String get authBackToLoginButton;
+
+  /// Auth UI: authUseAnotherEmailButton
+  ///
+  /// In en, this message translates to:
+  /// **'Use another email address'**
+  String get authUseAnotherEmailButton;
+
+  /// Auth UI: authEmailRequiredError
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email.'**
+  String get authEmailRequiredError;
+
+  /// Auth UI: authEmailInvalidError
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address.'**
+  String get authEmailInvalidError;
+
+  /// Auth UI: authPasswordRequiredError
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password.'**
+  String get authPasswordRequiredError;
+
+  /// Auth UI: authPasswordTooShortError
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters.'**
+  String get authPasswordTooShortError;
+
+  /// Auth UI: authDisplayNameRequiredError
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your display name.'**
+  String get authDisplayNameRequiredError;
+
+  /// Auth UI: authDisplayNameTooShortError
+  ///
+  /// In en, this message translates to:
+  /// **'Display name is too short.'**
+  String get authDisplayNameTooShortError;
+
+  /// Auth UI: authUsernameRequiredError
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a username.'**
+  String get authUsernameRequiredError;
+
+  /// Auth UI: authUsernameInvalidError
+  ///
+  /// In en, this message translates to:
+  /// **'Use 3 to 20 characters: lowercase letters, numbers and underscores.'**
+  String get authUsernameInvalidError;
+
+  /// Auth UI: authCountryRequiredError
+  ///
+  /// In en, this message translates to:
+  /// **'Select your country of residence.'**
+  String get authCountryRequiredError;
+
+  /// Auth UI: authCityRequiredError
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your city of residence.'**
+  String get authCityRequiredError;
+
+  /// Auth UI: authConfirmPasswordRequiredError
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your password.'**
+  String get authConfirmPasswordRequiredError;
+
+  /// Auth UI: authPasswordsDoNotMatchError
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match.'**
+  String get authPasswordsDoNotMatchError;
+
+  /// Auth UI: authLegalConsentRequiredError
+  ///
+  /// In en, this message translates to:
+  /// **'You must read and accept the Terms of Service and Privacy Policy.'**
+  String get authLegalConsentRequiredError;
+
+  /// Auth UI: authForgotPasswordEmailRequiredError
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the email for the account you want to recover.'**
+  String get authForgotPasswordEmailRequiredError;
+
+  /// Auth UI: authInvalidCredentialsError
+  ///
+  /// In en, this message translates to:
+  /// **'Email or password is not valid.'**
+  String get authInvalidCredentialsError;
+
+  /// Auth UI: authEmailAlreadyRegisteredError
+  ///
+  /// In en, this message translates to:
+  /// **'This email is already registered.'**
+  String get authEmailAlreadyRegisteredError;
+
+  /// Auth UI: authEmailNotConfirmedError
+  ///
+  /// In en, this message translates to:
+  /// **'Email not confirmed. Check your inbox before logging in.'**
+  String get authEmailNotConfirmedError;
+
+  /// Auth UI: authTooManyAttemptsError
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Wait a few minutes and try again.'**
+  String get authTooManyAttemptsError;
+
+  /// Auth UI: authNetworkError
+  ///
+  /// In en, this message translates to:
+  /// **'Network error. Check your connection and try again.'**
+  String get authNetworkError;
+
+  /// Auth UI: authLoginGenericError
+  ///
+  /// In en, this message translates to:
+  /// **'Login failed. Try again.'**
+  String get authLoginGenericError;
+
+  /// Auth UI: authRegisterGenericError
+  ///
+  /// In en, this message translates to:
+  /// **'Registration failed. Try again.'**
+  String get authRegisterGenericError;
+
+  /// Auth UI: authPasswordResetGenericError
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to send the reset link. Try again.'**
+  String get authPasswordResetGenericError;
+
+  /// Auth UI: authPasswordUpdateGenericError
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to update the password. Try again.'**
+  String get authPasswordUpdateGenericError;
+
+  /// Auth UI: authShowPasswordTooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get authShowPasswordTooltip;
+
+  /// Auth UI: authHidePasswordTooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get authHidePasswordTooltip;
+
+  /// Auth UI: authTermsPageTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Service'**
+  String get authTermsPageTitle;
+
+  /// Auth UI: authPrivacyPageTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get authPrivacyPageTitle;
+
+  /// Auth UI: authCloseButton
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get authCloseButton;
+
+  /// Poll detail UI: pollDetail_favoriteUpdateError
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to update favorites'**
+  String get pollDetail_favoriteUpdateError;
+
+  /// Poll detail UI: pollDetail_shareMessage
+  ///
+  /// In en, this message translates to:
+  /// **'Open Sociale_Vote to view and vote in this poll.'**
+  String get pollDetail_shareMessage;
+
+  /// Poll detail UI: pollDetail_shareError
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to share the poll'**
+  String get pollDetail_shareError;
+
+  /// Poll detail UI: pollDetail_editPermissionError
+  ///
+  /// In en, this message translates to:
+  /// **'You can edit only your own polls that have no votes'**
+  String get pollDetail_editPermissionError;
+
+  /// Poll detail UI: pollDetail_editSuccessMessage
+  ///
+  /// In en, this message translates to:
+  /// **'Poll updated'**
+  String get pollDetail_editSuccessMessage;
+
+  /// Poll detail UI: pollDetail_editMenuItem
+  ///
+  /// In en, this message translates to:
+  /// **'Edit poll'**
+  String get pollDetail_editMenuItem;
+
+  /// Poll detail UI: pollDetail_editSavingMenuItem
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get pollDetail_editSavingMenuItem;
+
+  /// Poll detail UI: pollDetail_deletePermissionError
+  ///
+  /// In en, this message translates to:
+  /// **'You can delete only your own polls'**
+  String get pollDetail_deletePermissionError;
+
+  /// Poll detail UI: pollDetail_deleteError
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to delete the poll'**
+  String get pollDetail_deleteError;
+
+  /// Poll detail UI: pollDetail_deleteDialogTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Delete poll'**
+  String get pollDetail_deleteDialogTitle;
+
+  /// Poll detail UI: pollDetail_deleteDialogMessage
+  ///
+  /// In en, this message translates to:
+  /// **'Do you really want to delete \"{title}\"? This action cannot be undone.'**
+  String pollDetail_deleteDialogMessage(String title);
+
+  /// Poll detail UI: pollDetail_deleteMenuItem
+  ///
+  /// In en, this message translates to:
+  /// **'Delete poll'**
+  String get pollDetail_deleteMenuItem;
+
+  /// Poll detail UI: pollDetail_deleteDeletingMenuItem
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting...'**
+  String get pollDetail_deleteDeletingMenuItem;
+
+  /// Poll detail UI: pollDetail_publicVotesAvailableTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Public votes available'**
+  String get pollDetail_publicVotesAvailableTitle;
+
+  /// Poll detail UI: pollDetail_publicVotesAvailableMessage
+  ///
+  /// In en, this message translates to:
+  /// **'This poll allows you to see who voted for each option.'**
+  String get pollDetail_publicVotesAvailableMessage;
+
+  /// Poll detail UI: pollDetail_publicVotesAction
+  ///
+  /// In en, this message translates to:
+  /// **'View public votes'**
+  String get pollDetail_publicVotesAction;
+
+  /// Poll detail UI: pollDetail_retryButton
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get pollDetail_retryButton;
+
+  /// Poll detail UI: pollDetail_voteErrorNoOption
+  ///
+  /// In en, this message translates to:
+  /// **'Select at least one option'**
+  String get pollDetail_voteErrorNoOption;
+
+  /// Poll detail UI: pollDetail_voteErrorAuthenticationRequired
+  ///
+  /// In en, this message translates to:
+  /// **'You must be signed in to vote'**
+  String get pollDetail_voteErrorAuthenticationRequired;
+
+  /// Poll detail UI: pollDetail_voteErrorClosed
+  ///
+  /// In en, this message translates to:
+  /// **'This poll is closed'**
+  String get pollDetail_voteErrorClosed;
+
+  /// Poll detail UI: pollDetail_voteErrorAlreadyVoted
+  ///
+  /// In en, this message translates to:
+  /// **'You have already voted in this poll'**
+  String get pollDetail_voteErrorAlreadyVoted;
+
+  /// Poll detail UI: pollDetail_voteErrorGeneric
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to submit the vote'**
+  String get pollDetail_voteErrorGeneric;
+
+  /// Poll detail UI: pollDetail_publicVotesSheetTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Public votes'**
+  String get pollDetail_publicVotesSheetTitle;
+
+  /// Poll detail UI: pollDetail_publicVotesSheetDescription
+  ///
+  /// In en, this message translates to:
+  /// **'Here you can see who voted for each option in this poll.'**
+  String get pollDetail_publicVotesSheetDescription;
+
+  /// Poll detail UI: pollDetail_publicVotesSearchHint
+  ///
+  /// In en, this message translates to:
+  /// **'Search users'**
+  String get pollDetail_publicVotesSearchHint;
+
+  /// Poll detail UI: pollDetail_publicVotesLoadError
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load public votes'**
+  String get pollDetail_publicVotesLoadError;
+
+  /// Poll detail UI: pollDetail_publicVotesEmpty
+  ///
+  /// In en, this message translates to:
+  /// **'No public votes available'**
+  String get pollDetail_publicVotesEmpty;
+
+  /// Poll detail UI: pollDetail_publicVotesSearchEmpty
+  ///
+  /// In en, this message translates to:
+  /// **'No users found for this search'**
+  String get pollDetail_publicVotesSearchEmpty;
+
+  /// Poll detail UI: pollDetail_publicVotesResultsCount
+  ///
+  /// In en, this message translates to:
+  /// **'{count} results loaded'**
+  String pollDetail_publicVotesResultsCount(int count);
+
+  /// Poll detail UI: pollDetail_publicVotesLoadMore
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get pollDetail_publicVotesLoadMore;
+
+  /// Poll detail UI: pollDetail_publicVotesUserFallback
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get pollDetail_publicVotesUserFallback;
+
+  /// Poll detail UI: pollDetail_editDialogTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Edit poll'**
+  String get pollDetail_editDialogTitle;
+
+  /// Poll detail UI: pollDetail_editTitleFieldLabel
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get pollDetail_editTitleFieldLabel;
+
+  /// Poll detail UI: pollDetail_editTitleRequired
+  ///
+  /// In en, this message translates to:
+  /// **'Title is required'**
+  String get pollDetail_editTitleRequired;
+
+  /// Poll detail UI: pollDetail_editDescriptionFieldLabel
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get pollDetail_editDescriptionFieldLabel;
+
+  /// Poll detail UI: pollDetail_editError
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to update the poll'**
+  String get pollDetail_editError;
+
+  /// Poll detail UI: pollDetail_loadError
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load the poll'**
+  String get pollDetail_loadError;
+
+  /// Poll detail UI: pollDetail_notFound
+  ///
+  /// In en, this message translates to:
+  /// **'Poll not found'**
+  String get pollDetail_notFound;
+
+  /// Edit profile UI: profileEditPageTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get profileEditPageTitle;
+
+  /// Edit profile UI: profileLoginRequiredMessage
+  ///
+  /// In en, this message translates to:
+  /// **'You must be signed in to edit your profile.'**
+  String get profileLoginRequiredMessage;
+
+  /// Edit profile UI: profileAvatarUploading
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading...'**
+  String get profileAvatarUploading;
+
+  /// Edit profile UI: profileUploadAvatarButton
+  ///
+  /// In en, this message translates to:
+  /// **'Upload avatar'**
+  String get profileUploadAvatarButton;
+
+  /// Edit profile UI: profileDisplayNameLabel
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get profileDisplayNameLabel;
+
+  /// Edit profile UI: profileDisplayNameRequiredError
+  ///
+  /// In en, this message translates to:
+  /// **'Display name is required.'**
+  String get profileDisplayNameRequiredError;
+
+  /// Edit profile UI: profileUsernameHint
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. mario_roma'**
+  String get profileUsernameHint;
+
+  /// Edit profile UI: profileUsernameHelper
+  ///
+  /// In en, this message translates to:
+  /// **'3–20 characters: lowercase letters, numbers and underscores'**
+  String get profileUsernameHelper;
+
+  /// Edit profile UI: profileAvatarUrlLabel
+  ///
+  /// In en, this message translates to:
+  /// **'Avatar URL'**
+  String get profileAvatarUrlLabel;
+
+  /// Edit profile UI: profileBioLabel
+  ///
+  /// In en, this message translates to:
+  /// **'Bio'**
+  String get profileBioLabel;
+
+  /// Edit profile UI: profileClearCountryButton
+  ///
+  /// In en, this message translates to:
+  /// **'Clear country'**
+  String get profileClearCountryButton;
+
+  /// Edit profile UI: profileCityResidenceHelper
+  ///
+  /// In en, this message translates to:
+  /// **'The city of residence is checked against the selected country before saving.'**
+  String get profileCityResidenceHelper;
+
+  /// Edit profile UI: profileCityNotFoundError
+  ///
+  /// In en, this message translates to:
+  /// **'City not found in the selected country.'**
+  String get profileCityNotFoundError;
+
+  /// Edit profile UI: profileCityVerificationError
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to verify the city right now.'**
+  String get profileCityVerificationError;
+
+  /// Edit profile UI: profileAvatarUploadError
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to upload the avatar.'**
+  String get profileAvatarUploadError;
+
+  /// Edit profile UI: profileAccountSectionTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get profileAccountSectionTitle;
+
+  /// Edit profile UI: profileAccountEmailHelper
+  ///
+  /// In en, this message translates to:
+  /// **'The account email address cannot be changed from this screen.'**
+  String get profileAccountEmailHelper;
+
+  /// Edit profile UI: profileChangePasswordAction
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get profileChangePasswordAction;
+
+  /// Edit profile UI: profileChangePasswordDescription
+  ///
+  /// In en, this message translates to:
+  /// **'Set a new password for this account.'**
+  String get profileChangePasswordDescription;
+
+  /// Notifications UI: notificationsPageTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationsPageTitle;
+
+  /// Notifications UI: notificationsMarkAllReadAction
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get notificationsMarkAllReadAction;
+
+  /// Notifications UI: notificationsNoTargetMessage
+  ///
+  /// In en, this message translates to:
+  /// **'This notification does not have an available destination.'**
+  String get notificationsNoTargetMessage;
+
+  /// Notifications UI: notificationsTargetUnavailableMessage
+  ///
+  /// In en, this message translates to:
+  /// **'The content linked to this notification is unavailable.'**
+  String get notificationsTargetUnavailableMessage;
+
+  /// Notifications UI: notificationsLoadError
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load notifications.'**
+  String get notificationsLoadError;
+
+  /// Notifications UI: notificationsRetryButton
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get notificationsRetryButton;
+
+  /// Notifications UI: notificationsEmptyMessage
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications available.'**
+  String get notificationsEmptyMessage;
+
+  /// Notifications UI: notificationsCommentReplyTitle
+  ///
+  /// In en, this message translates to:
+  /// **'New reply to your comment'**
+  String get notificationsCommentReplyTitle;
+
+  /// Notifications UI: notificationsMentionTitle
+  ///
+  /// In en, this message translates to:
+  /// **'You were mentioned'**
+  String get notificationsMentionTitle;
+
+  /// Notifications UI: notificationsPollResultTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Poll update'**
+  String get notificationsPollResultTitle;
+
+  /// Notifications UI: notificationsCommentReplySubtitle
+  ///
+  /// In en, this message translates to:
+  /// **'User {actor} replied in {target}'**
+  String notificationsCommentReplySubtitle(String actor, String target);
+
+  /// Notifications UI: notificationsMentionSubtitle
+  ///
+  /// In en, this message translates to:
+  /// **'User {actor} mentioned you in {target}'**
+  String notificationsMentionSubtitle(String actor, String target);
+
+  /// Notifications UI: notificationsPollResultSubtitle
+  ///
+  /// In en, this message translates to:
+  /// **'A new result is available in {target}'**
+  String notificationsPollResultSubtitle(String target);
+
+  /// Notifications UI: notificationsTargetPost
+  ///
+  /// In en, this message translates to:
+  /// **'a post'**
+  String get notificationsTargetPost;
+
+  /// Notifications UI: notificationsTargetNews
+  ///
+  /// In en, this message translates to:
+  /// **'a news article'**
+  String get notificationsTargetNews;
+
+  /// Notifications UI: notificationsTargetPoll
+  ///
+  /// In en, this message translates to:
+  /// **'a poll'**
+  String get notificationsTargetPoll;
+
+  /// Notifications UI: notificationsTargetVideo
+  ///
+  /// In en, this message translates to:
+  /// **'a video'**
+  String get notificationsTargetVideo;
+
+  /// Notifications UI: notificationsTargetContent
+  ///
+  /// In en, this message translates to:
+  /// **'some content'**
+  String get notificationsTargetContent;
+
+  /// Notifications UI: notificationsUserFallback
+  ///
+  /// In en, this message translates to:
+  /// **'user'**
+  String get notificationsUserFallback;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

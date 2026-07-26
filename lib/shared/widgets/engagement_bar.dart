@@ -31,8 +31,17 @@ class EngagementBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final isFireSelected = userReaction == ReactionType.like;
     final isIceSelected = userReaction == ReactionType.dislike;
+
+    final neutralColor =
+        theme.iconTheme.color ?? (isDark ? AppColors.iconDark : AppColors.icon);
+    final disabledColor =
+        isDark ? AppColors.iconDisabledDark : AppColors.iconDisabled;
+    final borderColor =
+        isDark ? AppColors.borderSoftDark : AppColors.borderSoft;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -49,7 +58,12 @@ class EngagementBar extends StatelessWidget {
               onTap: onFireTap,
               isSelected: isFireSelected,
               activeColor: AppColors.heat,
-              softColor: AppColors.heatSoftBackground,
+              softColor: isDark
+                  ? AppColors.heatSoftBackgroundDark
+                  : AppColors.heatSoftBackground,
+              neutralColor: neutralColor,
+              disabledColor: disabledColor,
+              borderColor: borderColor,
               compact: isCompact,
             ),
             SizedBox(width: spacing),
@@ -59,7 +73,12 @@ class EngagementBar extends StatelessWidget {
               onTap: onIceTap,
               isSelected: isIceSelected,
               activeColor: AppColors.cool,
-              softColor: AppColors.coolSoftBackground,
+              softColor: isDark
+                  ? AppColors.coolSoftBackgroundDark
+                  : AppColors.coolSoftBackground,
+              neutralColor: neutralColor,
+              disabledColor: disabledColor,
+              borderColor: borderColor,
               compact: isCompact,
             ),
             SizedBox(width: spacing),
@@ -68,8 +87,11 @@ class EngagementBar extends StatelessWidget {
               count: commentCount,
               onTap: onCommentTap,
               isSelected: false,
-              activeColor: AppColors.icon,
+              activeColor: neutralColor,
               softColor: Colors.transparent,
+              neutralColor: neutralColor,
+              disabledColor: disabledColor,
+              borderColor: borderColor,
               compact: isCompact,
             ),
           ],
@@ -86,6 +108,9 @@ class _EngagementButton extends StatelessWidget {
 
   final Color activeColor;
   final Color softColor;
+  final Color neutralColor;
+  final Color disabledColor;
+  final Color borderColor;
   final bool isSelected;
   final bool compact;
 
@@ -95,50 +120,71 @@ class _EngagementButton extends StatelessWidget {
     required this.onTap,
     required this.activeColor,
     required this.softColor,
+    required this.neutralColor,
+    required this.disabledColor,
+    required this.borderColor,
     required this.isSelected,
     this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final Color iconColor = isSelected ? activeColor : AppColors.icon;
-    final Color background = isSelected ? softColor : Colors.transparent;
+    final isEnabled = onTap != null;
+    final iconColor = isSelected
+        ? activeColor
+        : isEnabled
+            ? neutralColor
+            : disabledColor;
+    final background = isSelected ? softColor : Colors.transparent;
 
-    final double height = compact ? 28 : 30;
-    final double iconSize = compact ? 14 : 16;
-    final double fontSize = compact ? 11 : 12;
-    final double horizontalPadding = compact ? AppSpacing.xxs : AppSpacing.s;
-    final double innerSpacing = compact ? 2 : AppSpacing.xxs;
+    final visualHeight = compact ? 28.0 : 30.0;
+    final tapTargetExtent = compact ? 40.0 : 44.0;
+    final iconSize = compact ? 14.0 : 16.0;
+    final fontSize = compact ? 11.0 : 12.0;
+    final horizontalPadding = compact ? AppSpacing.xxs : AppSpacing.s;
+    final innerSpacing = compact ? 2.0 : AppSpacing.xxs;
 
-    return InkWell(
-      borderRadius: AppRadius.pillRadius,
-      onTap: onTap,
-      child: Container(
-        height: height,
-        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: AppRadius.pillRadius,
-          border: Border.all(
-            color: isSelected
-                ? activeColor.withValues(alpha: 0.4)
-                : AppColors.borderSoft,
+    return Semantics(
+      button: true,
+      enabled: isEnabled,
+      child: InkWell(
+        borderRadius: AppRadius.pillRadius,
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minWidth: tapTargetExtent,
+            minHeight: tapTargetExtent,
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: iconSize, color: iconColor),
-            SizedBox(width: innerSpacing),
-            Text(
-              count.toString(),
-              style: TextStyle(
-                fontSize: fontSize,
-                fontWeight: FontWeight.w600,
-                color: iconColor,
+          child: Center(
+            child: Container(
+              height: visualHeight,
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+              decoration: BoxDecoration(
+                color: background,
+                borderRadius: AppRadius.pillRadius,
+                border: Border.all(
+                  color: isSelected
+                      ? activeColor.withValues(alpha: 0.4)
+                      : borderColor,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: iconSize, color: iconColor),
+                  SizedBox(width: innerSpacing),
+                  Text(
+                    count.toString(),
+                    style: TextStyle(
+                      fontSize: fontSize,
+                      fontWeight: FontWeight.w600,
+                      color: iconColor,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
