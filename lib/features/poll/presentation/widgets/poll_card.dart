@@ -188,7 +188,10 @@ class PollCard extends StatelessWidget {
                   else ...[
                     Text(
                       poll.title,
-                      style: theme.textTheme.titleLarge?.copyWith(
+                      style: (isCompactLayout
+                              ? theme.textTheme.titleMedium
+                              : theme.textTheme.titleLarge)
+                          ?.copyWith(
                         fontWeight: FontWeight.w700,
                         height: 1.18,
                         letterSpacing: -0.2,
@@ -212,14 +215,49 @@ class PollCard extends StatelessWidget {
                     ],
                   ],
                   const SizedBox(height: AppSpacing.unitM),
-                  _PollEngagementRow(
-                    poll: poll,
-                    fireCount: fireCount,
-                    iceCount: iceCount,
-                    userReaction: userReaction,
-                    onFireTap: wrapReactCallback(onFireTap),
-                    onIceTap: wrapReactCallback(onIceTap),
-                    onCommentTap: wrapCommentCallback(onCommentTap),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isCompactFooter = constraints.maxWidth < 420;
+                      final engagement = _PollEngagementRow(
+                        poll: poll,
+                        fireCount: fireCount,
+                        iceCount: iceCount,
+                        userReaction: userReaction,
+                        onFireTap: wrapReactCallback(onFireTap),
+                        onIceTap: wrapReactCallback(onIceTap),
+                        onCommentTap: wrapCommentCallback(onCommentTap),
+                      );
+                      final createdAt = _effectiveDate(poll);
+
+                      if (createdAt == null) {
+                        return engagement;
+                      }
+
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          if (isCompactFooter)
+                            SizedBox(
+                              width: 132,
+                              child: engagement,
+                            )
+                          else
+                            Expanded(child: engagement),
+                          SizedBox(width: isCompactFooter ? 8 : 12),
+                          if (isCompactFooter)
+                            Expanded(
+                              child: _buildDateRow(
+                                context,
+                                theme,
+                                createdAt,
+                                compact: true,
+                              ),
+                            )
+                          else
+                            _buildDateRow(context, theme, createdAt),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
@@ -228,6 +266,59 @@ class PollCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  DateTime? _effectiveDate(Poll value) {
+    return value.createdAt ?? value.startAt ?? value.endAt;
+  }
+
+  Widget _buildDateRow(
+    BuildContext context,
+    ThemeData theme,
+    DateTime value, {
+    bool compact = false,
+  }) {
+    final color = theme.colorScheme.onSurface.withValues(alpha: 0.56);
+
+    return Row(
+      mainAxisSize: compact ? MainAxisSize.max : MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Icon(
+          Icons.schedule_outlined,
+          size: compact ? 13 : 14,
+          color: color,
+        ),
+        SizedBox(width: compact ? 4 : 6),
+        Flexible(
+          child: Text(
+            _formatDateTime(context, value),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: color,
+              fontSize: compact ? 11 : null,
+              fontWeight: FontWeight.w600,
+              height: 1,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatDateTime(BuildContext context, DateTime value) {
+    final local = value.toLocal();
+    final materialLocalizations = MaterialLocalizations.of(context);
+    final mediaQuery = MediaQuery.maybeOf(context);
+    final date = materialLocalizations.formatCompactDate(local);
+    final time = materialLocalizations.formatTimeOfDay(
+      TimeOfDay.fromDateTime(local),
+      alwaysUse24HourFormat: mediaQuery?.alwaysUse24HourFormat ?? false,
+    );
+
+    return '$date $time';
   }
 
   List<_PollChipItem> _buildTopChipItems({
@@ -1089,35 +1180,22 @@ class _SingleLineChipRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const spacing = AppSpacing.unitXS;
-        final maxWidth = constraints.maxWidth;
-        final visible = <Widget>[];
-        double usedWidth = 0;
+    const spacing = AppSpacing.unitXS;
 
-        for (final item in items) {
-          final nextWidth =
-              item.estimatedWidth + (visible.isEmpty ? 0 : spacing);
-
-          if (usedWidth + nextWidth > maxWidth) {
-            break;
-          }
-
-          if (visible.isNotEmpty) {
-            visible.add(const SizedBox(width: spacing));
-          }
-          visible.add(item.child);
-          usedWidth += nextWidth;
-        }
-
-        return SizedBox(
-          height: chipHeight,
-          child: Row(
-            children: visible,
-          ),
-        );
-      },
+    return SizedBox(
+      height: chipHeight,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const ClampingScrollPhysics(),
+        child: Row(
+          children: [
+            for (var index = 0; index < items.length; index++) ...[
+              if (index > 0) const SizedBox(width: spacing),
+              items[index].child,
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1197,68 +1275,107 @@ class _PollResultPreview extends StatelessWidget {
 
     final topOptions = sortedOptions.take(3).toList(growable: false);
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          flex: 4,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    Widget titleBlock({required bool compact}) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: (compact
+                    ? theme.textTheme.titleMedium
+                    : theme.textTheme.titleLarge)
+                ?.copyWith(
+              fontWeight: FontWeight.w700,
+              height: 1.18,
+              letterSpacing: -0.2,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (description != null) ...[
+            const SizedBox(height: AppSpacing.unitS),
+            Text(
+              description!,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                height: 1.4,
+              ),
+              maxLines: compact ? 3 : 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ],
+      );
+    }
+
+    Widget resultsList() {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(topOptions.length, (index) {
+          final option = topOptions[index];
+          final color = _pollResultColorForIndex(index);
+
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: index == topOptions.length - 1 ? 0 : AppSpacing.unitS,
+            ),
+            child: _PollResultRow(
+              option: option,
+              color: color,
+            ),
+          );
+        }),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 560;
+
+        if (compact) {
+          return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  height: 1.18,
-                  letterSpacing: -0.2,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (description != null) ...[
-                const SizedBox(height: AppSpacing.unitS),
-                Text(
-                  description!,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
-                    height: 1.4,
+              titleBlock(compact: true),
+              const SizedBox(height: AppSpacing.unitM),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _PollResultDonut(
+                    poll: poll,
+                    result: result,
+                    sortedOptions: sortedOptions,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                  const SizedBox(width: AppSpacing.unitM),
+                  Expanded(child: resultsList()),
+                ],
+              ),
             ],
-          ),
-        ),
-        const SizedBox(width: AppSpacing.unitM),
-        _PollResultDonut(
-          poll: poll,
-          result: result,
-          sortedOptions: sortedOptions,
-        ),
-        const SizedBox(width: AppSpacing.unitM),
-        Expanded(
-          flex: 5,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: List.generate(topOptions.length, (index) {
-              final option = topOptions[index];
-              final color = _pollResultColorForIndex(index);
+          );
+        }
 
-              return Padding(
-                padding: EdgeInsets.only(
-                  bottom: index == topOptions.length - 1 ? 0 : AppSpacing.unitS,
-                ),
-                child: _PollResultRow(
-                  option: option,
-                  color: color,
-                ),
-              );
-            }),
-          ),
-        ),
-      ],
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              flex: 4,
+              child: titleBlock(compact: false),
+            ),
+            const SizedBox(width: AppSpacing.unitM),
+            _PollResultDonut(
+              poll: poll,
+              result: result,
+              sortedOptions: sortedOptions,
+            ),
+            const SizedBox(width: AppSpacing.unitM),
+            Expanded(
+              flex: 5,
+              child: resultsList(),
+            ),
+          ],
+        );
+      },
     );
   }
 }

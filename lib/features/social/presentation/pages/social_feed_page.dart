@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/app/theme/radius.dart';
 import 'package:sociale_vote/app/theme/spacing.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
@@ -11,6 +12,8 @@ import 'package:sociale_vote/features/social/presentation/pages/create_post_page
 import 'package:sociale_vote/features/social/presentation/widgets/post_card.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
+import 'package:sociale_vote/shared/ui/app_card.dart';
+import 'package:sociale_vote/shared/ui/loading_indicator.dart';
 
 class SocialFeedPage extends StatelessWidget {
   const SocialFeedPage({super.key});
@@ -38,7 +41,9 @@ class _SocialFeedView extends StatefulWidget {
 
 class _SocialFeedViewState extends State<_SocialFeedView> {
   static const double _maxContentWidth = 1120;
+
   final ScrollController _scrollController = ScrollController();
+  bool _isOpeningCreatePost = false;
 
   @override
   void initState() {
@@ -55,134 +60,375 @@ class _SocialFeedViewState extends State<_SocialFeedView> {
 
   void _onScroll() {
     final controller = context.read<FeedController>();
-    if (controller.isLoading) return;
-    if (!_scrollController.hasClients) return;
+    if (controller.isLoading || !_scrollController.hasClients) {
+      return;
+    }
 
     final position = _scrollController.position;
-    if (position.pixels >= position.maxScrollExtent - 200) {
-      if (controller.hasMoreFromSource) {
-        controller.loadMorePosts();
+    if (position.pixels >= position.maxScrollExtent - 200 &&
+        controller.hasMoreFromSource) {
+      controller.loadMorePosts();
+    }
+  }
+
+  Future<void> _refreshFeed(FeedController controller) {
+    final userId = AppDI.instance.currentUserId;
+    return controller.refresh(userId: userId);
+  }
+
+  Future<void> _retryFeed(FeedController controller) {
+    final userId = AppDI.instance.currentUserId;
+    return controller.loadFeed(userId: userId);
+  }
+
+  Future<void> _createPost() async {
+    if (_isOpeningCreatePost) {
+      return;
+    }
+
+    setState(() {
+      _isOpeningCreatePost = true;
+    });
+
+    try {
+      final allowed = await AuthGuard.ensureCanPerformAction(
+        context,
+        ParticipationAction.createPost,
+      );
+      if (!allowed || !mounted) {
+        return;
+      }
+
+      final result = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => const CreatePostPage(),
+        ),
+      );
+
+      if (!mounted || result != true) {
+        return;
+      }
+
+      await _refreshFeed(context.read<FeedController>());
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isOpeningCreatePost = false;
+        });
       }
     }
   }
 
-  Future<void> _createPost() async {
-    final allowed = await AuthGuard.ensureCanPerformAction(
-      context,
-      ParticipationAction.createPost,
-    );
-    if (!allowed || !mounted) return;
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
 
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => const CreatePostPage(),
+    final pageBackground = Color.alphaBlend(
+      colorScheme.primary.withValues(alpha: isDark ? 0.035 : 0.012),
+      theme.scaffoldBackgroundColor,
+    );
+
+    return Scaffold(
+      backgroundColor: pageBackground,
+      appBar: AppBar(
+        backgroundColor: pageBackground,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Text(l10n.socialFeedTitle),
+      ),
+      body: ColoredBox(
+        color: pageBackground,
+        child: SafeArea(
+          top: false,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: _maxContentWidth,
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                child: Consumer<FeedController>(
+                  builder: (context, controller, _) {
+                    final posts = controller.posts;
+
+                    return Column(
+                      children: [
+                        _FeedToolbar(
+                          selectedMode: controller.sortMode,
+                          onSelected: controller.setSortMode,
+                          onCreatePost: _createPost,
+                          isCreatingPost: _isOpeningCreatePost,
+                        ),
+                        Expanded(
+                          child: _buildFeedContent(
+                            context,
+                            controller: controller,
+                            posts: posts,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
+  }
 
-    if (!mounted || result != true) {
-      return;
+  Widget _buildFeedContent(
+    BuildContext context, {
+    required FeedController controller,
+    required List<Post> posts,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+
+    if (controller.isLoading && posts.isEmpty) {
+      return const LoadingIndicator(
+        padding: EdgeInsets.only(top: AppSpacing.l),
+      );
     }
 
-    final userId = AppDI.instance.currentUserId;
-    await context.read<FeedController>().refresh(userId: userId);
+    if (controller.hasError) {
+      return _FeedStateViewport(
+        onRefresh: () => _retryFeed(controller),
+        child: _SocialErrorState(
+          message: l10n.homeSocialErrorSubtitle,
+          onRetry: () => _retryFeed(controller),
+        ),
+      );
+    }
+
+    if (posts.isEmpty) {
+      return _FeedStateViewport(
+        onRefresh: () => _refreshFeed(controller),
+        child: const _SocialEmptyState(),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => _refreshFeed(controller),
+      child: ListView.builder(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.pagePadding,
+          AppSpacing.xxs,
+          AppSpacing.pagePadding,
+          AppSpacing.l,
+        ),
+        itemCount: posts.length + (controller.isLoading ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index >= posts.length) {
+            return const LoadingIndicator.inline(
+              padding: EdgeInsets.symmetric(
+                vertical: AppSpacing.s,
+              ),
+            );
+          }
+
+          final post = posts[index];
+          return _PostCard(
+            key: ValueKey(post.id.value),
+            post: post,
+          );
+        },
+      ),
+    );
   }
+}
+
+class _FeedToolbar extends StatelessWidget {
+  static const double _singleRowMinWidth = 620;
+
+  final FeedSortMode selectedMode;
+  final ValueChanged<FeedSortMode> onSelected;
+  final Future<void> Function() onCreatePost;
+  final bool isCreatingPost;
+
+  const _FeedToolbar({
+    required this.selectedMode,
+    required this.onSelected,
+    required this.onCreatePost,
+    required this.isCreatingPost,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.socialFeedTitle),
+    final filters = SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _FeedSortButton(
+            icon: Icons.local_fire_department_outlined,
+            label: l10n.searchSortHottest,
+            selected: selectedMode == FeedSortMode.hottest,
+            onTap: () => onSelected(FeedSortMode.hottest),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          _FeedSortButton(
+            icon: Icons.schedule_outlined,
+            label: l10n.searchSortLatest,
+            selected: selectedMode == FeedSortMode.latest,
+            onTap: () => onSelected(FeedSortMode.latest),
+          ),
+        ],
       ),
-      body: ColoredBox(
-        color: theme.scaffoldBackgroundColor,
-        child: Center(
+    );
+
+    final createButton = FilledButton.icon(
+      onPressed: isCreatingPost
+          ? null
+          : () async {
+              await onCreatePost();
+            },
+      icon: isCreatingPost
+          ? const SizedBox.square(
+              dimension: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+              ),
+            )
+          : const Icon(Icons.add, size: 18),
+      label: Text(l10n.socialFeedCreatePostButton),
+      style: FilledButton.styleFrom(
+        minimumSize: const Size(0, 44),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.m,
+          vertical: AppSpacing.xs,
+        ),
+        textStyle: theme.textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: AppRadius.buttonRadius,
+        ),
+      ),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pagePadding,
+        AppSpacing.s,
+        AppSpacing.pagePadding,
+        AppSpacing.xs,
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth >= _singleRowMinWidth) {
+            return Row(
+              children: [
+                Expanded(child: filters),
+                const SizedBox(width: AppSpacing.m),
+                createButton,
+              ],
+            );
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              filters,
+              const SizedBox(height: AppSpacing.xs),
+              createButton,
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _FeedSortButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FeedSortButton({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final backgroundColor = selected
+        ? colorScheme.primary.withValues(alpha: 0.12)
+        : colorScheme.surface.withValues(alpha: isDark ? 0.28 : 0.82);
+    final borderColor = selected
+        ? colorScheme.primary
+        : colorScheme.outline.withValues(alpha: isDark ? 0.24 : 0.14);
+    final foregroundColor = selected
+        ? colorScheme.primary
+        : colorScheme.onSurface.withValues(alpha: 0.82);
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: AppRadius.buttonRadius,
           child: ConstrainedBox(
             constraints: const BoxConstraints(
-              maxWidth: _maxContentWidth,
+              minWidth: 132,
+              minHeight: 44,
             ),
-            child: SizedBox(
-              width: double.infinity,
-              child: Consumer<FeedController>(
-                builder: (context, controller, _) {
-                  final allPosts = controller.posts;
-                  Widget content;
-
-                  if (controller.isLoading && allPosts.isEmpty) {
-                    content = const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  } else if (controller.hasError) {
-                    content = _SocialErrorState(
-                      message: controller.errorMessage ??
-                          l10n.homeSocialErrorSubtitle,
-                      onRetry: () {
-                        final userId = AppDI.instance.currentUserId;
-                        return controller.loadFeed(userId: userId);
-                      },
-                    );
-                  } else if (allPosts.isEmpty) {
-                    content = RefreshIndicator(
-                      onRefresh: () {
-                        final userId = AppDI.instance.currentUserId;
-                        return controller.refresh(userId: userId);
-                      },
-                      child: ListView(
-                        controller: _scrollController,
-                        padding: AppSpacing.page,
-                        children: const [
-                          _SocialEmptyState(),
-                        ],
+            child: Ink(
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: AppRadius.buttonRadius,
+                border: Border.all(
+                  color: borderColor,
+                  width: selected ? 1.2 : 1,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s,
+                  vertical: AppSpacing.xs,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      icon,
+                      size: 18,
+                      color: foregroundColor,
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: foregroundColor,
+                        fontWeight:
+                            selected ? FontWeight.w700 : FontWeight.w600,
+                        height: 1,
                       ),
-                    );
-                  } else {
-                    content = RefreshIndicator(
-                      onRefresh: () {
-                        final userId = AppDI.instance.currentUserId;
-                        return controller.refresh(userId: userId);
-                      },
-                      child: ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.pagePadding,
-                          AppSpacing.xxs,
-                          AppSpacing.pagePadding,
-                          AppSpacing.l,
-                        ),
-                        itemCount:
-                            allPosts.length + (controller.isLoading ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index >= allPosts.length) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(
-                                vertical: AppSpacing.m,
-                              ),
-                              child: Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            );
-                          }
-
-                          final post = allPosts[index];
-                          return _PostCard(post: post);
-                        },
-                      ),
-                    );
-                  }
-
-                  return Column(
-                    children: [
-                      _FeedToolbar(
-                        selectedMode: controller.sortMode,
-                        onSelected: controller.setSortMode,
-                        onCreatePost: _createPost,
-                      ),
-                      Expanded(child: content),
-                    ],
-                  );
-                },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -192,90 +438,43 @@ class _SocialFeedViewState extends State<_SocialFeedView> {
   }
 }
 
-class _FeedToolbar extends StatelessWidget {
-  static const double _singleRowMinWidth = 520;
+class _FeedStateViewport extends StatelessWidget {
+  final Future<void> Function() onRefresh;
+  final Widget child;
 
-  final FeedSortMode selectedMode;
-  final ValueChanged<FeedSortMode> onSelected;
-  final Future<void> Function() onCreatePost;
-
-  const _FeedToolbar({
-    required this.selectedMode,
-    required this.onSelected,
-    required this.onCreatePost,
+  const _FeedStateViewport({
+    required this.onRefresh,
+    required this.child,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-    final filters = Wrap(
-      spacing: AppSpacing.xs,
-      runSpacing: AppSpacing.xs,
-      children: [
-        ChoiceChip(
-          avatar: const Icon(
-            Icons.local_fire_department_outlined,
-            size: 18,
-          ),
-          label: Text(l10n.searchSortHottest),
-          selected: selectedMode == FeedSortMode.hottest,
-          onSelected: (_) => onSelected(FeedSortMode.hottest),
-        ),
-        ChoiceChip(
-          avatar: const Icon(
-            Icons.schedule_outlined,
-            size: 18,
-          ),
-          label: Text(l10n.searchSortLatest),
-          selected: selectedMode == FeedSortMode.latest,
-          onSelected: (_) => onSelected(FeedSortMode.latest),
-        ),
-      ],
-    );
-
-    final createButton = FilledButton.icon(
-      onPressed: () async {
-        await onCreatePost();
-      },
-      icon: const Icon(Icons.add),
-      label: Text(l10n.socialFeedCreatePostButton),
-    );
-
-    return Material(
-      color: theme.scaffoldBackgroundColor,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.pagePadding,
-          AppSpacing.s,
-          AppSpacing.pagePadding,
-          AppSpacing.xs,
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth >= _singleRowMinWidth) {
-              return Row(
-                children: [
-                  Expanded(child: filters),
-                  const SizedBox(width: AppSpacing.m),
-                  createButton,
-                ],
-              );
-            }
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                filters,
-                const SizedBox(height: AppSpacing.xs),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: createButton,
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.pagePadding,
+              AppSpacing.xs,
+              AppSpacing.pagePadding,
+              AppSpacing.l,
+            ),
+            sliver: SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: child,
+                  ),
                 ),
-              ],
-            );
-          },
-        ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -289,32 +488,33 @@ class _SocialEmptyState extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.forum_outlined,
-              size: 40,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+    return AppCard(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.forum_outlined,
+            size: 40,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: AppSpacing.s),
+          Text(
+            l10n.homeSocialEmptyTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
-            const SizedBox(height: 12),
-            Text(
-              l10n.homeSocialEmptyTitle,
-              style: theme.textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l10n.homeSocialEmptySubtitle,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              height: 1.4,
             ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.homeSocialEmptySubtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
@@ -334,40 +534,47 @@ class _SocialErrorState extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 40,
-              color: theme.colorScheme.error,
+    return AppCard(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 40,
+            color: theme.colorScheme.error,
+          ),
+          const SizedBox(height: AppSpacing.s),
+          Text(
+            l10n.homeSocialErrorTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
-            const SizedBox(height: 12),
-            Text(
-              l10n.homeSocialErrorTitle,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.error,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            message,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.m),
+          FilledButton.icon(
+            onPressed: () async {
+              await onRetry();
+            },
+            icon: const Icon(Icons.refresh, size: 18),
+            label: Text(l10n.searchRetryButton),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(0, 44),
+              shape: const RoundedRectangleBorder(
+                borderRadius: AppRadius.buttonRadius,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () => onRetry(),
-              icon: const Icon(Icons.refresh),
-              label: Text(l10n.searchRetryButton),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -377,6 +584,7 @@ class _PostCard extends StatefulWidget {
   final Post post;
 
   const _PostCard({
+    super.key,
     required this.post,
   });
 

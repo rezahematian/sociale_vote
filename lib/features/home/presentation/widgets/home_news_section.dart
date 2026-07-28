@@ -294,7 +294,7 @@ class _SecondaryNewsCarouselState extends State<_SecondaryNewsCarousel> {
                 ? 0.72
                 : 0.88;
 
-        final cardHeight = width >= 720 ? 258.0 : 260.0;
+        const cardHeight = 264.0;
         final controller = _resolveController(viewportFraction);
         final isDesktop = width >= 720;
         final sideGutter = isDesktop ? 52.0 : 0.0;

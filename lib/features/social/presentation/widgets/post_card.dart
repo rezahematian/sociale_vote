@@ -63,6 +63,8 @@ class PostCard extends StatelessWidget {
     final hasTitle = title.isNotEmpty;
     final hasContent = content.isNotEmpty;
     final isDark = theme.brightness == Brightness.dark;
+    final isNarrowLayout = MediaQuery.sizeOf(context).width < 600;
+    final cardRadius = isNarrowLayout ? 18.0 : 20.0;
 
     final Color cardTopColor =
         isDark ? const Color(0xFF182230) : const Color(0xFFFCFDFE);
@@ -87,9 +89,12 @@ class PostCard extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.symmetric(
+        horizontal: isNarrowLayout ? 0 : 16,
+        vertical: isNarrowLayout ? 6 : 8,
+      ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(cardRadius),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF0F172A).withValues(alpha: 0.07),
@@ -105,10 +110,10 @@ class PostCard extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(cardRadius),
         child: Ink(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(cardRadius),
             border: Border.all(
               color: cardBorderColor,
               width: 1.2,
@@ -123,10 +128,10 @@ class PostCard extends StatelessWidget {
             ),
           ),
           child: InkWell(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(cardRadius),
             onTap: onCommentTap,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(isNarrowLayout ? 14 : 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -148,7 +153,10 @@ class PostCard extends StatelessWidget {
                   if (hasTitle) ...[
                     Text(
                       title,
-                      style: theme.textTheme.titleLarge?.copyWith(
+                      style: (isNarrowLayout
+                              ? theme.textTheme.titleMedium
+                              : theme.textTheme.titleLarge)
+                          ?.copyWith(
                         fontWeight: FontWeight.w700,
                         height: 1.16,
                         letterSpacing: -0.2,
@@ -172,27 +180,44 @@ class PostCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   if (hasTitle || hasContent) const SizedBox(height: 14),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: _PostEngagementRow(
-                          post: post,
-                          commentCount: commentCount,
-                          fireCount: fireCount,
-                          iceCount: iceCount,
-                          userReaction: userReaction,
-                          onFireTap: wrapReactCallback(onFireTap),
-                          onIceTap: wrapReactCallback(onIceTap),
-                          onCommentTap: onCommentTap,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 2),
-                        child: _buildDateRow(theme),
-                      ),
-                    ],
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isCompactFooter = constraints.maxWidth < 420;
+                      final engagement = _PostEngagementRow(
+                        post: post,
+                        commentCount: commentCount,
+                        fireCount: fireCount,
+                        iceCount: iceCount,
+                        userReaction: userReaction,
+                        onFireTap: wrapReactCallback(onFireTap),
+                        onIceTap: wrapReactCallback(onIceTap),
+                        onCommentTap: onCommentTap,
+                      );
+
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          if (isCompactFooter)
+                            SizedBox(
+                              width: 132,
+                              child: engagement,
+                            )
+                          else
+                            Expanded(child: engagement),
+                          SizedBox(width: isCompactFooter ? 8 : 12),
+                          if (isCompactFooter)
+                            Expanded(
+                              child: _buildDateRow(
+                                context,
+                                theme,
+                                compact: true,
+                              ),
+                            )
+                          else
+                            _buildDateRow(context, theme),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
@@ -349,46 +374,61 @@ class PostCard extends StatelessWidget {
               ),
             ),
           ),
-          if (identityMark != null) identityMark,
+          if (identityMark != null) ...[
+            const SizedBox(width: 4),
+            identityMark,
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildDateRow(ThemeData theme) {
+  Widget _buildDateRow(
+    BuildContext context,
+    ThemeData theme, {
+    bool compact = false,
+  }) {
     final color = theme.colorScheme.onSurface.withValues(alpha: 0.56);
 
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: compact ? MainAxisSize.max : MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
         Icon(
           Icons.schedule_outlined,
-          size: 14,
+          size: compact ? 13 : 14,
           color: color,
         ),
-        const SizedBox(width: 6),
-        Text(
-          _formatDateTime(post.createdAt),
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: color,
-            fontWeight: FontWeight.w600,
-            height: 1,
+        SizedBox(width: compact ? 4 : 6),
+        Flexible(
+          child: Text(
+            _formatDateTime(context, post.createdAt),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: color,
+              fontSize: compact ? 11 : null,
+              fontWeight: FontWeight.w600,
+              height: 1,
+            ),
           ),
         ),
       ],
     );
   }
 
-  String _formatDateTime(DateTime value) {
+  String _formatDateTime(BuildContext context, DateTime value) {
     final local = value.toLocal();
+    final materialLocalizations = MaterialLocalizations.of(context);
+    final mediaQuery = MediaQuery.maybeOf(context);
+    final date = materialLocalizations.formatCompactDate(local);
+    final time = materialLocalizations.formatTimeOfDay(
+      TimeOfDay.fromDateTime(local),
+      alwaysUse24HourFormat: mediaQuery?.alwaysUse24HourFormat ?? false,
+    );
 
-    final day = local.day.toString().padLeft(2, '0');
-    final month = local.month.toString().padLeft(2, '0');
-    final year = local.year.toString();
-    final hour = local.hour.toString().padLeft(2, '0');
-    final minute = local.minute.toString().padLeft(2, '0');
-
-    return '$day/$month/$year $hour:$minute';
+    return '$date $time';
   }
 }
 

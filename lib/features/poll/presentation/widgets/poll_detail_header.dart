@@ -193,7 +193,7 @@ class PollDetailHeader extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isMobileLayout = constraints.maxWidth < 600;
-        final compactBottomRow = constraints.maxWidth < 760;
+        final useCompactActionIcons = constraints.maxWidth < 960;
 
         final heroChips = <Widget>[
           if (representativeLabel != null)
@@ -249,65 +249,13 @@ class PollDetailHeader extends StatelessWidget {
             _buildQuorumChip(theme, l10n, minQuorum, _chipMetrics),
         ];
 
-        final ruleItems = <_PollRuleItem>[
-          if (timeWindowLabel != null)
-            _PollRuleItem(
-              label: _localizedText(
-                l10n,
-                it: 'Tempistiche',
-                en: 'Time window',
-              ),
-              value: timeWindowLabel,
-              icon: Icons.schedule_outlined,
-            ),
-          _PollRuleItem(
-            label: _localizedText(
-              l10n,
-              it: 'Modalità voto',
-              en: 'Vote mode',
-            ),
-            value: typeLabel,
-            icon: Icons.category_outlined,
-          ),
-          _PollRuleItem(
-            label: _localizedText(
-              l10n,
-              it: 'Modifica voto',
-              en: 'Vote changes',
-            ),
-            value: voteChangeLabel,
-            icon: config.allowVoteChange
-                ? Icons.restart_alt_rounded
-                : Icons.block_outlined,
-          ),
-          _PollRuleItem(
-            label: _localizedText(
-              l10n,
-              it: 'Anonimato',
-              en: 'Privacy',
-            ),
-            value: anonymityLabel,
-            icon: Icons.visibility_outlined,
-          ),
-          _PollRuleItem(
-            label: _localizedText(
-              l10n,
-              it: 'Visibilità risultati',
-              en: 'Results visibility',
-            ),
-            value: resultsVisibilityLabel,
-            icon: Icons.insights_outlined,
-          ),
-          if (minQuorum != null)
-            _PollRuleItem(
-              label: _localizedText(
-                l10n,
-                it: 'Quorum',
-                en: 'Quorum',
-              ),
-              value: l10n.pollCard_quorumLabel(minQuorum),
-              icon: Icons.how_to_vote_outlined,
-            ),
+        final ruleSummaryValues = <String>[
+          if (timeWindowLabel != null) timeWindowLabel,
+          typeLabel,
+          voteChangeLabel,
+          anonymityLabel,
+          resultsVisibilityLabel,
+          if (minQuorum != null) l10n.pollCard_quorumLabel(minQuorum),
         ];
 
         return Column(
@@ -394,16 +342,16 @@ class PollDetailHeader extends StatelessWidget {
                 ),
               ),
             ],
-            if (isMobileLayout && ruleItems.isNotEmpty) ...[
+            if (isMobileLayout && ruleSummaryValues.isNotEmpty) ...[
               const SizedBox(height: 18),
-              _buildVotingRulesCard(
+              _buildVotingRulesSummary(
                 context,
                 title: _localizedText(
                   l10n,
                   it: 'Regole di voto',
                   en: 'Voting rules',
                 ),
-                items: ruleItems,
+                values: ruleSummaryValues,
               ),
             ],
             if (quorumInfoText != null) ...[
@@ -432,131 +380,67 @@ class PollDetailHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              child: isMobileLayout
-                  ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: EngagementBar(
-                            fireCount: fireCount,
-                            iceCount: iceCount,
-                            commentCount: commentCount,
-                            userReaction: userReaction,
-                            onFireTap: onFireTap,
-                            onIceTap: onIceTap,
-                            onCommentTap: onCommentTap,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        _buildCompactActionIcon(
-                          context,
-                          icon: Icons.share_outlined,
-                          tooltip: shareLabel,
-                          onPressed: onSharePressed,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildCompactActionIcon(
-                          context,
-                          icon: isFavorite
-                              ? Icons.star_rounded
-                              : Icons.star_border_rounded,
-                          tooltip: isFavorite
-                              ? l10n.pollDetail_removeFromFavoritesTooltip
-                              : l10n.pollDetail_addToFavoritesTooltip,
-                          onPressed: onFavoritePressed,
-                          isActive: isFavorite,
-                        ),
-                      ],
-                    )
-                  : compactBottomRow
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            EngagementBar(
-                              fireCount: fireCount,
-                              iceCount: iceCount,
-                              commentCount: commentCount,
-                              userReaction: userReaction,
-                              onFireTap: onFireTap,
-                              onIceTap: onIceTap,
-                              onCommentTap: onCommentTap,
-                            ),
-                            const SizedBox(height: 12),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                alignment: WrapAlignment.end,
-                                children: [
-                                  _buildActionPill(
-                                    context,
-                                    icon: Icons.share_outlined,
-                                    label: shareLabel,
-                                    tooltip: shareLabel,
-                                    onPressed: onSharePressed,
-                                  ),
-                                  _buildActionPill(
-                                    context,
-                                    icon: isFavorite
-                                        ? Icons.star_rounded
-                                        : Icons.star_border_rounded,
-                                    label: saveLabel,
-                                    tooltip: isFavorite
-                                        ? l10n
-                                            .pollDetail_removeFromFavoritesTooltip
-                                        : l10n.pollDetail_addToFavoritesTooltip,
-                                    onPressed: onFavoritePressed,
-                                    isActive: isFavorite,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        )
-                      : Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: EngagementBar(
-                                fireCount: fireCount,
-                                iceCount: iceCount,
-                                commentCount: commentCount,
-                                userReaction: userReaction,
-                                onFireTap: onFireTap,
-                                onIceTap: onIceTap,
-                                onCommentTap: onCommentTap,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _buildActionPill(
-                                  context,
-                                  icon: Icons.share_outlined,
-                                  label: shareLabel,
-                                  tooltip: shareLabel,
-                                  onPressed: onSharePressed,
-                                ),
-                                const SizedBox(width: 8),
-                                _buildActionPill(
-                                  context,
-                                  icon: isFavorite
-                                      ? Icons.star_rounded
-                                      : Icons.star_border_rounded,
-                                  label: saveLabel,
-                                  tooltip: isFavorite
-                                      ? l10n
-                                          .pollDetail_removeFromFavoritesTooltip
-                                      : l10n.pollDetail_addToFavoritesTooltip,
-                                  onPressed: onFavoritePressed,
-                                  isActive: isFavorite,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: EngagementBar(
+                        fireCount: fireCount,
+                        iceCount: iceCount,
+                        commentCount: commentCount,
+                        userReaction: userReaction,
+                        onFireTap: onFireTap,
+                        onIceTap: onIceTap,
+                        onCommentTap: onCommentTap,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  if (useCompactActionIcons) ...[
+                    _buildCompactActionIcon(
+                      context,
+                      icon: Icons.share_outlined,
+                      tooltip: shareLabel,
+                      onPressed: onSharePressed,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildCompactActionIcon(
+                      context,
+                      icon: isFavorite
+                          ? Icons.star_rounded
+                          : Icons.star_border_rounded,
+                      tooltip: isFavorite
+                          ? l10n.pollDetail_removeFromFavoritesTooltip
+                          : l10n.pollDetail_addToFavoritesTooltip,
+                      onPressed: onFavoritePressed,
+                      isActive: isFavorite,
+                    ),
+                  ] else ...[
+                    _buildActionPill(
+                      context,
+                      icon: Icons.share_outlined,
+                      label: shareLabel,
+                      tooltip: shareLabel,
+                      onPressed: onSharePressed,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildActionPill(
+                      context,
+                      icon: isFavorite
+                          ? Icons.star_rounded
+                          : Icons.star_border_rounded,
+                      label: saveLabel,
+                      tooltip: isFavorite
+                          ? l10n.pollDetail_removeFromFavoritesTooltip
+                          : l10n.pollDetail_addToFavoritesTooltip,
+                      onPressed: onFavoritePressed,
+                      isActive: isFavorite,
+                    ),
+                  ],
+                ],
+              ),
             ),
           ],
         );
@@ -564,10 +448,10 @@ class PollDetailHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildVotingRulesCard(
+  Widget _buildVotingRulesSummary(
     BuildContext context, {
     required String title,
-    required List<_PollRuleItem> items,
+    required List<String> values,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -575,92 +459,59 @@ class PollDetailHeader extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: isDark ? 0.36 : 0.92),
-        borderRadius: BorderRadius.circular(18),
+        color: colorScheme.primary.withValues(alpha: isDark ? 0.08 : 0.045),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: colorScheme.outline.withValues(alpha: isDark ? 0.22 : 0.10),
+          color: colorScheme.primary.withValues(alpha: isDark ? 0.18 : 0.10),
           width: 1,
         ),
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: colorScheme.onSurface,
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              Icons.rule_outlined,
+              size: 17,
+              color: colorScheme.primary,
             ),
           ),
-          const SizedBox(height: 12),
-          for (var i = 0; i < items.length; i++) ...[
-            _buildVotingRuleRow(context, item: items[i]),
-            if (i != items.length - 1) ...[
-              const SizedBox(height: 10),
-              Divider(
-                height: 1,
-                thickness: 1,
-                color:
-                    colorScheme.outline.withValues(alpha: isDark ? 0.18 : 0.08),
-              ),
-              const SizedBox(height: 10),
-            ],
-          ],
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  values.join('  •  '),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withValues(
+                      alpha: isDark ? 0.72 : 0.66,
+                    ),
+                    fontWeight: FontWeight.w600,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildVotingRuleRow(
-    BuildContext context, {
-    required _PollRuleItem item,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(
-            color: colorScheme.primary.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            item.icon,
-            size: 16,
-            color: colorScheme.primary,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item.label,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.62),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                item.value,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w700,
-                  height: 1.25,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -1176,7 +1027,7 @@ class PollDetailHeader extends StatelessWidget {
           onTap: onPressed,
           borderRadius: BorderRadius.circular(999),
           child: Ink(
-            height: 36,
+            height: 44,
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
               color: backgroundColor,
@@ -1242,8 +1093,8 @@ class PollDetailHeader extends StatelessWidget {
           onTap: onPressed,
           borderRadius: BorderRadius.circular(999),
           child: Ink(
-            width: 36,
-            height: 36,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               color: backgroundColor,
               borderRadius: BorderRadius.circular(999),
@@ -1581,17 +1432,5 @@ class _PollChipTone {
     required this.backgroundColor,
     required this.foregroundColor,
     required this.borderColor,
-  });
-}
-
-class _PollRuleItem {
-  final String label;
-  final String value;
-  final IconData icon;
-
-  const _PollRuleItem({
-    required this.label,
-    required this.value,
-    required this.icon,
   });
 }

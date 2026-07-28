@@ -99,8 +99,6 @@ class NewsCard extends StatelessWidget {
       news,
       fallbackLabel: l10n.newsCard_headerTitle,
     );
-    final String publishedLabel = _formatPublishedAt(news.publishedAt);
-
     final Color cardTopColor = theme.brightness == Brightness.dark
         ? const Color(0xFF18202B)
         : const Color(0xFFFCFDFE);
@@ -183,31 +181,12 @@ class NewsCard extends StatelessWidget {
                             Expanded(
                               child: SizedBox(
                                 height: imageHeight,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: _NewsTextBlock(
-                                        title: title,
-                                        summary: summary,
-                                        compact: compact,
-                                        titleMaxLines: titleMaxLines,
-                                        summaryMaxLines: summaryMaxLines,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      publishedLabel,
-                                      style:
-                                          theme.textTheme.bodySmall?.copyWith(
-                                        color: theme.colorScheme.onSurface
-                                            .withValues(alpha: 0.58),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
+                                child: _NewsTextBlock(
+                                  title: title,
+                                  summary: summary,
+                                  compact: compact,
+                                  titleMaxLines: titleMaxLines,
+                                  summaryMaxLines: summaryMaxLines,
                                 ),
                               ),
                             ),
@@ -227,29 +206,47 @@ class NewsCard extends StatelessWidget {
                           titleMaxLines: compact ? 3 : 2,
                           summaryMaxLines: compact ? 3 : 2,
                         ),
-                        const SizedBox(height: 10),
-                        Text(
-                          publishedLabel,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.58,
-                            ),
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
                       ],
                       const SizedBox(height: 14),
-                      _NewsEngagementBar(
-                        news: news,
-                        commentCount: commentCount,
-                        fireCount: fireCount,
-                        iceCount: iceCount,
-                        userReaction: userReaction,
-                        onFireTap: wrapReactCallback(onFireTap),
-                        onIceTap: wrapReactCallback(onIceTap),
-                        onCommentTap: openCommentsOrDetail,
+                      LayoutBuilder(
+                        builder: (context, footerConstraints) {
+                          final isCompactFooter =
+                              compact || footerConstraints.maxWidth < 420;
+                          final engagement = _NewsEngagementBar(
+                            news: news,
+                            compact: isCompactFooter,
+                            commentCount: commentCount,
+                            fireCount: fireCount,
+                            iceCount: iceCount,
+                            userReaction: userReaction,
+                            onFireTap: wrapReactCallback(onFireTap),
+                            onIceTap: wrapReactCallback(onIceTap),
+                            onCommentTap: openCommentsOrDetail,
+                          );
+
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              if (isCompactFooter)
+                                engagement
+                              else
+                                Expanded(child: engagement),
+                              SizedBox(
+                                width: isCompactFooter ? 8 : 12,
+                              ),
+                              if (isCompactFooter)
+                                Expanded(
+                                  child: _buildDateRow(
+                                    context,
+                                    theme,
+                                    compact: true,
+                                  ),
+                                )
+                              else
+                                _buildDateRow(context, theme),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   );
@@ -346,15 +343,55 @@ class NewsCard extends StatelessWidget {
     return fallbackLabel;
   }
 
-  String _formatPublishedAt(DateTime dateTime) {
-    final local = dateTime.toLocal();
-    final day = local.day.toString().padLeft(2, '0');
-    final month = local.month.toString().padLeft(2, '0');
-    final year = local.year.toString();
-    final hour = local.hour.toString().padLeft(2, '0');
-    final minute = local.minute.toString().padLeft(2, '0');
+  Widget _buildDateRow(
+    BuildContext context,
+    ThemeData theme, {
+    bool compact = false,
+  }) {
+    final color = theme.colorScheme.onSurface.withValues(alpha: 0.56);
 
-    return '$day/$month/$year $hour:$minute';
+    return Row(
+      mainAxisSize: compact ? MainAxisSize.max : MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Icon(
+          Icons.schedule_outlined,
+          size: compact ? 13 : 14,
+          color: color,
+        ),
+        SizedBox(width: compact ? 4 : 6),
+        Flexible(
+          child: Text(
+            _formatPublishedAt(context, news.publishedAt),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: color,
+              fontSize: compact ? 11 : null,
+              fontWeight: FontWeight.w600,
+              height: 1,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatPublishedAt(
+    BuildContext context,
+    DateTime dateTime,
+  ) {
+    final local = dateTime.toLocal();
+    final materialLocalizations = MaterialLocalizations.of(context);
+    final mediaQuery = MediaQuery.maybeOf(context);
+    final date = materialLocalizations.formatCompactDate(local);
+    final time = materialLocalizations.formatTimeOfDay(
+      TimeOfDay.fromDateTime(local),
+      alwaysUse24HourFormat: mediaQuery?.alwaysUse24HourFormat ?? false,
+    );
+
+    return '$date $time';
   }
 }
 
@@ -468,6 +505,7 @@ class _NewsThumbnail extends StatelessWidget {
 
 class _NewsEngagementBar extends StatelessWidget {
   final NewsItem news;
+  final bool compact;
   final int? commentCount;
   final int fireCount;
   final int iceCount;
@@ -478,6 +516,7 @@ class _NewsEngagementBar extends StatelessWidget {
 
   const _NewsEngagementBar({
     required this.news,
+    required this.compact,
     required this.commentCount,
     required this.fireCount,
     required this.iceCount,
@@ -505,17 +544,24 @@ class _NewsEngagementBar extends StatelessWidget {
   }
 
   Widget _buildBar(int resolvedCommentCount) {
+    final engagementBar = EngagementBar(
+      fireCount: fireCount,
+      iceCount: iceCount,
+      commentCount: resolvedCommentCount,
+      userReaction: userReaction,
+      onFireTap: onFireTap,
+      onIceTap: onIceTap,
+      onCommentTap: onCommentTap,
+    );
+
     return Align(
       alignment: Alignment.centerLeft,
-      child: EngagementBar(
-        fireCount: fireCount,
-        iceCount: iceCount,
-        commentCount: resolvedCommentCount,
-        userReaction: userReaction,
-        onFireTap: onFireTap,
-        onIceTap: onIceTap,
-        onCommentTap: onCommentTap,
-      ),
+      child: compact
+          ? SizedBox(
+              width: 132,
+              child: engagementBar,
+            )
+          : engagementBar,
     );
   }
 }

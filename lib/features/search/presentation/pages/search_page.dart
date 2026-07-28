@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/app/theme/colors.dart';
 import 'package:sociale_vote/app/theme/radius.dart';
 import 'package:sociale_vote/app/theme/spacing.dart';
 import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
@@ -13,6 +14,9 @@ import 'package:sociale_vote/domain/search/value_objects/search_query.dart';
 import 'package:sociale_vote/features/search/application/search_controller.dart'
     as app_search;
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/ui/app_button.dart';
+import 'package:sociale_vote/shared/ui/app_card.dart';
+import 'package:sociale_vote/shared/ui/loading_indicator.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -23,6 +27,7 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   static const double _maxContentWidth = 1120;
+  static const double _stateCardMaxWidth = 480;
   static const double _singleRowFiltersMinWidth = 720;
 
   final TextEditingController _queryController = TextEditingController();
@@ -30,6 +35,11 @@ class _SearchPageState extends State<SearchPage> {
   SearchSort _selectedSort = SearchSort.hottest;
   PollStatusFilter _selectedPollStatus = PollStatusFilter.all;
   String? _openingTargetKey;
+
+  bool get _hasNonDefaultFilters =>
+      _selectedType != SearchContentType.all ||
+      _selectedSort != SearchSort.hottest ||
+      _selectedPollStatus != PollStatusFilter.all;
 
   @override
   void dispose() {
@@ -54,6 +64,63 @@ class _SearchPageState extends State<SearchPage> {
       rawQuery: raw,
       type: _selectedType,
     );
+  }
+
+  void _clearSearch(app_search.SearchController controller) {
+    _queryController.clear();
+    controller.clear();
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      _selectedType = SearchContentType.all;
+      _selectedSort = SearchSort.hottest;
+      _selectedPollStatus = PollStatusFilter.all;
+    });
+  }
+
+  void _updateType(
+    app_search.SearchController controller,
+    SearchContentType type,
+  ) {
+    setState(() {
+      _selectedType = type;
+      if (type != SearchContentType.poll && type != SearchContentType.all) {
+        _selectedPollStatus = PollStatusFilter.all;
+      }
+    });
+
+    controller.setContentType(type);
+    if (_queryController.text.trim().isNotEmpty) {
+      _onSubmit(controller);
+    }
+  }
+
+  void _updateSort(
+    app_search.SearchController controller,
+    SearchSort sort,
+  ) {
+    setState(() {
+      _selectedSort = sort;
+    });
+
+    controller.setSort(sort);
+    if (_queryController.text.trim().isNotEmpty) {
+      _onSubmit(controller);
+    }
+  }
+
+  void _updatePollStatus(
+    app_search.SearchController controller,
+    PollStatusFilter status,
+  ) {
+    setState(() {
+      _selectedPollStatus = status;
+    });
+
+    controller.setPollStatus(status);
+    if (_queryController.text.trim().isNotEmpty) {
+      _onSubmit(controller);
+    }
   }
 
   Future<void> _openResult(SearchResultItem item) async {
@@ -136,18 +203,34 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
+
+    final pageBackground = Color.alphaBlend(
+      colorScheme.primary.withValues(alpha: isDark ? 0.035 : 0.012),
+      theme.scaffoldBackgroundColor,
+    );
 
     return ChangeNotifierProvider<app_search.SearchController>(
       create: (_) => AppDI.instance.createSearchController(),
       child: Consumer<app_search.SearchController>(
         builder: (context, controller, _) {
+          final canClear = _queryController.text.isNotEmpty ||
+              _hasNonDefaultFilters ||
+              !controller.isIdle;
+
           return Scaffold(
+            backgroundColor: pageBackground,
             appBar: AppBar(
+              backgroundColor: pageBackground,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
               title: Text(l10n.searchPageTitle),
             ),
             body: ColoredBox(
-              color: theme.scaffoldBackgroundColor,
+              color: pageBackground,
               child: SafeArea(
                 child: Center(
                   child: ConstrainedBox(
@@ -163,262 +246,191 @@ class _SearchPageState extends State<SearchPage> {
                               AppSpacing.pagePadding,
                               AppSpacing.s,
                               AppSpacing.pagePadding,
-                              AppSpacing.xxs,
+                              AppSpacing.xs,
                             ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _queryController,
-                                    textInputAction: TextInputAction.search,
-                                    onSubmitted: (_) => _onSubmit(controller),
-                                    decoration: InputDecoration(
-                                      prefixIcon: const Icon(Icons.search),
-                                      hintText: l10n.searchInputHint,
-                                      isDense: true,
-                                      border: const OutlineInputBorder(
-                                        borderRadius: AppRadius.inputRadius,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.xs),
-                                IconButton(
-                                  onPressed: () {
-                                    _queryController.clear();
-                                    controller.clear();
-
-                                    setState(() {
-                                      _selectedType = SearchContentType.all;
-                                      _selectedSort = SearchSort.hottest;
-                                      _selectedPollStatus =
-                                          PollStatusFilter.all;
-                                    });
-                                  },
-                                  tooltip: l10n.searchClearTooltip,
-                                  icon: const Icon(Icons.close),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.pagePadding,
-                              vertical: AppSpacing.xxs,
-                            ),
-                            child: _HorizontalChipGroup(
-                              children: [
-                                _TypeFilterChip(
-                                  label: l10n.searchTypeAll,
-                                  type: SearchContentType.all,
-                                  selectedType: _selectedType,
-                                  onSelected: (type) {
-                                    setState(() {
-                                      _selectedType = type;
-                                      if (_selectedType !=
-                                              SearchContentType.poll &&
-                                          _selectedType !=
-                                              SearchContentType.all) {
-                                        _selectedPollStatus =
-                                            PollStatusFilter.all;
-                                      }
-                                    });
-                                    controller.setContentType(type);
-                                    if (_queryController.text
-                                        .trim()
-                                        .isNotEmpty) {
-                                      _onSubmit(controller);
-                                    }
-                                  },
-                                ),
-                                _TypeFilterChip(
-                                  label: l10n.searchTypePolls,
-                                  type: SearchContentType.poll,
-                                  selectedType: _selectedType,
-                                  onSelected: (type) {
-                                    setState(() {
-                                      _selectedType = type;
-                                    });
-                                    controller.setContentType(type);
-                                    if (_queryController.text
-                                        .trim()
-                                        .isNotEmpty) {
-                                      _onSubmit(controller);
-                                    }
-                                  },
-                                ),
-                                _TypeFilterChip(
-                                  label: l10n.searchTypeNews,
-                                  type: SearchContentType.news,
-                                  selectedType: _selectedType,
-                                  onSelected: (type) {
-                                    setState(() {
-                                      _selectedType = type;
-                                      _selectedPollStatus =
-                                          PollStatusFilter.all;
-                                    });
-                                    controller.setContentType(type);
-                                    if (_queryController.text
-                                        .trim()
-                                        .isNotEmpty) {
-                                      _onSubmit(controller);
-                                    }
-                                  },
-                                ),
-                                _TypeFilterChip(
-                                  label: l10n.searchTypePosts,
-                                  type: SearchContentType.post,
-                                  selectedType: _selectedType,
-                                  onSelected: (type) {
-                                    setState(() {
-                                      _selectedType = type;
-                                      _selectedPollStatus =
-                                          PollStatusFilter.all;
-                                    });
-                                    controller.setContentType(type);
-                                    if (_queryController.text
-                                        .trim()
-                                        .isNotEmpty) {
-                                      _onSubmit(controller);
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.pagePadding,
-                              vertical: AppSpacing.xxs,
-                            ),
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                final sortFilters = _HorizontalChipGroup(
-                                  children: [
-                                    _SortFilterChip(
-                                      label: l10n.searchSortHottest,
-                                      sort: SearchSort.hottest,
-                                      selectedSort: _selectedSort,
-                                      onSelected: (sort) {
-                                        setState(() {
-                                          _selectedSort = sort;
-                                        });
-                                        controller.setSort(sort);
-                                        if (_queryController.text
-                                            .trim()
-                                            .isNotEmpty) {
-                                          _onSubmit(controller);
-                                        }
-                                      },
-                                    ),
-                                    _SortFilterChip(
-                                      label: l10n.searchSortLatest,
-                                      sort: SearchSort.latest,
-                                      selectedSort: _selectedSort,
-                                      onSelected: (sort) {
-                                        setState(() {
-                                          _selectedSort = sort;
-                                        });
-                                        controller.setSort(sort);
-                                        if (_queryController.text
-                                            .trim()
-                                            .isNotEmpty) {
-                                          _onSubmit(controller);
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                );
-
-                                final showsPollStatus =
-                                    _selectedType == SearchContentType.poll ||
-                                        _selectedType == SearchContentType.all;
-
-                                if (!showsPollStatus) {
-                                  return sortFilters;
-                                }
-
-                                final pollStatusFilters = _HorizontalChipGroup(
-                                  children: [
-                                    _PollStatusFilterChip(
-                                      label: l10n.searchPollStatusAll,
-                                      status: PollStatusFilter.all,
-                                      selectedStatus: _selectedPollStatus,
-                                      onSelected: (status) {
-                                        setState(() {
-                                          _selectedPollStatus = status;
-                                        });
-                                        controller.setPollStatus(status);
-                                        if (_queryController.text
-                                            .trim()
-                                            .isNotEmpty) {
-                                          _onSubmit(controller);
-                                        }
-                                      },
-                                    ),
-                                    _PollStatusFilterChip(
-                                      label: l10n.searchPollStatusOpen,
-                                      status: PollStatusFilter.open,
-                                      selectedStatus: _selectedPollStatus,
-                                      onSelected: (status) {
-                                        setState(() {
-                                          _selectedPollStatus = status;
-                                        });
-                                        controller.setPollStatus(status);
-                                        if (_queryController.text
-                                            .trim()
-                                            .isNotEmpty) {
-                                          _onSubmit(controller);
-                                        }
-                                      },
-                                    ),
-                                    _PollStatusFilterChip(
-                                      label: l10n.searchPollStatusClosed,
-                                      status: PollStatusFilter.closed,
-                                      selectedStatus: _selectedPollStatus,
-                                      onSelected: (status) {
-                                        setState(() {
-                                          _selectedPollStatus = status;
-                                        });
-                                        controller.setPollStatus(status);
-                                        if (_queryController.text
-                                            .trim()
-                                            .isNotEmpty) {
-                                          _onSubmit(controller);
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                );
-
-                                if (constraints.maxWidth >=
-                                    _singleRowFiltersMinWidth) {
-                                  return Row(
+                            child: AppCard(
+                              padding: const EdgeInsets.all(AppSpacing.s),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Row(
                                     children: [
-                                      Expanded(child: sortFilters),
-                                      const SizedBox(width: AppSpacing.m),
-                                      Expanded(child: pollStatusFilters),
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _queryController,
+                                          textInputAction:
+                                              TextInputAction.search,
+                                          onChanged: (_) => setState(() {}),
+                                          onSubmitted: (_) {
+                                            FocusScope.of(context).unfocus();
+                                            _onSubmit(controller);
+                                          },
+                                          decoration: InputDecoration(
+                                            prefixIcon:
+                                                const Icon(Icons.search),
+                                            hintText: l10n.searchInputHint,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: AppSpacing.xs),
+                                      SizedBox.square(
+                                        dimension: 44,
+                                        child: IconButton(
+                                          onPressed: canClear
+                                              ? () => _clearSearch(controller)
+                                              : null,
+                                          tooltip: l10n.searchClearTooltip,
+                                          icon: const Icon(Icons.close),
+                                        ),
+                                      ),
                                     ],
-                                  );
-                                }
+                                  ),
+                                  const SizedBox(height: AppSpacing.s),
+                                  _HorizontalChipGroup(
+                                    children: [
+                                      _TypeFilterChip(
+                                        label: l10n.searchTypeAll,
+                                        type: SearchContentType.all,
+                                        selectedType: _selectedType,
+                                        onSelected: (type) =>
+                                            _updateType(controller, type),
+                                      ),
+                                      _TypeFilterChip(
+                                        label: l10n.searchTypePolls,
+                                        type: SearchContentType.poll,
+                                        selectedType: _selectedType,
+                                        onSelected: (type) =>
+                                            _updateType(controller, type),
+                                      ),
+                                      _TypeFilterChip(
+                                        label: l10n.searchTypeNews,
+                                        type: SearchContentType.news,
+                                        selectedType: _selectedType,
+                                        onSelected: (type) =>
+                                            _updateType(controller, type),
+                                      ),
+                                      _TypeFilterChip(
+                                        label: l10n.searchTypePosts,
+                                        type: SearchContentType.post,
+                                        selectedType: _selectedType,
+                                        onSelected: (type) =>
+                                            _updateType(controller, type),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      final sortChips = <Widget>[
+                                        _SortFilterChip(
+                                          label: l10n.searchSortHottest,
+                                          sort: SearchSort.hottest,
+                                          selectedSort: _selectedSort,
+                                          onSelected: (sort) => _updateSort(
+                                            controller,
+                                            sort,
+                                          ),
+                                        ),
+                                        _SortFilterChip(
+                                          label: l10n.searchSortLatest,
+                                          sort: SearchSort.latest,
+                                          selectedSort: _selectedSort,
+                                          onSelected: (sort) => _updateSort(
+                                            controller,
+                                            sort,
+                                          ),
+                                        ),
+                                      ];
 
-                                return Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    sortFilters,
-                                    const SizedBox(height: AppSpacing.xs),
-                                    pollStatusFilters,
-                                  ],
-                                );
-                              },
+                                      final showsPollStatus = _selectedType ==
+                                              SearchContentType.poll ||
+                                          _selectedType ==
+                                              SearchContentType.all;
+
+                                      if (!showsPollStatus) {
+                                        return _HorizontalChipGroup(
+                                          children: sortChips,
+                                        );
+                                      }
+
+                                      final pollStatusChips = <Widget>[
+                                        _PollStatusFilterChip(
+                                          label: l10n.searchPollStatusAll,
+                                          status: PollStatusFilter.all,
+                                          selectedStatus: _selectedPollStatus,
+                                          onSelected: (status) =>
+                                              _updatePollStatus(
+                                            controller,
+                                            status,
+                                          ),
+                                        ),
+                                        _PollStatusFilterChip(
+                                          label: l10n.searchPollStatusOpen,
+                                          status: PollStatusFilter.open,
+                                          selectedStatus: _selectedPollStatus,
+                                          onSelected: (status) =>
+                                              _updatePollStatus(
+                                            controller,
+                                            status,
+                                          ),
+                                        ),
+                                        _PollStatusFilterChip(
+                                          label: l10n.searchPollStatusClosed,
+                                          status: PollStatusFilter.closed,
+                                          selectedStatus: _selectedPollStatus,
+                                          onSelected: (status) =>
+                                              _updatePollStatus(
+                                            controller,
+                                            status,
+                                          ),
+                                        ),
+                                      ];
+
+                                      if (constraints.maxWidth >=
+                                          _singleRowFiltersMinWidth) {
+                                        return Row(
+                                          children: [
+                                            _InlineChipGroup(
+                                              children: sortChips,
+                                            ),
+                                            const Spacer(),
+                                            _InlineChipGroup(
+                                              children: pollStatusChips,
+                                            ),
+                                          ],
+                                        );
+                                      }
+
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          _HorizontalChipGroup(
+                                            children: sortChips,
+                                          ),
+                                          const SizedBox(
+                                            height: AppSpacing.xs,
+                                          ),
+                                          _HorizontalChipGroup(
+                                            children: pollStatusChips,
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          const SizedBox(height: AppSpacing.xs),
                           Expanded(
-                            child: _buildResultsArea(
-                              context: context,
-                              controller: controller,
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 180),
+                              switchInCurve: Curves.easeOut,
+                              switchOutCurve: Curves.easeIn,
+                              child: _buildResultsArea(
+                                context: context,
+                                controller: controller,
+                              ),
                             ),
                           ),
                         ],
@@ -438,101 +450,83 @@ class _SearchPageState extends State<SearchPage> {
     required BuildContext context,
     required app_search.SearchController controller,
   }) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
     if (controller.isIdle) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.l,
-          ),
-          child: Text(
-            l10n.searchIdleMessage,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
+      return _SearchStateView(
+        key: const ValueKey<String>('search-idle'),
+        icon: Icons.manage_search_rounded,
+        message: l10n.searchIdleMessage,
       );
     }
 
     if (controller.isLoading && controller.results.isEmpty) {
       return const Center(
-        child: CircularProgressIndicator(),
+        key: ValueKey<String>('search-loading'),
+        child: LoadingIndicator(),
       );
     }
 
     if (controller.hasError) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.l,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.error_outline,
-                size: 40,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                l10n.searchErrorMessage,
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.s),
-              ElevatedButton.icon(
-                onPressed: controller.retry,
-                icon: const Icon(Icons.refresh),
-                label: Text(l10n.searchRetryButton),
-              ),
-            ],
-          ),
-        ),
+      return _SearchStateView(
+        key: const ValueKey<String>('search-error'),
+        icon: Icons.error_outline_rounded,
+        message: l10n.searchErrorMessage,
+        actionLabel: l10n.searchRetryButton,
+        onAction: controller.retry,
       );
     }
 
     if (!controller.isLoading && controller.results.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.l,
-          ),
-          child: Text(
-            l10n.searchEmptyMessage,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
+      return _SearchStateView(
+        key: const ValueKey<String>('search-empty'),
+        icon: Icons.search_off_rounded,
+        message: l10n.searchEmptyMessage,
       );
     }
 
     final results = controller.results;
 
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.pagePadding,
-        AppSpacing.xxs,
-        AppSpacing.pagePadding,
-        AppSpacing.pagePadding,
-      ),
-      itemCount: results.length,
-      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.xs),
-      itemBuilder: (context, index) {
-        final item = results[index];
-        final isOpening = _openingTargetKey == item.target.key;
+    return Column(
+      key: const ValueKey<String>('search-results'),
+      children: [
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 140),
+          child: controller.isLoading
+              ? const LinearProgressIndicator(
+                  key: ValueKey<String>('search-refreshing'),
+                  minHeight: 2,
+                )
+              : const SizedBox(
+                  key: ValueKey<String>('search-not-refreshing'),
+                  height: 2,
+                ),
+        ),
+        Expanded(
+          child: ListView.separated(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.pagePadding,
+              AppSpacing.xxs,
+              AppSpacing.pagePadding,
+              AppSpacing.pagePadding,
+            ),
+            itemCount: results.length,
+            separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.xs),
+            itemBuilder: (context, index) {
+              final item = results[index];
+              final isOpening = _openingTargetKey == item.target.key;
+              final isNavigationLocked = _openingTargetKey != null;
 
-        return _SearchResultTile(
-          item: item,
-          isOpening: isOpening,
-          onTap: isOpening ? null : () => _openResult(item),
-        );
-      },
+              return _SearchResultTile(
+                item: item,
+                isOpening: isOpening,
+                onTap: isNavigationLocked ? null : () => _openResult(item),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -560,6 +554,27 @@ class _HorizontalChipGroup extends StatelessWidget {
   }
 }
 
+class _InlineChipGroup extends StatelessWidget {
+  final List<Widget> children;
+
+  const _InlineChipGroup({
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var index = 0; index < children.length; index++) ...[
+          if (index > 0) const SizedBox(width: AppSpacing.xs),
+          children[index],
+        ],
+      ],
+    );
+  }
+}
+
 class _TypeFilterChip extends StatelessWidget {
   final String label;
   final SearchContentType type;
@@ -577,9 +592,14 @@ class _TypeFilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final selected = type == selectedType;
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return ChoiceChip(
       label: Text(label),
       selected: selected,
+      checkmarkColor:
+          isDark ? theme.colorScheme.onPrimary : theme.colorScheme.primary,
       onSelected: (_) => onSelected(type),
     );
   }
@@ -602,9 +622,14 @@ class _SortFilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final selected = sort == selectedSort;
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return ChoiceChip(
       label: Text(label),
       selected: selected,
+      checkmarkColor:
+          isDark ? theme.colorScheme.onPrimary : theme.colorScheme.primary,
       onSelected: (_) => onSelected(sort),
     );
   }
@@ -627,10 +652,79 @@ class _PollStatusFilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final selected = status == selectedStatus;
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return ChoiceChip(
       label: Text(label),
       selected: selected,
+      checkmarkColor:
+          isDark ? theme.colorScheme.onPrimary : theme.colorScheme.primary,
       onSelected: (_) => onSelected(status),
+    );
+  }
+}
+
+class _SearchStateView extends StatelessWidget {
+  final IconData icon;
+  final String message;
+  final String? actionLabel;
+  final Future<void> Function()? onAction;
+
+  const _SearchStateView({
+    super.key,
+    required this.icon,
+    required this.message,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.pagePadding),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: _SearchPageState._stateCardMaxWidth,
+          ),
+          child: AppCard(
+            padding: const EdgeInsets.all(AppSpacing.l),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 40,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(height: AppSpacing.s),
+                Text(
+                  message,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.76),
+                    height: 1.35,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                if (actionLabel != null && onAction != null) ...[
+                  const SizedBox(height: AppSpacing.m),
+                  AppButton.secondary(
+                    label: actionLabel!,
+                    icon: Icons.refresh_rounded,
+                    onPressed: () {
+                      onAction!();
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -649,82 +743,97 @@ class _SearchResultTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    final icon = _iconForType(item.contentType);
+    final colorScheme = theme.colorScheme;
     final typeLabel = _labelForType(context, item.contentType);
     final dateText = _formatDate(context, item.date);
+    final palette = _paletteForType(context, item.contentType);
 
-    return Card(
-      elevation: 0,
-      shape: const RoundedRectangleBorder(
-        borderRadius: AppRadius.inputRadius,
-      ),
-      child: InkWell(
-        borderRadius: AppRadius.inputRadius,
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.s),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    icon,
-                    size: 18,
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    typeLabel,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (isOpening)
-                    const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
+    return Semantics(
+      button: true,
+      enabled: onTap != null,
+      label: '$typeLabel: ${item.title}',
+      child: SizedBox(
+        width: double.infinity,
+        child: AppCard(
+          onTap: onTap,
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: _SearchTypeBadge(
+                            icon: _iconForType(item.contentType),
+                            label: typeLabel,
+                            foregroundColor: palette.foreground,
+                            backgroundColor: palette.background,
+                          ),
+                        ),
                       ),
-                    )
-                  else if (dateText != null) ...[
-                    Icon(
-                      Icons.schedule,
-                      size: 14,
-                      color: theme.hintColor,
-                    ),
-                    const SizedBox(width: AppSpacing.xxs),
-                    Text(
-                      dateText,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.textTheme.bodySmall?.color
-                            ?.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                item.title,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
+                      const SizedBox(width: AppSpacing.s),
+                      if (isOpening)
+                        const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      else if (dateText != null)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.schedule_rounded,
+                              size: 14,
+                              color:
+                                  colorScheme.onSurface.withValues(alpha: 0.58),
+                            ),
+                            const SizedBox(width: AppSpacing.xxs),
+                            Text(
+                              dateText,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurface
+                                    .withValues(alpha: 0.66),
+                              ),
+                              textAlign: TextAlign.end,
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              if (item.hasSnippet) ...[
-                const SizedBox(height: AppSpacing.xxs),
+                const SizedBox(height: AppSpacing.s),
                 Text(
-                  item.snippet!,
-                  maxLines: 2,
+                  item.title,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.25,
+                  ),
                 ),
+                if (item.hasSnippet) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    item.snippet!,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.76),
+                      height: 1.35,
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -734,13 +843,13 @@ class _SearchResultTile extends StatelessWidget {
   IconData _iconForType(SearchContentType type) {
     switch (type) {
       case SearchContentType.poll:
-        return Icons.how_to_vote;
+        return Icons.how_to_vote_rounded;
       case SearchContentType.news:
-        return Icons.article;
+        return Icons.article_rounded;
       case SearchContentType.post:
-        return Icons.forum;
+        return Icons.forum_rounded;
       case SearchContentType.all:
-        return Icons.search;
+        return Icons.search_rounded;
     }
   }
 
@@ -759,6 +868,40 @@ class _SearchResultTile extends StatelessWidget {
     }
   }
 
+  _SearchTypePalette _paletteForType(
+    BuildContext context,
+    SearchContentType type,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    switch (type) {
+      case SearchContentType.poll:
+        return _SearchTypePalette(
+          foreground: AppColors.success,
+          background: isDark
+              ? AppColors.successSoftBackgroundDark
+              : AppColors.successSoftBackground,
+        );
+      case SearchContentType.news:
+        return _SearchTypePalette(
+          foreground: AppColors.heat,
+          background: isDark
+              ? AppColors.heatSoftBackgroundDark
+              : AppColors.heatSoftBackground,
+        );
+      case SearchContentType.post:
+      case SearchContentType.all:
+        return _SearchTypePalette(
+          foreground: isDark
+              ? AppColors.primarySoftForegroundDark
+              : AppColors.primarySoftForeground,
+          background: isDark
+              ? AppColors.primarySoftBackgroundDark
+              : AppColors.primarySoftBackground,
+        );
+    }
+  }
+
   String? _formatDate(BuildContext context, DateTime? dateTime) {
     if (dateTime == null) {
       return null;
@@ -774,4 +917,67 @@ class _SearchResultTile extends StatelessWidget {
 
     return '$date $time';
   }
+}
+
+class _SearchTypeBadge extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color foregroundColor;
+  final Color backgroundColor;
+
+  const _SearchTypeBadge({
+    required this.icon,
+    required this.label,
+    required this.foregroundColor,
+    required this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: AppRadius.pillRadius,
+        border: Border.all(
+          color: foregroundColor.withValues(alpha: 0.26),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xs,
+          vertical: AppSpacing.xxs,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: foregroundColor,
+            ),
+            const SizedBox(width: AppSpacing.xxs),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: foregroundColor,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchTypePalette {
+  final Color foreground;
+  final Color background;
+
+  const _SearchTypePalette({
+    required this.foreground,
+    required this.background,
+  });
 }
