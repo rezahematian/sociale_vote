@@ -649,6 +649,20 @@ class AppDI {
     }
   }
 
+  Future<void> deleteCurrentUser() async {
+    await _authApi.deleteAccount();
+
+    try {
+      await _authApi.logout();
+    } catch (_) {
+      // L'account è già stato eliminato lato server.
+      // Continuiamo comunque con la pulizia della sessione locale.
+    }
+
+    await _sessionRepository.clearSession();
+    _handleCurrentUserIdChanged(null);
+  }
+
   VoteAggregator get voteAggregator => VoteAggregator();
 
   LoginUser get loginUser => LoginUser(

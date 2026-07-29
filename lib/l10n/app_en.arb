@@ -1265,5 +1265,46 @@
   "notificationsUserFallback": "user",
   "@notificationsUserFallback": {
     "description": "Notifications UI: notificationsUserFallback"
+  },
+  "profileDeleteAccountAction": "Delete account",
+  "@profileDeleteAccountAction": {
+    "description": "Account hub: destructive action used to permanently delete the current account"
+  },
+  "profileDeleteAccountDescription": "Permanently delete the account and access",
+  "@profileDeleteAccountDescription": {
+    "description": "Account hub: short description below the delete-account action"
+  },
+  "profileDeleteAccountDialogTitle": "Delete account",
+  "@profileDeleteAccountDialogTitle": {
+    "description": "Delete-account confirmation dialog title"
+  },
+  "profileDeleteAccountDialogMessage": "This action is permanent. The account cannot be recovered. Type DELETE to confirm.",
+  "@profileDeleteAccountDialogMessage": {
+    "description": "Delete-account confirmation dialog warning"
+  },
+  "profileDeleteAccountConfirmationLabel": "Deletion confirmation",
+  "@profileDeleteAccountConfirmationLabel": {
+    "description": "Label for the typed delete-account confirmation field"
+  },
+  "profileDeleteAccountConfirmationHint": "Type DELETE",
+  "@profileDeleteAccountConfirmationHint": {
+    "description": "Hint for the typed delete-account confirmation field"
+  },
+  "profileDeleteAccountConfirmationError": "Type DELETE to continue.",
+  "@profileDeleteAccountConfirmationError": {
+    "description": "Validation error when the delete-account confirmation is incorrect"
+  },
+  "profileDeleteAccountCancelButton": "Cancel",
+  "@profileDeleteAccountCancelButton": {
+    "description": "Cancel button in the delete-account dialog"
+  },
+  "profileDeleteAccountConfirmButton": "Delete permanently",
+  "@profileDeleteAccountConfirmButton": {
+    "description": "Destructive confirmation button in the delete-account dialog"
+  },
+  "profileDeleteAccountFailureMessage": "Unable to delete the account. Try again.",
+  "@profileDeleteAccountFailureMessage": {
+    "description": "Fallback message shown when account deletion fails"
   }
+
 }

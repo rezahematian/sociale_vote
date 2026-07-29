@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:sociale_vote/app/app.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
 import 'package:sociale_vote/domain/identity/entities/verification_request.dart';
 import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
@@ -77,6 +78,7 @@ class _MyProfileView extends StatefulWidget {
 
 class _MyProfileViewState extends State<_MyProfileView> {
   late Future<int> _unreadNotificationsFuture;
+  bool _isDeletingAccount = false;
 
   String get currentUserId => widget.currentUserId;
 
@@ -660,9 +662,101 @@ class _MyProfileViewState extends State<_MyProfileView> {
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
+  Future<void> _confirmDeleteAccount() async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmationController = TextEditingController();
+    var confirmationMatches = false;
+
+    final shouldDelete = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) {
+            return StatefulBuilder(
+              builder: (dialogContext, setDialogState) {
+                return AlertDialog(
+                  title: Text(l10n.profileDeleteAccountDialogTitle),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(l10n.profileDeleteAccountDialogMessage),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: confirmationController,
+                        autofocus: true,
+                        textCapitalization: TextCapitalization.characters,
+                        decoration: InputDecoration(
+                          labelText: l10n.profileDeleteAccountConfirmationLabel,
+                          hintText: l10n.profileDeleteAccountConfirmationHint,
+                          border: const OutlineInputBorder(),
+                        ),
+                        onChanged: (value) {
+                          setDialogState(() {
+                            confirmationMatches = value.trim() == 'DELETE';
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(false),
+                      child: Text(l10n.profileDeleteAccountCancelButton),
+                    ),
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor:
+                            Theme.of(dialogContext).colorScheme.error,
+                        foregroundColor:
+                            Theme.of(dialogContext).colorScheme.onError,
+                      ),
+                      onPressed: confirmationMatches
+                          ? () => Navigator.of(dialogContext).pop(true)
+                          : null,
+                      child: Text(l10n.profileDeleteAccountConfirmButton),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ) ??
+        false;
+
+    confirmationController.dispose();
+
+    if (!shouldDelete || !mounted) return;
+
+    setState(() {
+      _isDeletingAccount = true;
+    });
+
+    try {
+      await AppDI.instance.deleteCurrentUser();
+
+      if (!mounted) return;
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.profileDeleteAccountFailureMessage),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDeletingAccount = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final controller = context.watch<ProfileController>();
     final verificationController =
         context.watch<VerificationRequestsController>();
@@ -1016,7 +1110,23 @@ class _MyProfileViewState extends State<_MyProfileView> {
                   icon: Icons.logout_rounded,
                   iconColor: theme.colorScheme.error,
                   textColor: theme.colorScheme.error,
-                  onTap: _confirmLogout,
+                  onTap: _isDeletingAccount ? null : _confirmLogout,
+                ),
+                const Divider(height: 1),
+                _SettingsTile(
+                  title: l10n.profileDeleteAccountAction,
+                  subtitle: l10n.profileDeleteAccountDescription,
+                  icon: Icons.delete_forever_outlined,
+                  iconColor: theme.colorScheme.error,
+                  textColor: theme.colorScheme.error,
+                  trailing: _isDeletingAccount
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.chevron_right),
+                  onTap: _isDeletingAccount ? null : _confirmDeleteAccount,
                 ),
               ],
             ),

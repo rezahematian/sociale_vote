@@ -1476,4 +1476,34 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get notificationsUserFallback => 'utente';
+
+  @override
+  String get profileDeleteAccountAction => 'Elimina account';
+
+  @override
+  String get profileDeleteAccountDescription => 'Elimina definitivamente account e accesso';
+
+  @override
+  String get profileDeleteAccountDialogTitle => 'Elimina account';
+
+  @override
+  String get profileDeleteAccountDialogMessage => 'Questa operazione è permanente. L’account non potrà essere recuperato. Scrivi DELETE per confermare.';
+
+  @override
+  String get profileDeleteAccountConfirmationLabel => 'Conferma eliminazione';
+
+  @override
+  String get profileDeleteAccountConfirmationHint => 'Scrivi DELETE';
+
+  @override
+  String get profileDeleteAccountConfirmationError => 'Scrivi DELETE per continuare.';
+
+  @override
+  String get profileDeleteAccountCancelButton => 'Annulla';
+
+  @override
+  String get profileDeleteAccountConfirmButton => 'Elimina definitivamente';
+
+  @override
+  String get profileDeleteAccountFailureMessage => 'Impossibile eliminare l’account. Riprova.';
 }

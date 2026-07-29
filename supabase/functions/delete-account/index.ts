@@ -1,4 +1,4 @@
-import { createClient } from 'npm:@supabase/supabase-js@2'
+import { createClient } from 'supabase'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -37,7 +37,7 @@ function readBearerToken(req: Request): string | null {
   return token.length === 0 ? null : token
 }
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
       status: 200,
@@ -88,11 +88,11 @@ Deno.serve(async (req) => {
   })
 
   const {
-    data: { user: caller },
-    error: callerError,
+    data: { user },
+    error: userError,
   } = await userClient.auth.getUser(accessToken)
 
-  if (callerError != null || caller == null) {
+  if (userError != null || user == null) {
     return jsonResponse(401, {
       error: 'Invalid session.',
     })
@@ -105,8 +105,24 @@ Deno.serve(async (req) => {
     },
   })
 
+  // L'app salva l'avatar in avatars/{userId}/avatar.jpg.
+  // Supabase non elimina un utente che possiede ancora oggetti Storage.
+  const avatarPath = `${user.id}/avatar.jpg`
+  const { error: avatarDeleteError } = await adminClient.storage
+    .from('avatars')
+    .remove([avatarPath])
+
+  if (avatarDeleteError != null) {
+    console.error('Avatar deletion failed:', avatarDeleteError)
+
+    return jsonResponse(500, {
+      error: 'Unable to remove account files.',
+      details: avatarDeleteError.message,
+    })
+  }
+
   const { error: deleteError } =
-    await adminClient.auth.admin.deleteUser(caller.id, false)
+    await adminClient.auth.admin.deleteUser(user.id, false)
 
   if (deleteError != null) {
     console.error('Account deletion failed:', deleteError)
@@ -119,6 +135,6 @@ Deno.serve(async (req) => {
 
   return jsonResponse(200, {
     success: true,
-    deletedUserId: caller.id,
+    deletedUserId: user.id,
   })
 })

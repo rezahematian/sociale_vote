@@ -2896,6 +2896,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'user'**
   String get notificationsUserFallback;
+
+  /// Account hub: destructive action used to permanently delete the current account
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get profileDeleteAccountAction;
+
+  /// Account hub: short description below the delete-account action
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete the account and access'**
+  String get profileDeleteAccountDescription;
+
+  /// Delete-account confirmation dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get profileDeleteAccountDialogTitle;
+
+  /// Delete-account confirmation dialog warning
+  ///
+  /// In en, this message translates to:
+  /// **'This action is permanent. The account cannot be recovered. Type DELETE to confirm.'**
+  String get profileDeleteAccountDialogMessage;
+
+  /// Label for the typed delete-account confirmation field
+  ///
+  /// In en, this message translates to:
+  /// **'Deletion confirmation'**
+  String get profileDeleteAccountConfirmationLabel;
+
+  /// Hint for the typed delete-account confirmation field
+  ///
+  /// In en, this message translates to:
+  /// **'Type DELETE'**
+  String get profileDeleteAccountConfirmationHint;
+
+  /// Validation error when the delete-account confirmation is incorrect
+  ///
+  /// In en, this message translates to:
+  /// **'Type DELETE to continue.'**
+  String get profileDeleteAccountConfirmationError;
+
+  /// Cancel button in the delete-account dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get profileDeleteAccountCancelButton;
+
+  /// Destructive confirmation button in the delete-account dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Delete permanently'**
+  String get profileDeleteAccountConfirmButton;
+
+  /// Fallback message shown when account deletion fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to delete the account. Try again.'**
+  String get profileDeleteAccountFailureMessage;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

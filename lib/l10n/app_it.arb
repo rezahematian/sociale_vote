@@ -1265,5 +1265,46 @@
   "notificationsUserFallback": "utente",
   "@notificationsUserFallback": {
     "description": "Notifications UI: notificationsUserFallback"
+  },
+  "profileDeleteAccountAction": "Elimina account",
+  "@profileDeleteAccountAction": {
+    "description": "Account hub: destructive action used to permanently delete the current account"
+  },
+  "profileDeleteAccountDescription": "Elimina definitivamente account e accesso",
+  "@profileDeleteAccountDescription": {
+    "description": "Account hub: short description below the delete-account action"
+  },
+  "profileDeleteAccountDialogTitle": "Elimina account",
+  "@profileDeleteAccountDialogTitle": {
+    "description": "Delete-account confirmation dialog title"
+  },
+  "profileDeleteAccountDialogMessage": "Questa operazione è permanente. L’account non potrà essere recuperato. Scrivi DELETE per confermare.",
+  "@profileDeleteAccountDialogMessage": {
+    "description": "Delete-account confirmation dialog warning"
+  },
+  "profileDeleteAccountConfirmationLabel": "Conferma eliminazione",
+  "@profileDeleteAccountConfirmationLabel": {
+    "description": "Label for the typed delete-account confirmation field"
+  },
+  "profileDeleteAccountConfirmationHint": "Scrivi DELETE",
+  "@profileDeleteAccountConfirmationHint": {
+    "description": "Hint for the typed delete-account confirmation field"
+  },
+  "profileDeleteAccountConfirmationError": "Scrivi DELETE per continuare.",
+  "@profileDeleteAccountConfirmationError": {
+    "description": "Validation error when the delete-account confirmation is incorrect"
+  },
+  "profileDeleteAccountCancelButton": "Annulla",
+  "@profileDeleteAccountCancelButton": {
+    "description": "Cancel button in the delete-account dialog"
+  },
+  "profileDeleteAccountConfirmButton": "Elimina definitivamente",
+  "@profileDeleteAccountConfirmButton": {
+    "description": "Destructive confirmation button in the delete-account dialog"
+  },
+  "profileDeleteAccountFailureMessage": "Impossibile eliminare l’account. Riprova.",
+  "@profileDeleteAccountFailureMessage": {
+    "description": "Fallback message shown when account deletion fails"
   }
+
 }

@@ -140,6 +140,36 @@ class AuthApi {
     );
   }
 
+  Future<void> deleteAccount() async {
+    final session = AppSupabase.currentSession;
+
+    if (session == null) {
+      throw StateError('Nessuna sessione autenticata disponibile.');
+    }
+
+    final response = await AppSupabase.client.functions.invoke(
+      'delete-account',
+      body: const <String, dynamic>{
+        'confirmation': 'DELETE',
+      },
+      headers: <String, String>{
+        'Authorization': 'Bearer ${session.accessToken}',
+      },
+    );
+
+    final data = response.data;
+    if (data is Map && data['success'] == true) {
+      return;
+    }
+
+    final errorMessage = data is Map ? data['error']?.toString().trim() : null;
+    throw Exception(
+      errorMessage != null && errorMessage.isNotEmpty
+          ? errorMessage
+          : 'Eliminazione account non riuscita.',
+    );
+  }
+
   Future<void> logout() async {
     await AppSupabase.auth.signOut();
   }

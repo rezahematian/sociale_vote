@@ -1476,4 +1476,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationsUserFallback => 'user';
+
+  @override
+  String get profileDeleteAccountAction => 'Delete account';
+
+  @override
+  String get profileDeleteAccountDescription => 'Permanently delete the account and access';
+
+  @override
+  String get profileDeleteAccountDialogTitle => 'Delete account';
+
+  @override
+  String get profileDeleteAccountDialogMessage => 'This action is permanent. The account cannot be recovered. Type DELETE to confirm.';
+
+  @override
+  String get profileDeleteAccountConfirmationLabel => 'Deletion confirmation';
+
+  @override
+  String get profileDeleteAccountConfirmationHint => 'Type DELETE';
+
+  @override
+  String get profileDeleteAccountConfirmationError => 'Type DELETE to continue.';
+
+  @override
+  String get profileDeleteAccountCancelButton => 'Cancel';
+
+  @override
+  String get profileDeleteAccountConfirmButton => 'Delete permanently';
+
+  @override
+  String get profileDeleteAccountFailureMessage => 'Unable to delete the account. Try again.';
 }
