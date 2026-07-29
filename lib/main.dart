@@ -15,6 +15,11 @@ import 'package:sociale_vote/infrastructure/persistence/remote/rest/auth_api.dar
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Capture the startup URL before Supabase processes and potentially
+  // clears the authentication parameters from the browser address.
+  final startupUri = Uri.base;
+  final isPasswordRecoveryStartup = _hasPasswordRecoverySignal(startupUri);
+
   final shouldInitFirebase = kIsWeb || !Platform.isWindows;
 
   if (shouldInitFirebase) {
@@ -32,7 +37,9 @@ Future<void> main() async {
     ),
   );
 
-  await _restoreStartupAuthSession();
+  await _restoreStartupAuthSession(
+    preserveRecoverySession: isPasswordRecoveryStartup,
+  );
 
   runApp(
     ChangeNotifierProvider<GeoScopeController>.value(
@@ -42,13 +49,28 @@ Future<void> main() async {
   );
 }
 
-Future<void> _restoreStartupAuthSession() async {
+bool _hasPasswordRecoverySignal(Uri uri) {
+  final raw = uri.toString().toLowerCase();
+  final fragment = uri.fragment.toLowerCase();
+
+  if (raw.contains('type=recovery') || fragment.contains('type=recovery')) {
+    return true;
+  }
+
+  return uri.queryParameters.containsKey('code');
+}
+
+Future<void> _restoreStartupAuthSession({
+  required bool preserveRecoverySession,
+}) async {
   final storageService = AppDI.instance.storageService;
   final sessionRepository = AppDI.instance.sessionRepository;
   const authApi = AuthApi();
   final rememberMe = await storageService.readRememberMe();
 
-  if (!rememberMe) {
+  // A password-recovery link creates a temporary authenticated session.
+  // Do not destroy it only because Remember me is disabled.
+  if (!rememberMe && !preserveRecoverySession) {
     try {
       await authApi.logout();
     } catch (_) {

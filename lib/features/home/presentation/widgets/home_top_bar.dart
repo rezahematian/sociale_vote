@@ -129,7 +129,7 @@ class _ColorfulBrand extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const brandText = 'Sociale Vote';
+    const brandText = 'Social Vote';
 
     final spans = <TextSpan>[];
     var colorIndex = 0;

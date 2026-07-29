@@ -203,7 +203,7 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
       builder: (context, themeMode, _) {
         return MaterialApp(
           navigatorKey: NavigationService.navigatorKey,
-          title: 'Sociale Vote',
+          title: 'Social Vote',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,

@@ -5,6 +5,7 @@ import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/app/theme/radius.dart';
 import 'package:sociale_vote/app/theme/spacing.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
+import 'package:sociale_vote/core/supabase/supabase_client.dart';
 import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/identity/value_objects/institution_level.dart';
 import 'package:sociale_vote/domain/identity/value_objects/role.dart';
@@ -35,6 +36,11 @@ class AuthGuard {
     VerificationLevel? verificationLevel,
     InstitutionLevel? institutionLevel,
   }) async {
+    final hasValidSession = await _ensureCurrentSessionIsValid(context);
+    if (!hasValidSession) {
+      return false;
+    }
+
     var resolvedIdentity = await _resolveIdentityContext(
       role: role,
       actorType: actorType,
@@ -78,6 +84,69 @@ class AuthGuard {
     }
 
     await _showPermissionDeniedDialog(context, action);
+    return false;
+  }
+
+  static Future<bool> _ensureCurrentSessionIsValid(
+    BuildContext context,
+  ) async {
+    if (AppDI.instance.currentUserId == null) {
+      return true;
+    }
+
+    bool isValid;
+    try {
+      final result = await AppSupabase.client.rpc(
+        'is_current_auth_user_active',
+      );
+      isValid = result == true;
+    } catch (_) {
+      // Un errore di rete non deve causare un logout falso.
+      // Le policy RLS continuano comunque a proteggere il backend.
+      return true;
+    }
+
+    if (isValid) {
+      return true;
+    }
+
+    try {
+      await AppDI.instance.logoutCurrentUser();
+    } catch (_) {
+      // logoutCurrentUser pulisce comunque la sessione locale nel finally.
+    }
+
+    if (!context.mounted) {
+      return false;
+    }
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Sessione terminata'),
+          content: const Text(
+            'Questo account è stato aperto su un altro dispositivo oppure '
+            'non è più disponibile. Accedi di nuovo per continuare.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (context.mounted) {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRouter.home,
+        (route) => false,
+      );
+    }
+
     return false;
   }
 
