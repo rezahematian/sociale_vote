@@ -15,7 +15,12 @@ enum ParticipationAction {
   createPost, // Creare un post nel social feed
   followScope, // Seguire / smettere di seguire uno scope geografico
   reportContent, // Segnalare un contenuto
+  accessAdminCenter, // Accesso base lato moderator/admin
   reviewVerificationRequests, // Review richieste verifica lato moderator/admin
+  reviewReports, // Gestione segnalazioni lato moderator/admin
+  manageSystemRoles, // Gestione ruoli tecnici lato admin
+  manageAccounts, // Sospensione, logout ed eliminazione lato admin
+  viewAdminAuditLog, // Consultazione audit completo lato admin
 }
 
 /// Policy centralizzata per decidere se un utente
@@ -51,8 +56,15 @@ class ParticipationPolicy {
       case ParticipationAction.reportContent:
         return true;
 
+      case ParticipationAction.accessAdminCenter:
       case ParticipationAction.reviewVerificationRequests:
-        return canReviewVerificationRequests(role: role);
+      case ParticipationAction.reviewReports:
+        return hasReviewerRole(role);
+
+      case ParticipationAction.manageSystemRoles:
+      case ParticipationAction.manageAccounts:
+      case ParticipationAction.viewAdminAuditLog:
+        return hasAdminRole(role);
     }
   }
 
@@ -115,11 +127,51 @@ class ParticipationPolicy {
     return role == Role.moderator || role == Role.admin;
   }
 
+  /// Ruolo tecnico amministratore.
+  bool hasAdminRole(Role role) {
+    return role == Role.admin;
+  }
+
+  /// Accesso alla shell Admin Center.
+  bool canAccessAdminCenter({
+    required Role role,
+  }) {
+    return hasReviewerRole(role);
+  }
+
   /// Accesso agli strumenti reviewer delle verification requests.
   bool canReviewVerificationRequests({
     required Role role,
   }) {
     return hasReviewerRole(role);
+  }
+
+  /// Accesso alla coda segnalazioni e alle decisioni di moderazione.
+  bool canReviewReports({
+    required Role role,
+  }) {
+    return hasReviewerRole(role);
+  }
+
+  /// Gestione dei ruoli tecnici user/moderator/admin.
+  bool canManageSystemRoles({
+    required Role role,
+  }) {
+    return hasAdminRole(role);
+  }
+
+  /// Gestione delle azioni amministrative sugli account.
+  bool canManageAccounts({
+    required Role role,
+  }) {
+    return hasAdminRole(role);
+  }
+
+  /// Consultazione dell'audit amministrativo completo.
+  bool canViewAdminAuditLog({
+    required Role role,
+  }) {
+    return hasAdminRole(role);
   }
 
   /// Citizen standard senza verifica.
@@ -155,21 +207,31 @@ class ParticipationPolicy {
     required VerificationLevel verificationLevel,
   }) {
     return actorType == ActorType.publicOfficial &&
-        verificationLevel == VerificationLevel.level2;
+        verificationLevel == VerificationLevel.none;
   }
 
   /// Identity prodotto valida come institution.
   ///
-  /// Richiede actor type institution, livello verifica 2
-  /// e livello istituzionale valorizzato.
+  /// I livelli 1/2 appartengono esclusivamente a Persona.
   bool canActAsInstitution({
     required ActorType actorType,
     required VerificationLevel verificationLevel,
     required InstitutionLevel? institutionLevel,
   }) {
     return actorType == ActorType.institution &&
-        verificationLevel == VerificationLevel.level2 &&
+        verificationLevel == VerificationLevel.none &&
         institutionLevel != null;
+  }
+
+  /// Identity prodotto valida come organizzazione verificata.
+  ///
+  /// I livelli 1/2 appartengono esclusivamente a Persona.
+  bool canActAsOrganization({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+  }) {
+    return actorType == ActorType.organization &&
+        verificationLevel == VerificationLevel.none;
   }
 
   /// Identity prodotto valida per superfici "verified".
@@ -179,6 +241,7 @@ class ParticipationPolicy {
   /// - citizen level2
   /// - public official
   /// - institution
+  /// - organization
   bool canUseVerifiedIdentityFeatures({
     required ActorType actorType,
     required VerificationLevel verificationLevel,
@@ -196,33 +259,26 @@ class ParticipationPolicy {
           actorType: actorType,
           verificationLevel: verificationLevel,
           institutionLevel: institutionLevel,
+        ) ||
+        canActAsOrganization(
+          actorType: actorType,
+          verificationLevel: verificationLevel,
         );
   }
 
-  /// Identity prodotto valida per feature che richiedono level2 pieno.
+  /// Identity Persona valida per feature che richiedono Livello 2.
   ///
-  /// Include:
-  /// - citizen level2
-  /// - public official
-  /// - institution
+  /// Funzionario, Istituzione e Organizzazione usano capability dedicate:
+  /// non vengono mai trattati come Persona Livello 2.
   bool canUseLevel2IdentityFeatures({
     required ActorType actorType,
     required VerificationLevel verificationLevel,
     required InstitutionLevel? institutionLevel,
   }) {
     return isLevel2Citizen(
-          actorType: actorType,
-          verificationLevel: verificationLevel,
-        ) ||
-        canActAsPublicOfficial(
-          actorType: actorType,
-          verificationLevel: verificationLevel,
-        ) ||
-        canActAsInstitution(
-          actorType: actorType,
-          verificationLevel: verificationLevel,
-          institutionLevel: institutionLevel,
-        );
+      actorType: actorType,
+      verificationLevel: verificationLevel,
+    );
   }
 
   /// Capability prodotto per rappresentanza come attore istituzionale o ufficiale.

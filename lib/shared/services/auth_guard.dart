@@ -41,8 +41,12 @@ class AuthGuard {
       return false;
     }
 
+    // Per le azioni Admin Center il ruolo deve provenire sempre dalla
+    // sessione corrente, mai da un valore fornito dalla UI chiamante.
+    final roleForResolution = _isAdminCenterAction(action) ? null : role;
+
     var resolvedIdentity = await _resolveIdentityContext(
-      role: role,
+      role: roleForResolution,
       actorType: actorType,
       verificationLevel: verificationLevel,
       institutionLevel: institutionLevel,
@@ -67,7 +71,7 @@ class AuthGuard {
       await _showLoginRequiredSheet(context, action);
 
       resolvedIdentity = await _resolveIdentityContext(
-        role: role,
+        role: roleForResolution,
         actorType: actorType,
         verificationLevel: verificationLevel,
         institutionLevel: institutionLevel,
@@ -150,11 +154,46 @@ class AuthGuard {
     return false;
   }
 
+  /// Accesso alla shell Admin Center per moderator/admin.
+  static bool canAccessAdminCenter({
+    required Role role,
+  }) {
+    return _policy.canAccessAdminCenter(role: role);
+  }
+
   /// Wrapper centrale per ruolo reviewer/admin.
   static bool canReviewVerificationRequests({
     required Role role,
   }) {
     return _policy.canReviewVerificationRequests(role: role);
+  }
+
+  /// Gestione delle segnalazioni per moderator/admin.
+  static bool canReviewReports({
+    required Role role,
+  }) {
+    return _policy.canReviewReports(role: role);
+  }
+
+  /// Gestione dei ruoli tecnici riservata agli admin.
+  static bool canManageSystemRoles({
+    required Role role,
+  }) {
+    return _policy.canManageSystemRoles(role: role);
+  }
+
+  /// Azioni amministrative sugli account riservate agli admin.
+  static bool canManageAccounts({
+    required Role role,
+  }) {
+    return _policy.canManageAccounts(role: role);
+  }
+
+  /// Consultazione dell'audit amministrativo riservata agli admin.
+  static bool canViewAdminAuditLog({
+    required Role role,
+  }) {
+    return _policy.canViewAdminAuditLog(role: role);
   }
 
   /// Wrapper centrale per feature prodotto disponibili a identità verified.
@@ -208,6 +247,26 @@ class AuthGuard {
       verificationLevel: verificationLevel,
       institutionLevel: institutionLevel,
     );
+  }
+
+  static bool _isAdminCenterAction(ParticipationAction action) {
+    switch (action) {
+      case ParticipationAction.accessAdminCenter:
+      case ParticipationAction.reviewVerificationRequests:
+      case ParticipationAction.reviewReports:
+      case ParticipationAction.manageSystemRoles:
+      case ParticipationAction.manageAccounts:
+      case ParticipationAction.viewAdminAuditLog:
+        return true;
+      case ParticipationAction.vote:
+      case ParticipationAction.createPoll:
+      case ParticipationAction.react:
+      case ParticipationAction.comment:
+      case ParticipationAction.createPost:
+      case ParticipationAction.followScope:
+      case ParticipationAction.reportContent:
+        return false;
+    }
   }
 
   static Future<_ResolvedAuthIdentity> _resolveIdentityContext({
@@ -367,8 +426,14 @@ class AuthGuard {
 
   static String _permissionDeniedMessage(ParticipationAction action) {
     switch (action) {
+      case ParticipationAction.accessAdminCenter:
       case ParticipationAction.reviewVerificationRequests:
+      case ParticipationAction.reviewReports:
         return 'Questa area è riservata a moderator/admin.';
+      case ParticipationAction.manageSystemRoles:
+      case ParticipationAction.manageAccounts:
+      case ParticipationAction.viewAdminAuditLog:
+        return 'Questa azione è riservata agli admin.';
       case ParticipationAction.vote:
       case ParticipationAction.createPoll:
       case ParticipationAction.react:
@@ -396,8 +461,18 @@ class AuthGuard {
         return 'seguire quest\'area geografica';
       case ParticipationAction.reportContent:
         return 'segnalare un contenuto';
+      case ParticipationAction.accessAdminCenter:
+        return 'accedere all\'Admin Center';
       case ParticipationAction.reviewVerificationRequests:
         return 'revisionare richieste di verifica';
+      case ParticipationAction.reviewReports:
+        return 'gestire le segnalazioni';
+      case ParticipationAction.manageSystemRoles:
+        return 'gestire i ruoli di sistema';
+      case ParticipationAction.manageAccounts:
+        return 'gestire gli account';
+      case ParticipationAction.viewAdminAuditLog:
+        return 'consultare il registro amministrativo';
     }
   }
 }

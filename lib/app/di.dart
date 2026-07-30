@@ -9,6 +9,8 @@ import 'package:sociale_vote/core/http/api_client.dart';
 import 'package:sociale_vote/core/storage/key_value_storage.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 
+import 'package:sociale_vote/domain/admin/repositories/admin_repository.dart';
+
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/content/news/repositories/news_repository.dart';
 import 'package:sociale_vote/domain/content/news/usecases/get_news_detail.dart';
@@ -114,6 +116,7 @@ import 'package:sociale_vote/features/search/application/search_controller.dart'
 import 'package:sociale_vote/features/social/application/feed_controller.dart';
 import 'package:sociale_vote/features/social/application/post_detail_controller.dart';
 
+import 'package:sociale_vote/infrastructure/admin/repositories/admin_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/auth/session_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/discussion/repositories/comment_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/engagement/repositories/favorite_repository_supabase.dart';
@@ -296,6 +299,8 @@ class AppDI {
 
   late final AuthApi _authApi = const AuthApi();
 
+  late final AdminRepository _adminRepository =
+      AdminRepositoryImpl(client: Supabase.instance.client);
   late final SessionRepository _sessionRepository = SessionRepositoryImpl();
   late final UserRepository _userRepository = UserRepositoryImpl(_authApi);
   late final UserProfileRepository _userProfileRepository =
@@ -338,6 +343,7 @@ class AppDI {
   bool _isRestoringGeoScope = false;
   int _geoScopeRestoreRequestId = 0;
 
+  AdminRepository get adminRepository => _adminRepository;
   SessionRepository get sessionRepository => _sessionRepository;
   UserRepository get userRepository => _userRepository;
   UserProfileRepository get userProfileRepository => _userProfileRepository;

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
+import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 
+import 'package:sociale_vote/features/admin/presentation/pages/admin_center_page.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/login_page.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/register_page.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/reset_password_page.dart';
@@ -19,6 +22,7 @@ import 'package:sociale_vote/features/profile/presentation/pages/my_profile_page
 import 'package:sociale_vote/features/profile/presentation/pages/verification_review_page.dart';
 import 'package:sociale_vote/features/social/presentation/pages/post_detail_page.dart';
 import 'package:sociale_vote/features/social/presentation/pages/social_feed_page.dart';
+import 'package:sociale_vote/shared/services/auth_guard.dart';
 
 class AppRouter {
   AppRouter._();
@@ -35,6 +39,7 @@ class AppRouter {
   static const String account = '/account';
   static const String profile = account;
   static const String notifications = '/notifications';
+  static const String adminCenter = '/admin';
   static const String verificationReview = '/verification-review';
   static const String login = '/login';
   static const String register = '/register';
@@ -159,6 +164,12 @@ class AppRouter {
           settings: settings,
         );
 
+      case adminCenter:
+        return MaterialPageRoute<void>(
+          builder: (_) => const _AdminCenterAccessGate(),
+          settings: settings,
+        );
+
       case verificationReview:
         return MaterialPageRoute<void>(
           builder: (_) => const VerificationReviewPage(),
@@ -187,6 +198,106 @@ class AppRouter {
     return MaterialPageRoute<void>(
       builder: (_) => const PublicHomeScreen(),
       settings: settings,
+    );
+  }
+}
+
+class _AdminCenterAccessGate extends StatefulWidget {
+  const _AdminCenterAccessGate();
+
+  @override
+  State<_AdminCenterAccessGate> createState() => _AdminCenterAccessGateState();
+}
+
+class _AdminCenterAccessGateState extends State<_AdminCenterAccessGate> {
+  bool _isCheckingAccess = true;
+  Role? _currentRole;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAccess();
+    });
+  }
+
+  Future<void> _checkAccess() async {
+    final allowed = await AuthGuard.ensureCanPerformAction(
+      context,
+      ParticipationAction.accessAdminCenter,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (!allowed) {
+      setState(() {
+        _isCheckingAccess = false;
+        _currentRole = null;
+      });
+
+      final popped = await Navigator.of(context).maybePop();
+      if (!popped && mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRouter.home,
+          (route) => false,
+        );
+      }
+      return;
+    }
+
+    final session = await AppDI.instance.sessionRepository.getCurrentSession();
+    final currentRole = session?.role;
+
+    if (!mounted) {
+      return;
+    }
+
+    if (currentRole == null ||
+        !AuthGuard.canAccessAdminCenter(role: currentRole)) {
+      setState(() {
+        _isCheckingAccess = false;
+        _currentRole = null;
+      });
+
+      final popped = await Navigator.of(context).maybePop();
+      if (!popped && mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRouter.home,
+          (route) => false,
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _isCheckingAccess = false;
+      _currentRole = currentRole;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isCheckingAccess) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    final currentRole = _currentRole;
+    if (currentRole == null) {
+      return const Scaffold(
+        body: SizedBox.shrink(),
+      );
+    }
+
+    return AdminCenterPage(
+      currentRole: currentRole,
+      onRefresh: _checkAccess,
     );
   }
 }
