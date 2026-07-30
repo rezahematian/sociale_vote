@@ -49,7 +49,8 @@ class CreatePoll {
     final publishedAsInstitutionLevel = poll.publishedAsInstitutionLevel;
 
     if (publishedAsActorType == null) {
-      if (publishedAsDisplayName != null || publishedAsInstitutionLevel != null) {
+      if (publishedAsDisplayName != null ||
+          publishedAsInstitutionLevel != null) {
         throw Exception(
           'Representative poll snapshot is inconsistent.',
         );
@@ -76,6 +77,14 @@ class CreatePoll {
         if (publishedAsInstitutionLevel == null) {
           throw Exception(
             'Institution poll requires institution level.',
+          );
+        }
+        break;
+
+      case ActorType.organization:
+        if (publishedAsInstitutionLevel != null) {
+          throw Exception(
+            'Organization poll cannot have institution level.',
           );
         }
         break;

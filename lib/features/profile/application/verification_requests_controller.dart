@@ -153,6 +153,7 @@ class VerificationRequestsController extends ChangeNotifier {
     required VerificationRequestType requestType,
     String? officialTitle,
     String? institutionName,
+    String? organizationName,
     InstitutionLevel? targetInstitutionLevel,
   }) async {
     if (_isCreating || _isDisposed) return false;
@@ -167,6 +168,7 @@ class VerificationRequestsController extends ChangeNotifier {
         requestType: requestType,
         officialTitle: officialTitle,
         institutionName: institutionName,
+        organizationName: organizationName,
         targetInstitutionLevel: targetInstitutionLevel,
       );
 

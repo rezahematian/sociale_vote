@@ -165,7 +165,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
   Future<void> _showVerificationCenter({
     required UserProfile? profile,
     required VerificationRequest? pendingRequest,
+    required VerificationRequest? latestRejectedRequest,
   }) async {
+    final l10n = AppLocalizations.of(context)!;
     final actorType = profile?.actorType ?? ActorType.citizen;
     final verificationLevel =
         profile?.verificationLevel ?? VerificationLevel.none;
@@ -173,23 +175,26 @@ class _MyProfileViewState extends State<_MyProfileView> {
         profile?.verificationStatus ?? VerificationStatus.none;
     final institutionLevel = profile?.institutionLevel;
 
-    final actorTypeLabel =
-        profile?.actorTypeLabel ?? _formatActorTypeLabel(actorType);
-    final verificationLevelLabel = profile?.verificationLevelLabel ??
-        _formatVerificationLevelLabel(verificationLevel);
-    final institutionLevelLabel = profile?.institutionLevelLabel ??
-        _formatInstitutionLevelLabel(institutionLevel);
+    final actorTypeLabel = _formatActorTypeLabel(l10n, actorType);
+    final verificationLevelLabel =
+        _formatVerificationLevelLabel(l10n, verificationLevel);
+    final institutionLevelLabel =
+        _formatInstitutionLevelLabel(l10n, institutionLevel);
     final identityDetailLabel = profile?.identityDetailLabel;
-    final primaryIdentityBadgeLabel = profile?.primaryIdentityBadgeLabel;
-    final secondaryIdentityBadgeLabel = profile?.secondaryIdentityBadgeLabel;
+    final primaryIdentityBadgeLabel =
+        profile == null ? null : _primaryIdentityBadgeLabel(l10n, profile);
+    final secondaryIdentityBadgeLabel =
+        profile?.isInstitutionActor == true ? institutionLevelLabel : null;
     final hasIdentityBadges = primaryIdentityBadgeLabel != null ||
         secondaryIdentityBadgeLabel != null;
 
     final hasPendingRequest = pendingRequest != null;
-    final hasRejectedState =
-        !hasPendingRequest && verificationStatus == VerificationStatus.rejected;
+    final hasRejectedState = !hasPendingRequest &&
+        verificationStatus == VerificationStatus.rejected &&
+        latestRejectedRequest != null;
     final hasPendingState =
         hasPendingRequest || verificationStatus == VerificationStatus.pending;
+    final rejectionNote = latestRejectedRequest?.reviewNote?.trim();
 
     final canRequestCitizenLevel1 = actorType == ActorType.citizen &&
         verificationLevel == VerificationLevel.none;
@@ -197,12 +202,14 @@ class _MyProfileViewState extends State<_MyProfileView> {
         verificationLevel != VerificationLevel.level2;
     final canRequestPublicOfficial = actorType == ActorType.citizen;
     final canRequestInstitution = actorType == ActorType.citizen;
+    final canRequestOrganization = actorType == ActorType.citizen;
 
     final hasAvailableUpgradeActions = !hasPendingState &&
         (canRequestCitizenLevel1 ||
             canRequestCitizenLevel2 ||
             canRequestPublicOfficial ||
-            canRequestInstitution);
+            canRequestInstitution ||
+            canRequestOrganization);
 
     await showModalBottomSheet<void>(
       context: context,
@@ -217,41 +224,61 @@ class _MyProfileViewState extends State<_MyProfileView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Verification & account type',
+                  l10n.verificationCenterTitle,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Current account',
+                  l10n.verificationCurrentAccountSection,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                 ),
                 const SizedBox(height: 8),
-                Row(
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 4,
+                  runSpacing: 4,
                   children: [
-                    Text('- Tipo account: $actorTypeLabel'),
+                    Text(l10n.verificationAccountTypeValue(actorTypeLabel)),
                     if (profile != null &&
-                        UserIdentityMark.shouldShowForProfile(profile)) ...[
-                      const SizedBox(width: 4),
+                        UserIdentityMark.shouldShowForProfile(profile))
                       UserIdentityMark.fromProfile(
                         profile,
                         size: 16,
                       ),
-                    ],
                   ],
                 ),
-                Text('- Livello verifica: $verificationLevelLabel'),
+                if (actorType == ActorType.citizen)
+                  Text(
+                    l10n.verificationLevelValue(verificationLevelLabel),
+                  ),
                 if (identityDetailLabel != null)
                   Text(
-                    actorType == ActorType.institution
-                        ? '- Ente: $identityDetailLabel'
-                        : '- Titolo ufficiale: $identityDetailLabel',
+                    switch (actorType) {
+                      ActorType.publicOfficial =>
+                        l10n.verificationOfficialTitleValue(
+                          identityDetailLabel,
+                        ),
+                      ActorType.institution =>
+                        l10n.verificationInstitutionNameValue(
+                          identityDetailLabel,
+                        ),
+                      ActorType.organization =>
+                        l10n.verificationOrganizationNameValue(
+                          identityDetailLabel,
+                        ),
+                      ActorType.citizen => identityDetailLabel,
+                    },
                   ),
                 if (institutionLevelLabel != null)
-                  Text('- Livello istituzionale: $institutionLevelLabel'),
+                  Text(
+                    l10n.verificationInstitutionLevelValue(
+                      institutionLevelLabel,
+                    ),
+                  ),
                 if (hasIdentityBadges) ...[
                   const SizedBox(height: 10),
                   Wrap(
@@ -273,7 +300,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 const SizedBox(height: 16),
                 if (hasPendingState) ...[
                   Text(
-                    'Active request',
+                    l10n.verificationActiveRequestSection,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -282,12 +309,13 @@ class _MyProfileViewState extends State<_MyProfileView> {
                   if (pendingRequest != null) ...[
                     Text(
                       _formatVerificationRequestTypeLabel(
+                        l10n,
                         pendingRequest.requestType,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Il tuo profilo attuale non cambia finché la review non viene approvata.',
+                      l10n.verificationProfileUnchangedUntilApproval,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 12),
@@ -299,50 +327,67 @@ class _MyProfileViewState extends State<_MyProfileView> {
                           await _confirmCancelPendingRequest();
                         },
                         icon: const Icon(Icons.close_rounded),
-                        label: const Text('Annulla richiesta pending'),
+                        label: Text(l10n.verificationCancelPendingAction),
                       ),
                     ),
                   ] else ...[
                     Text(
-                      'Hai una richiesta in review. Finché resta pending non puoi inviarne una nuova.',
+                      l10n.verificationPendingBlocksNewRequests,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
                 ] else ...[
                   Text(
-                    'No active request',
+                    l10n.verificationNoActiveRequestSection,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Al momento non hai richieste in review.',
+                    l10n.verificationNoActiveRequestDescription,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   if (hasRejectedState) ...[
                     const SizedBox(height: 16),
                     Text(
-                      'Last rejected request',
+                      l10n.verificationLastRejectedSection,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'La tua ultima richiesta è stata respinta.',
+                      l10n.verificationLastRejectedDescription,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
+                    if (rejectionNote != null && rejectionNote.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text:
+                                  '${l10n.verificationReviewRequiredNoteLabel}: ',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                            TextSpan(text: rejectionNote),
+                          ],
+                        ),
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
                     const SizedBox(height: 8),
                     Text(
-                      'Il profilo attuale non è cambiato. Puoi correggere i dati e inviarne una nuova.',
+                      l10n.verificationRejectedCanResubmit,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
                 ],
                 const SizedBox(height: 16),
                 Text(
-                  'Available requests',
+                  l10n.verificationAvailableRequestsSection,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -351,8 +396,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 if (hasAvailableUpgradeActions) ...[
                   if (canRequestCitizenLevel1)
                     _VerificationActionTile(
-                      title: 'Request Verified Lv1',
-                      subtitle: 'Verifica base per account citizen',
+                      title: l10n.verificationRequestLevel1Title,
+                      subtitle: l10n.verificationRequestLevel1Subtitle,
                       icon: Icons.verified_outlined,
                       onTap: () async {
                         Navigator.of(sheetContext).pop();
@@ -363,8 +408,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
                     ),
                   if (canRequestCitizenLevel2)
                     _VerificationActionTile(
-                      title: 'Request Verified Lv2',
-                      subtitle: 'Verifica avanzata per account citizen',
+                      title: l10n.verificationRequestLevel2Title,
+                      subtitle: l10n.verificationRequestLevel2Subtitle,
                       icon: Icons.verified_user_outlined,
                       onTap: () async {
                         Navigator.of(sheetContext).pop();
@@ -375,8 +420,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
                     ),
                   if (canRequestPublicOfficial)
                     _VerificationActionTile(
-                      title: 'Request Public Official account',
-                      subtitle: 'Richiede title ufficiale e review',
+                      title: l10n.verificationRequestPublicOfficialTitle,
+                      subtitle: l10n.verificationRequestPublicOfficialSubtitle,
                       icon: Icons.badge_outlined,
                       onTap: () async {
                         Navigator.of(sheetContext).pop();
@@ -385,22 +430,33 @@ class _MyProfileViewState extends State<_MyProfileView> {
                     ),
                   if (canRequestInstitution)
                     _VerificationActionTile(
-                      title: 'Request Institution account',
-                      subtitle: 'Richiede nome ente, livello e review',
+                      title: l10n.verificationRequestPublicInstitutionTitle,
+                      subtitle:
+                          l10n.verificationRequestPublicInstitutionSubtitle,
                       icon: Icons.account_balance_outlined,
                       onTap: () async {
                         Navigator.of(sheetContext).pop();
                         await _promptInstitutionRequest();
                       },
                     ),
+                  if (canRequestOrganization)
+                    _VerificationActionTile(
+                      title: l10n.verificationRequestOrganizationTitle,
+                      subtitle: l10n.verificationRequestOrganizationSubtitle,
+                      icon: Icons.corporate_fare_outlined,
+                      onTap: () async {
+                        Navigator.of(sheetContext).pop();
+                        await _promptOrganizationRequest();
+                      },
+                    ),
                 ] else if (hasPendingState) ...[
                   Text(
-                    'Finché hai una richiesta pending non puoi inviarne una nuova.',
+                    l10n.verificationPendingBlocksNewRequests,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ] else ...[
                   Text(
-                    'Non ci sono upgrade self-service disponibili per lo stato attuale del tuo account.',
+                    l10n.verificationNoSelfServiceUpgrade,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
@@ -415,6 +471,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
   Future<void> _submitCitizenVerificationRequest(
     VerificationRequestType requestType,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = context.read<VerificationRequestsController>();
     final success = await controller.createRequest(
       userId: currentUserId,
@@ -424,8 +481,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
     if (!mounted) return;
 
     final message = success
-        ? 'Richiesta inviata con successo.'
-        : (controller.errorMessage ?? 'Impossibile inviare la richiesta.');
+        ? l10n.verificationRequestSubmitSuccess
+        : (controller.errorMessage ?? l10n.verificationRequestSubmitFailure);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -433,162 +490,215 @@ class _MyProfileViewState extends State<_MyProfileView> {
   }
 
   Future<void> _promptPublicOfficialRequest() async {
-    final titleController = TextEditingController();
+    final l10n = AppLocalizations.of(context)!;
+    var officialTitle = '';
 
-    try {
-      final officialTitle = await showDialog<String>(
-        context: context,
-        builder: (dialogContext) {
-          return AlertDialog(
-            title: const Text('Request Public Official account'),
-            content: TextField(
-              controller: titleController,
-              textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(
-                labelText: 'Official title',
-                hintText: 'es. Sindaco, Assessore, Ministro',
-                border: OutlineInputBorder(),
-              ),
+    final submittedTitle = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(l10n.verificationOfficialTitleDialogTitle),
+          content: TextField(
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(
+              labelText: l10n.verificationOfficialTitleLabel,
+              hintText: l10n.verificationOfficialTitleHint,
+              border: const OutlineInputBorder(),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: const Text('Annulla'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop(
-                    titleController.text.trim(),
-                  );
-                },
-                child: const Text('Invia richiesta'),
-              ),
-            ],
-          );
-        },
-      );
+            onChanged: (value) {
+              officialTitle = value;
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(l10n.commonCancelButton),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(officialTitle.trim());
+              },
+              child: Text(l10n.verificationSubmitRequestAction),
+            ),
+          ],
+        );
+      },
+    );
 
-      if (!mounted || officialTitle == null) return;
+    if (!mounted || submittedTitle == null) return;
 
-      final controller = context.read<VerificationRequestsController>();
-      final success = await controller.createRequest(
-        userId: currentUserId,
-        requestType: VerificationRequestType.publicOfficial,
-        officialTitle: officialTitle,
-      );
+    final controller = context.read<VerificationRequestsController>();
+    final success = await controller.createRequest(
+      userId: currentUserId,
+      requestType: VerificationRequestType.publicOfficial,
+      officialTitle: submittedTitle,
+    );
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      final message = success
-          ? 'Richiesta inviata con successo.'
-          : (controller.errorMessage ?? 'Impossibile inviare la richiesta.');
+    final message = success
+        ? l10n.verificationRequestSubmitSuccess
+        : (controller.errorMessage ?? l10n.verificationRequestSubmitFailure);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-    } finally {
-      titleController.dispose();
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   Future<void> _promptInstitutionRequest() async {
-    final nameController = TextEditingController();
+    final l10n = AppLocalizations.of(context)!;
+    var institutionName = '';
 
-    try {
-      final draft = await showDialog<_InstitutionRequestDraft>(
-        context: context,
-        builder: (dialogContext) {
-          InstitutionLevel? selectedLevel;
+    final draft = await showDialog<_InstitutionRequestDraft>(
+      context: context,
+      builder: (dialogContext) {
+        InstitutionLevel? selectedLevel;
 
-          return StatefulBuilder(
-            builder: (context, setLocalState) {
-              return AlertDialog(
-                title: const Text('Request Institution account'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nameController,
-                      textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        labelText: 'Institution name',
-                        hintText: 'es. Comune di Roma',
-                        border: OutlineInputBorder(),
-                      ),
+        return StatefulBuilder(
+          builder: (context, setLocalState) {
+            return AlertDialog(
+              title: Text(l10n.verificationInstitutionDialogTitle),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(
+                      labelText: l10n.verificationInstitutionNameLabel,
+                      hintText: l10n.verificationInstitutionNameHint,
+                      border: const OutlineInputBorder(),
                     ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<InstitutionLevel>(
-                      initialValue: selectedLevel,
-                      decoration: const InputDecoration(
-                        labelText: 'Institution level',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: InstitutionLevel.values
-                          .map(
-                            (level) => DropdownMenuItem(
-                              value: level,
-                              child: Text(
-                                _formatStaticInstitutionLevelLabel(level),
-                              ),
-                            ),
-                          )
-                          .toList(growable: false),
-                      onChanged: (value) {
-                        setLocalState(() {
-                          selectedLevel = value;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: const Text('Annulla'),
-                  ),
-                  FilledButton(
-                    onPressed: () {
-                      Navigator.of(dialogContext).pop(
-                        _InstitutionRequestDraft(
-                          institutionName: nameController.text.trim(),
-                          institutionLevel: selectedLevel,
-                        ),
-                      );
+                    onChanged: (value) {
+                      institutionName = value;
                     },
-                    child: const Text('Invia richiesta'),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<InstitutionLevel>(
+                    initialValue: selectedLevel,
+                    decoration: InputDecoration(
+                      labelText: l10n.verificationInstitutionLevelLabel,
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: InstitutionLevel.values
+                        .map(
+                          (level) => DropdownMenuItem(
+                            value: level,
+                            child: Text(
+                              _formatInstitutionLevelLabel(l10n, level)!,
+                            ),
+                          ),
+                        )
+                        .toList(growable: false),
+                    onChanged: (value) {
+                      setLocalState(() {
+                        selectedLevel = value;
+                      });
+                    },
                   ),
                 ],
-              );
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(l10n.commonCancelButton),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop(
+                      _InstitutionRequestDraft(
+                        institutionName: institutionName.trim(),
+                        institutionLevel: selectedLevel,
+                      ),
+                    );
+                  },
+                  child: Text(l10n.verificationSubmitRequestAction),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (!mounted || draft == null) return;
+
+    final controller = context.read<VerificationRequestsController>();
+    final success = await controller.createRequest(
+      userId: currentUserId,
+      requestType: VerificationRequestType.institution,
+      institutionName: draft.institutionName,
+      targetInstitutionLevel: draft.institutionLevel,
+    );
+
+    if (!mounted) return;
+
+    final message = success
+        ? l10n.verificationRequestSubmitSuccess
+        : (controller.errorMessage ?? l10n.verificationRequestSubmitFailure);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _promptOrganizationRequest() async {
+    final l10n = AppLocalizations.of(context)!;
+    var organizationName = '';
+
+    final submittedName = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(l10n.verificationOrganizationDialogTitle),
+          content: TextField(
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(
+              labelText: l10n.identityOrganizationNameLabel,
+              hintText: l10n.verificationOrganizationNameHint,
+              border: const OutlineInputBorder(),
+            ),
+            onChanged: (value) {
+              organizationName = value;
             },
-          );
-        },
-      );
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(l10n.commonCancelButton),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(organizationName.trim());
+              },
+              child: Text(l10n.verificationSubmitRequestAction),
+            ),
+          ],
+        );
+      },
+    );
 
-      if (!mounted || draft == null) return;
+    if (!mounted || submittedName == null) return;
 
-      final controller = context.read<VerificationRequestsController>();
-      final success = await controller.createRequest(
-        userId: currentUserId,
-        requestType: VerificationRequestType.institution,
-        institutionName: draft.institutionName,
-        targetInstitutionLevel: draft.institutionLevel,
-      );
+    final controller = context.read<VerificationRequestsController>();
+    final success = await controller.createRequest(
+      userId: currentUserId,
+      requestType: VerificationRequestType.organization,
+      organizationName: submittedName,
+    );
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      final message = success
-          ? 'Richiesta inviata con successo.'
-          : (controller.errorMessage ?? 'Impossibile inviare la richiesta.');
+    final message = success
+        ? l10n.verificationRequestSubmitSuccess
+        : (controller.errorMessage ?? l10n.verificationRequestSubmitFailure);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-    } finally {
-      nameController.dispose();
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   Future<void> _confirmCancelPendingRequest() async {
+    final l10n = AppLocalizations.of(context)!;
     final verificationController =
         context.read<VerificationRequestsController>();
 
@@ -596,18 +706,16 @@ class _MyProfileViewState extends State<_MyProfileView> {
           context: context,
           builder: (dialogContext) {
             return AlertDialog(
-              title: const Text('Annulla richiesta'),
-              content: const Text(
-                'Vuoi davvero annullare la richiesta di verifica attualmente pending?',
-              ),
+              title: Text(l10n.verificationCancelDialogTitle),
+              content: Text(l10n.verificationCancelDialogBody),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: const Text('No'),
+                  child: Text(l10n.commonCancelButton),
                 ),
                 FilledButton(
                   onPressed: () => Navigator.of(dialogContext).pop(true),
-                  child: const Text('Annulla richiesta'),
+                  child: Text(l10n.verificationCancelPendingAction),
                 ),
               ],
             );
@@ -623,9 +731,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
     if (!mounted) return;
 
     final message = success
-        ? 'Richiesta annullata.'
+        ? l10n.verificationCancelSuccess
         : (verificationController.errorMessage ??
-            'Impossibile annullare la richiesta.');
+            l10n.verificationCancelFailure);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -664,7 +772,6 @@ class _MyProfileViewState extends State<_MyProfileView> {
 
   Future<void> _confirmDeleteAccount() async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmationController = TextEditingController();
     var confirmationMatches = false;
 
     final shouldDelete = await showDialog<bool>(
@@ -682,7 +789,6 @@ class _MyProfileViewState extends State<_MyProfileView> {
                       Text(l10n.profileDeleteAccountDialogMessage),
                       const SizedBox(height: 16),
                       TextField(
-                        controller: confirmationController,
                         autofocus: true,
                         textCapitalization: TextCapitalization.characters,
                         decoration: InputDecoration(
@@ -722,8 +828,6 @@ class _MyProfileViewState extends State<_MyProfileView> {
           },
         ) ??
         false;
-
-    confirmationController.dispose();
 
     if (!shouldDelete || !mounted) return;
 
@@ -776,22 +880,30 @@ class _MyProfileViewState extends State<_MyProfileView> {
     final verificationStatus =
         profile?.verificationStatus ?? VerificationStatus.none;
     final pendingRequest = verificationController.pendingRequest;
+    final rejectedRequests =
+        verificationController.requests.where((request) => request.isRejected);
+    final latestRejectedRequest =
+        rejectedRequests.isEmpty ? null : rejectedRequests.first;
 
-    final accountStatusLabel = profile?.accountStatusLabel ??
-        _accountStatusLabel(
-          actorType: actorType,
-          verificationLevel: verificationLevel,
-          institutionLevel: institutionLevel,
-        );
+    final accountStatusLabel = _accountStatusLabel(
+      l10n: l10n,
+      actorType: actorType,
+      verificationLevel: verificationLevel,
+      institutionLevel: institutionLevel,
+    );
     final verificationTileSubtitle = _verificationTileSubtitle(
+      l10n: l10n,
       accountStatusLabel: accountStatusLabel,
       verificationStatus: verificationStatus,
       pendingRequest: pendingRequest,
     );
     final locationLabel = finalLocation(city: city, country: country);
     final identityDetailLabel = profile?.identityDetailLabel;
-    final primaryIdentityBadgeLabel = profile?.primaryIdentityBadgeLabel;
-    final secondaryIdentityBadgeLabel = profile?.secondaryIdentityBadgeLabel;
+    final primaryIdentityBadgeLabel =
+        profile == null ? null : _primaryIdentityBadgeLabel(l10n, profile);
+    final secondaryIdentityBadgeLabel = profile?.isInstitutionActor == true
+        ? _formatInstitutionLevelLabel(l10n, institutionLevel)
+        : null;
     final hasIdentityBadges = primaryIdentityBadgeLabel != null ||
         secondaryIdentityBadgeLabel != null;
 
@@ -982,7 +1094,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
             _SettingsGroup(
               children: [
                 _SettingsTile(
-                  title: 'Verification & account type',
+                  title: l10n.verificationCenterTitle,
                   subtitle: verificationTileSubtitle,
                   icon: Icons.verified_user_outlined,
                   trailing: verificationController.isLoading
@@ -995,6 +1107,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                   onTap: () => _showVerificationCenter(
                     profile: profile,
                     pendingRequest: pendingRequest,
+                    latestRejectedRequest: latestRejectedRequest,
                   ),
                 ),
               ],
@@ -1136,115 +1249,137 @@ class _MyProfileViewState extends State<_MyProfileView> {
     );
   }
 
-  String _formatActorTypeLabel(ActorType value) {
+  String _formatActorTypeLabel(
+    AppLocalizations l10n,
+    ActorType value,
+  ) {
     switch (value) {
       case ActorType.citizen:
-        return 'Citizen';
+        return l10n.identityActorTypePerson;
       case ActorType.publicOfficial:
-        return 'Public Official';
+        return l10n.identityActorTypePublicOfficial;
       case ActorType.institution:
-        return 'Institution';
+        return l10n.identityActorTypePublicInstitution;
+      case ActorType.organization:
+        return l10n.identityActorTypeVerifiedOrganization;
     }
   }
 
-  String _formatVerificationRequestTypeLabel(VerificationRequestType value) {
+  String _formatVerificationRequestTypeLabel(
+    AppLocalizations l10n,
+    VerificationRequestType value,
+  ) {
     switch (value) {
       case VerificationRequestType.citizenLevel1:
-        return 'Verified Lv1 request';
+        return l10n.verificationRequestPersonLevel1;
       case VerificationRequestType.citizenLevel2:
-        return 'Verified Lv2 request';
+        return l10n.verificationRequestPersonLevel2;
       case VerificationRequestType.publicOfficial:
-        return 'Public Official request';
+        return l10n.verificationRequestPublicOfficial;
       case VerificationRequestType.institution:
-        return 'Institution request';
+        return l10n.verificationRequestPublicInstitution;
+      case VerificationRequestType.organization:
+        return l10n.verificationRequestVerifiedOrganization;
     }
   }
 
-  String? _formatInstitutionLevelLabel(InstitutionLevel? value) {
+  String? _formatInstitutionLevelLabel(
+    AppLocalizations l10n,
+    InstitutionLevel? value,
+  ) {
     switch (value) {
       case InstitutionLevel.municipality:
-        return 'Municipality';
+        return l10n.identityInstitutionLevelMunicipality;
       case InstitutionLevel.province:
-        return 'Province';
+        return l10n.identityInstitutionLevelProvince;
       case InstitutionLevel.region:
-        return 'Region';
+        return l10n.identityInstitutionLevelRegion;
       case InstitutionLevel.ministry:
-        return 'Ministry';
+        return l10n.identityInstitutionLevelMinistry;
       case InstitutionLevel.government:
-        return 'Government';
+        return l10n.identityInstitutionLevelGovernment;
       case InstitutionLevel.publicAgency:
-        return 'Public Agency';
+        return l10n.identityInstitutionLevelPublicAgency;
       case InstitutionLevel.otherPublicBody:
-        return 'Other Public Body';
+        return l10n.identityInstitutionLevelOtherPublicBody;
       case null:
         return null;
     }
   }
 
-  static String _formatStaticInstitutionLevelLabel(InstitutionLevel value) {
+  String _formatVerificationLevelLabel(
+    AppLocalizations l10n,
+    VerificationLevel value,
+  ) {
     switch (value) {
-      case InstitutionLevel.municipality:
-        return 'Municipality';
-      case InstitutionLevel.province:
-        return 'Province';
-      case InstitutionLevel.region:
-        return 'Region';
-      case InstitutionLevel.ministry:
-        return 'Ministry';
-      case InstitutionLevel.government:
-        return 'Government';
-      case InstitutionLevel.publicAgency:
-        return 'Public Agency';
-      case InstitutionLevel.otherPublicBody:
-        return 'Other Public Body';
+      case VerificationLevel.none:
+        return l10n.identityVerificationNotVerified;
+      case VerificationLevel.level1:
+        return l10n.identityVerificationLevel1;
+      case VerificationLevel.level2:
+        return l10n.identityVerificationLevel2;
     }
   }
 
-  String _formatVerificationLevelLabel(VerificationLevel value) {
-    switch (value) {
+  String? _primaryIdentityBadgeLabel(
+    AppLocalizations l10n,
+    UserProfile profile,
+  ) {
+    if (profile.isPublicOfficial) {
+      return l10n.identityBadgePublicOfficial;
+    }
+    if (profile.isInstitutionActor) {
+      return l10n.identityBadgePublicInstitution;
+    }
+    if (profile.isOrganizationActor) {
+      return l10n.identityBadgeVerifiedOrganization;
+    }
+
+    switch (profile.verificationLevel) {
       case VerificationLevel.none:
-        return 'Standard';
+        return null;
       case VerificationLevel.level1:
-        return 'Verified Lv1';
+        return l10n.identityBadgeLevel1;
       case VerificationLevel.level2:
-        return 'Verified Lv2';
+        return l10n.identityBadgeLevel2;
     }
   }
 
   String _accountStatusLabel({
+    required AppLocalizations l10n,
     required ActorType actorType,
     required VerificationLevel verificationLevel,
     required InstitutionLevel? institutionLevel,
   }) {
     final parts = <String>[
-      _formatActorTypeLabel(actorType),
+      _formatActorTypeLabel(l10n, actorType),
     ];
 
     final institutionLevelLabel =
-        _formatInstitutionLevelLabel(institutionLevel);
-    if (institutionLevelLabel != null) {
+        _formatInstitutionLevelLabel(l10n, institutionLevel);
+    if (actorType == ActorType.institution && institutionLevelLabel != null) {
       parts.add(institutionLevelLabel);
     }
 
-    parts.add(_formatVerificationLevelLabel(verificationLevel));
+    if (actorType == ActorType.citizen) {
+      parts.add(_formatVerificationLevelLabel(l10n, verificationLevel));
+    }
     return parts.join(' · ');
   }
 
   String _verificationTileSubtitle({
+    required AppLocalizations l10n,
     required String accountStatusLabel,
     required VerificationStatus verificationStatus,
     required VerificationRequest? pendingRequest,
   }) {
-    if (pendingRequest != null) {
-      return '$accountStatusLabel · richiesta in review';
-    }
-
-    if (verificationStatus == VerificationStatus.pending) {
-      return '$accountStatusLabel · richiesta in review';
+    if (pendingRequest != null ||
+        verificationStatus == VerificationStatus.pending) {
+      return '$accountStatusLabel · ${l10n.verificationStatusPendingSuffix}';
     }
 
     if (verificationStatus == VerificationStatus.rejected) {
-      return '$accountStatusLabel · ultima richiesta respinta';
+      return '$accountStatusLabel · ${l10n.verificationStatusRejectedSuffix}';
     }
 
     return accountStatusLabel;

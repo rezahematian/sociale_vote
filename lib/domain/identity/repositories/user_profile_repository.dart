@@ -37,6 +37,7 @@ abstract class UserProfileRepository {
     InstitutionLevel? institutionLevel,
     String? officialTitle,
     String? institutionName,
+    String? organizationName,
     DateTime? verificationRequestedAt,
     DateTime? verifiedAt,
   });

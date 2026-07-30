@@ -86,6 +86,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       'verified_at': null,
       'official_title': null,
       'institution_name': null,
+      'organization_name': null,
 
       // Bridge legacy temporaneo
       'account_type': 'citizen',
@@ -168,6 +169,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     InstitutionLevel? institutionLevel,
     String? officialTitle,
     String? institutionName,
+    String? organizationName,
     DateTime? verificationRequestedAt,
     DateTime? verifiedAt,
   }) async {
@@ -184,6 +186,9 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     final normalizedInstitutionName = actorType == ActorType.institution
         ? _normalizeNullable(institutionName)
         : null;
+    final normalizedOrganizationName = actorType == ActorType.organization
+        ? _normalizeNullable(organizationName)
+        : null;
 
     final updates = <String, dynamic>{
       'actor_type': actorType.storageKey,
@@ -195,6 +200,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       'verified_at': _toNullableUtcIsoString(verifiedAt),
       'official_title': normalizedOfficialTitle,
       'institution_name': normalizedInstitutionName,
+      'organization_name': normalizedOrganizationName,
 
       // Bridge legacy temporaneo
       'account_type': actorType.storageKey,
@@ -237,6 +243,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       verifiedAt: _parseNullableDateTime(row['verified_at']),
       officialTitle: _normalizeNullable(row['official_title'] as String?),
       institutionName: _normalizeNullable(row['institution_name'] as String?),
+      organizationName: _normalizeNullable(row['organization_name'] as String?),
       createdAt: _parseRequiredDateTime(row['created_at'], 'created_at'),
       updatedAt: _parseRequiredDateTime(row['updated_at'], 'updated_at'),
     );

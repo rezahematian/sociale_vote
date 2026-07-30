@@ -14,11 +14,13 @@ class CreateVerificationRequest {
     required VerificationRequestType requestType,
     String? officialTitle,
     String? institutionName,
+    String? organizationName,
     InstitutionLevel? targetInstitutionLevel,
   }) {
     final normalizedUserId = userId.trim();
     final normalizedOfficialTitle = _normalizeNullable(officialTitle);
     final normalizedInstitutionName = _normalizeNullable(institutionName);
+    final normalizedOrganizationName = _normalizeNullable(organizationName);
 
     if (normalizedUserId.isEmpty) {
       throw ArgumentError('User id non valido.');
@@ -50,7 +52,7 @@ class CreateVerificationRequest {
           userId: normalizedUserId,
           requestType: requestType,
           targetActorType: ActorType.publicOfficial,
-          targetVerificationLevel: VerificationLevel.level2,
+          targetVerificationLevel: VerificationLevel.none,
           officialTitle: normalizedOfficialTitle,
         );
 
@@ -67,9 +69,22 @@ class CreateVerificationRequest {
           userId: normalizedUserId,
           requestType: requestType,
           targetActorType: ActorType.institution,
-          targetVerificationLevel: VerificationLevel.level2,
+          targetVerificationLevel: VerificationLevel.none,
           targetInstitutionLevel: targetInstitutionLevel,
           institutionName: normalizedInstitutionName,
+        );
+
+      case VerificationRequestType.organization:
+        if (normalizedOrganizationName == null) {
+          throw ArgumentError('Organization name obbligatorio.');
+        }
+
+        return _repository.createRequest(
+          userId: normalizedUserId,
+          requestType: requestType,
+          targetActorType: ActorType.organization,
+          targetVerificationLevel: VerificationLevel.none,
+          organizationName: normalizedOrganizationName,
         );
     }
   }

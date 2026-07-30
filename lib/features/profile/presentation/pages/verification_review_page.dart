@@ -10,6 +10,7 @@ import 'package:sociale_vote/domain/identity/value_objects/institution_level.dar
 import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/features/profile/application/verification_review_controller.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 
 class VerificationReviewPage extends StatelessWidget {
@@ -17,18 +18,19 @@ class VerificationReviewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final reviewerUserId = AppDI.instance.currentUserId;
 
     if (reviewerUserId == null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Verification Review'),
+          title: Text(l10n.verificationReviewPageTitle),
         ),
-        body: const Center(
+        body: Center(
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Text(
-              'You must be logged in to review verification requests.',
+              l10n.verificationReviewLoginRequired,
               textAlign: TextAlign.center,
             ),
           ),
@@ -111,10 +113,12 @@ class _VerificationReviewGateState extends State<_VerificationReviewGate> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_isCheckingAccess) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Verification Review'),
+          title: Text(l10n.verificationReviewPageTitle),
         ),
         body: const Center(
           child: CircularProgressIndicator(),
@@ -125,7 +129,7 @@ class _VerificationReviewGateState extends State<_VerificationReviewGate> {
     if (!_hasAccess) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Verification Review'),
+          title: Text(l10n.verificationReviewPageTitle),
         ),
         body: const SizedBox.shrink(),
       );
@@ -147,11 +151,12 @@ class _VerificationReviewView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final controller = context.watch<VerificationReviewController>();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Verification Review'),
+        title: Text(l10n.verificationReviewPageTitle),
       ),
       body: RefreshIndicator(
         onRefresh: () =>
@@ -171,7 +176,9 @@ class _VerificationReviewView extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Pending requests: ${controller.pendingRequests.length}',
+                        l10n.verificationReviewPendingCount(
+                          controller.pendingRequests.length,
+                        ),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -211,7 +218,7 @@ class _VerificationReviewView extends StatelessWidget {
                       const Icon(Icons.inbox_outlined, size: 32),
                       const SizedBox(height: 12),
                       Text(
-                        'No pending verification requests.',
+                        l10n.verificationReviewNoPendingRequests,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -253,6 +260,7 @@ class _VerificationRequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Card(
       child: Padding(
@@ -265,23 +273,26 @@ class _VerificationRequestCard extends StatelessWidget {
               runSpacing: 8,
               children: [
                 _InfoChip(
-                  icon: Icons.person_outline,
-                  label: _formatRequestType(request.requestType),
+                  icon: _actorIcon(request.targetActorType),
+                  label: _formatRequestType(l10n, request.requestType),
                 ),
                 _InfoChip(
                   icon: Icons.shield_outlined,
-                  label: _formatActorType(request.targetActorType),
+                  label: _formatActorType(l10n, request.targetActorType),
                 ),
-                _InfoChip(
-                  icon: Icons.verified_outlined,
-                  label: _formatVerificationLevel(
-                    request.targetVerificationLevel,
+                if (request.targetActorType == ActorType.citizen)
+                  _InfoChip(
+                    icon: Icons.verified_outlined,
+                    label: _formatVerificationLevel(
+                      l10n,
+                      request.targetVerificationLevel,
+                    ),
                   ),
-                ),
                 if (request.targetInstitutionLevel != null)
                   _InfoChip(
                     icon: Icons.account_balance_outlined,
                     label: _formatInstitutionLevel(
+                      l10n,
                       request.targetInstitutionLevel!,
                     ),
                   ),
@@ -289,26 +300,31 @@ class _VerificationRequestCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _InfoRow(
-              label: 'User ID',
+              label: l10n.verificationReviewUserIdLabel,
               value: request.userId,
             ),
             _InfoRow(
-              label: 'Submitted',
-              value: _formatDateTime(request.submittedAt),
+              label: l10n.verificationReviewSubmittedLabel,
+              value: _formatDateTime(context, request.submittedAt),
             ),
             if ((request.officialTitle ?? '').trim().isNotEmpty)
               _InfoRow(
-                label: 'Official title',
+                label: l10n.verificationReviewOfficialTitleLabel,
                 value: request.officialTitle!.trim(),
               ),
             if ((request.institutionName ?? '').trim().isNotEmpty)
               _InfoRow(
-                label: 'Institution',
+                label: l10n.verificationReviewInstitutionLabel,
                 value: request.institutionName!.trim(),
+              ),
+            if ((request.organizationName ?? '').trim().isNotEmpty)
+              _InfoRow(
+                label: l10n.verificationReviewOrganizationLabel,
+                value: request.organizationName!.trim(),
               ),
             if ((request.reviewNote ?? '').trim().isNotEmpty)
               _InfoRow(
-                label: 'Review note',
+                label: l10n.verificationReviewNoteLabel,
                 value: request.reviewNote!.trim(),
               ),
             const SizedBox(height: 16),
@@ -332,7 +348,7 @@ class _VerificationRequestCard extends StatelessWidget {
                             Icons.close_rounded,
                             color: theme.colorScheme.error,
                           ),
-                    label: const Text('Reject'),
+                    label: Text(l10n.verificationReviewRejectAction),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -354,7 +370,7 @@ class _VerificationRequestCard extends StatelessWidget {
                             ),
                           )
                         : const Icon(Icons.check_rounded),
-                    label: const Text('Approve'),
+                    label: Text(l10n.verificationReviewApproveAction),
                   ),
                 ),
               ],
@@ -369,192 +385,226 @@ class _VerificationRequestCard extends StatelessWidget {
     BuildContext context, {
     required VerificationRequestStatus status,
   }) async {
-    final noteController = TextEditingController();
+    final l10n = AppLocalizations.of(context)!;
+    final isApprove = status == VerificationRequestStatus.approved;
 
-    try {
-      final reviewResult = await showDialog<({bool confirmed, String? note})>(
-        context: context,
-        builder: (dialogContext) {
-          final isApprove = status == VerificationRequestStatus.approved;
-          bool showValidationError = false;
+    final reviewResult = await showDialog<({bool confirmed, String? note})>(
+      context: context,
+      builder: (dialogContext) {
+        String note = '';
+        bool showValidationError = false;
 
-          return StatefulBuilder(
-            builder: (context, setLocalState) {
-              final trimmedNote = noteController.text.trim();
-              final noteIsRequired = !isApprove;
-              final hasValidationError =
-                  noteIsRequired && showValidationError && trimmedNote.isEmpty;
+        return StatefulBuilder(
+          builder: (context, setLocalState) {
+            final normalizedNote = note.trim();
+            final hasValidationError =
+                !isApprove && showValidationError && normalizedNote.isEmpty;
 
-              return AlertDialog(
-                title: Text(
-                  isApprove ? 'Approve request' : 'Reject request',
-                ),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      isApprove
-                          ? 'Confermi approvazione della richiesta?'
-                          : 'Confermi rifiuto della richiesta?',
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: noteController,
-                      maxLines: 3,
-                      autofocus: !isApprove,
-                      textInputAction: TextInputAction.newline,
-                      decoration: InputDecoration(
-                        labelText: isApprove
-                            ? 'Review note opzionale'
-                            : 'Reason / review note',
-                        helperText:
-                            isApprove ? 'Opzionale' : 'Obbligatoria per reject',
-                        errorText: hasValidationError
-                            ? 'La review note è obbligatoria per reject.'
-                            : null,
-                        border: const OutlineInputBorder(),
-                      ),
-                      onChanged: (_) {
-                        if (!showValidationError) return;
-                        setLocalState(() {
-                          showValidationError = false;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(
-                      (confirmed: false, note: null),
-                    ),
-                    child: const Text('Annulla'),
+            return AlertDialog(
+              title: Text(
+                isApprove
+                    ? l10n.verificationReviewApproveDialogTitle
+                    : l10n.verificationReviewRejectDialogTitle,
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    isApprove
+                        ? l10n.verificationReviewApproveConfirmation
+                        : l10n.verificationReviewRejectConfirmation,
                   ),
-                  FilledButton(
-                    onPressed: () {
-                      final normalizedNote = noteController.text.trim();
-
-                      if (!isApprove && normalizedNote.isEmpty) {
-                        setLocalState(() {
-                          showValidationError = true;
-                        });
-                        return;
-                      }
-
-                      Navigator.of(dialogContext).pop(
-                        (
-                          confirmed: true,
-                          note: normalizedNote.isEmpty ? null : normalizedNote,
-                        ),
-                      );
+                  const SizedBox(height: 12),
+                  TextField(
+                    maxLines: 3,
+                    autofocus: !isApprove,
+                    textInputAction: TextInputAction.newline,
+                    decoration: InputDecoration(
+                      labelText: isApprove
+                          ? l10n.verificationReviewOptionalNoteLabel
+                          : l10n.verificationReviewRequiredNoteLabel,
+                      helperText: isApprove
+                          ? l10n.verificationReviewOptionalHelper
+                          : l10n.verificationReviewRequiredHelper,
+                      errorText: hasValidationError
+                          ? l10n.verificationReviewRequiredNoteError
+                          : null,
+                      border: const OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      note = value;
+                      if (!showValidationError) return;
+                      setLocalState(() {
+                        showValidationError = false;
+                      });
                     },
-                    child: Text(isApprove ? 'Approve' : 'Reject'),
                   ),
                 ],
-              );
-            },
-          );
-        },
-      );
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(
+                    (confirmed: false, note: null),
+                  ),
+                  child: Text(l10n.commonCancelButton),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    final normalizedNote = note.trim();
 
-      if (!context.mounted || reviewResult == null || !reviewResult.confirmed) {
-        return;
-      }
+                    if (!isApprove && normalizedNote.isEmpty) {
+                      setLocalState(() {
+                        showValidationError = true;
+                      });
+                      return;
+                    }
 
-      final note = reviewResult.note;
-      final controller = context.read<VerificationReviewController>();
-
-      final result = status == VerificationRequestStatus.approved
-          ? await controller.approveRequest(
-              requestId: request.id,
-              reviewedBy: reviewerUserId,
-              reviewNote: note,
-            )
-          : await controller.rejectRequest(
-              requestId: request.id,
-              reviewedBy: reviewerUserId,
-              reviewNote: note,
+                    Navigator.of(dialogContext).pop(
+                      (
+                        confirmed: true,
+                        note: normalizedNote.isEmpty ? null : normalizedNote,
+                      ),
+                    );
+                  },
+                  child: Text(
+                    isApprove
+                        ? l10n.verificationReviewApproveAction
+                        : l10n.verificationReviewRejectAction,
+                  ),
+                ),
+              ],
             );
+          },
+        );
+      },
+    );
 
-      if (!context.mounted) return;
-
-      final success = result != null;
-      final message = success
-          ? (status == VerificationRequestStatus.approved
-              ? 'Request approved.'
-              : 'Request rejected.')
-          : (controller.errorMessage ?? 'Operation failed.');
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-    } finally {
-      noteController.dispose();
+    if (!context.mounted || reviewResult == null || !reviewResult.confirmed) {
+      return;
     }
+
+    final controller = context.read<VerificationReviewController>();
+    final result = status == VerificationRequestStatus.approved
+        ? await controller.approveRequest(
+            requestId: request.id,
+            reviewedBy: reviewerUserId,
+            reviewNote: reviewResult.note,
+          )
+        : await controller.rejectRequest(
+            requestId: request.id,
+            reviewedBy: reviewerUserId,
+            reviewNote: reviewResult.note,
+          );
+
+    if (!context.mounted) return;
+
+    final success = result != null;
+    final message = success
+        ? (status == VerificationRequestStatus.approved
+            ? l10n.verificationReviewApprovedSuccess
+            : l10n.verificationReviewRejectedSuccess)
+        : (controller.errorMessage ?? l10n.verificationReviewOperationFailure);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
-  String _formatRequestType(VerificationRequestType value) {
-    switch (value) {
-      case VerificationRequestType.citizenLevel1:
-        return 'Citizen Lv1';
-      case VerificationRequestType.citizenLevel2:
-        return 'Citizen Lv2';
-      case VerificationRequestType.publicOfficial:
-        return 'Public Official';
-      case VerificationRequestType.institution:
-        return 'Institution';
-    }
-  }
-
-  String _formatActorType(ActorType value) {
+  IconData _actorIcon(ActorType value) {
     switch (value) {
       case ActorType.citizen:
-        return 'Citizen';
+        return Icons.person_outline;
       case ActorType.publicOfficial:
-        return 'Public Official';
+        return Icons.badge_outlined;
       case ActorType.institution:
-        return 'Institution';
+        return Icons.account_balance_outlined;
+      case ActorType.organization:
+        return Icons.corporate_fare_outlined;
     }
   }
 
-  String _formatVerificationLevel(VerificationLevel value) {
+  String _formatRequestType(
+    AppLocalizations l10n,
+    VerificationRequestType value,
+  ) {
+    switch (value) {
+      case VerificationRequestType.citizenLevel1:
+        return l10n.verificationRequestPersonLevel1;
+      case VerificationRequestType.citizenLevel2:
+        return l10n.verificationRequestPersonLevel2;
+      case VerificationRequestType.publicOfficial:
+        return l10n.verificationRequestPublicOfficial;
+      case VerificationRequestType.institution:
+        return l10n.verificationRequestPublicInstitution;
+      case VerificationRequestType.organization:
+        return l10n.verificationRequestVerifiedOrganization;
+    }
+  }
+
+  String _formatActorType(
+    AppLocalizations l10n,
+    ActorType value,
+  ) {
+    switch (value) {
+      case ActorType.citizen:
+        return l10n.identityActorTypePerson;
+      case ActorType.publicOfficial:
+        return l10n.identityActorTypePublicOfficial;
+      case ActorType.institution:
+        return l10n.identityActorTypePublicInstitution;
+      case ActorType.organization:
+        return l10n.identityActorTypeVerifiedOrganization;
+    }
+  }
+
+  String _formatVerificationLevel(
+    AppLocalizations l10n,
+    VerificationLevel value,
+  ) {
     switch (value) {
       case VerificationLevel.none:
-        return 'Standard';
+        return l10n.identityVerificationNotVerified;
       case VerificationLevel.level1:
-        return 'Verified Lv1';
+        return l10n.identityVerificationLevel1;
       case VerificationLevel.level2:
-        return 'Verified Lv2';
+        return l10n.identityVerificationLevel2;
     }
   }
 
-  String _formatInstitutionLevel(InstitutionLevel value) {
+  String _formatInstitutionLevel(
+    AppLocalizations l10n,
+    InstitutionLevel value,
+  ) {
     switch (value) {
       case InstitutionLevel.municipality:
-        return 'Municipality';
+        return l10n.identityInstitutionLevelMunicipality;
       case InstitutionLevel.province:
-        return 'Province';
+        return l10n.identityInstitutionLevelProvince;
       case InstitutionLevel.region:
-        return 'Region';
+        return l10n.identityInstitutionLevelRegion;
       case InstitutionLevel.ministry:
-        return 'Ministry';
+        return l10n.identityInstitutionLevelMinistry;
       case InstitutionLevel.government:
-        return 'Government';
+        return l10n.identityInstitutionLevelGovernment;
       case InstitutionLevel.publicAgency:
-        return 'Public Agency';
+        return l10n.identityInstitutionLevelPublicAgency;
       case InstitutionLevel.otherPublicBody:
-        return 'Other Public Body';
+        return l10n.identityInstitutionLevelOtherPublicBody;
     }
   }
 
-  String _formatDateTime(DateTime value) {
+  String _formatDateTime(
+    BuildContext context,
+    DateTime value,
+  ) {
     final local = value.toLocal();
-    final year = local.year.toString().padLeft(4, '0');
-    final month = local.month.toString().padLeft(2, '0');
-    final day = local.day.toString().padLeft(2, '0');
-    final hour = local.hour.toString().padLeft(2, '0');
-    final minute = local.minute.toString().padLeft(2, '0');
-    return '$day/$month/$year $hour:$minute';
+    final materialLocalizations = MaterialLocalizations.of(context);
+    final date = materialLocalizations.formatMediumDate(local);
+    final time = materialLocalizations.formatTimeOfDay(
+      TimeOfDay.fromDateTime(local),
+      alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    return '$date · $time';
   }
 }
 

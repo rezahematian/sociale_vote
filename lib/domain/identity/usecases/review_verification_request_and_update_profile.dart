@@ -96,6 +96,10 @@ class ReviewVerificationRequestAndUpdateProfile {
             reviewedRequest.targetActorType == ActorType.institution
                 ? _normalizeNullableText(reviewedRequest.institutionName)
                 : null,
+        organizationName:
+            reviewedRequest.targetActorType == ActorType.organization
+                ? _normalizeNullableText(reviewedRequest.organizationName)
+                : null,
         verificationRequestedAt: reviewedRequest.submittedAt,
         verifiedAt: reviewedRequest.reviewedAt ?? DateTime.now(),
       );
@@ -111,6 +115,7 @@ class ReviewVerificationRequestAndUpdateProfile {
       institutionLevel: currentProfile.institutionLevel,
       officialTitle: currentProfile.officialTitle,
       institutionName: currentProfile.institutionName,
+      organizationName: currentProfile.organizationName,
       verificationRequestedAt: reviewedRequest.submittedAt,
       verifiedAt: currentProfile.verifiedAt,
     );
@@ -148,9 +153,9 @@ class ReviewVerificationRequestAndUpdateProfile {
             'Una richiesta public official deve portare a actorType publicOfficial.',
           );
         }
-        if (request.targetVerificationLevel != VerificationLevel.level2) {
+        if (request.targetVerificationLevel != VerificationLevel.none) {
           throw Exception(
-            'Un public official approvato deve avere verification level2.',
+            'Un public official non deve avere un livello Persona.',
           );
         }
         if (_normalizeNullableText(request.officialTitle) == null) {
@@ -166,9 +171,9 @@ class ReviewVerificationRequestAndUpdateProfile {
             'Una richiesta institution deve portare a actorType institution.',
           );
         }
-        if (request.targetVerificationLevel != VerificationLevel.level2) {
+        if (request.targetVerificationLevel != VerificationLevel.none) {
           throw Exception(
-            'Una institution approvata deve avere verification level2.',
+            'Una institution non deve avere un livello Persona.',
           );
         }
         if (request.targetInstitutionLevel == null) {
@@ -179,6 +184,24 @@ class ReviewVerificationRequestAndUpdateProfile {
         if (_normalizeNullableText(request.institutionName) == null) {
           throw Exception(
             'Per approvare una institution serve institutionName.',
+          );
+        }
+        break;
+
+      case VerificationRequestType.organization:
+        if (request.targetActorType != ActorType.organization) {
+          throw Exception(
+            'Una richiesta organization deve portare a actorType organization.',
+          );
+        }
+        if (request.targetVerificationLevel != VerificationLevel.none) {
+          throw Exception(
+            'Una organization non deve avere un livello Persona.',
+          );
+        }
+        if (_normalizeNullableText(request.organizationName) == null) {
+          throw Exception(
+            'Per approvare una organization serve organizationName.',
           );
         }
         break;

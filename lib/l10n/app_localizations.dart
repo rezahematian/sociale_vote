@@ -2956,6 +2956,588 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to delete the account. Try again.'**
   String get profileDeleteAccountFailureMessage;
+
+  /// Public identity type label for a personal account
+  ///
+  /// In en, this message translates to:
+  /// **'Person'**
+  String get identityActorTypePerson;
+
+  /// Public identity type label for a verified public official
+  ///
+  /// In en, this message translates to:
+  /// **'Public official'**
+  String get identityActorTypePublicOfficial;
+
+  /// Public identity type label for a verified public institution
+  ///
+  /// In en, this message translates to:
+  /// **'Public institution'**
+  String get identityActorTypePublicInstitution;
+
+  /// Public identity type label for a verified non-governmental organization
+  ///
+  /// In en, this message translates to:
+  /// **'Verified organization'**
+  String get identityActorTypeVerifiedOrganization;
+
+  /// Verification state label for a personal account without verification
+  ///
+  /// In en, this message translates to:
+  /// **'Not verified'**
+  String get identityVerificationNotVerified;
+
+  /// Public label for personal identity verification level 1
+  ///
+  /// In en, this message translates to:
+  /// **'Verified identity'**
+  String get identityVerificationLevel1;
+
+  /// Public label for personal identity verification level 2
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced verified identity'**
+  String get identityVerificationLevel2;
+
+  /// Tooltip and badge label for personal verification level 1
+  ///
+  /// In en, this message translates to:
+  /// **'Verified identity'**
+  String get identityBadgeLevel1;
+
+  /// Tooltip and badge label for personal verification level 2
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced verified identity'**
+  String get identityBadgeLevel2;
+
+  /// Tooltip and badge label for a verified public official
+  ///
+  /// In en, this message translates to:
+  /// **'Public official'**
+  String get identityBadgePublicOfficial;
+
+  /// Tooltip and badge label for a verified public institution
+  ///
+  /// In en, this message translates to:
+  /// **'Public institution'**
+  String get identityBadgePublicInstitution;
+
+  /// Tooltip and badge label for a verified organization
+  ///
+  /// In en, this message translates to:
+  /// **'Verified organization'**
+  String get identityBadgeVerifiedOrganization;
+
+  /// Field label for the verified organization name
+  ///
+  /// In en, this message translates to:
+  /// **'Organization name'**
+  String get identityOrganizationNameLabel;
+
+  /// Validation error when the organization name is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the organization name.'**
+  String get identityOrganizationNameRequired;
+
+  /// Institution level label for a municipality
+  ///
+  /// In en, this message translates to:
+  /// **'Municipal'**
+  String get identityInstitutionLevelMunicipality;
+
+  /// Institution level label for a province
+  ///
+  /// In en, this message translates to:
+  /// **'Provincial'**
+  String get identityInstitutionLevelProvince;
+
+  /// Institution level label for a region
+  ///
+  /// In en, this message translates to:
+  /// **'Regional'**
+  String get identityInstitutionLevelRegion;
+
+  /// Institution level label for a ministry
+  ///
+  /// In en, this message translates to:
+  /// **'Ministry'**
+  String get identityInstitutionLevelMinistry;
+
+  /// Institution level label for a government
+  ///
+  /// In en, this message translates to:
+  /// **'Government'**
+  String get identityInstitutionLevelGovernment;
+
+  /// Institution level label for a public agency
+  ///
+  /// In en, this message translates to:
+  /// **'Public agency'**
+  String get identityInstitutionLevelPublicAgency;
+
+  /// Institution level label for another public body
+  ///
+  /// In en, this message translates to:
+  /// **'Other public body'**
+  String get identityInstitutionLevelOtherPublicBody;
+
+  /// Verification request type label for personal verification level 1
+  ///
+  /// In en, this message translates to:
+  /// **'Person verification — Level 1'**
+  String get verificationRequestPersonLevel1;
+
+  /// Verification request type label for personal verification level 2
+  ///
+  /// In en, this message translates to:
+  /// **'Person verification — Level 2'**
+  String get verificationRequestPersonLevel2;
+
+  /// Verification request type label for a public official
+  ///
+  /// In en, this message translates to:
+  /// **'Public official verification'**
+  String get verificationRequestPublicOfficial;
+
+  /// Verification request type label for a public institution
+  ///
+  /// In en, this message translates to:
+  /// **'Public institution verification'**
+  String get verificationRequestPublicInstitution;
+
+  /// Verification request type label for a verified organization
+  ///
+  /// In en, this message translates to:
+  /// **'Organization verification'**
+  String get verificationRequestVerifiedOrganization;
+
+  /// Title of the verification and account type bottom sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Verification and account type'**
+  String get verificationCenterTitle;
+
+  /// Section title for the current verified identity state
+  ///
+  /// In en, this message translates to:
+  /// **'Current account'**
+  String get verificationCurrentAccountSection;
+
+  /// Current public account type row
+  ///
+  /// In en, this message translates to:
+  /// **'Account type: {accountType}'**
+  String verificationAccountTypeValue(String accountType);
+
+  /// Current personal verification level row
+  ///
+  /// In en, this message translates to:
+  /// **'Verification level: {level}'**
+  String verificationLevelValue(String level);
+
+  /// Current official title row
+  ///
+  /// In en, this message translates to:
+  /// **'Official title: {title}'**
+  String verificationOfficialTitleValue(String title);
+
+  /// Current public institution name row
+  ///
+  /// In en, this message translates to:
+  /// **'Institution: {name}'**
+  String verificationInstitutionNameValue(String name);
+
+  /// Current verified organization name row
+  ///
+  /// In en, this message translates to:
+  /// **'Organization: {name}'**
+  String verificationOrganizationNameValue(String name);
+
+  /// Current institution level row
+  ///
+  /// In en, this message translates to:
+  /// **'Institution level: {level}'**
+  String verificationInstitutionLevelValue(String level);
+
+  /// Section title for an active verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Active request'**
+  String get verificationActiveRequestSection;
+
+  /// Explanation shown while a verification request is pending
+  ///
+  /// In en, this message translates to:
+  /// **'Your current profile will not change until the request is approved.'**
+  String get verificationProfileUnchangedUntilApproval;
+
+  /// Button label to cancel a pending verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel pending request'**
+  String get verificationCancelPendingAction;
+
+  /// Message explaining that only one pending request is allowed
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot submit a new request while another request is pending.'**
+  String get verificationPendingBlocksNewRequests;
+
+  /// Section title when there is no active verification request
+  ///
+  /// In en, this message translates to:
+  /// **'No active request'**
+  String get verificationNoActiveRequestSection;
+
+  /// Message shown when there is no active verification request
+  ///
+  /// In en, this message translates to:
+  /// **'You currently have no requests under review.'**
+  String get verificationNoActiveRequestDescription;
+
+  /// Section title for the most recently rejected request
+  ///
+  /// In en, this message translates to:
+  /// **'Last rejected request'**
+  String get verificationLastRejectedSection;
+
+  /// Message shown after a rejected verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Your last request was rejected.'**
+  String get verificationLastRejectedDescription;
+
+  /// Explanation shown after a rejected request
+  ///
+  /// In en, this message translates to:
+  /// **'Your current profile has not changed. You can correct the information and submit a new request.'**
+  String get verificationRejectedCanResubmit;
+
+  /// Section title for verification request actions
+  ///
+  /// In en, this message translates to:
+  /// **'Available requests'**
+  String get verificationAvailableRequestsSection;
+
+  /// Action title for personal verification level 1
+  ///
+  /// In en, this message translates to:
+  /// **'Request person verification — Level 1'**
+  String get verificationRequestLevel1Title;
+
+  /// Action subtitle for personal verification level 1
+  ///
+  /// In en, this message translates to:
+  /// **'Basic personal identity verification'**
+  String get verificationRequestLevel1Subtitle;
+
+  /// Action title for personal verification level 2
+  ///
+  /// In en, this message translates to:
+  /// **'Request person verification — Level 2'**
+  String get verificationRequestLevel2Title;
+
+  /// Action subtitle for personal verification level 2
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced personal identity verification'**
+  String get verificationRequestLevel2Subtitle;
+
+  /// Action title for public official verification
+  ///
+  /// In en, this message translates to:
+  /// **'Request a Public official account'**
+  String get verificationRequestPublicOfficialTitle;
+
+  /// Action subtitle for public official verification
+  ///
+  /// In en, this message translates to:
+  /// **'Requires an official title and review'**
+  String get verificationRequestPublicOfficialSubtitle;
+
+  /// Action title for public institution verification
+  ///
+  /// In en, this message translates to:
+  /// **'Request a Public institution account'**
+  String get verificationRequestPublicInstitutionTitle;
+
+  /// Action subtitle for public institution verification
+  ///
+  /// In en, this message translates to:
+  /// **'Requires the institution name, institution level, and review'**
+  String get verificationRequestPublicInstitutionSubtitle;
+
+  /// Action title for verified organization verification
+  ///
+  /// In en, this message translates to:
+  /// **'Request a Verified organization account'**
+  String get verificationRequestOrganizationTitle;
+
+  /// Action subtitle for verified organization verification
+  ///
+  /// In en, this message translates to:
+  /// **'Requires the organization name and review'**
+  String get verificationRequestOrganizationSubtitle;
+
+  /// Message when no self-service verification action is available
+  ///
+  /// In en, this message translates to:
+  /// **'No verification options are available for your current account status.'**
+  String get verificationNoSelfServiceUpgrade;
+
+  /// Success message after submitting a verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Request submitted successfully.'**
+  String get verificationRequestSubmitSuccess;
+
+  /// Fallback error message after submitting a verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to submit the request.'**
+  String get verificationRequestSubmitFailure;
+
+  /// Dialog title for a public official verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Public official verification'**
+  String get verificationOfficialTitleDialogTitle;
+
+  /// Field label for a public official title
+  ///
+  /// In en, this message translates to:
+  /// **'Official title'**
+  String get verificationOfficialTitleLabel;
+
+  /// Hint for the public official title field
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Mayor, Councillor, Minister'**
+  String get verificationOfficialTitleHint;
+
+  /// Dialog title for a public institution verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Public institution verification'**
+  String get verificationInstitutionDialogTitle;
+
+  /// Field label for the public institution name
+  ///
+  /// In en, this message translates to:
+  /// **'Institution name'**
+  String get verificationInstitutionNameLabel;
+
+  /// Hint for the public institution name field
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. City of Rome'**
+  String get verificationInstitutionNameHint;
+
+  /// Field label for the public institution level
+  ///
+  /// In en, this message translates to:
+  /// **'Institution level'**
+  String get verificationInstitutionLevelLabel;
+
+  /// Dialog title for a verified organization request
+  ///
+  /// In en, this message translates to:
+  /// **'Organization verification'**
+  String get verificationOrganizationDialogTitle;
+
+  /// Hint for the verified organization name field
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Environment Italy Association'**
+  String get verificationOrganizationNameHint;
+
+  /// Button label to submit a verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Submit request'**
+  String get verificationSubmitRequestAction;
+
+  /// Title of the pending verification cancellation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel request'**
+  String get verificationCancelDialogTitle;
+
+  /// Confirmation message for cancelling a pending verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel the pending verification request?'**
+  String get verificationCancelDialogBody;
+
+  /// Success message after cancelling a verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Request cancelled.'**
+  String get verificationCancelSuccess;
+
+  /// Fallback error after cancelling a verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to cancel the request.'**
+  String get verificationCancelFailure;
+
+  /// Status suffix shown when a verification request is pending
+  ///
+  /// In en, this message translates to:
+  /// **'request under review'**
+  String get verificationStatusPendingSuffix;
+
+  /// Status suffix shown when the last verification request was rejected
+  ///
+  /// In en, this message translates to:
+  /// **'last request rejected'**
+  String get verificationStatusRejectedSuffix;
+
+  /// Title of the administrator verification review page
+  ///
+  /// In en, this message translates to:
+  /// **'Verification review'**
+  String get verificationReviewPageTitle;
+
+  /// Message shown when the reviewer is not logged in
+  ///
+  /// In en, this message translates to:
+  /// **'You must sign in to review verification requests.'**
+  String get verificationReviewLoginRequired;
+
+  /// Number of pending verification requests
+  ///
+  /// In en, this message translates to:
+  /// **'Pending requests: {count}'**
+  String verificationReviewPendingCount(int count);
+
+  /// Message shown when there are no pending verification requests
+  ///
+  /// In en, this message translates to:
+  /// **'There are no pending verification requests.'**
+  String get verificationReviewNoPendingRequests;
+
+  /// Label for the user identifier in a verification review card
+  ///
+  /// In en, this message translates to:
+  /// **'User ID'**
+  String get verificationReviewUserIdLabel;
+
+  /// Label for the submission date of a verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get verificationReviewSubmittedLabel;
+
+  /// Label for the public official title in a review card
+  ///
+  /// In en, this message translates to:
+  /// **'Official title'**
+  String get verificationReviewOfficialTitleLabel;
+
+  /// Label for the institution name in a review card
+  ///
+  /// In en, this message translates to:
+  /// **'Institution'**
+  String get verificationReviewInstitutionLabel;
+
+  /// Label for the organization name in a review card
+  ///
+  /// In en, this message translates to:
+  /// **'Organization'**
+  String get verificationReviewOrganizationLabel;
+
+  /// Label for an existing review note
+  ///
+  /// In en, this message translates to:
+  /// **'Review note'**
+  String get verificationReviewNoteLabel;
+
+  /// Button label to reject a verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get verificationReviewRejectAction;
+
+  /// Button label to approve a verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get verificationReviewApproveAction;
+
+  /// Title of the approve verification request dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Approve request'**
+  String get verificationReviewApproveDialogTitle;
+
+  /// Title of the reject verification request dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Reject request'**
+  String get verificationReviewRejectDialogTitle;
+
+  /// Confirmation message before approving a verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm approval of this request?'**
+  String get verificationReviewApproveConfirmation;
+
+  /// Confirmation message before rejecting a verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm rejection of this request?'**
+  String get verificationReviewRejectConfirmation;
+
+  /// Field label for an optional review note
+  ///
+  /// In en, this message translates to:
+  /// **'Optional review note'**
+  String get verificationReviewOptionalNoteLabel;
+
+  /// Field label for the required rejection reason
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for rejection'**
+  String get verificationReviewRequiredNoteLabel;
+
+  /// Helper text for an optional review note
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get verificationReviewOptionalHelper;
+
+  /// Helper text for the required rejection reason
+  ///
+  /// In en, this message translates to:
+  /// **'Required when rejecting'**
+  String get verificationReviewRequiredHelper;
+
+  /// Validation error when the rejection reason is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the reason for rejection.'**
+  String get verificationReviewRequiredNoteError;
+
+  /// Success message after approving a verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Request approved.'**
+  String get verificationReviewApprovedSuccess;
+
+  /// Success message after rejecting a verification request
+  ///
+  /// In en, this message translates to:
+  /// **'Request rejected.'**
+  String get verificationReviewRejectedSuccess;
+
+  /// Fallback error message for a failed review operation
+  ///
+  /// In en, this message translates to:
+  /// **'Operation failed.'**
+  String get verificationReviewOperationFailure;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

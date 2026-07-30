@@ -1305,6 +1305,428 @@
   "profileDeleteAccountFailureMessage": "Unable to delete the account. Try again.",
   "@profileDeleteAccountFailureMessage": {
     "description": "Fallback message shown when account deletion fails"
+  },
+  "identityActorTypePerson": "Person",
+  "@identityActorTypePerson": {
+    "description": "Public identity type label for a personal account"
+  },
+  "identityActorTypePublicOfficial": "Public official",
+  "@identityActorTypePublicOfficial": {
+    "description": "Public identity type label for a verified public official"
+  },
+  "identityActorTypePublicInstitution": "Public institution",
+  "@identityActorTypePublicInstitution": {
+    "description": "Public identity type label for a verified public institution"
+  },
+  "identityActorTypeVerifiedOrganization": "Verified organization",
+  "@identityActorTypeVerifiedOrganization": {
+    "description": "Public identity type label for a verified non-governmental organization"
+  },
+  "identityVerificationNotVerified": "Not verified",
+  "@identityVerificationNotVerified": {
+    "description": "Verification state label for a personal account without verification"
+  },
+  "identityVerificationLevel1": "Verified identity",
+  "@identityVerificationLevel1": {
+    "description": "Public label for personal identity verification level 1"
+  },
+  "identityVerificationLevel2": "Advanced verified identity",
+  "@identityVerificationLevel2": {
+    "description": "Public label for personal identity verification level 2"
+  },
+  "identityBadgeLevel1": "Verified identity",
+  "@identityBadgeLevel1": {
+    "description": "Tooltip and badge label for personal verification level 1"
+  },
+  "identityBadgeLevel2": "Advanced verified identity",
+  "@identityBadgeLevel2": {
+    "description": "Tooltip and badge label for personal verification level 2"
+  },
+  "identityBadgePublicOfficial": "Public official",
+  "@identityBadgePublicOfficial": {
+    "description": "Tooltip and badge label for a verified public official"
+  },
+  "identityBadgePublicInstitution": "Public institution",
+  "@identityBadgePublicInstitution": {
+    "description": "Tooltip and badge label for a verified public institution"
+  },
+  "identityBadgeVerifiedOrganization": "Verified organization",
+  "@identityBadgeVerifiedOrganization": {
+    "description": "Tooltip and badge label for a verified organization"
+  },
+  "identityOrganizationNameLabel": "Organization name",
+  "@identityOrganizationNameLabel": {
+    "description": "Field label for the verified organization name"
+  },
+  "identityOrganizationNameRequired": "Enter the organization name.",
+  "@identityOrganizationNameRequired": {
+    "description": "Validation error when the organization name is missing"
+  },
+  "identityInstitutionLevelMunicipality": "Municipal",
+  "@identityInstitutionLevelMunicipality": {
+    "description": "Institution level label for a municipality"
+  },
+  "identityInstitutionLevelProvince": "Provincial",
+  "@identityInstitutionLevelProvince": {
+    "description": "Institution level label for a province"
+  },
+  "identityInstitutionLevelRegion": "Regional",
+  "@identityInstitutionLevelRegion": {
+    "description": "Institution level label for a region"
+  },
+  "identityInstitutionLevelMinistry": "Ministry",
+  "@identityInstitutionLevelMinistry": {
+    "description": "Institution level label for a ministry"
+  },
+  "identityInstitutionLevelGovernment": "Government",
+  "@identityInstitutionLevelGovernment": {
+    "description": "Institution level label for a government"
+  },
+  "identityInstitutionLevelPublicAgency": "Public agency",
+  "@identityInstitutionLevelPublicAgency": {
+    "description": "Institution level label for a public agency"
+  },
+  "identityInstitutionLevelOtherPublicBody": "Other public body",
+  "@identityInstitutionLevelOtherPublicBody": {
+    "description": "Institution level label for another public body"
+  },
+  "verificationRequestPersonLevel1": "Person verification — Level 1",
+  "@verificationRequestPersonLevel1": {
+    "description": "Verification request type label for personal verification level 1"
+  },
+  "verificationRequestPersonLevel2": "Person verification — Level 2",
+  "@verificationRequestPersonLevel2": {
+    "description": "Verification request type label for personal verification level 2"
+  },
+  "verificationRequestPublicOfficial": "Public official verification",
+  "@verificationRequestPublicOfficial": {
+    "description": "Verification request type label for a public official"
+  },
+  "verificationRequestPublicInstitution": "Public institution verification",
+  "@verificationRequestPublicInstitution": {
+    "description": "Verification request type label for a public institution"
+  },
+  "verificationRequestVerifiedOrganization": "Organization verification",
+  "@verificationRequestVerifiedOrganization": {
+    "description": "Verification request type label for a verified organization"
+  },
+  "verificationCenterTitle": "Verification and account type",
+  "@verificationCenterTitle": {
+    "description": "Title of the verification and account type bottom sheet"
+  },
+  "verificationCurrentAccountSection": "Current account",
+  "@verificationCurrentAccountSection": {
+    "description": "Section title for the current verified identity state"
+  },
+  "verificationAccountTypeValue": "Account type: {accountType}",
+  "@verificationAccountTypeValue": {
+    "description": "Current public account type row",
+    "placeholders": {
+      "accountType": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationLevelValue": "Verification level: {level}",
+  "@verificationLevelValue": {
+    "description": "Current personal verification level row",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationOfficialTitleValue": "Official title: {title}",
+  "@verificationOfficialTitleValue": {
+    "description": "Current official title row",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationInstitutionNameValue": "Institution: {name}",
+  "@verificationInstitutionNameValue": {
+    "description": "Current public institution name row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationOrganizationNameValue": "Organization: {name}",
+  "@verificationOrganizationNameValue": {
+    "description": "Current verified organization name row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationInstitutionLevelValue": "Institution level: {level}",
+  "@verificationInstitutionLevelValue": {
+    "description": "Current institution level row",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationActiveRequestSection": "Active request",
+  "@verificationActiveRequestSection": {
+    "description": "Section title for an active verification request"
+  },
+  "verificationProfileUnchangedUntilApproval": "Your current profile will not change until the request is approved.",
+  "@verificationProfileUnchangedUntilApproval": {
+    "description": "Explanation shown while a verification request is pending"
+  },
+  "verificationCancelPendingAction": "Cancel pending request",
+  "@verificationCancelPendingAction": {
+    "description": "Button label to cancel a pending verification request"
+  },
+  "verificationPendingBlocksNewRequests": "You cannot submit a new request while another request is pending.",
+  "@verificationPendingBlocksNewRequests": {
+    "description": "Message explaining that only one pending request is allowed"
+  },
+  "verificationNoActiveRequestSection": "No active request",
+  "@verificationNoActiveRequestSection": {
+    "description": "Section title when there is no active verification request"
+  },
+  "verificationNoActiveRequestDescription": "You currently have no requests under review.",
+  "@verificationNoActiveRequestDescription": {
+    "description": "Message shown when there is no active verification request"
+  },
+  "verificationLastRejectedSection": "Last rejected request",
+  "@verificationLastRejectedSection": {
+    "description": "Section title for the most recently rejected request"
+  },
+  "verificationLastRejectedDescription": "Your last request was rejected.",
+  "@verificationLastRejectedDescription": {
+    "description": "Message shown after a rejected verification request"
+  },
+  "verificationRejectedCanResubmit": "Your current profile has not changed. You can correct the information and submit a new request.",
+  "@verificationRejectedCanResubmit": {
+    "description": "Explanation shown after a rejected request"
+  },
+  "verificationAvailableRequestsSection": "Available requests",
+  "@verificationAvailableRequestsSection": {
+    "description": "Section title for verification request actions"
+  },
+  "verificationRequestLevel1Title": "Request person verification — Level 1",
+  "@verificationRequestLevel1Title": {
+    "description": "Action title for personal verification level 1"
+  },
+  "verificationRequestLevel1Subtitle": "Basic personal identity verification",
+  "@verificationRequestLevel1Subtitle": {
+    "description": "Action subtitle for personal verification level 1"
+  },
+  "verificationRequestLevel2Title": "Request person verification — Level 2",
+  "@verificationRequestLevel2Title": {
+    "description": "Action title for personal verification level 2"
+  },
+  "verificationRequestLevel2Subtitle": "Advanced personal identity verification",
+  "@verificationRequestLevel2Subtitle": {
+    "description": "Action subtitle for personal verification level 2"
+  },
+  "verificationRequestPublicOfficialTitle": "Request a Public official account",
+  "@verificationRequestPublicOfficialTitle": {
+    "description": "Action title for public official verification"
+  },
+  "verificationRequestPublicOfficialSubtitle": "Requires an official title and review",
+  "@verificationRequestPublicOfficialSubtitle": {
+    "description": "Action subtitle for public official verification"
+  },
+  "verificationRequestPublicInstitutionTitle": "Request a Public institution account",
+  "@verificationRequestPublicInstitutionTitle": {
+    "description": "Action title for public institution verification"
+  },
+  "verificationRequestPublicInstitutionSubtitle": "Requires the institution name, institution level, and review",
+  "@verificationRequestPublicInstitutionSubtitle": {
+    "description": "Action subtitle for public institution verification"
+  },
+  "verificationRequestOrganizationTitle": "Request a Verified organization account",
+  "@verificationRequestOrganizationTitle": {
+    "description": "Action title for verified organization verification"
+  },
+  "verificationRequestOrganizationSubtitle": "Requires the organization name and review",
+  "@verificationRequestOrganizationSubtitle": {
+    "description": "Action subtitle for verified organization verification"
+  },
+  "verificationNoSelfServiceUpgrade": "No verification options are available for your current account status.",
+  "@verificationNoSelfServiceUpgrade": {
+    "description": "Message when no self-service verification action is available"
+  },
+  "verificationRequestSubmitSuccess": "Request submitted successfully.",
+  "@verificationRequestSubmitSuccess": {
+    "description": "Success message after submitting a verification request"
+  },
+  "verificationRequestSubmitFailure": "Unable to submit the request.",
+  "@verificationRequestSubmitFailure": {
+    "description": "Fallback error message after submitting a verification request"
+  },
+  "verificationOfficialTitleDialogTitle": "Public official verification",
+  "@verificationOfficialTitleDialogTitle": {
+    "description": "Dialog title for a public official verification request"
+  },
+  "verificationOfficialTitleLabel": "Official title",
+  "@verificationOfficialTitleLabel": {
+    "description": "Field label for a public official title"
+  },
+  "verificationOfficialTitleHint": "e.g. Mayor, Councillor, Minister",
+  "@verificationOfficialTitleHint": {
+    "description": "Hint for the public official title field"
+  },
+  "verificationInstitutionDialogTitle": "Public institution verification",
+  "@verificationInstitutionDialogTitle": {
+    "description": "Dialog title for a public institution verification request"
+  },
+  "verificationInstitutionNameLabel": "Institution name",
+  "@verificationInstitutionNameLabel": {
+    "description": "Field label for the public institution name"
+  },
+  "verificationInstitutionNameHint": "e.g. City of Rome",
+  "@verificationInstitutionNameHint": {
+    "description": "Hint for the public institution name field"
+  },
+  "verificationInstitutionLevelLabel": "Institution level",
+  "@verificationInstitutionLevelLabel": {
+    "description": "Field label for the public institution level"
+  },
+  "verificationOrganizationDialogTitle": "Organization verification",
+  "@verificationOrganizationDialogTitle": {
+    "description": "Dialog title for a verified organization request"
+  },
+  "verificationOrganizationNameHint": "e.g. Environment Italy Association",
+  "@verificationOrganizationNameHint": {
+    "description": "Hint for the verified organization name field"
+  },
+  "verificationSubmitRequestAction": "Submit request",
+  "@verificationSubmitRequestAction": {
+    "description": "Button label to submit a verification request"
+  },
+  "verificationCancelDialogTitle": "Cancel request",
+  "@verificationCancelDialogTitle": {
+    "description": "Title of the pending verification cancellation dialog"
+  },
+  "verificationCancelDialogBody": "Are you sure you want to cancel the pending verification request?",
+  "@verificationCancelDialogBody": {
+    "description": "Confirmation message for cancelling a pending verification request"
+  },
+  "verificationCancelSuccess": "Request cancelled.",
+  "@verificationCancelSuccess": {
+    "description": "Success message after cancelling a verification request"
+  },
+  "verificationCancelFailure": "Unable to cancel the request.",
+  "@verificationCancelFailure": {
+    "description": "Fallback error after cancelling a verification request"
+  },
+  "verificationStatusPendingSuffix": "request under review",
+  "@verificationStatusPendingSuffix": {
+    "description": "Status suffix shown when a verification request is pending"
+  },
+  "verificationStatusRejectedSuffix": "last request rejected",
+  "@verificationStatusRejectedSuffix": {
+    "description": "Status suffix shown when the last verification request was rejected"
+  },
+  "verificationReviewPageTitle": "Verification review",
+  "@verificationReviewPageTitle": {
+    "description": "Title of the administrator verification review page"
+  },
+  "verificationReviewLoginRequired": "You must sign in to review verification requests.",
+  "@verificationReviewLoginRequired": {
+    "description": "Message shown when the reviewer is not logged in"
+  },
+  "verificationReviewPendingCount": "Pending requests: {count}",
+  "@verificationReviewPendingCount": {
+    "description": "Number of pending verification requests",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "verificationReviewNoPendingRequests": "There are no pending verification requests.",
+  "@verificationReviewNoPendingRequests": {
+    "description": "Message shown when there are no pending verification requests"
+  },
+  "verificationReviewUserIdLabel": "User ID",
+  "@verificationReviewUserIdLabel": {
+    "description": "Label for the user identifier in a verification review card"
+  },
+  "verificationReviewSubmittedLabel": "Submitted",
+  "@verificationReviewSubmittedLabel": {
+    "description": "Label for the submission date of a verification request"
+  },
+  "verificationReviewOfficialTitleLabel": "Official title",
+  "@verificationReviewOfficialTitleLabel": {
+    "description": "Label for the public official title in a review card"
+  },
+  "verificationReviewInstitutionLabel": "Institution",
+  "@verificationReviewInstitutionLabel": {
+    "description": "Label for the institution name in a review card"
+  },
+  "verificationReviewOrganizationLabel": "Organization",
+  "@verificationReviewOrganizationLabel": {
+    "description": "Label for the organization name in a review card"
+  },
+  "verificationReviewNoteLabel": "Review note",
+  "@verificationReviewNoteLabel": {
+    "description": "Label for an existing review note"
+  },
+  "verificationReviewRejectAction": "Reject",
+  "@verificationReviewRejectAction": {
+    "description": "Button label to reject a verification request"
+  },
+  "verificationReviewApproveAction": "Approve",
+  "@verificationReviewApproveAction": {
+    "description": "Button label to approve a verification request"
+  },
+  "verificationReviewApproveDialogTitle": "Approve request",
+  "@verificationReviewApproveDialogTitle": {
+    "description": "Title of the approve verification request dialog"
+  },
+  "verificationReviewRejectDialogTitle": "Reject request",
+  "@verificationReviewRejectDialogTitle": {
+    "description": "Title of the reject verification request dialog"
+  },
+  "verificationReviewApproveConfirmation": "Confirm approval of this request?",
+  "@verificationReviewApproveConfirmation": {
+    "description": "Confirmation message before approving a verification request"
+  },
+  "verificationReviewRejectConfirmation": "Confirm rejection of this request?",
+  "@verificationReviewRejectConfirmation": {
+    "description": "Confirmation message before rejecting a verification request"
+  },
+  "verificationReviewOptionalNoteLabel": "Optional review note",
+  "@verificationReviewOptionalNoteLabel": {
+    "description": "Field label for an optional review note"
+  },
+  "verificationReviewRequiredNoteLabel": "Reason for rejection",
+  "@verificationReviewRequiredNoteLabel": {
+    "description": "Field label for the required rejection reason"
+  },
+  "verificationReviewOptionalHelper": "Optional",
+  "@verificationReviewOptionalHelper": {
+    "description": "Helper text for an optional review note"
+  },
+  "verificationReviewRequiredHelper": "Required when rejecting",
+  "@verificationReviewRequiredHelper": {
+    "description": "Helper text for the required rejection reason"
+  },
+  "verificationReviewRequiredNoteError": "Enter the reason for rejection.",
+  "@verificationReviewRequiredNoteError": {
+    "description": "Validation error when the rejection reason is missing"
+  },
+  "verificationReviewApprovedSuccess": "Request approved.",
+  "@verificationReviewApprovedSuccess": {
+    "description": "Success message after approving a verification request"
+  },
+  "verificationReviewRejectedSuccess": "Request rejected.",
+  "@verificationReviewRejectedSuccess": {
+    "description": "Success message after rejecting a verification request"
+  },
+  "verificationReviewOperationFailure": "Operation failed.",
+  "@verificationReviewOperationFailure": {
+    "description": "Fallback error message for a failed review operation"
   }
-
 }

@@ -23,6 +23,7 @@ abstract class VerificationRequestRepository {
     InstitutionLevel? targetInstitutionLevel,
     String? officialTitle,
     String? institutionName,
+    String? organizationName,
   });
 
   Future<VerificationRequest> reviewRequest({

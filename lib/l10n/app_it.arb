@@ -1305,6 +1305,428 @@
   "profileDeleteAccountFailureMessage": "Impossibile eliminare l’account. Riprova.",
   "@profileDeleteAccountFailureMessage": {
     "description": "Fallback message shown when account deletion fails"
+  },
+  "identityActorTypePerson": "Persona",
+  "@identityActorTypePerson": {
+    "description": "Public identity type label for a personal account"
+  },
+  "identityActorTypePublicOfficial": "Funzionario pubblico",
+  "@identityActorTypePublicOfficial": {
+    "description": "Public identity type label for a verified public official"
+  },
+  "identityActorTypePublicInstitution": "Istituzione pubblica",
+  "@identityActorTypePublicInstitution": {
+    "description": "Public identity type label for a verified public institution"
+  },
+  "identityActorTypeVerifiedOrganization": "Organizzazione verificata",
+  "@identityActorTypeVerifiedOrganization": {
+    "description": "Public identity type label for a verified non-governmental organization"
+  },
+  "identityVerificationNotVerified": "Non verificata",
+  "@identityVerificationNotVerified": {
+    "description": "Verification state label for a personal account without verification"
+  },
+  "identityVerificationLevel1": "Identità verificata",
+  "@identityVerificationLevel1": {
+    "description": "Public label for personal identity verification level 1"
+  },
+  "identityVerificationLevel2": "Identità verificata avanzata",
+  "@identityVerificationLevel2": {
+    "description": "Public label for personal identity verification level 2"
+  },
+  "identityBadgeLevel1": "Identità verificata",
+  "@identityBadgeLevel1": {
+    "description": "Tooltip and badge label for personal verification level 1"
+  },
+  "identityBadgeLevel2": "Identità verificata avanzata",
+  "@identityBadgeLevel2": {
+    "description": "Tooltip and badge label for personal verification level 2"
+  },
+  "identityBadgePublicOfficial": "Funzionario pubblico",
+  "@identityBadgePublicOfficial": {
+    "description": "Tooltip and badge label for a verified public official"
+  },
+  "identityBadgePublicInstitution": "Istituzione pubblica",
+  "@identityBadgePublicInstitution": {
+    "description": "Tooltip and badge label for a verified public institution"
+  },
+  "identityBadgeVerifiedOrganization": "Organizzazione verificata",
+  "@identityBadgeVerifiedOrganization": {
+    "description": "Tooltip and badge label for a verified organization"
+  },
+  "identityOrganizationNameLabel": "Nome dell’organizzazione",
+  "@identityOrganizationNameLabel": {
+    "description": "Field label for the verified organization name"
+  },
+  "identityOrganizationNameRequired": "Inserisci il nome dell’organizzazione.",
+  "@identityOrganizationNameRequired": {
+    "description": "Validation error when the organization name is missing"
+  },
+  "identityInstitutionLevelMunicipality": "Comunale",
+  "@identityInstitutionLevelMunicipality": {
+    "description": "Institution level label for a municipality"
+  },
+  "identityInstitutionLevelProvince": "Provinciale",
+  "@identityInstitutionLevelProvince": {
+    "description": "Institution level label for a province"
+  },
+  "identityInstitutionLevelRegion": "Regionale",
+  "@identityInstitutionLevelRegion": {
+    "description": "Institution level label for a region"
+  },
+  "identityInstitutionLevelMinistry": "Ministero",
+  "@identityInstitutionLevelMinistry": {
+    "description": "Institution level label for a ministry"
+  },
+  "identityInstitutionLevelGovernment": "Governo",
+  "@identityInstitutionLevelGovernment": {
+    "description": "Institution level label for a government"
+  },
+  "identityInstitutionLevelPublicAgency": "Agenzia pubblica",
+  "@identityInstitutionLevelPublicAgency": {
+    "description": "Institution level label for a public agency"
+  },
+  "identityInstitutionLevelOtherPublicBody": "Altro ente pubblico",
+  "@identityInstitutionLevelOtherPublicBody": {
+    "description": "Institution level label for another public body"
+  },
+  "verificationRequestPersonLevel1": "Verifica persona — Livello 1",
+  "@verificationRequestPersonLevel1": {
+    "description": "Verification request type label for personal verification level 1"
+  },
+  "verificationRequestPersonLevel2": "Verifica persona — Livello 2",
+  "@verificationRequestPersonLevel2": {
+    "description": "Verification request type label for personal verification level 2"
+  },
+  "verificationRequestPublicOfficial": "Verifica funzionario pubblico",
+  "@verificationRequestPublicOfficial": {
+    "description": "Verification request type label for a public official"
+  },
+  "verificationRequestPublicInstitution": "Verifica istituzione pubblica",
+  "@verificationRequestPublicInstitution": {
+    "description": "Verification request type label for a public institution"
+  },
+  "verificationRequestVerifiedOrganization": "Verifica organizzazione",
+  "@verificationRequestVerifiedOrganization": {
+    "description": "Verification request type label for a verified organization"
+  },
+  "verificationCenterTitle": "Verifica e tipo di account",
+  "@verificationCenterTitle": {
+    "description": "Title of the verification and account type bottom sheet"
+  },
+  "verificationCurrentAccountSection": "Account attuale",
+  "@verificationCurrentAccountSection": {
+    "description": "Section title for the current verified identity state"
+  },
+  "verificationAccountTypeValue": "Tipo di account: {accountType}",
+  "@verificationAccountTypeValue": {
+    "description": "Current public account type row",
+    "placeholders": {
+      "accountType": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationLevelValue": "Livello di verifica: {level}",
+  "@verificationLevelValue": {
+    "description": "Current personal verification level row",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationOfficialTitleValue": "Titolo ufficiale: {title}",
+  "@verificationOfficialTitleValue": {
+    "description": "Current official title row",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationInstitutionNameValue": "Ente: {name}",
+  "@verificationInstitutionNameValue": {
+    "description": "Current public institution name row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationOrganizationNameValue": "Organizzazione: {name}",
+  "@verificationOrganizationNameValue": {
+    "description": "Current verified organization name row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationInstitutionLevelValue": "Livello istituzionale: {level}",
+  "@verificationInstitutionLevelValue": {
+    "description": "Current institution level row",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationActiveRequestSection": "Richiesta attiva",
+  "@verificationActiveRequestSection": {
+    "description": "Section title for an active verification request"
+  },
+  "verificationProfileUnchangedUntilApproval": "Il profilo attuale non cambia finché la richiesta non viene approvata.",
+  "@verificationProfileUnchangedUntilApproval": {
+    "description": "Explanation shown while a verification request is pending"
+  },
+  "verificationCancelPendingAction": "Annulla richiesta in attesa",
+  "@verificationCancelPendingAction": {
+    "description": "Button label to cancel a pending verification request"
+  },
+  "verificationPendingBlocksNewRequests": "Finché hai una richiesta in attesa non puoi inviarne una nuova.",
+  "@verificationPendingBlocksNewRequests": {
+    "description": "Message explaining that only one pending request is allowed"
+  },
+  "verificationNoActiveRequestSection": "Nessuna richiesta attiva",
+  "@verificationNoActiveRequestSection": {
+    "description": "Section title when there is no active verification request"
+  },
+  "verificationNoActiveRequestDescription": "Al momento non hai richieste in revisione.",
+  "@verificationNoActiveRequestDescription": {
+    "description": "Message shown when there is no active verification request"
+  },
+  "verificationLastRejectedSection": "Ultima richiesta respinta",
+  "@verificationLastRejectedSection": {
+    "description": "Section title for the most recently rejected request"
+  },
+  "verificationLastRejectedDescription": "La tua ultima richiesta è stata respinta.",
+  "@verificationLastRejectedDescription": {
+    "description": "Message shown after a rejected verification request"
+  },
+  "verificationRejectedCanResubmit": "Il profilo attuale non è cambiato. Puoi correggere i dati e inviare una nuova richiesta.",
+  "@verificationRejectedCanResubmit": {
+    "description": "Explanation shown after a rejected request"
+  },
+  "verificationAvailableRequestsSection": "Richieste disponibili",
+  "@verificationAvailableRequestsSection": {
+    "description": "Section title for verification request actions"
+  },
+  "verificationRequestLevel1Title": "Richiedi verifica persona — Livello 1",
+  "@verificationRequestLevel1Title": {
+    "description": "Action title for personal verification level 1"
+  },
+  "verificationRequestLevel1Subtitle": "Verifica di base dell’identità personale",
+  "@verificationRequestLevel1Subtitle": {
+    "description": "Action subtitle for personal verification level 1"
+  },
+  "verificationRequestLevel2Title": "Richiedi verifica persona — Livello 2",
+  "@verificationRequestLevel2Title": {
+    "description": "Action title for personal verification level 2"
+  },
+  "verificationRequestLevel2Subtitle": "Verifica avanzata dell’identità personale",
+  "@verificationRequestLevel2Subtitle": {
+    "description": "Action subtitle for personal verification level 2"
+  },
+  "verificationRequestPublicOfficialTitle": "Richiedi account Funzionario pubblico",
+  "@verificationRequestPublicOfficialTitle": {
+    "description": "Action title for public official verification"
+  },
+  "verificationRequestPublicOfficialSubtitle": "Richiede un titolo ufficiale e la revisione",
+  "@verificationRequestPublicOfficialSubtitle": {
+    "description": "Action subtitle for public official verification"
+  },
+  "verificationRequestPublicInstitutionTitle": "Richiedi account Istituzione pubblica",
+  "@verificationRequestPublicInstitutionTitle": {
+    "description": "Action title for public institution verification"
+  },
+  "verificationRequestPublicInstitutionSubtitle": "Richiede nome dell’ente, livello istituzionale e revisione",
+  "@verificationRequestPublicInstitutionSubtitle": {
+    "description": "Action subtitle for public institution verification"
+  },
+  "verificationRequestOrganizationTitle": "Richiedi account Organizzazione verificata",
+  "@verificationRequestOrganizationTitle": {
+    "description": "Action title for verified organization verification"
+  },
+  "verificationRequestOrganizationSubtitle": "Richiede il nome dell’organizzazione e la revisione",
+  "@verificationRequestOrganizationSubtitle": {
+    "description": "Action subtitle for verified organization verification"
+  },
+  "verificationNoSelfServiceUpgrade": "Non ci sono verifiche disponibili per lo stato attuale del tuo account.",
+  "@verificationNoSelfServiceUpgrade": {
+    "description": "Message when no self-service verification action is available"
+  },
+  "verificationRequestSubmitSuccess": "Richiesta inviata con successo.",
+  "@verificationRequestSubmitSuccess": {
+    "description": "Success message after submitting a verification request"
+  },
+  "verificationRequestSubmitFailure": "Impossibile inviare la richiesta.",
+  "@verificationRequestSubmitFailure": {
+    "description": "Fallback error message after submitting a verification request"
+  },
+  "verificationOfficialTitleDialogTitle": "Verifica Funzionario pubblico",
+  "@verificationOfficialTitleDialogTitle": {
+    "description": "Dialog title for a public official verification request"
+  },
+  "verificationOfficialTitleLabel": "Titolo ufficiale",
+  "@verificationOfficialTitleLabel": {
+    "description": "Field label for a public official title"
+  },
+  "verificationOfficialTitleHint": "es. Sindaco, Assessore, Ministro",
+  "@verificationOfficialTitleHint": {
+    "description": "Hint for the public official title field"
+  },
+  "verificationInstitutionDialogTitle": "Verifica Istituzione pubblica",
+  "@verificationInstitutionDialogTitle": {
+    "description": "Dialog title for a public institution verification request"
+  },
+  "verificationInstitutionNameLabel": "Nome dell’ente",
+  "@verificationInstitutionNameLabel": {
+    "description": "Field label for the public institution name"
+  },
+  "verificationInstitutionNameHint": "es. Comune di Roma",
+  "@verificationInstitutionNameHint": {
+    "description": "Hint for the public institution name field"
+  },
+  "verificationInstitutionLevelLabel": "Livello istituzionale",
+  "@verificationInstitutionLevelLabel": {
+    "description": "Field label for the public institution level"
+  },
+  "verificationOrganizationDialogTitle": "Verifica Organizzazione",
+  "@verificationOrganizationDialogTitle": {
+    "description": "Dialog title for a verified organization request"
+  },
+  "verificationOrganizationNameHint": "es. Associazione Ambiente Italia",
+  "@verificationOrganizationNameHint": {
+    "description": "Hint for the verified organization name field"
+  },
+  "verificationSubmitRequestAction": "Invia richiesta",
+  "@verificationSubmitRequestAction": {
+    "description": "Button label to submit a verification request"
+  },
+  "verificationCancelDialogTitle": "Annulla richiesta",
+  "@verificationCancelDialogTitle": {
+    "description": "Title of the pending verification cancellation dialog"
+  },
+  "verificationCancelDialogBody": "Vuoi davvero annullare la richiesta di verifica in attesa?",
+  "@verificationCancelDialogBody": {
+    "description": "Confirmation message for cancelling a pending verification request"
+  },
+  "verificationCancelSuccess": "Richiesta annullata.",
+  "@verificationCancelSuccess": {
+    "description": "Success message after cancelling a verification request"
+  },
+  "verificationCancelFailure": "Impossibile annullare la richiesta.",
+  "@verificationCancelFailure": {
+    "description": "Fallback error after cancelling a verification request"
+  },
+  "verificationStatusPendingSuffix": "richiesta in revisione",
+  "@verificationStatusPendingSuffix": {
+    "description": "Status suffix shown when a verification request is pending"
+  },
+  "verificationStatusRejectedSuffix": "ultima richiesta respinta",
+  "@verificationStatusRejectedSuffix": {
+    "description": "Status suffix shown when the last verification request was rejected"
+  },
+  "verificationReviewPageTitle": "Revisione verifiche",
+  "@verificationReviewPageTitle": {
+    "description": "Title of the administrator verification review page"
+  },
+  "verificationReviewLoginRequired": "Devi accedere per revisionare le richieste di verifica.",
+  "@verificationReviewLoginRequired": {
+    "description": "Message shown when the reviewer is not logged in"
+  },
+  "verificationReviewPendingCount": "Richieste in attesa: {count}",
+  "@verificationReviewPendingCount": {
+    "description": "Number of pending verification requests",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "verificationReviewNoPendingRequests": "Nessuna richiesta di verifica in attesa.",
+  "@verificationReviewNoPendingRequests": {
+    "description": "Message shown when there are no pending verification requests"
+  },
+  "verificationReviewUserIdLabel": "ID utente",
+  "@verificationReviewUserIdLabel": {
+    "description": "Label for the user identifier in a verification review card"
+  },
+  "verificationReviewSubmittedLabel": "Inviata",
+  "@verificationReviewSubmittedLabel": {
+    "description": "Label for the submission date of a verification request"
+  },
+  "verificationReviewOfficialTitleLabel": "Titolo ufficiale",
+  "@verificationReviewOfficialTitleLabel": {
+    "description": "Label for the public official title in a review card"
+  },
+  "verificationReviewInstitutionLabel": "Istituzione",
+  "@verificationReviewInstitutionLabel": {
+    "description": "Label for the institution name in a review card"
+  },
+  "verificationReviewOrganizationLabel": "Organizzazione",
+  "@verificationReviewOrganizationLabel": {
+    "description": "Label for the organization name in a review card"
+  },
+  "verificationReviewNoteLabel": "Nota di revisione",
+  "@verificationReviewNoteLabel": {
+    "description": "Label for an existing review note"
+  },
+  "verificationReviewRejectAction": "Rifiuta",
+  "@verificationReviewRejectAction": {
+    "description": "Button label to reject a verification request"
+  },
+  "verificationReviewApproveAction": "Approva",
+  "@verificationReviewApproveAction": {
+    "description": "Button label to approve a verification request"
+  },
+  "verificationReviewApproveDialogTitle": "Approva richiesta",
+  "@verificationReviewApproveDialogTitle": {
+    "description": "Title of the approve verification request dialog"
+  },
+  "verificationReviewRejectDialogTitle": "Rifiuta richiesta",
+  "@verificationReviewRejectDialogTitle": {
+    "description": "Title of the reject verification request dialog"
+  },
+  "verificationReviewApproveConfirmation": "Confermi l’approvazione della richiesta?",
+  "@verificationReviewApproveConfirmation": {
+    "description": "Confirmation message before approving a verification request"
+  },
+  "verificationReviewRejectConfirmation": "Confermi il rifiuto della richiesta?",
+  "@verificationReviewRejectConfirmation": {
+    "description": "Confirmation message before rejecting a verification request"
+  },
+  "verificationReviewOptionalNoteLabel": "Nota di revisione facoltativa",
+  "@verificationReviewOptionalNoteLabel": {
+    "description": "Field label for an optional review note"
+  },
+  "verificationReviewRequiredNoteLabel": "Motivo del rifiuto",
+  "@verificationReviewRequiredNoteLabel": {
+    "description": "Field label for the required rejection reason"
+  },
+  "verificationReviewOptionalHelper": "Facoltativa",
+  "@verificationReviewOptionalHelper": {
+    "description": "Helper text for an optional review note"
+  },
+  "verificationReviewRequiredHelper": "Obbligatorio per il rifiuto",
+  "@verificationReviewRequiredHelper": {
+    "description": "Helper text for the required rejection reason"
+  },
+  "verificationReviewRequiredNoteError": "Inserisci il motivo del rifiuto.",
+  "@verificationReviewRequiredNoteError": {
+    "description": "Validation error when the rejection reason is missing"
+  },
+  "verificationReviewApprovedSuccess": "Richiesta approvata.",
+  "@verificationReviewApprovedSuccess": {
+    "description": "Success message after approving a verification request"
+  },
+  "verificationReviewRejectedSuccess": "Richiesta rifiutata.",
+  "@verificationReviewRejectedSuccess": {
+    "description": "Success message after rejecting a verification request"
+  },
+  "verificationReviewOperationFailure": "Operazione non riuscita.",
+  "@verificationReviewOperationFailure": {
+    "description": "Fallback error message for a failed review operation"
   }
-
 }

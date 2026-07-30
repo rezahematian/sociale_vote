@@ -7,6 +7,7 @@ enum VerificationRequestType {
   citizenLevel2,
   publicOfficial,
   institution,
+  organization,
 }
 
 extension VerificationRequestTypeX on VerificationRequestType {
@@ -20,6 +21,8 @@ extension VerificationRequestTypeX on VerificationRequestType {
         return 'public_official';
       case VerificationRequestType.institution:
         return 'institution';
+      case VerificationRequestType.organization:
+        return 'organization';
     }
   }
 
@@ -33,6 +36,9 @@ extension VerificationRequestTypeX on VerificationRequestType {
         return VerificationRequestType.publicOfficial;
       case 'institution':
         return VerificationRequestType.institution;
+      case 'organization':
+      case 'verified_organization':
+        return VerificationRequestType.organization;
       default:
         return VerificationRequestType.citizenLevel1;
     }
@@ -99,6 +105,7 @@ class VerificationRequest {
 
   final String? officialTitle;
   final String? institutionName;
+  final String? organizationName;
 
   final VerificationRequestStatus status;
 
@@ -119,6 +126,7 @@ class VerificationRequest {
     this.targetInstitutionLevel,
     this.officialTitle,
     this.institutionName,
+    this.organizationName,
     required this.status,
     required this.submittedAt,
     this.reviewedAt,
@@ -142,6 +150,9 @@ class VerificationRequest {
   bool get requiresInstitutionData =>
       requestType == VerificationRequestType.institution;
 
+  bool get requiresOrganizationData =>
+      requestType == VerificationRequestType.organization;
+
   VerificationRequest copyWith({
     String? id,
     String? userId,
@@ -151,6 +162,7 @@ class VerificationRequest {
     Object? targetInstitutionLevel = _unset,
     Object? officialTitle = _unset,
     Object? institutionName = _unset,
+    Object? organizationName = _unset,
     VerificationRequestStatus? status,
     DateTime? submittedAt,
     Object? reviewedAt = _unset,
@@ -175,6 +187,9 @@ class VerificationRequest {
       institutionName: identical(institutionName, _unset)
           ? this.institutionName
           : institutionName as String?,
+      organizationName: identical(organizationName, _unset)
+          ? this.organizationName
+          : organizationName as String?,
       status: status ?? this.status,
       submittedAt: submittedAt ?? this.submittedAt,
       reviewedAt: identical(reviewedAt, _unset)

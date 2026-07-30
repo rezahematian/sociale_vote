@@ -1506,4 +1506,309 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get profileDeleteAccountFailureMessage => 'Impossibile eliminare l’account. Riprova.';
+
+  @override
+  String get identityActorTypePerson => 'Persona';
+
+  @override
+  String get identityActorTypePublicOfficial => 'Funzionario pubblico';
+
+  @override
+  String get identityActorTypePublicInstitution => 'Istituzione pubblica';
+
+  @override
+  String get identityActorTypeVerifiedOrganization => 'Organizzazione verificata';
+
+  @override
+  String get identityVerificationNotVerified => 'Non verificata';
+
+  @override
+  String get identityVerificationLevel1 => 'Identità verificata';
+
+  @override
+  String get identityVerificationLevel2 => 'Identità verificata avanzata';
+
+  @override
+  String get identityBadgeLevel1 => 'Identità verificata';
+
+  @override
+  String get identityBadgeLevel2 => 'Identità verificata avanzata';
+
+  @override
+  String get identityBadgePublicOfficial => 'Funzionario pubblico';
+
+  @override
+  String get identityBadgePublicInstitution => 'Istituzione pubblica';
+
+  @override
+  String get identityBadgeVerifiedOrganization => 'Organizzazione verificata';
+
+  @override
+  String get identityOrganizationNameLabel => 'Nome dell’organizzazione';
+
+  @override
+  String get identityOrganizationNameRequired => 'Inserisci il nome dell’organizzazione.';
+
+  @override
+  String get identityInstitutionLevelMunicipality => 'Comunale';
+
+  @override
+  String get identityInstitutionLevelProvince => 'Provinciale';
+
+  @override
+  String get identityInstitutionLevelRegion => 'Regionale';
+
+  @override
+  String get identityInstitutionLevelMinistry => 'Ministero';
+
+  @override
+  String get identityInstitutionLevelGovernment => 'Governo';
+
+  @override
+  String get identityInstitutionLevelPublicAgency => 'Agenzia pubblica';
+
+  @override
+  String get identityInstitutionLevelOtherPublicBody => 'Altro ente pubblico';
+
+  @override
+  String get verificationRequestPersonLevel1 => 'Verifica persona — Livello 1';
+
+  @override
+  String get verificationRequestPersonLevel2 => 'Verifica persona — Livello 2';
+
+  @override
+  String get verificationRequestPublicOfficial => 'Verifica funzionario pubblico';
+
+  @override
+  String get verificationRequestPublicInstitution => 'Verifica istituzione pubblica';
+
+  @override
+  String get verificationRequestVerifiedOrganization => 'Verifica organizzazione';
+
+  @override
+  String get verificationCenterTitle => 'Verifica e tipo di account';
+
+  @override
+  String get verificationCurrentAccountSection => 'Account attuale';
+
+  @override
+  String verificationAccountTypeValue(String accountType) {
+    return 'Tipo di account: $accountType';
+  }
+
+  @override
+  String verificationLevelValue(String level) {
+    return 'Livello di verifica: $level';
+  }
+
+  @override
+  String verificationOfficialTitleValue(String title) {
+    return 'Titolo ufficiale: $title';
+  }
+
+  @override
+  String verificationInstitutionNameValue(String name) {
+    return 'Ente: $name';
+  }
+
+  @override
+  String verificationOrganizationNameValue(String name) {
+    return 'Organizzazione: $name';
+  }
+
+  @override
+  String verificationInstitutionLevelValue(String level) {
+    return 'Livello istituzionale: $level';
+  }
+
+  @override
+  String get verificationActiveRequestSection => 'Richiesta attiva';
+
+  @override
+  String get verificationProfileUnchangedUntilApproval => 'Il profilo attuale non cambia finché la richiesta non viene approvata.';
+
+  @override
+  String get verificationCancelPendingAction => 'Annulla richiesta in attesa';
+
+  @override
+  String get verificationPendingBlocksNewRequests => 'Finché hai una richiesta in attesa non puoi inviarne una nuova.';
+
+  @override
+  String get verificationNoActiveRequestSection => 'Nessuna richiesta attiva';
+
+  @override
+  String get verificationNoActiveRequestDescription => 'Al momento non hai richieste in revisione.';
+
+  @override
+  String get verificationLastRejectedSection => 'Ultima richiesta respinta';
+
+  @override
+  String get verificationLastRejectedDescription => 'La tua ultima richiesta è stata respinta.';
+
+  @override
+  String get verificationRejectedCanResubmit => 'Il profilo attuale non è cambiato. Puoi correggere i dati e inviare una nuova richiesta.';
+
+  @override
+  String get verificationAvailableRequestsSection => 'Richieste disponibili';
+
+  @override
+  String get verificationRequestLevel1Title => 'Richiedi verifica persona — Livello 1';
+
+  @override
+  String get verificationRequestLevel1Subtitle => 'Verifica di base dell’identità personale';
+
+  @override
+  String get verificationRequestLevel2Title => 'Richiedi verifica persona — Livello 2';
+
+  @override
+  String get verificationRequestLevel2Subtitle => 'Verifica avanzata dell’identità personale';
+
+  @override
+  String get verificationRequestPublicOfficialTitle => 'Richiedi account Funzionario pubblico';
+
+  @override
+  String get verificationRequestPublicOfficialSubtitle => 'Richiede un titolo ufficiale e la revisione';
+
+  @override
+  String get verificationRequestPublicInstitutionTitle => 'Richiedi account Istituzione pubblica';
+
+  @override
+  String get verificationRequestPublicInstitutionSubtitle => 'Richiede nome dell’ente, livello istituzionale e revisione';
+
+  @override
+  String get verificationRequestOrganizationTitle => 'Richiedi account Organizzazione verificata';
+
+  @override
+  String get verificationRequestOrganizationSubtitle => 'Richiede il nome dell’organizzazione e la revisione';
+
+  @override
+  String get verificationNoSelfServiceUpgrade => 'Non ci sono verifiche disponibili per lo stato attuale del tuo account.';
+
+  @override
+  String get verificationRequestSubmitSuccess => 'Richiesta inviata con successo.';
+
+  @override
+  String get verificationRequestSubmitFailure => 'Impossibile inviare la richiesta.';
+
+  @override
+  String get verificationOfficialTitleDialogTitle => 'Verifica Funzionario pubblico';
+
+  @override
+  String get verificationOfficialTitleLabel => 'Titolo ufficiale';
+
+  @override
+  String get verificationOfficialTitleHint => 'es. Sindaco, Assessore, Ministro';
+
+  @override
+  String get verificationInstitutionDialogTitle => 'Verifica Istituzione pubblica';
+
+  @override
+  String get verificationInstitutionNameLabel => 'Nome dell’ente';
+
+  @override
+  String get verificationInstitutionNameHint => 'es. Comune di Roma';
+
+  @override
+  String get verificationInstitutionLevelLabel => 'Livello istituzionale';
+
+  @override
+  String get verificationOrganizationDialogTitle => 'Verifica Organizzazione';
+
+  @override
+  String get verificationOrganizationNameHint => 'es. Associazione Ambiente Italia';
+
+  @override
+  String get verificationSubmitRequestAction => 'Invia richiesta';
+
+  @override
+  String get verificationCancelDialogTitle => 'Annulla richiesta';
+
+  @override
+  String get verificationCancelDialogBody => 'Vuoi davvero annullare la richiesta di verifica in attesa?';
+
+  @override
+  String get verificationCancelSuccess => 'Richiesta annullata.';
+
+  @override
+  String get verificationCancelFailure => 'Impossibile annullare la richiesta.';
+
+  @override
+  String get verificationStatusPendingSuffix => 'richiesta in revisione';
+
+  @override
+  String get verificationStatusRejectedSuffix => 'ultima richiesta respinta';
+
+  @override
+  String get verificationReviewPageTitle => 'Revisione verifiche';
+
+  @override
+  String get verificationReviewLoginRequired => 'Devi accedere per revisionare le richieste di verifica.';
+
+  @override
+  String verificationReviewPendingCount(int count) {
+    return 'Richieste in attesa: $count';
+  }
+
+  @override
+  String get verificationReviewNoPendingRequests => 'Nessuna richiesta di verifica in attesa.';
+
+  @override
+  String get verificationReviewUserIdLabel => 'ID utente';
+
+  @override
+  String get verificationReviewSubmittedLabel => 'Inviata';
+
+  @override
+  String get verificationReviewOfficialTitleLabel => 'Titolo ufficiale';
+
+  @override
+  String get verificationReviewInstitutionLabel => 'Istituzione';
+
+  @override
+  String get verificationReviewOrganizationLabel => 'Organizzazione';
+
+  @override
+  String get verificationReviewNoteLabel => 'Nota di revisione';
+
+  @override
+  String get verificationReviewRejectAction => 'Rifiuta';
+
+  @override
+  String get verificationReviewApproveAction => 'Approva';
+
+  @override
+  String get verificationReviewApproveDialogTitle => 'Approva richiesta';
+
+  @override
+  String get verificationReviewRejectDialogTitle => 'Rifiuta richiesta';
+
+  @override
+  String get verificationReviewApproveConfirmation => 'Confermi l’approvazione della richiesta?';
+
+  @override
+  String get verificationReviewRejectConfirmation => 'Confermi il rifiuto della richiesta?';
+
+  @override
+  String get verificationReviewOptionalNoteLabel => 'Nota di revisione facoltativa';
+
+  @override
+  String get verificationReviewRequiredNoteLabel => 'Motivo del rifiuto';
+
+  @override
+  String get verificationReviewOptionalHelper => 'Facoltativa';
+
+  @override
+  String get verificationReviewRequiredHelper => 'Obbligatorio per il rifiuto';
+
+  @override
+  String get verificationReviewRequiredNoteError => 'Inserisci il motivo del rifiuto.';
+
+  @override
+  String get verificationReviewApprovedSuccess => 'Richiesta approvata.';
+
+  @override
+  String get verificationReviewRejectedSuccess => 'Richiesta rifiutata.';
+
+  @override
+  String get verificationReviewOperationFailure => 'Operazione non riuscita.';
 }

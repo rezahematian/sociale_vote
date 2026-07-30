@@ -56,6 +56,7 @@ class Poll {
   /// - null = poll pubblicato come utente normale
   /// - publicOfficial = poll pubblicato come official verificato
   /// - institution = poll pubblicato come ente verificato
+  /// - organization = poll pubblicato come organizzazione verificata
   ///
   /// NON sostituisce [createdByUserId]:
   /// quello resta il creatore tecnico reale.
@@ -69,6 +70,7 @@ class Poll {
   /// Esempi:
   /// - officialTitle per public official
   /// - institutionName per institution
+  /// - organizationName per organization
   final String? publishedAsDisplayName;
 
   /// Numero totale di partecipanti (aggregato backend).
@@ -93,7 +95,7 @@ class Poll {
     this.publishedAsInstitutionLevel,
     this.publishedAsDisplayName,
     this.voteCount = 0,
-  }) : assert(
+  })  : assert(
           publishedAsActorType != ActorType.citizen,
           'publishedAsActorType non può essere citizen: usare null per pubblicazione standard.',
         ),
@@ -112,7 +114,8 @@ class Poll {
   bool get isPublishedAsRepresentative {
     final normalized = publishedAsDisplayName?.trim();
     return (publishedAsActorType == ActorType.publicOfficial ||
-            publishedAsActorType == ActorType.institution) &&
+            publishedAsActorType == ActorType.institution ||
+            publishedAsActorType == ActorType.organization) &&
         normalized != null &&
         normalized.isNotEmpty;
   }
@@ -123,6 +126,10 @@ class Poll {
 
   bool get isPublishedAsInstitution {
     return publishedAsActorType == ActorType.institution;
+  }
+
+  bool get isPublishedAsOrganization {
+    return publishedAsActorType == ActorType.organization;
   }
 
   String? get representativeDisplayName {
@@ -138,7 +145,9 @@ class Poll {
       case ActorType.publicOfficial:
         return 'Public Official';
       case ActorType.institution:
-        return 'Institution';
+        return 'Public Institution';
+      case ActorType.organization:
+        return 'Verified Organization';
       case ActorType.citizen:
       case null:
         return null;
@@ -206,8 +215,8 @@ class Poll {
       contentLocation: contentLocation ?? this.contentLocation,
       createdByUserId: createdByUserId ?? this.createdByUserId,
       publishedAsActorType: publishedAsActorType ?? this.publishedAsActorType,
-      publishedAsInstitutionLevel: publishedAsInstitutionLevel ??
-          this.publishedAsInstitutionLevel,
+      publishedAsInstitutionLevel:
+          publishedAsInstitutionLevel ?? this.publishedAsInstitutionLevel,
       publishedAsDisplayName:
           publishedAsDisplayName ?? this.publishedAsDisplayName,
       voteCount: voteCount ?? this.voteCount,

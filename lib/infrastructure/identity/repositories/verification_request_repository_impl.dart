@@ -106,6 +106,7 @@ class VerificationRequestRepositoryImpl
     InstitutionLevel? targetInstitutionLevel,
     String? officialTitle,
     String? institutionName,
+    String? organizationName,
   }) async {
     final normalizedUserId = userId.trim();
     if (normalizedUserId.isEmpty) {
@@ -125,6 +126,7 @@ class VerificationRequestRepositoryImpl
       'target_institution_level': targetInstitutionLevel?.storageKey,
       'official_title': _normalizeNullable(officialTitle),
       'institution_name': _normalizeNullable(institutionName),
+      'organization_name': _normalizeNullable(organizationName),
       'status': VerificationRequestStatus.pending.storageKey,
     };
 
@@ -278,6 +280,7 @@ class VerificationRequestRepositoryImpl
       targetInstitutionLevel: existing.targetInstitutionLevel,
       officialTitle: existing.officialTitle,
       institutionName: existing.institutionName,
+      organizationName: existing.organizationName,
       status: status,
       submittedAt: existing.submittedAt,
       reviewedAt: reviewedAt,
@@ -306,6 +309,7 @@ class VerificationRequestRepositoryImpl
       ),
       officialTitle: _normalizeNullable(row['official_title'] as String?),
       institutionName: _normalizeNullable(row['institution_name'] as String?),
+      organizationName: _normalizeNullable(row['organization_name'] as String?),
       status: VerificationRequestStatusX.fromStorageKey(
         row['status'] as String?,
       ),

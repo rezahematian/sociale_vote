@@ -1506,4 +1506,309 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileDeleteAccountFailureMessage => 'Unable to delete the account. Try again.';
+
+  @override
+  String get identityActorTypePerson => 'Person';
+
+  @override
+  String get identityActorTypePublicOfficial => 'Public official';
+
+  @override
+  String get identityActorTypePublicInstitution => 'Public institution';
+
+  @override
+  String get identityActorTypeVerifiedOrganization => 'Verified organization';
+
+  @override
+  String get identityVerificationNotVerified => 'Not verified';
+
+  @override
+  String get identityVerificationLevel1 => 'Verified identity';
+
+  @override
+  String get identityVerificationLevel2 => 'Advanced verified identity';
+
+  @override
+  String get identityBadgeLevel1 => 'Verified identity';
+
+  @override
+  String get identityBadgeLevel2 => 'Advanced verified identity';
+
+  @override
+  String get identityBadgePublicOfficial => 'Public official';
+
+  @override
+  String get identityBadgePublicInstitution => 'Public institution';
+
+  @override
+  String get identityBadgeVerifiedOrganization => 'Verified organization';
+
+  @override
+  String get identityOrganizationNameLabel => 'Organization name';
+
+  @override
+  String get identityOrganizationNameRequired => 'Enter the organization name.';
+
+  @override
+  String get identityInstitutionLevelMunicipality => 'Municipal';
+
+  @override
+  String get identityInstitutionLevelProvince => 'Provincial';
+
+  @override
+  String get identityInstitutionLevelRegion => 'Regional';
+
+  @override
+  String get identityInstitutionLevelMinistry => 'Ministry';
+
+  @override
+  String get identityInstitutionLevelGovernment => 'Government';
+
+  @override
+  String get identityInstitutionLevelPublicAgency => 'Public agency';
+
+  @override
+  String get identityInstitutionLevelOtherPublicBody => 'Other public body';
+
+  @override
+  String get verificationRequestPersonLevel1 => 'Person verification — Level 1';
+
+  @override
+  String get verificationRequestPersonLevel2 => 'Person verification — Level 2';
+
+  @override
+  String get verificationRequestPublicOfficial => 'Public official verification';
+
+  @override
+  String get verificationRequestPublicInstitution => 'Public institution verification';
+
+  @override
+  String get verificationRequestVerifiedOrganization => 'Organization verification';
+
+  @override
+  String get verificationCenterTitle => 'Verification and account type';
+
+  @override
+  String get verificationCurrentAccountSection => 'Current account';
+
+  @override
+  String verificationAccountTypeValue(String accountType) {
+    return 'Account type: $accountType';
+  }
+
+  @override
+  String verificationLevelValue(String level) {
+    return 'Verification level: $level';
+  }
+
+  @override
+  String verificationOfficialTitleValue(String title) {
+    return 'Official title: $title';
+  }
+
+  @override
+  String verificationInstitutionNameValue(String name) {
+    return 'Institution: $name';
+  }
+
+  @override
+  String verificationOrganizationNameValue(String name) {
+    return 'Organization: $name';
+  }
+
+  @override
+  String verificationInstitutionLevelValue(String level) {
+    return 'Institution level: $level';
+  }
+
+  @override
+  String get verificationActiveRequestSection => 'Active request';
+
+  @override
+  String get verificationProfileUnchangedUntilApproval => 'Your current profile will not change until the request is approved.';
+
+  @override
+  String get verificationCancelPendingAction => 'Cancel pending request';
+
+  @override
+  String get verificationPendingBlocksNewRequests => 'You cannot submit a new request while another request is pending.';
+
+  @override
+  String get verificationNoActiveRequestSection => 'No active request';
+
+  @override
+  String get verificationNoActiveRequestDescription => 'You currently have no requests under review.';
+
+  @override
+  String get verificationLastRejectedSection => 'Last rejected request';
+
+  @override
+  String get verificationLastRejectedDescription => 'Your last request was rejected.';
+
+  @override
+  String get verificationRejectedCanResubmit => 'Your current profile has not changed. You can correct the information and submit a new request.';
+
+  @override
+  String get verificationAvailableRequestsSection => 'Available requests';
+
+  @override
+  String get verificationRequestLevel1Title => 'Request person verification — Level 1';
+
+  @override
+  String get verificationRequestLevel1Subtitle => 'Basic personal identity verification';
+
+  @override
+  String get verificationRequestLevel2Title => 'Request person verification — Level 2';
+
+  @override
+  String get verificationRequestLevel2Subtitle => 'Advanced personal identity verification';
+
+  @override
+  String get verificationRequestPublicOfficialTitle => 'Request a Public official account';
+
+  @override
+  String get verificationRequestPublicOfficialSubtitle => 'Requires an official title and review';
+
+  @override
+  String get verificationRequestPublicInstitutionTitle => 'Request a Public institution account';
+
+  @override
+  String get verificationRequestPublicInstitutionSubtitle => 'Requires the institution name, institution level, and review';
+
+  @override
+  String get verificationRequestOrganizationTitle => 'Request a Verified organization account';
+
+  @override
+  String get verificationRequestOrganizationSubtitle => 'Requires the organization name and review';
+
+  @override
+  String get verificationNoSelfServiceUpgrade => 'No verification options are available for your current account status.';
+
+  @override
+  String get verificationRequestSubmitSuccess => 'Request submitted successfully.';
+
+  @override
+  String get verificationRequestSubmitFailure => 'Unable to submit the request.';
+
+  @override
+  String get verificationOfficialTitleDialogTitle => 'Public official verification';
+
+  @override
+  String get verificationOfficialTitleLabel => 'Official title';
+
+  @override
+  String get verificationOfficialTitleHint => 'e.g. Mayor, Councillor, Minister';
+
+  @override
+  String get verificationInstitutionDialogTitle => 'Public institution verification';
+
+  @override
+  String get verificationInstitutionNameLabel => 'Institution name';
+
+  @override
+  String get verificationInstitutionNameHint => 'e.g. City of Rome';
+
+  @override
+  String get verificationInstitutionLevelLabel => 'Institution level';
+
+  @override
+  String get verificationOrganizationDialogTitle => 'Organization verification';
+
+  @override
+  String get verificationOrganizationNameHint => 'e.g. Environment Italy Association';
+
+  @override
+  String get verificationSubmitRequestAction => 'Submit request';
+
+  @override
+  String get verificationCancelDialogTitle => 'Cancel request';
+
+  @override
+  String get verificationCancelDialogBody => 'Are you sure you want to cancel the pending verification request?';
+
+  @override
+  String get verificationCancelSuccess => 'Request cancelled.';
+
+  @override
+  String get verificationCancelFailure => 'Unable to cancel the request.';
+
+  @override
+  String get verificationStatusPendingSuffix => 'request under review';
+
+  @override
+  String get verificationStatusRejectedSuffix => 'last request rejected';
+
+  @override
+  String get verificationReviewPageTitle => 'Verification review';
+
+  @override
+  String get verificationReviewLoginRequired => 'You must sign in to review verification requests.';
+
+  @override
+  String verificationReviewPendingCount(int count) {
+    return 'Pending requests: $count';
+  }
+
+  @override
+  String get verificationReviewNoPendingRequests => 'There are no pending verification requests.';
+
+  @override
+  String get verificationReviewUserIdLabel => 'User ID';
+
+  @override
+  String get verificationReviewSubmittedLabel => 'Submitted';
+
+  @override
+  String get verificationReviewOfficialTitleLabel => 'Official title';
+
+  @override
+  String get verificationReviewInstitutionLabel => 'Institution';
+
+  @override
+  String get verificationReviewOrganizationLabel => 'Organization';
+
+  @override
+  String get verificationReviewNoteLabel => 'Review note';
+
+  @override
+  String get verificationReviewRejectAction => 'Reject';
+
+  @override
+  String get verificationReviewApproveAction => 'Approve';
+
+  @override
+  String get verificationReviewApproveDialogTitle => 'Approve request';
+
+  @override
+  String get verificationReviewRejectDialogTitle => 'Reject request';
+
+  @override
+  String get verificationReviewApproveConfirmation => 'Confirm approval of this request?';
+
+  @override
+  String get verificationReviewRejectConfirmation => 'Confirm rejection of this request?';
+
+  @override
+  String get verificationReviewOptionalNoteLabel => 'Optional review note';
+
+  @override
+  String get verificationReviewRequiredNoteLabel => 'Reason for rejection';
+
+  @override
+  String get verificationReviewOptionalHelper => 'Optional';
+
+  @override
+  String get verificationReviewRequiredHelper => 'Required when rejecting';
+
+  @override
+  String get verificationReviewRequiredNoteError => 'Enter the reason for rejection.';
+
+  @override
+  String get verificationReviewApprovedSuccess => 'Request approved.';
+
+  @override
+  String get verificationReviewRejectedSuccess => 'Request rejected.';
+
+  @override
+  String get verificationReviewOperationFailure => 'Operation failed.';
 }

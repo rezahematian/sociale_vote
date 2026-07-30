@@ -4,6 +4,7 @@ import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
 import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/identity/value_objects/institution_level.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class UserIdentityMark extends StatelessWidget {
   final ActorType actorType;
@@ -95,8 +96,9 @@ class UserIdentityMark extends StatelessWidget {
     );
 
     if (showTooltip) {
+      final l10n = AppLocalizations.of(context)!;
       child = Tooltip(
-        message: _tooltipFor(kind),
+        message: _tooltipFor(kind, l10n),
         child: child,
       );
     }
@@ -112,14 +114,15 @@ class UserIdentityMark extends StatelessWidget {
     required VerificationLevel verificationLevel,
     InstitutionLevel? institutionLevel,
   }) {
-    if (actorType == ActorType.institution &&
-        verificationLevel == VerificationLevel.level2 &&
-        institutionLevel != null) {
+    if (actorType == ActorType.organization) {
+      return _UserIdentityMarkKind.organization;
+    }
+
+    if (actorType == ActorType.institution && institutionLevel != null) {
       return _UserIdentityMarkKind.institution;
     }
 
-    if (actorType == ActorType.publicOfficial &&
-        verificationLevel == VerificationLevel.level2) {
+    if (actorType == ActorType.publicOfficial) {
       return _UserIdentityMarkKind.publicOfficial;
     }
 
@@ -146,19 +149,26 @@ class UserIdentityMark extends StatelessWidget {
         return Icons.badge_rounded;
       case _UserIdentityMarkKind.institution:
         return Icons.account_balance_rounded;
+      case _UserIdentityMarkKind.organization:
+        return Icons.groups_rounded;
     }
   }
 
-  static String _tooltipFor(_UserIdentityMarkKind kind) {
+  static String _tooltipFor(
+    _UserIdentityMarkKind kind,
+    AppLocalizations l10n,
+  ) {
     switch (kind) {
       case _UserIdentityMarkKind.verifiedLv1:
-        return 'Verified Lv1';
+        return l10n.identityBadgeLevel1;
       case _UserIdentityMarkKind.verifiedLv2:
-        return 'Verified Lv2';
+        return l10n.identityBadgeLevel2;
       case _UserIdentityMarkKind.publicOfficial:
-        return 'Public Official';
+        return l10n.identityBadgePublicOfficial;
       case _UserIdentityMarkKind.institution:
-        return 'Institution';
+        return l10n.identityBadgePublicInstitution;
+      case _UserIdentityMarkKind.organization:
+        return l10n.identityBadgeVerifiedOrganization;
     }
   }
 
@@ -207,6 +217,7 @@ class UserIdentityMark extends StatelessWidget {
         );
 
       case _UserIdentityMarkKind.institution:
+      case _UserIdentityMarkKind.organization:
         return _UserIdentityMarkPalette(
           foregroundColor: isDark
               ? AppColors.identityInstitutionForegroundDark
@@ -227,6 +238,7 @@ enum _UserIdentityMarkKind {
   verifiedLv2,
   publicOfficial,
   institution,
+  organization,
 }
 
 class _UserIdentityMarkPalette {
