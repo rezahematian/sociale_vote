@@ -36,6 +36,7 @@ class AdminRepositoryException implements Exception {
 class AdminRepositoryImpl implements AdminRepository {
   static const String _adminUsersFunction = 'admin-users';
   static const String _adminReadFunction = 'admin-read';
+  static const String _adminReportActionsFunction = 'admin-report-actions';
   static const String _setSystemRoleFunction = 'set-system-role';
   static const String _adminAccountActionsFunction = 'admin-account-actions';
   static const String _adminDeleteAccountFunction = 'admin-delete-account';
@@ -153,6 +154,78 @@ class AdminRepositoryImpl implements AdminRepository {
   }
 
   @override
+  Future<AdminReportQueuePage> getReportQueue({
+    AdminReportStatus? status,
+    AdminReportTargetType? targetType,
+    int limit = 25,
+    int offset = 0,
+  }) async {
+    final data = await _invoke(
+      _adminReadFunction,
+      <String, Object?>{
+        'operation': 'reports',
+        'filters': <String, Object?>{
+          'status': status?.storageKey,
+          'targetType': targetType?.storageKey,
+        },
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    _requireSuccess(data);
+
+    final reportRows = _readRequiredObjectList(
+      data,
+      'reports',
+    );
+    final pagination = _readRequiredObject(
+      data,
+      'pagination',
+    );
+
+    return AdminReportQueuePage(
+      reports: reportRows.map(_mapReportEntry).toList(growable: false),
+      limit: _readRequiredPositiveInt(
+        pagination,
+        'limit',
+      ),
+      offset: _readRequiredNonNegativeInt(
+        pagination,
+        'offset',
+      ),
+      returnedCount: _readRequiredNonNegativeInt(
+        pagination,
+        'returnedCount',
+      ),
+      totalCount: _readRequiredNonNegativeInt(
+        pagination,
+        'totalCount',
+      ),
+      hasMore: _readRequiredBool(
+        pagination,
+        'hasMore',
+      ),
+    );
+  }
+
+  @override
+  Future<void> recordReportDecision({
+    required String reportId,
+    required AdminReportDecision decision,
+    required String reviewNote,
+  }) async {
+    final data = await _invoke(
+      _adminReportActionsFunction,
+      <String, Object?>{
+        'reportId': reportId,
+        'decision': decision.storageKey,
+        'reviewNote': reviewNote,
+      },
+    );
+    _requireSuccess(data);
+  }
+
+  @override
   Future<void> changeSystemRole({
     required String operationId,
     required String targetUserId,
@@ -165,6 +238,28 @@ class AdminRepositoryImpl implements AdminRepository {
         'operationId': operationId,
         'targetUserId': targetUserId,
         'role': role.storageKey,
+        'reason': reason,
+      },
+    );
+    _requireSuccess(data);
+  }
+
+  @override
+  Future<void> setPublicIdentity({
+    required String operationId,
+    required String targetUserId,
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+    required String reason,
+  }) async {
+    final data = await _invoke(
+      _adminAccountActionsFunction,
+      <String, Object?>{
+        'operationId': operationId,
+        'targetUserId': targetUserId,
+        'action': 'set_public_identity',
+        'actorType': actorType.storageKey,
+        'verificationLevel': verificationLevel.storageKey,
         'reason': reason,
       },
     );
@@ -412,6 +507,72 @@ class AdminRepositoryImpl implements AdminRepository {
         'createdAt',
       ),
     );
+  }
+
+  AdminReportEntry _mapReportEntry(
+    Map<String, Object?> row,
+  ) {
+    final reportedActorType = _readOptionalString(
+      row,
+      'reportedActorType',
+    );
+    final reportedVerificationLevel = _readOptionalString(
+      row,
+      'reportedVerificationLevel',
+    );
+
+    return AdminReportEntry(
+      id: _readRequiredString(row, 'reportId'),
+      targetType: AdminReportTargetTypeX.fromStorageKey(
+        _readOptionalString(row, 'targetType'),
+      ),
+      targetId: _readRequiredString(row, 'targetId'),
+      reporterUserId: _readRequiredString(row, 'reporterUserId'),
+      reportedUserId: _readOptionalString(row, 'reportedUserId'),
+      reportedDisplayName: _readOptionalString(
+        row,
+        'reportedDisplayName',
+      ),
+      reportedUsername: _readOptionalString(row, 'reportedUsername'),
+      reportedAvatarUrl: _readOptionalString(row, 'reportedAvatarUrl'),
+      reportedActorType: reportedActorType == null
+          ? null
+          : ActorTypeX.fromStorageKey(reportedActorType),
+      reportedVerificationLevel: reportedVerificationLevel == null
+          ? null
+          : VerificationLevelX.fromStorageKey(
+              reportedVerificationLevel,
+            ),
+      targetTitle: _readOptionalString(row, 'targetTitle'),
+      reason: _readRequiredString(row, 'reason'),
+      status: AdminReportStatusX.fromStorageKey(
+        _readOptionalString(row, 'status'),
+      ),
+      moderationDecision: _mapOptionalReportDecision(
+        row,
+        'moderationDecision',
+      ),
+      reviewNote: _readOptionalString(row, 'reviewNote'),
+      reviewedBy: _readOptionalString(row, 'reviewedBy'),
+      reviewedAt: _readOptionalDateTime(row, 'reviewedAt'),
+      createdAt: _readRequiredDateTime(
+        row,
+        'createdAt',
+      ),
+    );
+  }
+
+  AdminReportDecision? _mapOptionalReportDecision(
+    Map<String, Object?> row,
+    String key,
+  ) {
+    final value = _readOptionalString(row, key);
+    if (value == null) {
+      return null;
+    }
+
+    final decision = AdminReportDecisionX.fromStorageKey(value);
+    return decision == AdminReportDecision.unknown ? null : decision;
   }
 
   AdminAuditEntry _mapAuditEntry(

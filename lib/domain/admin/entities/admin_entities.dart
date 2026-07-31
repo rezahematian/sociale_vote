@@ -117,6 +117,196 @@ class AdminDashboardSummary {
   int get regularUsers => totalUsers - staffUsers;
 }
 
+enum AdminReportStatus {
+  open,
+  inReview,
+  resolved,
+  dismissed,
+  unknown,
+}
+
+extension AdminReportStatusX on AdminReportStatus {
+  String get storageKey {
+    switch (this) {
+      case AdminReportStatus.open:
+        return 'open';
+      case AdminReportStatus.inReview:
+        return 'in_review';
+      case AdminReportStatus.resolved:
+        return 'resolved';
+      case AdminReportStatus.dismissed:
+        return 'dismissed';
+      case AdminReportStatus.unknown:
+        return 'unknown';
+    }
+  }
+
+  bool get isPending {
+    return this == AdminReportStatus.open || this == AdminReportStatus.inReview;
+  }
+
+  static AdminReportStatus fromStorageKey(String? value) {
+    switch (value?.trim().toLowerCase()) {
+      case 'open':
+        return AdminReportStatus.open;
+      case 'in_review':
+        return AdminReportStatus.inReview;
+      case 'resolved':
+        return AdminReportStatus.resolved;
+      case 'dismissed':
+        return AdminReportStatus.dismissed;
+      default:
+        return AdminReportStatus.unknown;
+    }
+  }
+}
+
+enum AdminReportTargetType {
+  poll,
+  post,
+  news,
+  unknown,
+}
+
+extension AdminReportTargetTypeX on AdminReportTargetType {
+  String get storageKey {
+    switch (this) {
+      case AdminReportTargetType.poll:
+        return 'poll';
+      case AdminReportTargetType.post:
+        return 'post';
+      case AdminReportTargetType.news:
+        return 'news';
+      case AdminReportTargetType.unknown:
+        return 'unknown';
+    }
+  }
+
+  static AdminReportTargetType fromStorageKey(String? value) {
+    switch (value?.trim().toLowerCase()) {
+      case 'poll':
+        return AdminReportTargetType.poll;
+      case 'post':
+        return AdminReportTargetType.post;
+      case 'news':
+        return AdminReportTargetType.news;
+      default:
+        return AdminReportTargetType.unknown;
+    }
+  }
+}
+
+enum AdminReportDecision {
+  noViolation,
+  violationConfirmed,
+  escalateToAdmin,
+  unknown,
+}
+
+extension AdminReportDecisionX on AdminReportDecision {
+  String get storageKey {
+    switch (this) {
+      case AdminReportDecision.noViolation:
+        return 'no_violation';
+      case AdminReportDecision.violationConfirmed:
+        return 'violation_confirmed';
+      case AdminReportDecision.escalateToAdmin:
+        return 'escalate_to_admin';
+      case AdminReportDecision.unknown:
+        return 'unknown';
+    }
+  }
+
+  static AdminReportDecision fromStorageKey(String? value) {
+    switch (value?.trim().toLowerCase()) {
+      case 'no_violation':
+        return AdminReportDecision.noViolation;
+      case 'violation_confirmed':
+        return AdminReportDecision.violationConfirmed;
+      case 'escalate_to_admin':
+        return AdminReportDecision.escalateToAdmin;
+      default:
+        return AdminReportDecision.unknown;
+    }
+  }
+}
+
+class AdminReportEntry {
+  final String id;
+  final AdminReportTargetType targetType;
+  final String targetId;
+  final String reporterUserId;
+  final String? reportedUserId;
+  final String? reportedDisplayName;
+  final String? reportedUsername;
+  final String? reportedAvatarUrl;
+  final ActorType? reportedActorType;
+  final VerificationLevel? reportedVerificationLevel;
+  final String? targetTitle;
+  final String reason;
+  final AdminReportStatus status;
+  final AdminReportDecision? moderationDecision;
+  final String? reviewNote;
+  final String? reviewedBy;
+  final DateTime? reviewedAt;
+  final DateTime createdAt;
+
+  const AdminReportEntry({
+    required this.id,
+    required this.targetType,
+    required this.targetId,
+    required this.reporterUserId,
+    this.reportedUserId,
+    this.reportedDisplayName,
+    this.reportedUsername,
+    this.reportedAvatarUrl,
+    this.reportedActorType,
+    this.reportedVerificationLevel,
+    this.targetTitle,
+    required this.reason,
+    required this.status,
+    this.moderationDecision,
+    this.reviewNote,
+    this.reviewedBy,
+    this.reviewedAt,
+    required this.createdAt,
+  });
+
+  bool get hasReportedUser =>
+      reportedUserId != null && reportedUserId!.trim().isNotEmpty;
+
+  bool get hasOriginalTarget => targetId.trim().isNotEmpty;
+
+  bool get hasModerationDecision => moderationDecision != null;
+
+  bool get canRecordModerationDecision =>
+      status.isPending && moderationDecision == null;
+}
+
+class AdminReportQueuePage {
+  final List<AdminReportEntry> reports;
+  final int limit;
+  final int offset;
+  final int returnedCount;
+  final int totalCount;
+  final bool hasMore;
+
+  AdminReportQueuePage({
+    required List<AdminReportEntry> reports,
+    required this.limit,
+    required this.offset,
+    required this.returnedCount,
+    required this.totalCount,
+    required this.hasMore,
+  })  : assert(limit > 0),
+        assert(offset >= 0),
+        assert(returnedCount >= 0),
+        assert(totalCount >= 0),
+        reports = List<AdminReportEntry>.unmodifiable(reports);
+
+  bool get hasPrevious => offset > 0;
+}
+
 class AdminUserSummary {
   final String id;
   final String? displayName;

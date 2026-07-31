@@ -5,8 +5,10 @@ const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
 
 type StaffRole = 'moderator' | 'admin'
-type ReadOperation = 'dashboard' | 'user_detail' | 'audit'
+type ReadOperation = 'dashboard' | 'user_detail' | 'reports' | 'audit'
 type AuditResult = 'success' | 'failure' | 'denied' | 'noop'
+type ReportStatus = 'open' | 'in_review' | 'resolved' | 'dismissed'
+type ReportTargetType = 'poll' | 'post' | 'news'
 
 type AuditFilters = {
   actorUserId?: unknown
@@ -15,6 +17,11 @@ type AuditFilters = {
   result?: unknown
   from?: unknown
   to?: unknown
+}
+
+type ReportFilters = {
+  status?: unknown
+  targetType?: unknown
 }
 
 type RequestBody = {
@@ -67,9 +74,32 @@ type AuditRow = {
   created_at: string
 }
 
+type ReportRow = {
+  report_id: string
+  target_type: string
+  target_id: string
+  reporter_user_id: string
+  reported_user_id: string | null
+  reported_display_name: string | null
+  reported_username: string | null
+  reported_avatar_url: string | null
+  reported_actor_type: string | null
+  reported_verification_level: string | null
+  target_title: string | null
+  moderation_decision: string | null
+  review_note: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
+  reason: string
+  status: string
+  created_at: string
+  total_count: number | string
+}
+
 const allowedReadOperations = new Set<ReadOperation>([
   'dashboard',
   'user_detail',
+  'reports',
   'audit',
 ])
 
@@ -80,10 +110,25 @@ const allowedAuditResults = new Set<AuditResult>([
   'noop',
 ])
 
+const allowedReportStatuses = new Set<ReportStatus>([
+  'open',
+  'in_review',
+  'resolved',
+  'dismissed',
+])
+
+const allowedReportTargetTypes = new Set<ReportTargetType>([
+  'poll',
+  'post',
+  'news',
+])
+
 const maximumActionLength = 80
 const maximumTargetIdLength = 320
 const maximumAuditLimit = 100
 const maximumAuditOffset = 1000000
+const maximumReportLimit = 100
+const maximumReportOffset = 1000000
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -233,6 +278,50 @@ function readOptionalAuditResult(
     : undefined
 }
 
+function readOptionalReportStatus(
+  value: unknown,
+): ReportStatus | null | undefined {
+  if (value == null) {
+    return null
+  }
+
+  if (typeof value !== 'string') {
+    return undefined
+  }
+
+  const normalized = value.trim().toLowerCase()
+
+  if (normalized.length === 0) {
+    return null
+  }
+
+  return allowedReportStatuses.has(normalized as ReportStatus)
+    ? (normalized as ReportStatus)
+    : undefined
+}
+
+function readOptionalReportTargetType(
+  value: unknown,
+): ReportTargetType | null | undefined {
+  if (value == null) {
+    return null
+  }
+
+  if (typeof value !== 'string') {
+    return undefined
+  }
+
+  const normalized = value.trim().toLowerCase()
+
+  if (normalized.length === 0) {
+    return null
+  }
+
+  return allowedReportTargetTypes.has(normalized as ReportTargetType)
+    ? (normalized as ReportTargetType)
+    : undefined
+}
+
 function readOptionalTimestamp(
   value: unknown,
 ): string | null | undefined {
@@ -291,6 +380,18 @@ function readFilters(value: unknown): AuditFilters | null {
   return value as AuditFilters
 }
 
+function readReportFilters(value: unknown): ReportFilters | null {
+  if (value == null) {
+    return {}
+  }
+
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    return null
+  }
+
+  return value as ReportFilters
+}
+
 function readCount(value: unknown): number | null {
   const count = typeof value === 'number' ? value : Number(value)
 
@@ -344,7 +445,7 @@ Deno.serve(async (req: Request) => {
 
   if (operation == null) {
     return jsonResponse(400, {
-      error: 'Operation must be dashboard, user_detail, or audit.',
+      error: 'Operation must be dashboard, user_detail, reports, or audit.',
     })
   }
 
@@ -390,7 +491,11 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  if (operation !== 'dashboard' && callerRole !== 'admin') {
+  if (
+    operation !== 'dashboard' &&
+    operation !== 'reports' &&
+    callerRole !== 'admin'
+  ) {
     return jsonResponse(403, {
       error: 'Administrator access is required.',
     })
@@ -538,6 +643,122 @@ Deno.serve(async (req: Request) => {
       permissions: {
         role: callerRole,
         canViewEmail: true,
+      },
+    })
+  }
+
+  if (operation === 'reports') {
+    const filters = readReportFilters(body.filters)
+
+    if (filters == null) {
+      return jsonResponse(400, {
+        error: 'Report filters must be an object.',
+      })
+    }
+
+    const status = readOptionalReportStatus(filters.status)
+    const targetType = readOptionalReportTargetType(filters.targetType)
+    const limit = readInteger(
+      body.limit,
+      25,
+      1,
+      maximumReportLimit,
+    )
+    const offset = readInteger(
+      body.offset,
+      0,
+      0,
+      maximumReportOffset,
+    )
+
+    if (status === undefined) {
+      return jsonResponse(400, {
+        error:
+          'Report status must be open, in_review, resolved, or dismissed.',
+      })
+    }
+
+    if (targetType === undefined) {
+      return jsonResponse(400, {
+        error: 'Report target type must be poll, post, or news.',
+      })
+    }
+
+    if (limit == null) {
+      return jsonResponse(400, {
+        error: `Report limit must be between 1 and ${maximumReportLimit}.`,
+      })
+    }
+
+    if (offset == null) {
+      return jsonResponse(400, {
+        error:
+          `Report offset must be between 0 and ${maximumReportOffset}.`,
+      })
+    }
+
+    const { data, error } = await adminClient.rpc(
+      'admin_get_report_queue',
+      {
+        p_status: status,
+        p_target_type: targetType,
+        p_limit: limit,
+        p_offset: offset,
+      },
+    )
+
+    if (error != null) {
+      console.error('Unable to load the administrator report queue.', error)
+
+      return jsonResponse(500, {
+        error: 'Unable to load the report queue.',
+      })
+    }
+
+    const rows = Array.isArray(data) ? (data as ReportRow[]) : []
+    const totalCount = rows.length === 0
+      ? 0
+      : readCount(rows[0].total_count)
+
+    if (totalCount == null) {
+      console.error('Invalid administrator report queue response.')
+
+      return jsonResponse(500, {
+        error: 'Invalid report queue response.',
+      })
+    }
+
+    return jsonResponse(200, {
+      success: true,
+      reports: rows.map((row) => ({
+        reportId: row.report_id,
+        targetType: row.target_type,
+        targetId: row.target_id,
+        reporterUserId: row.reporter_user_id,
+        reportedUserId: row.reported_user_id,
+        reportedDisplayName: row.reported_display_name,
+        reportedUsername: row.reported_username,
+        reportedAvatarUrl: row.reported_avatar_url,
+        reportedActorType: row.reported_actor_type,
+        reportedVerificationLevel: row.reported_verification_level,
+        targetTitle: row.target_title,
+        moderationDecision: row.moderation_decision,
+        reviewNote: row.review_note,
+        reviewedBy: row.reviewed_by,
+        reviewedAt: row.reviewed_at,
+        reason: row.reason,
+        status: row.status,
+        createdAt: row.created_at,
+      })),
+      pagination: {
+        limit,
+        offset,
+        returnedCount: rows.length,
+        totalCount,
+        hasMore: offset + rows.length < totalCount,
+      },
+      permissions: {
+        role: callerRole,
       },
     })
   }

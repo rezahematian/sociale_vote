@@ -1,5 +1,7 @@
 import 'package:sociale_vote/domain/admin/entities/admin_entities.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/identity/value_objects/role.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 
 class AdminUserSearchPage {
   final List<AdminUserSummary> users;
@@ -33,10 +35,31 @@ abstract class AdminRepository {
     required String userId,
   });
 
+  Future<AdminReportQueuePage> getReportQueue({
+    AdminReportStatus? status,
+    AdminReportTargetType? targetType,
+    int limit = 25,
+    int offset = 0,
+  });
+
+  Future<void> recordReportDecision({
+    required String reportId,
+    required AdminReportDecision decision,
+    required String reviewNote,
+  });
+
   Future<void> changeSystemRole({
     required String operationId,
     required String targetUserId,
     required Role role,
+    required String reason,
+  });
+
+  Future<void> setPublicIdentity({
+    required String operationId,
+    required String targetUserId,
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
     required String reason,
   });
 

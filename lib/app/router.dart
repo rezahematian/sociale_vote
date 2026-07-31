@@ -223,6 +223,22 @@ class _AdminCenterAccessGateState extends State<_AdminCenterAccessGate> {
   }
 
   Future<void> _checkAccess() async {
+    if (AppDI.instance.currentUserId == null) {
+      setState(() {
+        _isCheckingAccess = false;
+        _currentRole = null;
+      });
+
+      final popped = await Navigator.of(context).maybePop();
+      if (!popped && mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRouter.home,
+          (route) => false,
+        );
+      }
+      return;
+    }
+
     final allowed = await AuthGuard.ensureCanPerformAction(
       context,
       ParticipationAction.accessAdminCenter,

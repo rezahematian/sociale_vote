@@ -4,7 +4,19 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
 
-type AccountAction = 'suspend' | 'reactivate' | 'force_logout'
+type AccountAction =
+  | 'suspend'
+  | 'reactivate'
+  | 'force_logout'
+  | 'set_public_identity'
+
+type PublicIdentityType =
+  | 'citizen'
+  | 'public_official'
+  | 'institution'
+  | 'organization'
+
+type PublicVerificationLevel = 'none' | 'level1' | 'level2'
 
 type RequestBody = {
   operationId?: unknown
@@ -12,6 +24,8 @@ type RequestBody = {
   action?: unknown
   reason?: unknown
   suspendedUntil?: unknown
+  actorType?: unknown
+  verificationLevel?: unknown
 }
 
 type AccountActionResult = {
@@ -23,6 +37,9 @@ type AccountActionResult = {
   accountStatus?: unknown
   suspendedUntil?: unknown
   revokedSessionCount?: unknown
+  actorType?: unknown
+  verificationLevel?: unknown
+  cancelledPendingRequestCount?: unknown
   auditRecorded?: unknown
 }
 
@@ -30,7 +47,18 @@ const allowedActions = new Set<AccountAction>([
   'suspend',
   'reactivate',
   'force_logout',
+  'set_public_identity',
 ])
+
+const allowedPublicIdentityTypes = new Set<PublicIdentityType>([
+  'citizen',
+  'public_official',
+  'institution',
+  'organization',
+])
+
+const allowedPublicVerificationLevels =
+  new Set<PublicVerificationLevel>(['none', 'level1', 'level2'])
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -97,6 +125,34 @@ function readReason(value: unknown): string | null {
   return reason.length > 0 && reason.length <= 1000 ? reason : null
 }
 
+function readPublicIdentityType(value: unknown): PublicIdentityType | null {
+  if (typeof value !== 'string') {
+    return null
+  }
+
+  const normalized = value.trim().toLowerCase()
+
+  return allowedPublicIdentityTypes.has(normalized as PublicIdentityType)
+    ? (normalized as PublicIdentityType)
+    : null
+}
+
+function readPublicVerificationLevel(
+  value: unknown,
+): PublicVerificationLevel | null {
+  if (typeof value !== 'string') {
+    return null
+  }
+
+  const normalized = value.trim().toLowerCase()
+
+  return allowedPublicVerificationLevels.has(
+      normalized as PublicVerificationLevel,
+    )
+    ? (normalized as PublicVerificationLevel)
+    : null
+}
+
 function readSuspendedUntil(
   value: unknown,
   action: AccountAction,
@@ -141,6 +197,7 @@ function statusForRejectedAction(errorCode: unknown): number {
     case 'target_mirror_missing':
     case 'target_role_not_synchronized':
     case 'target_account_deleted':
+    case 'target_profile_missing':
       return 409
     default:
       return 400
@@ -194,6 +251,10 @@ Deno.serve(async (req: Request) => {
   const targetUserId = readUuid(body.targetUserId)
   const action = readAccountAction(body.action)
   const reason = readReason(body.reason)
+  const actorType = readPublicIdentityType(body.actorType)
+  const verificationLevel = readPublicVerificationLevel(
+    body.verificationLevel,
+  )
 
   if (operationId == null) {
     return jsonResponse(400, {
@@ -209,7 +270,8 @@ Deno.serve(async (req: Request) => {
 
   if (action == null) {
     return jsonResponse(400, {
-      error: 'Action must be suspend, reactivate, or force_logout.',
+      error:
+        'Action must be suspend, reactivate, force_logout, or set_public_identity.',
     })
   }
 
@@ -227,6 +289,32 @@ Deno.serve(async (req: Request) => {
         action === 'suspend'
           ? 'A valid future suspension end time is required.'
           : 'Suspension end time is valid only for suspend.',
+    })
+  }
+
+  if (action === 'set_public_identity') {
+    if (actorType == null) {
+      return jsonResponse(400, {
+        error:
+          'Public identity type must be citizen, public_official, institution, or organization.',
+      })
+    }
+
+    if (verificationLevel == null) {
+      return jsonResponse(400, {
+        error: 'Verification level must be none, level1, or level2.',
+      })
+    }
+
+    if (actorType !== 'citizen' && verificationLevel !== 'none') {
+      return jsonResponse(400, {
+        error: 'Verification levels apply only to Persona accounts.',
+      })
+    }
+  } else if (body.actorType != null || body.verificationLevel != null) {
+    return jsonResponse(400, {
+      error:
+        'Public identity fields are valid only for set_public_identity.',
     })
   }
 
@@ -303,17 +391,25 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  const { data, error: actionError } = await adminClient.rpc(
-    'admin_apply_account_action',
-    {
-      p_operation_id: operationId,
-      p_actor_user_id: caller.id,
-      p_target_user_id: targetUserId,
-      p_action: action,
-      p_reason: reason,
-      p_suspended_until: suspendedUntil,
-    },
-  )
+  const rpcResult = action === 'set_public_identity'
+    ? await adminClient.rpc('admin_set_public_identity', {
+        p_operation_id: operationId,
+        p_actor_user_id: caller.id,
+        p_target_user_id: targetUserId,
+        p_actor_type: actorType!,
+        p_verification_level: verificationLevel!,
+        p_reason: reason,
+      })
+    : await adminClient.rpc('admin_apply_account_action', {
+        p_operation_id: operationId,
+        p_actor_user_id: caller.id,
+        p_target_user_id: targetUserId,
+        p_action: action,
+        p_reason: reason,
+        p_suspended_until: suspendedUntil,
+      })
+
+  const { data, error: actionError } = rpcResult
 
   if (actionError != null) {
     console.error('Admin account action failed.', actionError)
@@ -325,7 +421,9 @@ Deno.serve(async (req: Request) => {
           ? 400
           : actionError.code === '42501'
             ? 403
-            : 500
+            : actionError.code === 'P0002'
+              ? 404
+              : 500
 
     return jsonResponse(status, {
       error:
@@ -335,7 +433,9 @@ Deno.serve(async (req: Request) => {
             ? 'Invalid account action request.'
             : status === 403
               ? 'Administrator access was rejected.'
-              : 'Unable to apply the account action.',
+              : status === 404
+                ? 'Administrator account was not found.'
+                : 'Unable to apply the account action.',
     })
   }
 
@@ -370,6 +470,16 @@ Deno.serve(async (req: Request) => {
       typeof result.revokedSessionCount === 'number'
         ? result.revokedSessionCount
         : Number(result.revokedSessionCount) || 0,
+    actorType:
+      typeof result.actorType === 'string' ? result.actorType : null,
+    verificationLevel:
+      typeof result.verificationLevel === 'string'
+        ? result.verificationLevel
+        : null,
+    cancelledPendingRequestCount:
+      typeof result.cancelledPendingRequestCount === 'number'
+        ? result.cancelledPendingRequestCount
+        : Number(result.cancelledPendingRequestCount) || 0,
     auditRecorded: result.auditRecorded === true,
   }
 

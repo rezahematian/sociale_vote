@@ -4,12 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/admin/entities/admin_entities.dart';
 import 'package:sociale_vote/domain/admin/repositories/admin_repository.dart';
 import 'package:sociale_vote/domain/admin/usecases/change_system_role.dart';
 import 'package:sociale_vote/domain/admin/usecases/load_admin_dashboard.dart';
+import 'package:sociale_vote/domain/admin/usecases/load_admin_reports.dart';
+import 'package:sociale_vote/domain/admin/usecases/record_admin_report_decision.dart';
 import 'package:sociale_vote/domain/admin/usecases/search_admin_users.dart';
+import 'package:sociale_vote/domain/admin/usecases/set_admin_public_identity.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/identity/value_objects/role.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 
 enum AdminCenterSection {
   dashboard,
@@ -46,29 +53,39 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   static const double _desktopBreakpoint = 840;
   static const double _extendedRailBreakpoint = 1200;
   static const int _usersPerPage = 25;
+  static const int _reportsPerPage = 25;
   static const Duration _userSearchDelay = Duration(milliseconds: 350);
   static const Uuid _uuid = Uuid();
 
   late final LoadAdminDashboard _loadAdminDashboard;
+  late final LoadAdminReports _loadAdminReports;
+  late final RecordAdminReportDecision _recordAdminReportDecision;
   late final SearchAdminUsers _searchAdminUsers;
   late final ChangeSystemRole _changeSystemRole;
+  late final SetAdminPublicIdentity _setAdminPublicIdentity;
   late final AdminRepository _adminRepository;
   final TextEditingController _userSearchController = TextEditingController();
 
   AdminDashboardSummary? _dashboardSummary;
+  AdminReportQueuePage? _reportQueuePage;
   AdminUserSearchPage? _userSearchPage;
   AdminUserSummary? _selectedUser;
   AdminUserDetail? _userDetail;
   Timer? _userSearchDebounce;
   int _usersRequestGeneration = 0;
   int _userDetailRequestGeneration = 0;
+  int _reportsRequestGeneration = 0;
   bool _isDashboardLoading = true;
   bool _dashboardLoadFailed = false;
   bool _isUsersLoading = false;
   bool _usersLoadFailed = false;
   bool _isUserDetailLoading = false;
   bool _userDetailLoadFailed = false;
+  bool _isReportsLoading = false;
+  bool _reportsLoadFailed = false;
   bool _isRefreshing = false;
+  AdminReportStatus? _reportStatusFilter;
+  AdminReportTargetType? _reportTargetTypeFilter;
   AdminCenterSection _selectedSection = AdminCenterSection.dashboard;
 
   List<_AdminDestination> get _destinations {
@@ -116,10 +133,19 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     _loadAdminDashboard = LoadAdminDashboard(
       _adminRepository,
     );
+    _loadAdminReports = LoadAdminReports(
+      _adminRepository,
+    );
+    _recordAdminReportDecision = RecordAdminReportDecision(
+      _adminRepository,
+    );
     _searchAdminUsers = SearchAdminUsers(
       _adminRepository,
     );
     _changeSystemRole = ChangeSystemRole(
+      _adminRepository,
+    );
+    _setAdminPublicIdentity = SetAdminPublicIdentity(
       _adminRepository,
     );
     unawaited(_loadDashboard(markLoading: false));
@@ -148,11 +174,12 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   Future<void> _refresh() async {
     final showingUserDetail =
         _selectedSection == AdminCenterSection.users && _selectedUser != null;
-    final selectedSectionLoading =
-        (_selectedSection == AdminCenterSection.dashboard &&
-                _isDashboardLoading) ||
-            (_selectedSection == AdminCenterSection.users &&
-                (showingUserDetail ? _isUserDetailLoading : _isUsersLoading));
+    final selectedSectionLoading = (_selectedSection ==
+                AdminCenterSection.dashboard &&
+            _isDashboardLoading) ||
+        (_selectedSection == AdminCenterSection.users &&
+            (showingUserDetail ? _isUserDetailLoading : _isUsersLoading)) ||
+        (_selectedSection == AdminCenterSection.reports && _isReportsLoading);
 
     if (_isRefreshing || selectedSectionLoading) {
       return;
@@ -183,6 +210,11 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             markLoading: _userSearchPage == null,
           );
         }
+      } else if (_selectedSection == AdminCenterSection.reports) {
+        await _loadReports(
+          offset: _reportQueuePage?.offset ?? 0,
+          markLoading: _reportQueuePage == null,
+        );
       } else {
         await _loadDashboard(
           markLoading: _dashboardSummary == null,
@@ -197,6 +229,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             } else {
               _usersLoadFailed = true;
             }
+          } else if (_selectedSection == AdminCenterSection.reports) {
+            _reportsLoadFailed = true;
           } else {
             _dashboardLoadFailed = true;
           }
@@ -446,6 +480,242 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     );
   }
 
+  Future<void> _loadReports({
+    int offset = 0,
+    bool markLoading = true,
+  }) async {
+    final requestGeneration = ++_reportsRequestGeneration;
+
+    if (mounted) {
+      setState(() {
+        _isReportsLoading = true;
+        _reportsLoadFailed = false;
+        if (markLoading) {
+          _reportQueuePage = null;
+        }
+      });
+    }
+
+    try {
+      final result = await _loadAdminReports(
+        status: _reportStatusFilter,
+        targetType: _reportTargetTypeFilter,
+        limit: _reportsPerPage,
+        offset: offset,
+      );
+
+      if (!mounted || requestGeneration != _reportsRequestGeneration) {
+        return;
+      }
+
+      setState(() {
+        _reportQueuePage = result;
+        _isReportsLoading = false;
+        _reportsLoadFailed = false;
+      });
+    } catch (_) {
+      if (!mounted || requestGeneration != _reportsRequestGeneration) {
+        return;
+      }
+
+      setState(() {
+        _isReportsLoading = false;
+        _reportsLoadFailed = true;
+      });
+    }
+  }
+
+  Future<void> _openPublicIdentityDialog(
+    AdminUserDetail detail,
+  ) async {
+    final operationId = _uuid.v4();
+    final changedIdentity = await showDialog<_AdminPublicIdentitySelection>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return _AdminPublicIdentityDialog(
+          detail: detail,
+          onConfirm: ({
+            required ActorType actorType,
+            required VerificationLevel verificationLevel,
+            required String reason,
+          }) {
+            return _setAdminPublicIdentity(
+              operationId: operationId,
+              targetUserId: detail.id,
+              actorType: actorType,
+              verificationLevel: verificationLevel,
+              reason: reason,
+            );
+          },
+        );
+      },
+    );
+
+    if (!mounted || changedIdentity == null) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Public identity changed to '
+          '${_actorTypeLabel(changedIdentity.actorType)} with '
+          '${_verificationLevelLabel(changedIdentity.verificationLevel)}.',
+        ),
+      ),
+    );
+
+    final selectedUser = _selectedUser;
+    if (selectedUser == null || selectedUser.id != detail.id) {
+      return;
+    }
+
+    await _loadUserDetail(
+      selectedUser,
+      markLoading: false,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    unawaited(_loadDashboard(markLoading: false));
+  }
+
+  Future<void> _openReportDecisionDialog(
+    AdminReportEntry report,
+  ) async {
+    if (!report.canRecordModerationDecision) {
+      _showReportNavigationMessage(
+        'This report has already been reviewed or is no longer pending.',
+      );
+      return;
+    }
+
+    final recordedDecision = await showDialog<AdminReportDecision>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return _AdminReportDecisionDialog(
+          report: report,
+          onConfirm: ({
+            required AdminReportDecision decision,
+            required String reviewNote,
+          }) {
+            return _recordAdminReportDecision(
+              reportId: report.id,
+              decision: decision,
+              reviewNote: reviewNote,
+            );
+          },
+        );
+      },
+    );
+
+    if (!mounted || recordedDecision == null) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            'Report decision recorded: '
+            '${_adminReportDecisionLabel(recordedDecision)}.',
+          ),
+        ),
+      );
+
+    await _loadReports(
+      offset: _reportQueuePage?.offset ?? 0,
+      markLoading: false,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    unawaited(_loadDashboard(markLoading: false));
+  }
+
+  Future<void> _openReportTarget(AdminReportEntry report) async {
+    final targetId = report.targetId.trim();
+    if (targetId.isEmpty) {
+      _showReportNavigationMessage(
+        'The original content identifier is missing.',
+      );
+      return;
+    }
+
+    try {
+      switch (report.targetType) {
+        case AdminReportTargetType.poll:
+          await Navigator.of(context).pushNamed(
+            AppRouter.pollDetail,
+            arguments: targetId,
+          );
+          return;
+        case AdminReportTargetType.post:
+          await Navigator.of(context).pushNamed(
+            AppRouter.socialDetail,
+            arguments: targetId,
+          );
+          return;
+        case AdminReportTargetType.news:
+          final news = await AppDI.instance.getNewsDetail(EntityId(targetId));
+          if (!mounted) {
+            return;
+          }
+          await Navigator.of(context).pushNamed(
+            AppRouter.newsDetail,
+            arguments: news,
+          );
+          return;
+        case AdminReportTargetType.unknown:
+          _showReportNavigationMessage(
+            'This report has an unsupported target type.',
+          );
+          return;
+      }
+    } catch (_) {
+      _showReportNavigationMessage(
+        'The original content is no longer available.',
+      );
+    }
+  }
+
+  Future<void> _openReportedProfile(AdminReportEntry report) async {
+    if (!report.hasReportedUser) {
+      _showReportNavigationMessage(
+        'No reported profile is associated with this content.',
+      );
+      return;
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) {
+        return _AdminReportedProfileSheet(report: report);
+      },
+    );
+  }
+
+  void _showReportNavigationMessage(String message) {
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+  }
+
   Widget _buildSelectedContent(BuildContext context) {
     if (_selectedSection == AdminCenterSection.dashboard) {
       return _buildDesktopDashboard(context);
@@ -457,6 +727,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       }
 
       return _buildUsersSection(context);
+    }
+
+    if (_selectedSection == AdminCenterSection.reports) {
+      return _buildReportsSection(context);
     }
 
     return KeyedSubtree(
@@ -486,6 +760,217 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         !_isUsersLoading) {
       unawaited(_loadUsers());
     }
+
+    if (section == AdminCenterSection.reports &&
+        _reportQueuePage == null &&
+        !_isReportsLoading) {
+      unawaited(_loadReports());
+    }
+  }
+
+  Widget _buildReportsSection(BuildContext context) {
+    final page = _reportQueuePage;
+
+    return Column(
+      key: const ValueKey(AdminCenterSection.reports),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            children: [
+              SizedBox(
+                width: 190,
+                child: DropdownButtonFormField<AdminReportTargetType?>(
+                  initialValue: _reportTargetTypeFilter,
+                  decoration: const InputDecoration(
+                    labelText: 'Content type',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem<AdminReportTargetType?>(
+                      value: null,
+                      child: Text('All content'),
+                    ),
+                    DropdownMenuItem<AdminReportTargetType?>(
+                      value: AdminReportTargetType.poll,
+                      child: Text('Polls'),
+                    ),
+                    DropdownMenuItem<AdminReportTargetType?>(
+                      value: AdminReportTargetType.post,
+                      child: Text('Posts'),
+                    ),
+                    DropdownMenuItem<AdminReportTargetType?>(
+                      value: AdminReportTargetType.news,
+                      child: Text('News'),
+                    ),
+                  ],
+                  onChanged: _isReportsLoading
+                      ? null
+                      : (value) {
+                          setState(() {
+                            _reportTargetTypeFilter = value;
+                          });
+                          unawaited(_loadReports());
+                        },
+                ),
+              ),
+              SizedBox(
+                width: 190,
+                child: DropdownButtonFormField<AdminReportStatus?>(
+                  initialValue: _reportStatusFilter,
+                  decoration: const InputDecoration(
+                    labelText: 'Status',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem<AdminReportStatus?>(
+                      value: null,
+                      child: Text('All statuses'),
+                    ),
+                    DropdownMenuItem<AdminReportStatus?>(
+                      value: AdminReportStatus.open,
+                      child: Text('Open'),
+                    ),
+                    DropdownMenuItem<AdminReportStatus?>(
+                      value: AdminReportStatus.inReview,
+                      child: Text('In review'),
+                    ),
+                    DropdownMenuItem<AdminReportStatus?>(
+                      value: AdminReportStatus.resolved,
+                      child: Text('Resolved'),
+                    ),
+                    DropdownMenuItem<AdminReportStatus?>(
+                      value: AdminReportStatus.dismissed,
+                      child: Text('Dismissed'),
+                    ),
+                  ],
+                  onChanged: _isReportsLoading
+                      ? null
+                      : (value) {
+                          setState(() {
+                            _reportStatusFilter = value;
+                          });
+                          unawaited(_loadReports());
+                        },
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (_isReportsLoading && page != null)
+          const LinearProgressIndicator(minHeight: 2),
+        Expanded(
+          child: _buildReportsResults(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReportsResults(BuildContext context) {
+    final page = _reportQueuePage;
+
+    if (_isReportsLoading && page == null) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (_reportsLoadFailed && page == null) {
+      return ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _AdminDashboardStateCard(
+            icon: Icons.error_outline,
+            iconColor: Theme.of(context).colorScheme.error,
+            title: 'Reports unavailable',
+            message: 'Check your connection and try again.',
+            actionLabel: 'Try again',
+            onAction: () => _loadReports(),
+            actionInProgress: _isReportsLoading,
+          ),
+        ],
+      );
+    }
+
+    if (page == null) {
+      return const SizedBox.shrink();
+    }
+
+    if (page.reports.isEmpty) {
+      return ListView(
+        padding: const EdgeInsets.all(16),
+        children: const [
+          _AdminDashboardStateCard(
+            icon: Icons.flag_outlined,
+            title: 'No reports',
+            message: 'There are no reports matching the selected filters.',
+          ),
+        ],
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: ListView.separated(
+        key: ValueKey(
+          '${_reportTargetTypeFilter?.storageKey ?? 'all'}-'
+          '${_reportStatusFilter?.storageKey ?? 'all'}-${page.offset}',
+        ),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+        itemCount: page.reports.length + 2,
+        separatorBuilder: (context, index) => const SizedBox(height: 8),
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return _AdminReportsResultHeader(
+              totalCount: page.totalCount,
+              loadFailed: _reportsLoadFailed,
+              retryInProgress: _isReportsLoading,
+              onRetry: () => _loadReports(
+                offset: page.offset,
+                markLoading: false,
+              ),
+            );
+          }
+
+          if (index <= page.reports.length) {
+            final report = page.reports[index - 1];
+
+            return _AdminReportCard(
+              report: report,
+              onOpenTarget: () => _openReportTarget(report),
+              onOpenReportedProfile: report.hasReportedUser
+                  ? () => _openReportedProfile(report)
+                  : null,
+              onRecordDecision: report.canRecordModerationDecision
+                  ? () => _openReportDecisionDialog(report)
+                  : null,
+            );
+          }
+
+          return _AdminReportsPagination(
+            page: page,
+            loading: _isReportsLoading,
+            onPrevious: page.hasPrevious
+                ? () => _loadReports(
+                      offset: page.offset >= page.limit
+                          ? page.offset - page.limit
+                          : 0,
+                      markLoading: false,
+                    )
+                : null,
+            onNext: page.hasMore
+                ? () => _loadReports(
+                      offset: page.offset + page.limit,
+                      markLoading: false,
+                    )
+                : null,
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildUsersSection(BuildContext context) {
@@ -728,7 +1213,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               _AdminUserDetailField(
                 icon: Icons.account_circle_outlined,
                 label: 'Identity type',
-                value: detail.actorType.name,
+                value: _actorTypeLabel(detail.actorType),
               ),
             ],
           ),
@@ -792,12 +1277,18 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               _AdminUserDetailField(
                 icon: Icons.workspace_premium_outlined,
                 label: 'Verification level',
-                value: detail.verificationLevel.name,
+                value: _verificationLevelLabel(detail.verificationLevel),
               ),
               _AdminUserDetailField(
                 icon: Icons.verified_user_outlined,
                 label: 'Verification status',
                 value: detail.verificationStatus.name,
+              ),
+              _AdminPublicIdentityAction(
+                actorType: detail.actorType,
+                verificationLevel: detail.verificationLevel,
+                enabled: detail.canReceiveAdminActions,
+                onPressed: () => _openPublicIdentityDialog(detail),
               ),
             ],
           ),
@@ -1196,7 +1687,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               (_selectedSection == AdminCenterSection.users &&
                   (showingUserDetail
                       ? _isUserDetailLoading && _userDetail == null
-                      : _isUsersLoading && _userSearchPage == null)))
+                      : _isUsersLoading && _userSearchPage == null)) ||
+              (_selectedSection == AdminCenterSection.reports &&
+                  _isReportsLoading &&
+                  _reportQueuePage == null))
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: Center(
@@ -1708,6 +2202,467 @@ class _AdminUserRoleAction extends StatelessWidget {
   }
 }
 
+class _AdminPublicIdentitySelection {
+  final ActorType actorType;
+  final VerificationLevel verificationLevel;
+
+  const _AdminPublicIdentitySelection({
+    required this.actorType,
+    required this.verificationLevel,
+  });
+}
+
+class _AdminPublicIdentityAction extends StatelessWidget {
+  final ActorType actorType;
+  final VerificationLevel verificationLevel;
+  final bool enabled;
+  final Future<void> Function() onPressed;
+
+  const _AdminPublicIdentityAction({
+    required this.actorType,
+    required this.verificationLevel,
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Change public identity',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            enabled
+                ? 'Update the public account type and verification level.'
+                : 'Identity changes require a synchronized, non-admin account.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _AdminUserAttribute(
+                icon: Icons.badge_outlined,
+                label: _actorTypeLabel(actorType),
+              ),
+              _AdminUserAttribute(
+                icon: Icons.workspace_premium_outlined,
+                label: _verificationLevelLabel(verificationLevel),
+              ),
+              FilledButton.icon(
+                onPressed: enabled
+                    ? () {
+                        unawaited(onPressed());
+                      }
+                    : null,
+                icon: const Icon(Icons.manage_accounts_outlined),
+                label: const Text('Change identity'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdminPublicIdentityDialog extends StatefulWidget {
+  final AdminUserDetail detail;
+  final Future<void> Function({
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+    required String reason,
+  }) onConfirm;
+
+  const _AdminPublicIdentityDialog({
+    required this.detail,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_AdminPublicIdentityDialog> createState() =>
+      _AdminPublicIdentityDialogState();
+}
+
+class _AdminPublicIdentityDialogState
+    extends State<_AdminPublicIdentityDialog> {
+  final TextEditingController _reasonController = TextEditingController();
+  late ActorType _selectedActorType;
+  late VerificationLevel _selectedVerificationLevel;
+  bool _confirmed = false;
+  bool _isSubmitting = false;
+  String? _errorMessage;
+
+  bool get _hasChanged {
+    return _selectedActorType != widget.detail.actorType ||
+        _selectedVerificationLevel != widget.detail.verificationLevel;
+  }
+
+  bool get _canSubmit {
+    return !_isSubmitting &&
+        _hasChanged &&
+        _reasonController.text.trim().isNotEmpty &&
+        _confirmed;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedActorType = widget.detail.actorType;
+    _selectedVerificationLevel = widget.detail.actorType == ActorType.citizen
+        ? widget.detail.verificationLevel
+        : VerificationLevel.none;
+  }
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_canSubmit) {
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await widget.onConfirm(
+        actorType: _selectedActorType,
+        verificationLevel: _selectedVerificationLevel,
+        reason: _reasonController.text.trim(),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pop(
+        _AdminPublicIdentitySelection(
+          actorType: _selectedActorType,
+          verificationLevel: _selectedVerificationLevel,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isSubmitting = false;
+        _errorMessage = 'The public identity could not be changed. '
+            'Check the account state and try again.';
+      });
+    }
+  }
+
+  void _clearConfirmation() {
+    _confirmed = false;
+    _errorMessage = null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isPerson = _selectedActorType == ActorType.citizen;
+
+    return AlertDialog(
+      scrollable: true,
+      title: const Text('Change public identity'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Choose the public account type and its verification state.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<ActorType>(
+              initialValue: _selectedActorType,
+              decoration: const InputDecoration(
+                labelText: 'Public account type',
+                border: OutlineInputBorder(),
+              ),
+              isExpanded: true,
+              items: [
+                for (final actorType in ActorType.values)
+                  DropdownMenuItem<ActorType>(
+                    value: actorType,
+                    child: Text(_actorTypeLabel(actorType)),
+                  ),
+              ],
+              onChanged: _isSubmitting
+                  ? null
+                  : (actorType) {
+                      if (actorType == null) {
+                        return;
+                      }
+
+                      setState(() {
+                        _selectedActorType = actorType;
+                        if (actorType != ActorType.citizen) {
+                          _selectedVerificationLevel = VerificationLevel.none;
+                        }
+                        _clearConfirmation();
+                      });
+                    },
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<VerificationLevel>(
+              key: ValueKey(_selectedVerificationLevel),
+              initialValue: _selectedVerificationLevel,
+              decoration: InputDecoration(
+                labelText: 'Verification level',
+                helperText: isPerson
+                    ? 'Level 1 and Level 2 are available only for Persona.'
+                    : 'Non-Persona accounts do not use Level 1 or Level 2.',
+                border: const OutlineInputBorder(),
+              ),
+              isExpanded: true,
+              items: [
+                for (final level in VerificationLevel.values)
+                  DropdownMenuItem<VerificationLevel>(
+                    value: level,
+                    child: Text(_verificationLevelLabel(level)),
+                  ),
+              ],
+              onChanged: _isSubmitting || !isPerson
+                  ? null
+                  : (level) {
+                      if (level == null) {
+                        return;
+                      }
+
+                      setState(() {
+                        _selectedVerificationLevel = level;
+                        _clearConfirmation();
+                      });
+                    },
+            ),
+            const SizedBox(height: 16),
+            _AdminIdentitySummaryCard(
+              label: 'Before',
+              actorType: widget.detail.actorType,
+              verificationLevel: widget.detail.verificationLevel,
+              icon: Icons.history,
+            ),
+            const SizedBox(height: 8),
+            _AdminIdentitySummaryCard(
+              label: 'After',
+              actorType: _selectedActorType,
+              verificationLevel: _selectedVerificationLevel,
+              icon: Icons.arrow_forward,
+              emphasized: _hasChanged,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _reasonController,
+              enabled: !_isSubmitting,
+              minLines: 2,
+              maxLines: 4,
+              maxLength: SetAdminPublicIdentity.maximumReasonLength,
+              decoration: const InputDecoration(
+                labelText: 'Reason',
+                hintText: 'Explain why the public identity must change',
+                alignLabelWithHint: true,
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (_) {
+                setState(_clearConfirmation);
+              },
+            ),
+            CheckboxListTile(
+              value: _confirmed,
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: const Text(
+                'I confirm the public identity and verification level '
+                'shown above.',
+              ),
+              onChanged: _isSubmitting ||
+                      !_hasChanged ||
+                      _reasonController.text.trim().isEmpty
+                  ? null
+                  : (value) {
+                      setState(() {
+                        _confirmed = value ?? false;
+                        _errorMessage = null;
+                      });
+                    },
+            ),
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 8),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: theme.colorScheme.onErrorContainer,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSubmitting
+              ? null
+              : () {
+                  Navigator.of(context).pop();
+                },
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _canSubmit ? _submit : null,
+          child: _isSubmitting
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Change identity'),
+        ),
+      ],
+    );
+  }
+}
+
+class _AdminIdentitySummaryCard extends StatelessWidget {
+  final String label;
+  final ActorType actorType;
+  final VerificationLevel verificationLevel;
+  final IconData icon;
+  final bool emphasized;
+
+  const _AdminIdentitySummaryCard({
+    required this.label,
+    required this.actorType,
+    required this.verificationLevel,
+    required this.icon,
+    this.emphasized = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: emphasized
+            ? theme.colorScheme.primaryContainer
+            : theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: emphasized
+                  ? theme.colorScheme.onPrimaryContainer
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: emphasized
+                          ? theme.colorScheme.onPrimaryContainer
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${_actorTypeLabel(actorType)} · '
+                    '${_verificationLevelLabel(verificationLevel)}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: emphasized
+                          ? theme.colorScheme.onPrimaryContainer
+                          : null,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _actorTypeLabel(ActorType actorType) {
+  switch (actorType) {
+    case ActorType.citizen:
+      return 'Persona';
+    case ActorType.publicOfficial:
+      return 'Public official';
+    case ActorType.institution:
+      return 'Public institution';
+    case ActorType.organization:
+      return 'Verified organization';
+  }
+}
+
+String _verificationLevelLabel(VerificationLevel verificationLevel) {
+  switch (verificationLevel) {
+    case VerificationLevel.none:
+      return 'Not verified';
+    case VerificationLevel.level1:
+      return 'Level 1';
+    case VerificationLevel.level2:
+      return 'Level 2';
+  }
+}
+
 class _AdminRoleChangeDialog extends StatefulWidget {
   final AdminUserDetail detail;
   final Future<void> Function({
@@ -2093,6 +3048,891 @@ class _AdminUserAttribute extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _AdminReportsResultHeader extends StatelessWidget {
+  final int totalCount;
+  final bool loadFailed;
+  final bool retryInProgress;
+  final Future<void> Function() onRetry;
+
+  const _AdminReportsResultHeader({
+    required this.totalCount,
+    required this.loadFailed,
+    required this.retryInProgress,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          '$totalCount ${totalCount == 1 ? 'report' : 'reports'}',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        if (loadFailed) ...[
+          const SizedBox(height: 8),
+          Card(
+            margin: EdgeInsets.zero,
+            color: theme.colorScheme.errorContainer,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    color: theme.colorScheme.onErrorContainer,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Could not update the report queue.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onErrorContainer,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: retryInProgress
+                        ? null
+                        : () {
+                            unawaited(onRetry());
+                          },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _AdminReportCard extends StatelessWidget {
+  final AdminReportEntry report;
+  final Future<void> Function() onOpenTarget;
+  final Future<void> Function()? onOpenReportedProfile;
+  final Future<void> Function()? onRecordDecision;
+
+  const _AdminReportCard({
+    required this.report,
+    required this.onOpenTarget,
+    required this.onOpenReportedProfile,
+    required this.onRecordDecision,
+  });
+
+  String get _targetTypeLabel {
+    switch (report.targetType) {
+      case AdminReportTargetType.poll:
+        return 'Poll';
+      case AdminReportTargetType.post:
+        return 'Post';
+      case AdminReportTargetType.news:
+        return 'News';
+      case AdminReportTargetType.unknown:
+        return 'Unknown';
+    }
+  }
+
+  IconData get _targetTypeIcon {
+    switch (report.targetType) {
+      case AdminReportTargetType.poll:
+        return Icons.how_to_vote_outlined;
+      case AdminReportTargetType.post:
+        return Icons.forum_outlined;
+      case AdminReportTargetType.news:
+        return Icons.newspaper_outlined;
+      case AdminReportTargetType.unknown:
+        return Icons.help_outline;
+    }
+  }
+
+  String get _statusLabel {
+    switch (report.status) {
+      case AdminReportStatus.open:
+        return 'Open';
+      case AdminReportStatus.inReview:
+        return 'In review';
+      case AdminReportStatus.resolved:
+        return 'Resolved';
+      case AdminReportStatus.dismissed:
+        return 'Dismissed';
+      case AdminReportStatus.unknown:
+        return 'Unknown';
+    }
+  }
+
+  String get _targetLabel {
+    final title = report.targetTitle?.trim();
+    if (title != null && title.isNotEmpty) {
+      return title;
+    }
+    return '$_targetTypeLabel ${report.targetId}';
+  }
+
+  String? get _reportedProfileLabel {
+    final displayName = report.reportedDisplayName?.trim();
+    if (displayName != null && displayName.isNotEmpty) {
+      return displayName;
+    }
+
+    final username = report.reportedUsername?.trim();
+    if (username != null && username.isNotEmpty) {
+      return '@$username';
+    }
+
+    final userId = report.reportedUserId?.trim();
+    if (userId != null && userId.isNotEmpty) {
+      return userId;
+    }
+
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final materialLocalizations = MaterialLocalizations.of(context);
+    final createdAt = report.createdAt.toLocal();
+    final createdLabel = '${materialLocalizations.formatShortDate(createdAt)} '
+        '${materialLocalizations.formatTimeOfDay(
+      TimeOfDay.fromDateTime(createdAt),
+    )}';
+    final statusColor =
+        report.status.isPending ? colors.primary : colors.onSurfaceVariant;
+    final reportedProfileLabel = _reportedProfileLabel;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                _AdminUserAttribute(
+                  icon: _targetTypeIcon,
+                  label: _targetTypeLabel,
+                ),
+                _AdminUserAttribute(
+                  icon: report.status.isPending
+                      ? Icons.pending_actions_outlined
+                      : Icons.task_alt_outlined,
+                  label: _statusLabel,
+                  color: statusColor,
+                ),
+                _AdminUserAttribute(
+                  icon: Icons.schedule_outlined,
+                  label: createdLabel,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _targetLabel,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              report.reason,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Target ID: ${report.targetId}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Reported by: ${report.reporterUserId}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            if (reportedProfileLabel != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Content owner: $reportedProfileLabel',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            ],
+            if (report.hasModerationDecision) ...[
+              const SizedBox(height: 12),
+              _AdminReportDecisionSummary(report: report),
+            ],
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.end,
+              children: [
+                if (onRecordDecision != null)
+                  FilledButton.icon(
+                    onPressed: () {
+                      unawaited(onRecordDecision!());
+                    },
+                    icon: const Icon(Icons.gavel_outlined),
+                    label: const Text('Review report'),
+                  ),
+                if (onOpenReportedProfile != null)
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      unawaited(onOpenReportedProfile!());
+                    },
+                    icon: const Icon(Icons.person_outline),
+                    label: const Text('Open profile'),
+                  ),
+                FilledButton.tonalIcon(
+                  onPressed: report.hasOriginalTarget
+                      ? () {
+                          unawaited(onOpenTarget());
+                        }
+                      : null,
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text('Open content'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _adminReportDecisionLabel(AdminReportDecision decision) {
+  switch (decision) {
+    case AdminReportDecision.noViolation:
+      return 'No violation';
+    case AdminReportDecision.violationConfirmed:
+      return 'Violation confirmed';
+    case AdminReportDecision.escalateToAdmin:
+      return 'Escalate to admin';
+    case AdminReportDecision.unknown:
+      return 'Unknown';
+  }
+}
+
+class _AdminReportDecisionSummary extends StatelessWidget {
+  final AdminReportEntry report;
+
+  const _AdminReportDecisionSummary({
+    required this.report,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final decision = report.moderationDecision;
+    final reviewNote = report.reviewNote?.trim();
+    final reviewedBy = report.reviewedBy?.trim();
+    final reviewedAt = report.reviewedAt;
+
+    if (decision == null) {
+      return const SizedBox.shrink();
+    }
+
+    String? reviewedLabel;
+    if (reviewedAt != null) {
+      final localValue = reviewedAt.toLocal();
+      final localizations = MaterialLocalizations.of(context);
+      reviewedLabel = '${localizations.formatShortDate(localValue)} '
+          '${localizations.formatTimeOfDay(
+        TimeOfDay.fromDateTime(localValue),
+      )}';
+    }
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.fact_check_outlined,
+                  size: 20,
+                  color: colors.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _adminReportDecisionLabel(decision),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (reviewNote != null && reviewNote.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                reviewNote,
+                style: theme.textTheme.bodyMedium,
+              ),
+            ],
+            if ((reviewedBy != null && reviewedBy.isNotEmpty) ||
+                reviewedLabel != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                [
+                  if (reviewedBy != null && reviewedBy.isNotEmpty)
+                    'Reviewer: $reviewedBy',
+                  if (reviewedLabel != null) reviewedLabel,
+                ].join(' · '),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AdminReportDecisionDialog extends StatefulWidget {
+  final AdminReportEntry report;
+  final Future<void> Function({
+    required AdminReportDecision decision,
+    required String reviewNote,
+  }) onConfirm;
+
+  const _AdminReportDecisionDialog({
+    required this.report,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_AdminReportDecisionDialog> createState() =>
+      _AdminReportDecisionDialogState();
+}
+
+class _AdminReportDecisionDialogState
+    extends State<_AdminReportDecisionDialog> {
+  final TextEditingController _reviewNoteController = TextEditingController();
+  AdminReportDecision? _selectedDecision;
+  bool _isSubmitting = false;
+  String? _errorMessage;
+
+  bool get _canSubmit {
+    final noteLength = _reviewNoteController.text.trim().length;
+
+    return !_isSubmitting &&
+        _selectedDecision != null &&
+        noteLength >= RecordAdminReportDecision.minimumReviewNoteLength &&
+        noteLength <= RecordAdminReportDecision.maximumReviewNoteLength;
+  }
+
+  String get _decisionDescription {
+    switch (_selectedDecision) {
+      case AdminReportDecision.noViolation:
+        return 'Dismisses the report because the content does not violate '
+            'the current rules.';
+      case AdminReportDecision.violationConfirmed:
+        return 'Confirms a violation and keeps the case in review for the '
+            'content action handled in AC8.5.';
+      case AdminReportDecision.escalateToAdmin:
+        return 'Escalates the case for an administrator account-level review.';
+      case AdminReportDecision.unknown:
+      case null:
+        return 'Choose the moderation outcome for this report.';
+    }
+  }
+
+  @override
+  void dispose() {
+    _reviewNoteController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final decision = _selectedDecision;
+    if (!_canSubmit || decision == null) {
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await widget.onConfirm(
+        decision: decision,
+        reviewNote: _reviewNoteController.text.trim(),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pop(decision);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isSubmitting = false;
+        _errorMessage = 'The decision could not be recorded. The report may '
+            'already have been reviewed. Refresh the queue and try again.';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final targetTitle = widget.report.targetTitle?.trim();
+
+    return AlertDialog(
+      scrollable: true,
+      title: const Text('Review report'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 540),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              targetTitle == null || targetTitle.isEmpty
+                  ? '${widget.report.targetType.storageKey}: '
+                      '${widget.report.targetId}'
+                  : targetTitle,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Report reason: ${widget.report.reason}',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<AdminReportDecision>(
+              initialValue: _selectedDecision,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: 'Decision',
+                border: OutlineInputBorder(),
+              ),
+              items: const [
+                DropdownMenuItem<AdminReportDecision>(
+                  value: AdminReportDecision.noViolation,
+                  child: Text('No violation'),
+                ),
+                DropdownMenuItem<AdminReportDecision>(
+                  value: AdminReportDecision.violationConfirmed,
+                  child: Text('Violation confirmed'),
+                ),
+                DropdownMenuItem<AdminReportDecision>(
+                  value: AdminReportDecision.escalateToAdmin,
+                  child: Text('Escalate to admin'),
+                ),
+              ],
+              onChanged: _isSubmitting
+                  ? null
+                  : (decision) {
+                      setState(() {
+                        _selectedDecision = decision;
+                        _errorMessage = null;
+                      });
+                    },
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _decisionDescription,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _reviewNoteController,
+              enabled: !_isSubmitting,
+              minLines: 3,
+              maxLines: 6,
+              maxLength: RecordAdminReportDecision.maximumReviewNoteLength,
+              decoration: const InputDecoration(
+                labelText: 'Review note',
+                hintText: 'Explain the evidence and the moderation decision',
+                alignLabelWithHint: true,
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (_) {
+                setState(() {
+                  _errorMessage = null;
+                });
+              },
+            ),
+            Text(
+              'A note of at least '
+              '${RecordAdminReportDecision.minimumReviewNoteLength} '
+              'characters is required.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 12),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: colors.errorContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: colors.onErrorContainer,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colors.onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSubmitting
+              ? null
+              : () {
+                  Navigator.of(context).pop();
+                },
+          child: const Text('Cancel'),
+        ),
+        FilledButton.icon(
+          onPressed: _canSubmit
+              ? () {
+                  unawaited(_submit());
+                }
+              : null,
+          icon: _isSubmitting
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.check),
+          label: Text(
+            _isSubmitting ? 'Recording decision' : 'Confirm decision',
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AdminReportedProfileSheet extends StatelessWidget {
+  final AdminReportEntry report;
+
+  const _AdminReportedProfileSheet({
+    required this.report,
+  });
+
+  String get _displayName {
+    final displayName = report.reportedDisplayName?.trim();
+    if (displayName != null && displayName.isNotEmpty) {
+      return displayName;
+    }
+
+    final username = report.reportedUsername?.trim();
+    if (username != null && username.isNotEmpty) {
+      return '@$username';
+    }
+
+    return 'Reported profile';
+  }
+
+  String? get _username {
+    final username = report.reportedUsername?.trim();
+    if (username == null || username.isEmpty) {
+      return null;
+    }
+    return '@$username';
+  }
+
+  String get _actorTypeLabel {
+    switch (report.reportedActorType) {
+      case ActorType.citizen:
+        return 'Person';
+      case ActorType.publicOfficial:
+        return 'Public official';
+      case ActorType.institution:
+        return 'Public institution';
+      case ActorType.organization:
+        return 'Verified organization';
+      case null:
+        return 'Not available';
+    }
+  }
+
+  String get _verificationLabel {
+    switch (report.reportedVerificationLevel) {
+      case VerificationLevel.level1:
+        return 'Level 1';
+      case VerificationLevel.level2:
+        return 'Level 2';
+      case VerificationLevel.none:
+        return 'Not verified';
+      case null:
+        return 'Not available';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final avatarUrl = report.reportedAvatarUrl?.trim();
+    final username = _username;
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          4,
+          20,
+          20 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _AdminReportedProfileAvatar(
+                  avatarUrl: avatarUrl,
+                  fallbackLabel: _displayName,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _displayName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (username != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          username,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _AdminUserDetailSection(
+              title: 'Reported profile',
+              children: [
+                _AdminUserDetailField(
+                  icon: Icons.badge_outlined,
+                  label: 'Public identity',
+                  value: _actorTypeLabel,
+                ),
+                _AdminUserDetailField(
+                  icon: Icons.verified_user_outlined,
+                  label: 'Verification',
+                  value: _verificationLabel,
+                ),
+                _AdminUserDetailField(
+                  icon: Icons.fingerprint,
+                  label: 'User ID',
+                  value: report.reportedUserId ?? 'Not available',
+                  selectable: true,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'This profile context comes from the protected report queue. '
+              'Administrative account actions remain separate.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AdminReportedProfileAvatar extends StatelessWidget {
+  final String? avatarUrl;
+  final String fallbackLabel;
+
+  const _AdminReportedProfileAvatar({
+    required this.avatarUrl,
+    required this.fallbackLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final initial = fallbackLabel.trim().isEmpty
+        ? '?'
+        : fallbackLabel.trim().characters.first.toUpperCase();
+
+    return Container(
+      width: 56,
+      height: 56,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: colors.secondaryContainer,
+      ),
+      child: avatarUrl == null || avatarUrl!.isEmpty
+          ? Center(
+              child: Text(
+                initial,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: colors.onSecondaryContainer,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            )
+          : Image.network(
+              avatarUrl!,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Center(
+                  child: Text(
+                    initial,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: colors.onSecondaryContainer,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
+
+class _AdminReportsPagination extends StatelessWidget {
+  final AdminReportQueuePage page;
+  final bool loading;
+  final Future<void> Function()? onPrevious;
+  final Future<void> Function()? onNext;
+
+  const _AdminReportsPagination({
+    required this.page,
+    required this.loading,
+    required this.onPrevious,
+    required this.onNext,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final materialLocalizations = MaterialLocalizations.of(context);
+    final currentPage = (page.offset ~/ page.limit) + 1;
+    final totalPages = page.totalCount == 0
+        ? 1
+        : (page.totalCount + page.limit - 1) ~/ page.limit;
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            'Page $currentPage of $totalPages',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+        IconButton(
+          tooltip: materialLocalizations.previousPageTooltip,
+          onPressed: loading || onPrevious == null
+              ? null
+              : () {
+                  unawaited(onPrevious!());
+                },
+          icon: const Icon(Icons.chevron_left),
+        ),
+        IconButton(
+          tooltip: materialLocalizations.nextPageTooltip,
+          onPressed: loading || onNext == null
+              ? null
+              : () {
+                  unawaited(onNext!());
+                },
+          icon: const Icon(Icons.chevron_right),
+        ),
+      ],
     );
   }
 }
