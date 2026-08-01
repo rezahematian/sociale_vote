@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
@@ -12,6 +13,7 @@ import 'package:sociale_vote/domain/engagement/usecases/toggle_reaction.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 
+import 'package:sociale_vote/infrastructure/moderation/services/content_visibility_filter.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/news_api.dart';
 
 import 'package:sociale_vote/features/news/domain/news_language.dart';
@@ -26,12 +28,15 @@ class NewsController extends ChangeNotifier {
   final GetNewsFeed _getNewsFeed;
   final ToggleReaction _toggleReaction;
   final GetReactionSummary _getReactionSummary;
+  final ContentVisibilityFilter _contentVisibilityFilter;
 
   NewsController(
     this._getNewsFeed,
     this._toggleReaction,
-    this._getReactionSummary,
-  ) {
+    this._getReactionSummary, [
+    ContentVisibilityFilter? contentVisibilityFilter,
+  ]) : _contentVisibilityFilter = contentVisibilityFilter ??
+            ContentVisibilityFilter(Supabase.instance.client) {
     _restoreLanguagePreferenceFuture =
         Future<void>.microtask(_restoreSavedLanguagePreferenceIfNeeded);
   }
@@ -348,7 +353,7 @@ class NewsController extends ChangeNotifier {
   Future<void> _loadNextPage({required int requestId}) async {
     final scopeFilter = _currentScopeFilter();
 
-    final result = await _getNewsFeed(
+    final sourceResult = await _getNewsFeed(
       countryCode: scopeFilter.countryCode,
       cityId: scopeFilter.cityId,
       topic: _selectedTopic.apiValue,
@@ -361,11 +366,25 @@ class NewsController extends ChangeNotifier {
       return;
     }
 
-    if (result.length < _pageSize) {
+    if (sourceResult.length < _pageSize) {
       _hasMoreFromSource = false;
     }
 
-    _currentOffset += result.length;
+    _currentOffset += sourceResult.length;
+
+    final visibleIds = await _contentVisibilityFilter.filterVisibleIds(
+      targetType: 'news',
+      targetIds: sourceResult.map(_newsId),
+    );
+
+    if (!_isRequestStillValid(requestId)) {
+      return;
+    }
+
+    final result = sourceResult
+        .where((item) => visibleIds.contains(_newsId(item)))
+        .toList(growable: false);
+
     _news.addAll(result);
 
     await Future.wait<void>([

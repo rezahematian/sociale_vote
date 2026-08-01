@@ -231,6 +231,46 @@ extension AdminReportDecisionX on AdminReportDecision {
   }
 }
 
+enum AdminReportResolution {
+  noAccountAction,
+  accountSuspended,
+  logoutForced,
+  accountDeleted,
+  unknown,
+}
+
+extension AdminReportResolutionX on AdminReportResolution {
+  String get storageKey {
+    switch (this) {
+      case AdminReportResolution.noAccountAction:
+        return 'no_account_action';
+      case AdminReportResolution.accountSuspended:
+        return 'account_suspended';
+      case AdminReportResolution.logoutForced:
+        return 'logout_forced';
+      case AdminReportResolution.accountDeleted:
+        return 'account_deleted';
+      case AdminReportResolution.unknown:
+        return 'unknown';
+    }
+  }
+
+  static AdminReportResolution fromStorageKey(String? value) {
+    switch (value?.trim().toLowerCase()) {
+      case 'no_account_action':
+        return AdminReportResolution.noAccountAction;
+      case 'account_suspended':
+        return AdminReportResolution.accountSuspended;
+      case 'logout_forced':
+        return AdminReportResolution.logoutForced;
+      case 'account_deleted':
+        return AdminReportResolution.accountDeleted;
+      default:
+        return AdminReportResolution.unknown;
+    }
+  }
+}
+
 class AdminReportEntry {
   final String id;
   final AdminReportTargetType targetType;
@@ -249,6 +289,9 @@ class AdminReportEntry {
   final String? reviewNote;
   final String? reviewedBy;
   final DateTime? reviewedAt;
+  final bool contentIsHidden;
+  final DateTime? contentVisibilityUpdatedAt;
+  final int? contentVisibilityVersion;
   final DateTime createdAt;
 
   const AdminReportEntry({
@@ -269,6 +312,9 @@ class AdminReportEntry {
     this.reviewNote,
     this.reviewedBy,
     this.reviewedAt,
+    this.contentIsHidden = false,
+    this.contentVisibilityUpdatedAt,
+    this.contentVisibilityVersion,
     required this.createdAt,
   });
 
@@ -281,6 +327,17 @@ class AdminReportEntry {
 
   bool get canRecordModerationDecision =>
       status.isPending && moderationDecision == null;
+
+  bool get isAwaitingAdminDecision =>
+      status == AdminReportStatus.inReview &&
+      moderationDecision == AdminReportDecision.escalateToAdmin;
+
+  bool get canResolveAdminEscalation => isAwaitingAdminDecision;
+
+  bool get canChangeContentVisibility =>
+      moderationDecision == AdminReportDecision.violationConfirmed &&
+      targetType != AdminReportTargetType.unknown &&
+      hasOriginalTarget;
 }
 
 class AdminReportQueuePage {

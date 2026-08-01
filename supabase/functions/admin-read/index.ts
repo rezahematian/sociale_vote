@@ -5,7 +5,12 @@ const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
 
 type StaffRole = 'moderator' | 'admin'
-type ReadOperation = 'dashboard' | 'user_detail' | 'reports' | 'audit'
+type ReadOperation =
+  | 'dashboard'
+  | 'user_detail'
+  | 'reports'
+  | 'escalated_reports'
+  | 'audit'
 type AuditResult = 'success' | 'failure' | 'denied' | 'noop'
 type ReportStatus = 'open' | 'in_review' | 'resolved' | 'dismissed'
 type ReportTargetType = 'poll' | 'post' | 'news'
@@ -86,10 +91,14 @@ type ReportRow = {
   reported_actor_type: string | null
   reported_verification_level: string | null
   target_title: string | null
+  target_url: string | null
   moderation_decision: string | null
   review_note: string | null
   reviewed_by: string | null
   reviewed_at: string | null
+  content_is_hidden: boolean
+  content_visibility_updated_at: string | null
+  content_visibility_version: number | string | null
   reason: string
   status: string
   created_at: string
@@ -100,6 +109,7 @@ const allowedReadOperations = new Set<ReadOperation>([
   'dashboard',
   'user_detail',
   'reports',
+  'escalated_reports',
   'audit',
 ])
 
@@ -445,7 +455,9 @@ Deno.serve(async (req: Request) => {
 
   if (operation == null) {
     return jsonResponse(400, {
-      error: 'Operation must be dashboard, user_detail, reports, or audit.',
+      error:
+        'Operation must be dashboard, user_detail, reports, '
+        + 'escalated_reports, or audit.',
     })
   }
 
@@ -742,10 +754,14 @@ Deno.serve(async (req: Request) => {
         reportedActorType: row.reported_actor_type,
         reportedVerificationLevel: row.reported_verification_level,
         targetTitle: row.target_title,
+        targetUrl: row.target_url,
         moderationDecision: row.moderation_decision,
         reviewNote: row.review_note,
         reviewedBy: row.reviewed_by,
         reviewedAt: row.reviewed_at,
+        contentIsHidden: row.content_is_hidden,
+        contentVisibilityUpdatedAt: row.content_visibility_updated_at,
+        contentVisibilityVersion: row.content_visibility_version,
         reason: row.reason,
         status: row.status,
         createdAt: row.created_at,
@@ -759,6 +775,106 @@ Deno.serve(async (req: Request) => {
       },
       permissions: {
         role: callerRole,
+      },
+    })
+  }
+
+  if (operation === 'escalated_reports') {
+    const limit = readInteger(
+      body.limit,
+      25,
+      1,
+      maximumReportLimit,
+    )
+    const offset = readInteger(
+      body.offset,
+      0,
+      0,
+      maximumReportOffset,
+    )
+
+    if (limit == null) {
+      return jsonResponse(400, {
+        error:
+          `Escalated report limit must be between 1 and ${maximumReportLimit}.`,
+      })
+    }
+
+    if (offset == null) {
+      return jsonResponse(400, {
+        error:
+          `Escalated report offset must be between 0 and ${maximumReportOffset}.`,
+      })
+    }
+
+    const { data, error } = await adminClient.rpc(
+      'admin_get_escalated_report_queue',
+      {
+        p_limit: limit,
+        p_offset: offset,
+      },
+    )
+
+    if (error != null) {
+      console.error(
+        'Unable to load the administrator escalation queue.',
+        error,
+      )
+
+      return jsonResponse(500, {
+        error: 'Unable to load the administrator escalation queue.',
+      })
+    }
+
+    const rows = Array.isArray(data) ? (data as ReportRow[]) : []
+    const totalCount = rows.length === 0
+      ? 0
+      : readCount(rows[0].total_count)
+
+    if (totalCount == null) {
+      console.error('Invalid administrator escalation queue response.')
+
+      return jsonResponse(500, {
+        error: 'Invalid administrator escalation queue response.',
+      })
+    }
+
+    return jsonResponse(200, {
+      success: true,
+      reports: rows.map((row) => ({
+        reportId: row.report_id,
+        targetType: row.target_type,
+        targetId: row.target_id,
+        reporterUserId: row.reporter_user_id,
+        reportedUserId: row.reported_user_id,
+        reportedDisplayName: row.reported_display_name,
+        reportedUsername: row.reported_username,
+        reportedAvatarUrl: row.reported_avatar_url,
+        reportedActorType: row.reported_actor_type,
+        reportedVerificationLevel: row.reported_verification_level,
+        targetTitle: row.target_title,
+        targetUrl: row.target_url,
+        moderationDecision: row.moderation_decision,
+        reviewNote: row.review_note,
+        reviewedBy: row.reviewed_by,
+        reviewedAt: row.reviewed_at,
+        contentIsHidden: row.content_is_hidden,
+        contentVisibilityUpdatedAt: row.content_visibility_updated_at,
+        contentVisibilityVersion: row.content_visibility_version,
+        reason: row.reason,
+        status: row.status,
+        createdAt: row.created_at,
+      })),
+      pagination: {
+        limit,
+        offset,
+        returnedCount: rows.length,
+        totalCount,
+        hasMore: offset + rows.length < totalCount,
+      },
+      permissions: {
+        role: callerRole,
+        canResolveAdminEscalations: true,
       },
     })
   }

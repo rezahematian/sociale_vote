@@ -42,10 +42,27 @@ abstract class AdminRepository {
     int offset = 0,
   });
 
+  Future<AdminReportQueuePage> getEscalatedReportQueue({
+    int limit = 25,
+    int offset = 0,
+  });
+
   Future<void> recordReportDecision({
     required String reportId,
     required AdminReportDecision decision,
     required String reviewNote,
+  });
+
+  Future<void> resolveEscalatedReport({
+    required String reportId,
+    required AdminReportResolution resolution,
+    required String resolutionNote,
+  });
+
+  Future<void> setReportContentVisibility({
+    required String reportId,
+    required bool isHidden,
+    required String reason,
   });
 
   Future<void> changeSystemRole({

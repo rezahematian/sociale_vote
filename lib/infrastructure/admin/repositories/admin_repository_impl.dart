@@ -209,6 +209,55 @@ class AdminRepositoryImpl implements AdminRepository {
   }
 
   @override
+  Future<AdminReportQueuePage> getEscalatedReportQueue({
+    int limit = 25,
+    int offset = 0,
+  }) async {
+    final data = await _invoke(
+      _adminReadFunction,
+      <String, Object?>{
+        'operation': 'escalated_reports',
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    _requireSuccess(data);
+
+    final reportRows = _readRequiredObjectList(
+      data,
+      'reports',
+    );
+    final pagination = _readRequiredObject(
+      data,
+      'pagination',
+    );
+
+    return AdminReportQueuePage(
+      reports: reportRows.map(_mapReportEntry).toList(growable: false),
+      limit: _readRequiredPositiveInt(
+        pagination,
+        'limit',
+      ),
+      offset: _readRequiredNonNegativeInt(
+        pagination,
+        'offset',
+      ),
+      returnedCount: _readRequiredNonNegativeInt(
+        pagination,
+        'returnedCount',
+      ),
+      totalCount: _readRequiredNonNegativeInt(
+        pagination,
+        'totalCount',
+      ),
+      hasMore: _readRequiredBool(
+        pagination,
+        'hasMore',
+      ),
+    );
+  }
+
+  @override
   Future<void> recordReportDecision({
     required String reportId,
     required AdminReportDecision decision,
@@ -220,6 +269,40 @@ class AdminRepositoryImpl implements AdminRepository {
         'reportId': reportId,
         'decision': decision.storageKey,
         'reviewNote': reviewNote,
+      },
+    );
+    _requireSuccess(data);
+  }
+
+  @override
+  Future<void> resolveEscalatedReport({
+    required String reportId,
+    required AdminReportResolution resolution,
+    required String resolutionNote,
+  }) async {
+    final data = await _invoke(
+      _adminReportActionsFunction,
+      <String, Object?>{
+        'reportId': reportId,
+        'adminResolution': resolution.storageKey,
+        'adminResolutionNote': resolutionNote,
+      },
+    );
+    _requireSuccess(data);
+  }
+
+  @override
+  Future<void> setReportContentVisibility({
+    required String reportId,
+    required bool isHidden,
+    required String reason,
+  }) async {
+    final data = await _invoke(
+      _adminReportActionsFunction,
+      <String, Object?>{
+        'reportId': reportId,
+        'contentAction': isHidden ? 'hide' : 'restore',
+        'actionReason': reason,
       },
     );
     _requireSuccess(data);
@@ -555,6 +638,15 @@ class AdminRepositoryImpl implements AdminRepository {
       reviewNote: _readOptionalString(row, 'reviewNote'),
       reviewedBy: _readOptionalString(row, 'reviewedBy'),
       reviewedAt: _readOptionalDateTime(row, 'reviewedAt'),
+      contentIsHidden: _readRequiredBool(row, 'contentIsHidden'),
+      contentVisibilityUpdatedAt: _readOptionalDateTime(
+        row,
+        'contentVisibilityUpdatedAt',
+      ),
+      contentVisibilityVersion: _readOptionalNonNegativeInt(
+        row,
+        'contentVisibilityVersion',
+      ),
       createdAt: _readRequiredDateTime(
         row,
         'createdAt',
@@ -829,6 +921,29 @@ class AdminRepositoryImpl implements AdminRepository {
     String key,
   ) {
     final value = source[key];
+    final parsed = value is int
+        ? value
+        : value is String
+            ? int.tryParse(value)
+            : null;
+
+    if (parsed == null || parsed < 0) {
+      throw _invalidResponse(key);
+    }
+
+    return parsed;
+  }
+
+  int? _readOptionalNonNegativeInt(
+    Map<String, Object?> source,
+    String key,
+  ) {
+    final value = source[key];
+
+    if (value == null) {
+      return null;
+    }
+
     final parsed = value is int
         ? value
         : value is String

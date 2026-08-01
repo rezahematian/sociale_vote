@@ -128,6 +128,7 @@ import 'package:sociale_vote/infrastructure/geo/repositories/geocoding_repositor
 import 'package:sociale_vote/infrastructure/identity/repositories/user_profile_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/identity/repositories/verification_request_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/moderation/repositories/moderation_repository_impl.dart';
+import 'package:sociale_vote/infrastructure/moderation/services/content_visibility_filter.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/gnews_provider.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/guardian_provider.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/news_aggregator.dart';
@@ -328,6 +329,8 @@ class AppDI {
       NotificationRepositoryImpl();
   late final ModerationRepository _moderationRepository =
       ModerationRepositoryImpl(Supabase.instance.client);
+  late final ContentVisibilityFilter _contentVisibilityFilter =
+      ContentVisibilityFilter(Supabase.instance.client);
   late final SearchRepository _searchRepository = SearchRepositoryInMemory(
     pollRepository: pollRepository,
     newsRepository: newsRepository,
@@ -946,6 +949,7 @@ class AppDI {
       getNewsFeed,
       toggleReaction,
       getReactionSummary,
+      _contentVisibilityFilter,
     );
   }
 
@@ -1312,10 +1316,10 @@ class AppDI {
     required String? cityId,
     required String? language,
     required int limit,
-  }) {
+  }) async {
     final dynamic useCase = getNewsFeed;
 
-    return _tryLoadListOrEmpty<NewsItem>([
+    final news = await _tryLoadListOrEmpty<NewsItem>([
       () => useCase(
             countryCode: countryCode,
             cityId: cityId,
@@ -1324,6 +1328,19 @@ class AppDI {
             offset: 0,
           ),
     ]);
+
+    if (news.isEmpty) {
+      return news;
+    }
+
+    final visibleIds = await _contentVisibilityFilter.filterVisibleIds(
+      targetType: 'news',
+      targetIds: news.map(_readNewsId),
+    );
+
+    return news
+        .where((item) => visibleIds.contains(_readNewsId(item)))
+        .toList(growable: false);
   }
 
   Future<List<Post>> _loadPostsForMapScope(GeoScope scope) async {

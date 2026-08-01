@@ -10,6 +10,7 @@ import 'package:sociale_vote/domain/geo/value_objects/content_location_source.da
 import 'package:sociale_vote/infrastructure/news/aggregator/news_aggregator.dart';
 import 'package:sociale_vote/infrastructure/news/mappers/news_mapper.dart';
 import 'package:sociale_vote/infrastructure/news/models/news_dto.dart';
+import 'package:sociale_vote/infrastructure/moderation/services/content_visibility_filter.dart';
 
 class NewsRepositoryImpl implements NewsRepository {
   static const String _cacheTable = 'news_feed_cache';
@@ -17,6 +18,7 @@ class NewsRepositoryImpl implements NewsRepository {
   static const int _defaultRefreshFetchLimit = 50;
   static const Duration _cacheTtl = Duration(minutes: 30);
   static const int _fallbackCacheScanLimit = 60;
+  static const Duration _removedIdentityCacheTtl = Duration(minutes: 5);
 
   static const int _maxArticlesToGeocodePerRefresh = 8;
   static const int _maxLocationCandidatesPerArticle = 3;
@@ -88,9 +90,15 @@ class NewsRepositoryImpl implements NewsRepository {
   final NewsAggregator _aggregator;
   final NewsMapper _mapper;
   final GeocodingRepository _geocodingRepository;
+  late final ContentVisibilityFilter _contentVisibilityFilter =
+      ContentVisibilityFilter(AppSupabase.client);
 
   final Map<String, Future<List<Map<String, dynamic>>>> _inFlightRefreshes =
       <String, Future<List<Map<String, dynamic>>>>{};
+
+  Set<String> _removedNewsIdentityKeys = <String>{};
+  DateTime? _removedNewsIdentityKeysLoadedAt;
+  Future<Set<String>>? _removedNewsIdentityKeysLoad;
 
   NewsRepositoryImpl(
     this._aggregator,
@@ -145,7 +153,7 @@ class NewsRepositoryImpl implements NewsRepository {
       return const <NewsItem>[];
     }
 
-    return _mapAndPaginate(
+    return _mapFilterAndPaginate(
       jsonList: cache.items,
       countryCode: cache.countryCode ?? candidate.countryCode,
       cityId: cache.cityId ?? candidate.cityId,
@@ -178,28 +186,38 @@ class NewsRepositoryImpl implements NewsRepository {
       return const <NewsItem>[];
     }
 
-    final mapped = _mapJsonToDomainList(
+    final availableJson = await _filterAvailableNewsJson(
       cache.items,
+      countryCode: cache.countryCode ?? candidate.countryCode,
+      cityId: cache.cityId ?? candidate.cityId,
+    );
+    final available = _mapJsonToDomainList(
+      availableJson,
       countryCode: cache.countryCode ?? candidate.countryCode,
       cityId: cache.cityId ?? candidate.cityId,
       sortByPublishedAt: true,
     );
 
-    if (limit == null || limit <= 0 || mapped.length <= limit) {
-      return mapped;
+    if (limit == null || limit <= 0 || available.length <= limit) {
+      return available;
     }
 
-    return List<NewsItem>.unmodifiable(mapped.take(limit).toList());
+    return List<NewsItem>.unmodifiable(available.take(limit).toList());
   }
 
   @override
   Future<NewsItem> getNewsDetail(EntityId id) async {
-    final cached = await _findCachedNewsById(id.value);
+    final requestedId = id.value.trim();
+    if (!await _isNewsAvailable(requestedId)) {
+      throw StateError('News content has been permanently removed.');
+    }
+
+    final cached = await _findCachedNewsById(requestedId);
     if (cached != null) {
       return cached;
     }
 
-    final json = await _aggregator.fetchNewsDetail(id.value);
+    final json = await _aggregator.fetchNewsDetail(requestedId);
     final normalized = _normalizeFetchedJsonList(
       <dynamic>[json],
       defaultLanguage: null,
@@ -208,15 +226,26 @@ class NewsRepositoryImpl implements NewsRepository {
     if (normalized.isNotEmpty) {
       final dto = NewsDto.fromJson(normalized.first);
       final contentLocation = _readEmbeddedContentLocation(normalized.first);
-
-      return _mapper.toDomain(
+      final news = _mapper.toDomain(
         dto,
         contentLocation: contentLocation,
       );
+
+      if (!await _isNewsAvailable(news.id.value)) {
+        throw StateError('News content has been permanently removed.');
+      }
+
+      return news;
     }
 
     final dto = NewsDto.fromJson(json);
-    return _mapper.toDomain(dto);
+    final news = _mapper.toDomain(dto);
+
+    if (!await _isNewsAvailable(news.id.value)) {
+      throw StateError('News content has been permanently removed.');
+    }
+
+    return news;
   }
 
   Future<_CachedNewsFeed?> _resolveBestAvailableCache(
@@ -401,6 +430,11 @@ class NewsRepositoryImpl implements NewsRepository {
       refreshedItems: stablePayload,
       candidate: candidate,
     );
+    final availablePayload = await _filterAvailableNewsJson(
+      protectedPayload,
+      countryCode: candidate.countryCode,
+      cityId: candidate.cityId,
+    );
 
     await _writeCache(
       cacheKey: candidate.cacheKey,
@@ -408,10 +442,10 @@ class NewsRepositoryImpl implements NewsRepository {
       cityId: candidate.cityId,
       topic: candidate.topic,
       language: candidate.language,
-      items: protectedPayload,
+      items: availablePayload,
     );
 
-    return protectedPayload;
+    return availablePayload;
   }
 
   List<Map<String, dynamic>> _preservePreviousLocatedItems({
@@ -766,12 +800,19 @@ class NewsRepositoryImpl implements NewsRepository {
   }
 
   Future<NewsItem?> _findCachedNewsById(String newsId) async {
+    final requestedId = newsId.trim();
+    if (requestedId.isEmpty) {
+      return null;
+    }
+
+    final requestedIdLower = requestedId.toLowerCase();
+
     try {
       final rows = await AppSupabase.client
           .from(_cacheTable)
           .select('payload, country_code, city_id, refreshed_at')
           .order('refreshed_at', ascending: false)
-          .limit(40);
+          .limit(_fallbackCacheScanLimit);
 
       for (final row in rows) {
         final payload = row['payload'];
@@ -788,23 +829,23 @@ class NewsRepositoryImpl implements NewsRepository {
         );
 
         for (final json in normalizedPayload) {
-          if (!_matchesRequestedNewsId(json, newsId)) {
-            continue;
-          }
-
           final dto = _tryParseDto(json);
           if (dto == null) {
             continue;
           }
 
           final contentLocation = _readEmbeddedContentLocation(json);
-
-          return _mapper.toDomain(
+          final news = _mapper.toDomain(
             dto,
             countryCode: countryCode,
             cityId: cityId,
             contentLocation: contentLocation,
           );
+
+          if (news.id.value.trim().toLowerCase() == requestedIdLower ||
+              _matchesRequestedNewsId(json, requestedId)) {
+            return news;
+          }
         }
       }
     } catch (e, st) {
@@ -817,36 +858,256 @@ class NewsRepositoryImpl implements NewsRepository {
     return null;
   }
 
-  List<NewsItem> _mapAndPaginate({
+  Future<List<NewsItem>> _mapFilterAndPaginate({
     required List<Map<String, dynamic>> jsonList,
     required String? countryCode,
     required String? cityId,
     int? limit,
     int? offset,
-  }) {
-    final mapped = _mapJsonToDomainList(
+  }) async {
+    final availableJson = await _filterAvailableNewsJson(
       jsonList,
+      countryCode: countryCode,
+      cityId: cityId,
+    );
+    final available = _mapJsonToDomainList(
+      availableJson,
       countryCode: countryCode,
       cityId: cityId,
       sortByPublishedAt: true,
     );
 
-    if (mapped.isEmpty) {
+    if (available.isEmpty) {
       return const <NewsItem>[];
     }
 
     final safeOffset = offset ?? 0;
-    final safeLimit = limit ?? mapped.length;
+    final safeLimit = limit ?? available.length;
 
-    if (safeOffset >= mapped.length) {
+    if (safeOffset >= available.length) {
       return const <NewsItem>[];
     }
 
-    final end = (safeOffset + safeLimit) > mapped.length
-        ? mapped.length
+    final end = (safeOffset + safeLimit) > available.length
+        ? available.length
         : (safeOffset + safeLimit);
 
-    return List<NewsItem>.unmodifiable(mapped.sublist(safeOffset, end));
+    return List<NewsItem>.unmodifiable(available.sublist(safeOffset, end));
+  }
+
+  Future<bool> _isNewsAvailable(String newsId) async {
+    final normalizedId = newsId.trim();
+    if (normalizedId.isEmpty) {
+      return false;
+    }
+
+    final availableIds = await _contentVisibilityFilter.filterVisibleIds(
+      targetType: 'news',
+      targetIds: <String>[normalizedId],
+    );
+
+    return availableIds.contains(normalizedId);
+  }
+
+  Future<List<Map<String, dynamic>>> _filterAvailableNewsJson(
+    List<Map<String, dynamic>> jsonList, {
+    required String? countryCode,
+    required String? cityId,
+  }) async {
+    if (jsonList.isEmpty) {
+      return const <Map<String, dynamic>>[];
+    }
+
+    final candidates = <_NewsJsonVisibilityCandidate>[];
+
+    for (final json in jsonList) {
+      final dto = _tryParseDto(json);
+      if (dto == null) {
+        continue;
+      }
+
+      final contentLocation = _readEmbeddedContentLocation(json);
+      final news = _mapper.toDomain(
+        dto,
+        countryCode: countryCode,
+        cityId: cityId,
+        contentLocation: contentLocation,
+      );
+      final id = news.id.value.trim();
+      if (id.isEmpty) {
+        continue;
+      }
+
+      candidates.add(
+        _NewsJsonVisibilityCandidate(
+          id: id,
+          json: Map<String, dynamic>.from(json),
+          identityKeys: _buildStableArticleKeysFromJson(json).toSet(),
+        ),
+      );
+    }
+
+    if (candidates.isEmpty) {
+      return const <Map<String, dynamic>>[];
+    }
+
+    final availableIds = await _contentVisibilityFilter.filterVisibleIds(
+      targetType: 'news',
+      targetIds: candidates.map((candidate) => candidate.id),
+    );
+
+    final locallyRemovedIdentityKeys = <String>{};
+
+    // A hidden UUID may have aliases in the same payload. Capture the stable
+    // identity of the blocked item immediately, then reject every alias that
+    // points to the same article.
+    for (final candidate in candidates) {
+      if (!availableIds.contains(candidate.id)) {
+        locallyRemovedIdentityKeys.addAll(candidate.identityKeys);
+      }
+    }
+
+    final removedIdentityKeys = <String>{
+      ..._removedNewsIdentityKeys,
+      ...locallyRemovedIdentityKeys,
+    };
+
+    // The common moderation path is resolved locally without scanning every
+    // cache. A global scan is needed only when the current payload contains
+    // an alias but not the exact UUID stored by the report.
+    if (locallyRemovedIdentityKeys.isEmpty) {
+      removedIdentityKeys.addAll(await _loadRemovedNewsIdentityKeys());
+    } else {
+      _removedNewsIdentityKeys.addAll(locallyRemovedIdentityKeys);
+    }
+
+    final output = <Map<String, dynamic>>[];
+    final seenIdentityKeys = <String>{};
+
+    for (final candidate in candidates) {
+      if (!availableIds.contains(candidate.id)) {
+        continue;
+      }
+
+      if (candidate.identityKeys.any(removedIdentityKeys.contains)) {
+        continue;
+      }
+
+      if (candidate.identityKeys.isNotEmpty &&
+          candidate.identityKeys.any(seenIdentityKeys.contains)) {
+        continue;
+      }
+
+      output.add(candidate.json);
+      seenIdentityKeys.addAll(candidate.identityKeys);
+    }
+
+    return List<Map<String, dynamic>>.unmodifiable(output);
+  }
+
+  Future<Set<String>> _loadRemovedNewsIdentityKeys() async {
+    final now = DateTime.now().toUtc();
+    final loadedAt = _removedNewsIdentityKeysLoadedAt;
+
+    if (loadedAt != null &&
+        now.difference(loadedAt) <= _removedIdentityCacheTtl) {
+      return Set<String>.unmodifiable(_removedNewsIdentityKeys);
+    }
+
+    final inFlight = _removedNewsIdentityKeysLoad;
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    final load = _scanRemovedNewsIdentityKeys();
+    _removedNewsIdentityKeysLoad = load;
+
+    try {
+      final keys = await load;
+      _removedNewsIdentityKeys = Set<String>.from(keys);
+      _removedNewsIdentityKeysLoadedAt = DateTime.now().toUtc();
+      return Set<String>.unmodifiable(_removedNewsIdentityKeys);
+    } finally {
+      if (identical(_removedNewsIdentityKeysLoad, load)) {
+        _removedNewsIdentityKeysLoad = null;
+      }
+    }
+  }
+
+  Future<Set<String>> _scanRemovedNewsIdentityKeys() async {
+    try {
+      final rows = await AppSupabase.client
+          .from(_cacheTable)
+          .select('payload, country_code, city_id, refreshed_at')
+          .order('refreshed_at', ascending: false)
+          .limit(_fallbackCacheScanLimit);
+
+      final identityKeysByMappedId = <String, Set<String>>{};
+
+      for (final row in rows) {
+        final payload = row['payload'];
+        if (payload is! List) {
+          continue;
+        }
+
+        final rowCountryCode = _normalize(row['country_code']?.toString());
+        final rowCityId = _normalize(row['city_id']?.toString());
+        final normalizedPayload = _normalizeFetchedJsonList(
+          payload,
+          defaultLanguage: null,
+        );
+
+        for (final json in normalizedPayload) {
+          final dto = _tryParseDto(json);
+          if (dto == null) {
+            continue;
+          }
+
+          final contentLocation = _readEmbeddedContentLocation(json);
+          final news = _mapper.toDomain(
+            dto,
+            countryCode: rowCountryCode,
+            cityId: rowCityId,
+            contentLocation: contentLocation,
+          );
+          final mappedId = news.id.value.trim();
+          if (mappedId.isEmpty) {
+            continue;
+          }
+
+          identityKeysByMappedId
+              .putIfAbsent(mappedId, () => <String>{})
+              .addAll(_buildStableArticleKeysFromJson(json));
+        }
+      }
+
+      if (identityKeysByMappedId.isEmpty) {
+        return <String>{};
+      }
+
+      final availableIds = await _contentVisibilityFilter.filterVisibleIds(
+        targetType: 'news',
+        targetIds: identityKeysByMappedId.keys,
+      );
+
+      final removedKeys = <String>{};
+      for (final entry in identityKeysByMappedId.entries) {
+        if (!availableIds.contains(entry.key)) {
+          removedKeys.addAll(entry.value);
+        }
+      }
+
+      return Set<String>.unmodifiable(removedKeys);
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint(
+          'NewsRepositoryImpl removed-news identity scan failed: $e',
+        );
+        debugPrint('$st');
+      }
+
+      return Set<String>.unmodifiable(_removedNewsIdentityKeys);
+    }
   }
 
   List<NewsItem> _mapJsonToDomainList(
@@ -2596,6 +2857,18 @@ class NewsRepositoryImpl implements NewsRepository {
     }
     return DateTime.tryParse(value.toString())?.toUtc();
   }
+}
+
+class _NewsJsonVisibilityCandidate {
+  final String id;
+  final Map<String, dynamic> json;
+  final Set<String> identityKeys;
+
+  const _NewsJsonVisibilityCandidate({
+    required this.id,
+    required this.json,
+    required this.identityKeys,
+  });
 }
 
 class _NewsFeedCandidate {

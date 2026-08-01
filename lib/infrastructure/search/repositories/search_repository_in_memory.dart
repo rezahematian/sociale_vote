@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/content/news/repositories/news_repository.dart';
@@ -13,6 +15,7 @@ import 'package:sociale_vote/domain/search/entities/search_result_item.dart';
 import 'package:sociale_vote/domain/search/repositories/search_repository.dart';
 import 'package:sociale_vote/domain/search/value_objects/search_filters.dart';
 import 'package:sociale_vote/domain/search/value_objects/search_query.dart';
+import 'package:sociale_vote/infrastructure/moderation/services/content_visibility_filter.dart';
 
 /// Implementazione in-memory di [SearchRepository].
 ///
@@ -34,16 +37,20 @@ class SearchRepositoryInMemory implements SearchRepository {
   final NewsRepository _newsRepository;
   final PostRepository _postRepository;
   final CommentRepository _commentRepository;
+  final ContentVisibilityFilter _contentVisibilityFilter;
 
   SearchRepositoryInMemory({
     required PollRepository pollRepository,
     required NewsRepository newsRepository,
     required PostRepository postRepository,
     required CommentRepository commentRepository,
+    ContentVisibilityFilter? contentVisibilityFilter,
   })  : _pollRepository = pollRepository,
         _newsRepository = newsRepository,
         _postRepository = postRepository,
-        _commentRepository = commentRepository;
+        _commentRepository = commentRepository,
+        _contentVisibilityFilter = contentVisibilityFilter ??
+            ContentVisibilityFilter(Supabase.instance.client);
 
   @override
   Future<List<SearchResultItem>> search({
@@ -105,10 +112,19 @@ class SearchRepositoryInMemory implements SearchRepository {
 
     // 🔍 NEWS
     if (includeNews) {
-      final newsItems = await _newsRepository.getNewsFeed(
+      final sourceNewsItems = await _newsRepository.getNewsFeed(
         countryCode: countryCode,
         cityId: cityId,
       );
+
+      final visibleNewsIds = await _contentVisibilityFilter.filterVisibleIds(
+        targetType: 'news',
+        targetIds: sourceNewsItems.map((news) => news.id.value),
+      );
+
+      final newsItems = sourceNewsItems
+          .where((news) => visibleNewsIds.contains(news.id.value))
+          .toList(growable: false);
 
       for (final news in newsItems) {
         final text = _buildNewsSearchText(news);

@@ -13,6 +13,7 @@ import 'package:sociale_vote/domain/admin/usecases/load_admin_dashboard.dart';
 import 'package:sociale_vote/domain/admin/usecases/load_admin_reports.dart';
 import 'package:sociale_vote/domain/admin/usecases/record_admin_report_decision.dart';
 import 'package:sociale_vote/domain/admin/usecases/search_admin_users.dart';
+import 'package:sociale_vote/domain/admin/usecases/set_report_content_visibility.dart';
 import 'package:sociale_vote/domain/admin/usecases/set_admin_public_identity.dart';
 import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/identity/value_objects/role.dart';
@@ -60,6 +61,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   late final LoadAdminDashboard _loadAdminDashboard;
   late final LoadAdminReports _loadAdminReports;
   late final RecordAdminReportDecision _recordAdminReportDecision;
+  late final SetReportContentVisibility _setReportContentVisibility;
   late final SearchAdminUsers _searchAdminUsers;
   late final ChangeSystemRole _changeSystemRole;
   late final SetAdminPublicIdentity _setAdminPublicIdentity;
@@ -86,6 +88,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   bool _isRefreshing = false;
   AdminReportStatus? _reportStatusFilter;
   AdminReportTargetType? _reportTargetTypeFilter;
+  bool _showEscalatedReportsOnly = false;
   AdminCenterSection _selectedSection = AdminCenterSection.dashboard;
 
   List<_AdminDestination> get _destinations {
@@ -137,6 +140,9 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       _adminRepository,
     );
     _recordAdminReportDecision = RecordAdminReportDecision(
+      _adminRepository,
+    );
+    _setReportContentVisibility = SetReportContentVisibility(
       _adminRepository,
     );
     _searchAdminUsers = SearchAdminUsers(
@@ -497,12 +503,17 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     }
 
     try {
-      final result = await _loadAdminReports(
-        status: _reportStatusFilter,
-        targetType: _reportTargetTypeFilter,
-        limit: _reportsPerPage,
-        offset: offset,
-      );
+      final result = _showEscalatedReportsOnly
+          ? await _adminRepository.getEscalatedReportQueue(
+              limit: _reportsPerPage,
+              offset: offset,
+            )
+          : await _loadAdminReports(
+              status: _reportStatusFilter,
+              targetType: _reportTargetTypeFilter,
+              limit: _reportsPerPage,
+              offset: offset,
+            );
 
       if (!mounted || requestGeneration != _reportsRequestGeneration) {
         return;
@@ -624,6 +635,123 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           content: Text(
             'Report decision recorded: '
             '${_adminReportDecisionLabel(recordedDecision)}.',
+          ),
+        ),
+      );
+
+    await _loadReports(
+      offset: _reportQueuePage?.offset ?? 0,
+      markLoading: false,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    unawaited(_loadDashboard(markLoading: false));
+  }
+
+  Future<void> _openAdminResolutionDialog(
+    AdminReportEntry report,
+  ) async {
+    if (widget.currentRole != Role.admin || !report.canResolveAdminEscalation) {
+      _showReportNavigationMessage(
+        'This report is not awaiting an administrator decision.',
+      );
+      return;
+    }
+
+    final resolution = await showDialog<AdminReportResolution>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return _AdminReportResolutionDialog(
+          report: report,
+          onConfirm: ({
+            required AdminReportResolution resolution,
+            required String resolutionNote,
+          }) {
+            return _adminRepository.resolveEscalatedReport(
+              reportId: report.id,
+              resolution: resolution,
+              resolutionNote: resolutionNote,
+            );
+          },
+        );
+      },
+    );
+
+    if (!mounted || resolution == null) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            'Administrator decision recorded: '
+            '${_adminReportResolutionLabel(resolution)}.',
+          ),
+        ),
+      );
+
+    await _loadReports(
+      offset: _reportQueuePage?.offset ?? 0,
+      markLoading: false,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    unawaited(_loadDashboard(markLoading: false));
+  }
+
+  Future<void> _openReportContentVisibilityDialog(
+    AdminReportEntry report,
+  ) async {
+    if (!report.canChangeContentVisibility) {
+      _showReportNavigationMessage(
+        'A confirmed violation is required before changing content visibility.',
+      );
+      return;
+    }
+
+    final requestedHiddenState = !report.contentIsHidden;
+    final changedState = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return _AdminReportContentVisibilityDialog(
+          report: report,
+          requestedHiddenState: requestedHiddenState,
+          onConfirm: ({
+            required bool isHidden,
+            required String reason,
+          }) {
+            return _setReportContentVisibility(
+              reportId: report.id,
+              isHidden: isHidden,
+              reason: reason,
+            );
+          },
+        );
+      },
+    );
+
+    if (!mounted || changedState == null) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            changedState
+                ? 'The reported content was hidden.'
+                : 'The reported content was restored.',
           ),
         ),
       );
@@ -807,7 +935,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                       child: Text('News'),
                     ),
                   ],
-                  onChanged: _isReportsLoading
+                  onChanged: _isReportsLoading || _showEscalatedReportsOnly
                       ? null
                       : (value) {
                           setState(() {
@@ -817,6 +945,23 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                         },
                 ),
               ),
+              if (widget.currentRole == Role.admin)
+                FilterChip(
+                  avatar: const Icon(
+                    Icons.admin_panel_settings_outlined,
+                    size: 18,
+                  ),
+                  label: const Text('Awaiting admin decision'),
+                  selected: _showEscalatedReportsOnly,
+                  onSelected: _isReportsLoading
+                      ? null
+                      : (selected) {
+                          setState(() {
+                            _showEscalatedReportsOnly = selected;
+                          });
+                          unawaited(_loadReports());
+                        },
+                ),
               SizedBox(
                 width: 190,
                 child: DropdownButtonFormField<AdminReportStatus?>(
@@ -847,7 +992,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                       child: Text('Dismissed'),
                     ),
                   ],
-                  onChanged: _isReportsLoading
+                  onChanged: _isReportsLoading || _showEscalatedReportsOnly
                       ? null
                       : (value) {
                           setState(() {
@@ -885,7 +1030,9 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           _AdminDashboardStateCard(
             icon: Icons.error_outline,
             iconColor: Theme.of(context).colorScheme.error,
-            title: 'Reports unavailable',
+            title: _showEscalatedReportsOnly
+                ? 'Admin escalation queue unavailable'
+                : 'Reports unavailable',
             message: 'Check your connection and try again.',
             actionLabel: 'Try again',
             onAction: () => _loadReports(),
@@ -902,11 +1049,17 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     if (page.reports.isEmpty) {
       return ListView(
         padding: const EdgeInsets.all(16),
-        children: const [
+        children: [
           _AdminDashboardStateCard(
-            icon: Icons.flag_outlined,
-            title: 'No reports',
-            message: 'There are no reports matching the selected filters.',
+            icon: _showEscalatedReportsOnly
+                ? Icons.admin_panel_settings_outlined
+                : Icons.flag_outlined,
+            title: _showEscalatedReportsOnly
+                ? 'No reports awaiting admin decision'
+                : 'No reports',
+            message: _showEscalatedReportsOnly
+                ? 'There are no escalated reports requiring administrator review.'
+                : 'There are no reports matching the selected filters.',
           ),
         ],
       );
@@ -916,6 +1069,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       onRefresh: _refresh,
       child: ListView.separated(
         key: ValueKey(
+          '${_showEscalatedReportsOnly ? 'admin-escalated' : 'standard'}-'
           '${_reportTargetTypeFilter?.storageKey ?? 'all'}-'
           '${_reportStatusFilter?.storageKey ?? 'all'}-${page.offset}',
         ),
@@ -946,6 +1100,13 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                   : null,
               onRecordDecision: report.canRecordModerationDecision
                   ? () => _openReportDecisionDialog(report)
+                  : null,
+              onResolveAdminEscalation: widget.currentRole == Role.admin &&
+                      report.canResolveAdminEscalation
+                  ? () => _openAdminResolutionDialog(report)
+                  : null,
+              onChangeContentVisibility: report.canChangeContentVisibility
+                  ? () => _openReportContentVisibilityDialog(report)
                   : null,
             );
           }
@@ -3123,12 +3284,16 @@ class _AdminReportCard extends StatelessWidget {
   final Future<void> Function() onOpenTarget;
   final Future<void> Function()? onOpenReportedProfile;
   final Future<void> Function()? onRecordDecision;
+  final Future<void> Function()? onResolveAdminEscalation;
+  final Future<void> Function()? onChangeContentVisibility;
 
   const _AdminReportCard({
     required this.report,
     required this.onOpenTarget,
     required this.onOpenReportedProfile,
     required this.onRecordDecision,
+    required this.onResolveAdminEscalation,
+    required this.onChangeContentVisibility,
   });
 
   String get _targetTypeLabel {
@@ -3158,6 +3323,11 @@ class _AdminReportCard extends StatelessWidget {
   }
 
   String get _statusLabel {
+    if (report.status == AdminReportStatus.inReview &&
+        report.moderationDecision == AdminReportDecision.escalateToAdmin) {
+      return 'Awaiting admin decision';
+    }
+
     switch (report.status) {
       case AdminReportStatus.open:
         return 'Open';
@@ -3236,6 +3406,18 @@ class _AdminReportCard extends StatelessWidget {
                   label: _statusLabel,
                   color: statusColor,
                 ),
+                if (report.moderationDecision ==
+                    AdminReportDecision.violationConfirmed)
+                  _AdminUserAttribute(
+                    icon: report.contentIsHidden
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    label: report.contentIsHidden
+                        ? 'Content hidden'
+                        : 'Content visible',
+                    color:
+                        report.contentIsHidden ? colors.error : colors.tertiary,
+                  ),
                 _AdminUserAttribute(
                   icon: Icons.schedule_outlined,
                   label: createdLabel,
@@ -3305,6 +3487,30 @@ class _AdminReportCard extends StatelessWidget {
                     icon: const Icon(Icons.gavel_outlined),
                     label: const Text('Review report'),
                   ),
+                if (onResolveAdminEscalation != null)
+                  FilledButton.icon(
+                    onPressed: () {
+                      unawaited(onResolveAdminEscalation!());
+                    },
+                    icon: const Icon(Icons.admin_panel_settings_outlined),
+                    label: const Text('Admin decision'),
+                  ),
+                if (onChangeContentVisibility != null)
+                  FilledButton.tonalIcon(
+                    onPressed: () {
+                      unawaited(onChangeContentVisibility!());
+                    },
+                    icon: Icon(
+                      report.contentIsHidden
+                          ? Icons.restore_outlined
+                          : Icons.visibility_off_outlined,
+                    ),
+                    label: Text(
+                      report.contentIsHidden
+                          ? 'Restore content'
+                          : 'Hide content',
+                    ),
+                  ),
                 if (onOpenReportedProfile != null)
                   OutlinedButton.icon(
                     onPressed: () {
@@ -3340,6 +3546,21 @@ String _adminReportDecisionLabel(AdminReportDecision decision) {
     case AdminReportDecision.escalateToAdmin:
       return 'Escalate to admin';
     case AdminReportDecision.unknown:
+      return 'Unknown';
+  }
+}
+
+String _adminReportResolutionLabel(AdminReportResolution resolution) {
+  switch (resolution) {
+    case AdminReportResolution.noAccountAction:
+      return 'No account action';
+    case AdminReportResolution.accountSuspended:
+      return 'Account suspended';
+    case AdminReportResolution.logoutForced:
+      return 'Logout forced';
+    case AdminReportResolution.accountDeleted:
+      return 'Account deleted';
+    case AdminReportResolution.unknown:
       return 'Unknown';
   }
 }
@@ -3676,6 +3897,498 @@ class _AdminReportDecisionDialogState
               : const Icon(Icons.check),
           label: Text(
             _isSubmitting ? 'Recording decision' : 'Confirm decision',
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AdminReportResolutionDialog extends StatefulWidget {
+  final AdminReportEntry report;
+  final Future<void> Function({
+    required AdminReportResolution resolution,
+    required String resolutionNote,
+  }) onConfirm;
+
+  const _AdminReportResolutionDialog({
+    required this.report,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_AdminReportResolutionDialog> createState() =>
+      _AdminReportResolutionDialogState();
+}
+
+class _AdminReportResolutionDialogState
+    extends State<_AdminReportResolutionDialog> {
+  static const int _minimumNoteLength = 3;
+  static const int _maximumNoteLength = 2000;
+
+  final TextEditingController _noteController = TextEditingController();
+  AdminReportResolution? _selectedResolution;
+  bool _isSubmitting = false;
+  String? _errorMessage;
+
+  bool get _canSubmit {
+    final noteLength = _noteController.text.trim().length;
+
+    return !_isSubmitting &&
+        _selectedResolution != null &&
+        noteLength >= _minimumNoteLength &&
+        noteLength <= _maximumNoteLength;
+  }
+
+  String get _resolutionDescription {
+    switch (_selectedResolution) {
+      case AdminReportResolution.noAccountAction:
+        return 'Closes the escalated report without changing the account.';
+      case AdminReportResolution.accountSuspended:
+        return 'Closes the report after a successful account suspension has '
+            'already been recorded in the audit log.';
+      case AdminReportResolution.logoutForced:
+        return 'Closes the report after a successful forced logout has already '
+            'been recorded in the audit log.';
+      case AdminReportResolution.accountDeleted:
+        return 'Closes the report after a successful account deletion has '
+            'already been recorded in the audit log.';
+      case AdminReportResolution.unknown:
+      case null:
+        return 'Choose the final administrator outcome for this escalation.';
+    }
+  }
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final resolution = _selectedResolution;
+    if (!_canSubmit || resolution == null) {
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await widget.onConfirm(
+        resolution: resolution,
+        resolutionNote: _noteController.text.trim(),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pop(resolution);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isSubmitting = false;
+        _errorMessage = resolution == AdminReportResolution.noAccountAction
+            ? 'The administrator decision could not be recorded. Refresh the '
+                'queue and try again.'
+            : 'Complete the matching account action first, then return to this '
+                'report and record the final administrator decision.';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final targetTitle = widget.report.targetTitle?.trim();
+
+    return AlertDialog(
+      scrollable: true,
+      title: const Text('Administrator decision'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              targetTitle == null || targetTitle.isEmpty
+                  ? '${widget.report.targetType.storageKey}: '
+                      '${widget.report.targetId}'
+                  : targetTitle,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Escalation note: '
+              '${widget.report.reviewNote?.trim().isNotEmpty == true ? widget.report.reviewNote!.trim() : 'Not available'}',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<AdminReportResolution>(
+              initialValue: _selectedResolution,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: 'Final outcome',
+                border: OutlineInputBorder(),
+              ),
+              items: const [
+                DropdownMenuItem<AdminReportResolution>(
+                  value: AdminReportResolution.noAccountAction,
+                  child: Text('No account action'),
+                ),
+                DropdownMenuItem<AdminReportResolution>(
+                  value: AdminReportResolution.accountSuspended,
+                  child: Text('Account suspended'),
+                ),
+                DropdownMenuItem<AdminReportResolution>(
+                  value: AdminReportResolution.logoutForced,
+                  child: Text('Logout forced'),
+                ),
+                DropdownMenuItem<AdminReportResolution>(
+                  value: AdminReportResolution.accountDeleted,
+                  child: Text('Account deleted'),
+                ),
+              ],
+              onChanged: _isSubmitting
+                  ? null
+                  : (resolution) {
+                      setState(() {
+                        _selectedResolution = resolution;
+                        _errorMessage = null;
+                      });
+                    },
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _resolutionDescription,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _noteController,
+              enabled: !_isSubmitting,
+              minLines: 3,
+              maxLines: 6,
+              maxLength: _maximumNoteLength,
+              decoration: const InputDecoration(
+                labelText: 'Administrator note',
+                hintText: 'Explain the final account-level decision',
+                alignLabelWithHint: true,
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (_) {
+                setState(() {
+                  _errorMessage = null;
+                });
+              },
+            ),
+            Text(
+              'A note of at least $_minimumNoteLength characters is required.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 12),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: colors.errorContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: colors.onErrorContainer,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colors.onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSubmitting
+              ? null
+              : () {
+                  Navigator.of(context).pop();
+                },
+          child: const Text('Cancel'),
+        ),
+        FilledButton.icon(
+          onPressed: _canSubmit
+              ? () {
+                  unawaited(_submit());
+                }
+              : null,
+          icon: _isSubmitting
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.check),
+          label: Text(
+            _isSubmitting ? 'Recording decision' : 'Confirm decision',
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AdminReportContentVisibilityDialog extends StatefulWidget {
+  final AdminReportEntry report;
+  final bool requestedHiddenState;
+  final Future<void> Function({
+    required bool isHidden,
+    required String reason,
+  }) onConfirm;
+
+  const _AdminReportContentVisibilityDialog({
+    required this.report,
+    required this.requestedHiddenState,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_AdminReportContentVisibilityDialog> createState() =>
+      _AdminReportContentVisibilityDialogState();
+}
+
+class _AdminReportContentVisibilityDialogState
+    extends State<_AdminReportContentVisibilityDialog> {
+  final TextEditingController _reasonController = TextEditingController();
+  bool _isSubmitting = false;
+  String? _errorMessage;
+
+  bool get _canSubmit {
+    final reasonLength = _reasonController.text.trim().length;
+
+    return !_isSubmitting &&
+        reasonLength >= SetReportContentVisibility.minimumReasonLength &&
+        reasonLength <= SetReportContentVisibility.maximumReasonLength;
+  }
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_canSubmit) {
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await widget.onConfirm(
+        isHidden: widget.requestedHiddenState,
+        reason: _reasonController.text.trim(),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pop(widget.requestedHiddenState);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isSubmitting = false;
+        _errorMessage = widget.requestedHiddenState
+            ? 'The content could not be hidden. Refresh the report queue and '
+                'try again.'
+            : 'The content could not be restored. Refresh the report queue '
+                'and try again.';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final targetTitle = widget.report.targetTitle?.trim();
+    final actionLabel =
+        widget.requestedHiddenState ? 'Hide content' : 'Restore content';
+
+    return AlertDialog(
+      scrollable: true,
+      title: Text(actionLabel),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 540),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              targetTitle == null || targetTitle.isEmpty
+                  ? '${widget.report.targetType.storageKey}: '
+                      '${widget.report.targetId}'
+                  : targetTitle,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: widget.requestedHiddenState
+                    ? colors.errorContainer
+                    : colors.secondaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Text(
+                  widget.requestedHiddenState
+                      ? 'This removes the reported content from public access. '
+                          'The action can later be reversed from the Resolved '
+                          'reports filter.'
+                      : 'This makes the reported content publicly available '
+                          'again.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: widget.requestedHiddenState
+                        ? colors.onErrorContainer
+                        : colors.onSecondaryContainer,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _reasonController,
+              enabled: !_isSubmitting,
+              minLines: 3,
+              maxLines: 6,
+              maxLength: SetReportContentVisibility.maximumReasonLength,
+              decoration: InputDecoration(
+                labelText: 'Action reason',
+                hintText: widget.requestedHiddenState
+                    ? 'Explain why the content must be hidden'
+                    : 'Explain why the content can be restored',
+                alignLabelWithHint: true,
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (_) {
+                setState(() {
+                  _errorMessage = null;
+                });
+              },
+            ),
+            Text(
+              'A reason of at least '
+              '${SetReportContentVisibility.minimumReasonLength} '
+              'characters is required.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 12),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: colors.errorContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: colors.onErrorContainer,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colors.onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSubmitting
+              ? null
+              : () {
+                  Navigator.of(context).pop();
+                },
+          child: const Text('Cancel'),
+        ),
+        FilledButton.icon(
+          onPressed: _canSubmit
+              ? () {
+                  unawaited(_submit());
+                }
+              : null,
+          icon: _isSubmitting
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Icon(
+                  widget.requestedHiddenState
+                      ? Icons.visibility_off_outlined
+                      : Icons.restore_outlined,
+                ),
+          label: Text(
+            _isSubmitting
+                ? (widget.requestedHiddenState
+                    ? 'Hiding content'
+                    : 'Restoring content')
+                : actionLabel,
           ),
         ),
       ],
