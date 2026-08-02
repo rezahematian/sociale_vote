@@ -9,8 +9,12 @@ import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/admin/entities/admin_entities.dart';
 import 'package:sociale_vote/domain/admin/repositories/admin_repository.dart';
 import 'package:sociale_vote/domain/admin/usecases/change_system_role.dart';
+import 'package:sociale_vote/domain/admin/usecases/delete_admin_account.dart';
+import 'package:sociale_vote/domain/admin/usecases/force_admin_logout.dart';
+import 'package:sociale_vote/domain/admin/usecases/load_admin_audit.dart';
 import 'package:sociale_vote/domain/admin/usecases/load_admin_dashboard.dart';
 import 'package:sociale_vote/domain/admin/usecases/load_admin_reports.dart';
+import 'package:sociale_vote/domain/admin/usecases/manage_admin_account_status.dart';
 import 'package:sociale_vote/domain/admin/usecases/record_admin_report_decision.dart';
 import 'package:sociale_vote/domain/admin/usecases/search_admin_users.dart';
 import 'package:sociale_vote/domain/admin/usecases/set_report_content_visibility.dart';
@@ -18,19 +22,16 @@ import 'package:sociale_vote/domain/admin/usecases/set_admin_public_identity.dar
 import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_status.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 
-enum AdminCenterSection {
-  dashboard,
-  users,
-  verification,
-  reports,
-  audit,
-}
+enum AdminCenterSection { dashboard, users, verification, reports, audit }
+
+AppLocalizations _adminL10n(BuildContext context) =>
+    AppLocalizations.of(context)!;
 
 typedef AdminCenterSectionBuilder = Widget Function(
-  BuildContext context,
-  AdminCenterSection section,
-);
+    BuildContext context, AdminCenterSection section);
 
 class AdminCenterPage extends StatefulWidget {
   final Role currentRole;
@@ -59,14 +60,22 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   static const Uuid _uuid = Uuid();
 
   late final LoadAdminDashboard _loadAdminDashboard;
+  late final LoadAdminAudit _loadAdminAudit;
   late final LoadAdminReports _loadAdminReports;
   late final RecordAdminReportDecision _recordAdminReportDecision;
   late final SetReportContentVisibility _setReportContentVisibility;
   late final SearchAdminUsers _searchAdminUsers;
   late final ChangeSystemRole _changeSystemRole;
   late final SetAdminPublicIdentity _setAdminPublicIdentity;
+  late final SuspendAdminAccount _suspendAdminAccount;
+  late final ReactivateAdminAccount _reactivateAdminAccount;
+  late final ForceAdminLogout _forceAdminLogout;
+  late final DeleteAdminAccount _deleteAdminAccount;
   late final AdminRepository _adminRepository;
   final TextEditingController _userSearchController = TextEditingController();
+  final TextEditingController _auditActorController = TextEditingController();
+  final TextEditingController _auditActionController = TextEditingController();
+  final TextEditingController _auditTargetController = TextEditingController();
 
   AdminDashboardSummary? _dashboardSummary;
   AdminReportQueuePage? _reportQueuePage;
@@ -86,6 +95,11 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   bool _isReportsLoading = false;
   bool _reportsLoadFailed = false;
   bool _isRefreshing = false;
+  List<AdminAuditEntry> _auditEntries = const <AdminAuditEntry>[];
+  bool _isAuditLoading = false;
+  bool _auditLoadFailed = false;
+  AdminAuditResult? _auditResultFilter;
+  DateTimeRange? _auditDateRange;
   AdminReportStatus? _reportStatusFilter;
   AdminReportTargetType? _reportTargetTypeFilter;
   bool _showEscalatedReportsOnly = false;
@@ -93,37 +107,37 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
 
   List<_AdminDestination> get _destinations {
     return [
-      const _AdminDestination(
+      _AdminDestination(
         section: AdminCenterSection.dashboard,
         icon: Icons.dashboard_outlined,
         selectedIcon: Icons.dashboard,
-        label: 'Dashboard',
+        label: _adminL10n(context).adminCenterDashboardNavigation,
       ),
       if (widget.currentRole == Role.admin)
-        const _AdminDestination(
+        _AdminDestination(
           section: AdminCenterSection.users,
           icon: Icons.people_outline,
           selectedIcon: Icons.people,
-          label: 'Users',
+          label: _adminL10n(context).adminCenterUsersNavigation,
         ),
-      const _AdminDestination(
+      _AdminDestination(
         section: AdminCenterSection.verification,
         icon: Icons.verified_user_outlined,
         selectedIcon: Icons.verified_user,
-        label: 'Verification',
+        label: _adminL10n(context).adminCenterVerificationNavigation,
       ),
-      const _AdminDestination(
+      _AdminDestination(
         section: AdminCenterSection.reports,
         icon: Icons.flag_outlined,
         selectedIcon: Icons.flag,
-        label: 'Reports',
+        label: _adminL10n(context).adminCenterReportsNavigation,
       ),
       if (widget.currentRole == Role.admin)
-        const _AdminDestination(
+        _AdminDestination(
           section: AdminCenterSection.audit,
           icon: Icons.history_outlined,
           selectedIcon: Icons.history,
-          label: 'Audit',
+          label: _adminL10n(context).adminCenterAuditNavigation,
         ),
     ];
   }
@@ -133,27 +147,18 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     super.initState();
 
     _adminRepository = AppDI.instance.adminRepository;
-    _loadAdminDashboard = LoadAdminDashboard(
-      _adminRepository,
-    );
-    _loadAdminReports = LoadAdminReports(
-      _adminRepository,
-    );
-    _recordAdminReportDecision = RecordAdminReportDecision(
-      _adminRepository,
-    );
-    _setReportContentVisibility = SetReportContentVisibility(
-      _adminRepository,
-    );
-    _searchAdminUsers = SearchAdminUsers(
-      _adminRepository,
-    );
-    _changeSystemRole = ChangeSystemRole(
-      _adminRepository,
-    );
-    _setAdminPublicIdentity = SetAdminPublicIdentity(
-      _adminRepository,
-    );
+    _loadAdminDashboard = LoadAdminDashboard(_adminRepository);
+    _loadAdminAudit = LoadAdminAudit(_adminRepository);
+    _loadAdminReports = LoadAdminReports(_adminRepository);
+    _recordAdminReportDecision = RecordAdminReportDecision(_adminRepository);
+    _setReportContentVisibility = SetReportContentVisibility(_adminRepository);
+    _searchAdminUsers = SearchAdminUsers(_adminRepository);
+    _changeSystemRole = ChangeSystemRole(_adminRepository);
+    _setAdminPublicIdentity = SetAdminPublicIdentity(_adminRepository);
+    _suspendAdminAccount = SuspendAdminAccount(_adminRepository);
+    _reactivateAdminAccount = ReactivateAdminAccount(_adminRepository);
+    _forceAdminLogout = ForceAdminLogout(_adminRepository);
+    _deleteAdminAccount = DeleteAdminAccount(_adminRepository);
     unawaited(_loadDashboard(markLoading: false));
   }
 
@@ -161,6 +166,9 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   void dispose() {
     _userSearchDebounce?.cancel();
     _userSearchController.dispose();
+    _auditActorController.dispose();
+    _auditActionController.dispose();
+    _auditTargetController.dispose();
     super.dispose();
   }
 
@@ -185,7 +193,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             _isDashboardLoading) ||
         (_selectedSection == AdminCenterSection.users &&
             (showingUserDetail ? _isUserDetailLoading : _isUsersLoading)) ||
-        (_selectedSection == AdminCenterSection.reports && _isReportsLoading);
+        (_selectedSection == AdminCenterSection.reports && _isReportsLoading) ||
+        (_selectedSection == AdminCenterSection.audit && _isAuditLoading);
 
     if (_isRefreshing || selectedSectionLoading) {
       return;
@@ -206,10 +215,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         final selectedUser = _selectedUser;
 
         if (selectedUser != null) {
-          await _loadUserDetail(
-            selectedUser,
-            markLoading: _userDetail == null,
-          );
+          await _loadUserDetail(selectedUser, markLoading: _userDetail == null);
         } else {
           await _loadUsers(
             page: _userSearchPage?.page ?? 1,
@@ -221,10 +227,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           offset: _reportQueuePage?.offset ?? 0,
           markLoading: _reportQueuePage == null,
         );
+      } else if (_selectedSection == AdminCenterSection.audit) {
+        await _loadAudit(markLoading: _auditEntries.isEmpty);
       } else {
-        await _loadDashboard(
-          markLoading: _dashboardSummary == null,
-        );
+        await _loadDashboard(markLoading: _dashboardSummary == null);
       }
     } catch (_) {
       if (mounted) {
@@ -237,6 +243,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             }
           } else if (_selectedSection == AdminCenterSection.reports) {
             _reportsLoadFailed = true;
+          } else if (_selectedSection == AdminCenterSection.audit) {
+            _auditLoadFailed = true;
           } else {
             _dashboardLoadFailed = true;
           }
@@ -251,9 +259,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     }
   }
 
-  Future<void> _loadDashboard({
-    bool markLoading = true,
-  }) async {
+  Future<void> _loadDashboard({bool markLoading = true}) async {
     if (markLoading && mounted) {
       setState(() {
         _isDashboardLoading = true;
@@ -285,10 +291,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     }
   }
 
-  Future<void> _loadUsers({
-    int page = 1,
-    bool markLoading = true,
-  }) async {
+  Future<void> _loadUsers({int page = 1, bool markLoading = true}) async {
     final requestGeneration = ++_usersRequestGeneration;
     final query = _userSearchController.text.trim();
 
@@ -347,9 +350,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     }
 
     try {
-      final detail = await _adminRepository.getUserDetail(
-        userId: user.id,
-      );
+      final detail = await _adminRepository.getUserDetail(userId: user.id);
 
       if (!mounted ||
           requestGeneration != _userDetailRequestGeneration ||
@@ -380,14 +381,11 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   void _onUserSearchChanged(String _) {
     _usersRequestGeneration++;
     _userSearchDebounce?.cancel();
-    _userSearchDebounce = Timer(
-      _userSearchDelay,
-      () {
-        if (mounted) {
-          unawaited(_loadUsers(page: 1));
-        }
-      },
-    );
+    _userSearchDebounce = Timer(_userSearchDelay, () {
+      if (mounted) {
+        unawaited(_loadUsers(page: 1));
+      }
+    });
     setState(() {});
   }
 
@@ -424,9 +422,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     _userDetailLoadFailed = false;
   }
 
-  Future<void> _openChangeRoleDialog(
-    AdminUserDetail detail,
-  ) async {
+  Future<void> _openChangeRoleDialog(AdminUserDetail detail) async {
     final operationId = _uuid.v4();
     final changedRole = await showDialog<Role>(
       context: context,
@@ -434,10 +430,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       builder: (_) {
         return _AdminRoleChangeDialog(
           detail: detail,
-          onConfirm: ({
-            required Role role,
-            required String reason,
-          }) {
+          onConfirm: ({required Role role, required String reason}) {
             return _changeSystemRole(
               operationId: operationId,
               targetUserId: detail.id,
@@ -456,10 +449,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Technical role changed from '
-          '${detail.systemRole.storageKey} to '
-          '${changedRole.storageKey}. The recipient was signed out '
-          'and must sign in again.',
+          _adminL10n(context).adminCenterRoleChangedSuccess(
+            _adminRoleLabel(context, detail.systemRole),
+            _adminRoleLabel(context, changedRole),
+          ),
         ),
       ),
     );
@@ -469,27 +462,16 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       return;
     }
 
-    await _loadUserDetail(
-      selectedUser,
-      markLoading: false,
-    );
+    await _loadUserDetail(selectedUser, markLoading: false);
 
     if (!mounted) {
       return;
     }
 
-    unawaited(
-      _loadUsers(
-        page: _userSearchPage?.page ?? 1,
-        markLoading: false,
-      ),
-    );
+    unawaited(_loadUsers(page: _userSearchPage?.page ?? 1, markLoading: false));
   }
 
-  Future<void> _loadReports({
-    int offset = 0,
-    bool markLoading = true,
-  }) async {
+  Future<void> _loadReports({int offset = 0, bool markLoading = true}) async {
     final requestGeneration = ++_reportsRequestGeneration;
 
     if (mounted) {
@@ -536,9 +518,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     }
   }
 
-  Future<void> _openPublicIdentityDialog(
-    AdminUserDetail detail,
-  ) async {
+  Future<void> _openPublicIdentityDialog(AdminUserDetail detail) async {
     final operationId = _uuid.v4();
     final changedIdentity = await showDialog<_AdminPublicIdentitySelection>(
       context: context,
@@ -570,9 +550,13 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Public identity changed to '
-          '${_actorTypeLabel(changedIdentity.actorType)} with '
-          '${_verificationLevelLabel(changedIdentity.verificationLevel)}.',
+          _adminL10n(context).adminCenterIdentityChangedSuccess(
+            _actorTypeLabel(context, changedIdentity.actorType),
+            _verificationLevelLabel(
+              context,
+              changedIdentity.verificationLevel,
+            ),
+          ),
         ),
       ),
     );
@@ -582,10 +566,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       return;
     }
 
-    await _loadUserDetail(
-      selectedUser,
-      markLoading: false,
-    );
+    await _loadUserDetail(selectedUser, markLoading: false);
 
     if (!mounted) {
       return;
@@ -594,12 +575,232 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     unawaited(_loadDashboard(markLoading: false));
   }
 
-  Future<void> _openReportDecisionDialog(
-    AdminReportEntry report,
-  ) async {
+  Future<void> _openSuspendAccountDialog(AdminUserDetail detail) async {
+    if (widget.currentRole != Role.admin ||
+        !detail.canReceiveAdminActions ||
+        detail.isSuspended) {
+      return;
+    }
+
+    final operationId = _uuid.v4();
+    final suspendedUntil = await showDialog<DateTime>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return _AdminSuspendAccountDialog(
+          detail: detail,
+          onConfirm: (
+              {required DateTime suspendedUntil, required String reason}) {
+            return _suspendAdminAccount(
+              operationId: operationId,
+              targetUserId: detail.id,
+              suspendedUntil: suspendedUntil,
+              reason: reason,
+            );
+          },
+        );
+      },
+    );
+
+    if (!mounted || suspendedUntil == null) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            _adminL10n(context).adminCenterAccountSuspendedSuccess(
+              _formatDateTime(context, suspendedUntil),
+            ),
+          ),
+        ),
+      );
+
+    final selectedUser = _selectedUser;
+    if (selectedUser == null || selectedUser.id != detail.id) {
+      return;
+    }
+
+    await _loadUserDetail(selectedUser, markLoading: false);
+
+    if (!mounted) {
+      return;
+    }
+
+    unawaited(_loadUsers(page: _userSearchPage?.page ?? 1, markLoading: false));
+    unawaited(_loadDashboard(markLoading: false));
+  }
+
+  Future<void> _openReactivateAccountDialog(AdminUserDetail detail) async {
+    if (widget.currentRole != Role.admin ||
+        !detail.canReceiveAdminActions ||
+        !detail.isSuspended) {
+      return;
+    }
+
+    final operationId = _uuid.v4();
+    final reactivated = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return _AdminAccountActionDialog(
+          detail: detail,
+          title: _adminL10n(context).adminCenterReactivateAccountAction,
+          description: _adminL10n(context).adminCenterReactivateDescription,
+          reasonHint: _adminL10n(context).adminCenterReactivateReasonHint,
+          confirmationText:
+              _adminL10n(context).adminCenterReactivateConfirmation,
+          submitLabel: _adminL10n(context).adminCenterReactivateAccountAction,
+          failureMessage: _adminL10n(context).adminCenterReactivateFailure,
+          onConfirm: ({required String reason}) {
+            return _reactivateAdminAccount(
+              operationId: operationId,
+              targetUserId: detail.id,
+              reason: reason,
+            );
+          },
+        );
+      },
+    );
+
+    if (!mounted || reactivated != true) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            _adminL10n(context).adminCenterReactivateSuccess,
+          ),
+        ),
+      );
+
+    final selectedUser = _selectedUser;
+    if (selectedUser == null || selectedUser.id != detail.id) {
+      return;
+    }
+
+    await _loadUserDetail(selectedUser, markLoading: false);
+
+    if (!mounted) {
+      return;
+    }
+
+    unawaited(_loadUsers(page: _userSearchPage?.page ?? 1, markLoading: false));
+    unawaited(_loadDashboard(markLoading: false));
+  }
+
+  Future<void> _openForceLogoutDialog(AdminUserDetail detail) async {
+    if (widget.currentRole != Role.admin ||
+        !detail.canReceiveAdminActions ||
+        detail.isSuspended) {
+      return;
+    }
+
+    final operationId = _uuid.v4();
+    final loggedOut = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return _AdminAccountActionDialog(
+          detail: detail,
+          title: _adminL10n(context).adminCenterForceLogoutAction,
+          description:
+              _adminL10n(context).adminCenterForceLogoutFullDescription,
+          reasonHint: _adminL10n(context).adminCenterForceLogoutReasonHint,
+          confirmationText:
+              _adminL10n(context).adminCenterForceLogoutConfirmation,
+          submitLabel: _adminL10n(context).adminCenterForceLogoutAction,
+          failureMessage: _adminL10n(context).adminCenterForceLogoutFailure,
+          onConfirm: ({required String reason}) {
+            return _forceAdminLogout(
+              operationId: operationId,
+              targetUserId: detail.id,
+              reason: reason,
+            );
+          },
+        );
+      },
+    );
+
+    if (!mounted || loggedOut != true) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            _adminL10n(context).adminCenterForceLogoutSuccess,
+          ),
+        ),
+      );
+
+    final selectedUser = _selectedUser;
+    if (selectedUser == null || selectedUser.id != detail.id) {
+      return;
+    }
+
+    await _loadUserDetail(selectedUser, markLoading: false);
+  }
+
+  Future<void> _openDeleteAccountDialog(AdminUserDetail detail) async {
+    if (widget.currentRole != Role.admin ||
+        !detail.canReceiveAdminActions ||
+        detail.isAdmin) {
+      return;
+    }
+
+    final operationId = _uuid.v4();
+    final deleted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return _AdminDeleteAccountDialog(
+          detail: detail,
+          onConfirm: ({
+            required String reason,
+            required String confirmation,
+            required String accountIdentifier,
+          }) {
+            return _deleteAdminAccount(
+              operationId: operationId,
+              targetUserId: detail.id,
+              reason: reason,
+              confirmation: confirmation,
+              accountIdentifier: accountIdentifier,
+            );
+          },
+        );
+      },
+    );
+
+    if (!mounted || deleted != true) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(_adminL10n(context).adminCenterDeleteSuccess),
+        ),
+      );
+
+    setState(_clearSelectedUser);
+    unawaited(_loadUsers(page: _userSearchPage?.page ?? 1, markLoading: false));
+    unawaited(_loadDashboard(markLoading: false));
+  }
+
+  Future<void> _openReportDecisionDialog(AdminReportEntry report) async {
     if (!report.canRecordModerationDecision) {
       _showReportNavigationMessage(
-        'This report has already been reviewed or is no longer pending.',
+        _adminL10n(context).adminCenterReportAlreadyReviewed,
       );
       return;
     }
@@ -633,8 +834,9 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       ..showSnackBar(
         SnackBar(
           content: Text(
-            'Report decision recorded: '
-            '${_adminReportDecisionLabel(recordedDecision)}.',
+            _adminL10n(context).adminCenterReportDecisionRecorded(
+              _adminReportDecisionLabel(context, recordedDecision),
+            ),
           ),
         ),
       );
@@ -651,12 +853,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     unawaited(_loadDashboard(markLoading: false));
   }
 
-  Future<void> _openAdminResolutionDialog(
-    AdminReportEntry report,
-  ) async {
+  Future<void> _openAdminResolutionDialog(AdminReportEntry report) async {
     if (widget.currentRole != Role.admin || !report.canResolveAdminEscalation) {
       _showReportNavigationMessage(
-        'This report is not awaiting an administrator decision.',
+        _adminL10n(context).adminCenterReportNotAwaitingAdmin,
       );
       return;
     }
@@ -690,8 +890,9 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       ..showSnackBar(
         SnackBar(
           content: Text(
-            'Administrator decision recorded: '
-            '${_adminReportResolutionLabel(resolution)}.',
+            _adminL10n(context).adminCenterAdministratorDecisionRecorded(
+              _adminReportResolutionLabel(context, resolution),
+            ),
           ),
         ),
       );
@@ -713,7 +914,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   ) async {
     if (!report.canChangeContentVisibility) {
       _showReportNavigationMessage(
-        'A confirmed violation is required before changing content visibility.',
+        _adminL10n(context).adminCenterConfirmedViolationRequired,
       );
       return;
     }
@@ -726,10 +927,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         return _AdminReportContentVisibilityDialog(
           report: report,
           requestedHiddenState: requestedHiddenState,
-          onConfirm: ({
-            required bool isHidden,
-            required String reason,
-          }) {
+          onConfirm: ({required bool isHidden, required String reason}) {
             return _setReportContentVisibility(
               reportId: report.id,
               isHidden: isHidden,
@@ -750,8 +948,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         SnackBar(
           content: Text(
             changedState
-                ? 'The reported content was hidden.'
-                : 'The reported content was restored.',
+                ? _adminL10n(context).adminCenterContentHiddenSuccess
+                : _adminL10n(context).adminCenterContentRestoredSuccess,
           ),
         ),
       );
@@ -770,9 +968,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
 
   Future<void> _openReportTarget(AdminReportEntry report) async {
     final targetId = report.targetId.trim();
+    final l10n = _adminL10n(context);
     if (targetId.isEmpty) {
       _showReportNavigationMessage(
-        'The original content identifier is missing.',
+        l10n.adminCenterMissingContentId,
       );
       return;
     }
@@ -780,36 +979,35 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     try {
       switch (report.targetType) {
         case AdminReportTargetType.poll:
-          await Navigator.of(context).pushNamed(
-            AppRouter.pollDetail,
-            arguments: targetId,
-          );
+          await Navigator.of(
+            context,
+          ).pushNamed(AppRouter.pollDetail, arguments: targetId);
           return;
         case AdminReportTargetType.post:
-          await Navigator.of(context).pushNamed(
-            AppRouter.socialDetail,
-            arguments: targetId,
-          );
+          await Navigator.of(
+            context,
+          ).pushNamed(AppRouter.socialDetail, arguments: targetId);
           return;
         case AdminReportTargetType.news:
+          final navigator = Navigator.of(context);
           final news = await AppDI.instance.getNewsDetail(EntityId(targetId));
-          if (!mounted) {
+          if (!navigator.mounted) {
             return;
           }
-          await Navigator.of(context).pushNamed(
-            AppRouter.newsDetail,
-            arguments: news,
-          );
+          await navigator.pushNamed(AppRouter.newsDetail, arguments: news);
           return;
         case AdminReportTargetType.unknown:
           _showReportNavigationMessage(
-            'This report has an unsupported target type.',
+            l10n.adminCenterUnsupportedTargetType,
           );
           return;
       }
     } catch (_) {
+      if (!mounted) {
+        return;
+      }
       _showReportNavigationMessage(
-        'The original content is no longer available.',
+        l10n.adminCenterOriginalContentUnavailable,
       );
     }
   }
@@ -817,7 +1015,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   Future<void> _openReportedProfile(AdminReportEntry report) async {
     if (!report.hasReportedUser) {
       _showReportNavigationMessage(
-        'No reported profile is associated with this content.',
+        _adminL10n(context).adminCenterNoReportedProfile,
       );
       return;
     }
@@ -839,9 +1037,376 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message)),
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _loadAudit({bool markLoading = true}) async {
+    if (_isAuditLoading) {
+      return;
+    }
+
+    if (markLoading && mounted) {
+      setState(() {
+        _isAuditLoading = true;
+        _auditLoadFailed = false;
+      });
+    } else {
+      _isAuditLoading = true;
+      _auditLoadFailed = false;
+    }
+
+    try {
+      final entries = await _loadAdminAudit(
+        actorUserId: _auditActorController.text,
+        action: _auditActionController.text,
+        targetId: _auditTargetController.text,
+        result: _auditResultFilter,
+        from: _auditDateRange?.start,
+        to: _auditDateRange == null
+            ? null
+            : DateTime(
+                _auditDateRange!.end.year,
+                _auditDateRange!.end.month,
+                _auditDateRange!.end.day,
+                23,
+                59,
+                59,
+                999,
+              ),
+        limit: 100,
       );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _auditEntries = entries;
+        _auditLoadFailed = false;
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _auditLoadFailed = true;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAuditLoading = false;
+        });
+      } else {
+        _isAuditLoading = false;
+      }
+    }
+  }
+
+  void _clearAuditFilters() {
+    _auditActorController.clear();
+    _auditActionController.clear();
+    _auditTargetController.clear();
+    setState(() {
+      _auditResultFilter = null;
+      _auditDateRange = null;
+    });
+    unawaited(_loadAudit());
+  }
+
+  Future<void> _selectAuditDateRange() async {
+    if (_isAuditLoading) {
+      return;
+    }
+
+    final now = DateTime.now();
+    final selectedRange = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(now.year, now.month, now.day),
+      initialDateRange: _auditDateRange,
+      helpText: _adminL10n(context).adminCenterAuditDateFilterHelp,
+    );
+
+    if (!mounted || selectedRange == null) {
+      return;
+    }
+
+    setState(() {
+      _auditDateRange = selectedRange;
+    });
+  }
+
+  String _auditDateRangeLabel(BuildContext context) {
+    final range = _auditDateRange;
+    if (range == null) {
+      return _adminL10n(context).adminCenterAllDates;
+    }
+
+    final localizations = MaterialLocalizations.of(context);
+    final from = localizations.formatMediumDate(range.start);
+    final to = localizations.formatMediumDate(range.end);
+    return from == to ? from : '$from – $to';
+  }
+
+  Widget _buildAuditSection(BuildContext context) {
+    final hasFilters = _auditActorController.text.trim().isNotEmpty ||
+        _auditActionController.text.trim().isNotEmpty ||
+        _auditTargetController.text.trim().isNotEmpty ||
+        _auditResultFilter != null ||
+        _auditDateRange != null;
+
+    return Column(
+      key: const ValueKey(AdminCenterSection.audit),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              SizedBox(
+                width: 280,
+                child: TextField(
+                  controller: _auditActorController,
+                  enabled: !_isAuditLoading,
+                  maxLength: 36,
+                  decoration: InputDecoration(
+                    labelText: _adminL10n(context).adminCenterActorUserIdLabel,
+                    border: const OutlineInputBorder(),
+                    counterText: '',
+                  ),
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => unawaited(_loadAudit()),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+              SizedBox(
+                width: 230,
+                child: TextField(
+                  controller: _auditActionController,
+                  enabled: !_isAuditLoading,
+                  maxLength: LoadAdminAudit.maximumActionLength,
+                  decoration: InputDecoration(
+                    labelText: _adminL10n(context).adminCenterActionLabel,
+                    hintText: _adminL10n(context).adminCenterAuditActionHint,
+                    border: const OutlineInputBorder(),
+                    counterText: '',
+                  ),
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => unawaited(_loadAudit()),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+              SizedBox(
+                width: 280,
+                child: TextField(
+                  controller: _auditTargetController,
+                  enabled: !_isAuditLoading,
+                  maxLength: LoadAdminAudit.maximumTargetIdLength,
+                  decoration: InputDecoration(
+                    labelText: _adminL10n(context).adminCenterTargetIdLabel,
+                    border: const OutlineInputBorder(),
+                    counterText: '',
+                  ),
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => unawaited(_loadAudit()),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+              SizedBox(
+                width: 180,
+                child: DropdownButtonFormField<AdminAuditResult?>(
+                  initialValue: _auditResultFilter,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: _adminL10n(context).adminCenterOutcomeLabel,
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: [
+                    DropdownMenuItem<AdminAuditResult?>(
+                      value: null,
+                      child: Text(
+                        _adminL10n(context).adminCenterAllOutcomes,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    DropdownMenuItem<AdminAuditResult?>(
+                      value: AdminAuditResult.success,
+                      child: Text(
+                        _adminL10n(context).adminCenterOutcomeSuccess,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    DropdownMenuItem<AdminAuditResult?>(
+                      value: AdminAuditResult.failure,
+                      child: Text(
+                        _adminL10n(context).adminCenterOutcomeFailure,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    DropdownMenuItem<AdminAuditResult?>(
+                      value: AdminAuditResult.denied,
+                      child: Text(
+                        _adminL10n(context).adminCenterOutcomeDenied,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    DropdownMenuItem<AdminAuditResult?>(
+                      value: AdminAuditResult.noop,
+                      child: Text(
+                        _adminL10n(context).adminCenterOutcomeNoChange,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                  onChanged: _isAuditLoading
+                      ? null
+                      : (value) {
+                          setState(() {
+                            _auditResultFilter = value;
+                          });
+                        },
+                ),
+              ),
+              SizedBox(
+                height: 56,
+                child: OutlinedButton.icon(
+                  onPressed: _isAuditLoading ? null : _selectAuditDateRange,
+                  icon: const Icon(Icons.date_range_outlined),
+                  label: Text(_auditDateRangeLabel(context)),
+                ),
+              ),
+              FilledButton.icon(
+                onPressed:
+                    _isAuditLoading ? null : () => unawaited(_loadAudit()),
+                icon: const Icon(Icons.filter_alt_outlined),
+                label: Text(_adminL10n(context).adminCenterApplyFiltersAction),
+              ),
+              TextButton(
+                onPressed:
+                    _isAuditLoading || !hasFilters ? null : _clearAuditFilters,
+                child: Text(_adminL10n(context).adminCenterClearAction),
+              ),
+            ],
+          ),
+        ),
+        if (_isAuditLoading) const LinearProgressIndicator(),
+        Expanded(child: _buildAuditResults(context)),
+      ],
+    );
+  }
+
+  Widget _buildAuditResults(BuildContext context) {
+    if (_auditLoadFailed) {
+      return _AdminSectionState(
+        icon: Icons.error_outline,
+        iconColor: Theme.of(context).colorScheme.error,
+        title: _adminL10n(context).adminCenterAuditUnavailableTitle,
+        message: _adminL10n(context).adminCenterAuditUnavailableMessage,
+        actionLabel: _adminL10n(context).adminCenterTryAgainAction,
+        onAction: () => _loadAudit(),
+        actionInProgress: _isAuditLoading,
+      );
+    }
+
+    if (_isAuditLoading && _auditEntries.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_auditEntries.isEmpty) {
+      return _AdminSectionState(
+        icon: Icons.history_toggle_off_outlined,
+        title: _adminL10n(context).adminCenterNoAuditEntriesTitle,
+        message: _adminL10n(context).adminCenterNoAuditEntriesMessage,
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => _loadAudit(markLoading: false),
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+        itemCount: _auditEntries.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        itemBuilder: (context, index) {
+          final entry = _auditEntries[index];
+          final targetId = entry.targetId?.trim();
+          final errorCode = entry.errorCode?.trim();
+
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      SelectableText(
+                        entry.action,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      Chip(
+                          label: Text(
+                              _adminAuditResultLabel(context, entry.result))),
+                      Chip(label: Text(entry.targetType)),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  SelectableText(
+                      '${_adminL10n(context).adminCenterAuditIdLabel}: ${entry.id}'),
+                  SelectableText(
+                    '${_adminL10n(context).adminCenterActorLabel}: ${entry.actorUserId} '
+                    '(${_adminRoleLabel(context, entry.actorRole)})',
+                  ),
+                  if (targetId != null && targetId.isNotEmpty)
+                    SelectableText(
+                        '${_adminL10n(context).adminCenterTargetIdLabel}: $targetId'),
+                  SelectableText(
+                      '${_adminL10n(context).adminCenterReasonLabel}: ${entry.reason}'),
+                  SelectableText(
+                    '${_adminL10n(context).adminCenterTimestampLabel}: '
+                    '${_formatDateTime(context, entry.createdAt)}',
+                  ),
+                  if (errorCode != null && errorCode.isNotEmpty)
+                    SelectableText(
+                        '${_adminL10n(context).adminCenterErrorLabel}: $errorCode'),
+                  if (entry.previousValue.isNotEmpty ||
+                      entry.newValue.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    ExpansionTile(
+                      tilePadding: EdgeInsets.zero,
+                      childrenPadding: EdgeInsets.zero,
+                      title: Text(
+                          _adminL10n(context).adminCenterRecordedValuesTitle),
+                      children: [
+                        if (entry.previousValue.isNotEmpty)
+                          SelectableText(
+                            '${_adminL10n(context).adminCenterPreviousValueLabel}: '
+                            '${entry.previousValue}',
+                          ),
+                        if (entry.newValue.isNotEmpty)
+                          SelectableText(
+                            '${_adminL10n(context).adminCenterNewValueLabel}: '
+                            '${entry.newValue}',
+                          ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildSelectedContent(BuildContext context) {
@@ -859,6 +1424,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
 
     if (_selectedSection == AdminCenterSection.reports) {
       return _buildReportsSection(context);
+    }
+
+    if (_selectedSection == AdminCenterSection.audit) {
+      return _buildAuditSection(context);
     }
 
     return KeyedSubtree(
@@ -889,6 +1458,12 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       unawaited(_loadUsers());
     }
 
+    if (section == AdminCenterSection.audit &&
+        _auditEntries.isEmpty &&
+        !_isAuditLoading) {
+      unawaited(_loadAudit());
+    }
+
     if (section == AdminCenterSection.reports &&
         _reportQueuePage == null &&
         !_isReportsLoading) {
@@ -913,26 +1488,26 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                 width: 190,
                 child: DropdownButtonFormField<AdminReportTargetType?>(
                   initialValue: _reportTargetTypeFilter,
-                  decoration: const InputDecoration(
-                    labelText: 'Content type',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: _adminL10n(context).adminCenterContentTypeLabel,
+                    border: const OutlineInputBorder(),
                   ),
-                  items: const [
+                  items: [
                     DropdownMenuItem<AdminReportTargetType?>(
                       value: null,
-                      child: Text('All content'),
+                      child: Text(_adminL10n(context).adminCenterAllContent),
                     ),
                     DropdownMenuItem<AdminReportTargetType?>(
                       value: AdminReportTargetType.poll,
-                      child: Text('Polls'),
+                      child: Text(_adminL10n(context).adminCenterPolls),
                     ),
                     DropdownMenuItem<AdminReportTargetType?>(
                       value: AdminReportTargetType.post,
-                      child: Text('Posts'),
+                      child: Text(_adminL10n(context).adminCenterPosts),
                     ),
                     DropdownMenuItem<AdminReportTargetType?>(
                       value: AdminReportTargetType.news,
-                      child: Text('News'),
+                      child: Text(_adminL10n(context).adminCenterNews),
                     ),
                   ],
                   onChanged: _isReportsLoading || _showEscalatedReportsOnly
@@ -951,7 +1526,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                     Icons.admin_panel_settings_outlined,
                     size: 18,
                   ),
-                  label: const Text('Awaiting admin decision'),
+                  label: Text(
+                      _adminL10n(context).adminCenterAwaitingAdminDecision),
                   selected: _showEscalatedReportsOnly,
                   onSelected: _isReportsLoading
                       ? null
@@ -966,30 +1542,33 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                 width: 190,
                 child: DropdownButtonFormField<AdminReportStatus?>(
                   initialValue: _reportStatusFilter,
-                  decoration: const InputDecoration(
-                    labelText: 'Status',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: _adminL10n(context).adminCenterStatusLabel,
+                    border: const OutlineInputBorder(),
                   ),
-                  items: const [
+                  items: [
                     DropdownMenuItem<AdminReportStatus?>(
                       value: null,
-                      child: Text('All statuses'),
+                      child: Text(_adminL10n(context).adminCenterAllStatuses),
                     ),
                     DropdownMenuItem<AdminReportStatus?>(
                       value: AdminReportStatus.open,
-                      child: Text('Open'),
+                      child: Text(_adminL10n(context).adminCenterStatusOpen),
                     ),
                     DropdownMenuItem<AdminReportStatus?>(
                       value: AdminReportStatus.inReview,
-                      child: Text('In review'),
+                      child:
+                          Text(_adminL10n(context).adminCenterStatusInReview),
                     ),
                     DropdownMenuItem<AdminReportStatus?>(
                       value: AdminReportStatus.resolved,
-                      child: Text('Resolved'),
+                      child:
+                          Text(_adminL10n(context).adminCenterStatusResolved),
                     ),
                     DropdownMenuItem<AdminReportStatus?>(
                       value: AdminReportStatus.dismissed,
-                      child: Text('Dismissed'),
+                      child:
+                          Text(_adminL10n(context).adminCenterStatusDismissed),
                     ),
                   ],
                   onChanged: _isReportsLoading || _showEscalatedReportsOnly
@@ -1007,9 +1586,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         ),
         if (_isReportsLoading && page != null)
           const LinearProgressIndicator(minHeight: 2),
-        Expanded(
-          child: _buildReportsResults(context),
-        ),
+        Expanded(child: _buildReportsResults(context)),
       ],
     );
   }
@@ -1018,9 +1595,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     final page = _reportQueuePage;
 
     if (_isReportsLoading && page == null) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_reportsLoadFailed && page == null) {
@@ -1031,10 +1606,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             icon: Icons.error_outline,
             iconColor: Theme.of(context).colorScheme.error,
             title: _showEscalatedReportsOnly
-                ? 'Admin escalation queue unavailable'
-                : 'Reports unavailable',
-            message: 'Check your connection and try again.',
-            actionLabel: 'Try again',
+                ? _adminL10n(context).adminCenterAdminQueueUnavailableTitle
+                : _adminL10n(context).adminCenterReportsUnavailableTitle,
+            message: _adminL10n(context).adminCenterConnectionTryAgainMessage,
+            actionLabel: _adminL10n(context).adminCenterTryAgainAction,
             onAction: () => _loadReports(),
             actionInProgress: _isReportsLoading,
           ),
@@ -1055,11 +1630,11 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                 ? Icons.admin_panel_settings_outlined
                 : Icons.flag_outlined,
             title: _showEscalatedReportsOnly
-                ? 'No reports awaiting admin decision'
-                : 'No reports',
+                ? _adminL10n(context).adminCenterNoAdminReportsTitle
+                : _adminL10n(context).adminCenterNoReportsTitle,
             message: _showEscalatedReportsOnly
-                ? 'There are no escalated reports requiring administrator review.'
-                : 'There are no reports matching the selected filters.',
+                ? _adminL10n(context).adminCenterNoAdminReportsMessage
+                : _adminL10n(context).adminCenterNoReportsMessage,
           ),
         ],
       );
@@ -1082,10 +1657,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               totalCount: page.totalCount,
               loadFailed: _reportsLoadFailed,
               retryInProgress: _isReportsLoading,
-              onRetry: () => _loadReports(
-                offset: page.offset,
-                markLoading: false,
-              ),
+              onRetry: () =>
+                  _loadReports(offset: page.offset, markLoading: false),
             );
           }
 
@@ -1154,13 +1727,14 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             },
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.search),
-              hintText: 'Search by name, username, email or ID',
+              hintText: _adminL10n(context).adminCenterSearchUsersHint,
               counterText: '',
               border: const OutlineInputBorder(),
               suffixIcon: _userSearchController.text.isEmpty
                   ? null
                   : IconButton(
-                      tooltip: 'Clear search',
+                      tooltip:
+                          _adminL10n(context).adminCenterClearSearchTooltip,
                       onPressed: _clearUserSearch,
                       icon: const Icon(Icons.close),
                     ),
@@ -1169,9 +1743,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         ),
         if (_isUsersLoading && page != null)
           const LinearProgressIndicator(minHeight: 2),
-        Expanded(
-          child: _buildUsersResults(context),
-        ),
+        Expanded(child: _buildUsersResults(context)),
       ],
     );
   }
@@ -1180,9 +1752,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     final page = _userSearchPage;
 
     if (_isUsersLoading && page == null) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_usersLoadFailed && page == null) {
@@ -1192,9 +1762,9 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           _AdminDashboardStateCard(
             icon: Icons.error_outline,
             iconColor: Theme.of(context).colorScheme.error,
-            title: 'Users unavailable',
-            message: 'Check your connection and try again.',
-            actionLabel: 'Try again',
+            title: _adminL10n(context).adminCenterUsersUnavailableTitle,
+            message: _adminL10n(context).adminCenterConnectionTryAgainMessage,
+            actionLabel: _adminL10n(context).adminCenterTryAgainAction,
             onAction: () => _loadUsers(),
             actionInProgress: _isUsersLoading,
           ),
@@ -1214,10 +1784,12 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         children: [
           _AdminDashboardStateCard(
             icon: hasQuery ? Icons.search_off : Icons.people_outline,
-            title: hasQuery ? 'No users found' : 'No users',
+            title: hasQuery
+                ? _adminL10n(context).adminCenterNoUsersFoundTitle
+                : _adminL10n(context).adminCenterNoUsersTitle,
             message: hasQuery
-                ? 'Try a different name, username, email or ID.'
-                : 'There are no accounts to display.',
+                ? _adminL10n(context).adminCenterNoUsersFoundMessage
+                : _adminL10n(context).adminCenterNoUsersMessage,
           ),
         ],
       );
@@ -1226,9 +1798,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     return RefreshIndicator(
       onRefresh: _refresh,
       child: ListView.separated(
-        key: ValueKey(
-          '${_userSearchController.text.trim()}-${page.page}',
-        ),
+        key: ValueKey('${_userSearchController.text.trim()}-${page.page}'),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
         itemCount: page.users.length + 2,
         separatorBuilder: (context, index) {
@@ -1243,10 +1813,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               totalCount: page.totalCount,
               loadFailed: _usersLoadFailed,
               retryInProgress: _isUsersLoading,
-              onRetry: () => _loadUsers(
-                page: page.page,
-                markLoading: false,
-              ),
+              onRetry: () => _loadUsers(page: page.page, markLoading: false),
             );
           }
 
@@ -1263,16 +1830,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             page: page,
             loading: _isUsersLoading,
             onPrevious: page.hasPreviousPage
-                ? () => _loadUsers(
-                      page: page.page - 1,
-                      markLoading: false,
-                    )
+                ? () => _loadUsers(page: page.page - 1, markLoading: false)
                 : null,
             onNext: page.hasNextPage
-                ? () => _loadUsers(
-                      page: page.page + 1,
-                      markLoading: false,
-                    )
+                ? () => _loadUsers(page: page.page + 1, markLoading: false)
                 : null,
           );
         },
@@ -1289,9 +1850,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     }
 
     if (_isUserDetailLoading && detail == null) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_userDetailLoadFailed && detail == null) {
@@ -1302,9 +1861,9 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           _AdminDashboardStateCard(
             icon: Icons.error_outline,
             iconColor: Theme.of(context).colorScheme.error,
-            title: 'Account unavailable',
-            message: 'Check your connection and try again.',
-            actionLabel: 'Try again',
+            title: _adminL10n(context).adminCenterAccountUnavailableTitle,
+            message: _adminL10n(context).adminCenterConnectionTryAgainMessage,
+            actionLabel: _adminL10n(context).adminCenterTryAgainAction,
             onAction: () => _loadUserDetail(selectedUser),
             actionInProgress: _isUserDetailLoading,
           ),
@@ -1330,10 +1889,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           if (_userDetailLoadFailed) ...[
             _AdminUserDetailRefreshError(
               retryInProgress: _isUserDetailLoading,
-              onRetry: () => _loadUserDetail(
-                selectedUser,
-                markLoading: false,
-              ),
+              onRetry: () => _loadUserDetail(selectedUser, markLoading: false),
             ),
             const SizedBox(height: 12),
           ],
@@ -1342,62 +1898,62 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             child: TextButton.icon(
               onPressed: _closeUserDetail,
               icon: const Icon(Icons.arrow_back),
-              label: const Text('Back to users'),
+              label: Text(_adminL10n(context).adminCenterBackToUsersAction),
             ),
           ),
           const SizedBox(height: 4),
           _AdminUserDetailHeader(detail: detail),
           const SizedBox(height: 12),
           _AdminUserDetailSection(
-            title: 'Public identity',
+            title: _adminL10n(context).adminCenterPublicIdentitySection,
             children: [
               _AdminUserDetailField(
                 icon: Icons.badge_outlined,
-                label: 'Display name',
+                label: _adminL10n(context).adminCenterDisplayNameLabel,
                 value: displayName == null || displayName.isEmpty
-                    ? 'Not provided'
+                    ? _adminL10n(context).adminCenterNotProvided
                     : displayName,
               ),
               _AdminUserDetailField(
                 icon: Icons.alternate_email,
-                label: 'Username',
+                label: _adminL10n(context).adminCenterUsernameLabel,
                 value: username == null || username.isEmpty
-                    ? 'Not provided'
+                    ? _adminL10n(context).adminCenterNotProvided
                     : '@$username',
               ),
               _AdminUserDetailField(
                 icon: Icons.fingerprint,
-                label: 'User ID',
+                label: _adminL10n(context).adminCenterUserIdLabel,
                 value: detail.id,
                 selectable: true,
               ),
               _AdminUserDetailField(
                 icon: Icons.account_circle_outlined,
-                label: 'Identity type',
-                value: _actorTypeLabel(detail.actorType),
+                label: _adminL10n(context).adminCenterIdentityTypeLabel,
+                value: _actorTypeLabel(context, detail.actorType),
               ),
             ],
           ),
           const SizedBox(height: 12),
           _AdminUserDetailSection(
-            title: 'Account',
+            title: _adminL10n(context).adminCenterAccountSection,
             children: [
               _AdminUserDetailField(
                 icon: Icons.admin_panel_settings_outlined,
-                label: 'Technical role',
-                value: detail.systemRole.storageKey,
+                label: _adminL10n(context).adminCenterTechnicalRoleLabel,
+                value: _adminRoleLabel(context, detail.systemRole),
               ),
               _AdminUserDetailField(
                 icon: Icons.sync_outlined,
-                label: 'Profile role mirror',
-                value: detail.mirrorRole.storageKey,
+                label: _adminL10n(context).adminCenterRoleMirrorLabel,
+                value: _adminRoleLabel(context, detail.mirrorRole),
               ),
               _AdminUserDetailField(
                 icon: detail.roleSynchronized ? Icons.sync : Icons.sync_problem,
-                label: 'Role synchronization',
+                label: _adminL10n(context).adminCenterRoleSynchronizationLabel,
                 value: detail.roleSynchronized
-                    ? 'Synchronized'
-                    : 'Not synchronized',
+                    ? _adminL10n(context).adminCenterSynchronized
+                    : _adminL10n(context).adminCenterNotSynchronized,
                 valueColor: detail.roleSynchronized
                     ? null
                     : Theme.of(context).colorScheme.error,
@@ -1406,23 +1962,43 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                 icon: detail.isSuspended
                     ? Icons.person_off_outlined
                     : Icons.person_outline,
-                label: 'Account status',
-                value: detail.accountStatus.storageKey,
+                label: _adminL10n(context).adminCenterAccountStatusLabel,
+                value: _adminAccountStatusLabel(context, detail.accountStatus),
               ),
               if (detail.suspendedUntil != null)
                 _AdminUserDetailField(
                   icon: Icons.event_busy_outlined,
-                  label: 'Suspended until',
-                  value: _formatDateTime(
-                    context,
-                    detail.suspendedUntil!,
-                  ),
+                  label: _adminL10n(context).adminCenterSuspendedUntilLabel,
+                  value: _formatDateTime(context, detail.suspendedUntil!),
                 ),
             ],
           ),
           const SizedBox(height: 12),
           _AdminUserDetailSection(
-            title: 'Role management',
+            title: _adminL10n(context).adminCenterAccountManagementSection,
+            children: [
+              _AdminAccountManagementActions(
+                isSuspended: detail.isSuspended,
+                enabled: detail.canReceiveAdminActions,
+                onSuspendPressed: () => _openSuspendAccountDialog(detail),
+                onReactivatePressed: () => _openReactivateAccountDialog(detail),
+                onForceLogoutPressed: () => _openForceLogoutDialog(detail),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _AdminUserDetailSection(
+            title: _adminL10n(context).adminCenterDangerZoneSection,
+            children: [
+              _AdminDeleteAccountAction(
+                enabled: detail.canReceiveAdminActions,
+                onPressed: () => _openDeleteAccountDialog(detail),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _AdminUserDetailSection(
+            title: _adminL10n(context).adminCenterRoleManagementSection,
             children: [
               _AdminUserRoleAction(
                 currentRole: detail.systemRole,
@@ -1433,17 +2009,21 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           ),
           const SizedBox(height: 12),
           _AdminUserDetailSection(
-            title: 'Verification',
+            title: _adminL10n(context).adminCenterVerificationNavigation,
             children: [
               _AdminUserDetailField(
                 icon: Icons.workspace_premium_outlined,
-                label: 'Verification level',
-                value: _verificationLevelLabel(detail.verificationLevel),
+                label: _adminL10n(context).adminCenterVerificationLevelLabel,
+                value:
+                    _verificationLevelLabel(context, detail.verificationLevel),
               ),
               _AdminUserDetailField(
                 icon: Icons.verified_user_outlined,
-                label: 'Verification status',
-                value: detail.verificationStatus.name,
+                label: _adminL10n(context).adminCenterVerificationStatusLabel,
+                value: _adminVerificationStatusLabel(
+                  context,
+                  detail.verificationStatus,
+                ),
               ),
               _AdminPublicIdentityAction(
                 actorType: detail.actorType,
@@ -1455,40 +2035,36 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           ),
           const SizedBox(height: 12),
           _AdminUserDetailSection(
-            title: 'Access information',
+            title: _adminL10n(context).adminCenterAccessInformationSection,
             children: [
               _AdminUserDetailField(
                 icon: Icons.email_outlined,
-                label: 'Email',
-                value: email == null || email.isEmpty ? 'Not available' : email,
+                label: _adminL10n(context).adminCenterEmailLabel,
+                value: email == null || email.isEmpty
+                    ? _adminL10n(context).adminCenterNotAvailable
+                    : email,
                 selectable: true,
               ),
               _AdminUserDetailField(
                 icon: detail.emailConfirmedAt == null
                     ? Icons.mark_email_unread_outlined
                     : Icons.mark_email_read_outlined,
-                label: 'Email confirmation',
+                label: _adminL10n(context).adminCenterEmailConfirmationLabel,
                 value: detail.emailConfirmedAt == null
-                    ? 'Not confirmed'
-                    : _formatDateTime(
-                        context,
-                        detail.emailConfirmedAt!,
-                      ),
+                    ? _adminL10n(context).adminCenterNotConfirmed
+                    : _formatDateTime(context, detail.emailConfirmedAt!),
               ),
               _AdminUserDetailField(
                 icon: Icons.person_add_alt_outlined,
-                label: 'Registered',
+                label: _adminL10n(context).adminCenterRegisteredLabel,
                 value: _formatDateTime(context, detail.createdAt),
               ),
               _AdminUserDetailField(
                 icon: Icons.login_outlined,
-                label: 'Last access',
+                label: _adminL10n(context).adminCenterLastAccessLabel,
                 value: detail.lastSignInAt == null
-                    ? 'Not available'
-                    : _formatDateTime(
-                        context,
-                        detail.lastSignInAt!,
-                      ),
+                    ? _adminL10n(context).adminCenterNotAvailable
+                    : _formatDateTime(context, detail.lastSignInAt!),
               ),
             ],
           ),
@@ -1497,10 +2073,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     );
   }
 
-  String _formatDateTime(
-    BuildContext context,
-    DateTime value,
-  ) {
+  String _formatDateTime(BuildContext context, DateTime value) {
     final localValue = value.toLocal();
     final localizations = MaterialLocalizations.of(context);
     final date = localizations.formatMediumDate(localValue);
@@ -1516,10 +2089,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     final summary = _dashboardSummary;
 
     if (_isDashboardLoading && summary == null) {
-      return const _AdminDashboardStateCard(
+      return _AdminDashboardStateCard(
         progressIndicator: true,
-        title: 'Loading dashboard',
-        message: 'Retrieving the latest indicators.',
+        title: _adminL10n(context).adminCenterLoadingDashboardTitle,
+        message: _adminL10n(context).adminCenterLoadingDashboardMessage,
       );
     }
 
@@ -1527,9 +2100,9 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       return _AdminDashboardStateCard(
         icon: Icons.error_outline,
         iconColor: Theme.of(context).colorScheme.error,
-        title: 'Dashboard unavailable',
-        message: 'Check your connection and try again.',
-        actionLabel: 'Try again',
+        title: _adminL10n(context).adminCenterDashboardUnavailableTitle,
+        message: _adminL10n(context).adminCenterConnectionTryAgainMessage,
+        actionLabel: _adminL10n(context).adminCenterTryAgainAction,
         onAction: _refresh,
         actionInProgress: _isRefreshing,
       );
@@ -1539,9 +2112,9 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       return _AdminDashboardStateCard(
         icon: Icons.error_outline,
         iconColor: Theme.of(context).colorScheme.error,
-        title: 'Dashboard unavailable',
-        message: 'The indicators could not be loaded.',
-        actionLabel: 'Try again',
+        title: _adminL10n(context).adminCenterDashboardUnavailableTitle,
+        message: _adminL10n(context).adminCenterIndicatorsUnavailableMessage,
+        actionLabel: _adminL10n(context).adminCenterTryAgainAction,
         onAction: _refresh,
         actionInProgress: _isRefreshing,
       );
@@ -1549,27 +2122,27 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
 
     final indicators = <_AdminIndicator>[
       _AdminIndicator(
-        label: 'Verification pending',
+        label: _adminL10n(context).adminCenterVerificationPendingIndicator,
         value: summary.pendingVerificationRequests,
         icon: Icons.verified_user_outlined,
       ),
       _AdminIndicator(
-        label: 'Open reports',
+        label: _adminL10n(context).adminCenterOpenReportsIndicator,
         value: summary.openReports,
         icon: Icons.flag_outlined,
       ),
       _AdminIndicator(
-        label: 'Suspended accounts',
+        label: _adminL10n(context).adminCenterSuspendedAccountsIndicator,
         value: summary.suspendedAccounts,
         icon: Icons.person_off_outlined,
       ),
       _AdminIndicator(
-        label: 'Users',
+        label: _adminL10n(context).adminCenterUsersNavigation,
         value: summary.totalUsers,
         icon: Icons.people_outline,
       ),
       _AdminIndicator(
-        label: 'Staff',
+        label: _adminL10n(context).adminCenterStaffIndicator,
         value: summary.staffUsers,
         icon: Icons.admin_panel_settings_outlined,
       ),
@@ -1590,10 +2163,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           const SizedBox(height: 12),
         ],
         if (!hasPendingWork) ...[
-          const _AdminDashboardStateCard(
+          _AdminDashboardStateCard(
             icon: Icons.check_circle_outline,
-            title: 'No pending work',
-            message: 'Verification, reports, and suspended accounts are clear.',
+            title: _adminL10n(context).adminCenterNoPendingWorkTitle,
+            message: _adminL10n(context).adminCenterNoPendingWorkMessage,
           ),
           const SizedBox(height: 12),
         ],
@@ -1637,9 +2210,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                           style: Theme.of(context)
                               .textTheme
                               .headlineSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
+                              ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         Text(
                           indicator.label,
@@ -1665,9 +2236,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.all(16),
-          sliver: SliverToBoxAdapter(
-            child: _buildDashboardIndicators(context),
-          ),
+          sliver: SliverToBoxAdapter(child: _buildDashboardIndicators(context)),
         ),
       ],
     );
@@ -1685,9 +2254,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-          sliver: SliverToBoxAdapter(
-            child: _buildDashboardIndicators(context),
-          ),
+          sliver: SliverToBoxAdapter(child: _buildDashboardIndicators(context)),
         ),
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -1702,39 +2269,33 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                   mainAxisSpacing: 12,
                   mainAxisExtent: 112,
                 ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final destination = destinations[index];
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final destination = destinations[index];
 
-                    return Card(
-                      clipBehavior: Clip.antiAlias,
-                      child: InkWell(
-                        onTap: () => _selectSection(destination.section),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                destination.icon,
-                                size: 30,
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                destination.label,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.titleSmall,
-                              ),
-                            ],
-                          ),
+                  return Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: () => _selectSection(destination.section),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(destination.icon, size: 30),
+                            const SizedBox(height: 10),
+                            Text(
+                              destination.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                          ],
                         ),
                       ),
-                    );
-                  },
-                  childCount: destinations.length,
-                ),
+                    ),
+                  );
+                }, childCount: destinations.length),
               );
             },
           ),
@@ -1751,10 +2312,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     return _buildSelectedContent(context);
   }
 
-  Widget _buildDesktopLayout(
-    BuildContext context, {
-    required bool extendRail,
-  }) {
+  Widget _buildDesktopLayout(BuildContext context, {required bool extendRail}) {
     final destinations = _destinations;
     final selectedIndex = destinations.indexWhere(
       (destination) => destination.section == _selectedSection,
@@ -1780,9 +2338,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           ],
         ),
         const VerticalDivider(width: 1, thickness: 1),
-        Expanded(
-          child: _buildSelectedContent(context),
-        ),
+        Expanded(child: _buildSelectedContent(context)),
       ],
     );
   }
@@ -1818,11 +2374,11 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             : null,
         title: Text(
           showingUserDetail
-              ? 'Account details'
+              ? _adminL10n(context).adminCenterAccountDetailsTitle
               : isMobileLayout &&
                       _selectedSection != AdminCenterSection.dashboard
                   ? currentDestination.label
-                  : 'Admin Center',
+                  : _adminL10n(context).adminCenterTitle,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -1832,11 +2388,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             child: Chip(
               avatar: isMobileLayout
                   ? null
-                  : const Icon(
-                      Icons.admin_panel_settings_outlined,
-                      size: 18,
-                    ),
-              label: Text(widget.currentRole.storageKey.toUpperCase()),
+                  : const Icon(Icons.admin_panel_settings_outlined, size: 18),
+              label: Text(_adminRoleLabel(context, widget.currentRole)),
               visualDensity: VisualDensity.compact,
             ),
           ),
@@ -1889,13 +2442,74 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   }
 }
 
+class _AdminSectionState extends StatelessWidget {
+  final IconData icon;
+  final Color? iconColor;
+  final String title;
+  final String message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  final bool actionInProgress;
+
+  const _AdminSectionState({
+    required this.icon,
+    this.iconColor,
+    required this.title,
+    required this.message,
+    this.actionLabel,
+    this.onAction,
+    this.actionInProgress = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 42,
+              color:
+                  iconColor ?? Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 6),
+            Text(message, textAlign: TextAlign.center),
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: actionInProgress ? null : onAction,
+                child: actionInProgress
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(actionLabel!),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _AdminDestination {
   final AdminCenterSection section;
   final IconData icon;
   final IconData selectedIcon;
   final String label;
 
-  const _AdminDestination({
+  _AdminDestination({
     required this.section,
     required this.icon,
     required this.selectedIcon,
@@ -1936,7 +2550,7 @@ class _AdminUsersResultHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          '$totalCount ${totalCount == 1 ? 'user' : 'users'}',
+          _adminL10n(context).adminCenterUsersCount(totalCount),
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w700,
           ),
@@ -1957,7 +2571,7 @@ class _AdminUsersResultHeader extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Could not update the user list.',
+                      _adminL10n(context).adminCenterCouldNotUpdateUsers,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onErrorContainer,
                       ),
@@ -1969,7 +2583,7 @@ class _AdminUsersResultHeader extends StatelessWidget {
                         : () {
                             unawaited(onRetry());
                           },
-                    child: const Text('Retry'),
+                    child: Text(_adminL10n(context).adminCenterRetryAction),
                   ),
                 ],
               ),
@@ -1985,12 +2599,9 @@ class _AdminUserCard extends StatelessWidget {
   final AdminUserSummary user;
   final VoidCallback onTap;
 
-  const _AdminUserCard({
-    required this.user,
-    required this.onTap,
-  });
+  const _AdminUserCard({required this.user, required this.onTap});
 
-  String get _title {
+  String _title(BuildContext context) {
     final displayName = user.displayName?.trim();
 
     if (displayName != null && displayName.isNotEmpty) {
@@ -2003,11 +2614,11 @@ class _AdminUserCard extends StatelessWidget {
       return username;
     }
 
-    return 'Unnamed user';
+    return _adminL10n(context).adminCenterUnnamedUser;
   }
 
-  String get _avatarLabel {
-    final value = _title.trim();
+  String _avatarLabel(BuildContext context) {
+    final value = _title(context).trim();
     return value.isEmpty ? '?' : value.substring(0, 1).toUpperCase();
   }
 
@@ -2026,16 +2637,14 @@ class _AdminUserCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                child: Text(_avatarLabel),
-              ),
+              CircleAvatar(child: Text(_avatarLabel(context))),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _title,
+                      _title(context),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.titleSmall?.copyWith(
@@ -2060,18 +2669,20 @@ class _AdminUserCard extends StatelessWidget {
                       children: [
                         _AdminUserAttribute(
                           icon: Icons.admin_panel_settings_outlined,
-                          label: user.systemRole.storageKey,
+                          label: _adminRoleLabel(context, user.systemRole),
                         ),
                         _AdminUserAttribute(
                           icon: user.isSuspended
                               ? Icons.person_off_outlined
                               : Icons.person_outline,
-                          label: user.accountStatus.storageKey,
+                          label: _adminAccountStatusLabel(
+                              context, user.accountStatus),
                         ),
                         if (!user.roleSynchronized)
                           _AdminUserAttribute(
                             icon: Icons.sync_problem,
-                            label: 'Role not synchronized',
+                            label: _adminL10n(context)
+                                .adminCenterRoleNotSynchronized,
                             color: theme.colorScheme.error,
                           ),
                       ],
@@ -2095,11 +2706,9 @@ class _AdminUserCard extends StatelessWidget {
 class _AdminUserDetailHeader extends StatelessWidget {
   final AdminUserDetail detail;
 
-  const _AdminUserDetailHeader({
-    required this.detail,
-  });
+  const _AdminUserDetailHeader({required this.detail});
 
-  String get _title {
+  String _title(BuildContext context) {
     final displayName = detail.displayName?.trim();
 
     if (displayName != null && displayName.isNotEmpty) {
@@ -2112,11 +2721,11 @@ class _AdminUserDetailHeader extends StatelessWidget {
       return username;
     }
 
-    return 'Unnamed user';
+    return _adminL10n(context).adminCenterUnnamedUser;
   }
 
-  String get _avatarLabel {
-    final value = _title.trim();
+  String _avatarLabel(BuildContext context) {
+    final value = _title(context).trim();
     return value.isEmpty ? '?' : value.substring(0, 1).toUpperCase();
   }
 
@@ -2134,10 +2743,8 @@ class _AdminUserDetailHeader extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 28,
-              child: Text(
-                _avatarLabel,
-                style: theme.textTheme.titleLarge,
-              ),
+              child: Text(_avatarLabel(context),
+                  style: theme.textTheme.titleLarge),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -2145,7 +2752,7 @@ class _AdminUserDetailHeader extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _title,
+                    _title(context),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.titleLarge?.copyWith(
@@ -2170,18 +2777,20 @@ class _AdminUserDetailHeader extends StatelessWidget {
                     children: [
                       _AdminUserAttribute(
                         icon: Icons.admin_panel_settings_outlined,
-                        label: detail.systemRole.storageKey,
+                        label: _adminRoleLabel(context, detail.systemRole),
                       ),
                       _AdminUserAttribute(
                         icon: detail.isSuspended
                             ? Icons.person_off_outlined
                             : Icons.person_outline,
-                        label: detail.accountStatus.storageKey,
+                        label: _adminAccountStatusLabel(
+                            context, detail.accountStatus),
                       ),
                       if (!detail.roleSynchronized)
                         _AdminUserAttribute(
                           icon: Icons.sync_problem,
-                          label: 'Role not synchronized',
+                          label: _adminL10n(context)
+                              .adminCenterRoleNotSynchronized,
                           color: theme.colorScheme.error,
                         ),
                     ],
@@ -2200,10 +2809,7 @@ class _AdminUserDetailSection extends StatelessWidget {
   final String title;
   final List<Widget> children;
 
-  const _AdminUserDetailSection({
-    required this.title,
-    required this.children,
-  });
+  const _AdminUserDetailSection({required this.title, required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -2283,20 +2889,928 @@ class _AdminUserDetailField extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 if (selectable)
-                  SelectableText(
-                    value,
-                    style: valueStyle,
-                  )
+                  SelectableText(value, style: valueStyle)
                 else
-                  Text(
-                    value,
-                    style: valueStyle,
-                  ),
+                  Text(value, style: valueStyle),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _AdminAccountManagementActions extends StatelessWidget {
+  final bool isSuspended;
+  final bool enabled;
+  final Future<void> Function() onSuspendPressed;
+  final Future<void> Function() onReactivatePressed;
+  final Future<void> Function() onForceLogoutPressed;
+
+  const _AdminAccountManagementActions({
+    required this.isSuspended,
+    required this.enabled,
+    required this.onSuspendPressed,
+    required this.onReactivatePressed,
+    required this.onForceLogoutPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            _adminL10n(context).adminCenterTemporarySuspensionTitle,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isSuspended
+                ? _adminL10n(context).adminCenterReactivateDescription
+                : enabled
+                    ? _adminL10n(context).adminCenterSuspendDescription
+                    : _adminL10n(context)
+                        .adminCenterSuspensionUnavailableDescription,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton.icon(
+              onPressed: enabled
+                  ? () {
+                      unawaited(
+                        isSuspended
+                            ? onReactivatePressed()
+                            : onSuspendPressed(),
+                      );
+                    }
+                  : null,
+              icon: Icon(
+                isSuspended ? Icons.person_outline : Icons.person_off_outlined,
+              ),
+              label: Text(
+                isSuspended
+                    ? _adminL10n(context).adminCenterReactivateAccountAction
+                    : _adminL10n(context).adminCenterSuspendAccountAction,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Divider(color: theme.colorScheme.outlineVariant),
+          const SizedBox(height: 12),
+          Text(
+            _adminL10n(context).adminCenterForceLogoutAction,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isSuspended
+                ? _adminL10n(context).adminCenterSuspendedForceLogoutDescription
+                : enabled
+                    ? _adminL10n(context).adminCenterForceLogoutDescription
+                    : _adminL10n(context)
+                        .adminCenterForceLogoutUnavailableDescription,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              onPressed: enabled && !isSuspended
+                  ? () {
+                      unawaited(onForceLogoutPressed());
+                    }
+                  : null,
+              icon: const Icon(Icons.logout),
+              label: Text(_adminL10n(context).adminCenterForceLogoutAction),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdminDeleteAccountAction extends StatelessWidget {
+  final bool enabled;
+  final Future<void> Function() onPressed;
+
+  const _AdminDeleteAccountAction({
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            _adminL10n(context).adminCenterPermanentDeletionTitle,
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: theme.colorScheme.error,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            enabled
+                ? _adminL10n(context).adminCenterPermanentDeletionDescription
+                : _adminL10n(context).adminCenterDeletionUnavailableDescription,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: theme.colorScheme.error,
+                foregroundColor: theme.colorScheme.onError,
+              ),
+              onPressed: enabled
+                  ? () {
+                      unawaited(onPressed());
+                    }
+                  : null,
+              icon: const Icon(Icons.delete_forever_outlined),
+              label: Text(_adminL10n(context)
+                  .adminCenterDeleteAccountPermanentlyAction),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _adminSuspensionDurationLabel(
+  BuildContext context,
+  _AdminSuspensionDuration duration,
+) {
+  final l10n = _adminL10n(context);
+  switch (duration) {
+    case _AdminSuspensionDuration.oneHour:
+      return l10n.adminCenterDurationOneHour;
+    case _AdminSuspensionDuration.oneDay:
+      return l10n.adminCenterDurationOneDay;
+    case _AdminSuspensionDuration.sevenDays:
+      return l10n.adminCenterDurationSevenDays;
+    case _AdminSuspensionDuration.thirtyDays:
+      return l10n.adminCenterDurationThirtyDays;
+  }
+}
+
+Duration _adminSuspensionDurationValue(_AdminSuspensionDuration duration) {
+  switch (duration) {
+    case _AdminSuspensionDuration.oneHour:
+      return const Duration(hours: 1);
+    case _AdminSuspensionDuration.oneDay:
+      return const Duration(days: 1);
+    case _AdminSuspensionDuration.sevenDays:
+      return const Duration(days: 7);
+    case _AdminSuspensionDuration.thirtyDays:
+      return const Duration(days: 30);
+  }
+}
+
+enum _AdminSuspensionDuration {
+  oneHour,
+  oneDay,
+  sevenDays,
+  thirtyDays,
+}
+
+class _AdminSuspendAccountDialog extends StatefulWidget {
+  final AdminUserDetail detail;
+  final Future<void> Function({
+    required DateTime suspendedUntil,
+    required String reason,
+  }) onConfirm;
+
+  const _AdminSuspendAccountDialog({
+    required this.detail,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_AdminSuspendAccountDialog> createState() =>
+      _AdminSuspendAccountDialogState();
+}
+
+class _AdminSuspendAccountDialogState
+    extends State<_AdminSuspendAccountDialog> {
+  static const int _maximumReasonLength = 1000;
+
+  final TextEditingController _reasonController = TextEditingController();
+  _AdminSuspensionDuration _selectedDuration = _AdminSuspensionDuration.oneDay;
+  late DateTime _suspendedUntil;
+  bool _confirmed = false;
+  bool _isSubmitting = false;
+  String? _errorMessage;
+
+  bool get _canSubmit {
+    final reason = _reasonController.text.trim();
+
+    return !_isSubmitting &&
+        reason.isNotEmpty &&
+        reason.length <= _maximumReasonLength &&
+        _suspendedUntil.isAfter(DateTime.now().toUtc()) &&
+        _confirmed;
+  }
+
+  String get _accountLabel {
+    final displayName = widget.detail.displayName?.trim();
+    if (displayName != null && displayName.isNotEmpty) {
+      return displayName;
+    }
+
+    final username = widget.detail.username?.trim();
+    if (username != null && username.isNotEmpty) {
+      return '@$username';
+    }
+
+    final email = widget.detail.email?.trim();
+    if (email != null && email.isNotEmpty) {
+      return email;
+    }
+
+    return widget.detail.id;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _updateSuspendedUntil();
+  }
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    super.dispose();
+  }
+
+  void _updateSuspendedUntil() {
+    _suspendedUntil = DateTime.now().toUtc().add(
+          _adminSuspensionDurationValue(_selectedDuration),
+        );
+  }
+
+  void _clearConfirmation() {
+    _confirmed = false;
+    _errorMessage = null;
+  }
+
+  Future<void> _submit() async {
+    if (!_canSubmit) {
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await widget.onConfirm(
+        suspendedUntil: _suspendedUntil,
+        reason: _reasonController.text.trim(),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pop(_suspendedUntil);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isSubmitting = false;
+        _errorMessage = _adminL10n(context).adminCenterSuspendFailure;
+      });
+    }
+  }
+
+  String _formatDateTime(BuildContext context, DateTime value) {
+    final localValue = value.toLocal();
+    final localizations = MaterialLocalizations.of(context);
+    final date = localizations.formatMediumDate(localValue);
+    final time = localizations.formatTimeOfDay(
+      TimeOfDay.fromDateTime(localValue),
+      alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+
+    return '$date, $time';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AlertDialog(
+      scrollable: true,
+      title: Text(_adminL10n(context).adminCenterSuspendAccountAction),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              _adminL10n(context).adminCenterAccountValue(_accountLabel),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _adminL10n(context).adminCenterSuspendImmediateEffect,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<_AdminSuspensionDuration>(
+              initialValue: _selectedDuration,
+              decoration: InputDecoration(
+                labelText: _adminL10n(context).adminCenterDurationLabel,
+                border: const OutlineInputBorder(),
+              ),
+              items: [
+                for (final duration in _AdminSuspensionDuration.values)
+                  DropdownMenuItem<_AdminSuspensionDuration>(
+                    value: duration,
+                    child: Text(
+                      _adminSuspensionDurationLabel(context, duration),
+                    ),
+                  ),
+              ],
+              onChanged: _isSubmitting
+                  ? null
+                  : (duration) {
+                      if (duration == null) {
+                        return;
+                      }
+
+                      setState(() {
+                        _selectedDuration = duration;
+                        _updateSuspendedUntil();
+                        _clearConfirmation();
+                      });
+                    },
+            ),
+            const SizedBox(height: 12),
+            _AdminUserAttribute(
+              icon: Icons.event_busy_outlined,
+              label: _adminL10n(context).adminCenterSuspendedUntilValue(
+                _formatDateTime(context, _suspendedUntil),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _reasonController,
+              enabled: !_isSubmitting,
+              minLines: 2,
+              maxLines: 4,
+              maxLength: _maximumReasonLength,
+              decoration: InputDecoration(
+                labelText: _adminL10n(context).adminCenterReasonLabel,
+                hintText: _adminL10n(context).adminCenterSuspendReasonHint,
+                alignLabelWithHint: true,
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (_) {
+                setState(_clearConfirmation);
+              },
+            ),
+            CheckboxListTile(
+              value: _confirmed,
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: Text(
+                _adminL10n(context).adminCenterSuspendConfirmation(
+                  _formatDateTime(context, _suspendedUntil),
+                ),
+              ),
+              onChanged: _isSubmitting || _reasonController.text.trim().isEmpty
+                  ? null
+                  : (value) {
+                      setState(() {
+                        _confirmed = value ?? false;
+                        _errorMessage = null;
+                      });
+                    },
+            ),
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 8),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: theme.colorScheme.onErrorContainer,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSubmitting
+              ? null
+              : () {
+                  Navigator.of(context).pop();
+                },
+          child: Text(_adminL10n(context).commonCancelButton),
+        ),
+        FilledButton(
+          onPressed: _canSubmit ? _submit : null,
+          child: _isSubmitting
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(_adminL10n(context).adminCenterSuspendAccountAction),
+        ),
+      ],
+    );
+  }
+}
+
+class _AdminAccountActionDialog extends StatefulWidget {
+  final AdminUserDetail detail;
+  final String title;
+  final String description;
+  final String reasonHint;
+  final String confirmationText;
+  final String submitLabel;
+  final String failureMessage;
+  final Future<void> Function({required String reason}) onConfirm;
+
+  const _AdminAccountActionDialog({
+    required this.detail,
+    required this.title,
+    required this.description,
+    required this.reasonHint,
+    required this.confirmationText,
+    required this.submitLabel,
+    required this.failureMessage,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_AdminAccountActionDialog> createState() =>
+      _AdminAccountActionDialogState();
+}
+
+class _AdminAccountActionDialogState extends State<_AdminAccountActionDialog> {
+  static const int _maximumReasonLength = 1000;
+
+  final TextEditingController _reasonController = TextEditingController();
+  bool _confirmed = false;
+  bool _isSubmitting = false;
+  String? _errorMessage;
+
+  bool get _canSubmit {
+    final reason = _reasonController.text.trim();
+
+    return !_isSubmitting &&
+        reason.isNotEmpty &&
+        reason.length <= _maximumReasonLength &&
+        _confirmed;
+  }
+
+  String get _accountLabel {
+    final displayName = widget.detail.displayName?.trim();
+    if (displayName != null && displayName.isNotEmpty) {
+      return displayName;
+    }
+
+    final username = widget.detail.username?.trim();
+    if (username != null && username.isNotEmpty) {
+      return '@$username';
+    }
+
+    final email = widget.detail.email?.trim();
+    if (email != null && email.isNotEmpty) {
+      return email;
+    }
+
+    return widget.detail.id;
+  }
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_canSubmit) {
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await widget.onConfirm(reason: _reasonController.text.trim());
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pop(true);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isSubmitting = false;
+        _errorMessage = widget.failureMessage;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AlertDialog(
+      scrollable: true,
+      title: Text(widget.title),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              _adminL10n(context).adminCenterAccountValue(_accountLabel),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              widget.description,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _reasonController,
+              enabled: !_isSubmitting,
+              minLines: 2,
+              maxLines: 4,
+              maxLength: _maximumReasonLength,
+              decoration: InputDecoration(
+                labelText: _adminL10n(context).adminCenterReasonLabel,
+                hintText: widget.reasonHint,
+                alignLabelWithHint: true,
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (_) {
+                setState(() {
+                  _confirmed = false;
+                  _errorMessage = null;
+                });
+              },
+            ),
+            CheckboxListTile(
+              value: _confirmed,
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: Text(widget.confirmationText),
+              onChanged: _isSubmitting || _reasonController.text.trim().isEmpty
+                  ? null
+                  : (value) {
+                      setState(() {
+                        _confirmed = value ?? false;
+                        _errorMessage = null;
+                      });
+                    },
+            ),
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 8),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: theme.colorScheme.onErrorContainer,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSubmitting
+              ? null
+              : () {
+                  Navigator.of(context).pop(false);
+                },
+          child: Text(_adminL10n(context).commonCancelButton),
+        ),
+        FilledButton(
+          onPressed: _canSubmit ? _submit : null,
+          child: _isSubmitting
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(widget.submitLabel),
+        ),
+      ],
+    );
+  }
+}
+
+class _AdminDeleteAccountDialog extends StatefulWidget {
+  final AdminUserDetail detail;
+  final Future<void> Function({
+    required String reason,
+    required String confirmation,
+    required String accountIdentifier,
+  }) onConfirm;
+
+  const _AdminDeleteAccountDialog({
+    required this.detail,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_AdminDeleteAccountDialog> createState() =>
+      _AdminDeleteAccountDialogState();
+}
+
+class _AdminDeleteAccountDialogState extends State<_AdminDeleteAccountDialog> {
+  static const int _maximumReasonLength = 1000;
+
+  final TextEditingController _reasonController = TextEditingController();
+  final TextEditingController _confirmationController = TextEditingController();
+  final TextEditingController _accountIdentifierController =
+      TextEditingController();
+  bool _isSubmitting = false;
+  String? _errorMessage;
+
+  bool get _canSubmit {
+    final reason = _reasonController.text.trim();
+    final confirmation = _confirmationController.text;
+    final accountIdentifier =
+        _accountIdentifierController.text.trim().toLowerCase();
+
+    return !_isSubmitting &&
+        reason.isNotEmpty &&
+        reason.length <= _maximumReasonLength &&
+        confirmation == 'DELETE' &&
+        accountIdentifier == widget.detail.id.toLowerCase();
+  }
+
+  String get _accountLabel {
+    final displayName = widget.detail.displayName?.trim();
+    if (displayName != null && displayName.isNotEmpty) {
+      return displayName;
+    }
+
+    final username = widget.detail.username?.trim();
+    if (username != null && username.isNotEmpty) {
+      return '@$username';
+    }
+
+    final email = widget.detail.email?.trim();
+    if (email != null && email.isNotEmpty) {
+      return email;
+    }
+
+    return widget.detail.id;
+  }
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    _confirmationController.dispose();
+    _accountIdentifierController.dispose();
+    super.dispose();
+  }
+
+  void _onInputChanged(String _) {
+    setState(() {
+      _errorMessage = null;
+    });
+  }
+
+  Future<void> _submit() async {
+    if (!_canSubmit) {
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await widget.onConfirm(
+        reason: _reasonController.text.trim(),
+        confirmation: _confirmationController.text,
+        accountIdentifier: _accountIdentifierController.text.trim(),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pop(true);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isSubmitting = false;
+        _errorMessage = _adminL10n(context).adminCenterDeleteFailure;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AlertDialog(
+      scrollable: true,
+      title: Text(
+        _adminL10n(context).adminCenterDeleteAccountPermanentlyAction,
+        style: TextStyle(color: theme.colorScheme.error),
+      ),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              _adminL10n(context).adminCenterAccountValue(_accountLabel),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _adminL10n(context).adminCenterDeleteIrreversibleWarning,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _reasonController,
+              enabled: !_isSubmitting,
+              minLines: 2,
+              maxLines: 4,
+              maxLength: _maximumReasonLength,
+              decoration: InputDecoration(
+                labelText: _adminL10n(context).adminCenterReasonLabel,
+                hintText: _adminL10n(context).adminCenterDeleteReasonHint,
+                alignLabelWithHint: true,
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: _onInputChanged,
+            ),
+            const SizedBox(height: 4),
+            TextFormField(
+              controller: _confirmationController,
+              enabled: !_isSubmitting,
+              decoration: InputDecoration(
+                labelText: _adminL10n(context).adminCenterTypeDeleteLabel,
+                border: const OutlineInputBorder(),
+              ),
+              autocorrect: false,
+              enableSuggestions: false,
+              onChanged: _onInputChanged,
+            ),
+            const SizedBox(height: 12),
+            SelectableText(
+              _adminL10n(context).adminCenterAccountIdValue(widget.detail.id),
+              style: theme.textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _accountIdentifierController,
+              enabled: !_isSubmitting,
+              decoration: InputDecoration(
+                labelText: _adminL10n(context).adminCenterTypeAccountIdLabel,
+                border: const OutlineInputBorder(),
+              ),
+              autocorrect: false,
+              enableSuggestions: false,
+              onChanged: _onInputChanged,
+            ),
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                _errorMessage!,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSubmitting
+              ? null
+              : () {
+                  Navigator.of(context).pop(false);
+                },
+          child: Text(_adminL10n(context).commonCancelButton),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: theme.colorScheme.error,
+            foregroundColor: theme.colorScheme.onError,
+          ),
+          onPressed: _canSubmit ? _submit : null,
+          child: _isSubmitting
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(_adminL10n(context).adminCenterDeletePermanentlyAction),
+        ),
+      ],
     );
   }
 }
@@ -2322,7 +3836,7 @@ class _AdminUserRoleAction extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Change technical role',
+            _adminL10n(context).adminCenterChangeTechnicalRoleTitle,
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
             ),
@@ -2330,8 +3844,9 @@ class _AdminUserRoleAction extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             enabled
-                ? 'Review the current and requested role before confirming.'
-                : 'Role changes require a synchronized, non-deleted account.',
+                ? _adminL10n(context).adminCenterChangeRoleDescription
+                : _adminL10n(context)
+                    .adminCenterChangeRoleUnavailableDescription,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -2344,7 +3859,9 @@ class _AdminUserRoleAction extends StatelessWidget {
             children: [
               _AdminUserAttribute(
                 icon: Icons.admin_panel_settings_outlined,
-                label: 'Current: ${currentRole.storageKey}',
+                label: _adminL10n(context).adminCenterCurrentRoleValue(
+                  _adminRoleLabel(context, currentRole),
+                ),
               ),
               FilledButton.icon(
                 onPressed: enabled
@@ -2353,7 +3870,7 @@ class _AdminUserRoleAction extends StatelessWidget {
                       }
                     : null,
                 icon: const Icon(Icons.swap_horiz),
-                label: const Text('Change role'),
+                label: Text(_adminL10n(context).adminCenterChangeRoleAction),
               ),
             ],
           ),
@@ -2396,7 +3913,7 @@ class _AdminPublicIdentityAction extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Change public identity',
+            _adminL10n(context).adminCenterChangePublicIdentityTitle,
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
             ),
@@ -2404,8 +3921,9 @@ class _AdminPublicIdentityAction extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             enabled
-                ? 'Update the public account type and verification level.'
-                : 'Identity changes require a synchronized, non-admin account.',
+                ? _adminL10n(context).adminCenterChangeIdentityDescription
+                : _adminL10n(context)
+                    .adminCenterChangeIdentityUnavailableDescription,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -2418,11 +3936,11 @@ class _AdminPublicIdentityAction extends StatelessWidget {
             children: [
               _AdminUserAttribute(
                 icon: Icons.badge_outlined,
-                label: _actorTypeLabel(actorType),
+                label: _actorTypeLabel(context, actorType),
               ),
               _AdminUserAttribute(
                 icon: Icons.workspace_premium_outlined,
-                label: _verificationLevelLabel(verificationLevel),
+                label: _verificationLevelLabel(context, verificationLevel),
               ),
               FilledButton.icon(
                 onPressed: enabled
@@ -2431,7 +3949,8 @@ class _AdminPublicIdentityAction extends StatelessWidget {
                       }
                     : null,
                 icon: const Icon(Icons.manage_accounts_outlined),
-                label: const Text('Change identity'),
+                label:
+                    Text(_adminL10n(context).adminCenterChangeIdentityAction),
               ),
             ],
           ),
@@ -2529,8 +4048,7 @@ class _AdminPublicIdentityDialogState
 
       setState(() {
         _isSubmitting = false;
-        _errorMessage = 'The public identity could not be changed. '
-            'Check the account state and try again.';
+        _errorMessage = _adminL10n(context).adminCenterIdentityChangeFailure;
       });
     }
   }
@@ -2547,7 +4065,7 @@ class _AdminPublicIdentityDialogState
 
     return AlertDialog(
       scrollable: true,
-      title: const Text('Change public identity'),
+      title: Text(_adminL10n(context).adminCenterChangePublicIdentityTitle),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
         child: Column(
@@ -2555,7 +4073,7 @@ class _AdminPublicIdentityDialogState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Choose the public account type and its verification state.',
+              _adminL10n(context).adminCenterChoosePublicIdentityMessage,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -2563,16 +4081,17 @@ class _AdminPublicIdentityDialogState
             const SizedBox(height: 16),
             DropdownButtonFormField<ActorType>(
               initialValue: _selectedActorType,
-              decoration: const InputDecoration(
-                labelText: 'Public account type',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText:
+                    _adminL10n(context).adminCenterPublicAccountTypeLabel,
+                border: const OutlineInputBorder(),
               ),
               isExpanded: true,
               items: [
                 for (final actorType in ActorType.values)
                   DropdownMenuItem<ActorType>(
                     value: actorType,
-                    child: Text(_actorTypeLabel(actorType)),
+                    child: Text(_actorTypeLabel(context, actorType)),
                   ),
               ],
               onChanged: _isSubmitting
@@ -2596,10 +4115,12 @@ class _AdminPublicIdentityDialogState
               key: ValueKey(_selectedVerificationLevel),
               initialValue: _selectedVerificationLevel,
               decoration: InputDecoration(
-                labelText: 'Verification level',
+                labelText:
+                    _adminL10n(context).adminCenterVerificationLevelLabel,
                 helperText: isPerson
-                    ? 'Level 1 and Level 2 are available only for Persona.'
-                    : 'Non-Persona accounts do not use Level 1 or Level 2.',
+                    ? _adminL10n(context).adminCenterPersonVerificationHelper
+                    : _adminL10n(context)
+                        .adminCenterNonPersonVerificationHelper,
                 border: const OutlineInputBorder(),
               ),
               isExpanded: true,
@@ -2607,7 +4128,7 @@ class _AdminPublicIdentityDialogState
                 for (final level in VerificationLevel.values)
                   DropdownMenuItem<VerificationLevel>(
                     value: level,
-                    child: Text(_verificationLevelLabel(level)),
+                    child: Text(_verificationLevelLabel(context, level)),
                   ),
               ],
               onChanged: _isSubmitting || !isPerson
@@ -2625,14 +4146,14 @@ class _AdminPublicIdentityDialogState
             ),
             const SizedBox(height: 16),
             _AdminIdentitySummaryCard(
-              label: 'Before',
+              label: _adminL10n(context).adminCenterBeforeLabel,
               actorType: widget.detail.actorType,
               verificationLevel: widget.detail.verificationLevel,
               icon: Icons.history,
             ),
             const SizedBox(height: 8),
             _AdminIdentitySummaryCard(
-              label: 'After',
+              label: _adminL10n(context).adminCenterAfterLabel,
               actorType: _selectedActorType,
               verificationLevel: _selectedVerificationLevel,
               icon: Icons.arrow_forward,
@@ -2645,11 +4166,11 @@ class _AdminPublicIdentityDialogState
               minLines: 2,
               maxLines: 4,
               maxLength: SetAdminPublicIdentity.maximumReasonLength,
-              decoration: const InputDecoration(
-                labelText: 'Reason',
-                hintText: 'Explain why the public identity must change',
+              decoration: InputDecoration(
+                labelText: _adminL10n(context).adminCenterReasonLabel,
+                hintText: _adminL10n(context).adminCenterIdentityReasonHint,
                 alignLabelWithHint: true,
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
               onChanged: (_) {
                 setState(_clearConfirmation);
@@ -2659,9 +4180,8 @@ class _AdminPublicIdentityDialogState
               value: _confirmed,
               contentPadding: EdgeInsets.zero,
               controlAffinity: ListTileControlAffinity.leading,
-              title: const Text(
-                'I confirm the public identity and verification level '
-                'shown above.',
+              title: Text(
+                _adminL10n(context).adminCenterIdentityConfirmation,
               ),
               onChanged: _isSubmitting ||
                       !_hasChanged ||
@@ -2714,7 +4234,7 @@ class _AdminPublicIdentityDialogState
               : () {
                   Navigator.of(context).pop();
                 },
-          child: const Text('Cancel'),
+          child: Text(_adminL10n(context).commonCancelButton),
         ),
         FilledButton(
           onPressed: _canSubmit ? _submit : null,
@@ -2723,7 +4243,7 @@ class _AdminPublicIdentityDialogState
                   dimension: 18,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Change identity'),
+              : Text(_adminL10n(context).adminCenterChangeIdentityAction),
         ),
       ],
     );
@@ -2781,8 +4301,8 @@ class _AdminIdentitySummaryCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${_actorTypeLabel(actorType)} · '
-                    '${_verificationLevelLabel(verificationLevel)}',
+                    '${_actorTypeLabel(context, actorType)} · '
+                    '${_verificationLevelLabel(context, verificationLevel)}',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: emphasized
                           ? theme.colorScheme.onPrimaryContainer
@@ -2800,41 +4320,137 @@ class _AdminIdentitySummaryCard extends StatelessWidget {
   }
 }
 
-String _actorTypeLabel(ActorType actorType) {
+String _actorTypeLabel(BuildContext context, ActorType actorType) {
+  final l10n = _adminL10n(context);
   switch (actorType) {
     case ActorType.citizen:
-      return 'Persona';
+      return l10n.identityActorTypePerson;
     case ActorType.publicOfficial:
-      return 'Public official';
+      return l10n.identityActorTypePublicOfficial;
     case ActorType.institution:
-      return 'Public institution';
+      return l10n.identityActorTypePublicInstitution;
     case ActorType.organization:
-      return 'Verified organization';
+      return l10n.identityActorTypeVerifiedOrganization;
   }
 }
 
-String _verificationLevelLabel(VerificationLevel verificationLevel) {
+String _verificationLevelLabel(
+  BuildContext context,
+  VerificationLevel verificationLevel,
+) {
+  final l10n = _adminL10n(context);
   switch (verificationLevel) {
     case VerificationLevel.none:
-      return 'Not verified';
+      return l10n.adminCenterVerificationNotVerified;
     case VerificationLevel.level1:
-      return 'Level 1';
+      return l10n.adminCenterVerificationLevel1;
     case VerificationLevel.level2:
-      return 'Level 2';
+      return l10n.adminCenterVerificationLevel2;
+  }
+}
+
+String _adminRoleLabel(BuildContext context, Role role) {
+  final l10n = _adminL10n(context);
+  switch (role) {
+    case Role.user:
+      return l10n.adminCenterRoleUser;
+    case Role.moderator:
+      return l10n.adminCenterRoleModerator;
+    case Role.admin:
+      return l10n.adminCenterRoleAdmin;
+  }
+}
+
+String _adminAccountStatusLabel(
+  BuildContext context,
+  AdminAccountStatus status,
+) {
+  final l10n = _adminL10n(context);
+  switch (status) {
+    case AdminAccountStatus.active:
+      return l10n.adminCenterAccountStatusActive;
+    case AdminAccountStatus.suspended:
+      return l10n.adminCenterAccountStatusSuspended;
+    case AdminAccountStatus.deleted:
+      return l10n.adminCenterAccountStatusDeleted;
+    case AdminAccountStatus.unknown:
+      return l10n.adminCenterUnknown;
+  }
+}
+
+String _adminAuditResultLabel(BuildContext context, AdminAuditResult result) {
+  final l10n = _adminL10n(context);
+  switch (result) {
+    case AdminAuditResult.success:
+      return l10n.adminCenterOutcomeSuccess;
+    case AdminAuditResult.failure:
+      return l10n.adminCenterOutcomeFailure;
+    case AdminAuditResult.denied:
+      return l10n.adminCenterOutcomeDenied;
+    case AdminAuditResult.noop:
+      return l10n.adminCenterOutcomeNoChange;
+    case AdminAuditResult.unknown:
+      return l10n.adminCenterOutcomeUnknown;
+  }
+}
+
+String _adminVerificationStatusLabel(
+  BuildContext context,
+  VerificationStatus status,
+) {
+  final l10n = _adminL10n(context);
+  switch (status) {
+    case VerificationStatus.none:
+      return l10n.adminCenterVerificationStatusNone;
+    case VerificationStatus.pending:
+      return l10n.adminCenterVerificationStatusPending;
+    case VerificationStatus.rejected:
+      return l10n.adminCenterVerificationStatusRejected;
+  }
+}
+
+String _adminReportTargetTypeLabel(
+  BuildContext context,
+  AdminReportTargetType targetType,
+) {
+  final l10n = _adminL10n(context);
+  switch (targetType) {
+    case AdminReportTargetType.poll:
+      return l10n.adminCenterPoll;
+    case AdminReportTargetType.post:
+      return l10n.adminCenterPost;
+    case AdminReportTargetType.news:
+      return l10n.adminCenterNews;
+    case AdminReportTargetType.unknown:
+      return l10n.adminCenterUnknown;
+  }
+}
+
+String _adminReportStatusLabel(
+  BuildContext context,
+  AdminReportStatus status,
+) {
+  final l10n = _adminL10n(context);
+  switch (status) {
+    case AdminReportStatus.open:
+      return l10n.adminCenterStatusOpen;
+    case AdminReportStatus.inReview:
+      return l10n.adminCenterStatusInReview;
+    case AdminReportStatus.resolved:
+      return l10n.adminCenterStatusResolved;
+    case AdminReportStatus.dismissed:
+      return l10n.adminCenterStatusDismissed;
+    case AdminReportStatus.unknown:
+      return l10n.adminCenterUnknown;
   }
 }
 
 class _AdminRoleChangeDialog extends StatefulWidget {
   final AdminUserDetail detail;
-  final Future<void> Function({
-    required Role role,
-    required String reason,
-  }) onConfirm;
+  final Future<void> Function({required Role role, required String reason})
+      onConfirm;
 
-  const _AdminRoleChangeDialog({
-    required this.detail,
-    required this.onConfirm,
-  });
+  const _AdminRoleChangeDialog({required this.detail, required this.onConfirm});
 
   @override
   State<_AdminRoleChangeDialog> createState() => _AdminRoleChangeDialogState();
@@ -2892,8 +4508,7 @@ class _AdminRoleChangeDialogState extends State<_AdminRoleChangeDialog> {
 
       setState(() {
         _isSubmitting = false;
-        _errorMessage = 'The role change could not be completed. '
-            'Check the account state and try again.';
+        _errorMessage = _adminL10n(context).adminCenterRoleChangeFailure;
       });
     }
   }
@@ -2905,7 +4520,7 @@ class _AdminRoleChangeDialogState extends State<_AdminRoleChangeDialog> {
 
     return AlertDialog(
       scrollable: true,
-      title: const Text('Change technical role'),
+      title: Text(_adminL10n(context).adminCenterChangeTechnicalRoleTitle),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
         child: Column(
@@ -2913,8 +4528,7 @@ class _AdminRoleChangeDialogState extends State<_AdminRoleChangeDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Choose the new technical role and record why this '
-              'change is required.',
+              _adminL10n(context).adminCenterChooseTechnicalRoleMessage,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -2922,9 +4536,9 @@ class _AdminRoleChangeDialogState extends State<_AdminRoleChangeDialog> {
             const SizedBox(height: 16),
             DropdownButtonFormField<Role>(
               initialValue: selectedRole,
-              decoration: const InputDecoration(
-                labelText: 'New technical role',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: _adminL10n(context).adminCenterNewTechnicalRoleLabel,
+                border: const OutlineInputBorder(),
               ),
               isExpanded: true,
               items: [
@@ -2932,7 +4546,7 @@ class _AdminRoleChangeDialogState extends State<_AdminRoleChangeDialog> {
                   DropdownMenuItem<Role>(
                     value: role,
                     enabled: role != widget.detail.systemRole,
-                    child: Text(role.storageKey),
+                    child: Text(_adminRoleLabel(context, role)),
                   ),
               ],
               onChanged: _isSubmitting
@@ -2947,14 +4561,16 @@ class _AdminRoleChangeDialogState extends State<_AdminRoleChangeDialog> {
             ),
             const SizedBox(height: 16),
             _AdminRoleSummaryCard(
-              label: 'Before',
-              role: widget.detail.systemRole.storageKey,
+              label: _adminL10n(context).adminCenterBeforeLabel,
+              role: _adminRoleLabel(context, widget.detail.systemRole),
               icon: Icons.history,
             ),
             const SizedBox(height: 8),
             _AdminRoleSummaryCard(
-              label: 'After',
-              role: selectedRole?.storageKey ?? 'Select a role',
+              label: _adminL10n(context).adminCenterAfterLabel,
+              role: selectedRole == null
+                  ? _adminL10n(context).adminCenterSelectRole
+                  : _adminRoleLabel(context, selectedRole),
               icon: Icons.arrow_forward,
               emphasized: selectedRole != null,
             ),
@@ -2976,9 +4592,7 @@ class _AdminRoleChangeDialogState extends State<_AdminRoleChangeDialog> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'This change ends the recipient’s active session. '
-                        'They must sign in again before continuing to use '
-                        'the account.',
+                        _adminL10n(context).adminCenterRoleSessionWarning,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onTertiaryContainer,
                           fontWeight: FontWeight.w600,
@@ -2996,11 +4610,11 @@ class _AdminRoleChangeDialogState extends State<_AdminRoleChangeDialog> {
               minLines: 2,
               maxLines: 4,
               maxLength: ChangeSystemRole.maximumReasonLength,
-              decoration: const InputDecoration(
-                labelText: 'Reason',
-                hintText: 'Explain why the technical role must change',
+              decoration: InputDecoration(
+                labelText: _adminL10n(context).adminCenterReasonLabel,
+                hintText: _adminL10n(context).adminCenterRoleReasonHint,
                 alignLabelWithHint: true,
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
               onChanged: (_) {
                 setState(() {
@@ -3013,9 +4627,8 @@ class _AdminRoleChangeDialogState extends State<_AdminRoleChangeDialog> {
               value: _confirmed,
               contentPadding: EdgeInsets.zero,
               controlAffinity: ListTileControlAffinity.leading,
-              title: const Text(
-                'I confirm the role shown above and understand that '
-                'the recipient must sign in again.',
+              title: Text(
+                _adminL10n(context).adminCenterRoleConfirmation,
               ),
               onChanged: _isSubmitting ||
                       selectedRole == null ||
@@ -3069,7 +4682,7 @@ class _AdminRoleChangeDialogState extends State<_AdminRoleChangeDialog> {
               : () {
                   Navigator.of(context).pop();
                 },
-          child: const Text('Cancel'),
+          child: Text(_adminL10n(context).commonCancelButton),
         ),
         FilledButton.icon(
           onPressed: _canSubmit
@@ -3084,7 +4697,9 @@ class _AdminRoleChangeDialogState extends State<_AdminRoleChangeDialog> {
                 )
               : const Icon(Icons.check),
           label: Text(
-            _isSubmitting ? 'Changing role' : 'Confirm role change',
+            _isSubmitting
+                ? _adminL10n(context).adminCenterChangingRole
+                : _adminL10n(context).adminCenterConfirmRoleChange,
           ),
         ),
       ],
@@ -3181,30 +4796,19 @@ class _AdminUserAttribute extends StatelessWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        border: Border.all(
-          color: foreground.withValues(alpha: 0.35),
-        ),
+        border: Border.all(color: foreground.withValues(alpha: 0.35)),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 9,
-          vertical: 5,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 15,
-              color: foreground,
-            ),
+            Icon(icon, size: 15, color: foreground),
             const SizedBox(width: 5),
             Text(
               label,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: foreground,
-              ),
+              style: theme.textTheme.labelMedium?.copyWith(color: foreground),
             ),
           ],
         ),
@@ -3234,7 +4838,7 @@ class _AdminReportsResultHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          '$totalCount ${totalCount == 1 ? 'report' : 'reports'}',
+          _adminL10n(context).adminCenterReportsCount(totalCount),
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w700,
           ),
@@ -3255,7 +4859,7 @@ class _AdminReportsResultHeader extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Could not update the report queue.',
+                      _adminL10n(context).adminCenterCouldNotUpdateReports,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onErrorContainer,
                       ),
@@ -3267,7 +4871,7 @@ class _AdminReportsResultHeader extends StatelessWidget {
                         : () {
                             unawaited(onRetry());
                           },
-                    child: const Text('Retry'),
+                    child: Text(_adminL10n(context).adminCenterRetryAction),
                   ),
                 ],
               ),
@@ -3296,17 +4900,8 @@ class _AdminReportCard extends StatelessWidget {
     required this.onChangeContentVisibility,
   });
 
-  String get _targetTypeLabel {
-    switch (report.targetType) {
-      case AdminReportTargetType.poll:
-        return 'Poll';
-      case AdminReportTargetType.post:
-        return 'Post';
-      case AdminReportTargetType.news:
-        return 'News';
-      case AdminReportTargetType.unknown:
-        return 'Unknown';
-    }
+  String _targetTypeLabel(BuildContext context) {
+    return _adminReportTargetTypeLabel(context, report.targetType);
   }
 
   IconData get _targetTypeIcon {
@@ -3322,32 +4917,24 @@ class _AdminReportCard extends StatelessWidget {
     }
   }
 
-  String get _statusLabel {
+  String _statusLabel(BuildContext context) {
     if (report.status == AdminReportStatus.inReview &&
         report.moderationDecision == AdminReportDecision.escalateToAdmin) {
-      return 'Awaiting admin decision';
+      return _adminL10n(context).adminCenterAwaitingAdminDecision;
     }
 
-    switch (report.status) {
-      case AdminReportStatus.open:
-        return 'Open';
-      case AdminReportStatus.inReview:
-        return 'In review';
-      case AdminReportStatus.resolved:
-        return 'Resolved';
-      case AdminReportStatus.dismissed:
-        return 'Dismissed';
-      case AdminReportStatus.unknown:
-        return 'Unknown';
-    }
+    return _adminReportStatusLabel(context, report.status);
   }
 
-  String get _targetLabel {
+  String _targetLabel(BuildContext context) {
     final title = report.targetTitle?.trim();
     if (title != null && title.isNotEmpty) {
       return title;
     }
-    return '$_targetTypeLabel ${report.targetId}';
+    return _adminL10n(context).adminCenterTargetFallback(
+      _targetTypeLabel(context),
+      report.targetId,
+    );
   }
 
   String? get _reportedProfileLabel {
@@ -3376,9 +4963,7 @@ class _AdminReportCard extends StatelessWidget {
     final materialLocalizations = MaterialLocalizations.of(context);
     final createdAt = report.createdAt.toLocal();
     final createdLabel = '${materialLocalizations.formatShortDate(createdAt)} '
-        '${materialLocalizations.formatTimeOfDay(
-      TimeOfDay.fromDateTime(createdAt),
-    )}';
+        '${materialLocalizations.formatTimeOfDay(TimeOfDay.fromDateTime(createdAt))}';
     final statusColor =
         report.status.isPending ? colors.primary : colors.onSurfaceVariant;
     final reportedProfileLabel = _reportedProfileLabel;
@@ -3397,13 +4982,13 @@ class _AdminReportCard extends StatelessWidget {
               children: [
                 _AdminUserAttribute(
                   icon: _targetTypeIcon,
-                  label: _targetTypeLabel,
+                  label: _targetTypeLabel(context),
                 ),
                 _AdminUserAttribute(
                   icon: report.status.isPending
                       ? Icons.pending_actions_outlined
                       : Icons.task_alt_outlined,
-                  label: _statusLabel,
+                  label: _statusLabel(context),
                   color: statusColor,
                 ),
                 if (report.moderationDecision ==
@@ -3413,8 +4998,8 @@ class _AdminReportCard extends StatelessWidget {
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,
                     label: report.contentIsHidden
-                        ? 'Content hidden'
-                        : 'Content visible',
+                        ? _adminL10n(context).adminCenterContentHidden
+                        : _adminL10n(context).adminCenterContentVisible,
                     color:
                         report.contentIsHidden ? colors.error : colors.tertiary,
                   ),
@@ -3426,7 +5011,7 @@ class _AdminReportCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              _targetLabel,
+              _targetLabel(context),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.titleMedium?.copyWith(
@@ -3442,7 +5027,7 @@ class _AdminReportCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              'Target ID: ${report.targetId}',
+              '${_adminL10n(context).adminCenterTargetIdLabel}: ${report.targetId}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall?.copyWith(
@@ -3451,7 +5036,7 @@ class _AdminReportCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Reported by: ${report.reporterUserId}',
+              '${_adminL10n(context).adminCenterReportedByLabel}: ${report.reporterUserId}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall?.copyWith(
@@ -3461,7 +5046,7 @@ class _AdminReportCard extends StatelessWidget {
             if (reportedProfileLabel != null) ...[
               const SizedBox(height: 4),
               Text(
-                'Content owner: $reportedProfileLabel',
+                '${_adminL10n(context).adminCenterContentOwnerLabel}: $reportedProfileLabel',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -3485,7 +5070,8 @@ class _AdminReportCard extends StatelessWidget {
                       unawaited(onRecordDecision!());
                     },
                     icon: const Icon(Icons.gavel_outlined),
-                    label: const Text('Review report'),
+                    label:
+                        Text(_adminL10n(context).adminCenterReviewReportAction),
                   ),
                 if (onResolveAdminEscalation != null)
                   FilledButton.icon(
@@ -3493,7 +5079,8 @@ class _AdminReportCard extends StatelessWidget {
                       unawaited(onResolveAdminEscalation!());
                     },
                     icon: const Icon(Icons.admin_panel_settings_outlined),
-                    label: const Text('Admin decision'),
+                    label: Text(
+                        _adminL10n(context).adminCenterAdminDecisionAction),
                   ),
                 if (onChangeContentVisibility != null)
                   FilledButton.tonalIcon(
@@ -3507,8 +5094,8 @@ class _AdminReportCard extends StatelessWidget {
                     ),
                     label: Text(
                       report.contentIsHidden
-                          ? 'Restore content'
-                          : 'Hide content',
+                          ? _adminL10n(context).adminCenterRestoreContentAction
+                          : _adminL10n(context).adminCenterHideContentAction,
                     ),
                   ),
                 if (onOpenReportedProfile != null)
@@ -3517,7 +5104,8 @@ class _AdminReportCard extends StatelessWidget {
                       unawaited(onOpenReportedProfile!());
                     },
                     icon: const Icon(Icons.person_outline),
-                    label: const Text('Open profile'),
+                    label:
+                        Text(_adminL10n(context).adminCenterOpenProfileAction),
                   ),
                 FilledButton.tonalIcon(
                   onPressed: report.hasOriginalTarget
@@ -3526,7 +5114,7 @@ class _AdminReportCard extends StatelessWidget {
                         }
                       : null,
                   icon: const Icon(Icons.open_in_new),
-                  label: const Text('Open content'),
+                  label: Text(_adminL10n(context).adminCenterOpenContentAction),
                 ),
               ],
             ),
@@ -3537,40 +5125,46 @@ class _AdminReportCard extends StatelessWidget {
   }
 }
 
-String _adminReportDecisionLabel(AdminReportDecision decision) {
+String _adminReportDecisionLabel(
+  BuildContext context,
+  AdminReportDecision decision,
+) {
+  final l10n = _adminL10n(context);
   switch (decision) {
     case AdminReportDecision.noViolation:
-      return 'No violation';
+      return l10n.adminCenterDecisionNoViolation;
     case AdminReportDecision.violationConfirmed:
-      return 'Violation confirmed';
+      return l10n.adminCenterDecisionViolationConfirmed;
     case AdminReportDecision.escalateToAdmin:
-      return 'Escalate to admin';
+      return l10n.adminCenterDecisionEscalateToAdmin;
     case AdminReportDecision.unknown:
-      return 'Unknown';
+      return l10n.adminCenterUnknown;
   }
 }
 
-String _adminReportResolutionLabel(AdminReportResolution resolution) {
+String _adminReportResolutionLabel(
+  BuildContext context,
+  AdminReportResolution resolution,
+) {
+  final l10n = _adminL10n(context);
   switch (resolution) {
     case AdminReportResolution.noAccountAction:
-      return 'No account action';
+      return l10n.adminCenterResolutionNoAccountAction;
     case AdminReportResolution.accountSuspended:
-      return 'Account suspended';
+      return l10n.adminCenterResolutionAccountSuspended;
     case AdminReportResolution.logoutForced:
-      return 'Logout forced';
+      return l10n.adminCenterResolutionLogoutForced;
     case AdminReportResolution.accountDeleted:
-      return 'Account deleted';
+      return l10n.adminCenterResolutionAccountDeleted;
     case AdminReportResolution.unknown:
-      return 'Unknown';
+      return l10n.adminCenterUnknown;
   }
 }
 
 class _AdminReportDecisionSummary extends StatelessWidget {
   final AdminReportEntry report;
 
-  const _AdminReportDecisionSummary({
-    required this.report,
-  });
+  const _AdminReportDecisionSummary({required this.report});
 
   @override
   Widget build(BuildContext context) {
@@ -3590,9 +5184,7 @@ class _AdminReportDecisionSummary extends StatelessWidget {
       final localValue = reviewedAt.toLocal();
       final localizations = MaterialLocalizations.of(context);
       reviewedLabel = '${localizations.formatShortDate(localValue)} '
-          '${localizations.formatTimeOfDay(
-        TimeOfDay.fromDateTime(localValue),
-      )}';
+          '${localizations.formatTimeOfDay(TimeOfDay.fromDateTime(localValue))}';
     }
 
     return DecoratedBox(
@@ -3615,7 +5207,7 @@ class _AdminReportDecisionSummary extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    _adminReportDecisionLabel(decision),
+                    _adminReportDecisionLabel(context, decision),
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -3625,10 +5217,7 @@ class _AdminReportDecisionSummary extends StatelessWidget {
             ),
             if (reviewNote != null && reviewNote.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text(
-                reviewNote,
-                style: theme.textTheme.bodyMedium,
-              ),
+              Text(reviewNote, style: theme.textTheme.bodyMedium),
             ],
             if ((reviewedBy != null && reviewedBy.isNotEmpty) ||
                 reviewedLabel != null) ...[
@@ -3636,7 +5225,7 @@ class _AdminReportDecisionSummary extends StatelessWidget {
               Text(
                 [
                   if (reviewedBy != null && reviewedBy.isNotEmpty)
-                    'Reviewer: $reviewedBy',
+                    '${_adminL10n(context).adminCenterReviewerLabel}: $reviewedBy',
                   if (reviewedLabel != null) reviewedLabel,
                 ].join(' · '),
                 maxLines: 2,
@@ -3687,18 +5276,17 @@ class _AdminReportDecisionDialogState
   }
 
   String get _decisionDescription {
+    final l10n = _adminL10n(context);
     switch (_selectedDecision) {
       case AdminReportDecision.noViolation:
-        return 'Dismisses the report because the content does not violate '
-            'the current rules.';
+        return l10n.adminCenterDecisionDescriptionNoViolation;
       case AdminReportDecision.violationConfirmed:
-        return 'Confirms a violation and keeps the case in review for the '
-            'content action handled in AC8.5.';
+        return l10n.adminCenterDecisionDescriptionViolation;
       case AdminReportDecision.escalateToAdmin:
-        return 'Escalates the case for an administrator account-level review.';
+        return l10n.adminCenterDecisionDescriptionEscalation;
       case AdminReportDecision.unknown:
       case null:
-        return 'Choose the moderation outcome for this report.';
+        return l10n.adminCenterChooseModerationOutcome;
     }
   }
 
@@ -3737,8 +5325,8 @@ class _AdminReportDecisionDialogState
 
       setState(() {
         _isSubmitting = false;
-        _errorMessage = 'The decision could not be recorded. The report may '
-            'already have been reviewed. Refresh the queue and try again.';
+        _errorMessage =
+            _adminL10n(context).adminCenterDecisionAlreadyRecordedFailure;
       });
     }
   }
@@ -3751,7 +5339,7 @@ class _AdminReportDecisionDialogState
 
     return AlertDialog(
       scrollable: true,
-      title: const Text('Review report'),
+      title: Text(_adminL10n(context).adminCenterReviewReportAction),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 540),
         child: Column(
@@ -3760,8 +5348,13 @@ class _AdminReportDecisionDialogState
           children: [
             Text(
               targetTitle == null || targetTitle.isEmpty
-                  ? '${widget.report.targetType.storageKey}: '
-                      '${widget.report.targetId}'
+                  ? _adminL10n(context).adminCenterTargetFallback(
+                      _adminReportTargetTypeLabel(
+                        context,
+                        widget.report.targetType,
+                      ),
+                      widget.report.targetId,
+                    )
                   : targetTitle,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
@@ -3771,7 +5364,8 @@ class _AdminReportDecisionDialogState
             ),
             const SizedBox(height: 4),
             Text(
-              'Report reason: ${widget.report.reason}',
+              '${_adminL10n(context).adminCenterReportReasonLabel}: '
+              '${widget.report.reason}',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colors.onSurfaceVariant,
               ),
@@ -3780,22 +5374,37 @@ class _AdminReportDecisionDialogState
             DropdownButtonFormField<AdminReportDecision>(
               initialValue: _selectedDecision,
               isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Decision',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: _adminL10n(context).adminCenterDecisionLabel,
+                border: const OutlineInputBorder(),
               ),
-              items: const [
+              items: [
                 DropdownMenuItem<AdminReportDecision>(
                   value: AdminReportDecision.noViolation,
-                  child: Text('No violation'),
+                  child: Text(
+                    _adminReportDecisionLabel(
+                      context,
+                      AdminReportDecision.noViolation,
+                    ),
+                  ),
                 ),
                 DropdownMenuItem<AdminReportDecision>(
                   value: AdminReportDecision.violationConfirmed,
-                  child: Text('Violation confirmed'),
+                  child: Text(
+                    _adminReportDecisionLabel(
+                      context,
+                      AdminReportDecision.violationConfirmed,
+                    ),
+                  ),
                 ),
                 DropdownMenuItem<AdminReportDecision>(
                   value: AdminReportDecision.escalateToAdmin,
-                  child: Text('Escalate to admin'),
+                  child: Text(
+                    _adminReportDecisionLabel(
+                      context,
+                      AdminReportDecision.escalateToAdmin,
+                    ),
+                  ),
                 ),
               ],
               onChanged: _isSubmitting
@@ -3821,11 +5430,11 @@ class _AdminReportDecisionDialogState
               minLines: 3,
               maxLines: 6,
               maxLength: RecordAdminReportDecision.maximumReviewNoteLength,
-              decoration: const InputDecoration(
-                labelText: 'Review note',
-                hintText: 'Explain the evidence and the moderation decision',
+              decoration: InputDecoration(
+                labelText: _adminL10n(context).adminCenterReviewNoteLabel,
+                hintText: _adminL10n(context).adminCenterReviewNoteHint,
                 alignLabelWithHint: true,
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
               onChanged: (_) {
                 setState(() {
@@ -3834,9 +5443,9 @@ class _AdminReportDecisionDialogState
               },
             ),
             Text(
-              'A note of at least '
-              '${RecordAdminReportDecision.minimumReviewNoteLength} '
-              'characters is required.',
+              _adminL10n(context).adminCenterMinimumCharactersRequired(
+                RecordAdminReportDecision.minimumReviewNoteLength,
+              ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colors.onSurfaceVariant,
               ),
@@ -3853,10 +5462,7 @@ class _AdminReportDecisionDialogState
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.error_outline,
-                        color: colors.onErrorContainer,
-                      ),
+                      Icon(Icons.error_outline, color: colors.onErrorContainer),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -3881,7 +5487,7 @@ class _AdminReportDecisionDialogState
               : () {
                   Navigator.of(context).pop();
                 },
-          child: const Text('Cancel'),
+          child: Text(_adminL10n(context).commonCancelButton),
         ),
         FilledButton.icon(
           onPressed: _canSubmit
@@ -3896,7 +5502,9 @@ class _AdminReportDecisionDialogState
                 )
               : const Icon(Icons.check),
           label: Text(
-            _isSubmitting ? 'Recording decision' : 'Confirm decision',
+            _isSubmitting
+                ? _adminL10n(context).adminCenterRecordingDecision
+                : _adminL10n(context).adminCenterConfirmDecision,
           ),
         ),
       ],
@@ -3941,21 +5549,19 @@ class _AdminReportResolutionDialogState
   }
 
   String get _resolutionDescription {
+    final l10n = _adminL10n(context);
     switch (_selectedResolution) {
       case AdminReportResolution.noAccountAction:
-        return 'Closes the escalated report without changing the account.';
+        return l10n.adminCenterResolutionDescriptionNoAction;
       case AdminReportResolution.accountSuspended:
-        return 'Closes the report after a successful account suspension has '
-            'already been recorded in the audit log.';
+        return l10n.adminCenterResolutionDescriptionSuspended;
       case AdminReportResolution.logoutForced:
-        return 'Closes the report after a successful forced logout has already '
-            'been recorded in the audit log.';
+        return l10n.adminCenterResolutionDescriptionLogout;
       case AdminReportResolution.accountDeleted:
-        return 'Closes the report after a successful account deletion has '
-            'already been recorded in the audit log.';
+        return l10n.adminCenterResolutionDescriptionDeleted;
       case AdminReportResolution.unknown:
       case null:
-        return 'Choose the final administrator outcome for this escalation.';
+        return l10n.adminCenterChooseFinalOutcome;
     }
   }
 
@@ -3995,10 +5601,8 @@ class _AdminReportResolutionDialogState
       setState(() {
         _isSubmitting = false;
         _errorMessage = resolution == AdminReportResolution.noAccountAction
-            ? 'The administrator decision could not be recorded. Refresh the '
-                'queue and try again.'
-            : 'Complete the matching account action first, then return to this '
-                'report and record the final administrator decision.';
+            ? _adminL10n(context).adminCenterAdminResolutionFailure
+            : _adminL10n(context).adminCenterAdminResolutionRequiresAction;
       });
     }
   }
@@ -4008,10 +5612,13 @@ class _AdminReportResolutionDialogState
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final targetTitle = widget.report.targetTitle?.trim();
+    final escalationNote = widget.report.reviewNote?.trim().isNotEmpty == true
+        ? widget.report.reviewNote!.trim()
+        : _adminL10n(context).adminCenterNotAvailable;
 
     return AlertDialog(
       scrollable: true,
-      title: const Text('Administrator decision'),
+      title: Text(_adminL10n(context).adminCenterAdministratorDecisionTitle),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 560),
         child: Column(
@@ -4020,8 +5627,13 @@ class _AdminReportResolutionDialogState
           children: [
             Text(
               targetTitle == null || targetTitle.isEmpty
-                  ? '${widget.report.targetType.storageKey}: '
-                      '${widget.report.targetId}'
+                  ? _adminL10n(context).adminCenterTargetFallback(
+                      _adminReportTargetTypeLabel(
+                        context,
+                        widget.report.targetType,
+                      ),
+                      widget.report.targetId,
+                    )
                   : targetTitle,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
@@ -4031,8 +5643,8 @@ class _AdminReportResolutionDialogState
             ),
             const SizedBox(height: 4),
             Text(
-              'Escalation note: '
-              '${widget.report.reviewNote?.trim().isNotEmpty == true ? widget.report.reviewNote!.trim() : 'Not available'}',
+              '${_adminL10n(context).adminCenterEscalationNoteLabel}: '
+              '$escalationNote',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colors.onSurfaceVariant,
               ),
@@ -4041,26 +5653,46 @@ class _AdminReportResolutionDialogState
             DropdownButtonFormField<AdminReportResolution>(
               initialValue: _selectedResolution,
               isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Final outcome',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: _adminL10n(context).adminCenterFinalOutcomeLabel,
+                border: const OutlineInputBorder(),
               ),
-              items: const [
+              items: [
                 DropdownMenuItem<AdminReportResolution>(
                   value: AdminReportResolution.noAccountAction,
-                  child: Text('No account action'),
+                  child: Text(
+                    _adminReportResolutionLabel(
+                      context,
+                      AdminReportResolution.noAccountAction,
+                    ),
+                  ),
                 ),
                 DropdownMenuItem<AdminReportResolution>(
                   value: AdminReportResolution.accountSuspended,
-                  child: Text('Account suspended'),
+                  child: Text(
+                    _adminReportResolutionLabel(
+                      context,
+                      AdminReportResolution.accountSuspended,
+                    ),
+                  ),
                 ),
                 DropdownMenuItem<AdminReportResolution>(
                   value: AdminReportResolution.logoutForced,
-                  child: Text('Logout forced'),
+                  child: Text(
+                    _adminReportResolutionLabel(
+                      context,
+                      AdminReportResolution.logoutForced,
+                    ),
+                  ),
                 ),
                 DropdownMenuItem<AdminReportResolution>(
                   value: AdminReportResolution.accountDeleted,
-                  child: Text('Account deleted'),
+                  child: Text(
+                    _adminReportResolutionLabel(
+                      context,
+                      AdminReportResolution.accountDeleted,
+                    ),
+                  ),
                 ),
               ],
               onChanged: _isSubmitting
@@ -4086,11 +5718,12 @@ class _AdminReportResolutionDialogState
               minLines: 3,
               maxLines: 6,
               maxLength: _maximumNoteLength,
-              decoration: const InputDecoration(
-                labelText: 'Administrator note',
-                hintText: 'Explain the final account-level decision',
+              decoration: InputDecoration(
+                labelText:
+                    _adminL10n(context).adminCenterAdministratorNoteLabel,
+                hintText: _adminL10n(context).adminCenterAdministratorNoteHint,
                 alignLabelWithHint: true,
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
               onChanged: (_) {
                 setState(() {
@@ -4099,7 +5732,9 @@ class _AdminReportResolutionDialogState
               },
             ),
             Text(
-              'A note of at least $_minimumNoteLength characters is required.',
+              _adminL10n(context).adminCenterMinimumCharactersRequired(
+                _minimumNoteLength,
+              ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colors.onSurfaceVariant,
               ),
@@ -4116,10 +5751,7 @@ class _AdminReportResolutionDialogState
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.error_outline,
-                        color: colors.onErrorContainer,
-                      ),
+                      Icon(Icons.error_outline, color: colors.onErrorContainer),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -4144,7 +5776,7 @@ class _AdminReportResolutionDialogState
               : () {
                   Navigator.of(context).pop();
                 },
-          child: const Text('Cancel'),
+          child: Text(_adminL10n(context).commonCancelButton),
         ),
         FilledButton.icon(
           onPressed: _canSubmit
@@ -4159,7 +5791,9 @@ class _AdminReportResolutionDialogState
                 )
               : const Icon(Icons.check),
           label: Text(
-            _isSubmitting ? 'Recording decision' : 'Confirm decision',
+            _isSubmitting
+                ? _adminL10n(context).adminCenterRecordingDecision
+                : _adminL10n(context).adminCenterConfirmDecision,
           ),
         ),
       ],
@@ -4170,10 +5804,8 @@ class _AdminReportResolutionDialogState
 class _AdminReportContentVisibilityDialog extends StatefulWidget {
   final AdminReportEntry report;
   final bool requestedHiddenState;
-  final Future<void> Function({
-    required bool isHidden,
-    required String reason,
-  }) onConfirm;
+  final Future<void> Function({required bool isHidden, required String reason})
+      onConfirm;
 
   const _AdminReportContentVisibilityDialog({
     required this.report,
@@ -4235,10 +5867,8 @@ class _AdminReportContentVisibilityDialogState
       setState(() {
         _isSubmitting = false;
         _errorMessage = widget.requestedHiddenState
-            ? 'The content could not be hidden. Refresh the report queue and '
-                'try again.'
-            : 'The content could not be restored. Refresh the report queue '
-                'and try again.';
+            ? _adminL10n(context).adminCenterHideContentFailure
+            : _adminL10n(context).adminCenterRestoreContentFailure;
       });
     }
   }
@@ -4248,8 +5878,9 @@ class _AdminReportContentVisibilityDialogState
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final targetTitle = widget.report.targetTitle?.trim();
-    final actionLabel =
-        widget.requestedHiddenState ? 'Hide content' : 'Restore content';
+    final actionLabel = widget.requestedHiddenState
+        ? _adminL10n(context).adminCenterHideContentAction
+        : _adminL10n(context).adminCenterRestoreContentAction;
 
     return AlertDialog(
       scrollable: true,
@@ -4262,8 +5893,13 @@ class _AdminReportContentVisibilityDialogState
           children: [
             Text(
               targetTitle == null || targetTitle.isEmpty
-                  ? '${widget.report.targetType.storageKey}: '
-                      '${widget.report.targetId}'
+                  ? _adminL10n(context).adminCenterTargetFallback(
+                      _adminReportTargetTypeLabel(
+                        context,
+                        widget.report.targetType,
+                      ),
+                      widget.report.targetId,
+                    )
                   : targetTitle,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
@@ -4283,11 +5919,8 @@ class _AdminReportContentVisibilityDialogState
                 padding: const EdgeInsets.all(12),
                 child: Text(
                   widget.requestedHiddenState
-                      ? 'This removes the reported content from public access. '
-                          'The action can later be reversed from the Resolved '
-                          'reports filter.'
-                      : 'This makes the reported content publicly available '
-                          'again.',
+                      ? _adminL10n(context).adminCenterHideContentWarning
+                      : _adminL10n(context).adminCenterRestoreContentWarning,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: widget.requestedHiddenState
                         ? colors.onErrorContainer
@@ -4304,10 +5937,10 @@ class _AdminReportContentVisibilityDialogState
               maxLines: 6,
               maxLength: SetReportContentVisibility.maximumReasonLength,
               decoration: InputDecoration(
-                labelText: 'Action reason',
+                labelText: _adminL10n(context).adminCenterActionReasonLabel,
                 hintText: widget.requestedHiddenState
-                    ? 'Explain why the content must be hidden'
-                    : 'Explain why the content can be restored',
+                    ? _adminL10n(context).adminCenterHideContentReasonHint
+                    : _adminL10n(context).adminCenterRestoreContentReasonHint,
                 alignLabelWithHint: true,
                 border: const OutlineInputBorder(),
               ),
@@ -4318,9 +5951,9 @@ class _AdminReportContentVisibilityDialogState
               },
             ),
             Text(
-              'A reason of at least '
-              '${SetReportContentVisibility.minimumReasonLength} '
-              'characters is required.',
+              _adminL10n(context).adminCenterMinimumReasonCharactersRequired(
+                SetReportContentVisibility.minimumReasonLength,
+              ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colors.onSurfaceVariant,
               ),
@@ -4337,10 +5970,7 @@ class _AdminReportContentVisibilityDialogState
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.error_outline,
-                        color: colors.onErrorContainer,
-                      ),
+                      Icon(Icons.error_outline, color: colors.onErrorContainer),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -4365,7 +5995,7 @@ class _AdminReportContentVisibilityDialogState
               : () {
                   Navigator.of(context).pop();
                 },
-          child: const Text('Cancel'),
+          child: Text(_adminL10n(context).commonCancelButton),
         ),
         FilledButton.icon(
           onPressed: _canSubmit
@@ -4386,8 +6016,8 @@ class _AdminReportContentVisibilityDialogState
           label: Text(
             _isSubmitting
                 ? (widget.requestedHiddenState
-                    ? 'Hiding content'
-                    : 'Restoring content')
+                    ? _adminL10n(context).adminCenterHidingContent
+                    : _adminL10n(context).adminCenterRestoringContent)
                 : actionLabel,
           ),
         ),
@@ -4399,11 +6029,9 @@ class _AdminReportContentVisibilityDialogState
 class _AdminReportedProfileSheet extends StatelessWidget {
   final AdminReportEntry report;
 
-  const _AdminReportedProfileSheet({
-    required this.report,
-  });
+  const _AdminReportedProfileSheet({required this.report});
 
-  String get _displayName {
+  String _displayName(BuildContext context) {
     final displayName = report.reportedDisplayName?.trim();
     if (displayName != null && displayName.isNotEmpty) {
       return displayName;
@@ -4414,7 +6042,7 @@ class _AdminReportedProfileSheet extends StatelessWidget {
       return '@$username';
     }
 
-    return 'Reported profile';
+    return _adminL10n(context).adminCenterReportedProfileTitle;
   }
 
   String? get _username {
@@ -4425,32 +6053,18 @@ class _AdminReportedProfileSheet extends StatelessWidget {
     return '@$username';
   }
 
-  String get _actorTypeLabel {
-    switch (report.reportedActorType) {
-      case ActorType.citizen:
-        return 'Person';
-      case ActorType.publicOfficial:
-        return 'Public official';
-      case ActorType.institution:
-        return 'Public institution';
-      case ActorType.organization:
-        return 'Verified organization';
-      case null:
-        return 'Not available';
-    }
+  String _reportedActorTypeLabel(BuildContext context) {
+    final actorType = report.reportedActorType;
+    return actorType == null
+        ? _adminL10n(context).adminCenterNotAvailable
+        : _actorTypeLabel(context, actorType);
   }
 
-  String get _verificationLabel {
-    switch (report.reportedVerificationLevel) {
-      case VerificationLevel.level1:
-        return 'Level 1';
-      case VerificationLevel.level2:
-        return 'Level 2';
-      case VerificationLevel.none:
-        return 'Not verified';
-      case null:
-        return 'Not available';
-    }
+  String _reportedVerificationLabel(BuildContext context) {
+    final level = report.reportedVerificationLevel;
+    return level == null
+        ? _adminL10n(context).adminCenterNotAvailable
+        : _verificationLevelLabel(context, level);
   }
 
   @override
@@ -4476,7 +6090,7 @@ class _AdminReportedProfileSheet extends StatelessWidget {
               children: [
                 _AdminReportedProfileAvatar(
                   avatarUrl: avatarUrl,
-                  fallbackLabel: _displayName,
+                  fallbackLabel: _displayName(context),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -4484,7 +6098,7 @@ class _AdminReportedProfileSheet extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _displayName,
+                        _displayName(context),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.titleLarge?.copyWith(
@@ -4507,30 +6121,30 @@ class _AdminReportedProfileSheet extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             _AdminUserDetailSection(
-              title: 'Reported profile',
+              title: _adminL10n(context).adminCenterReportedProfileTitle,
               children: [
                 _AdminUserDetailField(
                   icon: Icons.badge_outlined,
-                  label: 'Public identity',
-                  value: _actorTypeLabel,
+                  label: _adminL10n(context).adminCenterPublicIdentitySection,
+                  value: _reportedActorTypeLabel(context),
                 ),
                 _AdminUserDetailField(
                   icon: Icons.verified_user_outlined,
-                  label: 'Verification',
-                  value: _verificationLabel,
+                  label: _adminL10n(context).adminCenterVerificationNavigation,
+                  value: _reportedVerificationLabel(context),
                 ),
                 _AdminUserDetailField(
                   icon: Icons.fingerprint,
-                  label: 'User ID',
-                  value: report.reportedUserId ?? 'Not available',
+                  label: _adminL10n(context).adminCenterUserIdLabel,
+                  value: report.reportedUserId ??
+                      _adminL10n(context).adminCenterNotAvailable,
                   selectable: true,
                 ),
               ],
             ),
             const SizedBox(height: 12),
             Text(
-              'This profile context comes from the protected report queue. '
-              'Administrative account actions remain separate.',
+              _adminL10n(context).adminCenterReportedProfileNotice,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colors.onSurfaceVariant,
               ),
@@ -4621,7 +6235,7 @@ class _AdminReportsPagination extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            'Page $currentPage of $totalPages',
+            _adminL10n(context).adminCenterPageOf(currentPage, totalPages),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium,
@@ -4672,7 +6286,7 @@ class _AdminUsersPagination extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            'Page ${page.page} of $totalPages',
+            _adminL10n(context).adminCenterPageOf(page.page, totalPages),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium,
@@ -4774,15 +6388,11 @@ class _AdminDashboardStateCard extends StatelessWidget {
                 icon: actionInProgress
                     ? const SizedBox.square(
                         dimension: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.refresh, size: 18),
                 label: Text(actionLabel!),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(0, 44),
-                ),
+                style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
               ),
             ],
           ],
@@ -4813,14 +6423,11 @@ class _AdminDashboardRefreshError extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
         child: Row(
           children: [
-            Icon(
-              Icons.error_outline,
-              color: colors.onErrorContainer,
-            ),
+            Icon(Icons.error_outline, color: colors.onErrorContainer),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Could not refresh the indicators.',
+                _adminL10n(context).adminCenterCouldNotRefreshIndicators,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colors.onErrorContainer,
                 ),
@@ -4832,7 +6439,7 @@ class _AdminDashboardRefreshError extends StatelessWidget {
                   : () async {
                       await onRetry();
                     },
-              child: const Text('Retry'),
+              child: Text(_adminL10n(context).adminCenterRetryAction),
             ),
           ],
         ),
@@ -4862,14 +6469,11 @@ class _AdminUserDetailRefreshError extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
         child: Row(
           children: [
-            Icon(
-              Icons.error_outline,
-              color: colors.onErrorContainer,
-            ),
+            Icon(Icons.error_outline, color: colors.onErrorContainer),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Could not refresh the account details.',
+                _adminL10n(context).adminCenterCouldNotRefreshAccount,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colors.onErrorContainer,
                 ),
@@ -4881,7 +6485,7 @@ class _AdminUserDetailRefreshError extends StatelessWidget {
                   : () async {
                       await onRetry();
                     },
-              child: const Text('Retry'),
+              child: Text(_adminL10n(context).adminCenterRetryAction),
             ),
           ],
         ),

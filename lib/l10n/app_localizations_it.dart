@@ -910,6 +910,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get homeThemeDarkMenuItem => 'Tema: scuro';
 
   @override
+  String get profileAppLanguageTitle => 'Lingua dell\'app';
+
+  @override
+  String get profileAppLanguageSystem => 'Sistema';
+
+  @override
+  String get profileAppLanguageSystemDescription => 'Usa la lingua del dispositivo';
+
+  @override
+  String get profileAppLanguageItalian => 'Italiano';
+
+  @override
+  String get profileAppLanguageEnglish => 'Inglese';
+
+  @override
   String get homeNotificationsTooltip => 'Notifiche';
 
   @override
@@ -1811,4 +1826,846 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get verificationReviewOperationFailure => 'Operazione non riuscita.';
+
+  @override
+  String get adminCenterTitle => 'Centro amministrazione';
+
+  @override
+  String get adminCenterDashboardNavigation => 'Riepilogo';
+
+  @override
+  String get adminCenterUsersNavigation => 'Utenti';
+
+  @override
+  String get adminCenterVerificationNavigation => 'Verifiche';
+
+  @override
+  String get adminCenterReportsNavigation => 'Segnalazioni';
+
+  @override
+  String get adminCenterAuditNavigation => 'Registro attività';
+
+  @override
+  String get adminCenterAccountDetailsTitle => 'Dettagli account';
+
+  @override
+  String get adminCenterTryAgainAction => 'Riprova';
+
+  @override
+  String get adminCenterRetryAction => 'Riprova';
+
+  @override
+  String get adminCenterClearAction => 'Cancella';
+
+  @override
+  String get adminCenterApplyFiltersAction => 'Applica filtri';
+
+  @override
+  String get adminCenterAllDates => 'Tutte le date';
+
+  @override
+  String get adminCenterAuditDateFilterHelp => 'Filtra il registro per data';
+
+  @override
+  String get adminCenterActorUserIdLabel => 'ID utente autore';
+
+  @override
+  String get adminCenterActionLabel => 'Azione';
+
+  @override
+  String get adminCenterAuditActionHint => 'resolve_escalated_report';
+
+  @override
+  String get adminCenterTargetIdLabel => 'ID destinatario';
+
+  @override
+  String get adminCenterOutcomeLabel => 'Esito';
+
+  @override
+  String get adminCenterAllOutcomes => 'Tutti gli esiti';
+
+  @override
+  String get adminCenterOutcomeSuccess => 'Successo';
+
+  @override
+  String get adminCenterOutcomeFailure => 'Errore';
+
+  @override
+  String get adminCenterOutcomeDenied => 'Negato';
+
+  @override
+  String get adminCenterOutcomeNoChange => 'Nessuna modifica';
+
+  @override
+  String get adminCenterOutcomeUnknown => 'Sconosciuto';
+
+  @override
+  String get adminCenterAuditUnavailableTitle => 'Registro attività non disponibile';
+
+  @override
+  String get adminCenterAuditUnavailableMessage => 'Controlla la connessione e i permessi, poi riprova.';
+
+  @override
+  String get adminCenterNoAuditEntriesTitle => 'Nessuna registrazione';
+
+  @override
+  String get adminCenterNoAuditEntriesMessage => 'Non ci sono registrazioni corrispondenti ai filtri selezionati.';
+
+  @override
+  String get adminCenterAuditIdLabel => 'ID registrazione';
+
+  @override
+  String get adminCenterActorLabel => 'Autore';
+
+  @override
+  String get adminCenterReasonLabel => 'Motivo';
+
+  @override
+  String get adminCenterTimestampLabel => 'Data e ora';
+
+  @override
+  String get adminCenterErrorLabel => 'Errore';
+
+  @override
+  String get adminCenterRecordedValuesTitle => 'Valori registrati';
+
+  @override
+  String get adminCenterPreviousValueLabel => 'Precedente';
+
+  @override
+  String get adminCenterNewValueLabel => 'Nuovo';
+
+  @override
+  String get adminCenterContentTypeLabel => 'Tipo di contenuto';
+
+  @override
+  String get adminCenterAllContent => 'Tutti i contenuti';
+
+  @override
+  String get adminCenterPolls => 'Sondaggi';
+
+  @override
+  String get adminCenterPosts => 'Post';
+
+  @override
+  String get adminCenterNews => 'Notizie';
+
+  @override
+  String get adminCenterAwaitingAdminDecision => 'In attesa della decisione admin';
+
+  @override
+  String get adminCenterStatusLabel => 'Stato';
+
+  @override
+  String get adminCenterAllStatuses => 'Tutti gli stati';
+
+  @override
+  String get adminCenterStatusOpen => 'Aperta';
+
+  @override
+  String get adminCenterStatusInReview => 'In revisione';
+
+  @override
+  String get adminCenterStatusResolved => 'Risolta';
+
+  @override
+  String get adminCenterStatusDismissed => 'Archiviata';
+
+  @override
+  String get adminCenterAdminQueueUnavailableTitle => 'Coda escalation admin non disponibile';
+
+  @override
+  String get adminCenterReportsUnavailableTitle => 'Segnalazioni non disponibili';
+
+  @override
+  String get adminCenterConnectionTryAgainMessage => 'Controlla la connessione e riprova.';
+
+  @override
+  String get adminCenterNoAdminReportsTitle => 'Nessuna segnalazione in attesa dell’admin';
+
+  @override
+  String get adminCenterNoReportsTitle => 'Nessuna segnalazione';
+
+  @override
+  String get adminCenterNoAdminReportsMessage => 'Non ci sono segnalazioni escalate che richiedono una revisione amministrativa.';
+
+  @override
+  String get adminCenterNoReportsMessage => 'Non ci sono segnalazioni corrispondenti ai filtri selezionati.';
+
+  @override
+  String get adminCenterSearchUsersHint => 'Cerca per nome, username, email o ID';
+
+  @override
+  String get adminCenterClearSearchTooltip => 'Cancella ricerca';
+
+  @override
+  String get adminCenterUsersUnavailableTitle => 'Utenti non disponibili';
+
+  @override
+  String get adminCenterNoUsersFoundTitle => 'Nessun utente trovato';
+
+  @override
+  String get adminCenterNoUsersTitle => 'Nessun utente';
+
+  @override
+  String get adminCenterNoUsersFoundMessage => 'Prova un nome, username, email o ID diverso.';
+
+  @override
+  String get adminCenterNoUsersMessage => 'Non ci sono account da mostrare.';
+
+  @override
+  String get adminCenterAccountUnavailableTitle => 'Account non disponibile';
+
+  @override
+  String get adminCenterBackToUsersAction => 'Torna agli utenti';
+
+  @override
+  String get adminCenterPublicIdentitySection => 'Identità pubblica';
+
+  @override
+  String get adminCenterDisplayNameLabel => 'Nome visualizzato';
+
+  @override
+  String get adminCenterNotProvided => 'Non indicato';
+
+  @override
+  String get adminCenterUsernameLabel => 'Username';
+
+  @override
+  String get adminCenterUserIdLabel => 'ID utente';
+
+  @override
+  String get adminCenterIdentityTypeLabel => 'Tipo di identità';
+
+  @override
+  String get adminCenterAccountSection => 'Account';
+
+  @override
+  String get adminCenterTechnicalRoleLabel => 'Ruolo tecnico';
+
+  @override
+  String get adminCenterRoleMirrorLabel => 'Ruolo replicato nel profilo';
+
+  @override
+  String get adminCenterRoleSynchronizationLabel => 'Sincronizzazione ruolo';
+
+  @override
+  String get adminCenterSynchronized => 'Sincronizzato';
+
+  @override
+  String get adminCenterNotSynchronized => 'Non sincronizzato';
+
+  @override
+  String get adminCenterRoleNotSynchronized => 'Ruolo non sincronizzato';
+
+  @override
+  String get adminCenterAccountStatusLabel => 'Stato account';
+
+  @override
+  String get adminCenterSuspendedUntilLabel => 'Sospeso fino al';
+
+  @override
+  String get adminCenterAccountManagementSection => 'Gestione account';
+
+  @override
+  String get adminCenterDangerZoneSection => 'Zona pericolosa';
+
+  @override
+  String get adminCenterRoleManagementSection => 'Gestione ruolo';
+
+  @override
+  String get adminCenterVerificationLevelLabel => 'Livello di verifica';
+
+  @override
+  String get adminCenterVerificationStatusLabel => 'Stato verifica';
+
+  @override
+  String get adminCenterAccessInformationSection => 'Informazioni di accesso';
+
+  @override
+  String get adminCenterEmailLabel => 'Email';
+
+  @override
+  String get adminCenterNotAvailable => 'Non disponibile';
+
+  @override
+  String get adminCenterEmailConfirmationLabel => 'Conferma email';
+
+  @override
+  String get adminCenterNotConfirmed => 'Non confermata';
+
+  @override
+  String get adminCenterRegisteredLabel => 'Registrato';
+
+  @override
+  String get adminCenterLastAccessLabel => 'Ultimo accesso';
+
+  @override
+  String get adminCenterLoadingDashboardTitle => 'Caricamento riepilogo';
+
+  @override
+  String get adminCenterLoadingDashboardMessage => 'Recupero degli indicatori più recenti.';
+
+  @override
+  String get adminCenterDashboardUnavailableTitle => 'Riepilogo non disponibile';
+
+  @override
+  String get adminCenterIndicatorsUnavailableMessage => 'Non è stato possibile caricare gli indicatori.';
+
+  @override
+  String get adminCenterVerificationPendingIndicator => 'Verifiche in attesa';
+
+  @override
+  String get adminCenterOpenReportsIndicator => 'Segnalazioni aperte';
+
+  @override
+  String get adminCenterSuspendedAccountsIndicator => 'Account sospesi';
+
+  @override
+  String get adminCenterStaffIndicator => 'Staff';
+
+  @override
+  String get adminCenterNoPendingWorkTitle => 'Nessuna attività in attesa';
+
+  @override
+  String get adminCenterNoPendingWorkMessage => 'Verifiche, segnalazioni e account sospesi sono tutti sotto controllo.';
+
+  @override
+  String get adminCenterCouldNotUpdateUsers => 'Non è stato possibile aggiornare l’elenco utenti.';
+
+  @override
+  String get adminCenterCouldNotUpdateReports => 'Non è stato possibile aggiornare la coda segnalazioni.';
+
+  @override
+  String get adminCenterUnnamedUser => 'Utente senza nome';
+
+  @override
+  String get adminCenterTemporarySuspensionTitle => 'Sospensione temporanea';
+
+  @override
+  String get adminCenterReactivateDescription => 'Rimuovi subito la sospensione e consenti un nuovo accesso.';
+
+  @override
+  String get adminCenterSuspendDescription => 'Blocca l’accesso per un periodo limitato e termina tutte le sessioni attive.';
+
+  @override
+  String get adminCenterSuspensionUnavailableDescription => 'La sospensione richiede un account sincronizzato e non amministratore.';
+
+  @override
+  String get adminCenterReactivateAccountAction => 'Riattiva account';
+
+  @override
+  String get adminCenterSuspendAccountAction => 'Sospendi account';
+
+  @override
+  String get adminCenterForceLogoutAction => 'Forza logout';
+
+  @override
+  String get adminCenterSuspendedForceLogoutDescription => 'La sospensione ha già terminato le sessioni attive. Riattiva l’account prima di provare un logout separato.';
+
+  @override
+  String get adminCenterForceLogoutDescription => 'Termina tutte le sessioni attive senza sospendere l’account.';
+
+  @override
+  String get adminCenterForceLogoutUnavailableDescription => 'Il logout forzato richiede un account sincronizzato e non amministratore.';
+
+  @override
+  String get adminCenterPermanentDeletionTitle => 'Eliminazione definitiva account';
+
+  @override
+  String get adminCenterPermanentDeletionDescription => 'Elimina i dati di autenticazione, termina tutte le sessioni e anonimizza il record pubblico conservato.';
+
+  @override
+  String get adminCenterDeletionUnavailableDescription => 'L’eliminazione richiede un account sincronizzato e non amministratore.';
+
+  @override
+  String get adminCenterDeleteAccountPermanentlyAction => 'Elimina definitivamente l’account';
+
+  @override
+  String get adminCenterDurationOneHour => '1 ora';
+
+  @override
+  String get adminCenterDurationOneDay => '24 ore';
+
+  @override
+  String get adminCenterDurationSevenDays => '7 giorni';
+
+  @override
+  String get adminCenterDurationThirtyDays => '30 giorni';
+
+  @override
+  String get adminCenterSuspendImmediateEffect => 'L’account perderà subito l’accesso e tutte le sessioni attive verranno terminate.';
+
+  @override
+  String get adminCenterDurationLabel => 'Durata';
+
+  @override
+  String get adminCenterSuspendReasonHint => 'Spiega perché questo account deve essere sospeso';
+
+  @override
+  String get adminCenterReactivateReasonHint => 'Spiega perché questo account può essere riattivato';
+
+  @override
+  String get adminCenterReactivateConfirmation => 'Confermo che questo account può riottenere l’accesso.';
+
+  @override
+  String get adminCenterReactivateFailure => 'Non è stato possibile riattivare l’account. Controlla ruolo e stato, poi riprova.';
+
+  @override
+  String get adminCenterReactivateSuccess => 'Account riattivato. Ora è consentito un nuovo accesso.';
+
+  @override
+  String get adminCenterForceLogoutFullDescription => 'Termina tutte le sessioni attive di questo account. L’account resta attivo e può accedere di nuovo.';
+
+  @override
+  String get adminCenterForceLogoutReasonHint => 'Spiega perché le sessioni attive devono essere terminate';
+
+  @override
+  String get adminCenterForceLogoutConfirmation => 'Confermo la terminazione immediata di tutte le sessioni attive di questo account.';
+
+  @override
+  String get adminCenterForceLogoutFailure => 'Non è stato possibile disconnettere l’account. Controlla ruolo e stato, poi riprova.';
+
+  @override
+  String get adminCenterForceLogoutSuccess => 'Sessioni attive terminate. L’account può accedere di nuovo.';
+
+  @override
+  String get adminCenterSuspendFailure => 'Non è stato possibile sospendere l’account. Controlla ruolo e stato, poi riprova.';
+
+  @override
+  String get adminCenterDeleteReasonHint => 'Spiega perché questo account deve essere eliminato';
+
+  @override
+  String get adminCenterTypeDeleteLabel => 'Digita DELETE';
+
+  @override
+  String get adminCenterTypeAccountIdLabel => 'Digita l’ID account completo';
+
+  @override
+  String get adminCenterDeletePermanentlyAction => 'Elimina definitivamente';
+
+  @override
+  String get adminCenterDeleteIrreversibleWarning => 'Questa azione è irreversibile. I dati di autenticazione e le sessioni attive verranno rimossi, l’avatar verrà eliminato e il record pubblico conservato sarà anonimizzato. La registrazione di audit resterà disponibile.';
+
+  @override
+  String get adminCenterDeleteFailure => 'Non è stato possibile eliminare l’account. Controlla ruolo, stato e valori di conferma, poi riprova.';
+
+  @override
+  String get adminCenterDeleteSuccess => 'Account eliminato definitivamente e dati personali anonimizzati.';
+
+  @override
+  String get adminCenterChangeTechnicalRoleTitle => 'Cambia ruolo tecnico';
+
+  @override
+  String get adminCenterChangeRoleDescription => 'Controlla il ruolo attuale e quello richiesto prima di confermare.';
+
+  @override
+  String get adminCenterChangeRoleUnavailableDescription => 'Il cambio ruolo richiede un account sincronizzato e non eliminato.';
+
+  @override
+  String get adminCenterChangeRoleAction => 'Cambia ruolo';
+
+  @override
+  String get adminCenterChangePublicIdentityTitle => 'Cambia identità pubblica';
+
+  @override
+  String get adminCenterChangeIdentityDescription => 'Aggiorna il tipo di account pubblico e il livello di verifica.';
+
+  @override
+  String get adminCenterChangeIdentityUnavailableDescription => 'Il cambio identità richiede un account sincronizzato e non amministratore.';
+
+  @override
+  String get adminCenterChangeIdentityAction => 'Cambia identità';
+
+  @override
+  String get adminCenterChoosePublicIdentityMessage => 'Scegli il tipo di account pubblico e il relativo stato di verifica.';
+
+  @override
+  String get adminCenterPublicAccountTypeLabel => 'Tipo di account pubblico';
+
+  @override
+  String get adminCenterPersonVerificationHelper => 'Livello 1 e Livello 2 sono disponibili solo per Persona.';
+
+  @override
+  String get adminCenterNonPersonVerificationHelper => 'Gli account non Persona non usano Livello 1 o Livello 2.';
+
+  @override
+  String get adminCenterBeforeLabel => 'Prima';
+
+  @override
+  String get adminCenterAfterLabel => 'Dopo';
+
+  @override
+  String get adminCenterIdentityReasonHint => 'Spiega perché l’identità pubblica deve cambiare';
+
+  @override
+  String get adminCenterIdentityConfirmation => 'Confermo l’identità pubblica e il livello di verifica mostrati sopra.';
+
+  @override
+  String get adminCenterIdentityChangeFailure => 'Non è stato possibile cambiare l’identità pubblica. Controlla lo stato dell’account e riprova.';
+
+  @override
+  String get adminCenterChooseTechnicalRoleMessage => 'Scegli il nuovo ruolo tecnico e registra il motivo del cambiamento.';
+
+  @override
+  String get adminCenterNewTechnicalRoleLabel => 'Nuovo ruolo tecnico';
+
+  @override
+  String get adminCenterSelectRole => 'Seleziona un ruolo';
+
+  @override
+  String get adminCenterRoleSessionWarning => 'Questa modifica termina la sessione attiva del destinatario. Dovrà accedere di nuovo prima di continuare a usare l’account.';
+
+  @override
+  String get adminCenterRoleReasonHint => 'Spiega perché il ruolo tecnico deve cambiare';
+
+  @override
+  String get adminCenterRoleConfirmation => 'Confermo il ruolo mostrato sopra e comprendo che il destinatario dovrà accedere di nuovo.';
+
+  @override
+  String get adminCenterRoleChangeFailure => 'Non è stato possibile completare il cambio ruolo. Controlla lo stato dell’account e riprova.';
+
+  @override
+  String get adminCenterChangingRole => 'Cambio ruolo';
+
+  @override
+  String get adminCenterConfirmRoleChange => 'Conferma cambio ruolo';
+
+  @override
+  String get adminCenterRoleUser => 'Utente';
+
+  @override
+  String get adminCenterRoleModerator => 'Moderatore';
+
+  @override
+  String get adminCenterRoleAdmin => 'Admin';
+
+  @override
+  String get adminCenterAccountStatusActive => 'Attivo';
+
+  @override
+  String get adminCenterAccountStatusSuspended => 'Sospeso';
+
+  @override
+  String get adminCenterAccountStatusDeleted => 'Eliminato';
+
+  @override
+  String get adminCenterVerificationStatusNone => 'Nessuna';
+
+  @override
+  String get adminCenterVerificationStatusPending => 'In attesa';
+
+  @override
+  String get adminCenterVerificationStatusRejected => 'Rifiutata';
+
+  @override
+  String get adminCenterVerificationNotVerified => 'Non verificata';
+
+  @override
+  String get adminCenterVerificationLevel1 => 'Livello 1';
+
+  @override
+  String get adminCenterVerificationLevel2 => 'Livello 2';
+
+  @override
+  String get adminCenterReportSingular => 'segnalazione';
+
+  @override
+  String get adminCenterReportPlural => 'segnalazioni';
+
+  @override
+  String get adminCenterUserSingular => 'utente';
+
+  @override
+  String get adminCenterUserPlural => 'utenti';
+
+  @override
+  String get adminCenterPoll => 'Sondaggio';
+
+  @override
+  String get adminCenterPost => 'Post';
+
+  @override
+  String get adminCenterUnknown => 'Sconosciuto';
+
+  @override
+  String get adminCenterContentHidden => 'Contenuto nascosto';
+
+  @override
+  String get adminCenterContentVisible => 'Contenuto visibile';
+
+  @override
+  String get adminCenterReportedByLabel => 'Segnalato da';
+
+  @override
+  String get adminCenterContentOwnerLabel => 'Autore contenuto';
+
+  @override
+  String get adminCenterReviewReportAction => 'Revisiona segnalazione';
+
+  @override
+  String get adminCenterAdminDecisionAction => 'Decisione admin';
+
+  @override
+  String get adminCenterRestoreContentAction => 'Ripristina contenuto';
+
+  @override
+  String get adminCenterHideContentAction => 'Nascondi contenuto';
+
+  @override
+  String get adminCenterOpenProfileAction => 'Apri profilo';
+
+  @override
+  String get adminCenterOpenContentAction => 'Apri contenuto';
+
+  @override
+  String get adminCenterDecisionNoViolation => 'Nessuna violazione';
+
+  @override
+  String get adminCenterDecisionViolationConfirmed => 'Violazione confermata';
+
+  @override
+  String get adminCenterDecisionEscalateToAdmin => 'Escala all’admin';
+
+  @override
+  String get adminCenterResolutionNoAccountAction => 'Nessuna azione sull’account';
+
+  @override
+  String get adminCenterResolutionAccountSuspended => 'Account sospeso';
+
+  @override
+  String get adminCenterResolutionLogoutForced => 'Logout forzato';
+
+  @override
+  String get adminCenterResolutionAccountDeleted => 'Account eliminato';
+
+  @override
+  String get adminCenterReviewerLabel => 'Revisore';
+
+  @override
+  String get adminCenterDecisionDescriptionNoViolation => 'Archivia la segnalazione perché il contenuto non viola le regole attuali.';
+
+  @override
+  String get adminCenterDecisionDescriptionViolation => 'Conferma una violazione e mantiene il caso in revisione per l’azione sul contenuto prevista in AC8.5.';
+
+  @override
+  String get adminCenterDecisionDescriptionEscalation => 'Escala il caso per una revisione amministrativa a livello di account.';
+
+  @override
+  String get adminCenterChooseModerationOutcome => 'Scegli l’esito di moderazione per questa segnalazione.';
+
+  @override
+  String get adminCenterDecisionAlreadyRecordedFailure => 'Non è stato possibile registrare la decisione. La segnalazione potrebbe essere già stata revisionata. Aggiorna la coda e riprova.';
+
+  @override
+  String get adminCenterDecisionLabel => 'Decisione';
+
+  @override
+  String get adminCenterReportReasonLabel => 'Motivo segnalazione';
+
+  @override
+  String get adminCenterReviewNoteLabel => 'Nota di revisione';
+
+  @override
+  String get adminCenterReviewNoteHint => 'Spiega le prove e la decisione di moderazione';
+
+  @override
+  String get adminCenterRecordingDecision => 'Registrazione decisione';
+
+  @override
+  String get adminCenterConfirmDecision => 'Conferma decisione';
+
+  @override
+  String get adminCenterAdministratorDecisionTitle => 'Decisione amministratore';
+
+  @override
+  String get adminCenterResolutionDescriptionNoAction => 'Chiude la segnalazione escalata senza modificare l’account.';
+
+  @override
+  String get adminCenterResolutionDescriptionSuspended => 'Chiude la segnalazione dopo che una sospensione riuscita è stata registrata nel registro attività.';
+
+  @override
+  String get adminCenterResolutionDescriptionLogout => 'Chiude la segnalazione dopo che un logout forzato riuscito è stato registrato nel registro attività.';
+
+  @override
+  String get adminCenterResolutionDescriptionDeleted => 'Chiude la segnalazione dopo che un’eliminazione account riuscita è stata registrata nel registro attività.';
+
+  @override
+  String get adminCenterChooseFinalOutcome => 'Scegli l’esito amministrativo finale per questa escalation.';
+
+  @override
+  String get adminCenterAdminResolutionFailure => 'Non è stato possibile registrare la decisione amministrativa. Aggiorna la coda e riprova.';
+
+  @override
+  String get adminCenterAdminResolutionRequiresAction => 'Completa prima l’azione account corrispondente, poi torna a questa segnalazione e registra la decisione amministrativa finale.';
+
+  @override
+  String get adminCenterEscalationNoteLabel => 'Nota escalation';
+
+  @override
+  String get adminCenterFinalOutcomeLabel => 'Esito finale';
+
+  @override
+  String get adminCenterAdministratorNoteLabel => 'Nota amministratore';
+
+  @override
+  String get adminCenterAdministratorNoteHint => 'Spiega la decisione finale a livello di account';
+
+  @override
+  String get adminCenterHideContentFailure => 'Non è stato possibile nascondere il contenuto. Aggiorna la coda segnalazioni e riprova.';
+
+  @override
+  String get adminCenterRestoreContentFailure => 'Non è stato possibile ripristinare il contenuto. Aggiorna la coda segnalazioni e riprova.';
+
+  @override
+  String get adminCenterHideContentWarning => 'Rimuove il contenuto segnalato dall’accesso pubblico. L’azione potrà essere annullata dal filtro delle segnalazioni risolte.';
+
+  @override
+  String get adminCenterRestoreContentWarning => 'Rende nuovamente pubblico il contenuto segnalato.';
+
+  @override
+  String get adminCenterActionReasonLabel => 'Motivo azione';
+
+  @override
+  String get adminCenterHideContentReasonHint => 'Spiega perché il contenuto deve essere nascosto';
+
+  @override
+  String get adminCenterRestoreContentReasonHint => 'Spiega perché il contenuto può essere ripristinato';
+
+  @override
+  String get adminCenterHidingContent => 'Contenuto in occultamento';
+
+  @override
+  String get adminCenterRestoringContent => 'Ripristino contenuto';
+
+  @override
+  String get adminCenterReportedProfileTitle => 'Profilo segnalato';
+
+  @override
+  String get adminCenterReportedProfileNotice => 'Queste informazioni del profilo provengono dalla coda protetta delle segnalazioni. Le azioni amministrative sull’account restano separate.';
+
+  @override
+  String get adminCenterCouldNotRefreshIndicators => 'Non è stato possibile aggiornare gli indicatori.';
+
+  @override
+  String get adminCenterCouldNotRefreshAccount => 'Non è stato possibile aggiornare i dettagli account.';
+
+  @override
+  String get adminCenterReportAlreadyReviewed => 'Questa segnalazione è già stata revisionata o non è più in attesa.';
+
+  @override
+  String get adminCenterReportNotAwaitingAdmin => 'Questa segnalazione non è in attesa di una decisione amministrativa.';
+
+  @override
+  String get adminCenterConfirmedViolationRequired => 'È necessaria una violazione confermata prima di cambiare la visibilità del contenuto.';
+
+  @override
+  String get adminCenterContentHiddenSuccess => 'Il contenuto segnalato è stato nascosto.';
+
+  @override
+  String get adminCenterContentRestoredSuccess => 'Il contenuto segnalato è stato ripristinato.';
+
+  @override
+  String get adminCenterMissingContentId => 'Manca l’identificativo del contenuto originale.';
+
+  @override
+  String get adminCenterUnsupportedTargetType => 'Questa segnalazione ha un tipo di destinatario non supportato.';
+
+  @override
+  String get adminCenterOriginalContentUnavailable => 'Il contenuto originale non è più disponibile.';
+
+  @override
+  String get adminCenterNoReportedProfile => 'Nessun profilo segnalato è associato a questo contenuto.';
+
+  @override
+  String adminCenterRoleChangedSuccess(String previousRole, String newRole) {
+    return 'Ruolo tecnico cambiato da $previousRole a $newRole. Il destinatario è stato disconnesso e deve accedere di nuovo.';
+  }
+
+  @override
+  String adminCenterIdentityChangedSuccess(String actorType, String verificationLevel) {
+    return 'Identità pubblica cambiata in $actorType con $verificationLevel.';
+  }
+
+  @override
+  String adminCenterAccountSuspendedSuccess(String dateTime) {
+    return 'Account sospeso fino al $dateTime. Il destinatario è stato disconnesso.';
+  }
+
+  @override
+  String adminCenterReportDecisionRecorded(String decision) {
+    return 'Decisione sulla segnalazione registrata: $decision.';
+  }
+
+  @override
+  String adminCenterAdministratorDecisionRecorded(String decision) {
+    return 'Decisione amministrativa registrata: $decision.';
+  }
+
+  @override
+  String adminCenterUsersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count utenti',
+      one: '$count utente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String adminCenterReportsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count segnalazioni',
+      one: '$count segnalazione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String adminCenterAccountValue(String account) {
+    return 'Account: $account';
+  }
+
+  @override
+  String adminCenterSuspendedUntilValue(String dateTime) {
+    return 'Sospeso fino al: $dateTime';
+  }
+
+  @override
+  String adminCenterSuspendConfirmation(String dateTime) {
+    return 'Confermo la sospensione fino al $dateTime e la terminazione immediata delle sessioni attive.';
+  }
+
+  @override
+  String adminCenterAccountIdValue(String accountId) {
+    return 'ID account: $accountId';
+  }
+
+  @override
+  String adminCenterCurrentRoleValue(String role) {
+    return 'Attuale: $role';
+  }
+
+  @override
+  String adminCenterTargetFallback(String targetType, String targetId) {
+    return '$targetType $targetId';
+  }
+
+  @override
+  String adminCenterMinimumCharactersRequired(int count) {
+    return 'È richiesta una nota di almeno $count caratteri.';
+  }
+
+  @override
+  String adminCenterMinimumReasonCharactersRequired(int count) {
+    return 'È richiesto un motivo di almeno $count caratteri.';
+  }
+
+  @override
+  String adminCenterPageOf(int currentPage, int totalPages) {
+    return 'Pagina $currentPage di $totalPages';
+  }
 }

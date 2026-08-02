@@ -314,6 +314,13 @@ class _AdminCenterAccessGateState extends State<_AdminCenterAccessGate> {
     return AdminCenterPage(
       currentRole: currentRole,
       onRefresh: _checkAccess,
+      sectionBuilder: (_, section) {
+        if (section == AdminCenterSection.verification) {
+          return const VerificationReviewPage();
+        }
+
+        return const SizedBox.shrink();
+      },
     );
   }
 }

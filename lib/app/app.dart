@@ -39,6 +39,65 @@ class AppThemeModeController {
   }
 }
 
+class AppLocaleController {
+  AppLocaleController._();
+
+  static const String _localePreferenceKey = 'app_locale_preference';
+
+  static final ValueNotifier<Locale?> locale = ValueNotifier<Locale?>(null);
+
+  static bool _isLoaded = false;
+
+  static Future<void> load() async {
+    if (_isLoaded) {
+      return;
+    }
+    _isLoaded = true;
+
+    try {
+      final languageCode = await AppDI.instance.storageService.readString(
+        _localePreferenceKey,
+      );
+
+      final supportedLanguageCode = switch (languageCode) {
+        'it' => 'it',
+        'en' => 'en',
+        _ => null,
+      };
+
+      if (supportedLanguageCode != null) {
+        locale.value = Locale(supportedLanguageCode);
+      }
+    } catch (_) {
+      // Se la preferenza locale non è disponibile, resta attiva la lingua
+      // del dispositivo.
+    }
+  }
+
+  static Future<void> setLocale(Locale? value) async {
+    if (locale.value == value) {
+      return;
+    }
+
+    locale.value = value;
+
+    try {
+      if (value == null) {
+        await AppDI.instance.storageService.remove(_localePreferenceKey);
+        return;
+      }
+
+      await AppDI.instance.storageService.writeString(
+        _localePreferenceKey,
+        value.languageCode,
+      );
+    } catch (_) {
+      // Il cambio resta attivo per la sessione corrente anche se il salvataggio
+      // locale non è temporaneamente disponibile.
+    }
+  }
+}
+
 class SocialeVoteApp extends StatefulWidget {
   const SocialeVoteApp({super.key});
 
@@ -74,6 +133,7 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppLocaleController.load());
     _listenAuthRecovery();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -198,31 +258,37 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: AppThemeModeController.themeMode,
-      builder: (context, themeMode, _) {
-        return MaterialApp(
-          navigatorKey: NavigationService.navigatorKey,
-          title: 'Social Vote',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: themeMode,
-          scrollBehavior: const MaterialScrollBehavior().copyWith(
-            scrollbars: false,
-          ),
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: AppLocalizations.supportedLocales,
-          navigatorObservers: _enableAnalyticsObserver
-              ? <NavigatorObserver>[_analyticsObserver]
-              : const <NavigatorObserver>[],
-          initialRoute: AppRouter.initialRoute,
-          onGenerateRoute: AppRouter.onGenerateRoute,
+    return ValueListenableBuilder<Locale?>(
+      valueListenable: AppLocaleController.locale,
+      builder: (context, appLocale, _) {
+        return ValueListenableBuilder<ThemeMode>(
+          valueListenable: AppThemeModeController.themeMode,
+          builder: (context, themeMode, _) {
+            return MaterialApp(
+              navigatorKey: NavigationService.navigatorKey,
+              title: 'Social Vote',
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeMode,
+              locale: appLocale,
+              scrollBehavior: const MaterialScrollBehavior().copyWith(
+                scrollbars: false,
+              ),
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: AppLocalizations.supportedLocales,
+              navigatorObservers: _enableAnalyticsObserver
+                  ? <NavigatorObserver>[_analyticsObserver]
+                  : const <NavigatorObserver>[],
+              initialRoute: AppRouter.initialRoute,
+              onGenerateRoute: AppRouter.onGenerateRoute,
+            );
+          },
         );
       },
     );

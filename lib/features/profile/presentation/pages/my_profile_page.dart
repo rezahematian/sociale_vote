@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 // R3_ACCOUNT_GROUPED_LAYOUT_V2
@@ -160,6 +162,57 @@ class _MyProfileViewState extends State<_MyProfileView> {
 
     if (!mounted) return;
     setState(() {});
+  }
+
+  Future<void> _showAppLanguageSheet() async {
+    final l10n = AppLocalizations.of(context)!;
+    final currentLanguageCode =
+        AppLocaleController.locale.value?.languageCode ?? 'system';
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: RadioGroup<String>(
+            groupValue: currentLanguageCode,
+            onChanged: (value) {
+              if (value == null) return;
+
+              final locale = switch (value) {
+                'it' => const Locale('it'),
+                'en' => const Locale('en'),
+                _ => null,
+              };
+
+              unawaited(AppLocaleController.setLocale(locale));
+              Navigator.of(sheetContext).pop();
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RadioListTile<String>(
+                  value: 'system',
+                  title: Text(l10n.profileAppLanguageSystem),
+                  subtitle: Text(
+                    l10n.profileAppLanguageSystemDescription,
+                  ),
+                ),
+                RadioListTile<String>(
+                  value: 'it',
+                  title: Text(l10n.profileAppLanguageItalian),
+                ),
+                RadioListTile<String>(
+                  value: 'en',
+                  title: Text(l10n.profileAppLanguageEnglish),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _showVerificationCenter({
@@ -1126,6 +1179,18 @@ class _MyProfileViewState extends State<_MyProfileView> {
                       onTap: _showThemeModeSheet,
                     ),
                     const Divider(height: 1),
+                    ValueListenableBuilder<Locale?>(
+                      valueListenable: AppLocaleController.locale,
+                      builder: (context, locale, _) {
+                        return _SettingsTile(
+                          title: l10n.profileAppLanguageTitle,
+                          subtitle: _appLocaleLabel(l10n, locale),
+                          icon: Icons.language_outlined,
+                          onTap: _showAppLanguageSheet,
+                        );
+                      },
+                    ),
+                    const Divider(height: 1),
                     FutureBuilder<int>(
                       future: _unreadNotificationsFuture,
                       builder: (context, snapshot) {
@@ -1393,6 +1458,17 @@ class _MyProfileViewState extends State<_MyProfileView> {
         return 'Chiaro';
       case ThemeMode.dark:
         return 'Scuro';
+    }
+  }
+
+  String _appLocaleLabel(AppLocalizations l10n, Locale? locale) {
+    switch (locale?.languageCode) {
+      case 'it':
+        return l10n.profileAppLanguageItalian;
+      case 'en':
+        return l10n.profileAppLanguageEnglish;
+      default:
+        return l10n.profileAppLanguageSystem;
     }
   }
 

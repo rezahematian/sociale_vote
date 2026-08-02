@@ -491,6 +491,26 @@
   "@homeThemeDarkMenuItem": {
     "description": "Voce del menu Account per usare il tema scuro"
   },
+  "profileAppLanguageTitle": "Lingua dell'app",
+  "@profileAppLanguageTitle": {
+    "description": "Titolo dell'impostazione della lingua dell'app"
+  },
+  "profileAppLanguageSystem": "Sistema",
+  "@profileAppLanguageSystem": {
+    "description": "Opzione che segue la lingua del dispositivo"
+  },
+  "profileAppLanguageSystemDescription": "Usa la lingua del dispositivo",
+  "@profileAppLanguageSystemDescription": {
+    "description": "Descrizione dell'opzione lingua di sistema"
+  },
+  "profileAppLanguageItalian": "Italiano",
+  "@profileAppLanguageItalian": {
+    "description": "Opzione lingua italiana dell'app"
+  },
+  "profileAppLanguageEnglish": "Inglese",
+  "@profileAppLanguageEnglish": {
+    "description": "Opzione lingua inglese dell'app"
+  },
   "homeNotificationsTooltip": "Notifiche",
   "@homeNotificationsTooltip": {
     "description": "Tooltip del pulsante notifiche nella top bar Home"
@@ -1728,5 +1748,395 @@
   "verificationReviewOperationFailure": "Operazione non riuscita.",
   "@verificationReviewOperationFailure": {
     "description": "Fallback error message for a failed review operation"
+  },
+  "adminCenterTitle": "Centro amministrazione",
+  "adminCenterDashboardNavigation": "Riepilogo",
+  "adminCenterUsersNavigation": "Utenti",
+  "adminCenterVerificationNavigation": "Verifiche",
+  "adminCenterReportsNavigation": "Segnalazioni",
+  "adminCenterAuditNavigation": "Registro attività",
+  "adminCenterAccountDetailsTitle": "Dettagli account",
+  "adminCenterTryAgainAction": "Riprova",
+  "adminCenterRetryAction": "Riprova",
+  "adminCenterClearAction": "Cancella",
+  "adminCenterApplyFiltersAction": "Applica filtri",
+  "adminCenterAllDates": "Tutte le date",
+  "adminCenterAuditDateFilterHelp": "Filtra il registro per data",
+  "adminCenterActorUserIdLabel": "ID utente autore",
+  "adminCenterActionLabel": "Azione",
+  "adminCenterAuditActionHint": "resolve_escalated_report",
+  "adminCenterTargetIdLabel": "ID destinatario",
+  "adminCenterOutcomeLabel": "Esito",
+  "adminCenterAllOutcomes": "Tutti gli esiti",
+  "adminCenterOutcomeSuccess": "Successo",
+  "adminCenterOutcomeFailure": "Errore",
+  "adminCenterOutcomeDenied": "Negato",
+  "adminCenterOutcomeNoChange": "Nessuna modifica",
+  "adminCenterOutcomeUnknown": "Sconosciuto",
+  "adminCenterAuditUnavailableTitle": "Registro attività non disponibile",
+  "adminCenterAuditUnavailableMessage": "Controlla la connessione e i permessi, poi riprova.",
+  "adminCenterNoAuditEntriesTitle": "Nessuna registrazione",
+  "adminCenterNoAuditEntriesMessage": "Non ci sono registrazioni corrispondenti ai filtri selezionati.",
+  "adminCenterAuditIdLabel": "ID registrazione",
+  "adminCenterActorLabel": "Autore",
+  "adminCenterReasonLabel": "Motivo",
+  "adminCenterTimestampLabel": "Data e ora",
+  "adminCenterErrorLabel": "Errore",
+  "adminCenterRecordedValuesTitle": "Valori registrati",
+  "adminCenterPreviousValueLabel": "Precedente",
+  "adminCenterNewValueLabel": "Nuovo",
+  "adminCenterContentTypeLabel": "Tipo di contenuto",
+  "adminCenterAllContent": "Tutti i contenuti",
+  "adminCenterPolls": "Sondaggi",
+  "adminCenterPosts": "Post",
+  "adminCenterNews": "Notizie",
+  "adminCenterAwaitingAdminDecision": "In attesa della decisione admin",
+  "adminCenterStatusLabel": "Stato",
+  "adminCenterAllStatuses": "Tutti gli stati",
+  "adminCenterStatusOpen": "Aperta",
+  "adminCenterStatusInReview": "In revisione",
+  "adminCenterStatusResolved": "Risolta",
+  "adminCenterStatusDismissed": "Archiviata",
+  "adminCenterAdminQueueUnavailableTitle": "Coda escalation admin non disponibile",
+  "adminCenterReportsUnavailableTitle": "Segnalazioni non disponibili",
+  "adminCenterConnectionTryAgainMessage": "Controlla la connessione e riprova.",
+  "adminCenterNoAdminReportsTitle": "Nessuna segnalazione in attesa dell’admin",
+  "adminCenterNoReportsTitle": "Nessuna segnalazione",
+  "adminCenterNoAdminReportsMessage": "Non ci sono segnalazioni escalate che richiedono una revisione amministrativa.",
+  "adminCenterNoReportsMessage": "Non ci sono segnalazioni corrispondenti ai filtri selezionati.",
+  "adminCenterSearchUsersHint": "Cerca per nome, username, email o ID",
+  "adminCenterClearSearchTooltip": "Cancella ricerca",
+  "adminCenterUsersUnavailableTitle": "Utenti non disponibili",
+  "adminCenterNoUsersFoundTitle": "Nessun utente trovato",
+  "adminCenterNoUsersTitle": "Nessun utente",
+  "adminCenterNoUsersFoundMessage": "Prova un nome, username, email o ID diverso.",
+  "adminCenterNoUsersMessage": "Non ci sono account da mostrare.",
+  "adminCenterAccountUnavailableTitle": "Account non disponibile",
+  "adminCenterBackToUsersAction": "Torna agli utenti",
+  "adminCenterPublicIdentitySection": "Identità pubblica",
+  "adminCenterDisplayNameLabel": "Nome visualizzato",
+  "adminCenterNotProvided": "Non indicato",
+  "adminCenterUsernameLabel": "Username",
+  "adminCenterUserIdLabel": "ID utente",
+  "adminCenterIdentityTypeLabel": "Tipo di identità",
+  "adminCenterAccountSection": "Account",
+  "adminCenterTechnicalRoleLabel": "Ruolo tecnico",
+  "adminCenterRoleMirrorLabel": "Ruolo replicato nel profilo",
+  "adminCenterRoleSynchronizationLabel": "Sincronizzazione ruolo",
+  "adminCenterSynchronized": "Sincronizzato",
+  "adminCenterNotSynchronized": "Non sincronizzato",
+  "adminCenterRoleNotSynchronized": "Ruolo non sincronizzato",
+  "adminCenterAccountStatusLabel": "Stato account",
+  "adminCenterSuspendedUntilLabel": "Sospeso fino al",
+  "adminCenterAccountManagementSection": "Gestione account",
+  "adminCenterDangerZoneSection": "Zona pericolosa",
+  "adminCenterRoleManagementSection": "Gestione ruolo",
+  "adminCenterVerificationLevelLabel": "Livello di verifica",
+  "adminCenterVerificationStatusLabel": "Stato verifica",
+  "adminCenterAccessInformationSection": "Informazioni di accesso",
+  "adminCenterEmailLabel": "Email",
+  "adminCenterNotAvailable": "Non disponibile",
+  "adminCenterEmailConfirmationLabel": "Conferma email",
+  "adminCenterNotConfirmed": "Non confermata",
+  "adminCenterRegisteredLabel": "Registrato",
+  "adminCenterLastAccessLabel": "Ultimo accesso",
+  "adminCenterLoadingDashboardTitle": "Caricamento riepilogo",
+  "adminCenterLoadingDashboardMessage": "Recupero degli indicatori più recenti.",
+  "adminCenterDashboardUnavailableTitle": "Riepilogo non disponibile",
+  "adminCenterIndicatorsUnavailableMessage": "Non è stato possibile caricare gli indicatori.",
+  "adminCenterVerificationPendingIndicator": "Verifiche in attesa",
+  "adminCenterOpenReportsIndicator": "Segnalazioni aperte",
+  "adminCenterSuspendedAccountsIndicator": "Account sospesi",
+  "adminCenterStaffIndicator": "Staff",
+  "adminCenterNoPendingWorkTitle": "Nessuna attività in attesa",
+  "adminCenterNoPendingWorkMessage": "Verifiche, segnalazioni e account sospesi sono tutti sotto controllo.",
+  "adminCenterCouldNotUpdateUsers": "Non è stato possibile aggiornare l’elenco utenti.",
+  "adminCenterCouldNotUpdateReports": "Non è stato possibile aggiornare la coda segnalazioni.",
+  "adminCenterUnnamedUser": "Utente senza nome",
+  "adminCenterTemporarySuspensionTitle": "Sospensione temporanea",
+  "adminCenterReactivateDescription": "Rimuovi subito la sospensione e consenti un nuovo accesso.",
+  "adminCenterSuspendDescription": "Blocca l’accesso per un periodo limitato e termina tutte le sessioni attive.",
+  "adminCenterSuspensionUnavailableDescription": "La sospensione richiede un account sincronizzato e non amministratore.",
+  "adminCenterReactivateAccountAction": "Riattiva account",
+  "adminCenterSuspendAccountAction": "Sospendi account",
+  "adminCenterForceLogoutAction": "Forza logout",
+  "adminCenterSuspendedForceLogoutDescription": "La sospensione ha già terminato le sessioni attive. Riattiva l’account prima di provare un logout separato.",
+  "adminCenterForceLogoutDescription": "Termina tutte le sessioni attive senza sospendere l’account.",
+  "adminCenterForceLogoutUnavailableDescription": "Il logout forzato richiede un account sincronizzato e non amministratore.",
+  "adminCenterPermanentDeletionTitle": "Eliminazione definitiva account",
+  "adminCenterPermanentDeletionDescription": "Elimina i dati di autenticazione, termina tutte le sessioni e anonimizza il record pubblico conservato.",
+  "adminCenterDeletionUnavailableDescription": "L’eliminazione richiede un account sincronizzato e non amministratore.",
+  "adminCenterDeleteAccountPermanentlyAction": "Elimina definitivamente l’account",
+  "adminCenterDurationOneHour": "1 ora",
+  "adminCenterDurationOneDay": "24 ore",
+  "adminCenterDurationSevenDays": "7 giorni",
+  "adminCenterDurationThirtyDays": "30 giorni",
+  "adminCenterSuspendImmediateEffect": "L’account perderà subito l’accesso e tutte le sessioni attive verranno terminate.",
+  "adminCenterDurationLabel": "Durata",
+  "adminCenterSuspendReasonHint": "Spiega perché questo account deve essere sospeso",
+  "adminCenterReactivateReasonHint": "Spiega perché questo account può essere riattivato",
+  "adminCenterReactivateConfirmation": "Confermo che questo account può riottenere l’accesso.",
+  "adminCenterReactivateFailure": "Non è stato possibile riattivare l’account. Controlla ruolo e stato, poi riprova.",
+  "adminCenterReactivateSuccess": "Account riattivato. Ora è consentito un nuovo accesso.",
+  "adminCenterForceLogoutFullDescription": "Termina tutte le sessioni attive di questo account. L’account resta attivo e può accedere di nuovo.",
+  "adminCenterForceLogoutReasonHint": "Spiega perché le sessioni attive devono essere terminate",
+  "adminCenterForceLogoutConfirmation": "Confermo la terminazione immediata di tutte le sessioni attive di questo account.",
+  "adminCenterForceLogoutFailure": "Non è stato possibile disconnettere l’account. Controlla ruolo e stato, poi riprova.",
+  "adminCenterForceLogoutSuccess": "Sessioni attive terminate. L’account può accedere di nuovo.",
+  "adminCenterSuspendFailure": "Non è stato possibile sospendere l’account. Controlla ruolo e stato, poi riprova.",
+  "adminCenterDeleteReasonHint": "Spiega perché questo account deve essere eliminato",
+  "adminCenterTypeDeleteLabel": "Digita DELETE",
+  "adminCenterTypeAccountIdLabel": "Digita l’ID account completo",
+  "adminCenterDeletePermanentlyAction": "Elimina definitivamente",
+  "adminCenterDeleteIrreversibleWarning": "Questa azione è irreversibile. I dati di autenticazione e le sessioni attive verranno rimossi, l’avatar verrà eliminato e il record pubblico conservato sarà anonimizzato. La registrazione di audit resterà disponibile.",
+  "adminCenterDeleteFailure": "Non è stato possibile eliminare l’account. Controlla ruolo, stato e valori di conferma, poi riprova.",
+  "adminCenterDeleteSuccess": "Account eliminato definitivamente e dati personali anonimizzati.",
+  "adminCenterChangeTechnicalRoleTitle": "Cambia ruolo tecnico",
+  "adminCenterChangeRoleDescription": "Controlla il ruolo attuale e quello richiesto prima di confermare.",
+  "adminCenterChangeRoleUnavailableDescription": "Il cambio ruolo richiede un account sincronizzato e non eliminato.",
+  "adminCenterChangeRoleAction": "Cambia ruolo",
+  "adminCenterChangePublicIdentityTitle": "Cambia identità pubblica",
+  "adminCenterChangeIdentityDescription": "Aggiorna il tipo di account pubblico e il livello di verifica.",
+  "adminCenterChangeIdentityUnavailableDescription": "Il cambio identità richiede un account sincronizzato e non amministratore.",
+  "adminCenterChangeIdentityAction": "Cambia identità",
+  "adminCenterChoosePublicIdentityMessage": "Scegli il tipo di account pubblico e il relativo stato di verifica.",
+  "adminCenterPublicAccountTypeLabel": "Tipo di account pubblico",
+  "adminCenterPersonVerificationHelper": "Livello 1 e Livello 2 sono disponibili solo per Persona.",
+  "adminCenterNonPersonVerificationHelper": "Gli account non Persona non usano Livello 1 o Livello 2.",
+  "adminCenterBeforeLabel": "Prima",
+  "adminCenterAfterLabel": "Dopo",
+  "adminCenterIdentityReasonHint": "Spiega perché l’identità pubblica deve cambiare",
+  "adminCenterIdentityConfirmation": "Confermo l’identità pubblica e il livello di verifica mostrati sopra.",
+  "adminCenterIdentityChangeFailure": "Non è stato possibile cambiare l’identità pubblica. Controlla lo stato dell’account e riprova.",
+  "adminCenterChooseTechnicalRoleMessage": "Scegli il nuovo ruolo tecnico e registra il motivo del cambiamento.",
+  "adminCenterNewTechnicalRoleLabel": "Nuovo ruolo tecnico",
+  "adminCenterSelectRole": "Seleziona un ruolo",
+  "adminCenterRoleSessionWarning": "Questa modifica termina la sessione attiva del destinatario. Dovrà accedere di nuovo prima di continuare a usare l’account.",
+  "adminCenterRoleReasonHint": "Spiega perché il ruolo tecnico deve cambiare",
+  "adminCenterRoleConfirmation": "Confermo il ruolo mostrato sopra e comprendo che il destinatario dovrà accedere di nuovo.",
+  "adminCenterRoleChangeFailure": "Non è stato possibile completare il cambio ruolo. Controlla lo stato dell’account e riprova.",
+  "adminCenterChangingRole": "Cambio ruolo",
+  "adminCenterConfirmRoleChange": "Conferma cambio ruolo",
+  "adminCenterRoleUser": "Utente",
+  "adminCenterRoleModerator": "Moderatore",
+  "adminCenterRoleAdmin": "Admin",
+  "adminCenterAccountStatusActive": "Attivo",
+  "adminCenterAccountStatusSuspended": "Sospeso",
+  "adminCenterAccountStatusDeleted": "Eliminato",
+  "adminCenterVerificationStatusNone": "Nessuna",
+  "adminCenterVerificationStatusPending": "In attesa",
+  "adminCenterVerificationStatusRejected": "Rifiutata",
+  "adminCenterVerificationNotVerified": "Non verificata",
+  "adminCenterVerificationLevel1": "Livello 1",
+  "adminCenterVerificationLevel2": "Livello 2",
+  "adminCenterReportSingular": "segnalazione",
+  "adminCenterReportPlural": "segnalazioni",
+  "adminCenterUserSingular": "utente",
+  "adminCenterUserPlural": "utenti",
+  "adminCenterPoll": "Sondaggio",
+  "adminCenterPost": "Post",
+  "adminCenterUnknown": "Sconosciuto",
+  "adminCenterContentHidden": "Contenuto nascosto",
+  "adminCenterContentVisible": "Contenuto visibile",
+  "adminCenterReportedByLabel": "Segnalato da",
+  "adminCenterContentOwnerLabel": "Autore contenuto",
+  "adminCenterReviewReportAction": "Revisiona segnalazione",
+  "adminCenterAdminDecisionAction": "Decisione admin",
+  "adminCenterRestoreContentAction": "Ripristina contenuto",
+  "adminCenterHideContentAction": "Nascondi contenuto",
+  "adminCenterOpenProfileAction": "Apri profilo",
+  "adminCenterOpenContentAction": "Apri contenuto",
+  "adminCenterDecisionNoViolation": "Nessuna violazione",
+  "adminCenterDecisionViolationConfirmed": "Violazione confermata",
+  "adminCenterDecisionEscalateToAdmin": "Escala all’admin",
+  "adminCenterResolutionNoAccountAction": "Nessuna azione sull’account",
+  "adminCenterResolutionAccountSuspended": "Account sospeso",
+  "adminCenterResolutionLogoutForced": "Logout forzato",
+  "adminCenterResolutionAccountDeleted": "Account eliminato",
+  "adminCenterReviewerLabel": "Revisore",
+  "adminCenterDecisionDescriptionNoViolation": "Archivia la segnalazione perché il contenuto non viola le regole attuali.",
+  "adminCenterDecisionDescriptionViolation": "Conferma una violazione e mantiene il caso in revisione per l’azione sul contenuto prevista in AC8.5.",
+  "adminCenterDecisionDescriptionEscalation": "Escala il caso per una revisione amministrativa a livello di account.",
+  "adminCenterChooseModerationOutcome": "Scegli l’esito di moderazione per questa segnalazione.",
+  "adminCenterDecisionAlreadyRecordedFailure": "Non è stato possibile registrare la decisione. La segnalazione potrebbe essere già stata revisionata. Aggiorna la coda e riprova.",
+  "adminCenterDecisionLabel": "Decisione",
+  "adminCenterReportReasonLabel": "Motivo segnalazione",
+  "adminCenterReviewNoteLabel": "Nota di revisione",
+  "adminCenterReviewNoteHint": "Spiega le prove e la decisione di moderazione",
+  "adminCenterRecordingDecision": "Registrazione decisione",
+  "adminCenterConfirmDecision": "Conferma decisione",
+  "adminCenterAdministratorDecisionTitle": "Decisione amministratore",
+  "adminCenterResolutionDescriptionNoAction": "Chiude la segnalazione escalata senza modificare l’account.",
+  "adminCenterResolutionDescriptionSuspended": "Chiude la segnalazione dopo che una sospensione riuscita è stata registrata nel registro attività.",
+  "adminCenterResolutionDescriptionLogout": "Chiude la segnalazione dopo che un logout forzato riuscito è stato registrato nel registro attività.",
+  "adminCenterResolutionDescriptionDeleted": "Chiude la segnalazione dopo che un’eliminazione account riuscita è stata registrata nel registro attività.",
+  "adminCenterChooseFinalOutcome": "Scegli l’esito amministrativo finale per questa escalation.",
+  "adminCenterAdminResolutionFailure": "Non è stato possibile registrare la decisione amministrativa. Aggiorna la coda e riprova.",
+  "adminCenterAdminResolutionRequiresAction": "Completa prima l’azione account corrispondente, poi torna a questa segnalazione e registra la decisione amministrativa finale.",
+  "adminCenterEscalationNoteLabel": "Nota escalation",
+  "adminCenterFinalOutcomeLabel": "Esito finale",
+  "adminCenterAdministratorNoteLabel": "Nota amministratore",
+  "adminCenterAdministratorNoteHint": "Spiega la decisione finale a livello di account",
+  "adminCenterHideContentFailure": "Non è stato possibile nascondere il contenuto. Aggiorna la coda segnalazioni e riprova.",
+  "adminCenterRestoreContentFailure": "Non è stato possibile ripristinare il contenuto. Aggiorna la coda segnalazioni e riprova.",
+  "adminCenterHideContentWarning": "Rimuove il contenuto segnalato dall’accesso pubblico. L’azione potrà essere annullata dal filtro delle segnalazioni risolte.",
+  "adminCenterRestoreContentWarning": "Rende nuovamente pubblico il contenuto segnalato.",
+  "adminCenterActionReasonLabel": "Motivo azione",
+  "adminCenterHideContentReasonHint": "Spiega perché il contenuto deve essere nascosto",
+  "adminCenterRestoreContentReasonHint": "Spiega perché il contenuto può essere ripristinato",
+  "adminCenterHidingContent": "Contenuto in occultamento",
+  "adminCenterRestoringContent": "Ripristino contenuto",
+  "adminCenterReportedProfileTitle": "Profilo segnalato",
+  "adminCenterReportedProfileNotice": "Queste informazioni del profilo provengono dalla coda protetta delle segnalazioni. Le azioni amministrative sull’account restano separate.",
+  "adminCenterCouldNotRefreshIndicators": "Non è stato possibile aggiornare gli indicatori.",
+  "adminCenterCouldNotRefreshAccount": "Non è stato possibile aggiornare i dettagli account.",
+  "adminCenterReportAlreadyReviewed": "Questa segnalazione è già stata revisionata o non è più in attesa.",
+  "adminCenterReportNotAwaitingAdmin": "Questa segnalazione non è in attesa di una decisione amministrativa.",
+  "adminCenterConfirmedViolationRequired": "È necessaria una violazione confermata prima di cambiare la visibilità del contenuto.",
+  "adminCenterContentHiddenSuccess": "Il contenuto segnalato è stato nascosto.",
+  "adminCenterContentRestoredSuccess": "Il contenuto segnalato è stato ripristinato.",
+  "adminCenterMissingContentId": "Manca l’identificativo del contenuto originale.",
+  "adminCenterUnsupportedTargetType": "Questa segnalazione ha un tipo di destinatario non supportato.",
+  "adminCenterOriginalContentUnavailable": "Il contenuto originale non è più disponibile.",
+  "adminCenterNoReportedProfile": "Nessun profilo segnalato è associato a questo contenuto.",
+  "adminCenterRoleChangedSuccess": "Ruolo tecnico cambiato da {previousRole} a {newRole}. Il destinatario è stato disconnesso e deve accedere di nuovo.",
+  "@adminCenterRoleChangedSuccess": {
+    "placeholders": {
+      "previousRole": {
+        "type": "String"
+      },
+      "newRole": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterIdentityChangedSuccess": "Identità pubblica cambiata in {actorType} con {verificationLevel}.",
+  "@adminCenterIdentityChangedSuccess": {
+    "placeholders": {
+      "actorType": {
+        "type": "String"
+      },
+      "verificationLevel": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAccountSuspendedSuccess": "Account sospeso fino al {dateTime}. Il destinatario è stato disconnesso.",
+  "@adminCenterAccountSuspendedSuccess": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterReportDecisionRecorded": "Decisione sulla segnalazione registrata: {decision}.",
+  "@adminCenterReportDecisionRecorded": {
+    "placeholders": {
+      "decision": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAdministratorDecisionRecorded": "Decisione amministrativa registrata: {decision}.",
+  "@adminCenterAdministratorDecisionRecorded": {
+    "placeholders": {
+      "decision": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterUsersCount": "{count, plural, =1 {{count} utente} other {{count} utenti}}",
+  "@adminCenterUsersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterReportsCount": "{count, plural, =1 {{count} segnalazione} other {{count} segnalazioni}}",
+  "@adminCenterReportsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterAccountValue": "Account: {account}",
+  "@adminCenterAccountValue": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterSuspendedUntilValue": "Sospeso fino al: {dateTime}",
+  "@adminCenterSuspendedUntilValue": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterSuspendConfirmation": "Confermo la sospensione fino al {dateTime} e la terminazione immediata delle sessioni attive.",
+  "@adminCenterSuspendConfirmation": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAccountIdValue": "ID account: {accountId}",
+  "@adminCenterAccountIdValue": {
+    "placeholders": {
+      "accountId": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterCurrentRoleValue": "Attuale: {role}",
+  "@adminCenterCurrentRoleValue": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterTargetFallback": "{targetType} {targetId}",
+  "@adminCenterTargetFallback": {
+    "placeholders": {
+      "targetType": {
+        "type": "String"
+      },
+      "targetId": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterMinimumCharactersRequired": "È richiesta una nota di almeno {count} caratteri.",
+  "@adminCenterMinimumCharactersRequired": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterMinimumReasonCharactersRequired": "È richiesto un motivo di almeno {count} caratteri.",
+  "@adminCenterMinimumReasonCharactersRequired": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterPageOf": "Pagina {currentPage} di {totalPages}",
+  "@adminCenterPageOf": {
+    "placeholders": {
+      "currentPage": {
+        "type": "int"
+      },
+      "totalPages": {
+        "type": "int"
+      }
+    }
   }
 }

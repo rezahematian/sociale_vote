@@ -1781,6 +1781,36 @@ abstract class AppLocalizations {
   /// **'Theme: dark'**
   String get homeThemeDarkMenuItem;
 
+  /// Title of the app language setting
+  ///
+  /// In en, this message translates to:
+  /// **'App language'**
+  String get profileAppLanguageTitle;
+
+  /// Option that follows the device language
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get profileAppLanguageSystem;
+
+  /// Description of the system language option
+  ///
+  /// In en, this message translates to:
+  /// **'Uses your device language'**
+  String get profileAppLanguageSystemDescription;
+
+  /// Italian app language option
+  ///
+  /// In en, this message translates to:
+  /// **'Italian'**
+  String get profileAppLanguageItalian;
+
+  /// English app language option
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get profileAppLanguageEnglish;
+
   /// Tooltip for the notifications button in the Home top bar
   ///
   /// In en, this message translates to:
@@ -3538,6 +3568,1602 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Operation failed.'**
   String get verificationReviewOperationFailure;
+
+  /// No description provided for @adminCenterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Center'**
+  String get adminCenterTitle;
+
+  /// No description provided for @adminCenterDashboardNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get adminCenterDashboardNavigation;
+
+  /// No description provided for @adminCenterUsersNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get adminCenterUsersNavigation;
+
+  /// No description provided for @adminCenterVerificationNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification'**
+  String get adminCenterVerificationNavigation;
+
+  /// No description provided for @adminCenterReportsNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get adminCenterReportsNavigation;
+
+  /// No description provided for @adminCenterAuditNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit'**
+  String get adminCenterAuditNavigation;
+
+  /// No description provided for @adminCenterAccountDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account details'**
+  String get adminCenterAccountDetailsTitle;
+
+  /// No description provided for @adminCenterTryAgainAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get adminCenterTryAgainAction;
+
+  /// No description provided for @adminCenterRetryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get adminCenterRetryAction;
+
+  /// No description provided for @adminCenterClearAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get adminCenterClearAction;
+
+  /// No description provided for @adminCenterApplyFiltersAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply filters'**
+  String get adminCenterApplyFiltersAction;
+
+  /// No description provided for @adminCenterAllDates.
+  ///
+  /// In en, this message translates to:
+  /// **'All dates'**
+  String get adminCenterAllDates;
+
+  /// No description provided for @adminCenterAuditDateFilterHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter audit by date'**
+  String get adminCenterAuditDateFilterHelp;
+
+  /// No description provided for @adminCenterActorUserIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Actor user ID'**
+  String get adminCenterActorUserIdLabel;
+
+  /// No description provided for @adminCenterActionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Action'**
+  String get adminCenterActionLabel;
+
+  /// No description provided for @adminCenterAuditActionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'resolve_escalated_report'**
+  String get adminCenterAuditActionHint;
+
+  /// No description provided for @adminCenterTargetIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target ID'**
+  String get adminCenterTargetIdLabel;
+
+  /// No description provided for @adminCenterOutcomeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Outcome'**
+  String get adminCenterOutcomeLabel;
+
+  /// No description provided for @adminCenterAllOutcomes.
+  ///
+  /// In en, this message translates to:
+  /// **'All outcomes'**
+  String get adminCenterAllOutcomes;
+
+  /// No description provided for @adminCenterOutcomeSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get adminCenterOutcomeSuccess;
+
+  /// No description provided for @adminCenterOutcomeFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Failure'**
+  String get adminCenterOutcomeFailure;
+
+  /// No description provided for @adminCenterOutcomeDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Denied'**
+  String get adminCenterOutcomeDenied;
+
+  /// No description provided for @adminCenterOutcomeNoChange.
+  ///
+  /// In en, this message translates to:
+  /// **'No change'**
+  String get adminCenterOutcomeNoChange;
+
+  /// No description provided for @adminCenterOutcomeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get adminCenterOutcomeUnknown;
+
+  /// No description provided for @adminCenterAuditUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit unavailable'**
+  String get adminCenterAuditUnavailableTitle;
+
+  /// No description provided for @adminCenterAuditUnavailableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and permissions, then try again.'**
+  String get adminCenterAuditUnavailableMessage;
+
+  /// No description provided for @adminCenterNoAuditEntriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No audit entries'**
+  String get adminCenterNoAuditEntriesTitle;
+
+  /// No description provided for @adminCenterNoAuditEntriesMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no entries matching the selected filters.'**
+  String get adminCenterNoAuditEntriesMessage;
+
+  /// No description provided for @adminCenterAuditIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit ID'**
+  String get adminCenterAuditIdLabel;
+
+  /// No description provided for @adminCenterActorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Actor'**
+  String get adminCenterActorLabel;
+
+  /// No description provided for @adminCenterReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get adminCenterReasonLabel;
+
+  /// No description provided for @adminCenterTimestampLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Timestamp'**
+  String get adminCenterTimestampLabel;
+
+  /// No description provided for @adminCenterErrorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get adminCenterErrorLabel;
+
+  /// No description provided for @adminCenterRecordedValuesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded values'**
+  String get adminCenterRecordedValuesTitle;
+
+  /// No description provided for @adminCenterPreviousValueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get adminCenterPreviousValueLabel;
+
+  /// No description provided for @adminCenterNewValueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get adminCenterNewValueLabel;
+
+  /// No description provided for @adminCenterContentTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Content type'**
+  String get adminCenterContentTypeLabel;
+
+  /// No description provided for @adminCenterAllContent.
+  ///
+  /// In en, this message translates to:
+  /// **'All content'**
+  String get adminCenterAllContent;
+
+  /// No description provided for @adminCenterPolls.
+  ///
+  /// In en, this message translates to:
+  /// **'Polls'**
+  String get adminCenterPolls;
+
+  /// No description provided for @adminCenterPosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts'**
+  String get adminCenterPosts;
+
+  /// No description provided for @adminCenterNews.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get adminCenterNews;
+
+  /// No description provided for @adminCenterAwaitingAdminDecision.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting admin decision'**
+  String get adminCenterAwaitingAdminDecision;
+
+  /// No description provided for @adminCenterStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get adminCenterStatusLabel;
+
+  /// No description provided for @adminCenterAllStatuses.
+  ///
+  /// In en, this message translates to:
+  /// **'All statuses'**
+  String get adminCenterAllStatuses;
+
+  /// No description provided for @adminCenterStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get adminCenterStatusOpen;
+
+  /// No description provided for @adminCenterStatusInReview.
+  ///
+  /// In en, this message translates to:
+  /// **'In review'**
+  String get adminCenterStatusInReview;
+
+  /// No description provided for @adminCenterStatusResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolved'**
+  String get adminCenterStatusResolved;
+
+  /// No description provided for @adminCenterStatusDismissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismissed'**
+  String get adminCenterStatusDismissed;
+
+  /// No description provided for @adminCenterAdminQueueUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin escalation queue unavailable'**
+  String get adminCenterAdminQueueUnavailableTitle;
+
+  /// No description provided for @adminCenterReportsUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports unavailable'**
+  String get adminCenterReportsUnavailableTitle;
+
+  /// No description provided for @adminCenterConnectionTryAgainMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again.'**
+  String get adminCenterConnectionTryAgainMessage;
+
+  /// No description provided for @adminCenterNoAdminReportsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No reports awaiting admin decision'**
+  String get adminCenterNoAdminReportsTitle;
+
+  /// No description provided for @adminCenterNoReportsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No reports'**
+  String get adminCenterNoReportsTitle;
+
+  /// No description provided for @adminCenterNoAdminReportsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no escalated reports requiring administrator review.'**
+  String get adminCenterNoAdminReportsMessage;
+
+  /// No description provided for @adminCenterNoReportsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no reports matching the selected filters.'**
+  String get adminCenterNoReportsMessage;
+
+  /// No description provided for @adminCenterSearchUsersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, username, email or ID'**
+  String get adminCenterSearchUsersHint;
+
+  /// No description provided for @adminCenterClearSearchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get adminCenterClearSearchTooltip;
+
+  /// No description provided for @adminCenterUsersUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Users unavailable'**
+  String get adminCenterUsersUnavailableTitle;
+
+  /// No description provided for @adminCenterNoUsersFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No users found'**
+  String get adminCenterNoUsersFoundTitle;
+
+  /// No description provided for @adminCenterNoUsersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No users'**
+  String get adminCenterNoUsersTitle;
+
+  /// No description provided for @adminCenterNoUsersFoundMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different name, username, email or ID.'**
+  String get adminCenterNoUsersFoundMessage;
+
+  /// No description provided for @adminCenterNoUsersMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no accounts to display.'**
+  String get adminCenterNoUsersMessage;
+
+  /// No description provided for @adminCenterAccountUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account unavailable'**
+  String get adminCenterAccountUnavailableTitle;
+
+  /// No description provided for @adminCenterBackToUsersAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to users'**
+  String get adminCenterBackToUsersAction;
+
+  /// No description provided for @adminCenterPublicIdentitySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Public identity'**
+  String get adminCenterPublicIdentitySection;
+
+  /// No description provided for @adminCenterDisplayNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get adminCenterDisplayNameLabel;
+
+  /// No description provided for @adminCenterNotProvided.
+  ///
+  /// In en, this message translates to:
+  /// **'Not provided'**
+  String get adminCenterNotProvided;
+
+  /// No description provided for @adminCenterUsernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get adminCenterUsernameLabel;
+
+  /// No description provided for @adminCenterUserIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'User ID'**
+  String get adminCenterUserIdLabel;
+
+  /// No description provided for @adminCenterIdentityTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity type'**
+  String get adminCenterIdentityTypeLabel;
+
+  /// No description provided for @adminCenterAccountSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get adminCenterAccountSection;
+
+  /// No description provided for @adminCenterTechnicalRoleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical role'**
+  String get adminCenterTechnicalRoleLabel;
+
+  /// No description provided for @adminCenterRoleMirrorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile role mirror'**
+  String get adminCenterRoleMirrorLabel;
+
+  /// No description provided for @adminCenterRoleSynchronizationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Role synchronization'**
+  String get adminCenterRoleSynchronizationLabel;
+
+  /// No description provided for @adminCenterSynchronized.
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronized'**
+  String get adminCenterSynchronized;
+
+  /// No description provided for @adminCenterNotSynchronized.
+  ///
+  /// In en, this message translates to:
+  /// **'Not synchronized'**
+  String get adminCenterNotSynchronized;
+
+  /// No description provided for @adminCenterRoleNotSynchronized.
+  ///
+  /// In en, this message translates to:
+  /// **'Role not synchronized'**
+  String get adminCenterRoleNotSynchronized;
+
+  /// No description provided for @adminCenterAccountStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account status'**
+  String get adminCenterAccountStatusLabel;
+
+  /// No description provided for @adminCenterSuspendedUntilLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Suspended until'**
+  String get adminCenterSuspendedUntilLabel;
+
+  /// No description provided for @adminCenterAccountManagementSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Account management'**
+  String get adminCenterAccountManagementSection;
+
+  /// No description provided for @adminCenterDangerZoneSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Danger zone'**
+  String get adminCenterDangerZoneSection;
+
+  /// No description provided for @adminCenterRoleManagementSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Role management'**
+  String get adminCenterRoleManagementSection;
+
+  /// No description provided for @adminCenterVerificationLevelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification level'**
+  String get adminCenterVerificationLevelLabel;
+
+  /// No description provided for @adminCenterVerificationStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification status'**
+  String get adminCenterVerificationStatusLabel;
+
+  /// No description provided for @adminCenterAccessInformationSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Access information'**
+  String get adminCenterAccessInformationSection;
+
+  /// No description provided for @adminCenterEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get adminCenterEmailLabel;
+
+  /// No description provided for @adminCenterNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available'**
+  String get adminCenterNotAvailable;
+
+  /// No description provided for @adminCenterEmailConfirmationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email confirmation'**
+  String get adminCenterEmailConfirmationLabel;
+
+  /// No description provided for @adminCenterNotConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not confirmed'**
+  String get adminCenterNotConfirmed;
+
+  /// No description provided for @adminCenterRegisteredLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered'**
+  String get adminCenterRegisteredLabel;
+
+  /// No description provided for @adminCenterLastAccessLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last access'**
+  String get adminCenterLastAccessLabel;
+
+  /// No description provided for @adminCenterLoadingDashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading dashboard'**
+  String get adminCenterLoadingDashboardTitle;
+
+  /// No description provided for @adminCenterLoadingDashboardMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Retrieving the latest indicators.'**
+  String get adminCenterLoadingDashboardMessage;
+
+  /// No description provided for @adminCenterDashboardUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard unavailable'**
+  String get adminCenterDashboardUnavailableTitle;
+
+  /// No description provided for @adminCenterIndicatorsUnavailableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The indicators could not be loaded.'**
+  String get adminCenterIndicatorsUnavailableMessage;
+
+  /// No description provided for @adminCenterVerificationPendingIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification pending'**
+  String get adminCenterVerificationPendingIndicator;
+
+  /// No description provided for @adminCenterOpenReportsIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'Open reports'**
+  String get adminCenterOpenReportsIndicator;
+
+  /// No description provided for @adminCenterSuspendedAccountsIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'Suspended accounts'**
+  String get adminCenterSuspendedAccountsIndicator;
+
+  /// No description provided for @adminCenterStaffIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff'**
+  String get adminCenterStaffIndicator;
+
+  /// No description provided for @adminCenterNoPendingWorkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending work'**
+  String get adminCenterNoPendingWorkTitle;
+
+  /// No description provided for @adminCenterNoPendingWorkMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification, reports, and suspended accounts are clear.'**
+  String get adminCenterNoPendingWorkMessage;
+
+  /// No description provided for @adminCenterCouldNotUpdateUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update the user list.'**
+  String get adminCenterCouldNotUpdateUsers;
+
+  /// No description provided for @adminCenterCouldNotUpdateReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update the report queue.'**
+  String get adminCenterCouldNotUpdateReports;
+
+  /// No description provided for @adminCenterUnnamedUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed user'**
+  String get adminCenterUnnamedUser;
+
+  /// No description provided for @adminCenterTemporarySuspensionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary suspension'**
+  String get adminCenterTemporarySuspensionTitle;
+
+  /// No description provided for @adminCenterReactivateDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the suspension immediately and allow a new login.'**
+  String get adminCenterReactivateDescription;
+
+  /// No description provided for @adminCenterSuspendDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Block access for a limited time and end all current sessions.'**
+  String get adminCenterSuspendDescription;
+
+  /// No description provided for @adminCenterSuspensionUnavailableDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Suspension requires a synchronized, non-admin account.'**
+  String get adminCenterSuspensionUnavailableDescription;
+
+  /// No description provided for @adminCenterReactivateAccountAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate account'**
+  String get adminCenterReactivateAccountAction;
+
+  /// No description provided for @adminCenterSuspendAccountAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Suspend account'**
+  String get adminCenterSuspendAccountAction;
+
+  /// No description provided for @adminCenterForceLogoutAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Force logout'**
+  String get adminCenterForceLogoutAction;
+
+  /// No description provided for @adminCenterSuspendedForceLogoutDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The suspension has already ended current sessions. Reactivate the account before testing a separate logout.'**
+  String get adminCenterSuspendedForceLogoutDescription;
+
+  /// No description provided for @adminCenterForceLogoutDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'End every current session without suspending the account.'**
+  String get adminCenterForceLogoutDescription;
+
+  /// No description provided for @adminCenterForceLogoutUnavailableDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Forced logout requires a synchronized, non-admin account.'**
+  String get adminCenterForceLogoutUnavailableDescription;
+
+  /// No description provided for @adminCenterPermanentDeletionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanent account deletion'**
+  String get adminCenterPermanentDeletionTitle;
+
+  /// No description provided for @adminCenterPermanentDeletionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete authentication data, end every session and anonymize the retained public record.'**
+  String get adminCenterPermanentDeletionDescription;
+
+  /// No description provided for @adminCenterDeletionUnavailableDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletion requires a synchronized, non-admin account.'**
+  String get adminCenterDeletionUnavailableDescription;
+
+  /// No description provided for @adminCenterDeleteAccountPermanentlyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account permanently'**
+  String get adminCenterDeleteAccountPermanentlyAction;
+
+  /// No description provided for @adminCenterDurationOneHour.
+  ///
+  /// In en, this message translates to:
+  /// **'1 hour'**
+  String get adminCenterDurationOneHour;
+
+  /// No description provided for @adminCenterDurationOneDay.
+  ///
+  /// In en, this message translates to:
+  /// **'24 hours'**
+  String get adminCenterDurationOneDay;
+
+  /// No description provided for @adminCenterDurationSevenDays.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days'**
+  String get adminCenterDurationSevenDays;
+
+  /// No description provided for @adminCenterDurationThirtyDays.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days'**
+  String get adminCenterDurationThirtyDays;
+
+  /// No description provided for @adminCenterSuspendImmediateEffect.
+  ///
+  /// In en, this message translates to:
+  /// **'The account will lose access immediately and every current session will be ended.'**
+  String get adminCenterSuspendImmediateEffect;
+
+  /// No description provided for @adminCenterDurationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get adminCenterDurationLabel;
+
+  /// No description provided for @adminCenterSuspendReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain why this account must be suspended'**
+  String get adminCenterSuspendReasonHint;
+
+  /// No description provided for @adminCenterReactivateReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain why this account can be reactivated'**
+  String get adminCenterReactivateReasonHint;
+
+  /// No description provided for @adminCenterReactivateConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'I confirm that this account can regain access.'**
+  String get adminCenterReactivateConfirmation;
+
+  /// No description provided for @adminCenterReactivateFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'The account could not be reactivated. Check its role and status, then try again.'**
+  String get adminCenterReactivateFailure;
+
+  /// No description provided for @adminCenterReactivateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Account reactivated. A new login is now allowed.'**
+  String get adminCenterReactivateSuccess;
+
+  /// No description provided for @adminCenterForceLogoutFullDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'End every current session for this account. The account remains active and can sign in again.'**
+  String get adminCenterForceLogoutFullDescription;
+
+  /// No description provided for @adminCenterForceLogoutReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain why current sessions must be ended'**
+  String get adminCenterForceLogoutReasonHint;
+
+  /// No description provided for @adminCenterForceLogoutConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'I confirm the immediate termination of all current sessions for this account.'**
+  String get adminCenterForceLogoutConfirmation;
+
+  /// No description provided for @adminCenterForceLogoutFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'The account could not be signed out. Check its role and status, then try again.'**
+  String get adminCenterForceLogoutFailure;
+
+  /// No description provided for @adminCenterForceLogoutSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Current sessions ended. The account can sign in again.'**
+  String get adminCenterForceLogoutSuccess;
+
+  /// No description provided for @adminCenterSuspendFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'The account could not be suspended. Check its role and status, then try again.'**
+  String get adminCenterSuspendFailure;
+
+  /// No description provided for @adminCenterDeleteReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain why this account must be deleted'**
+  String get adminCenterDeleteReasonHint;
+
+  /// No description provided for @adminCenterTypeDeleteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type DELETE'**
+  String get adminCenterTypeDeleteLabel;
+
+  /// No description provided for @adminCenterTypeAccountIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type the complete Account ID'**
+  String get adminCenterTypeAccountIdLabel;
+
+  /// No description provided for @adminCenterDeletePermanentlyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete permanently'**
+  String get adminCenterDeletePermanentlyAction;
+
+  /// No description provided for @adminCenterDeleteIrreversibleWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This action is irreversible. Authentication data and current sessions will be removed, the avatar will be deleted and the retained public record will be anonymized. The audit record will remain.'**
+  String get adminCenterDeleteIrreversibleWarning;
+
+  /// No description provided for @adminCenterDeleteFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'The account could not be deleted. Check its role, status and confirmation values, then try again.'**
+  String get adminCenterDeleteFailure;
+
+  /// No description provided for @adminCenterDeleteSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Account permanently deleted and personal data anonymized.'**
+  String get adminCenterDeleteSuccess;
+
+  /// No description provided for @adminCenterChangeTechnicalRoleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change technical role'**
+  String get adminCenterChangeTechnicalRoleTitle;
+
+  /// No description provided for @adminCenterChangeRoleDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the current and requested role before confirming.'**
+  String get adminCenterChangeRoleDescription;
+
+  /// No description provided for @adminCenterChangeRoleUnavailableDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Role changes require a synchronized, non-deleted account.'**
+  String get adminCenterChangeRoleUnavailableDescription;
+
+  /// No description provided for @adminCenterChangeRoleAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change role'**
+  String get adminCenterChangeRoleAction;
+
+  /// No description provided for @adminCenterChangePublicIdentityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change public identity'**
+  String get adminCenterChangePublicIdentityTitle;
+
+  /// No description provided for @adminCenterChangeIdentityDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Update the public account type and verification level.'**
+  String get adminCenterChangeIdentityDescription;
+
+  /// No description provided for @adminCenterChangeIdentityUnavailableDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity changes require a synchronized, non-admin account.'**
+  String get adminCenterChangeIdentityUnavailableDescription;
+
+  /// No description provided for @adminCenterChangeIdentityAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change identity'**
+  String get adminCenterChangeIdentityAction;
+
+  /// No description provided for @adminCenterChoosePublicIdentityMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the public account type and its verification state.'**
+  String get adminCenterChoosePublicIdentityMessage;
+
+  /// No description provided for @adminCenterPublicAccountTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Public account type'**
+  String get adminCenterPublicAccountTypeLabel;
+
+  /// No description provided for @adminCenterPersonVerificationHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Level 1 and Level 2 are available only for Persona.'**
+  String get adminCenterPersonVerificationHelper;
+
+  /// No description provided for @adminCenterNonPersonVerificationHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-Persona accounts do not use Level 1 or Level 2.'**
+  String get adminCenterNonPersonVerificationHelper;
+
+  /// No description provided for @adminCenterBeforeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Before'**
+  String get adminCenterBeforeLabel;
+
+  /// No description provided for @adminCenterAfterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'After'**
+  String get adminCenterAfterLabel;
+
+  /// No description provided for @adminCenterIdentityReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain why the public identity must change'**
+  String get adminCenterIdentityReasonHint;
+
+  /// No description provided for @adminCenterIdentityConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'I confirm the public identity and verification level shown above.'**
+  String get adminCenterIdentityConfirmation;
+
+  /// No description provided for @adminCenterIdentityChangeFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'The public identity could not be changed. Check the account state and try again.'**
+  String get adminCenterIdentityChangeFailure;
+
+  /// No description provided for @adminCenterChooseTechnicalRoleMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the new technical role and record why this change is required.'**
+  String get adminCenterChooseTechnicalRoleMessage;
+
+  /// No description provided for @adminCenterNewTechnicalRoleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New technical role'**
+  String get adminCenterNewTechnicalRoleLabel;
+
+  /// No description provided for @adminCenterSelectRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a role'**
+  String get adminCenterSelectRole;
+
+  /// No description provided for @adminCenterRoleSessionWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This change ends the recipient’s active session. They must sign in again before continuing to use the account.'**
+  String get adminCenterRoleSessionWarning;
+
+  /// No description provided for @adminCenterRoleReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain why the technical role must change'**
+  String get adminCenterRoleReasonHint;
+
+  /// No description provided for @adminCenterRoleConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'I confirm the role shown above and understand that the recipient must sign in again.'**
+  String get adminCenterRoleConfirmation;
+
+  /// No description provided for @adminCenterRoleChangeFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'The role change could not be completed. Check the account state and try again.'**
+  String get adminCenterRoleChangeFailure;
+
+  /// No description provided for @adminCenterChangingRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Changing role'**
+  String get adminCenterChangingRole;
+
+  /// No description provided for @adminCenterConfirmRoleChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm role change'**
+  String get adminCenterConfirmRoleChange;
+
+  /// No description provided for @adminCenterRoleUser.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get adminCenterRoleUser;
+
+  /// No description provided for @adminCenterRoleModerator.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderator'**
+  String get adminCenterRoleModerator;
+
+  /// No description provided for @adminCenterRoleAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get adminCenterRoleAdmin;
+
+  /// No description provided for @adminCenterAccountStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get adminCenterAccountStatusActive;
+
+  /// No description provided for @adminCenterAccountStatusSuspended.
+  ///
+  /// In en, this message translates to:
+  /// **'Suspended'**
+  String get adminCenterAccountStatusSuspended;
+
+  /// No description provided for @adminCenterAccountStatusDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get adminCenterAccountStatusDeleted;
+
+  /// No description provided for @adminCenterVerificationStatusNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get adminCenterVerificationStatusNone;
+
+  /// No description provided for @adminCenterVerificationStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get adminCenterVerificationStatusPending;
+
+  /// No description provided for @adminCenterVerificationStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get adminCenterVerificationStatusRejected;
+
+  /// No description provided for @adminCenterVerificationNotVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not verified'**
+  String get adminCenterVerificationNotVerified;
+
+  /// No description provided for @adminCenterVerificationLevel1.
+  ///
+  /// In en, this message translates to:
+  /// **'Level 1'**
+  String get adminCenterVerificationLevel1;
+
+  /// No description provided for @adminCenterVerificationLevel2.
+  ///
+  /// In en, this message translates to:
+  /// **'Level 2'**
+  String get adminCenterVerificationLevel2;
+
+  /// No description provided for @adminCenterReportSingular.
+  ///
+  /// In en, this message translates to:
+  /// **'report'**
+  String get adminCenterReportSingular;
+
+  /// No description provided for @adminCenterReportPlural.
+  ///
+  /// In en, this message translates to:
+  /// **'reports'**
+  String get adminCenterReportPlural;
+
+  /// No description provided for @adminCenterUserSingular.
+  ///
+  /// In en, this message translates to:
+  /// **'user'**
+  String get adminCenterUserSingular;
+
+  /// No description provided for @adminCenterUserPlural.
+  ///
+  /// In en, this message translates to:
+  /// **'users'**
+  String get adminCenterUserPlural;
+
+  /// No description provided for @adminCenterPoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Poll'**
+  String get adminCenterPoll;
+
+  /// No description provided for @adminCenterPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get adminCenterPost;
+
+  /// No description provided for @adminCenterUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get adminCenterUnknown;
+
+  /// No description provided for @adminCenterContentHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Content hidden'**
+  String get adminCenterContentHidden;
+
+  /// No description provided for @adminCenterContentVisible.
+  ///
+  /// In en, this message translates to:
+  /// **'Content visible'**
+  String get adminCenterContentVisible;
+
+  /// No description provided for @adminCenterReportedByLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported by'**
+  String get adminCenterReportedByLabel;
+
+  /// No description provided for @adminCenterContentOwnerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Content owner'**
+  String get adminCenterContentOwnerLabel;
+
+  /// No description provided for @adminCenterReviewReportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review report'**
+  String get adminCenterReviewReportAction;
+
+  /// No description provided for @adminCenterAdminDecisionAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin decision'**
+  String get adminCenterAdminDecisionAction;
+
+  /// No description provided for @adminCenterRestoreContentAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore content'**
+  String get adminCenterRestoreContentAction;
+
+  /// No description provided for @adminCenterHideContentAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide content'**
+  String get adminCenterHideContentAction;
+
+  /// No description provided for @adminCenterOpenProfileAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open profile'**
+  String get adminCenterOpenProfileAction;
+
+  /// No description provided for @adminCenterOpenContentAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open content'**
+  String get adminCenterOpenContentAction;
+
+  /// No description provided for @adminCenterDecisionNoViolation.
+  ///
+  /// In en, this message translates to:
+  /// **'No violation'**
+  String get adminCenterDecisionNoViolation;
+
+  /// No description provided for @adminCenterDecisionViolationConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Violation confirmed'**
+  String get adminCenterDecisionViolationConfirmed;
+
+  /// No description provided for @adminCenterDecisionEscalateToAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Escalate to admin'**
+  String get adminCenterDecisionEscalateToAdmin;
+
+  /// No description provided for @adminCenterResolutionNoAccountAction.
+  ///
+  /// In en, this message translates to:
+  /// **'No account action'**
+  String get adminCenterResolutionNoAccountAction;
+
+  /// No description provided for @adminCenterResolutionAccountSuspended.
+  ///
+  /// In en, this message translates to:
+  /// **'Account suspended'**
+  String get adminCenterResolutionAccountSuspended;
+
+  /// No description provided for @adminCenterResolutionLogoutForced.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout forced'**
+  String get adminCenterResolutionLogoutForced;
+
+  /// No description provided for @adminCenterResolutionAccountDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted'**
+  String get adminCenterResolutionAccountDeleted;
+
+  /// No description provided for @adminCenterReviewerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewer'**
+  String get adminCenterReviewerLabel;
+
+  /// No description provided for @adminCenterDecisionDescriptionNoViolation.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismisses the report because the content does not violate the current rules.'**
+  String get adminCenterDecisionDescriptionNoViolation;
+
+  /// No description provided for @adminCenterDecisionDescriptionViolation.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirms a violation and keeps the case in review for the content action handled in AC8.5.'**
+  String get adminCenterDecisionDescriptionViolation;
+
+  /// No description provided for @adminCenterDecisionDescriptionEscalation.
+  ///
+  /// In en, this message translates to:
+  /// **'Escalates the case for an administrator account-level review.'**
+  String get adminCenterDecisionDescriptionEscalation;
+
+  /// No description provided for @adminCenterChooseModerationOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the moderation outcome for this report.'**
+  String get adminCenterChooseModerationOutcome;
+
+  /// No description provided for @adminCenterDecisionAlreadyRecordedFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'The decision could not be recorded. The report may already have been reviewed. Refresh the queue and try again.'**
+  String get adminCenterDecisionAlreadyRecordedFailure;
+
+  /// No description provided for @adminCenterDecisionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Decision'**
+  String get adminCenterDecisionLabel;
+
+  /// No description provided for @adminCenterReportReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Report reason'**
+  String get adminCenterReportReasonLabel;
+
+  /// No description provided for @adminCenterReviewNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Review note'**
+  String get adminCenterReviewNoteLabel;
+
+  /// No description provided for @adminCenterReviewNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain the evidence and the moderation decision'**
+  String get adminCenterReviewNoteHint;
+
+  /// No description provided for @adminCenterRecordingDecision.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording decision'**
+  String get adminCenterRecordingDecision;
+
+  /// No description provided for @adminCenterConfirmDecision.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm decision'**
+  String get adminCenterConfirmDecision;
+
+  /// No description provided for @adminCenterAdministratorDecisionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Administrator decision'**
+  String get adminCenterAdministratorDecisionTitle;
+
+  /// No description provided for @adminCenterResolutionDescriptionNoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Closes the escalated report without changing the account.'**
+  String get adminCenterResolutionDescriptionNoAction;
+
+  /// No description provided for @adminCenterResolutionDescriptionSuspended.
+  ///
+  /// In en, this message translates to:
+  /// **'Closes the report after a successful account suspension has already been recorded in the audit log.'**
+  String get adminCenterResolutionDescriptionSuspended;
+
+  /// No description provided for @adminCenterResolutionDescriptionLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Closes the report after a successful forced logout has already been recorded in the audit log.'**
+  String get adminCenterResolutionDescriptionLogout;
+
+  /// No description provided for @adminCenterResolutionDescriptionDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Closes the report after a successful account deletion has already been recorded in the audit log.'**
+  String get adminCenterResolutionDescriptionDeleted;
+
+  /// No description provided for @adminCenterChooseFinalOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the final administrator outcome for this escalation.'**
+  String get adminCenterChooseFinalOutcome;
+
+  /// No description provided for @adminCenterAdminResolutionFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'The administrator decision could not be recorded. Refresh the queue and try again.'**
+  String get adminCenterAdminResolutionFailure;
+
+  /// No description provided for @adminCenterAdminResolutionRequiresAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the matching account action first, then return to this report and record the final administrator decision.'**
+  String get adminCenterAdminResolutionRequiresAction;
+
+  /// No description provided for @adminCenterEscalationNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Escalation note'**
+  String get adminCenterEscalationNoteLabel;
+
+  /// No description provided for @adminCenterFinalOutcomeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Final outcome'**
+  String get adminCenterFinalOutcomeLabel;
+
+  /// No description provided for @adminCenterAdministratorNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Administrator note'**
+  String get adminCenterAdministratorNoteLabel;
+
+  /// No description provided for @adminCenterAdministratorNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain the final account-level decision'**
+  String get adminCenterAdministratorNoteHint;
+
+  /// No description provided for @adminCenterHideContentFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'The content could not be hidden. Refresh the report queue and try again.'**
+  String get adminCenterHideContentFailure;
+
+  /// No description provided for @adminCenterRestoreContentFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'The content could not be restored. Refresh the report queue and try again.'**
+  String get adminCenterRestoreContentFailure;
+
+  /// No description provided for @adminCenterHideContentWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the reported content from public access. The action can later be reversed from the Resolved reports filter.'**
+  String get adminCenterHideContentWarning;
+
+  /// No description provided for @adminCenterRestoreContentWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This makes the reported content publicly available again.'**
+  String get adminCenterRestoreContentWarning;
+
+  /// No description provided for @adminCenterActionReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Action reason'**
+  String get adminCenterActionReasonLabel;
+
+  /// No description provided for @adminCenterHideContentReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain why the content must be hidden'**
+  String get adminCenterHideContentReasonHint;
+
+  /// No description provided for @adminCenterRestoreContentReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain why the content can be restored'**
+  String get adminCenterRestoreContentReasonHint;
+
+  /// No description provided for @adminCenterHidingContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Hiding content'**
+  String get adminCenterHidingContent;
+
+  /// No description provided for @adminCenterRestoringContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring content'**
+  String get adminCenterRestoringContent;
+
+  /// No description provided for @adminCenterReportedProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported profile'**
+  String get adminCenterReportedProfileTitle;
+
+  /// No description provided for @adminCenterReportedProfileNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'This profile context comes from the protected report queue. Administrative account actions remain separate.'**
+  String get adminCenterReportedProfileNotice;
+
+  /// No description provided for @adminCenterCouldNotRefreshIndicators.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not refresh the indicators.'**
+  String get adminCenterCouldNotRefreshIndicators;
+
+  /// No description provided for @adminCenterCouldNotRefreshAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not refresh the account details.'**
+  String get adminCenterCouldNotRefreshAccount;
+
+  /// No description provided for @adminCenterReportAlreadyReviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'This report has already been reviewed or is no longer pending.'**
+  String get adminCenterReportAlreadyReviewed;
+
+  /// No description provided for @adminCenterReportNotAwaitingAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'This report is not awaiting an administrator decision.'**
+  String get adminCenterReportNotAwaitingAdmin;
+
+  /// No description provided for @adminCenterConfirmedViolationRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'A confirmed violation is required before changing content visibility.'**
+  String get adminCenterConfirmedViolationRequired;
+
+  /// No description provided for @adminCenterContentHiddenSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The reported content was hidden.'**
+  String get adminCenterContentHiddenSuccess;
+
+  /// No description provided for @adminCenterContentRestoredSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The reported content was restored.'**
+  String get adminCenterContentRestoredSuccess;
+
+  /// No description provided for @adminCenterMissingContentId.
+  ///
+  /// In en, this message translates to:
+  /// **'The original content identifier is missing.'**
+  String get adminCenterMissingContentId;
+
+  /// No description provided for @adminCenterUnsupportedTargetType.
+  ///
+  /// In en, this message translates to:
+  /// **'This report has an unsupported target type.'**
+  String get adminCenterUnsupportedTargetType;
+
+  /// No description provided for @adminCenterOriginalContentUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The original content is no longer available.'**
+  String get adminCenterOriginalContentUnavailable;
+
+  /// No description provided for @adminCenterNoReportedProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'No reported profile is associated with this content.'**
+  String get adminCenterNoReportedProfile;
+
+  /// No description provided for @adminCenterRoleChangedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical role changed from {previousRole} to {newRole}. The recipient was signed out and must sign in again.'**
+  String adminCenterRoleChangedSuccess(String previousRole, String newRole);
+
+  /// No description provided for @adminCenterIdentityChangedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Public identity changed to {actorType} with {verificationLevel}.'**
+  String adminCenterIdentityChangedSuccess(String actorType, String verificationLevel);
+
+  /// No description provided for @adminCenterAccountSuspendedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Account suspended until {dateTime}. The recipient was signed out.'**
+  String adminCenterAccountSuspendedSuccess(String dateTime);
+
+  /// No description provided for @adminCenterReportDecisionRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Report decision recorded: {decision}.'**
+  String adminCenterReportDecisionRecorded(String decision);
+
+  /// No description provided for @adminCenterAdministratorDecisionRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Administrator decision recorded: {decision}.'**
+  String adminCenterAdministratorDecisionRecorded(String decision);
+
+  /// No description provided for @adminCenterUsersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1 {{count} user} other {{count} users}}'**
+  String adminCenterUsersCount(int count);
+
+  /// No description provided for @adminCenterReportsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1 {{count} report} other {{count} reports}}'**
+  String adminCenterReportsCount(int count);
+
+  /// No description provided for @adminCenterAccountValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Account: {account}'**
+  String adminCenterAccountValue(String account);
+
+  /// No description provided for @adminCenterSuspendedUntilValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Suspended until: {dateTime}'**
+  String adminCenterSuspendedUntilValue(String dateTime);
+
+  /// No description provided for @adminCenterSuspendConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'I confirm the suspension until {dateTime} and the immediate termination of current sessions.'**
+  String adminCenterSuspendConfirmation(String dateTime);
+
+  /// No description provided for @adminCenterAccountIdValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Account ID: {accountId}'**
+  String adminCenterAccountIdValue(String accountId);
+
+  /// No description provided for @adminCenterCurrentRoleValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Current: {role}'**
+  String adminCenterCurrentRoleValue(String role);
+
+  /// No description provided for @adminCenterTargetFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'{targetType} {targetId}'**
+  String adminCenterTargetFallback(String targetType, String targetId);
+
+  /// No description provided for @adminCenterMinimumCharactersRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'A note of at least {count} characters is required.'**
+  String adminCenterMinimumCharactersRequired(int count);
+
+  /// No description provided for @adminCenterMinimumReasonCharactersRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'A reason of at least {count} characters is required.'**
+  String adminCenterMinimumReasonCharactersRequired(int count);
+
+  /// No description provided for @adminCenterPageOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {currentPage} of {totalPages}'**
+  String adminCenterPageOf(int currentPage, int totalPages);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
