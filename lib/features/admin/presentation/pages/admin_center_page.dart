@@ -104,6 +104,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   AdminReportTargetType? _reportTargetTypeFilter;
   bool _showEscalatedReportsOnly = false;
   AdminCenterSection _selectedSection = AdminCenterSection.dashboard;
+  Locale? _adminLocaleOverride;
 
   List<_AdminDestination> get _destinations {
     return [
@@ -183,6 +184,62 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       _selectedSection = AdminCenterSection.dashboard;
       _clearSelectedUser();
     }
+  }
+
+  void _setAdminLocale(String value) {
+    final locale = switch (value) {
+      'it' => const Locale('it'),
+      'en' => const Locale('en'),
+      _ => null,
+    };
+
+    if (_adminLocaleOverride == locale) {
+      return;
+    }
+
+    setState(() {
+      _adminLocaleOverride = locale;
+    });
+  }
+
+  Widget _buildLanguageSelector() {
+    return PopupMenuButton<String>(
+      initialValue: _adminLocaleOverride?.languageCode ?? 'auto',
+      onSelected: _setAdminLocale,
+      icon: const Icon(Icons.language_outlined),
+      itemBuilder: (_) => const [
+        PopupMenuItem<String>(
+          value: 'auto',
+          child: Row(
+            children: [
+              Icon(Icons.settings_suggest_outlined),
+              SizedBox(width: 12),
+              Text('AUTO'),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'it',
+          child: Row(
+            children: [
+              Icon(Icons.language),
+              SizedBox(width: 12),
+              Text('Italiano'),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'en',
+          child: Row(
+            children: [
+              Icon(Icons.language),
+              SizedBox(width: 12),
+              Text('English'),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _refresh() async {
@@ -2125,21 +2182,27 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         label: _adminL10n(context).adminCenterVerificationPendingIndicator,
         value: summary.pendingVerificationRequests,
         icon: Icons.verified_user_outlined,
+        section: AdminCenterSection.verification,
       ),
       _AdminIndicator(
         label: _adminL10n(context).adminCenterOpenReportsIndicator,
         value: summary.openReports,
         icon: Icons.flag_outlined,
+        section: AdminCenterSection.reports,
       ),
       _AdminIndicator(
         label: _adminL10n(context).adminCenterSuspendedAccountsIndicator,
         value: summary.suspendedAccounts,
         icon: Icons.person_off_outlined,
+        section:
+            widget.currentRole == Role.admin ? AdminCenterSection.users : null,
       ),
       _AdminIndicator(
         label: _adminL10n(context).adminCenterUsersNavigation,
         value: summary.totalUsers,
         icon: Icons.people_outline,
+        section:
+            widget.currentRole == Role.admin ? AdminCenterSection.users : null,
       ),
       _AdminIndicator(
         label: _adminL10n(context).adminCenterStaffIndicator,
@@ -2170,6 +2233,107 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           ),
           const SizedBox(height: 12),
         ],
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).colorScheme.primaryContainer,
+                Theme.of(context).colorScheme.tertiaryContainer,
+              ],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.16),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surface.withValues(alpha: 0.72),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.admin_panel_settings,
+                      size: 30,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _adminL10n(context).adminCenterTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _adminRoleLabel(context, widget.currentRole),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _AdminDashboardStatusChip(
+                    icon: Icons.verified_user_outlined,
+                    label: _adminL10n(
+                      context,
+                    ).adminCenterVerificationPendingIndicator,
+                    value: summary.pendingVerificationRequests,
+                  ),
+                  _AdminDashboardStatusChip(
+                    icon: Icons.flag_outlined,
+                    label: _adminL10n(
+                      context,
+                    ).adminCenterOpenReportsIndicator,
+                    value: summary.openReports,
+                  ),
+                  _AdminDashboardStatusChip(
+                    icon: Icons.person_off_outlined,
+                    label: _adminL10n(
+                      context,
+                    ).adminCenterSuspendedAccountsIndicator,
+                    value: summary.suspendedAccounts,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
         LayoutBuilder(
           builder: (context, constraints) {
             final crossAxisCount = switch (constraints.maxWidth) {
@@ -2186,39 +2350,78 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                 crossAxisCount: crossAxisCount,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                mainAxisExtent: 132,
+                mainAxisExtent: 156,
               ),
               itemCount: indicators.length,
               itemBuilder: (context, index) {
                 final indicator = indicators[index];
+                final colors = Theme.of(context).colorScheme;
+                final accent = switch (index) {
+                  0 => colors.tertiary,
+                  1 => colors.error,
+                  2 => colors.secondary,
+                  _ => colors.primary,
+                };
 
                 return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          indicator.icon,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        const Spacer(),
-                        Text(
-                          '${indicator.value}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                        Text(
-                          indicator.label,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
+                  margin: EdgeInsets.zero,
+                  clipBehavior: Clip.antiAlias,
+                  color: accent.withValues(alpha: 0.08),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide(color: accent.withValues(alpha: 0.18)),
+                  ),
+                  child: InkWell(
+                    onTap: indicator.section == null
+                        ? null
+                        : () => _selectSection(indicator.section!),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: accent.withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  indicator.icon,
+                                  size: 21,
+                                  color: accent,
+                                ),
+                              ),
+                              const Spacer(),
+                              if (indicator.section != null)
+                                Icon(
+                                  Icons.arrow_forward_rounded,
+                                  size: 19,
+                                  color: accent,
+                                ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Text(
+                            '${indicator.value}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.w800),
+                          ),
+                          Text(
+                            indicator.label,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -2226,7 +2429,72 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             );
           },
         ),
+        const SizedBox(height: 16),
+        _buildDashboardShortcuts(context),
       ],
+    );
+  }
+
+  Widget _buildDashboardShortcuts(BuildContext context) {
+    final destinations = _destinations
+        .where(
+          (destination) => destination.section != AdminCenterSection.dashboard,
+        )
+        .toList(growable: false);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = switch (constraints.maxWidth) {
+          < 380 => 1,
+          < 760 => 2,
+          _ => destinations.length > 4 ? 4 : destinations.length,
+        };
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            mainAxisExtent: 88,
+          ),
+          itemCount: destinations.length,
+          itemBuilder: (context, index) {
+            final destination = destinations[index];
+
+            return Card(
+              margin: EdgeInsets.zero,
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: () => _selectSection(destination.section),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        destination.icon,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          destination.label,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -2243,62 +2511,12 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   }
 
   Widget _buildMobileDashboard(BuildContext context) {
-    final destinations = _destinations
-        .where(
-          (destination) => destination.section != AdminCenterSection.dashboard,
-        )
-        .toList(growable: false);
-
     return CustomScrollView(
       key: const ValueKey(AdminCenterSection.dashboard),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+          padding: const EdgeInsets.all(16),
           sliver: SliverToBoxAdapter(child: _buildDashboardIndicators(context)),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          sliver: SliverLayoutBuilder(
-            builder: (context, constraints) {
-              final crossAxisCount = constraints.crossAxisExtent < 360 ? 1 : 2;
-
-              return SliverGrid(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  mainAxisExtent: 112,
-                ),
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final destination = destinations[index];
-
-                  return Card(
-                    clipBehavior: Clip.antiAlias,
-                    child: InkWell(
-                      onTap: () => _selectSection(destination.section),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(destination.icon, size: 30),
-                            const SizedBox(height: 10),
-                            Text(
-                              destination.label,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }, childCount: destinations.length),
-              );
-            },
-          ),
         ),
       ],
     );
@@ -2343,8 +2561,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildAdminCenterScaffold(BuildContext context) {
     final materialLocalizations = MaterialLocalizations.of(context);
     final isMobileLayout =
         MediaQuery.sizeOf(context).width < _desktopBreakpoint;
@@ -2383,16 +2600,21 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Chip(
-              avatar: isMobileLayout
-                  ? null
-                  : const Icon(Icons.admin_panel_settings_outlined, size: 18),
-              label: Text(_adminRoleLabel(context, widget.currentRole)),
-              visualDensity: VisualDensity.compact,
+          if (!isMobileLayout) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Chip(
+                avatar: const Icon(
+                  Icons.admin_panel_settings_outlined,
+                  size: 18,
+                ),
+                label: Text(_adminRoleLabel(context, widget.currentRole)),
+                visualDensity: VisualDensity.compact,
+              ),
             ),
-          ),
+            const SizedBox(width: 4),
+          ],
+          _buildLanguageSelector(),
           const SizedBox(width: 4),
           if (_isRefreshing ||
               (_selectedSection == AdminCenterSection.dashboard &&
@@ -2438,6 +2660,21 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           },
         ),
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = _adminLocaleOverride;
+
+    if (locale == null) {
+      return _buildAdminCenterScaffold(context);
+    }
+
+    return Localizations.override(
+      context: context,
+      locale: locale,
+      child: Builder(builder: _buildAdminCenterScaffold),
     );
   }
 }
@@ -2521,12 +2758,60 @@ class _AdminIndicator {
   final String label;
   final int value;
   final IconData icon;
+  final AdminCenterSection? section;
 
   const _AdminIndicator({
     required this.label,
     required this.value,
     required this.icon,
+    this.section,
   });
+}
+
+class _AdminDashboardStatusChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final int value;
+
+  const _AdminDashboardStatusChip({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 360),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: colors.surface.withValues(alpha: 0.72),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: colors.outline.withValues(alpha: 0.18)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 17),
+            const SizedBox(width: 7),
+            Flexible(
+              child: Text(
+                '$value · $label',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(
+                  context,
+                ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _AdminUsersResultHeader extends StatelessWidget {
