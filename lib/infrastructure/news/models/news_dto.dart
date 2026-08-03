@@ -203,6 +203,8 @@ class NewsDto {
     required String? sourceName,
   }) {
     final explicitId = _readFirstString(json, const [
+      'news_id',
+      'newsId',
       'id',
       'external_id',
       'externalId',
@@ -223,7 +225,8 @@ class NewsDto {
       return normalizedUrl;
     }
 
-    final sourceHint = (sourceId ?? sourceName ?? 'unknown').trim().toLowerCase();
+    final sourceHint =
+        (sourceId ?? sourceName ?? 'unknown').trim().toLowerCase();
     final safeTitle = title.trim().toLowerCase();
     final safeDate = publishedAt.toUtc().toIso8601String();
 

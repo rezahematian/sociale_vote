@@ -36,10 +36,7 @@ class NewsController extends ChangeNotifier {
     this._getReactionSummary, [
     ContentVisibilityFilter? contentVisibilityFilter,
   ]) : _contentVisibilityFilter = contentVisibilityFilter ??
-            ContentVisibilityFilter(Supabase.instance.client) {
-    _restoreLanguagePreferenceFuture =
-        Future<void>.microtask(_restoreSavedLanguagePreferenceIfNeeded);
-  }
+            ContentVisibilityFilter(Supabase.instance.client);
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -86,10 +83,17 @@ class NewsController extends ChangeNotifier {
     _errorKind = null;
     _safeNotifyListeners();
 
-    await loadNews(userId: userId ?? _lastKnownUserId);
+    await loadNews(userId: _resolveCurrentUserId(userId));
   }
 
   Future<void> setLanguage(NewsLanguage language, {String? userId}) async {
+    final effectiveUserId = _resolveCurrentUserId(userId);
+
+    if (effectiveUserId == null) {
+      await _ensureLanguagePreferenceHydrated(isAuthenticated: false);
+      return;
+    }
+
     if (_selectedLanguage == language) return;
 
     _languagePreferenceVersion += 1;
@@ -102,7 +106,7 @@ class NewsController extends ChangeNotifier {
     _safeNotifyListeners();
 
     await _persistSelectedLanguage(language);
-    await loadNews(userId: userId ?? _lastKnownUserId);
+    await loadNews(userId: effectiveUserId);
   }
 
   void setSortMode(NewsSortMode mode) {
@@ -113,9 +117,16 @@ class NewsController extends ChangeNotifier {
   }
 
   Future<void> refreshNews({String? userId}) async {
-    await _ensureLanguagePreferenceHydrated();
+    final effectiveUserId = _resolveCurrentUserId(userId);
+    await _ensureLanguagePreferenceHydrated(
+      isAuthenticated: effectiveUserId != null,
+    );
 
-    final effectiveUserId = userId ?? _lastKnownUserId;
+    if (effectiveUserId == null) {
+      await loadNews();
+      return;
+    }
+
     final scopeFilter = _currentScopeFilter();
 
     _errorMessage = null;
@@ -198,7 +209,32 @@ class NewsController extends ChangeNotifier {
     );
   }
 
-  Future<void> _ensureLanguagePreferenceHydrated() {
+  String? _resolveCurrentUserId(String? userId) {
+    return userId ?? AppDI.instance.currentUserId;
+  }
+
+  Future<void> _ensureLanguagePreferenceHydrated({
+    required bool isAuthenticated,
+  }) {
+    if (!isAuthenticated) {
+      final languageChanged = _selectedLanguage != NewsLanguage.auto;
+
+      if (_languagePreferenceHydrated ||
+          _restoreLanguagePreferenceFuture != null ||
+          languageChanged) {
+        _languagePreferenceVersion += 1;
+        _languagePreferenceHydrated = false;
+        _restoreLanguagePreferenceFuture = null;
+        _selectedLanguage = NewsLanguage.auto;
+
+        if (languageChanged) {
+          _safeNotifyListeners();
+        }
+      }
+
+      return Future<void>.value();
+    }
+
     if (_languagePreferenceHydrated) {
       return Future<void>.value();
     }
@@ -229,8 +265,10 @@ class NewsController extends ChangeNotifier {
     } catch (_) {
       // best effort
     } finally {
-      _languagePreferenceHydrated = true;
-      _restoreLanguagePreferenceFuture = null;
+      if (_languagePreferenceVersion == versionAtStart) {
+        _languagePreferenceHydrated = true;
+        _restoreLanguagePreferenceFuture = null;
+      }
     }
   }
 
@@ -275,7 +313,10 @@ class NewsController extends ChangeNotifier {
   }
 
   Future<void> loadNews({String? userId}) async {
-    await _ensureLanguagePreferenceHydrated();
+    final effectiveUserId = _resolveCurrentUserId(userId);
+    await _ensureLanguagePreferenceHydrated(
+      isAuthenticated: effectiveUserId != null,
+    );
 
     final requestId = ++_requestId;
 
@@ -289,7 +330,7 @@ class NewsController extends ChangeNotifier {
     _commentCounts.clear();
     _currentOffset = 0;
     _hasMoreFromSource = true;
-    _lastKnownUserId = userId ?? _lastKnownUserId;
+    _lastKnownUserId = effectiveUserId;
 
     try {
       await _loadNextPage(requestId: requestId);
@@ -319,7 +360,11 @@ class NewsController extends ChangeNotifier {
   }
 
   Future<void> loadMoreNews() async {
-    await _ensureLanguagePreferenceHydrated();
+    final effectiveUserId = _resolveCurrentUserId(null);
+    await _ensureLanguagePreferenceHydrated(
+      isAuthenticated: effectiveUserId != null,
+    );
+    _lastKnownUserId = effectiveUserId;
 
     if (_isLoading) return;
     if (!_hasMoreFromSource) return;

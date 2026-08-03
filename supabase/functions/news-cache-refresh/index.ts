@@ -1,12 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json }
-  | Json[];
+type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
 type ArticleItem = Record<string, unknown>;
 
@@ -69,19 +63,13 @@ type AggregatedFetchResult = {
   }>;
 };
 
-type SupabaseCacheClient = {
-  from: (
-    table: string,
-  ) => {
-    upsert: (
-      values: Record<string, unknown>,
-      options?: Record<string, unknown>,
-    ) => PromiseLike<{ error: { message: string } | null }>;
-  };
-};
+type SupabaseCacheClient = ReturnType<typeof createClient>;
 
 const CACHE_TABLE = "news_feed_cache";
+const NEWS_ARTICLES_TABLE = "news_articles";
+const NEWS_ALIASES_TABLE = "news_article_aliases";
 const CACHE_PAYLOAD_VERSION = 2;
+const NEWS_FINGERPRINT_VERSION = 1;
 
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 100;
@@ -116,10 +104,7 @@ class HttpError extends Error {
   }
 }
 
-function json(
-  body: Record<string, unknown>,
-  init?: ResponseInit,
-): Response {
+function json(body: Record<string, unknown>, init?: ResponseInit): Response {
   return new Response(JSON.stringify(body, null, 2), {
     headers: {
       "content-type": "application/json; charset=utf-8",
@@ -160,11 +145,7 @@ function normalizeLanguage(value: unknown): string | null {
   return normalized.replaceAll("_", "-").split("-")[0] || null;
 }
 
-function toPositiveInt(
-  value: unknown,
-  fallback: number,
-  max: number,
-): number {
+function toPositiveInt(value: unknown, fallback: number, max: number): number {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed <= 0) {
     return fallback;
@@ -319,15 +300,16 @@ function buildSyntheticCandidate(req: RefreshRequest): Candidate | null {
     parsedFromKey = parseCacheKey(req.cacheKey);
   }
 
-  const countryCode = normalize(req.countryCode) ?? parsedFromKey?.countryCode ??
-    null;
+  const countryCode =
+    normalize(req.countryCode) ?? parsedFromKey?.countryCode ?? null;
   const cityId = normalize(req.cityId) ?? parsedFromKey?.cityId ?? null;
   const topic = normalize(req.topic) ?? parsedFromKey?.topic ?? null;
-  const language = normalizeLanguage(req.language) ?? parsedFromKey?.language ??
-    null;
+  const language =
+    normalizeLanguage(req.language) ?? parsedFromKey?.language ?? null;
 
   const explicitCacheKey = normalizeKeepCase(req.cacheKey);
-  const cacheKey = explicitCacheKey ??
+  const cacheKey =
+    explicitCacheKey ??
     buildCacheKey({
       countryCode,
       cityId,
@@ -439,7 +421,9 @@ function providerPriorityForRequest(
   }
 
   if (
-    language === "it" || language === "fr" || language === "es" ||
+    language === "it" ||
+    language === "fr" ||
+    language === "es" ||
     language === "de"
   ) {
     switch (normalizedProviderId) {
@@ -514,9 +498,10 @@ function orderProvidersForRequest(
   const providers = ["guardian", "newsapi", "gnews"];
   return providers
     .slice()
-    .sort((a, b) =>
-      providerPriorityForRequest(a, language, topic) -
-      providerPriorityForRequest(b, language, topic)
+    .sort(
+      (a, b) =>
+        providerPriorityForRequest(a, language, topic) -
+        providerPriorityForRequest(b, language, topic),
     );
 }
 
@@ -532,7 +517,7 @@ async function fetchJson(
   const response = await fetch(fullUrl.toString(), {
     method: "GET",
     headers: {
-      "accept": "application/json",
+      accept: "application/json",
     },
   });
 
@@ -557,10 +542,7 @@ async function fetchJson(
   return parsed;
 }
 
-function mapHttpError(
-  providerId: string,
-  error: unknown,
-): ProviderFetchResult {
+function mapHttpError(providerId: string, error: unknown): ProviderFetchResult {
   if (error instanceof HttpError) {
     return {
       providerId,
@@ -589,10 +571,7 @@ function normalizeLanguageForArticle(value: unknown): string | null {
   return normalizeLanguage(value);
 }
 
-function buildCityQuery(
-  cityId: string,
-  countryCode: string | null,
-): string {
+function buildCityQuery(cityId: string, countryCode: string | null): string {
   const cleanedCity = cityId.trim();
   if (!cleanedCity) {
     return cityId;
@@ -631,9 +610,10 @@ async function fetchGNewsFeed(args: {
     const rawLimit = args.limit || 10;
     const effectiveLimit = Math.min(Math.max(rawLimit, 1), 100);
 
-    const effectiveOffset = args.offset > 0
-      ? args.offset - (args.offset % effectiveLimit)
-      : args.offset;
+    const effectiveOffset =
+      args.offset > 0
+        ? args.offset - (args.offset % effectiveLimit)
+        : args.offset;
 
     const hasExplicitLanguage = Boolean(args.language);
     if (
@@ -685,16 +665,18 @@ async function fetchGNewsFeed(args: {
       : [];
 
     const normalizedArticles = articles
-      .filter((article) =>
-        article && typeof article === "object" && !Array.isArray(article)
+      .filter(
+        (article) =>
+          article && typeof article === "object" && !Array.isArray(article),
       )
       .map((article) => ({ ...(article as Record<string, unknown>) }));
 
     if (effectiveLanguage) {
       return {
         providerId: "gnews",
-        items: normalizedArticles.filter((article) =>
-          normalizeLanguageForArticle(article.lang) === effectiveLanguage
+        items: normalizedArticles.filter(
+          (article) =>
+            normalizeLanguageForArticle(article.lang) === effectiveLanguage,
         ),
       };
     }
@@ -823,8 +805,9 @@ async function fetchNewsApiOrgFeed(args: {
 
       const article = { ...(raw as Record<string, unknown>) };
       const source =
-        article.source && typeof article.source === "object" &&
-            !Array.isArray(article.source)
+        article.source &&
+        typeof article.source === "object" &&
+        !Array.isArray(article.source)
           ? { ...(article.source as Record<string, unknown>) }
           : {};
 
@@ -833,8 +816,8 @@ async function fetchNewsApiOrgFeed(args: {
         continue;
       }
 
-      const publishedAt = normalizeKeepCase(article.publishedAt) ??
-        new Date().toISOString();
+      const publishedAt =
+        normalizeKeepCase(article.publishedAt) ?? new Date().toISOString();
 
       items.push({
         id: url,
@@ -857,9 +840,8 @@ async function fetchNewsApiOrgFeed(args: {
       providerId: "newsapi",
       items,
       rateLimited,
-      error: status === "error" && !rateLimited
-        ? code || "newsapi_error"
-        : null,
+      error:
+        status === "error" && !rateLimited ? code || "newsapi_error" : null,
     };
   } catch (error) {
     return mapHttpError("newsapi", error);
@@ -899,7 +881,9 @@ function mapTopicToGuardianSection(topic: string | null): string | null {
   }
 }
 
-function guardianCountryNameFromCode(countryCode: string | null): string | null {
+function guardianCountryNameFromCode(
+  countryCode: string | null,
+): string | null {
   const code = countryCode?.toUpperCase() ?? null;
   switch (code) {
     case "IT":
@@ -1027,8 +1011,9 @@ async function fetchGuardianFeed(args: {
 
       const article = { ...(raw as Record<string, unknown>) };
       const fields =
-        article.fields && typeof article.fields === "object" &&
-            !Array.isArray(article.fields)
+        article.fields &&
+        typeof article.fields === "object" &&
+        !Array.isArray(article.fields)
           ? { ...(article.fields as Record<string, unknown>) }
           : {};
 
@@ -1058,9 +1043,12 @@ async function fetchGuardianFeed(args: {
         continue;
       }
 
-      const title = normalizeKeepCase(fields.headline) ??
-        normalizeKeepCase(article.webTitle) ?? "";
-      const publishedAt = normalizeKeepCase(article.webPublicationDate) ??
+      const title =
+        normalizeKeepCase(fields.headline) ??
+        normalizeKeepCase(article.webTitle) ??
+        "";
+      const publishedAt =
+        normalizeKeepCase(article.webPublicationDate) ??
         new Date().toISOString();
 
       items.push({
@@ -1163,10 +1151,7 @@ async function fetchAggregatedNews(
   };
 }
 
-function firstNonEmptyString(
-  json: ArticleItem,
-  keys: string[],
-): string | null {
+function firstNonEmptyString(json: ArticleItem, keys: string[]): string | null {
   for (const key of keys) {
     const value = json[key];
     if (value == null) {
@@ -1217,8 +1202,11 @@ function extractProviderSignature(json: ArticleItem): string | null {
   const source = json.source;
   if (source && typeof source === "object" && !Array.isArray(source)) {
     const sourceObj = source as Record<string, unknown>;
-    return normalizeKeepCase(String(sourceObj.id ?? sourceObj.name ?? ""))
-        ?.toLowerCase() ?? null;
+    return (
+      normalizeKeepCase(
+        String(sourceObj.id ?? sourceObj.name ?? ""),
+      )?.toLowerCase() ?? null
+    );
   }
 
   return null;
@@ -1266,6 +1254,143 @@ function normalizeArticleUrl(rawUrl: string | null): string | null {
   }
 }
 
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    .test(value);
+}
+
+function fnv1a32(bytes: Uint8Array, seed: number): number {
+  let hash = seed >>> 0;
+
+  for (const byte of bytes) {
+    hash ^= byte;
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+
+  return hash >>> 0;
+}
+
+function u32ToBytes(value: number): number[] {
+  return [
+    (value >>> 24) & 0xff,
+    (value >>> 16) & 0xff,
+    (value >>> 8) & 0xff,
+    value & 0xff,
+  ];
+}
+
+function legacyUuidFromString(input: string): string {
+  const bytes = new TextEncoder().encode(input);
+  const data = [
+    ...u32ToBytes(fnv1a32(bytes, 0x811c9dc5)),
+    ...u32ToBytes(fnv1a32(bytes, 0x811c9dc5 ^ 0x9e3779b9)),
+    ...u32ToBytes(fnv1a32(bytes, 0x811c9dc5 ^ 0x85ebca6b)),
+    ...u32ToBytes(fnv1a32(bytes, 0x811c9dc5 ^ 0xc2b2ae35)),
+  ];
+
+  data[6] = (data[6] & 0x0f) | 0x50;
+  data[8] = (data[8] & 0x3f) | 0x80;
+
+  const hex = data
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${
+    hex.slice(16, 20)
+  }-${hex.slice(20, 32)}`;
+}
+
+function readNestedSourceString(
+  json: ArticleItem,
+  keys: string[],
+): string | null {
+  const source = json.source;
+  if (!source || typeof source !== "object" || Array.isArray(source)) {
+    return null;
+  }
+
+  return firstNonEmptyString(source as ArticleItem, keys);
+}
+
+function buildLegacyFlutterNewsId(json: ArticleItem): string | null {
+  const explicitId = firstNonEmptyString(json, [
+    "id",
+    "external_id",
+    "externalId",
+    "guid",
+    "uuid",
+    "article_id",
+    "articleId",
+    "provider_article_id",
+    "providerArticleId",
+  ]);
+
+  if (explicitId && isUuid(explicitId.trim())) {
+    return explicitId.trim().toLowerCase();
+  }
+
+  const rawUrl = firstNonEmptyString(json, [
+    "url",
+    "link",
+    "webUrl",
+    "article_url",
+    "articleUrl",
+    "canonical_url",
+    "canonicalUrl",
+  ]);
+  const normalizedUrl = normalizeArticleUrl(
+    rawUrl == null ? null : rawUrl.replace(/\/+$/, ""),
+  );
+
+  if (normalizedUrl) {
+    return legacyUuidFromString(`url:${normalizedUrl}`);
+  }
+
+  const sourceId = readNestedSourceString(json, [
+    "id",
+    "sourceId",
+    "source_id",
+    "providerId",
+    "provider_id",
+  ]) ?? firstNonEmptyString(json, [
+    "source_id",
+    "sourceId",
+    "provider_id",
+    "providerId",
+  ]);
+  const sourceName = readNestedSourceString(json, [
+    "name",
+    "sourceName",
+    "source_name",
+    "providerName",
+    "provider_name",
+  ]) ?? firstNonEmptyString(json, [
+    "source_name",
+    "sourceName",
+    "provider_name",
+    "providerName",
+    "publisher",
+    "author",
+  ]);
+  const sourceHint = (normalize(sourceId ?? sourceName) ?? "unknown")
+    .replace(/\s+/g, " ");
+  const title = (
+    normalize(
+      firstNonEmptyString(json, ["title", "headline", "webTitle", "name"]),
+    ) ?? ""
+  ).replace(/\s+/g, " ");
+  const publishedAt = extractPublishedAt(json) ??
+    new Date(0).toISOString();
+  const rawId = explicitId ?? `${sourceHint}|${title}|${publishedAt}`;
+  const normalizedRawId = normalize(rawId)?.replace(/\s+/g, " ") ?? null;
+
+  if (!normalizedRawId) {
+    return null;
+  }
+
+  return legacyUuidFromString(`id:${sourceHint}:${normalizedRawId}`);
+}
+
 function extractPublishedAt(json: ArticleItem): string | null {
   const raw = firstNonEmptyString(json, [
     "published_at",
@@ -1291,10 +1416,12 @@ function extractPublishedAt(json: ArticleItem): string | null {
 function buildStableArticleKeysFromJson(json: ArticleItem): string[] {
   const keys = new Set<string>();
 
-  const sourceObj = json.source && typeof json.source === "object" &&
-      !Array.isArray(json.source)
-    ? (json.source as Record<string, unknown>)
-    : null;
+  const sourceObj =
+    json.source &&
+    typeof json.source === "object" &&
+    !Array.isArray(json.source)
+      ? (json.source as Record<string, unknown>)
+      : null;
 
   const sourceHint = normalizeIdentitySource(
     firstNonEmptyString(json, [
@@ -1307,8 +1434,7 @@ function buildStableArticleKeysFromJson(json: ArticleItem): string[] {
       "providerId",
       "provider_name",
       "providerName",
-    ]) ??
-      normalizeKeepCase(String(sourceObj?.id ?? sourceObj?.name ?? "")),
+    ]) ?? normalizeKeepCase(String(sourceObj?.id ?? sourceObj?.name ?? "")),
   );
 
   const normalizedUrl = normalizeArticleUrl(
@@ -1356,7 +1482,202 @@ function buildStableArticleKeysFromJson(json: ArticleItem): string[] {
   return [...keys];
 }
 
-function deduplicateJsonListByStableIdentity(items: ArticleItem[]): ArticleItem[] {
+function extractCanonicalIdentity(json: ArticleItem) {
+  const providerId = extractProviderSignature(json);
+  const providerArticleId = firstNonEmptyString(json, [
+    "provider_article_id",
+    "providerArticleId",
+    "external_id",
+    "externalId",
+    "guid",
+    "article_id",
+    "articleId",
+  ]);
+  const canonicalUrl = normalizeArticleUrl(
+    firstNonEmptyString(json, [
+      "canonical_url",
+      "canonicalUrl",
+      "url",
+      "link",
+      "article_url",
+      "articleUrl",
+    ]),
+  );
+  const title = normalize(firstNonEmptyString(json, ["title", "headline"]));
+  const publishedAt = extractPublishedAt(json);
+
+  return {
+    providerId,
+    providerArticleId,
+    canonicalUrl,
+    title,
+    publishedAt,
+  };
+}
+
+async function sha256Hex(value: string): Promise<string> {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function buildArticleFingerprint(
+  identity: ReturnType<typeof extractCanonicalIdentity>,
+): Promise<string | null> {
+  if (!identity.title) {
+    return null;
+  }
+
+  const source = identity.providerId ?? "unknown";
+  const published = identity.publishedAt ?? "unknown";
+  return await sha256Hex(`${source}\n${identity.title}\n${published}`);
+}
+
+async function findCanonicalNewsId(
+  supabase: SupabaseCacheClient,
+  identity: ReturnType<typeof extractCanonicalIdentity>,
+  fingerprint: string | null,
+): Promise<string | null> {
+  if (identity.providerId && identity.providerArticleId) {
+    const { data, error } = await supabase
+      .from(NEWS_ARTICLES_TABLE)
+      .select("id")
+      .ilike("provider_id", identity.providerId)
+      .eq("provider_article_id", identity.providerArticleId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (data?.id) return String(data.id);
+  }
+
+  if (identity.canonicalUrl) {
+    const { data, error } = await supabase
+      .from(NEWS_ARTICLES_TABLE)
+      .select("id")
+      .eq("canonical_url", identity.canonicalUrl)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (data?.id) return String(data.id);
+  }
+
+  if (fingerprint) {
+    const { data, error } = await supabase
+      .from(NEWS_ARTICLES_TABLE)
+      .select("id")
+      .eq("fingerprint_version", NEWS_FINGERPRINT_VERSION)
+      .eq("fingerprint", fingerprint)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (data?.id) return String(data.id);
+  }
+
+  return null;
+}
+
+async function registerCanonicalNewsItem(
+  supabase: SupabaseCacheClient,
+  item: ArticleItem,
+): Promise<ArticleItem> {
+  const identity = extractCanonicalIdentity(item);
+  const fingerprint = await buildArticleFingerprint(identity);
+
+  if (!identity.providerArticleId && !identity.canonicalUrl && !fingerprint) {
+    return { ...item };
+  }
+
+  let newsId = await findCanonicalNewsId(supabase, identity, fingerprint);
+  const now = new Date().toISOString();
+
+  if (!newsId) {
+    const { data, error } = await supabase
+      .from(NEWS_ARTICLES_TABLE)
+      .insert({
+        provider_id: identity.providerId,
+        provider_article_id: identity.providerArticleId,
+        canonical_url: identity.canonicalUrl,
+        fingerprint,
+        fingerprint_version: fingerprint ? NEWS_FINGERPRINT_VERSION : null,
+        published_at: identity.publishedAt,
+        first_seen_at: now,
+        last_seen_at: now,
+        created_at: now,
+        updated_at: now,
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      // A concurrent refresh may have inserted the same identity first.
+      newsId = await findCanonicalNewsId(supabase, identity, fingerprint);
+      if (!newsId) throw new Error(error.message);
+    } else {
+      newsId = String(data.id);
+    }
+  } else {
+    const { error } = await supabase
+      .from(NEWS_ARTICLES_TABLE)
+      .update({ last_seen_at: now, updated_at: now })
+      .eq("id", newsId);
+    if (error) throw new Error(error.message);
+  }
+
+  const aliases: Array<Record<string, string>> = [];
+  const legacyFlutterId = buildLegacyFlutterNewsId(item);
+  if (legacyFlutterId && legacyFlutterId !== newsId) {
+    aliases.push({
+      news_id: newsId,
+      alias_type: "legacy_flutter_id",
+      alias_value: legacyFlutterId,
+    });
+  }
+  if (identity.providerId && identity.providerArticleId) {
+    aliases.push({
+      news_id: newsId,
+      alias_type: "provider_identity",
+      alias_value: `${identity.providerId}:${identity.providerArticleId}`,
+    });
+  }
+  if (identity.canonicalUrl) {
+    aliases.push({
+      news_id: newsId,
+      alias_type: "canonical_url",
+      alias_value: identity.canonicalUrl,
+    });
+  }
+  if (fingerprint) {
+    aliases.push({
+      news_id: newsId,
+      alias_type: "fingerprint",
+      alias_value: `${NEWS_FINGERPRINT_VERSION}:${fingerprint}`,
+    });
+  }
+
+  if (aliases.length) {
+    const { error } = await supabase.from(NEWS_ALIASES_TABLE).upsert(aliases, {
+      onConflict: "alias_type,alias_value",
+      ignoreDuplicates: true,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  return { ...item, news_id: newsId };
+}
+
+async function registerCanonicalNewsItems(
+  supabase: SupabaseCacheClient,
+  items: ArticleItem[],
+): Promise<ArticleItem[]> {
+  const output: ArticleItem[] = [];
+  for (const item of items) {
+    output.push(await registerCanonicalNewsItem(supabase, item));
+  }
+  return output;
+}
+
+function deduplicateJsonListByStableIdentity(
+  items: ArticleItem[],
+): ArticleItem[] {
   if (items.length <= 1) {
     return items.map((item) => ({ ...item }));
   }
@@ -1481,10 +1802,9 @@ function seedLocationsFromPreviousCache(
     }
 
     for (const key of keys) {
-      previousLocationsByKey.set(
-        key,
-        { ...(location as Record<string, unknown>) },
-      );
+      previousLocationsByKey.set(key, {
+        ...(location as Record<string, unknown>),
+      });
     }
   }
 
@@ -1635,9 +1955,10 @@ async function refreshSingleCandidate(
       itemCount: previousItems.length,
       resolvedLocationCount: countItemsWithResolvedLocation(previousItems),
       preservedPreviousPayload: previousItems.length > 0,
-      reason: previousItems.length > 0
-        ? "no_provider_items_kept_existing_cache"
-        : "no_provider_items_no_existing_cache",
+      reason:
+        previousItems.length > 0
+          ? "no_provider_items_kept_existing_cache"
+          : "no_provider_items_no_existing_cache",
     };
   }
 
@@ -1653,7 +1974,12 @@ async function refreshSingleCandidate(
     previousItems,
   });
 
-  await upsertCache(supabase, candidate, stabilized.items);
+  const registeredItems = await registerCanonicalNewsItems(
+    supabase,
+    stabilized.items,
+  );
+
+  await upsertCache(supabase, candidate, registeredItems);
 
   return {
     cacheKey: candidate.cacheKey,
@@ -1663,8 +1989,8 @@ async function refreshSingleCandidate(
     effectiveLanguage,
     providerOrder: aggregated.providerOrder,
     attempts: aggregated.attempts,
-    itemCount: stabilized.items.length,
-    resolvedLocationCount: countItemsWithResolvedLocation(stabilized.items),
+    itemCount: registeredItems.length,
+    resolvedLocationCount: countItemsWithResolvedLocation(registeredItems),
     preservedPreviousPayload: stabilized.preservedPreviousPayload,
     reason: stabilized.preservedPreviousPayload
       ? "refreshed_items_kept_previous_payload_for_location_stability"

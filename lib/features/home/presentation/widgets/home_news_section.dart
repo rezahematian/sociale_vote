@@ -44,6 +44,7 @@ class _HomeNewsSectionState extends State<HomeNewsSection> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final controller = context.watch<NewsController>();
+    final isAuthenticated = AppDI.instance.currentUserId != null;
 
     final allNews = controller.news;
     final newsList = List<NewsItem>.from(allNews);
@@ -57,22 +58,28 @@ class _HomeNewsSectionState extends State<HomeNewsSection> {
         icon: Icons.wifi_off_rounded,
         title: l10n.homeNewsErrorTitle,
         subtitle: l10n.homeNewsErrorSubtitle,
-        actionLabel:
-            MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
-        onActionPressed: () {
-          controller.loadNews();
-        },
+        actionLabel: isAuthenticated
+            ? MaterialLocalizations.of(context).refreshIndicatorSemanticLabel
+            : null,
+        onActionPressed: isAuthenticated
+            ? () {
+                controller.loadNews();
+              }
+            : null,
       );
     } else if (newsList.isEmpty) {
       content = HomeNewsPlaceholderCard(
         icon: Icons.article_outlined,
         title: l10n.homeNewsEmptyTitle,
         subtitle: l10n.homeNewsEmptySubtitle,
-        actionLabel:
-            MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
-        onActionPressed: () {
-          controller.loadNews();
-        },
+        actionLabel: isAuthenticated
+            ? MaterialLocalizations.of(context).refreshIndicatorSemanticLabel
+            : null,
+        onActionPressed: isAuthenticated
+            ? () {
+                controller.loadNews();
+              }
+            : null,
       );
     } else {
       final featured = newsList.first;
@@ -95,9 +102,11 @@ class _HomeNewsSectionState extends State<HomeNewsSection> {
               icon: Icons.info_outline_rounded,
               title: l10n.homeNewsErrorTitle,
               subtitle: l10n.homeNewsErrorSubtitle,
-              onRetryPressed: () {
-                controller.loadNews();
-              },
+              onRetryPressed: isAuthenticated
+                  ? () {
+                      controller.loadNews();
+                    }
+                  : null,
             ),
             const SizedBox(height: 10),
           ],
@@ -131,7 +140,10 @@ class _HomeNewsSectionState extends State<HomeNewsSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _HomeNewsHeader(scopeShortLabel: widget.scopeShortLabel),
+        _HomeNewsHeader(
+          scopeShortLabel: widget.scopeShortLabel,
+          showManualControls: isAuthenticated,
+        ),
         const SizedBox(height: 10),
         content,
         const SizedBox(height: 10),
@@ -476,9 +488,11 @@ class _CarouselChevronButton extends StatelessWidget {
 
 class _HomeNewsHeader extends StatelessWidget {
   final String scopeShortLabel;
+  final bool showManualControls;
 
   const _HomeNewsHeader({
     required this.scopeShortLabel,
+    required this.showManualControls,
   });
 
   String _languageLabel(NewsLanguage language) {
@@ -540,95 +554,97 @@ class _HomeNewsHeader extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: 4),
-        IconButton(
-          visualDensity: VisualDensity.compact,
-          tooltip:
-              MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
-          onPressed: controller.isLoading
-              ? null
-              : () {
-                  controller.loadNews();
-                },
-          icon: controller.isLoading
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: LoadingIndicator(),
-                )
-              : const Icon(Icons.refresh_rounded, size: 20),
-        ),
-        const SizedBox(width: 4),
-        PopupMenuButton<NewsLanguage>(
-          tooltip: l10n.newsFeed_languageTooltip,
-          onSelected: (lang) {
-            controller.setLanguage(lang, userId: currentUserId);
-          },
-          itemBuilder: (context) => const [
-            PopupMenuItem<NewsLanguage>(
-              value: NewsLanguage.auto,
-              child: Text('AUTO'),
-            ),
-            PopupMenuItem<NewsLanguage>(
-              value: NewsLanguage.it,
-              child: Text('IT'),
-            ),
-            PopupMenuItem<NewsLanguage>(
-              value: NewsLanguage.en,
-              child: Text('EN'),
-            ),
-            PopupMenuItem<NewsLanguage>(
-              value: NewsLanguage.es,
-              child: Text('ES'),
-            ),
-            PopupMenuItem<NewsLanguage>(
-              value: NewsLanguage.fr,
-              child: Text('FR'),
-            ),
-            PopupMenuItem<NewsLanguage>(
-              value: NewsLanguage.de,
-              child: Text('DE'),
-            ),
-            PopupMenuItem<NewsLanguage>(
-              value: NewsLanguage.ar,
-              child: Text('AR'),
-            ),
-            PopupMenuItem<NewsLanguage>(
-              value: NewsLanguage.fa,
-              child: Text('FA'),
-            ),
-          ],
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest
-                  .withValues(alpha: 0.45),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(
-                color: theme.dividerColor.withValues(alpha: 0.35),
+        if (showManualControls) ...[
+          const SizedBox(width: 4),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            tooltip:
+                MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
+            onPressed: controller.isLoading
+                ? null
+                : () {
+                    controller.loadNews();
+                  },
+            icon: controller.isLoading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: LoadingIndicator(),
+                  )
+                : const Icon(Icons.refresh_rounded, size: 20),
+          ),
+          const SizedBox(width: 4),
+          PopupMenuButton<NewsLanguage>(
+            tooltip: l10n.newsFeed_languageTooltip,
+            onSelected: (lang) {
+              controller.setLanguage(lang, userId: currentUserId);
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem<NewsLanguage>(
+                value: NewsLanguage.auto,
+                child: Text('AUTO'),
+              ),
+              PopupMenuItem<NewsLanguage>(
+                value: NewsLanguage.it,
+                child: Text('IT'),
+              ),
+              PopupMenuItem<NewsLanguage>(
+                value: NewsLanguage.en,
+                child: Text('EN'),
+              ),
+              PopupMenuItem<NewsLanguage>(
+                value: NewsLanguage.es,
+                child: Text('ES'),
+              ),
+              PopupMenuItem<NewsLanguage>(
+                value: NewsLanguage.fr,
+                child: Text('FR'),
+              ),
+              PopupMenuItem<NewsLanguage>(
+                value: NewsLanguage.de,
+                child: Text('DE'),
+              ),
+              PopupMenuItem<NewsLanguage>(
+                value: NewsLanguage.ar,
+                child: Text('AR'),
+              ),
+              PopupMenuItem<NewsLanguage>(
+                value: NewsLanguage.fa,
+                child: Text('FA'),
+              ),
+            ],
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest
+                    .withValues(alpha: 0.45),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: theme.dividerColor.withValues(alpha: 0.35),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.language,
+                    size: 16,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.75),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _languageLabel(controller.selectedLanguage),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  const Icon(Icons.arrow_drop_down, size: 18),
+                ],
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.language,
-                  size: 16,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.75),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  _languageLabel(controller.selectedLanguage),
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(width: 2),
-                const Icon(Icons.arrow_drop_down, size: 18),
-              ],
-            ),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -701,7 +717,7 @@ class _HomeNewsInlineStatus extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final VoidCallback onRetryPressed;
+  final VoidCallback? onRetryPressed;
 
   const _HomeNewsInlineStatus({
     required this.icon,
@@ -750,14 +766,16 @@ class _HomeNewsInlineStatus extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              TextButton(
-                onPressed: onRetryPressed,
-                child: Text(
-                  MaterialLocalizations.of(context)
-                      .refreshIndicatorSemanticLabel,
+              if (onRetryPressed != null) ...[
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: onRetryPressed,
+                  child: Text(
+                    MaterialLocalizations.of(context)
+                        .refreshIndicatorSemanticLabel,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),

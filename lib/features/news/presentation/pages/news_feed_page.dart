@@ -283,6 +283,9 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
 
                 if (allNews.isEmpty) {
                   return RefreshIndicator(
+                    notificationPredicate: (notification) =>
+                        currentUserId != null &&
+                        defaultScrollNotificationPredicate(notification),
                     onRefresh: () => controller.loadNews(userId: currentUserId),
                     child: ListView(
                       controller: _scrollController,
@@ -295,6 +298,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                             scopeLabel: scopeLabel,
                             scopeDescription: scopeDescription,
                             newsCount: 0,
+                            canChangeLanguage: currentUserId != null,
                             selectedLanguage: controller.selectedLanguage,
                             onLanguageSelected: (lang) {
                               controller.setLanguage(lang,
@@ -315,6 +319,9 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                 }
 
                 return RefreshIndicator(
+                  notificationPredicate: (notification) =>
+                      currentUserId != null &&
+                      defaultScrollNotificationPredicate(notification),
                   onRefresh: () => controller.loadNews(userId: currentUserId),
                   child: ListView.builder(
                     controller: _scrollController,
@@ -332,6 +339,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                                 scopeLabel: scopeLabel,
                                 scopeDescription: scopeDescription,
                                 newsCount: allNews.length,
+                                canChangeLanguage: currentUserId != null,
                                 selectedLanguage: controller.selectedLanguage,
                                 onLanguageSelected: (lang) {
                                   controller.setLanguage(
@@ -454,6 +462,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
     required String scopeLabel,
     required String scopeDescription,
     required int newsCount,
+    required bool canChangeLanguage,
     required NewsLanguage selectedLanguage,
     required ValueChanged<NewsLanguage> onLanguageSelected,
   }) {
@@ -563,12 +572,14 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      _buildLanguageSelector(
-                        context,
-                        selectedLanguage: selectedLanguage,
-                        onLanguageSelected: onLanguageSelected,
-                      ),
+                      if (canChangeLanguage) ...[
+                        const SizedBox(width: 12),
+                        _buildLanguageSelector(
+                          context,
+                          selectedLanguage: selectedLanguage,
+                          onLanguageSelected: onLanguageSelected,
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 14),

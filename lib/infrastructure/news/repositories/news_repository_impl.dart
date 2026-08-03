@@ -2692,10 +2692,19 @@ class NewsRepositoryImpl implements NewsRepository {
 
     final publishedAt = dto?.publishedAt ?? _extractPublishedAtFromJson(json);
 
-    if (title != null && title.isNotEmpty && publishedAt != null) {
-      addKey(
-        'title:$sourceHint:${title.toLowerCase()}:${publishedAt.toUtc().toIso8601String()}',
-      );
+    if (title != null && title.isNotEmpty) {
+      final normalizedTitle = title.toLowerCase();
+
+      // Provider/cache aliases of the same article can expose different IDs,
+      // URLs or publication timestamps. Source + title remains stable across
+      // those copies and lets a hidden report suppress every matching alias.
+      addKey('title:$sourceHint:$normalizedTitle');
+
+      if (publishedAt != null) {
+        addKey(
+          'title:$sourceHint:$normalizedTitle:${publishedAt.toUtc().toIso8601String()}',
+        );
+      }
     }
 
     return keys.toList(growable: false);
