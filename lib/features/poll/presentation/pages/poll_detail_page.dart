@@ -18,6 +18,7 @@ import 'package:sociale_vote/domain/moderation/repositories/moderation_repositor
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/poll_result.dart';
 import 'package:sociale_vote/domain/poll/repositories/vote_repository.dart';
+import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_outcome.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_status.dart';
@@ -713,6 +714,37 @@ class _PollDetailPageState extends State<PollDetailPage> {
     );
     if (!allowed) {
       return;
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+
+    if (poll.configuration.anonymityRules.level == AnonymityLevel.public) {
+      final l10n = AppLocalizations.of(context)!;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: Text(l10n.pollDetail_chipPublic),
+            content: Text(l10n.pollDetail_publicVotesAvailableMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(l10n.commonCancelButton),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: Text(l10n.pollDetail_voteButton),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (!mounted || confirmed != true) {
+        return;
+      }
     }
 
     final userId = AppDI.instance.currentUserId;

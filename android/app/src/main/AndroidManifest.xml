@@ -41,6 +41,20 @@
             </intent-filter>
         </activity>
 
+        <!--
+          Keep Firebase Analytics disabled from native startup until Social
+          Vote implements an explicit consent flow. main.dart repeats the same
+          choice at Flutter startup.
+        -->
+        <meta-data
+            android:name="firebase_analytics_collection_enabled"
+            android:value="false" />
+
+        <!-- Social Vote does not use the Advertising ID. -->
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

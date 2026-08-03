@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -26,6 +27,10 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+
+    // Analytics remains disabled until Social Vote provides an explicit
+    // consent flow. Firebase Core stays available for the configured targets.
+    await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(false);
   }
 
   await Supabase.initialize(

@@ -56,6 +56,18 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Social Vote needs access to the camera so you can take a profile picture.</string>
 
+	<!-- Keep Analytics disabled from native startup until explicit consent. -->
+	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
+	<false/>
+
+	<!-- Social Vote does not use the Identifier for Vendor for Analytics. -->
+	<key>GOOGLE_ANALYTICS_IDFV_COLLECTION_ENABLED</key>
+	<false/>
+
+	<!-- Social Vote does not use Analytics for advertising personalization. -->
+	<key>GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS</key>
+	<false/>
+
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 
