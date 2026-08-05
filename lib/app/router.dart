@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/di.dart';
@@ -7,6 +8,7 @@ import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 
 import 'package:sociale_vote/features/admin/presentation/pages/admin_center_page.dart';
+import 'package:sociale_vote/features/auth/presentation/pages/legal_document_page.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/login_page.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/register_page.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/reset_password_page.dart';
@@ -44,8 +46,18 @@ class AppRouter {
   static const String login = '/login';
   static const String register = '/register';
   static const String resetPassword = '/reset-password';
+  static const String privacy = '/privacy';
 
-  static const String initialRoute = home;
+  static String get initialRoute {
+    if (kIsWeb) {
+      final path = Uri.base.path;
+      if (path == privacy || path == '$privacy/') {
+        return privacy;
+      }
+    }
+
+    return home;
+  }
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -191,6 +203,14 @@ class AppRouter {
       case resetPassword:
         return MaterialPageRoute<void>(
           builder: (_) => const ResetPasswordPage(),
+          settings: settings,
+        );
+
+      case privacy:
+        return MaterialPageRoute<void>(
+          builder: (_) => const LegalDocumentPage(
+            type: LegalDocumentType.privacy,
+          ),
           settings: settings,
         );
     }

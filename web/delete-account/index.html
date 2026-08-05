@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Richiedi l'eliminazione del tuo account Social Vote e dei dati associati. Account deletion request for Social Vote.">
+  <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#2563EB">
+
+  <link rel="canonical" href="https://socialevote.web.app/delete-account/">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/icons/Icon-192.png">
+
+  <title>Eliminazione account | Social Vote</title>
+
+  <style>
+    :root {
+      color-scheme: light;
+      --background: #f5f7fb;
+      --background-accent: #eef3f9;
+      --surface: #ffffff;
+      --surface-soft: #f6f8fc;
+      --border: #dce3ec;
+      --divider: #e8edf3;
+      --text: #111827;
+      --text-secondary: #4b5563;
+      --text-muted: #6b7280;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-soft: #eff6ff;
+      --danger: #dc2626;
+      --danger-soft: #fee2e2;
+      --success: #047857;
+      --success-soft: #d1fae5;
+      --shadow: 0 18px 50px rgba(15, 23, 42, 0.09);
+      --radius-large: 24px;
+      --radius-medium: 16px;
+      --radius-small: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 34rem),
+        linear-gradient(180deg, var(--background-accent), var(--background));
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--primary);
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 3px solid rgba(37, 99, 235, 0.35);
+      outline-offset: 3px;
+    }
+
+    .page-shell {
+      width: min(100% - 32px, 920px);
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      place-items: center;
+      border-radius: 13px;
+      color: #ffffff;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      box-shadow: 0 9px 24px rgba(37, 99, 235, 0.28);
+      font-size: 19px;
+    }
+
+    .language-switch {
+      display: inline-flex;
+      padding: 4px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(12px);
+    }
+
+    .language-button {
+      min-width: 48px;
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 13px;
+      color: var(--text-secondary);
+      background: transparent;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .language-button[aria-pressed="true"] {
+      color: #ffffff;
+      background: var(--primary);
+    }
+
+    .hero {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-large);
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-header {
+      padding: clamp(28px, 6vw, 56px);
+      border-bottom: 1px solid var(--divider);
+      background:
+        linear-gradient(135deg, rgba(37, 99, 235, 0.08), transparent 58%),
+        var(--surface);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      color: var(--primary);
+      background: var(--primary-soft);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 720px;
+      margin-bottom: 16px;
+      font-size: clamp(34px, 7vw, 58px);
+      line-height: 1.05;
+      letter-spacing: -0.045em;
+    }
+
+    .lead {
+      max-width: 720px;
+      margin-bottom: 28px;
+      color: var(--text-secondary);
+      font-size: clamp(17px, 2.6vw, 20px);
+    }
+
+    .notice {
+      display: flex;
+      gap: 12px;
+      max-width: 720px;
+      margin-bottom: 26px;
+      padding: 15px 16px;
+      border: 1px solid #fecaca;
+      border-radius: var(--radius-small);
+      color: #991b1b;
+      background: var(--danger-soft);
+    }
+
+    .notice-icon {
+      flex: 0 0 auto;
+      font-size: 20px;
+      line-height: 1.4;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .button {
+      display: inline-flex;
+      min-height: 50px;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      padding: 12px 18px;
+      text-decoration: none;
+      font-weight: 800;
+      transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .button-primary {
+      color: #ffffff;
+      background: var(--primary);
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.24);
+    }
+
+    .button-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .button-secondary {
+      border-color: var(--border);
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    .content {
+      display: grid;
+      gap: 18px;
+      padding: clamp(24px, 5vw, 44px);
+    }
+
+    .section {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-medium);
+      padding: clamp(20px, 4vw, 30px);
+      background: var(--surface);
+    }
+
+    .section h2 {
+      margin-bottom: 12px;
+      font-size: clamp(22px, 4vw, 28px);
+      line-height: 1.2;
+      letter-spacing: -0.025em;
+    }
+
+    .section h3 {
+      margin-bottom: 8px;
+      font-size: 17px;
+    }
+
+    .section p:last-child,
+    .section ul:last-child,
+    .section ol:last-child {
+      margin-bottom: 0;
+    }
+
+    .muted {
+      color: var(--text-secondary);
+    }
+
+    .steps {
+      display: grid;
+      gap: 13px;
+      margin: 18px 0 0;
+      padding: 0;
+      counter-reset: step;
+      list-style: none;
+    }
+
+    .steps li {
+      position: relative;
+      min-height: 42px;
+      padding-left: 54px;
+      color: var(--text-secondary);
+    }
+
+    .steps li::before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: grid;
+      width: 38px;
+      height: 38px;
+      place-items: center;
+      border-radius: 12px;
+      color: var(--primary);
+      background: var(--primary-soft);
+      counter-increment: step;
+      content: counter(step);
+      font-weight: 850;
+    }
+
+    .data-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .data-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      background: var(--surface-soft);
+    }
+
+    .data-card.deleted {
+      border-color: #a7f3d0;
+      background: var(--success-soft);
+    }
+
+    .data-card.retained {
+      border-color: #bfdbfe;
+      background: var(--primary-soft);
+    }
+
+    ul {
+      padding-left: 21px;
+    }
+
+    li + li {
+      margin-top: 7px;
+    }
+
+    .email-box {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px dashed var(--border);
+      border-radius: 13px;
+      background: var(--surface-soft);
+      overflow-wrap: anywhere;
+    }
+
+    .privacy-note {
+      display: flex;
+      gap: 11px;
+      margin-top: 16px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    footer {
+      padding: 24px 4px 0;
+      color: var(--text-muted);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 680px) {
+      .page-shell {
+        width: min(100% - 20px, 920px);
+        padding-top: 14px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+      }
+
+      .brand-mark {
+        width: 36px;
+        height: 36px;
+      }
+
+      .hero-header,
+      .content {
+        padding: 24px 20px;
+      }
+
+      .data-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .actions,
+      .button {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --background: #0b1220;
+        --background-accent: #0f1728;
+        --surface: #121a26;
+        --surface-soft: #172131;
+        --border: #2d3a4d;
+        --divider: #223044;
+        --text: #f3f7fd;
+        --text-secondary: #bec9d8;
+        --text-muted: #8fa1b7;
+        --primary-soft: #1a2b52;
+        --danger-soft: #3e1a1d;
+        --success-soft: #123125;
+        --shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+      }
+
+      body {
+        background:
+          radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 34rem),
+          linear-gradient(180deg, var(--background-accent), var(--background));
+      }
+
+      .language-switch {
+        background: rgba(18, 26, 38, 0.82);
+      }
+
+      .hero,
+      .hero-header {
+        background-color: var(--surface);
+      }
+
+      .notice {
+        border-color: #7f1d1d;
+        color: #fecaca;
+      }
+
+      .data-card.deleted {
+        border-color: #166534;
+      }
+
+      .data-card.retained {
+        border-color: #1d4ed8;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      .button {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <div class="topbar">
+      <a class="brand" href="/" aria-label="Social Vote home">
+        <span class="brand-mark" aria-hidden="true">✓</span>
+        <span>Social Vote</span>
+      </a>
+
+      <div class="language-switch" aria-label="Language selection">
+        <button
+          id="language-it"
+          class="language-button"
+          type="button"
+          aria-pressed="true"
+          data-language="it"
+        >
+          IT
+        </button>
+        <button
+          id="language-en"
+          class="language-button"
+          type="button"
+          aria-pressed="false"
+          data-language="en"
+        >
+          EN
+        </button>
+      </div>
+    </div>
+
+    <article class="hero">
+      <section id="panel-it" data-language-panel="it">
+        <header class="hero-header">
+          <div class="eyebrow">Privacy e controllo dei dati</div>
+          <h1>Eliminazione account e dati</h1>
+          <p class="lead">
+            Da questa pagina puoi richiedere l’eliminazione definitiva del tuo
+            account Social Vote e dei dati personali associati.
+          </p>
+
+          <div class="notice" role="note">
+            <span class="notice-icon" aria-hidden="true">⚠</span>
+            <div>
+              <strong>L’eliminazione è permanente.</strong><br>
+              Dopo il completamento non sarà possibile recuperare l’account.
+            </div>
+          </div>
+
+          <div class="actions">
+            <a
+              class="button button-primary"
+              href="mailto:socialvote@hotmail.com?subject=Social%20Vote%20-%20Richiesta%20eliminazione%20account&body=Richiedo%20l%27eliminazione%20definitiva%20del%20mio%20account%20Social%20Vote%20e%20dei%20dati%20personali%20associati.%0D%0A%0D%0AEmail%20usata%20per%20l%27account%3A%20%0D%0ANome%20utente%20%28se%20disponibile%29%3A%20%0D%0A%0D%0AConfermo%20di%20essere%20il%20titolare%20dell%27account.%0D%0A%0D%0ANon%20includo%20password%2C%20token%20o%20documenti%20di%20identit%C3%A0%20in%20questa%20email."
+            >
+              Richiedi eliminazione via email
+            </a>
+            <a class="button button-secondary" href="/">
+              Apri Social Vote
+            </a>
+          </div>
+        </header>
+
+        <div class="content">
+          <section class="section">
+            <h2>Richiesta senza accesso all’app</h2>
+            <p class="muted">
+              Invia la richiesta dall’indirizzo email associato all’account. Nel
+              messaggio indica l’email dell’account e, se disponibile, il nome
+              utente. Potremmo chiedere una verifica ragionevole per impedire
+              cancellazioni non autorizzate.
+            </p>
+
+            <div class="email-box">
+              Email di assistenza:
+              <a href="mailto:socialvote@hotmail.com">socialvote@hotmail.com</a>
+            </div>
+
+            <div class="privacy-note">
+              <span aria-hidden="true">🔒</span>
+              <span>
+                Non inviare password, codici di accesso, token o documenti di
+                identità nella prima email.
+              </span>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2>Eliminazione direttamente nell’app</h2>
+            <p class="muted">
+              Quando puoi ancora accedere al tuo account, questo è il percorso
+              più rapido.
+            </p>
+            <ol class="steps">
+              <li>Accedi a Social Vote.</li>
+              <li>Apri la pagina <strong>Account</strong>.</li>
+              <li>Scorri alla sezione <strong>Account</strong> e seleziona <strong>Elimina account</strong>.</li>
+              <li>Nel campo <strong>Conferma eliminazione</strong>, scrivi <strong>DELETE</strong>, quindi premi <strong>Elimina definitivamente</strong>.</li>
+              <li>Al termine verrai disconnesso e tornerai alla Home come utente non autenticato.</li>
+            </ol>
+          </section>
+
+          <section class="section">
+            <h2>Cosa viene eliminato e cosa viene conservato</h2>
+            <div class="data-grid">
+              <div class="data-card deleted">
+                <h3>Dati eliminati</h3>
+                <ul>
+                  <li>Account di autenticazione, sessioni attive e possibilità di accesso.</li>
+                  <li>Email, nome visualizzato, profilo, avatar e preferiti.</li>
+                  <li>Post, sondaggi e commenti creati dall’utente.</li>
+                  <li>Notifiche, segnalazioni e richieste di verifica associate all’account.</li>
+                </ul>
+              </div>
+
+              <div class="data-card retained">
+                <h3>Dati conservati in forma anonimizzata o tecnica</h3>
+                <ul>
+                  <li>I voti e le reazioni lasciati sui contenuti di altri utenti vengono mantenuti, ma non restano associati all’email, al nome o al profilo dell’account eliminato.</li>
+                  <li>Questa conservazione mantiene invariati i risultati dei sondaggi e i valori Heat dei contenuti.</li>
+                  <li>Resta un record tecnico anonimo in <strong>public.users</strong>, con stato <strong>deleted</strong>, senza email, nome visualizzato o profilo e senza possibilità di accesso.</li>
+                  <li>I registri amministrativi e di sicurezza vengono conservati.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2>Tempi e conferma</h2>
+            <p class="muted">
+              Le richieste inviate via email vengono gestite nel più breve tempo
+              ragionevolmente possibile. Riceverai una risposta all’indirizzo
+              usato per la richiesta quando la verifica e l’eliminazione saranno
+              state completate, oppure se saranno necessarie altre informazioni.
+            </p>
+          </section>
+        </div>
+      </section>
+
+      <section id="panel-en" data-language-panel="en" hidden>
+        <header class="hero-header">
+          <div class="eyebrow">Privacy and data control</div>
+          <h1>Account and data deletion</h1>
+          <p class="lead">
+            Use this page to request permanent deletion of your Social Vote
+            account and the associated personal data.
+          </p>
+
+          <div class="notice" role="note">
+            <span class="notice-icon" aria-hidden="true">⚠</span>
+            <div>
+              <strong>Deletion is permanent.</strong><br>
+              The account cannot be recovered after the process is completed.
+            </div>
+          </div>
+
+          <div class="actions">
+            <a
+              class="button button-primary"
+              href="mailto:socialvote@hotmail.com?subject=Social%20Vote%20-%20Account%20deletion%20request&body=I%20request%20permanent%20deletion%20of%20my%20Social%20Vote%20account%20and%20the%20associated%20personal%20data.%0D%0A%0D%0AEmail%20used%20for%20the%20account%3A%20%0D%0AUsername%20%28if%20available%29%3A%20%0D%0A%0D%0AI%20confirm%20that%20I%20am%20the%20account%20owner.%0D%0A%0D%0AI%20am%20not%20including%20passwords%2C%20tokens%20or%20identity%20documents%20in%20this%20email."
+            >
+              Request deletion by email
+            </a>
+            <a class="button button-secondary" href="/">
+              Open Social Vote
+            </a>
+          </div>
+        </header>
+
+        <div class="content">
+          <section class="section">
+            <h2>Request deletion without app access</h2>
+            <p class="muted">
+              Send the request from the email address associated with the
+              account. Include the account email and, when available, the
+              username. We may request reasonable verification to prevent an
+              unauthorized deletion.
+            </p>
+
+            <div class="email-box">
+              Support email:
+              <a href="mailto:socialvote@hotmail.com">socialvote@hotmail.com</a>
+            </div>
+
+            <div class="privacy-note">
+              <span aria-hidden="true">🔒</span>
+              <span>
+                Do not send passwords, access codes, tokens or identity
+                documents in your first email.
+              </span>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2>Delete the account inside the app</h2>
+            <p class="muted">
+              When you can still access your account, this is the fastest path.
+            </p>
+            <ol class="steps">
+              <li>Sign in to Social Vote.</li>
+              <li>Open the <strong>Account</strong> page.</li>
+              <li>Scroll to the <strong>Account</strong> section and select <strong>Delete account</strong>.</li>
+              <li>In the <strong>Deletion confirmation</strong> field, type <strong>DELETE</strong>, then select <strong>Delete permanently</strong>.</li>
+              <li>When completed, you will be signed out and returned to Home as an unauthenticated user.</li>
+            </ol>
+          </section>
+
+          <section class="section">
+            <h2>What is deleted and what is retained</h2>
+            <div class="data-grid">
+              <div class="data-card deleted">
+                <h3>Deleted data</h3>
+                <ul>
+                  <li>Authentication account, active sessions and ability to sign in.</li>
+                  <li>Email, display name, profile, avatar and favorites.</li>
+                  <li>Posts, polls and comments created by the user.</li>
+                  <li>Notifications, reports and verification requests associated with the account.</li>
+                </ul>
+              </div>
+
+              <div class="data-card retained">
+                <h3>Data retained in anonymized or technical form</h3>
+                <ul>
+                  <li>Votes and reactions submitted on other users’ content are retained, but are no longer associated with the deleted account’s email, name or profile.</li>
+                  <li>This retention keeps poll results and content Heat values unchanged.</li>
+                  <li>An anonymous technical record remains in <strong>public.users</strong>, marked <strong>deleted</strong>, without an email, display name or profile and without any ability to sign in.</li>
+                  <li>Administrative and security records are retained.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2>Timing and confirmation</h2>
+            <p class="muted">
+              Requests submitted by email are handled as soon as reasonably
+              possible. You will receive a reply at the address used for the
+              request when verification and deletion are complete, or when
+              additional information is required.
+            </p>
+          </section>
+        </div>
+      </section>
+    </article>
+
+    <footer>
+      <span>Social Vote · Reza Hematian · </span>
+      <a href="mailto:socialvote@hotmail.com">socialvote@hotmail.com</a>
+      <br>
+      <span id="updated-it">Ultimo aggiornamento: 5 agosto 2026</span>
+      <span id="updated-en" hidden>Last updated: August 5, 2026</span>
+    </footer>
+  </main>
+
+  <script>
+    (() => {
+      const supportedLanguages = new Set(['it', 'en']);
+      const panels = document.querySelectorAll('[data-language-panel]');
+      const buttons = document.querySelectorAll('[data-language]');
+      const updatedIt = document.getElementById('updated-it');
+      const updatedEn = document.getElementById('updated-en');
+
+      function setLanguage(language) {
+        const selected = supportedLanguages.has(language) ? language : 'en';
+
+        document.documentElement.lang = selected;
+        document.title = selected === 'it'
+          ? 'Eliminazione account | Social Vote'
+          : 'Account deletion | Social Vote';
+
+        panels.forEach((panel) => {
+          panel.hidden = panel.dataset.languagePanel !== selected;
+        });
+
+        buttons.forEach((button) => {
+          button.setAttribute(
+            'aria-pressed',
+            String(button.dataset.language === selected),
+          );
+        });
+
+        updatedIt.hidden = selected !== 'it';
+        updatedEn.hidden = selected !== 'en';
+
+        try {
+          window.localStorage.setItem('social-vote-delete-account-language', selected);
+        } catch (_) {
+          // The page remains fully usable when storage is unavailable.
+        }
+      }
+
+      buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+          setLanguage(button.dataset.language);
+        });
+      });
+
+      let initialLanguage = 'en';
+
+      try {
+        const savedLanguage = window.localStorage.getItem(
+          'social-vote-delete-account-language',
+        );
+
+        if (supportedLanguages.has(savedLanguage)) {
+          initialLanguage = savedLanguage;
+        } else if ((navigator.language || '').toLowerCase().startsWith('it')) {
+          initialLanguage = 'it';
+        }
+      } catch (_) {
+        if ((navigator.language || '').toLowerCase().startsWith('it')) {
+          initialLanguage = 'it';
+        }
+      }
+
+      setLanguage(initialLanguage);
+    })();
+  </script>
+</body>
+</html>
