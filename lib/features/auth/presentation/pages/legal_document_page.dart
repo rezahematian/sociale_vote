@@ -403,12 +403,12 @@ class _LegalDocument {
   );
 
   static const _LegalDocument _privacyItalian = _LegalDocument(
-    notice: 'INFORMATIVA PRE-RELEASE — aggiornata il 3 agosto 2026. I dati '
+    notice: 'INFORMATIVA PRE-RELEASE — aggiornata il 5 agosto 2026. I dati '
         'del titolare, il contatto privacy e l’età minima sono definiti. '
-        'Prima della pubblicazione devono essere completati il controllo '
-        'consenso Analytics, la gestione dei dati particolari eventualmente '
-        'rivelati da voti e contenuti e la verifica dei tempi di conservazione '
-        'e dei trasferimenti internazionali.',
+        'Prima della pubblicazione devono essere completate la gestione dei '
+        'dati particolari eventualmente rivelati da voti e contenuti e la '
+        'verifica dei tempi di conservazione e dei trasferimenti '
+        'internazionali.',
     sections: [
       _LegalSection(
         title: '1. Titolare e contatti',
@@ -471,32 +471,33 @@ class _LegalDocument {
             'vengono inviate le coordinate necessarie alla richiesta.',
       ),
       _LegalSection(
-        title: '6. Analytics e memoria locale',
-        body: 'Sui runtime supportati Social Vote usa Firebase Analytics per '
-            'misurare schermate ed eventi come registrazione, accesso, '
-            'creazione di post o sondaggi, commenti e voti. Gli eventi possono '
-            'contenere identificativi tecnici del contenuto, caratteristiche '
-            'dell’azione, informazioni sul dispositivo e identificatori '
-            'generati dal servizio, ma non il testo di post o commenti né la '
-            'password. Lingua, tema, preferenze News e opzione “Ricordami” '
-            'possono essere conservati localmente sul dispositivo. Prima '
-            'della release pubblica la raccolta Analytics non essenziale deve '
-            'essere subordinata alle scelte e al consenso richiesti dalla '
-            'normativa applicabile.',
+        title: '6. Memoria locale e componenti tecnici',
+        body: 'Social Vote configura Firebase Analytics con la raccolta '
+            'disattivata e non usa eventi Analytics per misurare schermate o '
+            'azioni dell’utente. I componenti Firebase inclusi nell’app possono '
+            'generare automaticamente un Firebase Installation ID (FID), cioè '
+            'un identificatore tecnico distinto per installazione che non '
+            'identifica direttamente la persona o il dispositivo fisico. La '
+            'raccolta dell’Advertising ID resta disattivata. Lingua, tema, '
+            'preferenze News e opzione “Ricordami” possono essere conservati '
+            'localmente sul dispositivo. Quando l’utente accede, una sessione '
+            'tecnica di autenticazione Supabase viene conservata localmente per '
+            'mantenere l’accesso e viene rimossa al logout.',
       ),
       _LegalSection(
         title: '7. Fornitori e trasferimenti',
         body: 'Supabase fornisce autenticazione, database, archiviazione file, '
             'funzioni backend e servizi realtime. Google Firebase fornisce '
-            'Analytics e componenti tecnici sui runtime supportati. I servizi '
-            'di geocodifica del dispositivo e OpenStreetMap Nominatim possono '
-            'ricevere le coordinate quando la funzione di posizione è usata. '
-            'Le News provengono da fonti esterne e vengono elaborate dal '
-            'backend. Questi fornitori possono trattare dati in Paesi esterni '
-            'allo Spazio economico europeo applicando, quando necessario, '
-            'decisioni di adeguatezza, clausole contrattuali standard o altre '
-            'garanzie previste dalla legge. Configurazioni, regioni e garanzie '
-            'devono essere verificate prima della pubblicazione.',
+            'componenti tecnici sui runtime supportati; la raccolta Firebase '
+            'Analytics è disattivata. I servizi di geocodifica del dispositivo '
+            'e OpenStreetMap Nominatim possono ricevere le coordinate quando '
+            'la funzione di posizione è usata. Le News provengono da fonti '
+            'esterne e vengono elaborate dal backend. Questi fornitori possono '
+            'trattare dati in Paesi esterni allo Spazio economico europeo '
+            'applicando, quando necessario, decisioni di adeguatezza, clausole '
+            'contrattuali standard o altre garanzie previste dalla legge. '
+            'Configurazioni, regioni e garanzie devono essere verificate prima '
+            'della pubblicazione.',
       ),
       _LegalSection(
         title: '8. Moderazione, staff e sicurezza',
@@ -555,7 +556,7 @@ class _LegalDocument {
       ),
       _LegalSection(
         title: '13. Modifiche ed efficacia',
-        body: 'Questa è una versione pre-release aggiornata il 3 agosto 2026. '
+        body: 'Questa è una versione pre-release aggiornata il 5 agosto 2026. '
             'Le modifiche sostanziali saranno comunicate nell’app o tramite '
             'un canale appropriato. La versione destinata alla pubblicazione '
             'dovrà essere riesaminata dopo il completamento dei punti indicati '
@@ -565,11 +566,11 @@ class _LegalDocument {
   );
 
   static const _LegalDocument _privacyEnglish = _LegalDocument(
-    notice: 'PRE-RELEASE NOTICE — updated on 3 August 2026. The controller, '
+    notice: 'PRE-RELEASE NOTICE — updated on 5 August 2026. The controller, '
         'privacy contact and minimum age have been defined. Before public '
-        'release, Analytics consent controls, the handling of special-category '
-        'data potentially revealed by votes and content, retention periods '
-        'and international transfers must be completed and verified.',
+        'release, the handling of special-category data potentially revealed '
+        'by votes and content, retention periods and international transfers '
+        'must be completed and verified.',
     sections: [
       _LegalSection(
         title: '1. Controller and contact details',
@@ -630,29 +631,32 @@ class _LegalDocument {
             'the request are then sent to that service.',
       ),
       _LegalSection(
-        title: '6. Analytics and local storage',
-        body: 'On supported runtimes Social Vote uses Firebase Analytics to '
-            'measure screens and events such as registration, login, creating '
-            'posts or polls, comments and votes. Events may include technical '
-            'content identifiers, action characteristics, device information '
-            'and identifiers generated by the service, but not post or comment '
-            'text or passwords. Language, theme, News preferences and the '
-            '“Remember me” option may be stored locally on the device. Before '
-            'public release, non-essential Analytics collection must be made '
-            'subject to the choices and consent required by applicable law.',
+        title: '6. Local storage and technical components',
+        body: 'Social Vote configures Firebase Analytics with collection '
+            'disabled and does not use Analytics events to measure screens or '
+            'user actions. Firebase components included in the app may '
+            'automatically generate a Firebase Installation ID (FID), a '
+            'technical identifier that is different for each installation and '
+            'does not directly identify the person or physical device. '
+            'Advertising ID collection remains disabled. Language, theme, News '
+            'preferences and the “Remember me” option may be stored locally on '
+            'the device. When a user signs in, a technical Supabase '
+            'authentication session is stored locally to keep the user signed '
+            'in and is removed on logout.',
       ),
       _LegalSection(
         title: '7. Providers and transfers',
         body: 'Supabase provides authentication, database, file storage, '
-            'backend functions and realtime services. Google Firebase '
-            'provides Analytics and technical components on supported '
-            'runtimes. Device geocoding services and OpenStreetMap Nominatim '
-            'may receive coordinates when the location feature is used. News '
-            'comes from external sources and is processed by the backend. '
-            'These providers may process data outside the European Economic '
-            'Area using adequacy decisions, standard contractual clauses or '
-            'other safeguards where required. Configurations, regions and '
-            'safeguards must be verified before release.',
+            'backend functions and realtime services. Google Firebase provides '
+            'technical components on supported runtimes; Firebase Analytics '
+            'collection is disabled. Device geocoding services and '
+            'OpenStreetMap Nominatim may receive coordinates when the location '
+            'feature is used. News comes from external sources and is processed '
+            'by the backend. These providers may process data outside the '
+            'European Economic Area using adequacy decisions, standard '
+            'contractual clauses or other safeguards where required. '
+            'Configurations, regions and safeguards must be verified before '
+            'release.',
       ),
       _LegalSection(
         title: '8. Moderation, staff and security',
@@ -707,7 +711,7 @@ class _LegalDocument {
       ),
       _LegalSection(
         title: '13. Changes and effective date',
-        body: 'This is a pre-release version updated on 3 August 2026. '
+        body: 'This is a pre-release version updated on 5 August 2026. '
             'Material changes will be communicated in the app or through an '
             'appropriate channel. The publication version must be reviewed '
             'after the items listed in the opening notice have been '
