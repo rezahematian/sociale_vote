@@ -2351,6 +2351,12 @@ abstract class AppLocalizations {
   /// **'Use 3 to 20 characters: lowercase letters, numbers and underscores.'**
   String get authUsernameInvalidError;
 
+  /// Auth UI: username already in use
+  ///
+  /// In en, this message translates to:
+  /// **'Username is already in use.'**
+  String get authUsernameAlreadyTakenError;
+
   /// Auth UI: authCountryRequiredError
   ///
   /// In en, this message translates to:

@@ -5,6 +5,7 @@ import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
@@ -111,6 +112,19 @@ class _CreatePollViewState extends State<_CreatePollView> {
         return l10n.createPollParticipationScopeEveryoneLabel;
       case ParticipationScope.geoScopeOnly:
         return l10n.createPollParticipationScopeGeoScopeOnlyLabel;
+    }
+  }
+
+  String _minimumVerificationLevelLabel(VerificationLevel level) {
+    final l10n = AppLocalizations.of(context)!;
+
+    switch (level) {
+      case VerificationLevel.none:
+        return l10n.adminCenterVerificationStatusNone;
+      case VerificationLevel.level1:
+        return l10n.adminCenterVerificationLevel1;
+      case VerificationLevel.level2:
+        return l10n.adminCenterVerificationLevel2;
     }
   }
 
@@ -1153,6 +1167,54 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     ),
                                   ),
                                 ],
+                                const Divider(height: 24),
+                                Text(
+                                  l10n.adminCenterVerificationLevelLabel,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                RadioGroup<VerificationLevel>(
+                                  groupValue:
+                                      controller.minimumVerificationLevel,
+                                  onChanged: (value) {
+                                    if (isSubmitting || value == null) return;
+                                    controller
+                                        .setMinimumVerificationLevel(value);
+                                  },
+                                  child: Column(
+                                    children: [
+                                      RadioListTile<VerificationLevel>(
+                                        contentPadding: EdgeInsets.zero,
+                                        title: Text(
+                                          _minimumVerificationLevelLabel(
+                                            VerificationLevel.none,
+                                          ),
+                                        ),
+                                        value: VerificationLevel.none,
+                                      ),
+                                      RadioListTile<VerificationLevel>(
+                                        contentPadding: EdgeInsets.zero,
+                                        title: Text(
+                                          _minimumVerificationLevelLabel(
+                                            VerificationLevel.level1,
+                                          ),
+                                        ),
+                                        value: VerificationLevel.level1,
+                                      ),
+                                      RadioListTile<VerificationLevel>(
+                                        contentPadding: EdgeInsets.zero,
+                                        title: Text(
+                                          _minimumVerificationLevelLabel(
+                                            VerificationLevel.level2,
+                                          ),
+                                        ),
+                                        value: VerificationLevel.level2,
+                                      ),
+                                    ],
+                                  ),
+                                ),
                                 const Divider(height: 24),
                                 Text(
                                   l10n.createPollVoteAnonymityTitle,

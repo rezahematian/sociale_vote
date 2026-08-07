@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/notifications/usecases/create_poll_result_notification.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/vote.dart';
@@ -18,12 +20,16 @@ class SubmitVoteAndNotify {
     required Poll poll,
     required String? userId,
     required String? userCountryCode,
+    ActorType actorType = ActorType.citizen,
+    VerificationLevel verificationLevel = VerificationLevel.none,
   }) async {
     await _submitVote(
       vote,
       poll: poll,
       userId: userId,
       userCountryCode: userCountryCode,
+      actorType: actorType,
+      verificationLevel: verificationLevel,
     );
 
     try {

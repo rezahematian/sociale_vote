@@ -118,6 +118,11 @@ class VerificationRequestRepositoryImpl
       throw Exception('Esiste già una richiesta di verifica in corso.');
     }
 
+    final votingCountryCode = await _resolveVotingCountryCode(
+      userId: normalizedUserId,
+      targetActorType: targetActorType,
+    );
+
     final payload = <String, dynamic>{
       'user_id': normalizedUserId,
       'request_type': requestType.storageKey,
@@ -127,6 +132,7 @@ class VerificationRequestRepositoryImpl
       'official_title': _normalizeNullable(officialTitle),
       'institution_name': _normalizeNullable(institutionName),
       'organization_name': _normalizeNullable(organizationName),
+      'voting_country_code': votingCountryCode,
       'status': VerificationRequestStatus.pending.storageKey,
     };
 
@@ -278,6 +284,7 @@ class VerificationRequestRepositoryImpl
       targetActorType: existing.targetActorType,
       targetVerificationLevel: existing.targetVerificationLevel,
       targetInstitutionLevel: existing.targetInstitutionLevel,
+      votingCountryCode: existing.votingCountryCode,
       officialTitle: existing.officialTitle,
       institutionName: existing.institutionName,
       organizationName: existing.organizationName,
@@ -307,6 +314,9 @@ class VerificationRequestRepositoryImpl
       targetInstitutionLevel: _readInstitutionLevel(
         row['target_institution_level'],
       ),
+      votingCountryCode: _normalizeCountryCode(
+        row['voting_country_code'] as String?,
+      ),
       officialTitle: _normalizeNullable(row['official_title'] as String?),
       institutionName: _normalizeNullable(row['institution_name'] as String?),
       organizationName: _normalizeNullable(row['organization_name'] as String?),
@@ -320,6 +330,41 @@ class VerificationRequestRepositoryImpl
       createdAt: _parseRequiredDateTime(row['created_at'], 'created_at'),
       updatedAt: _parseRequiredDateTime(row['updated_at'], 'updated_at'),
     );
+  }
+
+  Future<String?> _resolveVotingCountryCode({
+    required String userId,
+    required ActorType targetActorType,
+  }) async {
+    if (targetActorType == ActorType.institution ||
+        targetActorType == ActorType.organization) {
+      return null;
+    }
+
+    final rows = await AppSupabase.client
+        .from('user_profiles')
+        .select('country')
+        .eq('id', userId)
+        .limit(1);
+
+    if (rows.isEmpty) {
+      return null;
+    }
+
+    return _normalizeCountryCode(rows.first['country'] as String?);
+  }
+
+  String? _normalizeCountryCode(String? value) {
+    final normalized = value?.trim().toUpperCase();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+
+    if (!RegExp(r'^[A-Z]{2}$').hasMatch(normalized)) {
+      return null;
+    }
+
+    return normalized;
   }
 
   String _readRequiredString(Map<String, dynamic> row, String key) {

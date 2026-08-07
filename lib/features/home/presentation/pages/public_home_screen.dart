@@ -581,11 +581,13 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                             const SizedBox(height: 24),
                             ChangeNotifierProvider<FeedController>(
                               key: ValueKey(
-                                'home_social_${scope.level}_${scope.countryCode}_${scope.cityId}_$_homeRefreshVersion',
+                                'home_social_${scope.level}_${scope.countryCode}_${scope.cityId}_${AppDI.instance.currentUserId ?? 'guest'}_$_homeRefreshVersion',
                               ),
                               create: (_) =>
                                   AppDI.instance.createFeedController()
-                                    ..loadFeed(),
+                                    ..loadFeed(
+                                      userId: AppDI.instance.currentUserId,
+                                    ),
                               child: HomeSocialSection(
                                 scopeShortLabel: scopeShortLabel,
                               ),

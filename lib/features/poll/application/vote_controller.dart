@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sociale_vote/core/analytics/analytics_service.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/vote.dart';
 import 'package:sociale_vote/domain/poll/errors/poll_closed_exception.dart';
@@ -88,6 +90,8 @@ class VoteController extends ChangeNotifier {
     required Poll poll,
     required String? userId,
     String? userCountryCode,
+    ActorType actorType = ActorType.citizen,
+    VerificationLevel verificationLevel = VerificationLevel.none,
   }) async {
     if (_isSubmitting || _isDisposed) return;
 
@@ -120,6 +124,8 @@ class VoteController extends ChangeNotifier {
         poll: poll,
         userId: userId,
         userCountryCode: userCountryCode,
+        actorType: actorType,
+        verificationLevel: verificationLevel,
       );
 
       if (!_isOperationCurrent(operationId)) {

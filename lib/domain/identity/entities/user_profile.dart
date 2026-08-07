@@ -12,6 +12,16 @@ class UserProfile {
   final String? country;
   final String? city;
 
+  /// Paese verificato usato esclusivamente per l'eleggibilità nei poll
+  /// con restrizione geografica.
+  ///
+  /// È separato da [country], che resta un dato di profilo modificabile.
+  /// Rimane null finché il paese non viene verificato.
+  final String? votingCountryCode;
+
+  /// Momento in cui [votingCountryCode] è stato verificato.
+  final DateTime? votingCountryVerifiedAt;
+
   /// Asse civico principale dell'utente.
   final ActorType actorType;
 
@@ -55,6 +65,8 @@ class UserProfile {
     this.bio,
     this.country,
     this.city,
+    this.votingCountryCode,
+    this.votingCountryVerifiedAt,
     ActorType? actorType,
     VerificationLevel? verificationLevel,
     this.institutionLevel,
@@ -97,6 +109,9 @@ class UserProfile {
       isPublicOfficial || isInstitutionActor || isOrganizationActor;
 
   bool get hasElevatedIdentity => isVerifiedCitizen || isRepresentativeActor;
+
+  bool get hasVerifiedVotingCountry =>
+      votingCountryCode != null && votingCountryVerifiedAt != null;
 
   /// Label legacy mantenute temporaneamente.
   ///
@@ -185,6 +200,8 @@ class UserProfile {
     String? bio,
     String? country,
     String? city,
+    String? votingCountryCode,
+    DateTime? votingCountryVerifiedAt,
     ActorType? actorType,
     VerificationLevel? verificationLevel,
     InstitutionLevel? institutionLevel,
@@ -207,6 +224,9 @@ class UserProfile {
       bio: bio ?? this.bio,
       country: country ?? this.country,
       city: city ?? this.city,
+      votingCountryCode: votingCountryCode ?? this.votingCountryCode,
+      votingCountryVerifiedAt:
+          votingCountryVerifiedAt ?? this.votingCountryVerifiedAt,
       actorType: actorType ??
           (accountType != null
               ? _actorTypeFromLegacy(accountType)

@@ -193,6 +193,7 @@ class FeedController extends ChangeNotifier {
   /// - se presente → GetReactionSummary può valorizzare anche userReaction
   /// - se nullo   → avremo solo i count globali (no stato utente)
   Future<void> loadFeed({String? userId}) async {
+    final effectiveUserId = userId ?? AppDI.instance.currentUserId;
     final generation = ++_requestGeneration;
 
     _isLoading = true;
@@ -206,7 +207,7 @@ class FeedController extends ChangeNotifier {
     _commentCounts.clear();
     _currentOffset = 0;
     _hasMoreFromSource = true;
-    _lastKnownUserId = userId ?? _lastKnownUserId;
+    _lastKnownUserId = effectiveUserId;
 
     _notifyListeners();
 

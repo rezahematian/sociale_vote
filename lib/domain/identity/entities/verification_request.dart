@@ -103,6 +103,14 @@ class VerificationRequest {
   final VerificationLevel targetVerificationLevel;
   final InstitutionLevel? targetInstitutionLevel;
 
+  /// Paese candidato a diventare il paese di voto verificato quando la
+  /// richiesta viene approvata.
+  ///
+  /// È separato dal normale `profile.country`, che resta modificabile.
+  /// Questo valore è uno snapshot della richiesta di verifica e non deve
+  /// essere usato come autorizzazione finché la richiesta non è approvata.
+  final String? votingCountryCode;
+
   final String? officialTitle;
   final String? institutionName;
   final String? organizationName;
@@ -124,6 +132,7 @@ class VerificationRequest {
     required this.targetActorType,
     required this.targetVerificationLevel,
     this.targetInstitutionLevel,
+    this.votingCountryCode,
     this.officialTitle,
     this.institutionName,
     this.organizationName,
@@ -160,6 +169,7 @@ class VerificationRequest {
     ActorType? targetActorType,
     VerificationLevel? targetVerificationLevel,
     Object? targetInstitutionLevel = _unset,
+    Object? votingCountryCode = _unset,
     Object? officialTitle = _unset,
     Object? institutionName = _unset,
     Object? organizationName = _unset,
@@ -181,6 +191,9 @@ class VerificationRequest {
       targetInstitutionLevel: identical(targetInstitutionLevel, _unset)
           ? this.targetInstitutionLevel
           : targetInstitutionLevel as InstitutionLevel?,
+      votingCountryCode: identical(votingCountryCode, _unset)
+          ? this.votingCountryCode
+          : votingCountryCode as String?,
       officialTitle: identical(officialTitle, _unset)
           ? this.officialTitle
           : officialTitle as String?,

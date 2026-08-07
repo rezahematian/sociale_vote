@@ -36,8 +36,7 @@ class RegisterUser {
         trimmedPassword.isEmpty ||
         trimmedDisplayName.isEmpty ||
         normalizedUsername.isEmpty ||
-        trimmedCountry.isEmpty ||
-        trimmedCity.isEmpty) {
+        trimmedCountry.isEmpty) {
       throw Exception('Invalid registration data.');
     }
 

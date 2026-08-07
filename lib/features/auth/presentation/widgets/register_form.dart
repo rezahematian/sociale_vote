@@ -85,7 +85,6 @@ class _RegisterFormState extends State<RegisterForm> {
     final displayName = _displayNameController.text.trim();
     final username = _normalizeUsername(_usernameController.text);
     final email = _emailController.text.trim();
-    final city = _cityController.text.trim();
     final password = _passwordController.text.trim();
     final confirmPassword = _passwordConfirmController.text.trim();
     final countryCode = _selectedCountryCode?.trim();
@@ -121,10 +120,6 @@ class _RegisterFormState extends State<RegisterForm> {
       countryError = l10n.authCountryRequiredError;
     }
 
-    if (city.isEmpty) {
-      cityError = l10n.authCityRequiredError;
-    }
-
     if (password.isEmpty) {
       passwordError = l10n.authPasswordRequiredError;
     } else if (password.length < 8) {
@@ -156,7 +151,6 @@ class _RegisterFormState extends State<RegisterForm> {
         usernameError == null &&
         emailError == null &&
         countryError == null &&
-        cityError == null &&
         passwordError == null &&
         confirmPasswordError == null &&
         legalError == null;
@@ -184,11 +178,13 @@ class _RegisterFormState extends State<RegisterForm> {
       return l10n.authEmailInvalidError;
     }
 
-    if (normalized.contains('username') &&
-        (normalized.contains('duplicate') ||
-            normalized.contains('already') ||
-            normalized.contains('unique'))) {
-      return l10n.authUsernameInvalidError;
+    if (normalized.contains('username_already_taken') ||
+        (normalized.contains('username') &&
+            (normalized.contains('duplicate') ||
+                normalized.contains('already') ||
+                normalized.contains('taken') ||
+                normalized.contains('unique')))) {
+      return l10n.authUsernameAlreadyTakenError;
     }
 
     if (normalized.contains('rate limit') || normalized.contains('too many')) {
@@ -254,7 +250,7 @@ class _RegisterFormState extends State<RegisterForm> {
               }
             },
             decoration: InputDecoration(
-              labelText: l10n.authDisplayNameLabel,
+              labelText: '${l10n.authDisplayNameLabel} *',
               border: const OutlineInputBorder(),
               errorText: _displayNameError,
             ),
@@ -281,8 +277,7 @@ class _RegisterFormState extends State<RegisterForm> {
               }
             },
             decoration: InputDecoration(
-              labelText: l10n.authUsernameLabel,
-              prefixText: '@',
+              labelText: '${l10n.authUsernameLabel} *',
               border: const OutlineInputBorder(),
               errorText: _usernameError,
             ),
@@ -306,7 +301,7 @@ class _RegisterFormState extends State<RegisterForm> {
               }
             },
             decoration: InputDecoration(
-              labelText: l10n.authEmailLabel,
+              labelText: '${l10n.authEmailLabel} *',
               border: const OutlineInputBorder(),
               errorText: _emailError,
             ),
@@ -386,7 +381,7 @@ class _RegisterFormState extends State<RegisterForm> {
               }
             },
             decoration: InputDecoration(
-              labelText: l10n.authPasswordLabel,
+              labelText: '${l10n.authPasswordLabel} *',
               border: const OutlineInputBorder(),
               errorText: _passwordError,
               suffixIcon: IconButton(
@@ -427,7 +422,7 @@ class _RegisterFormState extends State<RegisterForm> {
               }
             },
             decoration: InputDecoration(
-              labelText: l10n.authConfirmPasswordLabel,
+              labelText: '${l10n.authConfirmPasswordLabel} *',
               border: const OutlineInputBorder(),
               errorText: _confirmPasswordError,
               suffixIcon: IconButton(
@@ -711,49 +706,54 @@ class _RegisterFormState extends State<RegisterForm> {
       _cityError = null;
     });
 
-    ContentLocation? resolvedLocation;
+    var resolvedCountry = countryCode;
+    var resolvedCity = cityInput;
 
-    try {
-      resolvedLocation =
-          await AppDI.instance.geocodingRepository.geocodeContentLocation(
-        ContentLocation(
-          source: ContentLocationSource.manual,
-          countryCode: countryCode,
-          cityName: cityInput,
-        ),
-      );
-    } catch (_) {
-      if (mounted) {
+    if (cityInput.isNotEmpty) {
+      ContentLocation? resolvedLocation;
+
+      try {
+        resolvedLocation =
+            await AppDI.instance.geocodingRepository.geocodeContentLocation(
+          ContentLocation(
+            source: ContentLocationSource.manual,
+            countryCode: countryCode,
+            cityName: cityInput,
+          ),
+        );
+      } catch (_) {
+        if (mounted) {
+          setState(() {
+            _cityError = l10n.homeScopeCityVerificationError;
+            _isSubmitting = false;
+          });
+        }
+        return;
+      }
+
+      if (!context.mounted) {
+        return;
+      }
+
+      if (resolvedLocation == null) {
         setState(() {
-          _cityError = l10n.homeScopeCityVerificationError;
+          _cityError = l10n.homeScopeCityNotFoundError;
           _isSubmitting = false;
         });
+        return;
       }
-      return;
-    }
 
-    if (!context.mounted) {
-      return;
-    }
+      resolvedCountry =
+          (resolvedLocation.countryCode ?? countryCode).trim().toUpperCase();
+      resolvedCity = (resolvedLocation.cityName ?? cityInput).trim();
 
-    if (resolvedLocation == null) {
-      setState(() {
-        _cityError = l10n.homeScopeCityNotFoundError;
-        _isSubmitting = false;
-      });
-      return;
-    }
-
-    final resolvedCountry =
-        (resolvedLocation.countryCode ?? countryCode).trim().toUpperCase();
-    final resolvedCity = (resolvedLocation.cityName ?? cityInput).trim();
-
-    if (resolvedCountry.isEmpty || resolvedCity.isEmpty) {
-      setState(() {
-        _cityError = l10n.homeScopeCityNotFoundError;
-        _isSubmitting = false;
-      });
-      return;
+      if (resolvedCountry.isEmpty || resolvedCity.isEmpty) {
+        setState(() {
+          _cityError = l10n.homeScopeCityNotFoundError;
+          _isSubmitting = false;
+        });
+        return;
+      }
     }
 
     try {

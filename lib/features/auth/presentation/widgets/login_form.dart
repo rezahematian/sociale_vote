@@ -504,17 +504,24 @@ class _LoginFormState extends State<LoginForm> {
       _lastActionWasPasswordReset = false;
     });
 
+    var loginSucceeded = false;
+    final previousRememberMe =
+        await AppDI.instance.storageService.readRememberMe();
+
     try {
+      // Must be persisted before Supabase creates the new session so the
+      // custom LocalStorage can decide whether that session is persistent.
+      await AppDI.instance.storageService.writeRememberMe(_rememberMe);
+
       await controller.login(
         email: email,
         password: password,
       );
 
-      if (!controller.isAuthenticated || !context.mounted) {
+      loginSucceeded = controller.isAuthenticated;
+      if (!loginSucceeded || !context.mounted) {
         return;
       }
-
-      await AppDI.instance.storageService.writeRememberMe(_rememberMe);
 
       if (!context.mounted) {
         return;
@@ -523,10 +530,26 @@ class _LoginFormState extends State<LoginForm> {
       TextInput.finishAutofillContext();
       Navigator.of(context).pop();
     } finally {
+      if (!loginSucceeded) {
+        await AppDI.instance.storageService.writeRememberMe(
+          previousRememberMe,
+        );
+      }
+
       if (mounted) {
         setState(() {
           _isSubmitting = false;
         });
+
+        if (!loginSucceeded) {
+          TextInput.finishAutofillContext(shouldSave: false);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) {
+              return;
+            }
+            _passwordFocusNode.requestFocus();
+          });
+        }
       }
     }
   }

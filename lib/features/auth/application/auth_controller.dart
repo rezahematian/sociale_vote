@@ -555,10 +555,29 @@ class AuthController extends ChangeNotifier {
       return 'Email or password not valid.';
     }
 
+    if (normalized.contains('username') &&
+        (normalized.contains('already exists') ||
+            normalized.contains('already used') ||
+            normalized.contains('already taken') ||
+            normalized.contains('duplicate') ||
+            normalized.contains('unique'))) {
+      return 'username_already_taken';
+    }
+
     if (normalized.contains('user already registered') ||
         normalized.contains('already been registered') ||
-        normalized.contains('already exists')) {
+        (normalized.contains('already exists') &&
+            normalized.contains('email'))) {
       return 'This email is already registered.';
+    }
+
+    if (normalized.contains('disposable email')) {
+      return 'disposable_email_not_allowed';
+    }
+
+    if (normalized.contains('cannot be reused yet') ||
+        normalized.contains('after account deletion')) {
+      return 'email_reuse_cooldown';
     }
 
     if (normalized.contains('invalid email')) {

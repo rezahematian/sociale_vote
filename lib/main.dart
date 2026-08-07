@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:sociale_vote/app/app.dart';
@@ -12,6 +13,64 @@ import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 import 'package:sociale_vote/firebase_options.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/auth_api.dart';
+import 'package:sociale_vote/shared/services/storage_service.dart';
+
+const _supabaseUrl = 'https://rbuzlrclwhxaigkgndrb.supabase.co';
+const _supabasePersistSessionKey = 'sb-rbuzlrclwhxaigkgndrb-auth-token';
+
+class _RememberMeLocalStorage extends LocalStorage {
+  _RememberMeLocalStorage()
+      : _delegate = SharedPreferencesLocalStorage(
+          persistSessionKey: _supabasePersistSessionKey,
+        );
+
+  final SharedPreferencesLocalStorage _delegate;
+
+  Future<bool> _shouldPersist() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(StorageService.rememberMeKey) ?? false;
+  }
+
+  @override
+  Future<void> initialize() {
+    return _delegate.initialize();
+  }
+
+  @override
+  Future<String?> accessToken() async {
+    if (!await _shouldPersist()) {
+      await _delegate.removePersistedSession();
+      return null;
+    }
+
+    return _delegate.accessToken();
+  }
+
+  @override
+  Future<bool> hasAccessToken() async {
+    if (!await _shouldPersist()) {
+      await _delegate.removePersistedSession();
+      return false;
+    }
+
+    return _delegate.hasAccessToken();
+  }
+
+  @override
+  Future<void> persistSession(String persistSessionString) async {
+    if (!await _shouldPersist()) {
+      await _delegate.removePersistedSession();
+      return;
+    }
+
+    await _delegate.persistSession(persistSessionString);
+  }
+
+  @override
+  Future<void> removePersistedSession() {
+    return _delegate.removePersistedSession();
+  }
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,11 +93,12 @@ Future<void> main() async {
   }
 
   await Supabase.initialize(
-    url: 'https://rbuzlrclwhxaigkgndrb.supabase.co',
+    url: _supabaseUrl,
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJidXpscmNsd2h4YWlna2duZHJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNDY3MzYsImV4cCI6MjA4ODgyMjczNn0.dHNA8s3NcqnluakSb-NFnb2jNgCcaVm3Ix24LbbIpHI',
-    authOptions: const FlutterAuthClientOptions(
+    authOptions: FlutterAuthClientOptions(
       authFlowType: AuthFlowType.implicit,
+      localStorage: _RememberMeLocalStorage(),
     ),
   );
 

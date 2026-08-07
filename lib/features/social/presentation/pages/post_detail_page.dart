@@ -30,8 +30,11 @@ class PostDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userId = AppDI.instance.currentUserId;
+
     return ChangeNotifierProvider<PostDetailController>(
-      create: (_) => AppDI.instance.createPostDetailController(postId)..load(),
+      create: (_) => AppDI.instance.createPostDetailController(postId)
+        ..load(userId: userId),
       child: const _PostDetailView(),
     );
   }

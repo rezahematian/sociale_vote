@@ -261,6 +261,12 @@ class _VerificationRequestCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final requiresVotingCountry =
+        request.targetActorType == ActorType.citizen ||
+            request.targetActorType == ActorType.publicOfficial;
+    final votingCountryCode = request.votingCountryCode?.trim().toUpperCase();
+    final hasVotingCountry =
+        votingCountryCode != null && votingCountryCode.isNotEmpty;
 
     return Card(
       child: Padding(
@@ -288,6 +294,11 @@ class _VerificationRequestCard extends StatelessWidget {
                       request.targetVerificationLevel,
                     ),
                   ),
+                if (requiresVotingCountry && hasVotingCountry)
+                  _InfoChip(
+                    icon: Icons.how_to_vote_outlined,
+                    label: '${l10n.homeScopeShortCountry}: $votingCountryCode',
+                  ),
                 if (request.targetInstitutionLevel != null)
                   _InfoChip(
                     icon: Icons.account_balance_outlined,
@@ -303,6 +314,11 @@ class _VerificationRequestCard extends StatelessWidget {
               label: l10n.verificationReviewUserIdLabel,
               value: request.userId,
             ),
+            if (requiresVotingCountry)
+              _InfoRow(
+                label: l10n.homeScopeShortCountry,
+                value: hasVotingCountry ? votingCountryCode : '—',
+              ),
             _InfoRow(
               label: l10n.verificationReviewSubmittedLabel,
               value: _formatDateTime(context, request.submittedAt),
@@ -354,7 +370,8 @@ class _VerificationRequestCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: isProcessing
+                    onPressed: isProcessing ||
+                            (requiresVotingCountry && !hasVotingCountry)
                         ? null
                         : () => _openReviewDialog(
                               context,
@@ -414,6 +431,22 @@ class _VerificationRequestCard extends StatelessWidget {
                         ? l10n.verificationReviewApproveConfirmation
                         : l10n.verificationReviewRejectConfirmation,
                   ),
+                  if (isApprove &&
+                      (request.targetActorType == ActorType.citizen ||
+                          request.targetActorType ==
+                              ActorType.publicOfficial)) ...[
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '${l10n.homeScopeShortCountry}: '
+                        '${request.votingCountryCode?.trim().toUpperCase() ?? '—'}',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   TextField(
                     maxLines: 3,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
@@ -134,6 +135,7 @@ class PollDetailHeader extends StatelessWidget {
     final locationLabel = _mapLocationLabel(l10n);
     final statusLabel = _mapStatusToLabel(l10n, poll.status);
     final participationLabel = _mapParticipationLabel(l10n);
+    final verificationRequirementLabel = _mapVerificationRequirementLabel(l10n);
     final timeWindowLabel = _mapTimeWindowLabel(
       l10n,
       startAt: poll.startAt,
@@ -221,6 +223,12 @@ class PollDetailHeader extends StatelessWidget {
               participationLabel,
               _mobileHeroChipMetrics,
             ),
+          if (verificationRequirementLabel != null)
+            _buildParticipationChip(
+              theme,
+              verificationRequirementLabel,
+              _mobileHeroChipMetrics,
+            ),
         ];
 
         final desktopChips = <Widget>[
@@ -232,6 +240,12 @@ class PollDetailHeader extends StatelessWidget {
             _buildTimeWindowChip(theme, timeWindowLabel, _chipMetrics),
           if (participationLabel != null)
             _buildParticipationChip(theme, participationLabel, _chipMetrics),
+          if (verificationRequirementLabel != null)
+            _buildParticipationChip(
+              theme,
+              verificationRequirementLabel,
+              _chipMetrics,
+            ),
           _buildTypeChip(theme, typeLabel, _chipMetrics),
           _buildVoteChangeChip(
             theme,
@@ -251,6 +265,8 @@ class PollDetailHeader extends StatelessWidget {
 
         final ruleSummaryValues = <String>[
           if (timeWindowLabel != null) timeWindowLabel,
+          if (verificationRequirementLabel != null)
+            verificationRequirementLabel,
           typeLabel,
           voteChangeLabel,
           anonymityLabel,
@@ -1189,6 +1205,25 @@ class PollDetailHeader extends StatelessWidget {
       return cityName;
     }
     return '$cityName · $country';
+  }
+
+  String? _mapVerificationRequirementLabel(AppLocalizations l10n) {
+    switch (poll.configuration.participationRules.minimumVerificationLevel) {
+      case VerificationLevel.none:
+        return null;
+      case VerificationLevel.level1:
+        return _localizedText(
+          l10n,
+          it: 'Verifica minima: Livello 1',
+          en: 'Minimum verification: Level 1',
+        );
+      case VerificationLevel.level2:
+        return _localizedText(
+          l10n,
+          it: 'Verifica minima: Livello 2',
+          en: 'Minimum verification: Level 2',
+        );
+    }
   }
 
   String? _mapParticipationLabel(AppLocalizations l10n) {

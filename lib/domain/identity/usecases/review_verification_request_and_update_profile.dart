@@ -79,6 +79,8 @@ class ReviewVerificationRequestAndUpdateProfile {
     );
 
     if (status == VerificationRequestStatus.approved) {
+      final verifiedAt = reviewedRequest.reviewedAt ?? DateTime.now();
+
       await _userProfileRepository.updateIdentityState(
         userId: reviewedRequest.userId,
         actorType: reviewedRequest.targetActorType,
@@ -101,8 +103,21 @@ class ReviewVerificationRequestAndUpdateProfile {
                 ? _normalizeNullableText(reviewedRequest.organizationName)
                 : null,
         verificationRequestedAt: reviewedRequest.submittedAt,
-        verifiedAt: reviewedRequest.reviewedAt ?? DateTime.now(),
+        verifiedAt: verifiedAt,
       );
+
+      final votingCountryCode =
+          _normalizeCountryCode(reviewedRequest.votingCountryCode);
+
+      if (votingCountryCode != null &&
+          (reviewedRequest.targetActorType == ActorType.citizen ||
+              reviewedRequest.targetActorType == ActorType.publicOfficial)) {
+        await _userProfileRepository.updateVerifiedVotingCountry(
+          userId: reviewedRequest.userId,
+          votingCountryCode: votingCountryCode,
+          verifiedAt: verifiedAt,
+        );
+      }
 
       return reviewedRequest;
     }
@@ -124,6 +139,14 @@ class ReviewVerificationRequestAndUpdateProfile {
   }
 
   void _validateApprovedRequest(VerificationRequest request) {
+    if ((request.targetActorType == ActorType.citizen ||
+            request.targetActorType == ActorType.publicOfficial) &&
+        _normalizeCountryCode(request.votingCountryCode) == null) {
+      throw Exception(
+        'Per approvare questa verifica serve un paese di voto valido.',
+      );
+    }
+
     switch (request.requestType) {
       case VerificationRequestType.citizenLevel1:
         if (request.targetActorType != ActorType.citizen) {
@@ -206,6 +229,16 @@ class ReviewVerificationRequestAndUpdateProfile {
         }
         break;
     }
+  }
+
+  String? _normalizeCountryCode(String? value) {
+    final normalized = value?.trim().toUpperCase();
+    if (normalized == null ||
+        normalized.isEmpty ||
+        !RegExp(r'^[A-Z]{2}$').hasMatch(normalized)) {
+      return null;
+    }
+    return normalized;
   }
 
   String? _normalizeNullableText(String? value) {

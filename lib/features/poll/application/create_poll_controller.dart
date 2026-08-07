@@ -10,6 +10,7 @@ import 'package:sociale_vote/domain/geo/value_objects/content_location_source.da
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
 import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/poll_option.dart';
 import 'package:sociale_vote/domain/poll/usecases/create_poll.dart';
@@ -62,6 +63,7 @@ class CreatePollController extends ChangeNotifier {
   bool _hasExplicitEndAt = false;
 
   ParticipationScope _participationScope = ParticipationScope.everyone;
+  VerificationLevel _minimumVerificationLevel = VerificationLevel.none;
   AnonymityLevel _anonymityLevel = AnonymityLevel.anonymous;
   ResultsVisibilityMode _resultsVisibility = ResultsVisibilityMode.always;
   int? _minQuorumVotes;
@@ -91,6 +93,7 @@ class CreatePollController extends ChangeNotifier {
   bool get hasExplicitTimeWindow => _hasExplicitStartAt && _hasExplicitEndAt;
 
   ParticipationScope get participationScope => _participationScope;
+  VerificationLevel get minimumVerificationLevel => _minimumVerificationLevel;
   AnonymityLevel get anonymityLevel => _anonymityLevel;
   ResultsVisibilityMode get resultsVisibility => _resultsVisibility;
   int? get minQuorumVotes => _minQuorumVotes;
@@ -245,6 +248,12 @@ class CreatePollController extends ChangeNotifier {
 
   void setParticipationScope(ParticipationScope scope) {
     _participationScope = scope;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  void setMinimumVerificationLevel(VerificationLevel level) {
+    _minimumVerificationLevel = level;
     _errorMessage = null;
     notifyListeners();
   }
@@ -605,6 +614,7 @@ class CreatePollController extends ChangeNotifier {
       final participationRules = ParticipationRules(
         scope: _participationScope,
         countryCode: effectiveParticipationCountry,
+        minimumVerificationLevel: _minimumVerificationLevel,
       );
 
       final configuration = PollConfiguration(

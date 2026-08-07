@@ -1,4 +1,6 @@
 import 'package:sociale_vote/core/security/participation_policy.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/errors/poll_closed_exception.dart';
 import 'package:sociale_vote/domain/poll/errors/unauthorized_vote_exception.dart';
@@ -23,12 +25,16 @@ class VoteValidator {
     required String? userId,
     required String? userCountryCode,
     required List<String> optionIds,
+    ActorType actorType = ActorType.citizen,
+    VerificationLevel verificationLevel = VerificationLevel.none,
   }) {
     _validatePollOpen(poll);
     _validateParticipation(
       poll: poll,
       userId: userId,
       userCountryCode: userCountryCode,
+      actorType: actorType,
+      verificationLevel: verificationLevel,
     );
     _validateSelections(
       poll: poll,
@@ -42,12 +48,16 @@ class VoteValidator {
     required Poll poll,
     required String? userId,
     required String? userCountryCode,
+    ActorType actorType = ActorType.citizen,
+    VerificationLevel verificationLevel = VerificationLevel.none,
   }) {
     _validatePollOpen(poll);
     _validateParticipation(
       poll: poll,
       userId: userId,
       userCountryCode: userCountryCode,
+      actorType: actorType,
+      verificationLevel: verificationLevel,
     );
   }
 
@@ -61,11 +71,15 @@ class VoteValidator {
     required Poll poll,
     required String? userId,
     required String? userCountryCode,
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
   }) {
     final canVote = _participationPolicy.canVoteOnPoll(
       userId: userId,
       rules: poll.configuration.participationRules,
       userCountryCode: userCountryCode,
+      actorType: actorType,
+      verificationLevel: verificationLevel,
     );
 
     if (!canVote) {

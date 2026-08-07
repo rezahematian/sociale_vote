@@ -224,6 +224,44 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     return _mapProfile(row);
   }
 
+  @override
+  Future<UserProfile> updateVerifiedVotingCountry({
+    required String userId,
+    required String votingCountryCode,
+    required DateTime verifiedAt,
+  }) async {
+    final normalizedUserId = userId.trim();
+    if (normalizedUserId.isEmpty) {
+      throw ArgumentError('User id non valido.');
+    }
+
+    final normalizedCountryCode =
+        _normalizeVotingCountryCode(votingCountryCode);
+    if (normalizedCountryCode == null ||
+        !RegExp(r'^[A-Z]{2}$').hasMatch(normalizedCountryCode)) {
+      throw ArgumentError('Paese di voto non valido.');
+    }
+
+    final updates = <String, dynamic>{
+      'voting_country_code': normalizedCountryCode,
+      'voting_country_verified_at': verifiedAt.toUtc().toIso8601String(),
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+
+    final rows = await AppSupabase.client
+        .from(_table)
+        .update(updates)
+        .eq('id', normalizedUserId)
+        .select()
+        .limit(1);
+
+    if (rows.isEmpty) {
+      throw Exception('Aggiornamento paese di voto verificato fallito.');
+    }
+
+    return _mapProfile(rows.first);
+  }
+
   UserProfile _mapProfile(Map<String, dynamic> row) {
     return UserProfile(
       id: _readRequiredString(row, 'id'),
@@ -233,6 +271,11 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       bio: _normalizeNullable(row['bio'] as String?),
       country: _normalizeNullable(row['country'] as String?),
       city: _normalizeNullable(row['city'] as String?),
+      votingCountryCode:
+          _normalizeVotingCountryCode(row['voting_country_code'] as String?),
+      votingCountryVerifiedAt: _parseNullableDateTime(
+        row['voting_country_verified_at'],
+      ),
       actorType: _readActorType(row),
       verificationLevel: _readVerificationLevel(row),
       institutionLevel: _readInstitutionLevel(row),
@@ -296,6 +339,14 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     }
 
     return VerificationStatusX.fromStorageKey(rawVerificationStatus);
+  }
+
+  String? _normalizeVotingCountryCode(String? value) {
+    final normalized = value?.trim().toUpperCase();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
   }
 
   String? _normalizeUsername(String? value) {

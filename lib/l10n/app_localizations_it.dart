@@ -1195,6 +1195,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get authUsernameInvalidError => 'Usa da 3 a 20 caratteri: lettere minuscole, numeri e underscore.';
 
   @override
+  String get authUsernameAlreadyTakenError => 'Nome utente già utilizzato.';
+
+  @override
   String get authCountryRequiredError => 'Seleziona il Paese di residenza.';
 
   @override

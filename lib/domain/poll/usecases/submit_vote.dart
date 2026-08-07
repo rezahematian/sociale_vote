@@ -1,4 +1,6 @@
 import 'package:sociale_vote/core/security/participation_policy.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/services/vote_validator.dart';
 
@@ -35,12 +37,16 @@ class SubmitVote {
     required Poll poll,
     required String? userId,
     required String? userCountryCode,
+    ActorType actorType = ActorType.citizen,
+    VerificationLevel verificationLevel = VerificationLevel.none,
   }) async {
     _voteValidator.validate(
       poll: poll,
       userId: userId,
       userCountryCode: userCountryCode,
       optionIds: vote.optionIds,
+      actorType: actorType,
+      verificationLevel: verificationLevel,
     );
 
     final hasAlreadyVoted = await voteRepository.hasCurrentUserVoted(poll.id);

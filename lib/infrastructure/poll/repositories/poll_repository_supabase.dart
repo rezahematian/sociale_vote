@@ -4,6 +4,7 @@ import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/identity/value_objects/institution_level.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/poll_option.dart';
 import 'package:sociale_vote/domain/poll/repositories/poll_repository.dart';
@@ -277,6 +278,8 @@ class PollRepositorySupabase implements PollRepository {
       ),
       'participation_country_code':
           poll.configuration.participationRules.countryCode,
+      'minimum_verification_level': poll
+          .configuration.participationRules.minimumVerificationLevel.storageKey,
       'allow_vote_change': poll.configuration.allowVoteChange,
       'anonymity_level': _anonymityLevelValue(
         poll.configuration.anonymityRules.level,
@@ -348,6 +351,9 @@ class PollRepositorySupabase implements PollRepository {
             row['participation_scope'] as String?,
           ),
           countryCode: participationCountryCode,
+          minimumVerificationLevel: VerificationLevelX.fromStorageKey(
+            row['minimum_verification_level'] as String?,
+          ),
         ),
         anonymityRules: AnonymityRules(
           level: _anonymityLevelFromValue(

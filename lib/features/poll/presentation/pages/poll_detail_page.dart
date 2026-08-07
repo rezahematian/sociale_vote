@@ -13,6 +13,8 @@ import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/moderation/entities/report.dart';
 import 'package:sociale_vote/domain/moderation/repositories/moderation_repository.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
@@ -753,18 +755,27 @@ class _PollDetailPageState extends State<PollDetailPage> {
     }
 
     String? userCountryCode;
+    var actorType = ActorType.citizen;
+    var verificationLevel = VerificationLevel.none;
+
     try {
       final profile = await AppDI.instance.getUserProfile(userId);
-      final normalizedCountry = profile.country?.trim();
+
+      final normalizedCountry = profile.votingCountryCode?.trim();
       if (normalizedCountry != null && normalizedCountry.isNotEmpty) {
         userCountryCode = normalizedCountry.toUpperCase();
       }
+
+      actorType = profile.actorType;
+      verificationLevel = profile.verificationLevel;
     } catch (_) {}
 
     await _voteController.submitVote(
       poll: poll,
       userId: userId,
       userCountryCode: userCountryCode,
+      actorType: actorType,
+      verificationLevel: verificationLevel,
     );
 
     if (_voteController.submittedSuccessfully) {

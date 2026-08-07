@@ -72,7 +72,7 @@ class PostDetailController extends ChangeNotifier {
     return TargetRef.post(_postIdFromPost(post));
   }
 
-  Future<void> load() async {
+  Future<void> load({String? userId}) async {
     if (_isDisposed) {
       return;
     }
@@ -99,7 +99,10 @@ class PostDetailController extends ChangeNotifier {
       _hasError = false;
       _errorMessage = null;
 
-      final summary = await _loadReactionSummaryForPost(result);
+      final summary = await _loadReactionSummaryForPost(
+        result,
+        userId: userId,
+      );
 
       if (!_isLoadOperationCurrent(operationId)) {
         return;
@@ -122,8 +125,8 @@ class PostDetailController extends ChangeNotifier {
     }
   }
 
-  Future<void> refresh() async {
-    await load();
+  Future<void> refresh({String? userId}) async {
+    await load(userId: userId);
   }
 
   /// Aggiorna il post corrente.
@@ -232,9 +235,15 @@ class PostDetailController extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
-  Future<ReactionSummary?> _loadReactionSummaryForPost(Post post) async {
+  Future<ReactionSummary?> _loadReactionSummaryForPost(
+    Post post, {
+    String? userId,
+  }) async {
     final target = _targetForPost(post);
-    final summaries = await _getReactionSummary(<TargetRef>[target]);
+    final summaries = await _getReactionSummary(
+      <TargetRef>[target],
+      userId: userId,
+    );
 
     if (summaries.isEmpty) {
       return null;

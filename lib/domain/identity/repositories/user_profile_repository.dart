@@ -41,4 +41,10 @@ abstract class UserProfileRepository {
     DateTime? verificationRequestedAt,
     DateTime? verifiedAt,
   });
+
+  Future<UserProfile> updateVerifiedVotingCountry({
+    required String userId,
+    required String votingCountryCode,
+    required DateTime verifiedAt,
+  });
 }

@@ -871,6 +871,10 @@
   "@authUsernameInvalidError": {
     "description": "Auth UI: authUsernameInvalidError"
   },
+  "authUsernameAlreadyTakenError": "Nome utente già utilizzato.",
+  "@authUsernameAlreadyTakenError": {
+    "description": "Auth UI: username already in use"
+  },
   "authCountryRequiredError": "Seleziona il Paese di residenza.",
   "@authCountryRequiredError": {
     "description": "Auth UI: authCountryRequiredError"

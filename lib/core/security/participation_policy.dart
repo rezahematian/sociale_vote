@@ -73,7 +73,9 @@ class ParticipationPolicy {
   ///
   /// Regole attuali:
   /// - utente deve essere loggato
-  /// - se scope == everyone → consentito
+  /// - il livello Identity Persona deve soddisfare
+  ///   rules.minimumVerificationLevel
+  /// - se scope == everyone → nessun ulteriore vincolo geografico
   /// - se scope == geoScopeOnly → userCountryCode deve combaciare
   ///   con rules.countryCode
   bool canVoteOnPoll({
@@ -92,6 +94,14 @@ class ParticipationPolicy {
       actorType: actorType,
       verificationLevel: verificationLevel,
       institutionLevel: institutionLevel,
+    )) {
+      return false;
+    }
+
+    if (!_meetsMinimumVerificationLevel(
+      requiredLevel: rules.minimumVerificationLevel,
+      actorType: actorType,
+      verificationLevel: verificationLevel,
     )) {
       return false;
     }
@@ -115,6 +125,26 @@ class ParticipationPolicy {
     }
 
     return false;
+  }
+
+  bool _meetsMinimumVerificationLevel({
+    required VerificationLevel requiredLevel,
+    required ActorType actorType,
+    required VerificationLevel verificationLevel,
+  }) {
+    switch (requiredLevel) {
+      case VerificationLevel.none:
+        return true;
+
+      case VerificationLevel.level1:
+        return actorType == ActorType.citizen &&
+            (verificationLevel == VerificationLevel.level1 ||
+                verificationLevel == VerificationLevel.level2);
+
+      case VerificationLevel.level2:
+        return actorType == ActorType.citizen &&
+            verificationLevel == VerificationLevel.level2;
+    }
   }
 
   /// Utente autenticato reale.
