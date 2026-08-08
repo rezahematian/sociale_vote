@@ -99,18 +99,54 @@ class AdminDashboardSummary {
   final int totalUsers;
   final int staffUsers;
 
+  final int newUsers24h;
+  final int newUsers7d;
+  final int recentSignIns24h;
+  final int recentSignIns7d;
+
+  final int pollsCreated24h;
+  final int pollsCreated7d;
+  final int postsCreated24h;
+  final int postsCreated7d;
+
+  final int adminActions24h;
+  final int adminActions7d;
+
+  final DateTime generatedAt;
+
   const AdminDashboardSummary({
     required this.pendingVerificationRequests,
     required this.openReports,
     required this.suspendedAccounts,
     required this.totalUsers,
     required this.staffUsers,
+    required this.newUsers24h,
+    required this.newUsers7d,
+    required this.recentSignIns24h,
+    required this.recentSignIns7d,
+    required this.pollsCreated24h,
+    required this.pollsCreated7d,
+    required this.postsCreated24h,
+    required this.postsCreated7d,
+    required this.adminActions24h,
+    required this.adminActions7d,
+    required this.generatedAt,
   })  : assert(pendingVerificationRequests >= 0),
         assert(openReports >= 0),
         assert(suspendedAccounts >= 0),
         assert(totalUsers >= 0),
         assert(staffUsers >= 0),
-        assert(staffUsers <= totalUsers);
+        assert(staffUsers <= totalUsers),
+        assert(newUsers24h >= 0),
+        assert(newUsers7d >= 0),
+        assert(recentSignIns24h >= 0),
+        assert(recentSignIns7d >= 0),
+        assert(pollsCreated24h >= 0),
+        assert(pollsCreated7d >= 0),
+        assert(postsCreated24h >= 0),
+        assert(postsCreated7d >= 0),
+        assert(adminActions24h >= 0),
+        assert(adminActions7d >= 0);
 
   int get pendingWork => pendingVerificationRequests + openReports;
 

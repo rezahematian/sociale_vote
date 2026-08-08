@@ -2911,4 +2911,31 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get biometricUnlockFailedMessage => 'Sblocco non riuscito. Riprova o usa la password.';
+
+  @override
+  String get adminCenterOperationalActivityTitle => 'Attività operativa';
+
+  @override
+  String get adminCenterOperationalActivitySubtitle => 'Contatori aggregati. Nessun tracciamento di presenza online.';
+
+  @override
+  String get adminCenterLast24HoursLabel => '24 ore';
+
+  @override
+  String get adminCenterLast7DaysLabel => '7 giorni';
+
+  @override
+  String get adminCenterNewUsersMetric => 'Nuove registrazioni';
+
+  @override
+  String get adminCenterRecentSignInsMetric => 'Accessi recenti';
+
+  @override
+  String get adminCenterPollsCreatedMetric => 'Poll creati';
+
+  @override
+  String get adminCenterPostsCreatedMetric => 'Post creati';
+
+  @override
+  String get adminCenterAdminActionsMetric => 'Azioni amministrative';
 }

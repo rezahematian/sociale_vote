@@ -2211,6 +2211,44 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       ),
     ];
 
+    final operationalMetrics = <({
+      String label,
+      int last24Hours,
+      int last7Days,
+      IconData icon,
+    })>[
+      (
+        label: _adminL10n(context).adminCenterNewUsersMetric,
+        last24Hours: summary.newUsers24h,
+        last7Days: summary.newUsers7d,
+        icon: Icons.person_add_alt_1_outlined,
+      ),
+      (
+        label: _adminL10n(context).adminCenterRecentSignInsMetric,
+        last24Hours: summary.recentSignIns24h,
+        last7Days: summary.recentSignIns7d,
+        icon: Icons.login_rounded,
+      ),
+      (
+        label: _adminL10n(context).adminCenterPollsCreatedMetric,
+        last24Hours: summary.pollsCreated24h,
+        last7Days: summary.pollsCreated7d,
+        icon: Icons.poll_outlined,
+      ),
+      (
+        label: _adminL10n(context).adminCenterPostsCreatedMetric,
+        last24Hours: summary.postsCreated24h,
+        last7Days: summary.postsCreated7d,
+        icon: Icons.forum_outlined,
+      ),
+      (
+        label: _adminL10n(context).adminCenterAdminActionsMetric,
+        last24Hours: summary.adminActions24h,
+        last7Days: summary.adminActions7d,
+        icon: Icons.admin_panel_settings_outlined,
+      ),
+    ];
+
     final hasPendingWork = summary.pendingVerificationRequests > 0 ||
         summary.openReports > 0 ||
         summary.suspendedAccounts > 0;
@@ -2422,6 +2460,116 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                           ),
                         ],
                       ),
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+        const SizedBox(height: 24),
+        Text(
+          _adminL10n(context).adminCenterOperationalActivityTitle,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          _adminL10n(context).adminCenterOperationalActivitySubtitle,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.color
+                    ?.withValues(alpha: 0.72),
+              ),
+        ),
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final crossAxisCount = switch (constraints.maxWidth) {
+              < 420 => 1,
+              < 840 => 2,
+              _ => 3,
+            };
+
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                mainAxisExtent: 132,
+              ),
+              itemCount: operationalMetrics.length,
+              itemBuilder: (context, index) {
+                final metric = operationalMetrics[index];
+
+                return Card(
+                  margin: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color:
+                                Theme.of(context).colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            metric.icon,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimaryContainer,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                metric.label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _AdminOperationalValue(
+                                      label: _adminL10n(context)
+                                          .adminCenterLast24HoursLabel,
+                                      value: metric.last24Hours,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _AdminOperationalValue(
+                                      label: _adminL10n(context)
+                                          .adminCenterLast7DaysLabel,
+                                      value: metric.last7Days,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -2766,6 +2914,43 @@ class _AdminIndicator {
     required this.icon,
     this.section,
   });
+}
+
+class _AdminOperationalValue extends StatelessWidget {
+  final String label;
+  final int value;
+
+  const _AdminOperationalValue({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$value',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.textTheme.labelSmall?.color?.withValues(alpha: 0.72),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _AdminDashboardStatusChip extends StatelessWidget {

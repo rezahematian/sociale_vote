@@ -2222,5 +2222,14 @@
   "biometricUnlockButton": "Unlock",
   "biometricUsePasswordButton": "Use password",
   "biometricUnlockReason": "Unlock your Social Vote session.",
-  "biometricUnlockFailedMessage": "Unlock failed. Try again or use your password."
+  "biometricUnlockFailedMessage": "Unlock failed. Try again or use your password.",
+  "adminCenterOperationalActivityTitle": "Operational activity",
+  "adminCenterOperationalActivitySubtitle": "Aggregate counters. No real-time online presence tracking.",
+  "adminCenterLast24HoursLabel": "24 hours",
+  "adminCenterLast7DaysLabel": "7 days",
+  "adminCenterNewUsersMetric": "New registrations",
+  "adminCenterRecentSignInsMetric": "Recent sign-ins",
+  "adminCenterPollsCreatedMetric": "Polls created",
+  "adminCenterPostsCreatedMetric": "Posts created",
+  "adminCenterAdminActionsMetric": "Admin actions"
 }

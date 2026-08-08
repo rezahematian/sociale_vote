@@ -83,6 +83,50 @@ class AdminRepositoryImpl implements AdminRepository {
         summary,
         'staffUsers',
       ),
+      newUsers24h: _readRequiredNonNegativeInt(
+        summary,
+        'newUsers24h',
+      ),
+      newUsers7d: _readRequiredNonNegativeInt(
+        summary,
+        'newUsers7d',
+      ),
+      recentSignIns24h: _readRequiredNonNegativeInt(
+        summary,
+        'recentSignIns24h',
+      ),
+      recentSignIns7d: _readRequiredNonNegativeInt(
+        summary,
+        'recentSignIns7d',
+      ),
+      pollsCreated24h: _readRequiredNonNegativeInt(
+        summary,
+        'pollsCreated24h',
+      ),
+      pollsCreated7d: _readRequiredNonNegativeInt(
+        summary,
+        'pollsCreated7d',
+      ),
+      postsCreated24h: _readRequiredNonNegativeInt(
+        summary,
+        'postsCreated24h',
+      ),
+      postsCreated7d: _readRequiredNonNegativeInt(
+        summary,
+        'postsCreated7d',
+      ),
+      adminActions24h: _readRequiredNonNegativeInt(
+        summary,
+        'adminActions24h',
+      ),
+      adminActions7d: _readRequiredNonNegativeInt(
+        summary,
+        'adminActions7d',
+      ),
+      generatedAt: _readRequiredDateTime(
+        summary,
+        'generatedAt',
+      ),
     );
   }
 

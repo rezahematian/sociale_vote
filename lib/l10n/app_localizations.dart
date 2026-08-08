@@ -5650,6 +5650,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlock failed. Try again or use your password.'**
   String get biometricUnlockFailedMessage;
+
+  /// No description provided for @adminCenterOperationalActivityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Operational activity'**
+  String get adminCenterOperationalActivityTitle;
+
+  /// No description provided for @adminCenterOperationalActivitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Aggregate counters. No real-time online presence tracking.'**
+  String get adminCenterOperationalActivitySubtitle;
+
+  /// No description provided for @adminCenterLast24HoursLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'24 hours'**
+  String get adminCenterLast24HoursLabel;
+
+  /// No description provided for @adminCenterLast7DaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days'**
+  String get adminCenterLast7DaysLabel;
+
+  /// No description provided for @adminCenterNewUsersMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'New registrations'**
+  String get adminCenterNewUsersMetric;
+
+  /// No description provided for @adminCenterRecentSignInsMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent sign-ins'**
+  String get adminCenterRecentSignInsMetric;
+
+  /// No description provided for @adminCenterPollsCreatedMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Polls created'**
+  String get adminCenterPollsCreatedMetric;
+
+  /// No description provided for @adminCenterPostsCreatedMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts created'**
+  String get adminCenterPostsCreatedMetric;
+
+  /// No description provided for @adminCenterAdminActionsMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin actions'**
+  String get adminCenterAdminActionsMetric;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

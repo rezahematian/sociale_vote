@@ -43,6 +43,21 @@ type DashboardRow = {
   suspended_accounts: number | string
   total_users: number | string
   staff_users: number | string
+
+  new_users_24h: number | string
+  new_users_7d: number | string
+  recent_sign_ins_24h: number | string
+  recent_sign_ins_7d: number | string
+
+  polls_created_24h: number | string
+  polls_created_7d: number | string
+  posts_created_24h: number | string
+  posts_created_7d: number | string
+
+  admin_actions_24h: number | string
+  admin_actions_7d: number | string
+
+  generated_at: string
 }
 
 type UserDetailRow = {
@@ -545,7 +560,7 @@ Deno.serve(async (req: Request) => {
 
   if (operation === 'dashboard') {
     const { data, error } = await adminClient.rpc(
-      'admin_get_dashboard_summary',
+      'admin_get_operational_dashboard_summary',
     )
 
     if (error != null) {
@@ -568,13 +583,43 @@ Deno.serve(async (req: Request) => {
     const totalUsers = readCount(row?.total_users)
     const staffUsers = readCount(row?.staff_users)
 
+    const newUsers24h = readCount(row?.new_users_24h)
+    const newUsers7d = readCount(row?.new_users_7d)
+    const recentSignIns24h = readCount(row?.recent_sign_ins_24h)
+    const recentSignIns7d = readCount(row?.recent_sign_ins_7d)
+
+    const pollsCreated24h = readCount(row?.polls_created_24h)
+    const pollsCreated7d = readCount(row?.polls_created_7d)
+    const postsCreated24h = readCount(row?.posts_created_24h)
+    const postsCreated7d = readCount(row?.posts_created_7d)
+
+    const adminActions24h = readCount(row?.admin_actions_24h)
+    const adminActions7d = readCount(row?.admin_actions_7d)
+
+    const generatedAt =
+      typeof row?.generated_at === 'string'
+        ? row.generated_at
+        : null
+
     if (
       pendingVerificationRequests == null ||
       openReports == null ||
       suspendedAccounts == null ||
       totalUsers == null ||
       staffUsers == null ||
-      staffUsers > totalUsers
+      staffUsers > totalUsers ||
+      newUsers24h == null ||
+      newUsers7d == null ||
+      recentSignIns24h == null ||
+      recentSignIns7d == null ||
+      pollsCreated24h == null ||
+      pollsCreated7d == null ||
+      postsCreated24h == null ||
+      postsCreated7d == null ||
+      adminActions24h == null ||
+      adminActions7d == null ||
+      generatedAt == null ||
+      !Number.isFinite(Date.parse(generatedAt))
     ) {
       console.error('Invalid Admin Center dashboard response.')
 
@@ -591,6 +636,21 @@ Deno.serve(async (req: Request) => {
         suspendedAccounts,
         totalUsers,
         staffUsers,
+
+        newUsers24h,
+        newUsers7d,
+        recentSignIns24h,
+        recentSignIns7d,
+
+        pollsCreated24h,
+        pollsCreated7d,
+        postsCreated24h,
+        postsCreated7d,
+
+        adminActions24h,
+        adminActions7d,
+
+        generatedAt,
       },
       permissions: {
         role: callerRole,
