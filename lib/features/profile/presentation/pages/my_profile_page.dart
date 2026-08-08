@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 // R3_ACCOUNT_GROUPED_LAYOUT_V2
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sociale_vote/app/app.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
@@ -29,19 +30,19 @@ class MyProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final String? currentUserId = AppDI.instance.currentUserId;
 
     if (currentUserId == null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Account'),
+          title: Text(l10n.homeAccountMenuLabel),
         ),
-        body: const Center(
+        body: Center(
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Text(
-              'You must be logged in to open your account.\n\n'
-              'Accedi o registrati dalla home per gestire profilo, notifiche e impostazioni.',
+              l10n.profileLoginRequiredMessage,
               textAlign: TextAlign.center,
             ),
           ),
@@ -122,6 +123,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
   }
 
   Future<void> _showThemeModeSheet() async {
+    final l10n = AppLocalizations.of(context)!;
     final currentMode = AppThemeModeController.themeMode.value;
 
     await showModalBottomSheet<void>(
@@ -136,23 +138,23 @@ class _MyProfileViewState extends State<_MyProfileView> {
               AppThemeModeController.setThemeMode(value);
               Navigator.of(sheetContext).pop();
             },
-            child: const Column(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 RadioListTile<ThemeMode>(
                   value: ThemeMode.system,
-                  title: Text('Sistema'),
-                  subtitle: Text('Segue il tema del dispositivo'),
+                  title: Text(l10n.profileThemeSystem),
+                  subtitle: Text(l10n.profileThemeSystemDescription),
                 ),
                 RadioListTile<ThemeMode>(
                   value: ThemeMode.light,
-                  title: Text('Chiaro'),
+                  title: Text(l10n.profileThemeLight),
                 ),
                 RadioListTile<ThemeMode>(
                   value: ThemeMode.dark,
-                  title: Text('Scuro'),
+                  title: Text(l10n.profileThemeDark),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
               ],
             ),
           ),
@@ -794,20 +796,21 @@ class _MyProfileViewState extends State<_MyProfileView> {
   }
 
   Future<void> _confirmLogout() async {
+    final l10n = AppLocalizations.of(context)!;
     final shouldLogout = await showDialog<bool>(
           context: context,
           builder: (dialogContext) {
             return AlertDialog(
-              title: const Text('Logout'),
-              content: const Text('Vuoi davvero uscire dal tuo account?'),
+              title: Text(l10n.profileLogoutDialogTitle),
+              content: Text(l10n.profileLogoutDialogMessage),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: const Text('Annulla'),
+                  child: Text(l10n.profileLogoutCancelButton),
                 ),
                 FilledButton(
                   onPressed: () => Navigator.of(dialogContext).pop(true),
-                  child: const Text('Logout'),
+                  child: Text(l10n.profileLogoutConfirmButton),
                 ),
               ],
             );
@@ -925,6 +928,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
     final bio = profile?.bio?.trim() ?? '';
     final country = profile?.country?.trim() ?? '';
     final city = profile?.city?.trim() ?? '';
+    final accountEmail =
+        Supabase.instance.client.auth.currentUser?.email?.trim() ?? '';
 
     final actorType = profile?.actorType ?? ActorType.citizen;
     final verificationLevel =
@@ -962,7 +967,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Account'),
+        title: Text(l10n.homeAccountMenuLabel),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -975,6 +980,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
           children: [
+            _SectionTitle(l10n.profilePublicProfileSectionTitle),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -1014,7 +1020,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                         Text(
                                           displayName.isNotEmpty
                                               ? displayName
-                                              : 'User',
+                                              : l10n.notificationsUserFallback,
                                           style: theme.textTheme.titleMedium
                                               ?.copyWith(
                                             fontWeight: FontWeight.w700,
@@ -1105,7 +1111,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                           ),
                                         )
                                       : const Icon(Icons.edit_outlined),
-                                  label: const Text('Edit Profile'),
+                                  label: Text(l10n.profileEditPageTitle),
                                 ),
                               ),
                             ],
@@ -1143,7 +1149,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
               ),
             ],
             const SizedBox(height: 18),
-            const _SectionTitle('Profile'),
+            _SectionTitle(l10n.profileIdentityVerificationSectionTitle),
             _SettingsGroup(
               children: [
                 _SettingsTile(
@@ -1166,15 +1172,15 @@ class _MyProfileViewState extends State<_MyProfileView> {
               ],
             ),
             const SizedBox(height: 18),
-            const _SectionTitle('App'),
+            _SectionTitle(l10n.profilePreferencesSectionTitle),
             ValueListenableBuilder<ThemeMode>(
               valueListenable: AppThemeModeController.themeMode,
               builder: (context, mode, _) {
                 return _SettingsGroup(
                   children: [
                     _SettingsTile(
-                      title: 'Theme',
-                      subtitle: _themeModeLabel(mode),
+                      title: l10n.profileThemeTitle,
+                      subtitle: _themeModeLabel(l10n, mode),
                       icon: Icons.palette_outlined,
                       onTap: _showThemeModeSheet,
                     ),
@@ -1190,35 +1196,37 @@ class _MyProfileViewState extends State<_MyProfileView> {
                         );
                       },
                     ),
-                    const Divider(height: 1),
-                    FutureBuilder<int>(
-                      future: _unreadNotificationsFuture,
-                      builder: (context, snapshot) {
-                        final unreadCount = snapshot.data ?? 0;
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 18),
+            _SectionTitle(l10n.profileNotificationsSectionTitle),
+            FutureBuilder<int>(
+              future: _unreadNotificationsFuture,
+              builder: (context, snapshot) {
+                final unreadCount = snapshot.data ?? 0;
 
-                        return _SettingsTile(
-                          title: 'Notifications',
-                          subtitle: unreadCount > 0
-                              ? '$unreadCount non lette'
-                              : 'Nessuna notifica non letta',
-                          icon: Icons.notifications_none,
-                          trailing: _NotificationsTrailingBadge(
-                            unreadCount: unreadCount,
-                          ),
-                          onTap: _openNotifications,
-                        );
-                      },
+                return _SettingsGroup(
+                  children: [
+                    _SettingsTile(
+                      title: l10n.notificationsPageTitle,
+                      icon: Icons.notifications_none,
+                      trailing: _NotificationsTrailingBadge(
+                        unreadCount: unreadCount,
+                      ),
+                      onTap: _openNotifications,
                     ),
                   ],
                 );
               },
             ),
             const SizedBox(height: 18),
-            const _SectionTitle('My activity'),
+            _SectionTitle(l10n.profileActivitySectionTitle),
             _SettingsGroup(
               children: [
                 _SettingsTile(
-                  title: 'My Polls',
+                  title: l10n.profileMyPollsTitle,
                   icon: Icons.how_to_vote,
                   onTap: () {
                     Navigator.of(context).push(
@@ -1230,7 +1238,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 ),
                 const Divider(height: 1),
                 _SettingsTile(
-                  title: 'My Posts',
+                  title: l10n.profileMyPostsTitle,
                   icon: Icons.forum_outlined,
                   onTap: () {
                     Navigator.of(context).push(
@@ -1242,7 +1250,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 ),
                 const Divider(height: 1),
                 _SettingsTile(
-                  title: 'My Comments',
+                  title: l10n.profileMyCommentsTitle,
                   icon: Icons.comment_outlined,
                   onTap: () {
                     Navigator.of(context).push(
@@ -1254,7 +1262,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 ),
                 const Divider(height: 1),
                 _SettingsTile(
-                  title: 'My Favorites',
+                  title: l10n.profileMyFavoritesTitle,
                   icon: Icons.star_border_rounded,
                   onTap: () {
                     Navigator.of(context).push(
@@ -1266,7 +1274,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 ),
                 const Divider(height: 1),
                 _SettingsTile(
-                  title: 'My Followed Scopes',
+                  title: l10n.profileMyFollowedScopesTitle,
                   icon: Icons.public,
                   onTap: () {
                     Navigator.of(context).push(
@@ -1279,12 +1287,33 @@ class _MyProfileViewState extends State<_MyProfileView> {
               ],
             ),
             const SizedBox(height: 18),
-            const _SectionTitle('Account'),
+            _SectionTitle(l10n.profileSecurityAccountSectionTitle),
             _SettingsGroup(
               children: [
                 _SettingsTile(
-                  title: 'Logout',
-                  subtitle: 'Esci dall’account corrente',
+                  title: accountEmail.isNotEmpty
+                      ? accountEmail
+                      : l10n.authEmailLabel,
+                  subtitle: l10n.profileAccountEmailHelper,
+                  icon: Icons.email_outlined,
+                ),
+                const Divider(height: 1),
+                _SettingsTile(
+                  title: l10n.profileChangePasswordAction,
+                  subtitle: l10n.profileChangePasswordDescription,
+                  icon: Icons.lock_reset_outlined,
+                  onTap: _isDeletingAccount
+                      ? null
+                      : () {
+                          Navigator.of(context).pushNamed(
+                            AppRouter.resetPassword,
+                          );
+                        },
+                ),
+                const Divider(height: 1),
+                _SettingsTile(
+                  title: l10n.profileLogoutAction,
+                  subtitle: l10n.profileLogoutDescription,
                   icon: Icons.logout_rounded,
                   iconColor: theme.colorScheme.error,
                   textColor: theme.colorScheme.error,
@@ -1450,14 +1479,17 @@ class _MyProfileViewState extends State<_MyProfileView> {
     return accountStatusLabel;
   }
 
-  String _themeModeLabel(ThemeMode mode) {
+  String _themeModeLabel(
+    AppLocalizations l10n,
+    ThemeMode mode,
+  ) {
     switch (mode) {
       case ThemeMode.system:
-        return 'Sistema';
+        return l10n.profileThemeSystem;
       case ThemeMode.light:
-        return 'Chiaro';
+        return l10n.profileThemeLight;
       case ThemeMode.dark:
-        return 'Scuro';
+        return l10n.profileThemeDark;
     }
   }
 

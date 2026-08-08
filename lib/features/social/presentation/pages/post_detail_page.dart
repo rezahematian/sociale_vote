@@ -12,6 +12,7 @@ import 'package:sociale_vote/domain/moderation/entities/report.dart';
 import 'package:sociale_vote/domain/moderation/repositories/moderation_repository.dart';
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
 import 'package:sociale_vote/features/discussion/presentation/widgets/comment_section.dart';
+import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
 import 'package:sociale_vote/features/social/application/post_detail_controller.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
@@ -790,6 +791,9 @@ class _PostDetailHeroCard extends StatelessWidget {
     final authorName = post.authorName.trim().isNotEmpty
         ? post.authorName.trim()
         : l10n.postDetail_authorFallback;
+    final authorUserId = post.createdByUserId?.trim();
+    final canOpenAuthorProfile =
+        authorUserId != null && authorUserId.isNotEmpty;
 
     final authorTextColor = theme.colorScheme.onSurface.withValues(
       alpha: isDark ? 0.90 : 0.84,
@@ -855,36 +859,72 @@ class _PostDetailHeroCard extends StatelessWidget {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              _AuthorAvatar(
-                                name: authorName,
+                              InkWell(
+                                borderRadius: BorderRadius.circular(999),
+                                onTap: canOpenAuthorProfile
+                                    ? () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute<void>(
+                                            builder: (_) =>
+                                                PublicUserProfilePage(
+                                              userId: authorUserId,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    : null,
+                                child: _AuthorAvatar(
+                                  name: authorName,
+                                ),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        authorName,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: theme.textTheme.titleSmall
-                                            ?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          color: authorTextColor,
-                                        ),
-                                      ),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: canOpenAuthorProfile
+                                      ? () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute<void>(
+                                              builder: (_) =>
+                                                  PublicUserProfilePage(
+                                                userId: authorUserId,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      : null,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 2,
                                     ),
-                                    if (showIdentityMark)
-                                      UserIdentityMark(
-                                        actorType: post.authorActorType,
-                                        verificationLevel:
-                                            post.authorVerificationLevel,
-                                        institutionLevel:
-                                            post.authorInstitutionLevel,
-                                        size: 16,
-                                      ),
-                                  ],
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            authorName,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: theme.textTheme.titleSmall
+                                                ?.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                              color: authorTextColor,
+                                            ),
+                                          ),
+                                        ),
+                                        if (showIdentityMark)
+                                          UserIdentityMark(
+                                            actorType: post.authorActorType,
+                                            verificationLevel:
+                                                post.authorVerificationLevel,
+                                            institutionLevel:
+                                                post.authorInstitutionLevel,
+                                            size: 16,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -893,14 +933,32 @@ class _PostDetailHeroCard extends StatelessWidget {
                         const SizedBox(width: 18),
                         Padding(
                           padding: const EdgeInsets.only(top: 2),
-                          child: Text(
-                            _formatDateTime(post.createdAt),
-                            textAlign: TextAlign.right,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: metaTextColor,
-                              fontWeight: FontWeight.w600,
-                              height: 1.2,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                _formatDateTime(post.createdAt),
+                                textAlign: TextAlign.right,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: metaTextColor,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.2,
+                                ),
+                              ),
+                              if (post.isEdited && post.updatedAt != null) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  '${_editedLabel(context)} ${_formatDateTime(post.updatedAt!)}',
+                                  textAlign: TextAlign.right,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: metaTextColor,
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FontStyle.italic,
+                                    height: 1.2,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ],
@@ -1020,6 +1078,12 @@ class _PostDetailHeroCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  static String _editedLabel(BuildContext context) {
+    return Localizations.localeOf(context).languageCode == 'it'
+        ? 'Modificato'
+        : 'Edited';
   }
 
   static String _formatDateTime(DateTime value) {

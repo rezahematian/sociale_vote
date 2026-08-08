@@ -11,6 +11,7 @@ import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 import 'package:sociale_vote/domain/discussion/entities/comment.dart';
 import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
+import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
 /// Sezione commenti generica basata su [DiscussionController].
@@ -320,6 +321,7 @@ class _CommentSectionState extends State<CommentSection> {
                         comment: root,
                         authorLabel: _authorLabelFor(root),
                         authorProfile: _authorProfileFor(root),
+                        onAuthorTap: () => _openPublicProfile(root.userId),
                         isReply: false,
                         isCurrentUser: currentUserId != null &&
                             root.userId == currentUserId,
@@ -426,6 +428,10 @@ class _CommentSectionState extends State<CommentSection> {
                                                       _authorLabelFor(reply),
                                                   authorProfile:
                                                       _authorProfileFor(reply),
+                                                  onAuthorTap: () =>
+                                                      _openPublicProfile(
+                                                    reply.userId,
+                                                  ),
                                                   isReply: true,
                                                   isCurrentUser:
                                                       currentUserId != null &&
@@ -782,6 +788,21 @@ class _CommentSectionState extends State<CommentSection> {
     );
   }
 
+  void _openPublicProfile(String userId) {
+    final normalizedUserId = userId.trim();
+    if (normalizedUserId.isEmpty) {
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PublicUserProfilePage(
+          userId: normalizedUserId,
+        ),
+      ),
+    );
+  }
+
   void _ensureAuthorLabelsLoaded(List<Comment> comments) {
     final authorIds = comments
         .map((comment) => comment.userId.trim())
@@ -1063,6 +1084,7 @@ class _CommentTile extends StatelessWidget {
   final Comment comment;
   final String authorLabel;
   final UserProfile? authorProfile;
+  final VoidCallback onAuthorTap;
   final bool isReply;
   final bool isCurrentUser;
   final VoidCallback onReplyTap;
@@ -1075,6 +1097,7 @@ class _CommentTile extends StatelessWidget {
     required this.comment,
     required this.authorLabel,
     required this.authorProfile,
+    required this.onAuthorTap,
     required this.isReply,
     required this.isCurrentUser,
     required this.onReplyTap,
@@ -1120,10 +1143,14 @@ class _CommentTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              _AuthorAvatar(
-                label: authorLabel,
-                isReply: isReply,
-                isCurrentUser: isCurrentUser,
+              InkWell(
+                borderRadius: BorderRadius.circular(999),
+                onTap: onAuthorTap,
+                child: _AuthorAvatar(
+                  label: authorLabel,
+                  isReply: isReply,
+                  isCurrentUser: isCurrentUser,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -1135,12 +1162,21 @@ class _CommentTile extends StatelessWidget {
                       spacing: 6,
                       runSpacing: 4,
                       children: [
-                        Text(
-                          authorLabel,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
+                        InkWell(
+                          borderRadius: BorderRadius.circular(6),
+                          onTap: onAuthorTap,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 2,
+                            ),
+                            child: Text(
+                              authorLabel,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
                         if (authorProfile != null &&
                             UserIdentityMark.shouldShowForProfile(
@@ -1195,14 +1231,36 @@ class _CommentTile extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      _formatTime(comment.createdAt),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurface.withValues(
-                          alpha: isDark ? 0.56 : 0.48,
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          _formatTime(comment.createdAt),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurface.withValues(
+                              alpha: isDark ? 0.56 : 0.48,
+                            ),
+                            fontSize: 11,
+                          ),
                         ),
-                        fontSize: 11,
-                      ),
+                        if (comment.isEdited && comment.updatedAt != null)
+                          Text(
+                            '· ${_localizedText(
+                              l10n,
+                              it: 'Modificato',
+                              en: 'Edited',
+                            )} ${_formatTime(comment.updatedAt!)}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurface.withValues(
+                                alpha: isDark ? 0.56 : 0.48,
+                              ),
+                              fontSize: 11,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),

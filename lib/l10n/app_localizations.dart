@@ -5170,6 +5170,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Page {currentPage} of {totalPages}'**
   String adminCenterPageOf(int currentPage, int totalPages);
+
+  /// No description provided for @profilePublicProfileSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Public profile'**
+  String get profilePublicProfileSectionTitle;
+
+  /// No description provided for @profileIdentityVerificationSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity and verification'**
+  String get profileIdentityVerificationSectionTitle;
+
+  /// No description provided for @profilePreferencesSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get profilePreferencesSectionTitle;
+
+  /// No description provided for @profileNotificationsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get profileNotificationsSectionTitle;
+
+  /// No description provided for @profileActivitySectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal activity'**
+  String get profileActivitySectionTitle;
+
+  /// No description provided for @profileSecurityAccountSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Security and account'**
+  String get profileSecurityAccountSectionTitle;
+
+  /// No description provided for @profileThemeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get profileThemeTitle;
+
+  /// No description provided for @profileThemeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get profileThemeSystem;
+
+  /// No description provided for @profileThemeSystemDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Follows the device theme'**
+  String get profileThemeSystemDescription;
+
+  /// No description provided for @profileThemeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get profileThemeLight;
+
+  /// No description provided for @profileThemeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get profileThemeDark;
+
+  /// No description provided for @profileMyPollsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My polls'**
+  String get profileMyPollsTitle;
+
+  /// No description provided for @profileMyPostsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My posts'**
+  String get profileMyPostsTitle;
+
+  /// No description provided for @profileMyCommentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My comments'**
+  String get profileMyCommentsTitle;
+
+  /// No description provided for @profileMyFavoritesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My favorites'**
+  String get profileMyFavoritesTitle;
+
+  /// No description provided for @profileMyFollowedScopesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My followed areas'**
+  String get profileMyFollowedScopesTitle;
+
+  /// No description provided for @profileLogoutAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get profileLogoutAction;
+
+  /// No description provided for @profileLogoutDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of the current account'**
+  String get profileLogoutDescription;
+
+  /// No description provided for @profileLogoutDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get profileLogoutDialogTitle;
+
+  /// No description provided for @profileLogoutDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to log out of your account?'**
+  String get profileLogoutDialogMessage;
+
+  /// No description provided for @profileLogoutCancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get profileLogoutCancelButton;
+
+  /// No description provided for @profileLogoutConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get profileLogoutConfirmButton;
+
+  /// No description provided for @publicProfilePageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Public profile'**
+  String get publicProfilePageTitle;
+
+  /// No description provided for @publicProfileUserFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get publicProfileUserFallback;
+
+  /// No description provided for @publicProfileNoBio.
+  ///
+  /// In en, this message translates to:
+  /// **'No bio available.'**
+  String get publicProfileNoBio;
+
+  /// No description provided for @publicProfileResidenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence'**
+  String get publicProfileResidenceLabel;
+
+  /// No description provided for @publicProfileResidenceUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not specified'**
+  String get publicProfileResidenceUnknown;
+
+  /// No description provided for @publicProfileMemberSinceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Member since'**
+  String get publicProfileMemberSinceLabel;
+
+  /// No description provided for @publicProfileContentSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Public content'**
+  String get publicProfileContentSectionTitle;
+
+  /// No description provided for @publicProfilePollsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Polls'**
+  String get publicProfilePollsAction;
+
+  /// No description provided for @publicProfilePostsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts'**
+  String get publicProfilePostsAction;
+
+  /// No description provided for @publicProfileBlockUserAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Block user'**
+  String get publicProfileBlockUserAction;
+
+  /// No description provided for @publicProfileLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load the profile.'**
+  String get publicProfileLoadError;
+
+  /// No description provided for @publicProfileNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile unavailable.'**
+  String get publicProfileNotFound;
+
+  /// No description provided for @publicProfileUnblockUserAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock user'**
+  String get publicProfileUnblockUserAction;
+
+  /// No description provided for @publicProfileBlockDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Block this user?'**
+  String get publicProfileBlockDialogTitle;
+
+  /// No description provided for @publicProfileBlockDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You can unblock them later from their public profile.'**
+  String get publicProfileBlockDialogMessage;
+
+  /// No description provided for @publicProfileUnblockDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock this user?'**
+  String get publicProfileUnblockDialogTitle;
+
+  /// No description provided for @publicProfileUnblockDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The user will no longer be in your block list.'**
+  String get publicProfileUnblockDialogMessage;
+
+  /// No description provided for @publicProfileBlockSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'User blocked.'**
+  String get publicProfileBlockSuccess;
+
+  /// No description provided for @publicProfileUnblockSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'User unblocked.'**
+  String get publicProfileUnblockSuccess;
+
+  /// No description provided for @publicProfileBlockError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to update the block. Try again.'**
+  String get publicProfileBlockError;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

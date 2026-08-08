@@ -28,6 +28,7 @@ import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
 import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
 import 'package:sociale_vote/features/discussion/presentation/widgets/comment_section.dart';
+import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
 import '../../application/poll_detail_controller.dart';
@@ -73,6 +74,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
   bool _resultsInitialized = false;
   bool _hasAutoScrolledToComments = false;
   String? _initializedFavoritePollId;
+  UserProfile? _pollAuthorProfile;
+  String? _loadedPollAuthorId;
 
   @override
   void initState() {
@@ -99,6 +102,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
       _resultsInitialized = false;
       _hasAutoScrolledToComments = false;
       _initializedFavoritePollId = null;
+      _pollAuthorProfile = null;
+      _loadedPollAuthorId = null;
 
       _resultController.reset();
 
@@ -114,6 +119,58 @@ class _PollDetailPageState extends State<PollDetailPage> {
     _voteController.dispose();
     _resultController.dispose();
     super.dispose();
+  }
+
+  void _ensurePollAuthorProfileLoaded(Poll poll) {
+    final authorId = poll.createdByUserId?.trim();
+    if (authorId == null || authorId.isEmpty) {
+      return;
+    }
+
+    if (_loadedPollAuthorId == authorId) {
+      return;
+    }
+
+    _loadedPollAuthorId = authorId;
+    unawaited(_loadPollAuthorProfile(authorId));
+  }
+
+  Future<void> _loadPollAuthorProfile(String authorId) async {
+    try {
+      final profile =
+          await AppDI.instance.userProfileRepository.getUserProfile(authorId);
+
+      if (!mounted || _loadedPollAuthorId != authorId) {
+        return;
+      }
+
+      setState(() {
+        _pollAuthorProfile = profile;
+      });
+    } catch (_) {
+      if (!mounted || _loadedPollAuthorId != authorId) {
+        return;
+      }
+
+      setState(() {
+        _pollAuthorProfile = null;
+      });
+    }
+  }
+
+  void _openPollAuthorProfile(String userId) {
+    final normalizedUserId = userId.trim();
+    if (normalizedUserId.isEmpty) {
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PublicUserProfilePage(
+          userId: normalizedUserId,
+        ),
+      ),
+    );
   }
 
   bool _canVote(Poll poll) {
@@ -788,6 +845,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
     BuildContext context,
     Poll poll,
   ) {
+    _ensurePollAuthorProfileLoaded(poll);
+
     final discussionController = context.watch<DiscussionController>();
     final config = poll.configuration;
     final visibilityMode = config.visibilityRules.resultsVisibility;
@@ -800,6 +859,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
     final String currentUserForComments =
         AppDI.instance.currentUserId ?? 'guest';
+    final authorUserId = poll.createdByUserId?.trim();
+    final hasAuthorUserId = authorUserId != null && authorUserId.isNotEmpty;
 
     final isCompactLayout = MediaQuery.sizeOf(context).width < 600;
     final horizontalPadding = isCompactLayout ? AppSpacing.s : AppSpacing.l;
@@ -861,6 +922,12 @@ class _PollDetailPageState extends State<PollDetailPage> {
                   isQuorumApplicable: _resultController.isQuorumApplicable,
                   isQuorumReached: _resultController.isQuorumReached,
                   totalVotes: totalVotes,
+                  authorProfile: _loadedPollAuthorId == authorUserId
+                      ? _pollAuthorProfile
+                      : null,
+                  onAuthorTap: hasAuthorUserId
+                      ? () => _openPollAuthorProfile(authorUserId)
+                      : null,
                 ),
               ),
               const SizedBox(height: 20),

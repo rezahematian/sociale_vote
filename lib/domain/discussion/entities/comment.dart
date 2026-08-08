@@ -17,6 +17,7 @@ class Comment {
   final String? parentId;
   final int depth;
   final DateTime createdAt;
+  final DateTime? updatedAt;
 
   const Comment({
     required this.id,
@@ -26,7 +27,10 @@ class Comment {
     required this.parentId,
     required this.depth,
     required this.createdAt,
+    this.updatedAt,
   });
+
+  bool get isEdited => updatedAt != null && updatedAt!.isAfter(createdAt);
 
   Comment copyWith({
     String? id,
@@ -36,6 +40,7 @@ class Comment {
     String? parentId,
     int? depth,
     DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return Comment(
       id: id ?? this.id,
@@ -45,6 +50,7 @@ class Comment {
       parentId: parentId ?? this.parentId,
       depth: depth ?? this.depth,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

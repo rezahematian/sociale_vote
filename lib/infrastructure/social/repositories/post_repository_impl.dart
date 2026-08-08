@@ -48,6 +48,29 @@ class PostRepositoryImpl implements PostRepository {
     return _mapPosts(rows);
   }
 
+  @override
+  Future<List<Post>> getPostsByAuthor({
+    required String authorUserId,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    final normalizedAuthorUserId = authorUserId.trim();
+    if (normalizedAuthorUserId.isEmpty || limit <= 0) {
+      return const [];
+    }
+
+    final safeOffset = offset < 0 ? 0 : offset;
+
+    final rows = await AppSupabase.client
+        .from(_postsTable)
+        .select()
+        .eq('author_id', normalizedAuthorUserId)
+        .order('created_at', ascending: false)
+        .range(safeOffset, safeOffset + limit - 1) as List<dynamic>;
+
+    return _mapPosts(rows);
+  }
+
   String? _prepareDbFilterValue(String? value) {
     if (value == null) {
       return null;
@@ -191,6 +214,7 @@ class PostRepositoryImpl implements PostRepository {
     return normalizedRows.map((row) {
       final authorId = row['author_id'] as String?;
       final createdAtRaw = row['created_at'];
+      final updatedAtRaw = row['updated_at'];
       final rowCountryCode = row['country_code'] as String?;
       final rowCityId = row['city_id'] as String?;
       final contentLocation = _mapContentLocation(
@@ -216,6 +240,7 @@ class PostRepositoryImpl implements PostRepository {
         title: (row['title'] as String?) ?? '',
         content: (row['content'] as String?) ?? '',
         createdAt: _parseDateTime(createdAtRaw),
+        updatedAt: _parseNullableDateTime(updatedAtRaw),
         commentCount: 0,
         countryCode: effectiveCountryCode,
         cityId: effectiveCityId,
@@ -440,6 +465,16 @@ class PostRepositoryImpl implements PostRepository {
       return value.toLocal();
     }
     return DateTime.now();
+  }
+
+  DateTime? _parseNullableDateTime(dynamic value) {
+    if (value is String && value.trim().isNotEmpty) {
+      return DateTime.tryParse(value)?.toLocal();
+    }
+    if (value is DateTime) {
+      return value.toLocal();
+    }
+    return null;
   }
 }
 

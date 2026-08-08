@@ -16,6 +16,8 @@ class CommentRepositoryImpl implements CommentRepository {
   }) async {
     final depth = await _resolveDepth(parentId);
 
+    final createdAtUtc = createdAt.toUtc().toIso8601String();
+
     final rows = await AppSupabase.client
         .from(_commentsTable)
         .insert({
@@ -25,7 +27,8 @@ class CommentRepositoryImpl implements CommentRepository {
           'content': content,
           'parent_id': parentId,
           'depth': depth,
-          'created_at': createdAt.toUtc().toIso8601String(),
+          'created_at': createdAtUtc,
+          'updated_at': createdAtUtc,
         })
         .select()
         .limit(1);
@@ -205,6 +208,7 @@ class CommentRepositoryImpl implements CommentRepository {
       parentId: row['parent_id'] as String?,
       depth: (row['depth'] as int?) ?? 0,
       createdAt: _parseDateTime(row['created_at']),
+      updatedAt: _parseNullableDateTime(row['updated_at']),
     );
   }
 
@@ -256,5 +260,12 @@ class CommentRepositoryImpl implements CommentRepository {
       return DateTime.tryParse(value)?.toLocal() ?? DateTime.now();
     }
     return DateTime.now();
+  }
+
+  DateTime? _parseNullableDateTime(dynamic value) {
+    if (value is String && value.trim().isNotEmpty) {
+      return DateTime.tryParse(value)?.toLocal();
+    }
+    return null;
   }
 }

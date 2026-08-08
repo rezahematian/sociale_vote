@@ -41,7 +41,7 @@ class DiscussionController extends ChangeNotifier {
   bool _isDisposed = false;
   String? _errorMessage;
 
-  CommentSortOrder _sortOrder = CommentSortOrder.oldestFirst;
+  CommentSortOrder _sortOrder = CommentSortOrder.newestFirst;
 
   static const int _defaultPageSize = 10;
   final int _pageSize = _defaultPageSize;
@@ -74,8 +74,12 @@ class DiscussionController extends ChangeNotifier {
 
   List<Comment> repliesFor(String parentId) {
     final replies = _comments.where((c) => c.parentId == parentId).toList()
-      ..sort(_compareByCreatedAt);
+      ..sort(_compareRepliesByCreatedAt);
     return replies;
+  }
+
+  int _compareRepliesByCreatedAt(Comment a, Comment b) {
+    return a.createdAt.compareTo(b.createdAt);
   }
 
   int _compareByCreatedAt(Comment a, Comment b) {

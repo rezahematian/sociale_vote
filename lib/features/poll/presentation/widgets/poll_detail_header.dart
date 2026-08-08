@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
 import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
@@ -27,6 +28,8 @@ class PollDetailHeader extends StatelessWidget {
   final bool isQuorumApplicable;
   final bool isQuorumReached;
   final int totalVotes;
+  final UserProfile? authorProfile;
+  final VoidCallback? onAuthorTap;
 
   const PollDetailHeader({
     super.key,
@@ -44,6 +47,8 @@ class PollDetailHeader extends StatelessWidget {
     required this.isQuorumApplicable,
     required this.isQuorumReached,
     required this.totalVotes,
+    this.authorProfile,
+    this.onAuthorTap,
   });
 
   static const _PollChipMetrics _chipMetrics = _PollChipMetrics(
@@ -129,8 +134,6 @@ class PollDetailHeader extends StatelessWidget {
         _hasRepresentativePublisher ? _mapRepresentativeLabel(l10n) : null;
     final representativeDisplayName =
         _normalizeString(poll.publishedAsDisplayName);
-    final representativeInfoText =
-        _mapRepresentativeInfoText(l10n, representativeDisplayName);
 
     final locationLabel = _mapLocationLabel(l10n);
     final statusLabel = _mapStatusToLabel(l10n, poll.status);
@@ -315,33 +318,22 @@ class PollDetailHeader extends StatelessWidget {
                 ),
               ),
             ],
-            if (representativeInfoText != null) ...[
-              const SizedBox(height: 12),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    _representativeIcon(),
-                    size: 16,
-                    color: _representativeTone(
-                      theme,
-                      poll.publishedAsActorType!,
-                    ).foregroundColor,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      representativeInfoText,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface.withValues(
-                          alpha: isDark ? 0.78 : 0.72,
-                        ),
-                        fontWeight: FontWeight.w700,
-                        height: 1.35,
-                      ),
-                    ),
-                  ),
-                ],
+            if (_hasRepresentativePublisher && representativeLabel != null) ...[
+              const SizedBox(height: 14),
+              _buildPublishedIdentityRow(
+                theme,
+                l10n,
+                actorLabel: representativeLabel,
+                displayName: representativeDisplayName,
+              ),
+            ],
+            if (authorProfile != null) ...[
+              const SizedBox(height: 10),
+              _buildCreatorRow(
+                theme,
+                l10n,
+                authorProfile!,
+                secondary: _hasRepresentativePublisher,
               ),
             ],
             if (createdAt != null) ...[
@@ -1174,6 +1166,157 @@ class PollDetailHeader extends StatelessWidget {
     );
   }
 
+  Widget _buildPublishedIdentityRow(
+    ThemeData theme,
+    AppLocalizations l10n, {
+    required String actorLabel,
+    required String? displayName,
+  }) {
+    final tone = _representativeTone(
+      theme,
+      poll.publishedAsActorType!,
+    );
+    final primaryLabel = displayName ?? actorLabel;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(
+            _representativeIcon(),
+            size: 19,
+            color: tone.foregroundColor,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                primaryLabel,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  height: 1.25,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                _localizedText(
+                  l10n,
+                  it: 'Pubblicato come $actorLabel',
+                  en: 'Published as $actorLabel',
+                ),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCreatorRow(
+    ThemeData theme,
+    AppLocalizations l10n,
+    UserProfile profile, {
+    required bool secondary,
+  }) {
+    final displayName = _normalizeString(profile.displayName);
+    final username = _normalizeString(profile.username);
+    final primaryLabel = displayName ??
+        (username != null
+            ? '@$username'
+            : _localizedText(
+                l10n,
+                it: 'Utente',
+                en: 'User',
+              ));
+    final usernameLabel =
+        displayName != null && username != null ? '@$username' : null;
+    final canOpen = onAuthorTap != null;
+    final mutedColor =
+        theme.colorScheme.onSurface.withValues(alpha: secondary ? 0.62 : 0.72);
+
+    final identity = Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 5,
+      runSpacing: 3,
+      children: [
+        if (secondary)
+          Text(
+            _localizedText(
+              l10n,
+              it: 'Creato da',
+              en: 'Created by',
+            ),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: mutedColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        Text(
+          primaryLabel,
+          style: (secondary
+                  ? theme.textTheme.bodyMedium
+                  : theme.textTheme.titleSmall)
+              ?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        if (usernameLabel != null)
+          Text(
+            '· $usernameLabel',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: mutedColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+      ],
+    );
+
+    final content = Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.person_outline_rounded,
+          size: secondary ? 16 : 18,
+          color: mutedColor,
+        ),
+        const SizedBox(width: 8),
+        Expanded(child: identity),
+        if (canOpen) ...[
+          const SizedBox(width: 6),
+          Icon(
+            Icons.chevron_right_rounded,
+            size: 18,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.42),
+          ),
+        ],
+      ],
+    );
+
+    if (!canOpen) {
+      return content;
+    }
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onAuthorTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 2,
+          vertical: 4,
+        ),
+        child: content,
+      ),
+    );
+  }
+
   DateTime? _tryGetCreatedAt(Poll poll) {
     try {
       final dynamic value = poll;
@@ -1270,31 +1413,6 @@ class PollDetailHeader extends StatelessWidget {
           en: 'Representative',
         );
     }
-  }
-
-  String? _mapRepresentativeInfoText(
-    AppLocalizations l10n,
-    String? displayName,
-  ) {
-    if (!_hasRepresentativePublisher) {
-      return null;
-    }
-
-    final actorLabel = _mapRepresentativeLabel(l10n);
-
-    if (displayName != null) {
-      return _localizedText(
-        l10n,
-        it: 'Pubblicato come $actorLabel · $displayName',
-        en: 'Published as $actorLabel · $displayName',
-      );
-    }
-
-    return _localizedText(
-      l10n,
-      it: 'Pubblicato come $actorLabel',
-      en: 'Published as $actorLabel',
-    );
   }
 
   IconData _representativeIcon() {

@@ -22,6 +22,16 @@ abstract class PostRepository {
     int offset = 0,
   });
 
+  /// Restituisce i post pubblici creati da uno specifico utente.
+  ///
+  /// La query è indipendente dal GeoScope corrente e mantiene la
+  /// paginazione standard del feed.
+  Future<List<Post>> getPostsByAuthor({
+    required String authorUserId,
+    int limit = 20,
+    int offset = 0,
+  });
+
   /// Restituisce il dettaglio di un singolo post.
   ///
   /// Ritorna `null` se il post non esiste.

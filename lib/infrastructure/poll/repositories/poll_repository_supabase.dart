@@ -66,6 +66,32 @@ class PollRepositorySupabase implements PollRepository {
   }
 
   @override
+  Future<List<Poll>> getPollsByAuthor({
+    required String authorUserId,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    final normalizedAuthorUserId = authorUserId.trim();
+    if (normalizedAuthorUserId.isEmpty || limit <= 0) {
+      return const <Poll>[];
+    }
+
+    final safeOffset = offset < 0 ? 0 : offset;
+
+    final rawRows = await AppSupabase.client
+        .from(_pollsTable)
+        .select()
+        .eq('author_id', normalizedAuthorUserId)
+        .order('created_at', ascending: false)
+        .range(safeOffset, safeOffset + limit - 1) as List<dynamic>;
+
+    return rawRows
+        .whereType<Map<String, dynamic>>()
+        .map(_mapPoll)
+        .toList(growable: false);
+  }
+
+  @override
   Future<Poll?> getPollDetail(PollId pollId) async {
     final rawRows = await AppSupabase.client
         .from(_pollsTable)

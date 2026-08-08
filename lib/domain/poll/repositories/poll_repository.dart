@@ -25,6 +25,15 @@ abstract class PollRepository {
 
   Future<Poll?> getPollDetail(PollId pollId);
 
+  /// Restituisce i poll pubblici creati da uno specifico utente.
+  ///
+  /// La query è indipendente dal GeoScope corrente e supporta paginazione.
+  Future<List<Poll>> getPollsByAuthor({
+    required String authorUserId,
+    int limit = 20,
+    int offset = 0,
+  });
+
   /// Verifica se un utente ha già creato almeno una votazione
   /// a partire da un certo istante.
   ///

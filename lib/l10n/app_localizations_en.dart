@@ -2671,4 +2671,130 @@ class AppLocalizationsEn extends AppLocalizations {
   String adminCenterPageOf(int currentPage, int totalPages) {
     return 'Page $currentPage of $totalPages';
   }
+
+  @override
+  String get profilePublicProfileSectionTitle => 'Public profile';
+
+  @override
+  String get profileIdentityVerificationSectionTitle => 'Identity and verification';
+
+  @override
+  String get profilePreferencesSectionTitle => 'Preferences';
+
+  @override
+  String get profileNotificationsSectionTitle => 'Notifications';
+
+  @override
+  String get profileActivitySectionTitle => 'Personal activity';
+
+  @override
+  String get profileSecurityAccountSectionTitle => 'Security and account';
+
+  @override
+  String get profileThemeTitle => 'Theme';
+
+  @override
+  String get profileThemeSystem => 'System';
+
+  @override
+  String get profileThemeSystemDescription => 'Follows the device theme';
+
+  @override
+  String get profileThemeLight => 'Light';
+
+  @override
+  String get profileThemeDark => 'Dark';
+
+  @override
+  String get profileMyPollsTitle => 'My polls';
+
+  @override
+  String get profileMyPostsTitle => 'My posts';
+
+  @override
+  String get profileMyCommentsTitle => 'My comments';
+
+  @override
+  String get profileMyFavoritesTitle => 'My favorites';
+
+  @override
+  String get profileMyFollowedScopesTitle => 'My followed areas';
+
+  @override
+  String get profileLogoutAction => 'Log out';
+
+  @override
+  String get profileLogoutDescription => 'Sign out of the current account';
+
+  @override
+  String get profileLogoutDialogTitle => 'Log out';
+
+  @override
+  String get profileLogoutDialogMessage => 'Are you sure you want to log out of your account?';
+
+  @override
+  String get profileLogoutCancelButton => 'Cancel';
+
+  @override
+  String get profileLogoutConfirmButton => 'Log out';
+
+  @override
+  String get publicProfilePageTitle => 'Public profile';
+
+  @override
+  String get publicProfileUserFallback => 'User';
+
+  @override
+  String get publicProfileNoBio => 'No bio available.';
+
+  @override
+  String get publicProfileResidenceLabel => 'Residence';
+
+  @override
+  String get publicProfileResidenceUnknown => 'Not specified';
+
+  @override
+  String get publicProfileMemberSinceLabel => 'Member since';
+
+  @override
+  String get publicProfileContentSectionTitle => 'Public content';
+
+  @override
+  String get publicProfilePollsAction => 'Polls';
+
+  @override
+  String get publicProfilePostsAction => 'Posts';
+
+  @override
+  String get publicProfileBlockUserAction => 'Block user';
+
+  @override
+  String get publicProfileLoadError => 'Unable to load the profile.';
+
+  @override
+  String get publicProfileNotFound => 'Profile unavailable.';
+
+  @override
+  String get publicProfileUnblockUserAction => 'Unblock user';
+
+  @override
+  String get publicProfileBlockDialogTitle => 'Block this user?';
+
+  @override
+  String get publicProfileBlockDialogMessage => 'You can unblock them later from their public profile.';
+
+  @override
+  String get publicProfileUnblockDialogTitle => 'Unblock this user?';
+
+  @override
+  String get publicProfileUnblockDialogMessage => 'The user will no longer be in your block list.';
+
+  @override
+  String get publicProfileBlockSuccess => 'User blocked.';
+
+  @override
+  String get publicProfileUnblockSuccess => 'User unblocked.';
+
+  @override
+  String get publicProfileBlockError => 'Unable to update the block. Try again.';
 }

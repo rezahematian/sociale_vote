@@ -57,4 +57,74 @@ class ModerationRepositoryImpl implements ModerationRepository {
       rethrow;
     }
   }
+
+  @override
+  Future<bool> isUserBlocked({
+    required String blockerUserId,
+    required String blockedUserId,
+  }) async {
+    final blockerId = blockerUserId.trim();
+    final blockedId = blockedUserId.trim();
+
+    if (blockerId.isEmpty || blockedId.isEmpty || blockerId == blockedId) {
+      return false;
+    }
+
+    final rows = await supabase
+        .from('blocked_users')
+        .select('blocked_user_id')
+        .eq('blocker_user_id', blockerId)
+        .eq('blocked_user_id', blockedId)
+        .limit(1);
+
+    return rows.isNotEmpty;
+  }
+
+  @override
+  Future<void> blockUser({
+    required String blockerUserId,
+    required String blockedUserId,
+  }) async {
+    final blockerId = blockerUserId.trim();
+    final blockedId = blockedUserId.trim();
+
+    if (blockerId.isEmpty || blockedId.isEmpty) {
+      throw ArgumentError('User ids cannot be empty.');
+    }
+
+    if (blockerId == blockedId) {
+      throw ArgumentError('A user cannot block themselves.');
+    }
+
+    try {
+      await supabase.from('blocked_users').insert({
+        'blocker_user_id': blockerId,
+        'blocked_user_id': blockedId,
+      });
+    } on PostgrestException catch (e) {
+      if (e.code == '23505') {
+        return;
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> unblockUser({
+    required String blockerUserId,
+    required String blockedUserId,
+  }) async {
+    final blockerId = blockerUserId.trim();
+    final blockedId = blockedUserId.trim();
+
+    if (blockerId.isEmpty || blockedId.isEmpty || blockerId == blockedId) {
+      return;
+    }
+
+    await supabase
+        .from('blocked_users')
+        .delete()
+        .eq('blocker_user_id', blockerId)
+        .eq('blocked_user_id', blockedId);
+  }
 }

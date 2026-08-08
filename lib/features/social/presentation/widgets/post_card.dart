@@ -8,6 +8,7 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
+import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
@@ -141,7 +142,7 @@ class PostCard extends StatelessWidget {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       _buildDiscussionIconChip(theme),
-                      _buildAuthorChip(theme, authorName),
+                      _buildAuthorChip(context, theme, authorName),
                       _buildLocationChip(
                         theme,
                         languageCode: languageCode,
@@ -257,8 +258,13 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAuthorChip(ThemeData theme, String authorName) {
-    return _buildHeaderChip(
+  Widget _buildAuthorChip(
+    BuildContext context,
+    ThemeData theme,
+    String authorName,
+  ) {
+    final authorId = post.createdByUserId?.trim();
+    final chip = _buildHeaderChip(
       theme: theme,
       icon: Icons.person_outline_rounded,
       label: authorName,
@@ -283,6 +289,24 @@ class PostCard extends StatelessWidget {
               size: 14,
             )
           : null,
+    );
+
+    if (authorId == null || authorId.isEmpty) {
+      return chip;
+    }
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => PublicUserProfilePage(
+              userId: authorId,
+            ),
+          ),
+        );
+      },
+      child: chip,
     );
   }
 
@@ -390,19 +414,32 @@ class PostCard extends StatelessWidget {
   }) {
     final color = theme.colorScheme.onSurface.withValues(alpha: 0.56);
 
-    return Row(
-      mainAxisSize: compact ? MainAxisSize.max : MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.end,
+    return Wrap(
+      alignment: WrapAlignment.end,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: compact ? 4 : 6,
+      runSpacing: 3,
       children: [
         Icon(
           Icons.schedule_outlined,
           size: compact ? 13 : 14,
           color: color,
         ),
-        SizedBox(width: compact ? 4 : 6),
-        Flexible(
-          child: Text(
-            _formatDateTime(context, post.createdAt),
+        Text(
+          _formatDateTime(context, post.createdAt),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.right,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: color,
+            fontSize: compact ? 11 : null,
+            fontWeight: FontWeight.w600,
+            height: 1,
+          ),
+        ),
+        if (post.isEdited && post.updatedAt != null)
+          Text(
+            '· ${_editedLabel(context)} ${_formatTime(context, post.updatedAt!)}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.right,
@@ -410,11 +447,28 @@ class PostCard extends StatelessWidget {
               color: color,
               fontSize: compact ? 11 : null,
               fontWeight: FontWeight.w600,
+              fontStyle: FontStyle.italic,
               height: 1,
             ),
           ),
-        ),
       ],
+    );
+  }
+
+  String _editedLabel(BuildContext context) {
+    return Localizations.localeOf(context).languageCode == 'it'
+        ? 'Modificato'
+        : 'Edited';
+  }
+
+  String _formatTime(BuildContext context, DateTime value) {
+    final local = value.toLocal();
+    final materialLocalizations = MaterialLocalizations.of(context);
+    final mediaQuery = MediaQuery.maybeOf(context);
+
+    return materialLocalizations.formatTimeOfDay(
+      TimeOfDay.fromDateTime(local),
+      alwaysUse24HourFormat: mediaQuery?.alwaysUse24HourFormat ?? false,
     );
   }
 

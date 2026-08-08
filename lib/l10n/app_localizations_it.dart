@@ -2671,4 +2671,130 @@ class AppLocalizationsIt extends AppLocalizations {
   String adminCenterPageOf(int currentPage, int totalPages) {
     return 'Pagina $currentPage di $totalPages';
   }
+
+  @override
+  String get profilePublicProfileSectionTitle => 'Profilo pubblico';
+
+  @override
+  String get profileIdentityVerificationSectionTitle => 'Identità e verifica';
+
+  @override
+  String get profilePreferencesSectionTitle => 'Preferenze';
+
+  @override
+  String get profileNotificationsSectionTitle => 'Notifiche';
+
+  @override
+  String get profileActivitySectionTitle => 'Attività personale';
+
+  @override
+  String get profileSecurityAccountSectionTitle => 'Sicurezza e account';
+
+  @override
+  String get profileThemeTitle => 'Tema';
+
+  @override
+  String get profileThemeSystem => 'Sistema';
+
+  @override
+  String get profileThemeSystemDescription => 'Segue il tema del dispositivo';
+
+  @override
+  String get profileThemeLight => 'Chiaro';
+
+  @override
+  String get profileThemeDark => 'Scuro';
+
+  @override
+  String get profileMyPollsTitle => 'I miei sondaggi';
+
+  @override
+  String get profileMyPostsTitle => 'I miei post';
+
+  @override
+  String get profileMyCommentsTitle => 'I miei commenti';
+
+  @override
+  String get profileMyFavoritesTitle => 'I miei preferiti';
+
+  @override
+  String get profileMyFollowedScopesTitle => 'Le mie aree seguite';
+
+  @override
+  String get profileLogoutAction => 'Logout';
+
+  @override
+  String get profileLogoutDescription => 'Esci dall’account corrente';
+
+  @override
+  String get profileLogoutDialogTitle => 'Logout';
+
+  @override
+  String get profileLogoutDialogMessage => 'Vuoi davvero uscire dal tuo account?';
+
+  @override
+  String get profileLogoutCancelButton => 'Annulla';
+
+  @override
+  String get profileLogoutConfirmButton => 'Logout';
+
+  @override
+  String get publicProfilePageTitle => 'Profilo pubblico';
+
+  @override
+  String get publicProfileUserFallback => 'Utente';
+
+  @override
+  String get publicProfileNoBio => 'Nessuna biografia disponibile.';
+
+  @override
+  String get publicProfileResidenceLabel => 'Residenza';
+
+  @override
+  String get publicProfileResidenceUnknown => 'Non indicata';
+
+  @override
+  String get publicProfileMemberSinceLabel => 'Membro dal';
+
+  @override
+  String get publicProfileContentSectionTitle => 'Contenuti pubblici';
+
+  @override
+  String get publicProfilePollsAction => 'Sondaggi';
+
+  @override
+  String get publicProfilePostsAction => 'Post';
+
+  @override
+  String get publicProfileBlockUserAction => 'Blocca utente';
+
+  @override
+  String get publicProfileLoadError => 'Impossibile caricare il profilo.';
+
+  @override
+  String get publicProfileNotFound => 'Profilo non disponibile.';
+
+  @override
+  String get publicProfileUnblockUserAction => 'Sblocca utente';
+
+  @override
+  String get publicProfileBlockDialogTitle => 'Bloccare questo utente?';
+
+  @override
+  String get publicProfileBlockDialogMessage => 'Potrai sbloccarlo in seguito dal suo profilo pubblico.';
+
+  @override
+  String get publicProfileUnblockDialogTitle => 'Sbloccare questo utente?';
+
+  @override
+  String get publicProfileUnblockDialogMessage => 'L\'utente non sarà più presente nella tua lista dei blocchi.';
+
+  @override
+  String get publicProfileBlockSuccess => 'Utente bloccato.';
+
+  @override
+  String get publicProfileUnblockSuccess => 'Utente sbloccato.';
+
+  @override
+  String get publicProfileBlockError => 'Impossibile aggiornare il blocco. Riprova.';
 }

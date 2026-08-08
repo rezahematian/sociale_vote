@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:sociale_vote/app/di.dart';
-import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 import 'package:sociale_vote/features/profile/application/profile_controller.dart';
@@ -181,8 +180,6 @@ class _EditProfileViewState extends State<_EditProfileView> {
         }
 
         final avatarUrl = _avatarUrlController.text.trim();
-        final accountEmail =
-            Supabase.instance.client.auth.currentUser?.email?.trim() ?? '';
         final actionsDisabled = controller.isSaving || _isUploadingAvatar;
 
         return Scaffold(
@@ -325,7 +322,6 @@ class _EditProfileViewState extends State<_EditProfileView> {
                                       hintText: l10n.profileUsernameHint,
                                       helperText: l10n.profileUsernameHelper,
                                       errorText: _usernameError,
-                                      prefixText: '@',
                                     ),
                                   ),
                                   const SizedBox(height: 14),
@@ -436,8 +432,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
                                       });
                                     },
                                     decoration: InputDecoration(
-                                      labelText:
-                                          '${l10n.authCityOfResidenceLabel} *',
+                                      labelText: l10n.authCityOfResidenceLabel,
                                       helperText:
                                           l10n.profileCityResidenceHelper,
                                       errorText: _cityError,
@@ -445,62 +440,6 @@ class _EditProfileViewState extends State<_EditProfileView> {
                                   ),
                                 ],
                               ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          _EditProfileSectionTitle(
-                            title: l10n.profileAccountSectionTitle,
-                          ),
-                          Card(
-                            margin: EdgeInsets.zero,
-                            clipBehavior: Clip.antiAlias,
-                            child: Column(
-                              children: [
-                                ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 4,
-                                  ),
-                                  leading: const Icon(Icons.email_outlined),
-                                  title: Text(
-                                    accountEmail.isNotEmpty
-                                        ? accountEmail
-                                        : l10n.authEmailLabel,
-                                  ),
-                                  subtitle: Text(
-                                    l10n.profileAccountEmailHelper,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const Divider(height: 1),
-                                ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 4,
-                                  ),
-                                  enabled: !actionsDisabled,
-                                  leading: const Icon(
-                                    Icons.lock_reset_outlined,
-                                  ),
-                                  title: Text(
-                                    l10n.profileChangePasswordAction,
-                                  ),
-                                  subtitle: Text(
-                                    l10n.profileChangePasswordDescription,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  trailing: const Icon(Icons.chevron_right),
-                                  onTap: actionsDisabled
-                                      ? null
-                                      : () {
-                                          Navigator.of(context).pushNamed(
-                                            AppRouter.resetPassword,
-                                          );
-                                        },
-                                ),
-                              ],
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -563,11 +502,6 @@ class _EditProfileViewState extends State<_EditProfileView> {
                                         hasValidationError = true;
                                       }
 
-                                      if (normalizedCityInput == null) {
-                                        _cityError = l10n.authCityRequiredError;
-                                        hasValidationError = true;
-                                      }
-
                                       if (hasValidationError) {
                                         setState(() {});
                                         return;
@@ -578,43 +512,45 @@ class _EditProfileViewState extends State<_EditProfileView> {
                                       String? effectiveCity =
                                           normalizedCityInput;
 
-                                      try {
-                                        final resolved = await AppDI
-                                            .instance.geocodingRepository
-                                            .geocodeContentLocation(
-                                          ContentLocation(
-                                            source:
-                                                ContentLocationSource.manual,
-                                            countryCode: normalizedCountryCode,
-                                            cityName: normalizedCityInput,
-                                          ),
-                                        );
+                                      if (normalizedCityInput != null) {
+                                        try {
+                                          final resolved = await AppDI
+                                              .instance.geocodingRepository
+                                              .geocodeContentLocation(
+                                            ContentLocation(
+                                              source:
+                                                  ContentLocationSource.manual,
+                                              countryCode:
+                                                  normalizedCountryCode,
+                                              cityName: normalizedCityInput,
+                                            ),
+                                          );
 
-                                        if (resolved == null) {
+                                          if (resolved == null) {
+                                            setState(() {
+                                              _cityError =
+                                                  l10n.profileCityNotFoundError;
+                                            });
+                                            return;
+                                          }
+
+                                          effectiveCountry =
+                                              _normalizeCountryCode(
+                                            resolved.countryCode ??
+                                                normalizedCountryCode,
+                                          );
+
+                                          effectiveCity = _normalizeNullable(
+                                            resolved.cityName ??
+                                                normalizedCityInput,
+                                          );
+                                        } catch (_) {
                                           setState(() {
-                                            _cityError =
-                                                l10n.profileCityNotFoundError;
+                                            _locationError = l10n
+                                                .profileCityVerificationError;
                                           });
                                           return;
                                         }
-
-                                        effectiveCountry =
-                                            _normalizeCountryCode(
-                                          resolved.countryCode ??
-                                              normalizedCountryCode,
-                                        );
-
-                                        effectiveCity = _normalizeNullable(
-                                          resolved.cityName ??
-                                              normalizedCityInput ??
-                                              '',
-                                        );
-                                      } catch (_) {
-                                        setState(() {
-                                          _locationError =
-                                              l10n.profileCityVerificationError;
-                                        });
-                                        return;
                                       }
 
                                       await controller.updateProfile(
@@ -628,7 +564,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
                                           _bioController.text,
                                         ),
                                         country: effectiveCountry,
-                                        city: effectiveCity,
+                                        city: effectiveCity ?? '',
                                       );
 
                                       if (!context.mounted) return;

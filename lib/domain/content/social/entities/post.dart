@@ -41,8 +41,13 @@ class Post {
   /// Contenuto testuale principale del post.
   final String content;
 
-  /// Timestamp di creazione del post (UTC o locale coerente con il resto dell'app).
+  /// Timestamp originale di creazione del post.
   final DateTime createdAt;
+
+  /// Timestamp dell'ultima modifica del post.
+  ///
+  /// Rimane null finché il repository non collega il campo DB.
+  final DateTime? updatedAt;
 
   /// Numero commenti associati al post.
   final int commentCount;
@@ -74,12 +79,16 @@ class Post {
     required this.title,
     required this.content,
     required this.createdAt,
+    this.updatedAt,
     this.commentCount = 0,
     this.countryCode,
     this.cityId,
     this.contentLocation,
     this.createdByUserId,
   });
+
+  /// True se titolo o contenuto sono stati modificati dopo la pubblicazione.
+  bool get isEdited => updatedAt != null && updatedAt!.isAfter(createdAt);
 
   /// True se il post è globale (world).
   bool get isGlobal => countryCode == null && cityId == null;
@@ -125,6 +134,7 @@ class Post {
     String? title,
     String? content,
     DateTime? createdAt,
+    DateTime? updatedAt,
     int? commentCount,
     String? countryCode,
     String? cityId,
@@ -142,6 +152,7 @@ class Post {
       title: title ?? this.title,
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       commentCount: commentCount ?? this.commentCount,
       countryCode: countryCode ?? this.countryCode,
       cityId: cityId ?? this.cityId,

@@ -49,6 +49,47 @@ class PollRepositoryImpl implements PollRepository {
   }
 
   @override
+  Future<List<Poll>> getPollsByAuthor({
+    required String authorUserId,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    final normalizedAuthorUserId = authorUserId.trim();
+    if (normalizedAuthorUserId.isEmpty || limit <= 0) {
+      return const <Poll>[];
+    }
+
+    final safeOffset = offset < 0 ? 0 : offset;
+    final polls = await getPolls();
+
+    final filtered = polls
+        .where(
+          (poll) => poll.createdByUserId?.trim() == normalizedAuthorUserId,
+        )
+        .toList(growable: false)
+      ..sort((a, b) {
+        final aDate = a.createdAt;
+        final bDate = b.createdAt;
+
+        if (aDate == null && bDate == null) return 0;
+        if (aDate == null) return 1;
+        if (bDate == null) return -1;
+
+        return bDate.compareTo(aDate);
+      });
+
+    if (safeOffset >= filtered.length) {
+      return const <Poll>[];
+    }
+
+    final end = (safeOffset + limit) > filtered.length
+        ? filtered.length
+        : safeOffset + limit;
+
+    return filtered.sublist(safeOffset, end);
+  }
+
+  @override
   Future<Poll?> getPollDetail(PollId pollId) async {
     try {
       final dynamic response =

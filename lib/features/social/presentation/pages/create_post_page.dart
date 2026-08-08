@@ -24,6 +24,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
   bool _isSubmitting = false;
   bool _isResolvingLocation = false;
+  String? _submitError;
 
   String? _selectedCountryCode;
   ContentLocation? _contentLocation;
@@ -282,16 +283,15 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
     final userId = AppDI.instance.currentUserId;
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Errore: utente non disponibile nella sessione.'),
-        ),
-      );
+      setState(() {
+        _submitError = 'Errore: utente non disponibile nella sessione.';
+      });
       return;
     }
 
     setState(() {
       _isSubmitting = true;
+      _submitError = null;
     });
 
     try {
@@ -335,13 +335,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
       );
 
       Navigator.of(context).pop(true);
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Errore nella creazione del post: $e'),
-        ),
-      );
+      final languageCode = Localizations.localeOf(context).languageCode;
+      setState(() {
+        _submitError = languageCode == 'it'
+            ? 'Impossibile pubblicare il post. Controlla la connessione e riprova.'
+            : 'Unable to publish the post. Check your connection and try again.';
+      });
     } finally {
       if (mounted) {
         setState(() {
@@ -588,6 +589,45 @@ class _CreatePostPageState extends State<CreatePostPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
+                if (_submitError != null) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .errorContainer
+                          .withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .error
+                            .withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _submitError!,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 FilledButton(
                   onPressed: _isSubmitting ? null : _onSubmit,
                   child: _isSubmitting
