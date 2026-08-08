@@ -11,6 +11,7 @@ import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/app/theme/app_theme.dart';
 import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
 import 'package:sociale_vote/domain/identity/value_objects/role.dart';
+import 'package:sociale_vote/features/auth/presentation/widgets/biometric_session_gate.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/navigation_service.dart';
 
@@ -282,6 +283,12 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
                 GlobalCupertinoLocalizations.delegate,
               ],
               supportedLocales: AppLocalizations.supportedLocales,
+              builder: (context, child) {
+                return BiometricSessionGate(
+                  skipLock: _hasRecoverySignal(Uri.base),
+                  child: child ?? const SizedBox.shrink(),
+                );
+              },
               navigatorObservers: _enableAnalyticsObserver
                   ? <NavigatorObserver>[_analyticsObserver]
                   : const <NavigatorObserver>[],

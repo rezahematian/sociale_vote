@@ -5422,6 +5422,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to update the block. Try again.'**
   String get publicProfileBlockError;
+
+  /// No description provided for @contentLanguageFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Content language'**
+  String get contentLanguageFieldLabel;
+
+  /// No description provided for @contentLanguageFieldHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the language in which you wrote the content.'**
+  String get contentLanguageFieldHelper;
+
+  /// No description provided for @contentLanguageUndetermined.
+  ///
+  /// In en, this message translates to:
+  /// **'Not specified'**
+  String get contentLanguageUndetermined;
+
+  /// No description provided for @createPollAdvancedOptionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced options'**
+  String get createPollAdvancedOptionsTitle;
+
+  /// No description provided for @createPollAdvancedOptionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Anonymity, results visibility, vote changes, and quorum.'**
+  String get createPollAdvancedOptionsSubtitle;
+
+  /// No description provided for @onboardingSkipButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get onboardingSkipButton;
+
+  /// No description provided for @onboardingNextButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onboardingNextButton;
+
+  /// No description provided for @onboardingStartButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get onboardingStartButton;
+
+  /// No description provided for @onboardingPollTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Polls'**
+  String get onboardingPollTitle;
+
+  /// No description provided for @onboardingPollDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote on topics you care about and create polls to collect the community\'s opinion.'**
+  String get onboardingPollDescription;
+
+  /// No description provided for @onboardingHeatIceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Heat and Ice'**
+  String get onboardingHeatIceTitle;
+
+  /// No description provided for @onboardingHeatIceDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Heat and Ice to show how strongly a piece of content is attracting your interest.'**
+  String get onboardingHeatIceDescription;
+
+  /// No description provided for @onboardingCivicMapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Civic Map'**
+  String get onboardingCivicMapTitle;
+
+  /// No description provided for @onboardingCivicMapDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore polls, posts, and news on the map and discover what is happening across different areas.'**
+  String get onboardingCivicMapDescription;
+
+  /// No description provided for @onboardingGeoScopeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'GeoScope'**
+  String get onboardingGeoScopeTitle;
+
+  /// No description provided for @onboardingGeoScopeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the geographic level you want to follow: world, country, or city.'**
+  String get onboardingGeoScopeDescription;
+
+  /// No description provided for @onboardingVerificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity verification'**
+  String get onboardingVerificationTitle;
+
+  /// No description provided for @onboardingVerificationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Some Polls may require a verification level to protect voting integrity.'**
+  String get onboardingVerificationDescription;
+
+  /// No description provided for @pollDetail_voteReceiptButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote receipt'**
+  String get pollDetail_voteReceiptButton;
+
+  /// No description provided for @pollDetail_voteReceiptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote receipt'**
+  String get pollDetail_voteReceiptTitle;
+
+  /// No description provided for @pollDetail_voteReceiptIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt ID'**
+  String get pollDetail_voteReceiptIdLabel;
+
+  /// No description provided for @pollDetail_voteReceiptDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded'**
+  String get pollDetail_voteReceiptDateLabel;
+
+  /// No description provided for @pollDetail_voteReceiptPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'This receipt confirms that your vote was recorded without showing the choice you made.'**
+  String get pollDetail_voteReceiptPrivacy;
+
+  /// No description provided for @pollDetail_voteReceiptCloseButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get pollDetail_voteReceiptCloseButton;
+
+  /// No description provided for @profileBiometricUnlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric unlock'**
+  String get profileBiometricUnlockTitle;
+
+  /// No description provided for @profileBiometricUnlockDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Protects your remembered session with the device fingerprint or biometric recognition.'**
+  String get profileBiometricUnlockDescription;
+
+  /// No description provided for @profileBiometricRequiresRememberMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Requires Remember Me to be enabled.'**
+  String get profileBiometricRequiresRememberMe;
+
+  /// No description provided for @profileBiometricUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometrics are unavailable or not configured on this device.'**
+  String get profileBiometricUnavailable;
+
+  /// No description provided for @profileBiometricEnableReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your biometrics to enable Social Vote unlock.'**
+  String get profileBiometricEnableReason;
+
+  /// No description provided for @profileBiometricEnabledMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric unlock enabled.'**
+  String get profileBiometricEnabledMessage;
+
+  /// No description provided for @profileBiometricDisabledMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric unlock disabled.'**
+  String get profileBiometricDisabledMessage;
+
+  /// No description provided for @profileBiometricAuthFailedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric authentication was not completed.'**
+  String get profileBiometricAuthFailedMessage;
+
+  /// No description provided for @biometricLockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Vote is locked'**
+  String get biometricLockTitle;
+
+  /// No description provided for @biometricLockMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Use your device biometrics to unlock the remembered session.'**
+  String get biometricLockMessage;
+
+  /// No description provided for @biometricUnlockButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get biometricUnlockButton;
+
+  /// No description provided for @biometricUsePasswordButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Use password'**
+  String get biometricUsePasswordButton;
+
+  /// No description provided for @biometricUnlockReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock your Social Vote session.'**
+  String get biometricUnlockReason;
+
+  /// No description provided for @biometricUnlockFailedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock failed. Try again or use your password.'**
+  String get biometricUnlockFailedMessage;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

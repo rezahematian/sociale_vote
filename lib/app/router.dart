@@ -13,6 +13,7 @@ import 'package:sociale_vote/features/auth/presentation/pages/login_page.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/register_page.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/reset_password_page.dart';
 import 'package:sociale_vote/features/home/presentation/pages/public_home_screen.dart';
+import 'package:sociale_vote/features/onboarding/presentation/first_time_onboarding_gate.dart';
 import 'package:sociale_vote/features/map/presentation/pages/civic_map_page.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_feed_page.dart';
@@ -63,7 +64,7 @@ class AppRouter {
     switch (settings.name) {
       case home:
         return MaterialPageRoute<void>(
-          builder: (_) => const PublicHomeScreen(),
+          builder: (_) => const FirstTimeOnboardingGate(),
           settings: settings,
         );
 

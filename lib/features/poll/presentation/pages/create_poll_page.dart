@@ -41,6 +41,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
 
   UserProfile? _currentUserProfile;
   bool _publishingIdentityLoaded = false;
+  bool _showAdvancedOptions = false;
 
   @override
   void initState() {
@@ -877,6 +878,35 @@ class _CreatePollViewState extends State<_CreatePollView> {
                           const SizedBox(height: 16),
                           _buildSectionCard(
                             context,
+                            child: SwitchListTile.adaptive(
+                              contentPadding: EdgeInsets.zero,
+                              value: _showAdvancedOptions,
+                              onChanged: isSubmitting
+                                  ? null
+                                  : (value) {
+                                      setState(() {
+                                        _showAdvancedOptions = value;
+                                      });
+                                    },
+                              secondary: const Icon(Icons.tune_rounded),
+                              title: Text(
+                                l10n.createPollAdvancedOptionsTitle,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              subtitle: Text(
+                                l10n.createPollAdvancedOptionsSubtitle,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.textTheme.bodySmall?.color
+                                      ?.withValues(alpha: 0.8),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildSectionCard(
+                            context,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -950,24 +980,27 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 8),
-                                SwitchListTile.adaptive(
-                                  contentPadding: EdgeInsets.zero,
-                                  title: Text(
-                                    l10n.createPollAllowVoteChangeTitle,
-                                  ),
-                                  subtitle: Text(
-                                    l10n.createPollAllowVoteChangeSubtitle,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: theme.textTheme.bodySmall?.color
-                                          ?.withValues(alpha: 0.8),
+                                if (_showAdvancedOptions) ...[
+                                  const SizedBox(height: 8),
+                                  SwitchListTile.adaptive(
+                                    contentPadding: EdgeInsets.zero,
+                                    title: Text(
+                                      l10n.createPollAllowVoteChangeTitle,
                                     ),
+                                    subtitle: Text(
+                                      l10n.createPollAllowVoteChangeSubtitle,
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.textTheme.bodySmall?.color
+                                            ?.withValues(alpha: 0.8),
+                                      ),
+                                    ),
+                                    value: controller.allowVoteChange,
+                                    onChanged: isSubmitting
+                                        ? null
+                                        : controller.setAllowVoteChange,
                                   ),
-                                  value: controller.allowVoteChange,
-                                  onChanged: isSubmitting
-                                      ? null
-                                      : controller.setAllowVoteChange,
-                                ),
+                                ],
                               ],
                             ),
                           ),
@@ -1215,160 +1248,167 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     ],
                                   ),
                                 ),
-                                const Divider(height: 24),
-                                Text(
-                                  l10n.createPollVoteAnonymityTitle,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                RadioGroup<AnonymityLevel>(
-                                  groupValue: controller.anonymityLevel,
-                                  onChanged: (value) {
-                                    if (isSubmitting || value == null) return;
-                                    controller.setAnonymityLevel(value);
-                                  },
-                                  child: Column(
-                                    children: [
-                                      RadioListTile<AnonymityLevel>(
-                                        contentPadding: EdgeInsets.zero,
-                                        title: Text(
-                                          _anonymityLabel(
-                                            AnonymityLevel.anonymous,
-                                          ),
-                                        ),
-                                        subtitle: Text(
-                                          l10n.createPollAnonymityAnonymousSubtitle,
-                                          style: theme.textTheme.bodySmall
-                                              ?.copyWith(
-                                            color: theme
-                                                .textTheme.bodySmall?.color
-                                                ?.withValues(alpha: 0.8),
-                                          ),
-                                        ),
-                                        value: AnonymityLevel.anonymous,
-                                      ),
-                                      RadioListTile<AnonymityLevel>(
-                                        contentPadding: EdgeInsets.zero,
-                                        title: Text(
-                                          _anonymityLabel(
-                                            AnonymityLevel.public,
-                                          ),
-                                        ),
-                                        subtitle: Text(
-                                          l10n.createPollAnonymityPublicSubtitle,
-                                          style: theme.textTheme.bodySmall
-                                              ?.copyWith(
-                                            color: theme
-                                                .textTheme.bodySmall?.color
-                                                ?.withValues(alpha: 0.8),
-                                          ),
-                                        ),
-                                        value: AnonymityLevel.public,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildSectionCard(
-                            context,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l10n.createPollResultsValidityTitle,
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  l10n.createPollResultsValiditySubtitle,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.textTheme.bodySmall?.color
-                                        ?.withValues(alpha: 0.8),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                InputDecorator(
-                                  decoration: InputDecoration(
-                                    labelText: l10n
-                                        .createPollResultsVisibilityFieldLabel,
-                                    border: const OutlineInputBorder(),
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child:
-                                        DropdownButton<ResultsVisibilityMode>(
-                                      isExpanded: true,
-                                      value: controller.resultsVisibility,
-                                      onChanged: isSubmitting
-                                          ? null
-                                          : (value) {
-                                              if (value != null) {
-                                                controller.setResultsVisibility(
-                                                  value,
-                                                );
-                                              }
-                                            },
-                                      items: ResultsVisibilityMode.values
-                                          .map(
-                                            (mode) => DropdownMenuItem(
-                                              value: mode,
-                                              child: Text(
-                                                _resultsVisibilityLabel(
-                                                  mode,
-                                                ),
-                                              ),
-                                            ),
-                                          )
-                                          .toList(),
+                                if (_showAdvancedOptions) ...[
+                                  const Divider(height: 24),
+                                  Text(
+                                    l10n.createPollVoteAnonymityTitle,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  l10n.createPollQuorumTitle,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
+                                  const SizedBox(height: 4),
+                                  RadioGroup<AnonymityLevel>(
+                                    groupValue: controller.anonymityLevel,
+                                    onChanged: (value) {
+                                      if (isSubmitting || value == null) return;
+                                      controller.setAnonymityLevel(value);
+                                    },
+                                    child: Column(
+                                      children: [
+                                        RadioListTile<AnonymityLevel>(
+                                          contentPadding: EdgeInsets.zero,
+                                          title: Text(
+                                            _anonymityLabel(
+                                              AnonymityLevel.anonymous,
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            l10n.createPollAnonymityAnonymousSubtitle,
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                              color: theme
+                                                  .textTheme.bodySmall?.color
+                                                  ?.withValues(alpha: 0.8),
+                                            ),
+                                          ),
+                                          value: AnonymityLevel.anonymous,
+                                        ),
+                                        RadioListTile<AnonymityLevel>(
+                                          contentPadding: EdgeInsets.zero,
+                                          title: Text(
+                                            _anonymityLabel(
+                                              AnonymityLevel.public,
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            l10n.createPollAnonymityPublicSubtitle,
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                              color: theme
+                                                  .textTheme.bodySmall?.color
+                                                  ?.withValues(alpha: 0.8),
+                                            ),
+                                          ),
+                                          value: AnonymityLevel.public,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  l10n.createPollQuorumSubtitle,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.textTheme.bodySmall?.color
-                                        ?.withValues(alpha: 0.8),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                TextFormField(
-                                  enabled: !isSubmitting,
-                                  initialValue:
-                                      controller.minQuorumVotes?.toString() ??
-                                          '',
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    border: const OutlineInputBorder(),
-                                    labelText:
-                                        l10n.createPollQuorumMinVotesFieldLabel,
-                                  ),
-                                  onChanged: (value) {
-                                    if (value.trim().isEmpty) {
-                                      controller.setMinQuorumVotes(null);
-                                    } else {
-                                      final parsed = int.tryParse(value.trim());
-                                      controller.setMinQuorumVotes(parsed);
-                                    }
-                                  },
-                                ),
+                                ],
                               ],
                             ),
                           ),
                           const SizedBox(height: 16),
+                          if (_showAdvancedOptions) ...[
+                            _buildSectionCard(
+                              context,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.createPollResultsValidityTitle,
+                                    style:
+                                        theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    l10n.createPollResultsValiditySubtitle,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.textTheme.bodySmall?.color
+                                          ?.withValues(alpha: 0.8),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  InputDecorator(
+                                    decoration: InputDecoration(
+                                      labelText: l10n
+                                          .createPollResultsVisibilityFieldLabel,
+                                      border: const OutlineInputBorder(),
+                                    ),
+                                    child: DropdownButtonHideUnderline(
+                                      child:
+                                          DropdownButton<ResultsVisibilityMode>(
+                                        isExpanded: true,
+                                        value: controller.resultsVisibility,
+                                        onChanged: isSubmitting
+                                            ? null
+                                            : (value) {
+                                                if (value != null) {
+                                                  controller
+                                                      .setResultsVisibility(
+                                                    value,
+                                                  );
+                                                }
+                                              },
+                                        items: ResultsVisibilityMode.values
+                                            .map(
+                                              (mode) => DropdownMenuItem(
+                                                value: mode,
+                                                child: Text(
+                                                  _resultsVisibilityLabel(
+                                                    mode,
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                            .toList(),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    l10n.createPollQuorumTitle,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    l10n.createPollQuorumSubtitle,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.textTheme.bodySmall?.color
+                                          ?.withValues(alpha: 0.8),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextFormField(
+                                    enabled: !isSubmitting,
+                                    initialValue:
+                                        controller.minQuorumVotes?.toString() ??
+                                            '',
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      border: const OutlineInputBorder(),
+                                      labelText: l10n
+                                          .createPollQuorumMinVotesFieldLabel,
+                                    ),
+                                    onChanged: (value) {
+                                      if (value.trim().isEmpty) {
+                                        controller.setMinQuorumVotes(null);
+                                      } else {
+                                        final parsed =
+                                            int.tryParse(value.trim());
+                                        controller.setMinQuorumVotes(parsed);
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                           _buildSectionCard(
                             context,
                             child: Column(

@@ -2797,4 +2797,118 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get publicProfileBlockError => 'Unable to update the block. Try again.';
+
+  @override
+  String get contentLanguageFieldLabel => 'Content language';
+
+  @override
+  String get contentLanguageFieldHelper => 'Select the language in which you wrote the content.';
+
+  @override
+  String get contentLanguageUndetermined => 'Not specified';
+
+  @override
+  String get createPollAdvancedOptionsTitle => 'Advanced options';
+
+  @override
+  String get createPollAdvancedOptionsSubtitle => 'Anonymity, results visibility, vote changes, and quorum.';
+
+  @override
+  String get onboardingSkipButton => 'Skip';
+
+  @override
+  String get onboardingNextButton => 'Next';
+
+  @override
+  String get onboardingStartButton => 'Start';
+
+  @override
+  String get onboardingPollTitle => 'Polls';
+
+  @override
+  String get onboardingPollDescription => 'Vote on topics you care about and create polls to collect the community\'s opinion.';
+
+  @override
+  String get onboardingHeatIceTitle => 'Heat and Ice';
+
+  @override
+  String get onboardingHeatIceDescription => 'Use Heat and Ice to show how strongly a piece of content is attracting your interest.';
+
+  @override
+  String get onboardingCivicMapTitle => 'Civic Map';
+
+  @override
+  String get onboardingCivicMapDescription => 'Explore polls, posts, and news on the map and discover what is happening across different areas.';
+
+  @override
+  String get onboardingGeoScopeTitle => 'GeoScope';
+
+  @override
+  String get onboardingGeoScopeDescription => 'Choose the geographic level you want to follow: world, country, or city.';
+
+  @override
+  String get onboardingVerificationTitle => 'Identity verification';
+
+  @override
+  String get onboardingVerificationDescription => 'Some Polls may require a verification level to protect voting integrity.';
+
+  @override
+  String get pollDetail_voteReceiptButton => 'Vote receipt';
+
+  @override
+  String get pollDetail_voteReceiptTitle => 'Vote receipt';
+
+  @override
+  String get pollDetail_voteReceiptIdLabel => 'Receipt ID';
+
+  @override
+  String get pollDetail_voteReceiptDateLabel => 'Recorded';
+
+  @override
+  String get pollDetail_voteReceiptPrivacy => 'This receipt confirms that your vote was recorded without showing the choice you made.';
+
+  @override
+  String get pollDetail_voteReceiptCloseButton => 'Close';
+
+  @override
+  String get profileBiometricUnlockTitle => 'Biometric unlock';
+
+  @override
+  String get profileBiometricUnlockDescription => 'Protects your remembered session with the device fingerprint or biometric recognition.';
+
+  @override
+  String get profileBiometricRequiresRememberMe => 'Requires Remember Me to be enabled.';
+
+  @override
+  String get profileBiometricUnavailable => 'Biometrics are unavailable or not configured on this device.';
+
+  @override
+  String get profileBiometricEnableReason => 'Confirm your biometrics to enable Social Vote unlock.';
+
+  @override
+  String get profileBiometricEnabledMessage => 'Biometric unlock enabled.';
+
+  @override
+  String get profileBiometricDisabledMessage => 'Biometric unlock disabled.';
+
+  @override
+  String get profileBiometricAuthFailedMessage => 'Biometric authentication was not completed.';
+
+  @override
+  String get biometricLockTitle => 'Social Vote is locked';
+
+  @override
+  String get biometricLockMessage => 'Use your device biometrics to unlock the remembered session.';
+
+  @override
+  String get biometricUnlockButton => 'Unlock';
+
+  @override
+  String get biometricUsePasswordButton => 'Use password';
+
+  @override
+  String get biometricUnlockReason => 'Unlock your Social Vote session.';
+
+  @override
+  String get biometricUnlockFailedMessage => 'Unlock failed. Try again or use your password.';
 }

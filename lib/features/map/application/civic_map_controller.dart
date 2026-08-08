@@ -113,6 +113,68 @@ class CivicMapHeatRules {
   }
 }
 
+/// Ranking civico dedicato alla mappa.
+///
+/// Non modifica Heat/Ice del prodotto: usa i segnali già disponibili
+/// (reazioni, commenti, recenza e tipo contenuto) per decidere soltanto
+/// priorità e dimensione visuale dei marker.
+class CivicMapImportanceRules {
+  static const double _recencyWindowHours = 24 * 14;
+
+  const CivicMapImportanceRules._();
+
+  static double computeScore({
+    required CivicMapItemType type,
+    required double heat,
+    required int commentCount,
+    required DateTime? createdAt,
+  }) {
+    final normalizedHeat = CivicMapHeatRules.normalizeHeat(heat);
+    final normalizedComments =
+        CivicMapHeatRules.normalizeCommentCount(commentCount);
+
+    // Crescita logaritmica: un contenuto molto popolare resta importante
+    // senza schiacciare completamente tutti gli altri marker.
+    final engagementScore = math.log(1 + normalizedHeat) * 11.0 +
+        math.log(1 + normalizedComments) * 9.0;
+
+    final recencyScore = _computeRecencyScore(createdAt);
+    final civicTypeBoost = _typeBoost(type);
+
+    return engagementScore + recencyScore + civicTypeBoost;
+  }
+
+  static double _computeRecencyScore(DateTime? createdAt) {
+    if (createdAt == null) {
+      return 0;
+    }
+
+    final ageHours = math.max(
+      0,
+      DateTime.now().difference(createdAt).inMinutes / 60.0,
+    );
+
+    if (ageHours >= _recencyWindowHours) {
+      return 0;
+    }
+
+    final remainingRatio = 1.0 - (ageHours / _recencyWindowHours);
+
+    return remainingRatio * 12.0;
+  }
+
+  static double _typeBoost(CivicMapItemType type) {
+    switch (type) {
+      case CivicMapItemType.poll:
+        return 10.0;
+      case CivicMapItemType.post:
+        return 5.0;
+      case CivicMapItemType.news:
+        return 0.0;
+    }
+  }
+}
+
 class CivicMapItem {
   final String id;
   final TargetRef targetRef;
@@ -158,6 +220,22 @@ class CivicMapItem {
     return CivicMapHeatRules.computeScore(
       heat: normalizedHeat,
       commentCount: normalizedCommentCount,
+    );
+  }
+
+  /// Punteggio di importanza dedicato esclusivamente alla Civic Map.
+  ///
+  /// Tiene conto di:
+  /// - Heat/reazioni;
+  /// - commenti;
+  /// - recenza;
+  /// - rilevanza civica del tipo contenuto.
+  double get mapImportanceScore {
+    return CivicMapImportanceRules.computeScore(
+      type: type,
+      heat: normalizedHeat,
+      commentCount: normalizedCommentCount,
+      createdAt: createdAt,
     );
   }
 
@@ -955,7 +1033,10 @@ class CivicMapController extends ChangeNotifier {
       return const <CivicMapItem>[];
     }
 
-    final normalized = items.map((item) {
+    // Le coordinate persistite non vengono più spostate per evitare overlap.
+    // Il decluttering/clustering è responsabilità del layer visuale e varia
+    // con lo zoom, mantenendo sempre la geografia reale del contenuto.
+    return items.map((item) {
       if (_isValidLatLng(item.latitude, item.longitude)) {
         return item;
       }
@@ -971,48 +1052,6 @@ class CivicMapController extends ChangeNotifier {
         geoScope: item.geoScope ?? scope,
       );
     }).toList(growable: false);
-
-    final Map<String, List<CivicMapItem>> groups =
-        <String, List<CivicMapItem>>{};
-
-    for (final item in normalized) {
-      final key =
-          '${item.latitude.toStringAsFixed(5)}|${item.longitude.toStringAsFixed(5)}';
-      groups.putIfAbsent(key, () => <CivicMapItem>[]).add(item);
-    }
-
-    final output = <CivicMapItem>[];
-
-    for (final entry in groups.entries) {
-      final group = entry.value;
-
-      if (group.length == 1) {
-        output.add(group.first);
-        continue;
-      }
-
-      final baseLat = group.first.latitude;
-      final baseLng = group.first.longitude;
-
-      for (int i = 0; i < group.length; i++) {
-        final item = group[i];
-        final spread = _spreadPoint(
-          baseLat: baseLat,
-          baseLng: baseLng,
-          index: i,
-          type: item.type,
-        );
-
-        output.add(
-          item.copyWith(
-            latitude: spread.$1,
-            longitude: spread.$2,
-          ),
-        );
-      }
-    }
-
-    return output;
   }
 
   (double, double) _resolveBestPoint({
@@ -1056,39 +1095,6 @@ class CivicMapController extends ChangeNotifier {
       case GeoScopeLevel.city:
         return (45.4642, 9.1900);
     }
-  }
-
-  (double, double) _spreadPoint({
-    required double baseLat,
-    required double baseLng,
-    required int index,
-    required CivicMapItemType type,
-  }) {
-    if (index == 0) {
-      return (baseLat, baseLng);
-    }
-
-    final ring = ((index - 1) ~/ 8) + 1;
-    final slot = (index - 1) % 8;
-    final angle = (math.pi * 2 / 8) * slot;
-
-    double radiusDeg;
-    switch (type) {
-      case CivicMapItemType.poll:
-        radiusDeg = 0.08 * ring;
-        break;
-      case CivicMapItemType.post:
-        radiusDeg = 0.12 * ring;
-        break;
-      case CivicMapItemType.news:
-        radiusDeg = 0.16 * ring;
-        break;
-    }
-
-    final lat = (baseLat + math.sin(angle) * radiusDeg).clamp(-85.0, 85.0);
-    final lng = (baseLng + math.cos(angle) * radiusDeg).clamp(-180.0, 180.0);
-
-    return (lat.toDouble(), lng.toDouble());
   }
 
   void _reconcileSelectionAfterReload() {
@@ -1285,6 +1291,10 @@ class CivicMapController extends ChangeNotifier {
   }
 
   int _sortItems(CivicMapItem a, CivicMapItem b) {
+    final importanceCompare =
+        b.mapImportanceScore.compareTo(a.mapImportanceScore);
+    if (importanceCompare != 0) return importanceCompare;
+
     final scoreCompare = b.mapHeatScore.compareTo(a.mapHeatScore);
     if (scoreCompare != 0) return scoreCompare;
 

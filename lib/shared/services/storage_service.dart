@@ -9,6 +9,7 @@ class StorageService {
   static const String contentLanguagePreferenceKey =
       'content_language_preference';
   static const String rememberMeKey = 'remember_me';
+  static const String biometricUnlockKey = 'biometric_unlock_enabled';
 
   final KeyValueStorage _storage;
 
@@ -60,6 +61,18 @@ class StorageService {
 
   Future<void> clearRememberMe() {
     return remove(rememberMeKey);
+  }
+
+  Future<void> writeBiometricUnlockEnabled(bool value) {
+    return writeBool(biometricUnlockKey, value);
+  }
+
+  Future<bool> readBiometricUnlockEnabled() async {
+    return await readBool(biometricUnlockKey) ?? false;
+  }
+
+  Future<void> clearBiometricUnlockEnabled() {
+    return remove(biometricUnlockKey);
   }
 
   Future<void> remove(String key) {

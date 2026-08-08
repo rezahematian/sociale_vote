@@ -11,6 +11,16 @@ class PollVoteAggregate {
   });
 }
 
+class VoteReceipt {
+  final String receiptId;
+  final DateTime createdAt;
+
+  const VoteReceipt({
+    required this.receiptId,
+    required this.createdAt,
+  });
+}
+
 class PublicPollVoteEntry {
   final String userId;
   final String? username;
@@ -57,6 +67,12 @@ abstract class VoteRepository {
   /// - voto già esistente modificabile
   /// - voto già esistente non modificabile
   Future<bool> hasCurrentUserVoted(PollId pollId);
+
+  /// Restituisce la ricevuta del voto dell'utente corrente.
+  ///
+  /// Non espone le opzioni selezionate: contiene soltanto
+  /// identificatore opaco della ricevuta e data/ora del voto.
+  Future<VoteReceipt?> getCurrentUserVoteReceipt(PollId pollId);
 
   /// Restituisce tutti i voti associati a un poll.
   ///

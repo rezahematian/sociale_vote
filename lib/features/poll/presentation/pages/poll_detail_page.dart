@@ -950,6 +950,94 @@ class _PollDetailPageState extends State<PollDetailPage> {
     );
   }
 
+  String _formatVoteReceiptDate(
+    BuildContext context,
+    DateTime value,
+  ) {
+    final localValue = value.toLocal();
+    final materialL10n = MaterialLocalizations.of(context);
+    final date = materialL10n.formatFullDate(localValue);
+    final time = materialL10n.formatTimeOfDay(
+      TimeOfDay.fromDateTime(localValue),
+      alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+
+    return '$date · $time';
+  }
+
+  Future<void> _showVoteReceipt(
+    BuildContext context,
+    VoteReceipt receipt,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.verified_outlined),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(l10n.pollDetail_voteReceiptTitle),
+              ),
+            ],
+          ),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 460),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.pollDetail_voteReceiptIdLabel,
+                  style: Theme.of(dialogContext).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 6),
+                SelectableText(
+                  receipt.receiptId,
+                  style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
+                        fontFamily: 'monospace',
+                      ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  l10n.pollDetail_voteReceiptDateLabel,
+                  style: Theme.of(dialogContext).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _formatVoteReceiptDate(
+                    dialogContext,
+                    receipt.createdAt,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  l10n.pollDetail_voteReceiptPrivacy,
+                  style: Theme.of(dialogContext).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(dialogContext)
+                            .textTheme
+                            .bodySmall
+                            ?.color
+                            ?.withValues(alpha: 0.78),
+                      ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(l10n.pollDetail_voteReceiptCloseButton),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildVotingAndResultsCard(
     BuildContext context, {
     required Poll poll,
@@ -981,6 +1069,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
         poll.type == PollType.singleChoice || poll.type == PollType.yesNo;
     final allowMultiple = !isSingleChoice;
     final showPublicVotesCta = _resultController.canShowPublicVotes;
+    final voteReceipt = _resultController.currentUserVoteReceipt;
 
     return _buildSectionSurface(
       context,
@@ -1114,6 +1203,20 @@ class _PollDetailPageState extends State<PollDetailPage> {
               message: l10n.pollDetail_voteSubmitted,
               icon: Icons.check_circle_outline,
               tone: _FeedbackTone.success,
+            ),
+          ],
+          if (voteReceipt != null) ...[
+            const SizedBox(height: 14),
+            Align(
+              alignment: Alignment.center,
+              child: OutlinedButton.icon(
+                onPressed: () => _showVoteReceipt(
+                  context,
+                  voteReceipt,
+                ),
+                icon: const Icon(Icons.receipt_long_outlined),
+                label: Text(l10n.pollDetail_voteReceiptButton),
+              ),
             ),
           ],
           if (isSelectable) ...[

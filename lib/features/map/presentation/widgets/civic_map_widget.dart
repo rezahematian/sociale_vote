@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -32,9 +34,9 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
 
   static const lat_lng.LatLng _defaultCenter = lat_lng.LatLng(20.0, 0.0);
   static const double _defaultZoom = 2.0;
-  static const double _focusZoom = 7.0;
 
   bool _initialLoadTriggered = false;
+  double _currentZoom = _defaultZoom;
 
   @override
   void initState() {
@@ -98,12 +100,15 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
   }
 
   void _handleMarkerTap(CivicMapItem item) {
+    if (!widget.interactive) {
+      widget.onTap?.call();
+      return;
+    }
+
+    // Un marker singolo viene soltanto selezionato.
+    // La mappa resta esattamente nella posizione/zoom scelti dall'utente;
+    // il contenuto si apre dalla preview card della Civic Map.
     widget.controller?.selectItem(item);
-
-    try {
-      _mapController.move(_pointForItem(item), _focusZoom);
-    } catch (_) {}
-
     widget.onItemTap?.call(item);
   }
 
@@ -132,40 +137,131 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
   double _markerDiameter({
     required CivicMapItem item,
     required bool selected,
+    int clusterSize = 1,
   }) {
-    double size;
-    switch (item.heatTier) {
-      case CivicMapHeatTier.normal:
-        size = 38;
-        break;
-      case CivicMapHeatTier.active:
-        size = 46;
-        break;
-      case CivicMapHeatTier.hot:
-        size = 54;
-        break;
+    // Scala continua basata sul ranking civico:
+    // 34px minimo, 64px massimo prima dell'evidenza di selezione/cluster.
+    final normalized =
+        (item.mapImportanceScore / 70.0).clamp(0.0, 1.0).toDouble();
+    var size = 34.0 + (normalized * 30.0);
+
+    if (clusterSize > 1) {
+      size += math.min(
+        8.0,
+        math.log(clusterSize + 1) * 2.5,
+      );
     }
 
     if (selected) {
-      size += 10;
+      size += 8.0;
     }
 
-    return size;
+    return size.clamp(34.0, 72.0).toDouble();
+  }
+
+  int _maxMarkersForZoom(double zoom) {
+    if (zoom < 4.0) return 24;
+    if (zoom < 6.5) return 50;
+    if (zoom < 9.0) return 100;
+    if (zoom < 12.0) return 180;
+    return 500;
+  }
+
+  double _clusterCellDegrees(double zoom) {
+    if (zoom < 4.0) return 4.0;
+    if (zoom < 6.5) return 1.5;
+    if (zoom < 9.0) return 0.45;
+    if (zoom < 12.0) return 0.10;
+    if (zoom < 15.0) return 0.025;
+    return 0.0;
+  }
+
+  List<_CivicMarkerGroup> _markerGroups() {
+    final controller = widget.controller;
+    if (controller == null || controller.visibleItems.isEmpty) {
+      return const <_CivicMarkerGroup>[];
+    }
+
+    final sorted = controller.visibleItems.toList(growable: false);
+    final selected = controller.selectedItem;
+
+    final maxMarkers = _maxMarkersForZoom(_currentZoom);
+    final candidates = <CivicMapItem>[
+      ...sorted.take(maxMarkers),
+    ];
+
+    if (selected != null && !candidates.any((item) => item.id == selected.id)) {
+      candidates.add(selected);
+    }
+
+    final cellSize = _clusterCellDegrees(_currentZoom);
+    if (cellSize <= 0) {
+      return candidates
+          .map(
+            (item) => _CivicMarkerGroup(
+              representative: item,
+              items: [item],
+            ),
+          )
+          .toList(growable: false);
+    }
+
+    final groups = <String, List<CivicMapItem>>{};
+
+    for (final item in candidates) {
+      final point = _pointForItem(item);
+      final latCell = (point.latitude / cellSize).floor();
+      final lngCell = (point.longitude / cellSize).floor();
+      final key = '$latCell|$lngCell';
+
+      groups.putIfAbsent(key, () => <CivicMapItem>[]).add(item);
+    }
+
+    final output = <_CivicMarkerGroup>[];
+
+    for (final items in groups.values) {
+      // visibleItems è già ordinato per importanza; il rappresentante
+      // mantiene quindi il contenuto più importante del cluster.
+      final representative = items.first;
+
+      output.add(
+        _CivicMarkerGroup(
+          representative: representative,
+          items: List<CivicMapItem>.unmodifiable(items),
+        ),
+      );
+    }
+
+    output.sort(
+      (a, b) => b.representative.mapImportanceScore.compareTo(
+        a.representative.mapImportanceScore,
+      ),
+    );
+
+    return output;
   }
 
   List<Marker> _buildMarkers() {
     final controller = widget.controller;
     if (controller == null) return const <Marker>[];
 
-    return controller.visibleItems.map((item) {
-      final selected = controller.selectedItemId == item.id;
+    return _markerGroups().map((group) {
+      final item = group.representative;
+      final isCluster = group.items.length > 1;
+      final selected = !isCluster && controller.selectedItemId == item.id;
       final point = _pointForItem(item);
-      final color = _colorForType(item.type);
+
+      final color = isCluster ? Colors.deepPurple : _colorForType(item.type);
+
       final markerSize = _markerDiameter(
         item: item,
         selected: selected,
+        clusterSize: group.items.length,
       );
-      final badgeText = item.heatBadgeLabel;
+
+      final badgeText = isCluster
+          ? (group.items.length > 99 ? '99+' : '${group.items.length}')
+          : item.heatBadgeLabel;
 
       final markerBoxSize =
           markerSize + (selected ? 34 : 20) + (badgeText != null ? 24 : 8);
@@ -175,18 +271,33 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
         width: markerBoxSize,
         height: markerBoxSize,
         child: GestureDetector(
-          onTap: () => _handleMarkerTap(item),
+          onTap: () {
+            if (!widget.interactive) {
+              widget.onTap?.call();
+              return;
+            }
+
+            if (isCluster) {
+              final nextZoom = math.min(18.0, _currentZoom + 2.2);
+              try {
+                _mapController.move(point, nextZoom);
+              } catch (_) {}
+              return;
+            }
+
+            _handleMarkerTap(item);
+          },
           child: _MapMarkerVisual(
             size: markerSize,
             color: color,
-            icon: _iconForType(item.type),
+            icon: isCluster ? Icons.layers_outlined : _iconForType(item.type),
             selected: selected,
             tier: item.heatTier,
             badgeText: badgeText,
           ),
         ),
       );
-    }).toList();
+    }).toList(growable: false);
   }
 
   @override
@@ -212,6 +323,16 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
                     ? InteractiveFlag.all
                     : InteractiveFlag.none,
               ),
+              onPositionChanged: (camera, hasGesture) {
+                final zoom = camera.zoom;
+                if ((_currentZoom - zoom).abs() < 0.05) {
+                  return;
+                }
+
+                setState(() {
+                  _currentZoom = zoom;
+                });
+              },
               onTap: (tapPosition, point) {
                 _handleMapTap();
               },
@@ -234,6 +355,16 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
       },
     );
   }
+}
+
+class _CivicMarkerGroup {
+  final CivicMapItem representative;
+  final List<CivicMapItem> items;
+
+  const _CivicMarkerGroup({
+    required this.representative,
+    required this.items,
+  });
 }
 
 class _MapMarkerVisual extends StatelessWidget {

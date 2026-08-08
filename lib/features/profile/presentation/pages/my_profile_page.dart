@@ -23,6 +23,7 @@ import 'package:sociale_vote/features/profile/presentation/pages/my_favorites_pa
 import 'package:sociale_vote/features/profile/presentation/pages/my_followed_scopes_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_polls_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_posts_page.dart';
+import 'package:sociale_vote/shared/services/biometric_unlock_service.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 
 class MyProfilePage extends StatelessWidget {
@@ -81,7 +82,14 @@ class _MyProfileView extends StatefulWidget {
 
 class _MyProfileViewState extends State<_MyProfileView> {
   late Future<int> _unreadNotificationsFuture;
+  final BiometricUnlockService _biometricService = BiometricUnlockService();
+
   bool _isDeletingAccount = false;
+  bool _biometricLoading = true;
+  bool _biometricBusy = false;
+  bool _biometricAvailable = false;
+  bool _biometricEnabled = false;
+  bool _rememberMeEnabled = false;
 
   String get currentUserId => widget.currentUserId;
 
@@ -89,6 +97,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
   void initState() {
     super.initState();
     _unreadNotificationsFuture = _loadUnreadNotificationsCount();
+    unawaited(_loadBiometricState());
   }
 
   Future<int> _loadUnreadNotificationsCount() {
@@ -99,6 +108,138 @@ class _MyProfileViewState extends State<_MyProfileView> {
     setState(() {
       _unreadNotificationsFuture = _loadUnreadNotificationsCount();
     });
+  }
+
+  Future<void> _loadBiometricState() async {
+    final storage = AppDI.instance.storageService;
+
+    try {
+      final rememberMe = await storage.readRememberMe();
+      var enabled = await storage.readBiometricUnlockEnabled();
+      final available = await _biometricService.canUseBiometrics();
+
+      // Biometric unlock has no session to protect when Remember Me is off.
+      if (!rememberMe && enabled) {
+        await storage.writeBiometricUnlockEnabled(false);
+        enabled = false;
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _rememberMeEnabled = rememberMe;
+        _biometricAvailable = available;
+        _biometricEnabled = enabled;
+        _biometricLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _biometricAvailable = false;
+        _biometricEnabled = false;
+        _biometricLoading = false;
+      });
+    }
+  }
+
+  Future<void> _setBiometricEnabled(bool value) async {
+    if (_biometricBusy || _biometricLoading) {
+      return;
+    }
+
+    final l10n = AppLocalizations.of(context)!;
+    final storage = AppDI.instance.storageService;
+
+    if (!value) {
+      setState(() {
+        _biometricBusy = true;
+      });
+
+      try {
+        await storage.writeBiometricUnlockEnabled(false);
+      } finally {
+        if (mounted) {
+          setState(() {
+            _biometricBusy = false;
+            _biometricEnabled = false;
+          });
+        }
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.profileBiometricDisabledMessage),
+          ),
+        );
+      }
+      return;
+    }
+
+    if (!_rememberMeEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.profileBiometricRequiresRememberMe),
+        ),
+      );
+      return;
+    }
+
+    if (!_biometricAvailable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.profileBiometricUnavailable),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _biometricBusy = true;
+    });
+
+    final authenticated = await _biometricService.authenticate(
+      localizedReason: l10n.profileBiometricEnableReason,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (!authenticated) {
+      setState(() {
+        _biometricBusy = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.profileBiometricAuthFailedMessage),
+        ),
+      );
+      return;
+    }
+
+    await storage.writeBiometricUnlockEnabled(true);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _biometricBusy = false;
+      _biometricEnabled = true;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.profileBiometricEnabledMessage),
+      ),
+    );
   }
 
   Future<void> _openEditProfile() async {
@@ -1307,6 +1448,61 @@ class _MyProfileViewState extends State<_MyProfileView> {
                       : () {
                           Navigator.of(context).pushNamed(
                             AppRouter.resetPassword,
+                          );
+                        },
+                ),
+                const Divider(height: 1),
+                _SettingsTile(
+                  title: l10n.profileBiometricUnlockTitle,
+                  subtitle: _biometricLoading
+                      ? l10n.profileBiometricUnlockDescription
+                      : !_rememberMeEnabled
+                          ? l10n.profileBiometricRequiresRememberMe
+                          : !_biometricAvailable
+                              ? l10n.profileBiometricUnavailable
+                              : l10n.profileBiometricUnlockDescription,
+                  icon: Icons.fingerprint_rounded,
+                  trailing: _biometricLoading || _biometricBusy
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Switch.adaptive(
+                          value: _biometricEnabled,
+                          onChanged: !_rememberMeEnabled || !_biometricAvailable
+                              ? null
+                              : _setBiometricEnabled,
+                        ),
+                  onTap: _biometricLoading || _biometricBusy
+                      ? null
+                      : () {
+                          if (!_rememberMeEnabled) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  l10n.profileBiometricRequiresRememberMe,
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          if (!_biometricAvailable) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  l10n.profileBiometricUnavailable,
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          unawaited(
+                            _setBiometricEnabled(!_biometricEnabled),
                           );
                         },
                 ),

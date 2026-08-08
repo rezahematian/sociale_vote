@@ -56,6 +56,9 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Social Vote needs access to the camera so you can take a profile picture.</string>
 
+	<key>NSFaceIDUsageDescription</key>
+	<string>Social Vote uses Face ID to unlock a remembered session on this device.</string>
+
 	<!-- Keep Analytics disabled from native startup until explicit consent. -->
 	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
 	<false/>

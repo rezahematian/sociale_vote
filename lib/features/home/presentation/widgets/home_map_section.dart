@@ -77,23 +77,29 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
               clipBehavior: Clip.antiAlias,
               child: Stack(
                 children: [
-                  CivicMapWidget(
-                    controller: controller,
-                    currentScopeLabel: widget.scopeShortLabel,
-                    onTap: () async {
-                      await _openFullMap(
-                        context,
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      ignoring: true,
+                      child: CivicMapWidget(
                         controller: controller,
-                        scope: activeScope,
-                      );
-                    },
-                    onItemTap: (_) async {
-                      await _openFullMap(
-                        context,
-                        controller: controller,
-                        scope: activeScope,
-                      );
-                    },
+                        currentScopeLabel: widget.scopeShortLabel,
+                        interactive: false,
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () async {
+                          await _openFullMap(
+                            context,
+                            controller: controller,
+                            scope: activeScope,
+                          );
+                        },
+                      ),
+                    ),
                   ),
                   Positioned(
                     right: 12,

@@ -14,6 +14,7 @@ import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 /// - poll_id
 /// - user_id
 /// - selected_options (jsonb)
+/// - receipt_id
 /// - created_at
 class VoteRepositoryImpl implements VoteRepository {
   final SupabaseClient _supabase;
@@ -84,6 +85,44 @@ class VoteRepositoryImpl implements VoteRepository {
           .maybeSingle();
 
       return row != null;
+    } on PostgrestException catch (e) {
+      throw Exception(e.message);
+    }
+  }
+
+  @override
+  Future<VoteReceipt?> getCurrentUserVoteReceipt(PollId pollId) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      return null;
+    }
+
+    try {
+      final row = await _supabase
+          .from('votes')
+          .select('receipt_id, created_at')
+          .eq('poll_id', pollId.value)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+      if (row == null) {
+        return null;
+      }
+
+      final receiptId = row['receipt_id']?.toString().trim();
+      final createdAtRaw = row['created_at']?.toString().trim();
+
+      if (receiptId == null ||
+          receiptId.isEmpty ||
+          createdAtRaw == null ||
+          createdAtRaw.isEmpty) {
+        return null;
+      }
+
+      return VoteReceipt(
+        receiptId: receiptId,
+        createdAt: DateTime.parse(createdAtRaw).toUtc(),
+      );
     } on PostgrestException catch (e) {
       throw Exception(e.message);
     }

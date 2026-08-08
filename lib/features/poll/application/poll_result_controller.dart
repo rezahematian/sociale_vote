@@ -61,6 +61,7 @@ class PollResultController extends ChangeNotifier {
 
   Poll? _lastPoll;
   bool? _lastUserHasVoted;
+  VoteReceipt? _currentUserVoteReceipt;
 
   bool _isPublicVotesLoading = false;
   List<PublicPollVoteEntry> _publicVotes = const [];
@@ -76,6 +77,7 @@ class PollResultController extends ChangeNotifier {
   QuorumStatus get quorumStatus => _quorumStatus;
   PollOutcome get outcome => _outcome;
   bool get canShowResults => _canShowResults;
+  VoteReceipt? get currentUserVoteReceipt => _currentUserVoteReceipt;
 
   bool get isQuorumApplicable => _quorumStatus != QuorumStatus.notApplicable;
   bool get isQuorumReached => _quorumStatus == QuorumStatus.reached;
@@ -107,6 +109,7 @@ class PollResultController extends ChangeNotifier {
 
     if (pollChanged) {
       _resetPublicVotesState(notify: false);
+      _currentUserVoteReceipt = null;
     }
 
     await _ensureRealtimeSubscription(poll);
@@ -127,6 +130,19 @@ class PollResultController extends ChangeNotifier {
 
       _lastPoll = poll;
       _lastUserHasVoted = effectiveUserHasVoted;
+
+      if (effectiveUserHasVoted) {
+        try {
+          _currentUserVoteReceipt =
+              await _voteRepository.getCurrentUserVoteReceipt(poll.id);
+        } catch (_) {
+          _currentUserVoteReceipt = null;
+        }
+      } else {
+        _currentUserVoteReceipt = null;
+      }
+
+      if (!_isRequestStillValid(requestId)) return;
 
       final result = await _getPollResults(poll);
       if (!_isRequestStillValid(requestId)) return;
@@ -159,6 +175,7 @@ class PollResultController extends ChangeNotifier {
       _quorumStatus = QuorumStatus.notApplicable;
       _outcome = PollOutcome.notApplicable;
       _canShowResults = false;
+      _currentUserVoteReceipt = null;
       _resetPublicVotesState(notify: false);
     } finally {
       if (_isRequestStillValid(requestId)) {
@@ -410,6 +427,7 @@ class PollResultController extends ChangeNotifier {
     _canShowResults = false;
     _lastPoll = null;
     _lastUserHasVoted = null;
+    _currentUserVoteReceipt = null;
     _resetPublicVotesState(notify: false);
     _safeNotifyListeners();
   }
