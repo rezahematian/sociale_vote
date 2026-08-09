@@ -22,7 +22,7 @@ keystorePropertiesFile.inputStream().use {
 }
 
 android {
-    namespace = "com.socialvote.app"
+    namespace = "com.hematianapps.socialvote"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -36,7 +36,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.socialvote.app"
+        applicationId = "com.hematianapps.socialvote"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

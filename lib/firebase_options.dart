@@ -53,7 +53,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDHUCDMUc7GJlcwbLgqJeG0Sn5q6bovIC4',
-    appId: '1:726104051748:android:88148eb58403df7a4e08b1',
+    appId: '1:726104051748:android:3314405fb76ede524e08b1',
     messagingSenderId: '726104051748',
     projectId: 'socialevote',
     storageBucket: 'socialevote.firebasestorage.app',

@@ -1,4 +1,4 @@
-package com.socialvote.app
+package com.hematianapps.socialvote
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 
