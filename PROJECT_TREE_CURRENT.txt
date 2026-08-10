@@ -1,0 +1,757 @@
+Elenco del percorso delle cartelle
+Numero di serie del volume: 00000211-0019:F29F
+C:\FLUTTER_PROJECTS\SOCIALE_VOTE\LIB
+|   firebase_options.dart
+|   main.dart
+|   
++---app
+|   |   app.dart
+|   |   di.dart
+|   |   environment.dart
+|   |   router.dart
+|   |   
+|   +---localization
+|   |       l10n.dart
+|   |       supported_locales.dart
+|   |       
+|   \---theme
+|           app_theme.dart
+|           colors.dart
+|           radius.dart
+|           spacing.dart
+|           typography.dart
+|           
++---core
+|   |   constants.dart
+|   |   session_manager.dart
+|   |   
+|   +---analytics
+|   |       analytics_service.dart
+|   |       
+|   +---api
+|   |       api_endpoints.dart
+|   |       
+|   +---audit
+|   |       vote_audit_log.dart
+|   |       vote_audit_service.dart
+|   |       
+|   +---auth
+|   |       auth_service.dart
+|   |       auth_session.dart
+|   |       auth_session_guard.dart
+|   |       auth_storage.dart
+|   |       auth_token.dart
+|   |       
+|   +---bootstrap
+|   |       app_bootstrap.dart
+|   |       
+|   +---config
+|   |       app_config.dart
+|   |       env_keys.dart
+|   |       
+|   +---error
+|   |       error_handler.dart
+|   |       failures.dart
+|   |       
+|   +---http
+|   |       api_client.dart
+|   |       api_exception.dart
+|   |       http_client.dart
+|   |       
+|   +---logging
+|   |       logger.dart
+|   |       
+|   +---moderation
+|   |       moderation_action.dart
+|   |       moderation_decision.dart
+|   |       moderation_guard.dart
+|   |       moderation_policy.dart
+|   |       moderation_service.dart
+|   |       trust_level.dart
+|   |       trust_policy.dart
+|   |       trust_profile.dart
+|   |       trust_service.dart
+|   |       
+|   +---network
+|   |       api_response.dart
+|   |       network_exception.dart
+|   |       
+|   +---rate_limit
+|   |       rate_limit_guard.dart
+|   |       rate_limit_policy.dart
+|   |       rate_limit_record.dart
+|   |       rate_limit_rule.dart
+|   |       rate_limit_service.dart
+|   |       
+|   +---repository
+|   |       base_repository.dart
+|   |       
+|   +---security
+|   |       crypto_utils.dart
+|   |       participation_policy.dart
+|   |       permissions.dart
+|   |       
+|   +---storage
+|   |       key_value_storage.dart
+|   |       secure_storage.dart
+|   |       
+|   +---supabase
+|   |       supabase_client.dart
+|   |       
+|   \---utils
+|           date_time_utils.dart
+|           id_generator.dart
+|           result.dart
+|           validators.dart
+|           
++---domain
+|   +---admin
+|   |   +---entities
+|   |   |       admin_entities.dart
+|   |   |       
+|   |   +---repositories
+|   |   |       admin_repository.dart
+|   |   |       
+|   |   \---usecases
+|   |           change_system_role.dart
+|   |           delete_admin_account.dart
+|   |           force_admin_logout.dart
+|   |           load_admin_audit.dart
+|   |           load_admin_dashboard.dart
+|   |           load_admin_reports.dart
+|   |           manage_admin_account_status.dart
+|   |           record_admin_report_decision.dart
+|   |           search_admin_users.dart
+|   |           set_admin_public_identity.dart
+|   |           set_report_content_visibility.dart
+|   |           
+|   +---common
+|   |   +---services
+|   |   |       clock.dart
+|   |   |       
+|   |   \---value_objects
+|   |           email_address.dart
+|   |           entity_id.dart
+|   |           localized_text.dart
+|   |           target_ref.dart
+|   |           
+|   +---content
+|   |   +---news
+|   |   |   +---entities
+|   |   |   |       news_item.dart
+|   |   |   |       
+|   |   |   +---repositories
+|   |   |   |       news_repository.dart
+|   |   |   |       
+|   |   |   \---usecases
+|   |   |           get_news_detail.dart
+|   |   |           get_news_feed.dart
+|   |   |           
+|   |   +---social
+|   |   |   +---entities
+|   |   |   |       post.dart
+|   |   |   |       
+|   |   |   +---repositories
+|   |   |   |       comment_repository.dart
+|   |   |   |       post_repository.dart
+|   |   |   |       
+|   |   |   \---usecases
+|   |   |           create_comment.dart
+|   |   |           create_post.dart
+|   |   |           delete_post.dart
+|   |   |           get_feed.dart
+|   |   |           get_post_detail.dart
+|   |   |           update_post.dart
+|   |   |           
+|   |   \---video
+|   |       +---entities
+|   |       |       video.dart
+|   |       |       
+|   |       +---repositories
+|   |       |       video_repository.dart
+|   |       |       
+|   |       \---usecases
+|   |               get_video_detail.dart
+|   |               get_video_feed.dart
+|   |               
+|   +---discovery
+|   |   +---usecases
+|   |   |       get_for_you_feed.dart
+|   |   |       get_trending_content.dart
+|   |   |       
+|   |   \---value_objects
+|   |           for_you_score.dart
+|   |           trending_score.dart
+|   |           
+|   +---discussion
+|   |   +---entities
+|   |   |       comment.dart
+|   |   |       
+|   |   +---repositories
+|   |   |       comment_repository.dart
+|   |   |       
+|   |   \---usecases
+|   |           add_comment.dart
+|   |           add_comment_and_notify.dart
+|   |           get_comments_for_target.dart
+|   |           get_comment_count_for_target.dart
+|   |           update_comment.dart
+|   |           
+|   +---engagement
+|   |   +---entities
+|   |   |       favorite.dart
+|   |   |       reaction.dart
+|   |   |       reaction_summary.dart
+|   |   |       
+|   |   +---repositories
+|   |   |       favorite_repository.dart
+|   |   |       reaction_repository.dart
+|   |   |       
+|   |   +---usecases
+|   |   |       get_reaction_summary.dart
+|   |   |       is_favorite.dart
+|   |   |       toggle_favorite.dart
+|   |   |       toggle_reaction.dart
+|   |   |       
+|   |   \---value_objects
+|   |           heat_score.dart
+|   |           reaction_type.dart
+|   |           
+|   +---geo
+|   |   +---entities
+|   |   |       follow_scope.dart
+|   |   |       geo_point.dart
+|   |   |       location.dart
+|   |   |       resolved_scope.dart
+|   |   |       
+|   |   +---repositories
+|   |   |       device_location_repository.dart
+|   |   |       follow_scope_repository.dart
+|   |   |       geocoding_repository.dart
+|   |   |       geo_repository.dart
+|   |   |       geo_resolver.dart
+|   |   |       
+|   |   +---usecases
+|   |   |       get_followed_scopes_for_user.dart
+|   |   |       resolve_city_from_location.dart
+|   |   |       resolve_scope_from_point.dart
+|   |   |       toggle_follow_scope.dart
+|   |   |       
+|   |   \---value_objects
+|   |           content_location.dart
+|   |           content_location_source.dart
+|   |           geo_point.dart
+|   |           geo_scope.dart
+|   |           
+|   +---identity
+|   |   +---entities
+|   |   |       user.dart
+|   |   |       user_profile.dart
+|   |   |       verification_request.dart
+|   |   |       
+|   |   +---repositories
+|   |   |       session_repository.dart
+|   |   |       user_profile_repository.dart
+|   |   |       user_repository.dart
+|   |   |       verification_request_repository.dart
+|   |   |       
+|   |   +---services
+|   |   |       identity_service.dart
+|   |   |       
+|   |   +---usecases
+|   |   |       cancel_verification_request.dart
+|   |   |       create_verification_request.dart
+|   |   |       get_pending_verification_request.dart
+|   |   |       get_pending_verification_requests.dart
+|   |   |       get_user_profile.dart
+|   |   |       get_verification_requests_for_user.dart
+|   |   |       login_user.dart
+|   |   |       refresh_token.dart
+|   |   |       register_user.dart
+|   |   |       review_verification_request.dart
+|   |   |       review_verification_request_and_update_profile.dart
+|   |   |       update_user_profile.dart
+|   |   |       
+|   |   \---value_objects
+|   |           actor_type.dart
+|   |           auth_token.dart
+|   |           institution_level.dart
+|   |           role.dart
+|   |           user_id.dart
+|   |           verification_level.dart
+|   |           verification_status.dart
+|   |           
+|   +---moderation
+|   |   +---entities
+|   |   |       moderation_case.dart
+|   |   |       report.dart
+|   |   |       
+|   |   +---repositories
+|   |   |       moderation_repository.dart
+|   |   |       
+|   |   +---services
+|   |   |       moderation_policy_service.dart
+|   |   |       trust_service.dart
+|   |   |       
+|   |   +---usecases
+|   |   |       report_content.dart
+|   |   |       review_report.dart
+|   |   |       
+|   |   \---value_objects
+|   |           moderation_decision.dart
+|   |           trust_level.dart
+|   |           
+|   +---news
+|   +---notifications
+|   |   +---entities
+|   |   |       app_notification.dart
+|   |   |       
+|   |   +---repositories
+|   |   |       notification_repository.dart
+|   |   |       
+|   |   \---usecases
+|   |           create_comment_mention_notifications.dart
+|   |           create_comment_reply_notification.dart
+|   |           create_poll_result_notification.dart
+|   |           get_notifications_for_user.dart
+|   |           get_unread_notifications_count.dart
+|   |           mark_all_notifications_as_read.dart
+|   |           mark_notification_as_read.dart
+|   |           
+|   +---poll
+|   |   +---entities
+|   |   |       poll.dart
+|   |   |       poll_option.dart
+|   |   |       poll_result.dart
+|   |   |       vote.dart
+|   |   |       
+|   |   +---errors
+|   |   |       invalid_vote_exception.dart
+|   |   |       poll_closed_exception.dart
+|   |   |       unauthorized_vote_exception.dart
+|   |   |       
+|   |   +---events
+|   |   |       domain_event.dart
+|   |   |       poll_closed_event.dart
+|   |   |       vote_submitted_event.dart
+|   |   |       
+|   |   +---repositories
+|   |   |       poll_repository.dart
+|   |   |       vote_repository.dart
+|   |   |       
+|   |   +---services
+|   |   |       poll_outcome_calculator.dart
+|   |   |       poll_policy_service.dart
+|   |   |       poll_quorum_evaluator.dart
+|   |   |       poll_results_visibility_resolver.dart
+|   |   |       vote_aggregator.dart
+|   |   |       vote_validator.dart
+|   |   |       
+|   |   +---usecases
+|   |   |       close_poll.dart
+|   |   |       create_poll.dart
+|   |   |       delete_poll.dart
+|   |   |       get_polls.dart
+|   |   |       get_poll_detail.dart
+|   |   |       get_poll_results.dart
+|   |   |       submit_vote.dart
+|   |   |       submit_vote_and_notify.dart
+|   |   |       update_poll_text.dart
+|   |   |       
+|   |   \---value_objects
+|   |           anonymity_rules.dart
+|   |           participation_rules.dart
+|   |           poll_configuration.dart
+|   |           poll_id.dart
+|   |           poll_outcome.dart
+|   |           poll_status.dart
+|   |           poll_type.dart
+|   |           quorum_rules.dart
+|   |           quorum_status.dart
+|   |           visibility_rules.dart
+|   |           
+|   +---post
+|   +---search
+|   |   +---entities
+|   |   |       search_result_item.dart
+|   |   |       
+|   |   +---repositories
+|   |   |       search_repository.dart
+|   |   |       
+|   |   +---usecases
+|   |   |       search_content.dart
+|   |   |       
+|   |   \---value_objects
+|   |           search_filters.dart
+|   |           search_query.dart
+|   |           
+|   +---user
+|   |       user_dto.dart
+|   |       user_identity.dart
+|   |       
+|   \---video
++---features
+|   +---admin
+|   |   \---presentation
+|   |       \---pages
+|   |               admin_center_page.dart
+|   |               
+|   +---auth
+|   |   +---application
+|   |   |       auth_controller.dart
+|   |   |       auth_state.dart
+|   |   |       
+|   |   \---presentation
+|   |       +---pages
+|   |       |       legal_document_page.dart
+|   |       |       login_page.dart
+|   |       |       register_page.dart
+|   |       |       reset_password_page.dart
+|   |       |       
+|   |       \---widgets
+|   |               biometric_session_gate.dart
+|   |               login_form.dart
+|   |               register_form.dart
+|   |               
+|   +---city
+|   +---discovery
+|   |   \---application
+|   |           for_you_feed_controller.dart
+|   |           trending_controller.dart
+|   |           
+|   +---discussion
+|   |   +---application
+|   |   |       discussion_controller.dart
+|   |   |       
+|   |   \---presentation
+|   |       \---widgets
+|   |               comment_section.dart
+|   |               
+|   +---geo
+|   |   \---application
+|   |           follow_scope_controller.dart
+|   |           geo_scope_controller.dart
+|   |           
+|   +---home
+|   |   +---application
+|   |   |       civic_feed_controller.dart
+|   |   |       feed_item.dart
+|   |   |       home_controller.dart
+|   |   |       
+|   |   \---presentation
+|   |       +---pages
+|   |       |       public_home_screen.dart
+|   |       |       
+|   |       \---widgets
+|   |               home_civic_feed_section.dart
+|   |               home_empty_state.dart
+|   |               home_for_you_section.dart
+|   |               home_hero_section.dart
+|   |               home_map_section.dart
+|   |               home_news_section.dart
+|   |               home_poll_section.dart
+|   |               home_post_preview_card.dart
+|   |               home_quick_actions.dart
+|   |               home_scope_header.dart
+|   |               home_search_bar.dart
+|   |               home_section_header.dart
+|   |               home_social_section.dart
+|   |               home_top_bar.dart
+|   |               home_trending_section.dart
+|   |               home_user_status.dart
+|   |               
+|   +---map
+|   |   +---application
+|   |   |       civic_map_controller.dart
+|   |   |       
+|   |   \---presentation
+|   |       +---pages
+|   |       |       civic_map_page.dart
+|   |       |       
+|   |       \---widgets
+|   |               civic_map_widget.dart
+|   |               
+|   +---match
+|   +---news
+|   |   +---application
+|   |   |       news_controller.dart
+|   |   |       news_state.dart
+|   |   |       
+|   |   +---domain
+|   |   |       news_language.dart
+|   |   |       news_topic.dart
+|   |   |       
+|   |   \---presentation
+|   |       +---pages
+|   |       |       news_detail_page.dart
+|   |       |       news_feed_page.dart
+|   |       |       
+|   |       \---widgets
+|   |               news_card.dart
+|   |               
+|   +---notifications
+|   |   +---application
+|   |   |       notifications_controller.dart
+|   |   |       
+|   |   \---presentation
+|   |       \---pages
+|   |               notifications_page.dart
+|   |               
+|   +---onboarding
+|   |   \---presentation
+|   |           first_time_onboarding_gate.dart
+|   |           
+|   +---poll
+|   |   +---application
+|   |   |       create_poll_controller.dart
+|   |   |       poll_detail_controller.dart
+|   |   |       poll_list_controller.dart
+|   |   |       poll_result_controller.dart
+|   |   |       poll_state.dart
+|   |   |       vote_controller.dart
+|   |   |       
+|   |   \---presentation
+|   |       +---pages
+|   |       |       create_poll_page.dart
+|   |       |       poll_detail_page.dart
+|   |       |       poll_list_page.dart
+|   |       |       vote_page.dart
+|   |       |       
+|   |       \---widgets
+|   |               poll_card.dart
+|   |               poll_detail_header.dart
+|   |               poll_options_section.dart
+|   |               poll_results_section.dart
+|   |               poll_result_chart.dart
+|   |               
+|   +---profile
+|   |   +---application
+|   |   |       profile_controller.dart
+|   |   |       verification_requests_controller.dart
+|   |   |       verification_review_controller.dart
+|   |   |       
+|   |   \---presentation
+|   |       \---pages
+|   |               edit_profile_page.dart
+|   |               my_comments_page.dart
+|   |               my_favorites_page.dart
+|   |               my_followed_scopes_page.dart
+|   |               my_polls_page.dart
+|   |               my_posts_page.dart
+|   |               my_profile_page.dart
+|   |               public_user_profile_page.dart
+|   |               verification_review_page.dart
+|   |               
+|   +---search
+|   |   +---application
+|   |   |       search_controller.dart
+|   |   |       
+|   |   \---presentation
+|   |       \---pages
+|   |               search_page.dart
+|   |               
+|   +---social
+|   |   +---application
+|   |   |       comments_controller.dart
+|   |   |       feed_controller.dart
+|   |   |       post_detail_controller.dart
+|   |   |       post_editor_controller.dart
+|   |   |       
+|   |   \---presentation
+|   |       +---pages
+|   |       |       create_post_page.dart
+|   |       |       post_detail_page.dart
+|   |       |       social_feed_page.dart
+|   |       |       
+|   |       \---widgets
+|   |               comment_list.dart
+|   |               create_post_form.dart
+|   |               post_card.dart
+|   |               
+|   \---video
+|       +---application
+|       |       video_detail_controller.dart
+|       |       video_feed_controller.dart
+|       |       
+|       \---presentation
+|           +---pages
+|           |       video_feed_page.dart
+|           |       video_player_page.dart
+|           |       
+|           \---widgets
+|                   video_card.dart
+|                   
++---infrastructure
+|   +---admin
+|   |   \---repositories
+|   |           admin_repository_impl.dart
+|   |           
+|   +---auth
+|   |       session_repository_impl.dart
+|   |       user_repository_impl.dart
+|   |       
+|   +---discussion
+|   |   \---repositories
+|   |           comment_repository_http.dart
+|   |           comment_repository_impl.dart
+|   |           
+|   +---engagement
+|   |   \---repositories
+|   |           favorite_repository_in_memory.dart
+|   |           favorite_repository_supabase.dart
+|   |           reaction_repository_http.dart
+|   |           reaction_repository_impl.dart
+|   |           
+|   +---geo
+|   |   |   country_region.dart
+|   |   |   geo_resolver_impl.dart
+|   |   |   
+|   |   \---repositories
+|   |           device_location_repository_impl.dart
+|   |           follow_scope_repository_http.dart
+|   |           follow_scope_repository_in_memory.dart
+|   |           geocoding_repository_impl.dart
+|   |           
+|   +---identity
+|   |   \---repositories
+|   |           user_profile_repository_impl.dart
+|   |           verification_request_repository_impl.dart
+|   |           
+|   +---moderation
+|   |   +---mappers
+|   |   |       moderation_mapper.dart
+|   |   |       
+|   |   +---models
+|   |   |       moderation_case_dto.dart
+|   |   |       
+|   |   +---repositories
+|   |   |       moderation_repository_impl.dart
+|   |   |       
+|   |   \---services
+|   |           content_visibility_filter.dart
+|   |           
+|   +---network
+|   |   \---interceptors
+|   |           auth_interceptor.dart
+|   |           logging_interceptor.dart
+|   |           
+|   +---news
+|   |   +---aggregator
+|   |   |       gnews_provider.dart
+|   |   |       guardian_provider.dart
+|   |   |       mediastack_provider.dart
+|   |   |       news_aggregator.dart
+|   |   |       news_api_org_provider.dart
+|   |   |       news_provider.dart
+|   |   |       news_provider_result.dart
+|   |   |       provider_exceptions.dart
+|   |   |       web_news_proxy_provider.dart
+|   |   |       
+|   |   +---mappers
+|   |   |       news_mapper.dart
+|   |   |       
+|   |   +---models
+|   |   |       news_dto.dart
+|   |   |       
+|   |   \---repositories
+|   |           news_repository_impl.dart
+|   |           
+|   +---notifications
+|   |   \---repositories
+|   |           notification_repository_impl.dart
+|   |           
+|   +---persistence
+|   |   +---local
+|   |   |       hive_storage.dart
+|   |   |       sqflite_database.dart
+|   |   |       
+|   |   \---remote
+|   |       \---rest
+|   |               auth_api.dart
+|   |               guardian_api.dart
+|   |               mediastack_api.dart
+|   |               moderation_api.dart
+|   |               news_api.dart
+|   |               news_api_org_api.dart
+|   |               poll_api.dart
+|   |               social_api.dart
+|   |               video_api.dart
+|   |               
+|   +---poll
+|   |   +---mappers
+|   |   |       poll_mapper.dart
+|   |   |       
+|   |   +---models
+|   |   |       poll_detail_dto.dart
+|   |   |       poll_dto.dart
+|   |   |       poll_option_dto.dart
+|   |   |       poll_result_dto.dart
+|   |   |       vote_dto.dart
+|   |   |       
+|   |   \---repositories
+|   |           poll_repository_impl.dart
+|   |           poll_repository_supabase.dart
+|   |           vote_repository_impl.dart
+|   |           
+|   +---search
+|   |   \---repositories
+|   |           search_repository_in_memory.dart
+|   |           
+|   +---social
+|   |   +---mappers
+|   |   |       social_mapper.dart
+|   |   |       
+|   |   +---models
+|   |   |       comment_dto.dart
+|   |   |       post_dto.dart
+|   |   |       
+|   |   \---repositories
+|   |           post_repository_impl.dart
+|   |           
+|   \---video
+|       +---mappers
+|       |       video_mapper.dart
+|       |       
+|       +---models
+|       |       video_dto.dart
+|       |       
+|       \---repositories
+|               video_repository_impl.dart
+|               
++---l10n
+|       app_en.arb
+|       app_it.arb
+|       app_localizations.dart
+|       app_localizations_en.dart
+|       app_localizations_it.dart
+|       
++---navigation
+\---shared
+    +---data
+    |       countries.dart
+    |       
+    +---services
+    |       auth_guard.dart
+    |       biometric_unlock_service.dart
+    |       dialog_service.dart
+    |       navigation_service.dart
+    |       storage_service.dart
+    |       
+    +---ui
+    |       app_button.dart
+    |       app_card.dart
+    |       app_text_field.dart
+    |       avatar.dart
+    |       loading_indicator.dart
+    |       ui.dart
+    |       
+    \---widgets
+            content_language_field.dart
+            content_location_field.dart
+            country_selector_field.dart
+            custom_widgets.dart
+            engagement_bar.dart
+            heat_buttons.dart
+            responsive_layout.dart
+            user_identity_mark.dart
+            
