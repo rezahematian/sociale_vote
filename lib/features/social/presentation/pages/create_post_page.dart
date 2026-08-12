@@ -5,7 +5,6 @@ import 'package:sociale_vote/core/analytics/analytics_service.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
-import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
 
@@ -28,12 +27,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
   String? _selectedCountryCode;
   ContentLocation? _contentLocation;
-
-  @override
-  void initState() {
-    super.initState();
-    _applyScopeAsDefaultLocation();
-  }
+  bool _showManualLocationFields = false;
 
   @override
   void dispose() {
@@ -43,54 +37,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
     super.dispose();
   }
 
-  void _applyScopeAsDefaultLocation({bool showFeedback = false}) {
-    final scope = AppDI.instance.geoScopeController.scope;
-    final location = _contentLocationFromScope(scope);
-
-    setState(() {
-      _contentLocation = location;
-      _selectedCountryCode = location?.countryCode;
-      _cityController.text = location?.cityName ?? '';
-    });
-
-    if (!showFeedback || !mounted) {
-      return;
-    }
-
-    final message = location == null
-        ? 'Scope World applicato: il post sarà globale.'
-        : 'Scope corrente applicato: ${_locationSummary(location)}.';
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
-  ContentLocation? _contentLocationFromScope(GeoScope scope) {
-    switch (scope.level) {
-      case GeoScopeLevel.world:
-        return null;
-      case GeoScopeLevel.country:
-        return ContentLocation(
-          source: ContentLocationSource.geoScopeFallback,
-          countryCode: scope.countryCode,
-          centerLat: scope.centerLat,
-          centerLng: scope.centerLng,
-        );
-      case GeoScopeLevel.city:
-        return ContentLocation(
-          source: ContentLocationSource.geoScopeFallback,
-          countryCode: scope.countryCode,
-          cityId: scope.cityId,
-          cityName: scope.cityId,
-          centerLat: scope.centerLat,
-          centerLng: scope.centerLng,
-        );
-    }
-  }
-
   void _setManualLocation() {
     setState(() {
+      _showManualLocationFields = true;
       _contentLocation = ContentLocation(
         source: ContentLocationSource.manual,
         countryCode: _normalizeString(_selectedCountryCode),
@@ -121,6 +70,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
   String _locationSummary(ContentLocation? location) {
     if (location == null || location.isEmpty) {
+      if (_showManualLocationFields) {
+        return 'Seleziona una località';
+      }
       return 'Globale / nessuna località specifica';
     }
 
@@ -211,6 +163,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
       }
 
       setState(() {
+        _showManualLocationFields = false;
         _contentLocation = location;
         _selectedCountryCode = location.countryCode;
         _cityController.text = location.cityName ?? '';
@@ -373,6 +326,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final location = _contentLocation;
+    final isDeviceSelected = location?.source == ContentLocationSource.device;
+    final isGlobalSelected =
+        (location == null || location.isEmpty) && !_showManualLocationFields;
 
     return Scaffold(
       appBar: AppBar(
@@ -452,7 +408,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Definisce dove il post deve apparire sulla mappa.',
+                          'Scegli se il post è globale, associato a una località oppure alla tua posizione attuale.',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurface
                                 .withValues(alpha: 0.75),
@@ -489,7 +445,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Origine: ${location == null || location.isEmpty ? 'Globale' : _sourceLabel(location.source)}',
+                                'Origine: ${isGlobalSelected ? 'Globale' : _showManualLocationFields ? 'Manuale' : location == null || location.isEmpty ? 'Globale' : _sourceLabel(location.source)}',
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.onSurface
                                       .withValues(alpha: 0.7),
@@ -506,16 +462,65 @@ class _CreatePostPageState extends State<CreatePostPage> {
                             OutlinedButton.icon(
                               onPressed: _isSubmitting
                                   ? null
-                                  : () => _applyScopeAsDefaultLocation(
-                                        showFeedback: true,
-                                      ),
+                                  : () {
+                                      setState(() {
+                                        _showManualLocationFields = false;
+                                        _contentLocation = null;
+                                        _selectedCountryCode = null;
+                                        _cityController.clear();
+                                      });
+                                    },
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: isGlobalSelected
+                                    ? theme.colorScheme.primaryContainer
+                                    : null,
+                                foregroundColor: isGlobalSelected
+                                    ? theme.colorScheme.onPrimaryContainer
+                                    : null,
+                              ),
                               icon: const Icon(Icons.public),
-                              label: const Text('Usa scope corrente'),
+                              label: const Text('Globale'),
+                            ),
+                            OutlinedButton.icon(
+                              onPressed: _isSubmitting
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _showManualLocationFields = true;
+                                        _contentLocation = ContentLocation(
+                                          source: ContentLocationSource.manual,
+                                          countryCode: _normalizeString(
+                                            _selectedCountryCode,
+                                          ),
+                                          cityName: _normalizeString(
+                                            _cityController.text,
+                                          ),
+                                        );
+                                      });
+                                    },
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: _showManualLocationFields
+                                    ? theme.colorScheme.primaryContainer
+                                    : null,
+                                foregroundColor: _showManualLocationFields
+                                    ? theme.colorScheme.onPrimaryContainer
+                                    : null,
+                              ),
+                              icon: const Icon(Icons.place_outlined),
+                              label: const Text('Scegli località'),
                             ),
                             OutlinedButton.icon(
                               onPressed: _isSubmitting || _isResolvingLocation
                                   ? null
                                   : _useCurrentDeviceLocation,
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: isDeviceSelected
+                                    ? theme.colorScheme.primaryContainer
+                                    : null,
+                                foregroundColor: isDeviceSelected
+                                    ? theme.colorScheme.onPrimaryContainer
+                                    : null,
+                              ),
                               icon: _isResolvingLocation
                                   ? const SizedBox(
                                       width: 16,
@@ -531,59 +536,39 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                     : 'Usa posizione attuale',
                               ),
                             ),
-                            TextButton.icon(
-                              onPressed: _isSubmitting
-                                  ? null
-                                  : () {
-                                      setState(() {
-                                        _contentLocation = null;
-                                        _selectedCountryCode = null;
-                                        _cityController.clear();
-                                      });
-
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Il post è impostato come globale.',
-                                          ),
-                                        ),
-                                      );
-                                    },
-                              icon: const Icon(Icons.public_off_outlined),
-                              label: const Text('Rendi globale'),
-                            ),
                           ],
                         ),
-                        const SizedBox(height: 14),
-                        CountrySelectorField(
-                          selectedCountryCode: _selectedCountryCode,
-                          onCountrySelected: (code) {
-                            setState(() {
-                              final countryChanged =
-                                  _selectedCountryCode != code;
-                              _selectedCountryCode = code;
+                        if (_showManualLocationFields) ...[
+                          const SizedBox(height: 14),
+                          CountrySelectorField(
+                            selectedCountryCode: _selectedCountryCode,
+                            onCountrySelected: (code) {
+                              setState(() {
+                                final countryChanged =
+                                    _selectedCountryCode != code;
+                                _selectedCountryCode = code;
 
-                              if (countryChanged) {
-                                _cityController.clear();
-                              }
-                            });
-                            _setManualLocation();
-                          },
-                          label: 'Paese del contenuto',
-                          required: false,
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: _cityController,
-                          decoration: const InputDecoration(
-                            labelText: 'Città del contenuto',
-                            border: OutlineInputBorder(),
-                            helperText:
-                                'Facoltativo. Lascia paese e città vuoti per un post globale.',
+                                if (countryChanged) {
+                                  _cityController.clear();
+                                }
+                              });
+                              _setManualLocation();
+                            },
+                            label: 'Paese del contenuto',
+                            required: false,
                           ),
-                          onChanged: (_) => _setManualLocation(),
-                        ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _cityController,
+                            decoration: const InputDecoration(
+                              labelText: 'Città del contenuto',
+                              border: OutlineInputBorder(),
+                              helperText:
+                                  'Facoltativo. Puoi indicare solo il paese oppure anche la città.',
+                            ),
+                            onChanged: (_) => _setManualLocation(),
+                          ),
+                        ],
                       ],
                     ),
                   ),

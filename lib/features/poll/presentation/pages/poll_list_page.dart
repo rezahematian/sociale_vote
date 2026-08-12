@@ -195,16 +195,6 @@ class _PollListPageState extends State<PollListPage> {
     }
   }
 
-  String _scopeFilterLabel(
-    AppLocalizations l10n,
-    PollScopeFilter filter,
-  ) {
-    switch (filter) {
-      case PollScopeFilter.currentScope:
-        return l10n.pollList_filterScope_currentArea;
-    }
-  }
-
   Future<void> _openCreatePoll() async {
     final allowed = await AuthGuard.ensureCanPerformAction(
       context,
@@ -415,11 +405,6 @@ class _PollListPageState extends State<PollListPage> {
     final l10n = AppLocalizations.of(context)!;
 
     final primaryItems = <_PollFilterItem>[
-      _PollFilterItem(
-        label: _scopeFilterLabel(l10n, PollScopeFilter.currentScope),
-        selected: controller.scopeFilter == PollScopeFilter.currentScope,
-        onTap: () => controller.setScopeFilter(PollScopeFilter.currentScope),
-      ),
       _PollFilterItem(
         label: _sortModeLabel(l10n, PollSortMode.hottest),
         selected: controller.sortMode == PollSortMode.hottest,

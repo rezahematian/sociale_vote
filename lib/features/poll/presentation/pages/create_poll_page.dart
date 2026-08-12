@@ -42,6 +42,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
   UserProfile? _currentUserProfile;
   bool _publishingIdentityLoaded = false;
   bool _showAdvancedOptions = false;
+  bool _showManualContentLocationFields = false;
 
   @override
   void initState() {
@@ -179,8 +180,11 @@ class _CreatePollViewState extends State<_CreatePollView> {
     }
 
     if (parts.isEmpty) {
+      if (_showManualContentLocationFields) {
+        return 'Seleziona una località';
+      }
       if (location.source == ContentLocationSource.geoScopeFallback) {
-        return 'Globale (scope World)';
+        return 'Globale';
       }
       if (location.source == ContentLocationSource.device &&
           location.hasExactPoint) {
@@ -535,11 +539,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
     final explicitLocation = controller.contentLocation;
     final selectedContentCountryCode = explicitLocation?.countryCode;
     final selectedSource = explicitLocation?.source;
-    final isScopeSelected =
-        selectedSource == ContentLocationSource.geoScopeFallback;
     final isDeviceSelected = selectedSource == ContentLocationSource.device;
-    final isGlobalSelected = controller.isContentLocationGlobal &&
-        selectedSource == ContentLocationSource.manual;
+    final isGlobalSelected =
+        controller.isContentLocationGlobal && !_showManualContentLocationFields;
 
     return _buildSectionCard(
       context,
@@ -554,7 +556,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Definisce dove appartiene il poll sulla mappa. Puoi usare lo scope corrente, la posizione attuale oppure impostare manualmente paese e città.',
+            'Scegli se il poll è globale, associato a una località oppure alla tua posizione attuale. Lo scope di navigazione non modifica questa scelta.',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
             ),
@@ -589,7 +591,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Origine: ${_contentLocationSourceLabel(effectiveLocation.source)}',
+                  'Origine: ${isGlobalSelected ? 'Globale' : _showManualContentLocationFields ? 'Manuale' : _contentLocationSourceLabel(effectiveLocation.source)}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.textTheme.bodySmall?.color
                         ?.withValues(alpha: 0.75),
@@ -603,94 +605,19 @@ class _CreatePollViewState extends State<_CreatePollView> {
             builder: (context, constraints) {
               final compact = constraints.maxWidth < 420;
 
-              return Row(
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: isSubmitting
-                          ? null
-                          : () {
-                              controller.useGeoScopeAsContentLocation();
-                              final location = controller.contentLocation;
-                              _contentCityController.text =
-                                  location?.cityName ?? '';
-                              setState(() {});
-                            },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 10,
-                        ),
-                        visualDensity: VisualDensity.compact,
-                        backgroundColor: isScopeSelected
-                            ? theme.colorScheme.primaryContainer
-                            : null,
-                        foregroundColor: isScopeSelected
-                            ? theme.colorScheme.onPrimaryContainer
-                            : null,
-                        side: BorderSide(
-                          color: isScopeSelected
-                              ? theme.colorScheme.primary
-                              : theme.colorScheme.outline,
-                        ),
-                      ),
-                      icon: const Icon(Icons.public, size: 16),
-                      label: Text(
-                        compact ? 'Scope corrente' : 'Usa scope corrente',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed:
-                          isSubmitting || controller.isResolvingContentLocation
-                              ? null
-                              : () => _useCurrentDeviceLocation(controller),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 10,
-                        ),
-                        visualDensity: VisualDensity.compact,
-                        backgroundColor: isDeviceSelected
-                            ? theme.colorScheme.primaryContainer
-                            : null,
-                        foregroundColor: isDeviceSelected
-                            ? theme.colorScheme.onPrimaryContainer
-                            : null,
-                        side: BorderSide(
-                          color: isDeviceSelected
-                              ? theme.colorScheme.primary
-                              : theme.colorScheme.outline,
-                        ),
-                      ),
-                      icon: controller.isResolvingContentLocation
-                          ? const SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.my_location, size: 16),
-                      label: Text(
-                        controller.isResolvingContentLocation
-                            ? (compact ? 'Attendo...' : 'Ricavo posizione...')
-                            : (compact
-                                ? 'Posizione attuale'
-                                : 'Usa posizione attuale'),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
                   OutlinedButton.icon(
                     onPressed: isSubmitting
                         ? null
                         : () {
                             controller.clearContentLocation();
                             _contentCityController.clear();
-                            setState(() {});
+                            setState(() {
+                              _showManualContentLocationFields = false;
+                            });
                           },
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
@@ -710,40 +637,121 @@ class _CreatePollViewState extends State<_CreatePollView> {
                             : theme.colorScheme.outline,
                       ),
                     ),
-                    icon: const Icon(Icons.public_off, size: 16),
-                    label: Text(compact ? 'Globale' : 'Rendi globale'),
+                    icon: const Icon(Icons.public, size: 16),
+                    label: const Text('Globale'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: isSubmitting
+                        ? null
+                        : () {
+                            _applyManualContentLocation(controller);
+                            setState(() {
+                              _showManualContentLocationFields = true;
+                            });
+                          },
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 10,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      backgroundColor: _showManualContentLocationFields
+                          ? theme.colorScheme.primaryContainer
+                          : null,
+                      foregroundColor: _showManualContentLocationFields
+                          ? theme.colorScheme.onPrimaryContainer
+                          : null,
+                      side: BorderSide(
+                        color: _showManualContentLocationFields
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.outline,
+                      ),
+                    ),
+                    icon: const Icon(Icons.place_outlined, size: 16),
+                    label: const Text('Scegli località'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed:
+                        isSubmitting || controller.isResolvingContentLocation
+                            ? null
+                            : () async {
+                                await _useCurrentDeviceLocation(controller);
+                                if (!mounted) return;
+                                if (controller.contentLocation?.source ==
+                                    ContentLocationSource.device) {
+                                  setState(() {
+                                    _showManualContentLocationFields = false;
+                                  });
+                                }
+                              },
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 10,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      backgroundColor: isDeviceSelected
+                          ? theme.colorScheme.primaryContainer
+                          : null,
+                      foregroundColor: isDeviceSelected
+                          ? theme.colorScheme.onPrimaryContainer
+                          : null,
+                      side: BorderSide(
+                        color: isDeviceSelected
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.outline,
+                      ),
+                    ),
+                    icon: controller.isResolvingContentLocation
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.my_location, size: 16),
+                    label: Text(
+                      controller.isResolvingContentLocation
+                          ? (compact ? 'Attendo...' : 'Ricavo posizione...')
+                          : (compact
+                              ? 'Posizione attuale'
+                              : 'Usa posizione attuale'),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               );
             },
           ),
-          const SizedBox(height: 16),
-          CountrySelectorField(
-            key: ValueKey(
-              'content-country-${selectedContentCountryCode ?? 'none'}',
+          if (_showManualContentLocationFields) ...[
+            const SizedBox(height: 16),
+            CountrySelectorField(
+              key: ValueKey(
+                'content-country-${selectedContentCountryCode ?? 'none'}',
+              ),
+              selectedCountryCode: selectedContentCountryCode,
+              onCountrySelected: (code) {
+                _applyManualContentLocation(
+                  controller,
+                  countryCode: code,
+                );
+                setState(() {});
+              },
+              label: 'Paese del contenuto',
+              required: false,
             ),
-            selectedCountryCode: selectedContentCountryCode,
-            onCountrySelected: (code) {
-              _applyManualContentLocation(
-                controller,
-                countryCode: code,
-              );
-              setState(() {});
-            },
-            label: 'Paese del contenuto',
-            required: false,
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _contentCityController,
-            enabled: !isSubmitting,
-            decoration: const InputDecoration(
-              labelText: 'Città del contenuto',
-              border: OutlineInputBorder(),
-              helperText: 'Facoltativo. Serve per posizionare meglio il poll.',
+            const SizedBox(height: 12),
+            TextField(
+              controller: _contentCityController,
+              enabled: !isSubmitting,
+              decoration: const InputDecoration(
+                labelText: 'Città del contenuto',
+                border: OutlineInputBorder(),
+                helperText:
+                    'Facoltativo. Serve per posizionare meglio il poll.',
+              ),
+              onChanged: (_) => _applyManualContentLocation(controller),
             ),
-            onChanged: (_) => _applyManualContentLocation(controller),
-          ),
+          ],
           if (explicitLocation != null) ...[
             const SizedBox(height: 8),
             Text(

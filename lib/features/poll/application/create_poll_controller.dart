@@ -71,7 +71,7 @@ class CreatePollController extends ChangeNotifier {
   String? _countryCodeForParticipation;
 
   ContentLocation? _contentLocation;
-  bool _useGeoScopeFallback = true;
+  bool _useGeoScopeFallback = false;
   bool _isResolvingContentLocation = false;
 
   bool _isSubmitting = false;

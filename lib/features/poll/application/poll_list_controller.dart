@@ -20,13 +20,6 @@ enum PollSortMode {
   hottest,
 }
 
-/// Filtro logico di scope per la lista poll.
-/// V1: solo currentScope (lo stesso del GeoScopeController),
-/// ma l'enum è pronto per estensioni future (es. followed, global, ecc.).
-enum PollScopeFilter {
-  currentScope,
-}
-
 /// Filtro di stato delle votazioni (aperta/chiusa).
 enum PollStatusFilter {
   all,
@@ -50,7 +43,6 @@ class PollListController extends ChangeNotifier {
 
   // ===== Filtri / ordinamento =====
   PollSortMode _sortMode = PollSortMode.hottest;
-  PollScopeFilter _scopeFilter = PollScopeFilter.currentScope;
   PollStatusFilter _statusFilter = PollStatusFilter.all;
 
   // ===== Stato =====
@@ -96,11 +88,10 @@ class PollListController extends ChangeNotifier {
   bool get hasMoreFromSource => _hasMoreFromSource;
 
   /// Lista di poll già filtrata e ordinata secondo
-  /// sortMode, scopeFilter e statusFilter.
+  /// sortMode e statusFilter.
   List<Poll> get polls => List.unmodifiable(_visiblePolls);
 
   PollSortMode get sortMode => _sortMode;
-  PollScopeFilter get scopeFilter => _scopeFilter;
   PollStatusFilter get statusFilter => _statusFilter;
 
   PollResult? resultForPoll(Poll poll) => _pollResults[poll.id.value];
@@ -119,13 +110,6 @@ class PollListController extends ChangeNotifier {
   void setSortMode(PollSortMode mode) {
     if (_sortMode == mode) return;
     _sortMode = mode;
-    _recomputeVisiblePolls();
-    _safeNotifyListeners();
-  }
-
-  void setScopeFilter(PollScopeFilter filter) {
-    if (_scopeFilter == filter) return;
-    _scopeFilter = filter;
     _recomputeVisiblePolls();
     _safeNotifyListeners();
   }
@@ -464,20 +448,12 @@ class PollListController extends ChangeNotifier {
   void _recomputeVisiblePolls() {
     var tmp = List<Poll>.from(_allPolls);
 
-    tmp = _applyScopeFilter(tmp);
     tmp = _applyStatusFilter(tmp);
     _sortPolls(tmp);
 
     _visiblePolls
       ..clear()
       ..addAll(tmp);
-  }
-
-  List<Poll> _applyScopeFilter(List<Poll> input) {
-    switch (_scopeFilter) {
-      case PollScopeFilter.currentScope:
-        return input;
-    }
   }
 
   List<Poll> _applyStatusFilter(List<Poll> input) {

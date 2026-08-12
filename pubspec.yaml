@@ -2,7 +2,7 @@ name: sociale_vote
 description: Civic social voting platform
 publish_to: "none"
 
-version: 1.0.0+1
+version: 1.0.0+3
 
 environment:
   sdk: ">=3.2.0 <4.0.0"
@@ -22,6 +22,11 @@ dependencies:
   flutter_map: ^7.0.2
   flutter_map_cancellable_tile_provider: ^3.0.2
   latlong2: ^0.9.1
+
+  # =========================
+  # WORLD GLOBE 3D
+  # =========================
+  flutter_earth_globe: ^2.2.1
 
   # =========================
   # GEOLOCATION / GEOCODING
@@ -86,6 +91,7 @@ dependencies:
   firebase_analytics: ^12.2.0
 
   meta: any
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -95,6 +101,8 @@ dev_dependencies:
 flutter:
   generate: true
   uses-material-design: true
+  assets:
+    - assets/globe/earth_day_nasa_blue_marble_2048.png
 
 flutter_launcher_icons:
   android: true

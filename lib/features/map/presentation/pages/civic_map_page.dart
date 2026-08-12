@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
@@ -10,6 +11,7 @@ import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/civic_map_widget.dart';
+import 'package:sociale_vote/features/map/presentation/widgets/world_globe_widget.dart';
 import 'package:sociale_vote/features/news/domain/news_language.dart';
 
 class CivicMapPage extends StatelessWidget {
@@ -32,14 +34,19 @@ class _CivicMapPageView extends StatefulWidget {
 }
 
 class _CivicMapPageViewState extends State<_CivicMapPageView> {
+  static const String _worldGlobePreferenceKey =
+      'civic_map_world_globe_enabled';
+
   String? _lastSyncedScopeKey;
   NewsLanguage _selectedLanguage = NewsLanguage.auto;
   bool _isChangingLanguage = false;
+  bool _useWorldGlobe = false;
 
   @override
   void initState() {
     super.initState();
     _restoreSavedLanguagePreference();
+    _restoreWorldMapModePreference();
   }
 
   @override
@@ -49,6 +56,8 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
     final geoScopeController = context.watch<GeoScopeController?>();
     final activeScope = _readActiveScope(geoScopeController);
     final activeScopeKey = activeScope == null ? null : _scopeKey(activeScope);
+    final isWorldScope = activeScope?.level == GeoScopeLevel.world;
+    final showWorldGlobe = isWorldScope && _useWorldGlobe;
 
     _scheduleScopeSyncIfNeeded(
       controller: controller,
@@ -93,10 +102,30 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                   controller: controller,
                 ),
               ),
+              if (isWorldScope) ...[
+                const SizedBox(height: 10),
+                _WorldMapModeSelector(
+                  useGlobe: _useWorldGlobe,
+                  onChanged: _setWorldGlobeEnabled,
+                ),
+              ],
               const SizedBox(height: 12),
               Expanded(
-                child: CivicMapWidget(
-                  controller: controller,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 360),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  child: showWorldGlobe
+                      ? WorldGlobeWidget(
+                          key: const ValueKey<String>('civic-map-world-3d'),
+                          items: controller.visibleItems,
+                          onItemTap: controller.selectItem,
+                          onUseClassicMap: () => _setWorldGlobeEnabled(false),
+                        )
+                      : CivicMapWidget(
+                          key: const ValueKey<String>('civic-map-classic-2d'),
+                          controller: controller,
+                        ),
                 ),
               ),
               AnimatedSwitcher(
@@ -135,6 +164,38 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
         ),
       ),
     );
+  }
+
+  Future<void> _restoreWorldMapModePreference() async {
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      final enabled = preferences.getBool(_worldGlobePreferenceKey) ?? false;
+
+      if (!mounted) return;
+
+      setState(() {
+        _useWorldGlobe = enabled;
+      });
+    } catch (_) {
+      // Keep the safe default: classic 2D map.
+    }
+  }
+
+  Future<void> _setWorldGlobeEnabled(bool enabled) async {
+    if (_useWorldGlobe == enabled) {
+      return;
+    }
+
+    setState(() {
+      _useWorldGlobe = enabled;
+    });
+
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setBool(_worldGlobePreferenceKey, enabled);
+    } catch (_) {
+      // The map mode can still be used for the current session.
+    }
   }
 
   Future<void> _restoreSavedLanguagePreference() async {
@@ -494,6 +555,101 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
     } catch (_) {}
 
     return null;
+  }
+}
+
+class _WorldMapModeSelector extends StatelessWidget {
+  final bool useGlobe;
+  final ValueChanged<bool> onChanged;
+
+  const _WorldMapModeSelector({
+    required this.useGlobe,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _WorldMapModeButton(
+                selected: !useGlobe,
+                icon: Icons.map_outlined,
+                label: '2D Map',
+                onTap: () => onChanged(false),
+              ),
+              const SizedBox(width: 4),
+              _WorldMapModeButton(
+                selected: useGlobe,
+                icon: Icons.public,
+                label: '3D Globe',
+                onTap: () => onChanged(true),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WorldMapModeButton extends StatelessWidget {
+  final bool selected;
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _WorldMapModeButton({
+    required this.selected,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final foreground = selected
+        ? theme.colorScheme.onPrimaryContainer
+        : theme.colorScheme.onSurfaceVariant;
+
+    return Material(
+      color: selected ? theme.colorScheme.primaryContainer : Colors.transparent,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 17, color: foreground),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: foreground,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

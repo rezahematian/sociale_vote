@@ -320,7 +320,7 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
               maxZoom: 18.0,
               interactionOptions: InteractionOptions(
                 flags: widget.interactive
-                    ? InteractiveFlag.all
+                    ? (InteractiveFlag.all & ~InteractiveFlag.rotate)
                     : InteractiveFlag.none,
               ),
               onPositionChanged: (camera, hasGesture) {
