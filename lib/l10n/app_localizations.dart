@@ -1757,6 +1757,30 @@ abstract class AppLocalizations {
   /// **'Shape the future.\nTogether.'**
   String get homeHeroHeadline;
 
+  /// Compact Home dashboard action that opens polls
+  ///
+  /// In en, this message translates to:
+  /// **'Polls'**
+  String get homeHeroPollsAction;
+
+  /// Compact Home dashboard action that opens news
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get homeHeroNewsAction;
+
+  /// Compact Home dashboard action for creating a poll or post
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get homeHeroCreateAction;
+
+  /// Compact Home dashboard action that opens the full Civic Map
+  ///
+  /// In en, this message translates to:
+  /// **'Explore'**
+  String get homeHeroExploreAction;
+
   /// Label and tooltip for the Account entry in the Home top bar
   ///
   /// In en, this message translates to:

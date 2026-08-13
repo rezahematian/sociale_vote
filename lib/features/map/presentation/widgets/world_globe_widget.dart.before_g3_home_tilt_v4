@@ -1,0 +1,477 @@
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_earth_globe/flutter_earth_globe.dart';
+import 'package:flutter_earth_globe/flutter_earth_globe_controller.dart';
+
+import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
+
+enum WorldGlobeInteractionProfile {
+  home,
+  explore,
+}
+
+enum _HomeGestureIntent {
+  idle,
+  undecided,
+  globe,
+  page,
+}
+
+class WorldGlobeWidget extends StatefulWidget {
+  final List<CivicMapItem> items;
+  final ValueChanged<CivicMapItem> onItemTap;
+  final VoidCallback onUseClassicMap;
+  final WorldGlobeInteractionProfile interactionProfile;
+  final ValueChanged<bool>? onPageScrollLockChanged;
+
+  const WorldGlobeWidget({
+    super.key,
+    required this.items,
+    required this.onItemTap,
+    required this.onUseClassicMap,
+    this.interactionProfile = WorldGlobeInteractionProfile.explore,
+    this.onPageScrollLockChanged,
+  });
+
+  @override
+  State<WorldGlobeWidget> createState() => _WorldGlobeWidgetState();
+}
+
+class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
+  static const bool _isWasmBuild = bool.fromEnvironment('dart.tool.dart2wasm');
+
+  static const String _earthTextureAsset =
+      'assets/globe/earth_day_nasa_blue_marble_2048.png';
+
+  static const double _approvedPanSensitivity = 0.55;
+  static const double _gestureIntentThreshold = 10.0;
+  static const double _gestureFallbackThreshold = 24.0;
+  static const double _axisDominance = 1.15;
+  static const double _sphereHitSlop = 8.0;
+  static const double _homeMaxViewport = 520.0;
+  static const double _exploreMaxViewport = 760.0;
+
+  late final FlutterEarthGlobeController _globeController;
+  bool _texturePrecached = false;
+
+  final Map<int, Offset> _activePointers = <int, Offset>{};
+
+  _HomeGestureIntent _homeGestureIntent = _HomeGestureIntent.idle;
+  int? _primaryPointer;
+  Offset? _primaryStartPosition;
+  bool _primaryStartedOnSphere = false;
+  bool _pageScrollLocked = false;
+
+  double _viewportSize = 0.0;
+  double _baseRadius = 0.0;
+
+  bool get _canRenderGlobe => !kIsWeb || _isWasmBuild;
+
+  bool get _isHomeProfile =>
+      widget.interactionProfile == WorldGlobeInteractionProfile.home;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _globeController = FlutterEarthGlobeController(
+      surface: Image.asset(_earthTextureAsset).image,
+      isRotating: false,
+
+      // Approved zoom envelope: the globe can approach the available edges
+      // without exposing the square rendering viewport.
+      zoom: 0.0,
+      minZoom: -0.22,
+      maxZoom: 0.08,
+      isZoomEnabled: true,
+      zoomSensitivity: 0.30,
+      zoomToMousePosition: false,
+
+      // Runtime-approved rotation sensitivity. Do not change this value while
+      // tuning Home-vs-page gesture ownership.
+      panSensitivity: _approvedPanSensitivity,
+
+      // G2 final candidate — fixed, subtle surface lighting.
+      // It gives the sphere depth without turning the globe into a dark
+      // day/night visualization, which is intentionally kept out of Home.
+      surfaceLightingEnabled: true,
+      lightAngle: -32.0,
+      lightIntensity: 1.02,
+      ambientLight: 0.52,
+
+      // G2 final candidate — thin atmospheric rim only.
+      // Values stay deliberately restrained so the Earth remains the focus
+      // and the glow does not expose the square renderer at max zoom.
+      showAtmosphere: true,
+      atmosphereColor: const Color(0xFF69B5FF),
+      atmosphereBlur: 14.0,
+      atmosphereThickness: 0.008,
+      atmosphereOpacity: 0.17,
+
+      // Deliberate G2 product decision: no day/night cycle.
+      // Keep it for a later optional polish pass after performance, markers
+      // and country transitions are stable across native and web renderers.
+      isDayNightCycleEnabled: false,
+      useRealTimeSunPosition: false,
+    );
+
+    _globeController.onLoaded = () {
+      debugPrint('[WorldGlobe] controller loaded');
+    };
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (!_texturePrecached) {
+      _texturePrecached = true;
+      precacheImage(Image.asset(_earthTextureAsset).image, context);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant WorldGlobeWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.interactionProfile != widget.interactionProfile) {
+      _resetHomeGestureState();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_canRenderGlobe) {
+      return _WasmRequiredFallback(
+        onUseClassicMap: widget.onUseClassicMap,
+      );
+    }
+
+    final screenSize = MediaQuery.sizeOf(context);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        final availableHeight = constraints.hasBoundedHeight
+            ? constraints.maxHeight
+            : availableWidth;
+
+        final maxViewport =
+            _isHomeProfile ? _homeMaxViewport : _exploreMaxViewport;
+
+        final viewportSize = math
+            .min(
+              availableWidth,
+              availableHeight,
+            )
+            .clamp(1.0, maxViewport)
+            .toDouble();
+
+        final radius = viewportSize * 0.46;
+
+        _viewportSize = viewportSize;
+        _baseRadius = radius;
+
+        final alignmentX = screenSize.width > 0
+            ? ((viewportSize / screenSize.width) - 1.0)
+                .clamp(-1.0, 1.0)
+                .toDouble()
+            : 0.0;
+
+        final alignmentY = screenSize.height > 0
+            ? ((viewportSize / screenSize.height) - 1.0)
+                .clamp(-1.0, 1.0)
+                .toDouble()
+            : 0.0;
+
+        final globe = FlutterEarthGlobe(
+          controller: _globeController,
+          radius: radius,
+          alignment: Alignment(
+            alignmentX,
+            alignmentY,
+          ),
+
+          // G3 interaction profile.
+          //
+          // Home:
+          // - North stays up
+          // - horizontal rotation only
+          // - short, restrained inertia
+          //
+          // Explore:
+          // - horizontal rotation remains free
+          // - vertical tilt is allowed but cannot flip the planet
+          // - inertia remains short and controlled
+          lockVerticalRotation: _isHomeProfile,
+          maxVerticalTiltDegrees: _isHomeProfile ? 0.0 : 55.0,
+          decelerationDuration: Duration(
+            milliseconds: _isHomeProfile ? 450 : 550,
+          ),
+          inertiaStrength: _isHomeProfile ? 0.45 : 0.60,
+        );
+
+        return Align(
+          alignment: Alignment.topCenter,
+          child: SizedBox.square(
+            dimension: viewportSize,
+            child: RepaintBoundary(
+              child: ClipRect(
+                child: _isHomeProfile
+                    ? Listener(
+                        behavior: HitTestBehavior.opaque,
+                        onPointerDown: _handleHomePointerDown,
+                        onPointerMove: _handleHomePointerMove,
+                        onPointerUp: _handleHomePointerUp,
+                        onPointerCancel: _handleHomePointerCancel,
+                        child: globe,
+                      )
+                    : globe,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleHomePointerDown(PointerDownEvent event) {
+    _activePointers[event.pointer] = event.localPosition;
+
+    if (_activePointers.length == 1) {
+      _primaryPointer = event.pointer;
+      _primaryStartPosition = event.localPosition;
+      _primaryStartedOnSphere = _isInsideVisibleSphere(event.localPosition);
+      _homeGestureIntent = _primaryStartedOnSphere
+          ? _HomeGestureIntent.undecided
+          : _HomeGestureIntent.page;
+
+      // Until intent is known, suppress globe pan. This prevents the first
+      // vertical pixels of a Home scroll from tilting the Earth.
+      _globeController.panSensitivity = 0.0;
+      _setPageScrollLocked(false);
+      return;
+    }
+
+    // A second finger that lands on the Earth before a page-scroll decision
+    // means pinch zoom. Lock the Home page until all fingers are released.
+    if (_homeGestureIntent != _HomeGestureIntent.page &&
+        _allActivePointersAreOnSphere()) {
+      _homeGestureIntent = _HomeGestureIntent.globe;
+      _globeController.panSensitivity = 0.0;
+      _setPageScrollLocked(true);
+    }
+  }
+
+  void _handleHomePointerMove(PointerMoveEvent event) {
+    if (!_activePointers.containsKey(event.pointer)) {
+      return;
+    }
+
+    _activePointers[event.pointer] = event.localPosition;
+
+    if (_homeGestureIntent == _HomeGestureIntent.page) {
+      return;
+    }
+
+    if (_activePointers.length >= 2) {
+      if (_allActivePointersAreOnSphere()) {
+        _homeGestureIntent = _HomeGestureIntent.globe;
+        // Pinch zoom should not also rotate the Earth in Home.
+        _globeController.panSensitivity = 0.0;
+        _setPageScrollLocked(true);
+      }
+      return;
+    }
+
+    if (_homeGestureIntent == _HomeGestureIntent.globe) {
+      return;
+    }
+
+    if (event.pointer != _primaryPointer || !_primaryStartedOnSphere) {
+      return;
+    }
+
+    final start = _primaryStartPosition;
+    if (start == null) {
+      return;
+    }
+
+    final delta = event.localPosition - start;
+    final dx = delta.dx.abs();
+    final dy = delta.dy.abs();
+    final distance = delta.distance;
+
+    if (distance < _gestureIntentThreshold) {
+      return;
+    }
+
+    if (dx >= dy * _axisDominance) {
+      _claimHomeGestureForGlobe();
+      return;
+    }
+
+    if (dy >= dx * _axisDominance) {
+      _claimHomeGestureForPage();
+      return;
+    }
+
+    // Very diagonal starts are allowed a little more travel before choosing.
+    // After that point we must choose once and keep that owner until release.
+    if (distance >= _gestureFallbackThreshold) {
+      if (dx >= dy) {
+        _claimHomeGestureForGlobe();
+      } else {
+        _claimHomeGestureForPage();
+      }
+    }
+  }
+
+  void _handleHomePointerUp(PointerUpEvent event) {
+    _activePointers.remove(event.pointer);
+
+    if (_activePointers.isEmpty) {
+      _resetHomeGestureState();
+      return;
+    }
+
+    // If a pinch ends with one finger still down, keep the gesture assigned to
+    // the globe until the final finger is released. This prevents the page from
+    // suddenly taking over halfway through the same physical interaction.
+    if (_homeGestureIntent == _HomeGestureIntent.globe) {
+      _globeController.panSensitivity = _approvedPanSensitivity;
+      _setPageScrollLocked(true);
+    }
+  }
+
+  void _handleHomePointerCancel(PointerCancelEvent event) {
+    _activePointers.remove(event.pointer);
+
+    if (_activePointers.isEmpty) {
+      _resetHomeGestureState();
+    }
+  }
+
+  void _claimHomeGestureForGlobe() {
+    if (_homeGestureIntent == _HomeGestureIntent.globe) {
+      return;
+    }
+
+    _homeGestureIntent = _HomeGestureIntent.globe;
+    _globeController.panSensitivity = _approvedPanSensitivity;
+    _setPageScrollLocked(true);
+  }
+
+  void _claimHomeGestureForPage() {
+    if (_homeGestureIntent == _HomeGestureIntent.page) {
+      return;
+    }
+
+    _homeGestureIntent = _HomeGestureIntent.page;
+    _globeController.panSensitivity = 0.0;
+    _setPageScrollLocked(false);
+  }
+
+  void _resetHomeGestureState() {
+    _activePointers.clear();
+    _primaryPointer = null;
+    _primaryStartPosition = null;
+    _primaryStartedOnSphere = false;
+    _homeGestureIntent = _HomeGestureIntent.idle;
+    _globeController.panSensitivity = _approvedPanSensitivity;
+    _setPageScrollLocked(false);
+  }
+
+  void _setPageScrollLocked(bool locked) {
+    if (_pageScrollLocked == locked) {
+      return;
+    }
+
+    _pageScrollLocked = locked;
+    widget.onPageScrollLockChanged?.call(locked);
+  }
+
+  bool _allActivePointersAreOnSphere() {
+    if (_activePointers.isEmpty) {
+      return false;
+    }
+
+    return _activePointers.values.every(_isInsideVisibleSphere);
+  }
+
+  bool _isInsideVisibleSphere(Offset position) {
+    if (_viewportSize <= 0 || _baseRadius <= 0) {
+      return false;
+    }
+
+    final center = Offset(_viewportSize / 2, _viewportSize / 2);
+    final zoomScale = math.pow(2.0, _globeController.zoom).toDouble();
+    final visibleRadius = math.min(
+      _viewportSize / 2,
+      (_baseRadius * zoomScale) + _sphereHitSlop,
+    );
+
+    return (position - center).distance <= visibleRadius;
+  }
+}
+
+class _WasmRequiredFallback extends StatelessWidget {
+  final VoidCallback onUseClassicMap;
+
+  const _WasmRequiredFallback({
+    required this.onUseClassicMap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant,
+        ),
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 460),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.public,
+                size: 44,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(height: 14),
+              Text(
+                '3D Globe requires the WebAssembly web build',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'The classic Civic Map is still available and unchanged.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 18),
+              FilledButton.icon(
+                onPressed: onUseClassicMap,
+                icon: const Icon(Icons.map_outlined),
+                label: const Text('Use 2D map'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

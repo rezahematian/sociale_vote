@@ -41,6 +41,8 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
   NewsLanguage _selectedLanguage = NewsLanguage.auto;
   bool _isChangingLanguage = false;
   bool _useWorldGlobe = false;
+  WorldGlobeMapHandoff? _worldMapHandoff;
+  CivicMapGlobeHandoff? _worldGlobeHandoff;
 
   @override
   void initState() {
@@ -58,6 +60,8 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
     final activeScopeKey = activeScope == null ? null : _scopeKey(activeScope);
     final isWorldScope = activeScope?.level == GeoScopeLevel.world;
     final showWorldGlobe = isWorldScope && _useWorldGlobe;
+    final worldMapHandoff = isWorldScope ? _worldMapHandoff : null;
+    final worldGlobeHandoff = isWorldScope ? _worldGlobeHandoff : null;
 
     _scheduleScopeSyncIfNeeded(
       controller: controller,
@@ -121,10 +125,20 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                           items: controller.visibleItems,
                           onItemTap: controller.selectItem,
                           onUseClassicMap: () => _setWorldGlobeEnabled(false),
+                          onZoomIntoClassicMap: _handleGlobeZoomIntoClassicMap,
+                          initialFocusLatitude: worldGlobeHandoff?.latitude,
+                          initialFocusLongitude: worldGlobeHandoff?.longitude,
+                          initialFocusZoom: worldGlobeHandoff?.globeZoom,
                         )
                       : CivicMapWidget(
                           key: const ValueKey<String>('civic-map-classic-2d'),
                           controller: controller,
+                          handoffLatitude: worldMapHandoff?.latitude,
+                          handoffLongitude: worldMapHandoff?.longitude,
+                          handoffZoom: worldMapHandoff?.mapZoom,
+                          onZoomOutToGlobe: isWorldScope
+                              ? _handleClassicMapZoomOutToGlobe
+                              : null,
                         ),
                 ),
               ),
@@ -182,12 +196,14 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
   }
 
   Future<void> _setWorldGlobeEnabled(bool enabled) async {
-    if (_useWorldGlobe == enabled) {
+    if (_useWorldGlobe == enabled && _worldMapHandoff == null) {
       return;
     }
 
     setState(() {
       _useWorldGlobe = enabled;
+      _worldMapHandoff = null;
+      _worldGlobeHandoff = null;
     });
 
     try {
@@ -196,6 +212,51 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
     } catch (_) {
       // The map mode can still be used for the current session.
     }
+  }
+
+  void _handleGlobeZoomIntoClassicMap(
+    WorldGlobeMapHandoff handoff,
+  ) {
+    if (!mounted) {
+      return;
+    }
+
+    // Automatic 3D -> 2D zoom transition stays inside World scope.
+    // Do not persist "2D" as the user's preferred mode: this is a transient
+    // continuation of the same map exploration, not an explicit mode choice.
+    setState(() {
+      _worldMapHandoff = handoff;
+      _worldGlobeHandoff = null;
+      _useWorldGlobe = false;
+    });
+
+    debugPrint(
+      '[CivicMapPage] accepting 3D->2D handoff: '
+      'center=(${handoff.latitude}, ${handoff.longitude}) '
+      'zoom=${handoff.mapZoom.toStringAsFixed(2)}',
+    );
+  }
+
+  void _handleClassicMapZoomOutToGlobe(
+    CivicMapGlobeHandoff handoff,
+  ) {
+    if (!mounted) {
+      return;
+    }
+
+    // Automatic 2D -> 3D transition also stays inside World scope and is
+    // transient. It does not overwrite the explicit 2D/3D user preference.
+    setState(() {
+      _worldGlobeHandoff = handoff;
+      _worldMapHandoff = null;
+      _useWorldGlobe = true;
+    });
+
+    debugPrint(
+      '[CivicMapPage] accepting 2D->3D handoff: '
+      'center=(${handoff.latitude}, ${handoff.longitude}) '
+      'globeZoom=${handoff.globeZoom.toStringAsFixed(2)}',
+    );
   }
 
   Future<void> _restoreSavedLanguagePreference() async {

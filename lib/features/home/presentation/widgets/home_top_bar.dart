@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:sociale_vote/app/app.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
 enum _TopBarMenuAction {
@@ -9,9 +10,9 @@ enum _TopBarMenuAction {
 
 enum _AccountMenuAction {
   account,
-  themeSystem,
-  themeLight,
-  themeDark,
+  appearanceLight,
+  appearanceDark,
+  appearanceSpace,
   logout,
 }
 
@@ -26,8 +27,8 @@ class HomeTopBar extends StatelessWidget {
   final VoidCallback? onTrendingPressed;
   final VoidCallback? onForYouPressed;
   final VoidCallback? onNotificationsPressed;
-  final ThemeMode? currentThemeMode;
-  final ValueChanged<ThemeMode>? onThemeModeChanged;
+  final AppAppearanceMode? currentAppearanceMode;
+  final ValueChanged<AppAppearanceMode>? onAppearanceModeChanged;
 
   const HomeTopBar({
     super.key,
@@ -41,8 +42,8 @@ class HomeTopBar extends StatelessWidget {
     this.onTrendingPressed,
     this.onForYouPressed,
     this.onNotificationsPressed,
-    this.currentThemeMode,
-    this.onThemeModeChanged,
+    this.currentAppearanceMode,
+    this.onAppearanceModeChanged,
   });
 
   @override
@@ -53,10 +54,8 @@ class HomeTopBar extends StatelessWidget {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: _ColorfulBrand(
-              scopeShortLabel: scopeShortLabel,
-            ),
+          const Expanded(
+            child: _ColorfulBrand(),
           ),
           const SizedBox(width: 8),
           OutlinedButton(
@@ -81,10 +80,8 @@ class HomeTopBar extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: _ColorfulBrand(
-            scopeShortLabel: scopeShortLabel,
-          ),
+        const Expanded(
+          child: _ColorfulBrand(),
         ),
         const SizedBox(width: 8),
         _NotificationsButton(
@@ -103,8 +100,8 @@ class HomeTopBar extends StatelessWidget {
         _AccountMenuButton(
           onAccountPressed: onProfilePressed,
           onLogoutPressed: onLogoutPressed,
-          currentThemeMode: currentThemeMode,
-          onThemeModeChanged: onThemeModeChanged,
+          currentAppearanceMode: currentAppearanceMode,
+          onAppearanceModeChanged: onAppearanceModeChanged,
         ),
       ],
     );
@@ -112,11 +109,7 @@ class HomeTopBar extends StatelessWidget {
 }
 
 class _ColorfulBrand extends StatelessWidget {
-  final String scopeShortLabel;
-
-  const _ColorfulBrand({
-    required this.scopeShortLabel,
-  });
+  const _ColorfulBrand();
 
   static const List<Color> _brandColors = [
     Color(0xFF4F8CFF),
@@ -154,34 +147,18 @@ class _ColorfulBrand extends StatelessWidget {
       colorIndex++;
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        RichText(
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          text: TextSpan(
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.25,
-              fontSize: 28,
-              height: 1.0,
-            ),
-            children: spans,
-          ),
+    return RichText(
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        style: theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.25,
+          fontSize: 28,
+          height: 1.0,
         ),
-        const SizedBox(height: 4),
-        Text(
-          scopeShortLabel,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: Colors.white.withValues(alpha: 0.72),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
+        children: spans,
+      ),
     );
   }
 }
@@ -248,20 +225,21 @@ class _DiscoverMenuIconButton extends StatelessWidget {
 class _AccountMenuButton extends StatelessWidget {
   final VoidCallback onAccountPressed;
   final VoidCallback onLogoutPressed;
-  final ThemeMode? currentThemeMode;
-  final ValueChanged<ThemeMode>? onThemeModeChanged;
+  final AppAppearanceMode? currentAppearanceMode;
+  final ValueChanged<AppAppearanceMode>? onAppearanceModeChanged;
 
   const _AccountMenuButton({
     required this.onAccountPressed,
     required this.onLogoutPressed,
-    required this.currentThemeMode,
-    required this.onThemeModeChanged,
+    required this.currentAppearanceMode,
+    required this.onAppearanceModeChanged,
   });
 
-  bool get _canChangeTheme =>
-      currentThemeMode != null && onThemeModeChanged != null;
+  bool get _canChangeAppearance =>
+      currentAppearanceMode != null && onAppearanceModeChanged != null;
 
-  bool _isSelectedTheme(ThemeMode value) => currentThemeMode == value;
+  bool _isSelectedAppearance(AppAppearanceMode value) =>
+      currentAppearanceMode == value;
 
   PopupMenuItem<_AccountMenuAction> _themeItem({
     required _AccountMenuAction action,
@@ -296,14 +274,14 @@ class _AccountMenuButton extends StatelessWidget {
           case _AccountMenuAction.account:
             onAccountPressed();
             break;
-          case _AccountMenuAction.themeSystem:
-            onThemeModeChanged?.call(ThemeMode.system);
+          case _AccountMenuAction.appearanceLight:
+            onAppearanceModeChanged?.call(AppAppearanceMode.light);
             break;
-          case _AccountMenuAction.themeLight:
-            onThemeModeChanged?.call(ThemeMode.light);
+          case _AccountMenuAction.appearanceDark:
+            onAppearanceModeChanged?.call(AppAppearanceMode.dark);
             break;
-          case _AccountMenuAction.themeDark:
-            onThemeModeChanged?.call(ThemeMode.dark);
+          case _AccountMenuAction.appearanceSpace:
+            onAppearanceModeChanged?.call(AppAppearanceMode.space);
             break;
           case _AccountMenuAction.logout:
             onLogoutPressed();
@@ -321,25 +299,25 @@ class _AccountMenuButton extends StatelessWidget {
             ],
           ),
         ),
-        if (_canChangeTheme) ...[
+        if (_canChangeAppearance) ...[
           const PopupMenuDivider(),
           _themeItem(
-            action: _AccountMenuAction.themeSystem,
-            icon: Icons.brightness_auto,
-            label: l10n.homeThemeSystemMenuItem,
-            selected: _isSelectedTheme(ThemeMode.system),
-          ),
-          _themeItem(
-            action: _AccountMenuAction.themeLight,
+            action: _AccountMenuAction.appearanceLight,
             icon: Icons.light_mode_outlined,
             label: l10n.homeThemeLightMenuItem,
-            selected: _isSelectedTheme(ThemeMode.light),
+            selected: _isSelectedAppearance(AppAppearanceMode.light),
           ),
           _themeItem(
-            action: _AccountMenuAction.themeDark,
+            action: _AccountMenuAction.appearanceDark,
             icon: Icons.dark_mode_outlined,
             label: l10n.homeThemeDarkMenuItem,
-            selected: _isSelectedTheme(ThemeMode.dark),
+            selected: _isSelectedAppearance(AppAppearanceMode.dark),
+          ),
+          _themeItem(
+            action: _AccountMenuAction.appearanceSpace,
+            icon: Icons.auto_awesome,
+            label: 'Space',
+            selected: _isSelectedAppearance(AppAppearanceMode.space),
           ),
         ],
         const PopupMenuDivider(),

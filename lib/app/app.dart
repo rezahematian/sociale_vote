@@ -15,17 +15,132 @@ import 'package:sociale_vote/features/auth/presentation/widgets/biometric_sessio
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/navigation_service.dart';
 
+enum AppAppearanceMode {
+  light,
+  dark,
+  space,
+}
+
 class AppThemeModeController {
   AppThemeModeController._();
+
+  static const String _appearancePreferenceKeyPrefix = 'app_appearance_v1';
 
   static final ValueNotifier<ThemeMode> themeMode =
       ValueNotifier<ThemeMode>(ThemeMode.system);
 
-  static void setThemeMode(ThemeMode mode) {
-    if (themeMode.value == mode) {
+  static final ValueNotifier<AppAppearanceMode> appearanceMode =
+      ValueNotifier<AppAppearanceMode>(AppAppearanceMode.light);
+
+  static String? _activeUserId;
+  static int _loadRequestId = 0;
+
+  static String _preferenceKeyForUser(String userId) {
+    return '$_appearancePreferenceKeyPrefix:$userId';
+  }
+
+  static ThemeMode _themeForAppearance(AppAppearanceMode appearance) {
+    switch (appearance) {
+      case AppAppearanceMode.light:
+        return ThemeMode.light;
+      case AppAppearanceMode.dark:
+      case AppAppearanceMode.space:
+        return ThemeMode.dark;
+    }
+  }
+
+  static AppAppearanceMode _appearanceFromStorage(String? value) {
+    switch (value) {
+      case 'dark':
+        return AppAppearanceMode.dark;
+      case 'space':
+        return AppAppearanceMode.space;
+      case 'light':
+      default:
+        return AppAppearanceMode.light;
+    }
+  }
+
+  static void _applyAppearance(AppAppearanceMode appearance) {
+    if (appearanceMode.value != appearance) {
+      appearanceMode.value = appearance;
+    }
+
+    final nextThemeMode = _themeForAppearance(appearance);
+    if (themeMode.value != nextThemeMode) {
+      themeMode.value = nextThemeMode;
+    }
+  }
+
+  /// Loads the appearance for the active authenticated account.
+  ///
+  /// Guest has no personal appearance preference: it falls back to the
+  /// platform theme and does not read/write an anonymous shared preference.
+  static Future<void> loadForUser(String? userId) async {
+    final requestId = ++_loadRequestId;
+    _activeUserId = userId;
+
+    if (userId == null) {
+      appearanceMode.value = AppAppearanceMode.light;
+      themeMode.value = ThemeMode.system;
       return;
     }
-    themeMode.value = mode;
+
+    String? saved;
+
+    try {
+      saved = await AppDI.instance.storageService.readString(
+        _preferenceKeyForUser(userId),
+      );
+    } catch (_) {
+      saved = null;
+    }
+
+    if (requestId != _loadRequestId || _activeUserId != userId) {
+      return;
+    }
+
+    _applyAppearance(_appearanceFromStorage(saved));
+  }
+
+  /// Changes and persists Light / Dark / Space for one authenticated account.
+  ///
+  /// Space intentionally uses the app's Dark Theme outside Home while Home
+  /// additionally enables the scientific-sky visual layer.
+  static Future<void> setAppearanceForUser({
+    required String userId,
+    required AppAppearanceMode appearance,
+  }) async {
+    _activeUserId = userId;
+    _loadRequestId++;
+
+    _applyAppearance(appearance);
+
+    try {
+      await AppDI.instance.storageService.writeString(
+        _preferenceKeyForUser(userId),
+        appearance.name,
+      );
+    } catch (_) {
+      // The choice stays active for this session even if local persistence
+      // is temporarily unavailable.
+    }
+  }
+
+  // Compatibility helper for older call sites while appearance migration
+  // settles. New UI should call setAppearanceForUser().
+  static void setThemeMode(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.dark:
+        _applyAppearance(AppAppearanceMode.dark);
+        break;
+      case ThemeMode.light:
+        _applyAppearance(AppAppearanceMode.light);
+        break;
+      case ThemeMode.system:
+        themeMode.value = ThemeMode.system;
+        break;
+    }
   }
 
   static ThemeMode next(ThemeMode current) {
@@ -112,6 +227,7 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
       FirebaseAnalyticsObserver(analytics: _analytics);
 
   StreamSubscription<AuthState>? _authStateSubscription;
+  StreamSubscription<String?>? _appearanceUserSubscription;
   bool _passwordRecoveryOpened = false;
 
   bool get _enableAnalyticsObserver {
@@ -135,6 +251,17 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
   void initState() {
     super.initState();
     unawaited(AppLocaleController.load());
+
+    _appearanceUserSubscription =
+        AppDI.instance.sessionRepository.watchCurrentUserId().listen(
+      (userId) {
+        unawaited(AppThemeModeController.loadForUser(userId));
+      },
+    );
+    unawaited(
+      AppThemeModeController.loadForUser(AppDI.instance.currentUserId),
+    );
+
     _listenAuthRecovery();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -254,6 +381,8 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
   void dispose() {
     _authStateSubscription?.cancel();
     _authStateSubscription = null;
+    _appearanceUserSubscription?.cancel();
+    _appearanceUserSubscription = null;
     super.dispose();
   }
 

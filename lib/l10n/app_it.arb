@@ -475,6 +475,22 @@
   "@homeHeroHeadline": {
     "description": "Titolo principale della hero nella Home"
   },
+  "homeHeroPollsAction": "Sondaggi",
+  "@homeHeroPollsAction": {
+    "description": "Azione compatta della dashboard Home per aprire i sondaggi"
+  },
+  "homeHeroNewsAction": "Notizie",
+  "@homeHeroNewsAction": {
+    "description": "Azione compatta della dashboard Home per aprire le notizie"
+  },
+  "homeHeroCreateAction": "Crea",
+  "@homeHeroCreateAction": {
+    "description": "Azione compatta della dashboard Home per creare un sondaggio o un post"
+  },
+  "homeHeroExploreAction": "Esplora",
+  "@homeHeroExploreAction": {
+    "description": "Azione compatta della dashboard Home per aprire la Civic Map completa"
+  },
   "homeAccountMenuLabel": "Account",
   "@homeAccountMenuLabel": {
     "description": "Etichetta e tooltip dell'accesso Account nella top bar Home"

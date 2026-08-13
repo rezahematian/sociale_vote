@@ -38,6 +38,21 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <!--
+    Social Vote Web Globe
+    - Three.js is pinned to one exact release.
+    - WebGL renderer is isolated from the native Flutter globe package.
+  -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.185.1/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="social_vote_globe.js"></script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

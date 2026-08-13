@@ -898,6 +898,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeHeroHeadline => 'Shape the future.\nTogether.';
 
   @override
+  String get homeHeroPollsAction => 'Polls';
+
+  @override
+  String get homeHeroNewsAction => 'News';
+
+  @override
+  String get homeHeroCreateAction => 'Create';
+
+  @override
+  String get homeHeroExploreAction => 'Explore';
+
+  @override
   String get homeAccountMenuLabel => 'Account';
 
   @override

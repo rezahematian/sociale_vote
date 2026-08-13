@@ -337,10 +337,9 @@ packages:
   flutter_earth_globe:
     dependency: "direct main"
     description:
-      name: flutter_earth_globe
-      sha256: a5461c43f4dbf1c1af4e8fa46293c83e97b8af7908969ccd6c324282e60d9a31
-      url: "https://pub.dev"
-    source: hosted
+      path: "third_party/flutter_earth_globe_social_vote"
+      relative: true
+    source: path
     version: "2.2.1"
   flutter_launcher_icons:
     dependency: "direct dev"
@@ -1211,7 +1210,7 @@ packages:
     source: hosted
     version: "15.0.2"
   web:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: web
       sha256: "868d88a33d8a87b18ffc05f9f030ba328ffefba92d6c127917a2ba740f9cfe4a"

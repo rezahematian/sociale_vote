@@ -263,37 +263,43 @@ class _MyProfileViewState extends State<_MyProfileView> {
     _refreshUnreadNotificationsCount();
   }
 
-  Future<void> _showThemeModeSheet() async {
+  Future<void> _showAppearanceModeSheet() async {
     final l10n = AppLocalizations.of(context)!;
-    final currentMode = AppThemeModeController.themeMode.value;
+    final currentMode = AppThemeModeController.appearanceMode.value;
 
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
       builder: (sheetContext) {
         return SafeArea(
-          child: RadioGroup<ThemeMode>(
+          child: RadioGroup<AppAppearanceMode>(
             groupValue: currentMode,
             onChanged: (value) {
               if (value == null) return;
-              AppThemeModeController.setThemeMode(value);
+
+              unawaited(
+                AppThemeModeController.setAppearanceForUser(
+                  userId: currentUserId,
+                  appearance: value,
+                ),
+              );
               Navigator.of(sheetContext).pop();
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                RadioListTile<ThemeMode>(
-                  value: ThemeMode.system,
-                  title: Text(l10n.profileThemeSystem),
-                  subtitle: Text(l10n.profileThemeSystemDescription),
-                ),
-                RadioListTile<ThemeMode>(
-                  value: ThemeMode.light,
+                RadioListTile<AppAppearanceMode>(
+                  value: AppAppearanceMode.light,
                   title: Text(l10n.profileThemeLight),
                 ),
-                RadioListTile<ThemeMode>(
-                  value: ThemeMode.dark,
+                RadioListTile<AppAppearanceMode>(
+                  value: AppAppearanceMode.dark,
                   title: Text(l10n.profileThemeDark),
+                ),
+                const RadioListTile<AppAppearanceMode>(
+                  value: AppAppearanceMode.space,
+                  title: Text('Space'),
+                  subtitle: Text('Dark + Scientific Sky'),
                 ),
                 const SizedBox(height: 8),
               ],
@@ -1314,16 +1320,16 @@ class _MyProfileViewState extends State<_MyProfileView> {
             ),
             const SizedBox(height: 18),
             _SectionTitle(l10n.profilePreferencesSectionTitle),
-            ValueListenableBuilder<ThemeMode>(
-              valueListenable: AppThemeModeController.themeMode,
+            ValueListenableBuilder<AppAppearanceMode>(
+              valueListenable: AppThemeModeController.appearanceMode,
               builder: (context, mode, _) {
                 return _SettingsGroup(
                   children: [
                     _SettingsTile(
                       title: l10n.profileThemeTitle,
-                      subtitle: _themeModeLabel(l10n, mode),
+                      subtitle: _appearanceModeLabel(l10n, mode),
                       icon: Icons.palette_outlined,
-                      onTap: _showThemeModeSheet,
+                      onTap: _showAppearanceModeSheet,
                     ),
                     const Divider(height: 1),
                     ValueListenableBuilder<Locale?>(
@@ -1675,17 +1681,17 @@ class _MyProfileViewState extends State<_MyProfileView> {
     return accountStatusLabel;
   }
 
-  String _themeModeLabel(
+  String _appearanceModeLabel(
     AppLocalizations l10n,
-    ThemeMode mode,
+    AppAppearanceMode mode,
   ) {
     switch (mode) {
-      case ThemeMode.system:
-        return l10n.profileThemeSystem;
-      case ThemeMode.light:
+      case AppAppearanceMode.light:
         return l10n.profileThemeLight;
-      case ThemeMode.dark:
+      case AppAppearanceMode.dark:
         return l10n.profileThemeDark;
+      case AppAppearanceMode.space:
+        return 'Space';
     }
   }
 

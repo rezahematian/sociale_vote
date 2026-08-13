@@ -7,7 +7,20 @@ import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_ti
 import 'package:latlong2/latlong.dart' as lat_lng;
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
+
+class CivicMapGlobeHandoff {
+  final double latitude;
+  final double longitude;
+  final double globeZoom;
+
+  const CivicMapGlobeHandoff({
+    required this.latitude,
+    required this.longitude,
+    required this.globeZoom,
+  });
+}
 
 class CivicMapWidget extends StatefulWidget {
   final VoidCallback? onTap;
@@ -15,6 +28,10 @@ class CivicMapWidget extends StatefulWidget {
   final CivicMapController? controller;
   final ValueChanged<CivicMapItem>? onItemTap;
   final bool interactive;
+  final double? handoffLatitude;
+  final double? handoffLongitude;
+  final double? handoffZoom;
+  final ValueChanged<CivicMapGlobeHandoff>? onZoomOutToGlobe;
 
   const CivicMapWidget({
     super.key,
@@ -23,6 +40,10 @@ class CivicMapWidget extends StatefulWidget {
     this.controller,
     this.onItemTap,
     this.interactive = true,
+    this.handoffLatitude,
+    this.handoffLongitude,
+    this.handoffZoom,
+    this.onZoomOutToGlobe,
   });
 
   @override
@@ -35,17 +56,68 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
   static const lat_lng.LatLng _defaultCenter = lat_lng.LatLng(20.0, 0.0);
   static const double _defaultZoom = 2.0;
 
+  // Reverse World handoff is deliberately armed only after the user has
+  // entered the 2D map. Opening explicit 2D at zoom 2.0 must NOT bounce
+  // immediately back to the globe.
+  static const double _globeReturnArmZoom = 2.70;
+  static const double _globeReturnTriggerZoom = 2.12;
+  static const double _globeReturnZoom = 0.0;
+
   bool _initialLoadTriggered = false;
-  double _currentZoom = _defaultZoom;
+  late double _currentZoom;
+  bool _globeReturnArmed = false;
+  bool _globeReturnTriggered = false;
+  String? _lastAppliedViewportScopeKey;
+  String? _pendingViewportScopeKey;
 
   @override
   void initState() {
     super.initState();
 
+    _currentZoom = _initialMapZoom();
+    _globeReturnArmed = _currentZoom >= _globeReturnArmZoom;
+
+    if (_hasValidHandoffViewport && kDebugMode) {
+      debugPrint(
+        '[CivicMap] 3D->2D initial viewport: '
+        'center=(${widget.handoffLatitude}, ${widget.handoffLongitude}) '
+        'zoom=${_currentZoom.toStringAsFixed(2)}',
+      );
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _loadInitialDataIfNeeded();
     });
+  }
+
+  bool get _hasValidHandoffViewport {
+    return _isValidLatLng(
+          widget.handoffLatitude,
+          widget.handoffLongitude,
+        ) &&
+        widget.handoffZoom != null &&
+        widget.handoffZoom!.isFinite;
+  }
+
+  lat_lng.LatLng _initialMapCenter() {
+    if (_hasValidHandoffViewport) {
+      return lat_lng.LatLng(
+        widget.handoffLatitude!,
+        widget.handoffLongitude!,
+      );
+    }
+
+    return _defaultCenter;
+  }
+
+  double _initialMapZoom() {
+    final zoom = widget.handoffZoom;
+    if (_hasValidHandoffViewport && zoom != null) {
+      return zoom.clamp(2.0, 18.0).toDouble();
+    }
+
+    return _defaultZoom;
   }
 
   Future<void> _loadInitialDataIfNeeded() async {
@@ -67,6 +139,85 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     if (lat < -90 || lat > 90) return false;
     if (lng < -180 || lng > 180) return false;
     return true;
+  }
+
+  String _viewportScopeKey(GeoScope scope) {
+    return <String>[
+      scope.level.name,
+      scope.countryCode ?? '',
+      scope.cityId ?? '',
+      scope.centerLat?.toStringAsFixed(6) ?? '',
+      scope.centerLng?.toStringAsFixed(6) ?? '',
+      scope.radiusKm?.toStringAsFixed(2) ?? '',
+    ].join('|');
+  }
+
+  double _zoomForScope(GeoScope scope) {
+    if (scope.level == GeoScopeLevel.world) {
+      return _defaultZoom;
+    }
+
+    final radiusKm = scope.radiusKm;
+    if (radiusKm != null && radiusKm.isFinite && radiusKm > 0) {
+      final calculated = math.log(20000.0 / radiusKm) / math.ln2;
+
+      if (scope.level == GeoScopeLevel.country) {
+        return calculated.clamp(3.0, 7.5).toDouble();
+      }
+
+      return calculated.clamp(5.0, 15.0).toDouble();
+    }
+
+    return scope.level == GeoScopeLevel.country ? 4.5 : 11.0;
+  }
+
+  void _scheduleViewportSyncForScope(GeoScope scope) {
+    if (!_isValidLatLng(scope.centerLat, scope.centerLng)) {
+      return;
+    }
+
+    final scopeKey = _viewportScopeKey(scope);
+    if (_lastAppliedViewportScopeKey == scopeKey ||
+        _pendingViewportScopeKey == scopeKey) {
+      return;
+    }
+
+    _pendingViewportScopeKey = scopeKey;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _pendingViewportScopeKey != scopeKey) {
+        return;
+      }
+
+      try {
+        final center = lat_lng.LatLng(
+          scope.centerLat!,
+          scope.centerLng!,
+        );
+        final zoom = _zoomForScope(scope);
+
+        _mapController.move(center, zoom);
+        _lastAppliedViewportScopeKey = scopeKey;
+
+        if (kDebugMode) {
+          debugPrint(
+            '[CivicMap] viewport synced: '
+            '${scope.level.name} '
+            '${scope.countryCode ?? ''} '
+            'center=(${scope.centerLat}, ${scope.centerLng}) '
+            'zoom=${zoom.toStringAsFixed(2)}',
+          );
+        }
+      } catch (error) {
+        if (kDebugMode) {
+          debugPrint('[CivicMap] viewport sync failed: $error');
+        }
+      } finally {
+        if (_pendingViewportScopeKey == scopeKey) {
+          _pendingViewportScopeKey = null;
+        }
+      }
+    });
   }
 
   lat_lng.LatLng _pointForItem(CivicMapItem item) {
@@ -91,6 +242,50 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     }
 
     return _defaultCenter;
+  }
+
+  void _handlePossibleGlobeReturn({
+    required double latitude,
+    required double longitude,
+    required double zoom,
+    required bool hasGesture,
+  }) {
+    if (widget.onZoomOutToGlobe == null ||
+        !widget.interactive ||
+        !hasGesture ||
+        _globeReturnTriggered) {
+      return;
+    }
+
+    if (zoom >= _globeReturnArmZoom) {
+      _globeReturnArmed = true;
+      return;
+    }
+
+    if (!_globeReturnArmed || zoom > _globeReturnTriggerZoom) {
+      return;
+    }
+
+    if (!_isValidLatLng(latitude, longitude)) {
+      return;
+    }
+
+    _globeReturnTriggered = true;
+    widget.controller?.clearSelection();
+
+    debugPrint(
+      '[CivicMap] 2D->3D handoff: '
+      'center=($latitude, $longitude) '
+      'mapZoom=${zoom.toStringAsFixed(2)}',
+    );
+
+    widget.onZoomOutToGlobe!(
+      CivicMapGlobeHandoff(
+        latitude: latitude,
+        longitude: longitude,
+        globeZoom: _globeReturnZoom,
+      ),
+    );
   }
 
   void _handleMapTap() {
@@ -303,6 +498,8 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
   @override
   Widget build(BuildContext context) {
     final controller = widget.controller;
+    final activeScope = AppDI.instance.geoScopeController.scope;
+    _scheduleViewportSyncForScope(activeScope);
 
     return AnimatedBuilder(
       animation: Listenable.merge([
@@ -314,8 +511,8 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
           child: FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: _defaultCenter,
-              initialZoom: _defaultZoom,
+              initialCenter: _initialMapCenter(),
+              initialZoom: _initialMapZoom(),
               minZoom: 2.0,
               maxZoom: 18.0,
               interactionOptions: InteractionOptions(
@@ -325,6 +522,14 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
               ),
               onPositionChanged: (camera, hasGesture) {
                 final zoom = camera.zoom;
+
+                _handlePossibleGlobeReturn(
+                  latitude: camera.center.latitude,
+                  longitude: camera.center.longitude,
+                  zoom: zoom,
+                  hasGesture: hasGesture,
+                );
+
                 if ((_currentZoom - zoom).abs() < 0.05) {
                   return;
                 }

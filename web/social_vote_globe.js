@@ -1,0 +1,1053 @@
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const DEG2RAD = Math.PI / 180;
+const RAD2DEG = 180 / Math.PI;
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function normalizeLongitude(value) {
+  let result = value;
+  while (result > 180) result -= 360;
+  while (result < -180) result += 360;
+  return result;
+}
+
+function latLngToVector(latitude, longitude, radius = 1) {
+  const phi = (90 - latitude) * DEG2RAD;
+  const theta = (longitude + 180) * DEG2RAD;
+
+  return new THREE.Vector3(
+    -(radius * Math.sin(phi) * Math.cos(theta)),
+    radius * Math.cos(phi),
+    radius * Math.sin(phi) * Math.sin(theta),
+  );
+}
+
+function vectorToLatLng(vector) {
+  const p = vector.clone().normalize();
+
+  const latitude = Math.asin(clamp(p.y, -1, 1)) * RAD2DEG;
+  const theta = Math.atan2(p.z, -p.x) * RAD2DEG;
+  const longitude = normalizeLongitude(theta - 180);
+
+  return { latitude, longitude };
+}
+
+function dispatch(element, name, detail = {}) {
+  element.dispatchEvent(
+    new CustomEvent(name, {
+      detail,
+      bubbles: false,
+      composed: false,
+    }),
+  );
+}
+
+function createMarkerTexture(color, count) {
+  const size = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+
+  const ctx = canvas.getContext('2d');
+  const center = size / 2;
+
+  const gradient = ctx.createRadialGradient(
+    center,
+    center,
+    6,
+    center,
+    center,
+    54,
+  );
+  gradient.addColorStop(0, `${color}55`);
+  gradient.addColorStop(0.55, `${color}25`);
+  gradient.addColorStop(1, `${color}00`);
+
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(center, center, 54, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = color;
+  ctx.fillStyle = '#0A1020';
+  ctx.beginPath();
+  ctx.arc(center, center, 28, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#F7FAFF';
+  ctx.beginPath();
+  ctx.arc(center, center, 9, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (count > 1) {
+    ctx.font = '700 28px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeStyle = '#050814';
+    ctx.lineWidth = 8;
+
+    const label = count > 99 ? '99+' : String(count);
+    ctx.strokeText(label, center, 18);
+    ctx.fillText(label, center, 18);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+class SocialVoteGlobeElement extends HTMLElement {
+  static get observedAttributes() {
+    return ['data-config', 'data-focus'];
+  }
+
+  constructor() {
+    super();
+
+    this._initialized = false;
+    this._disposed = false;
+
+    this._config = {};
+    this._renderer = null;
+    this._scene = null;
+    this._camera = null;
+    this._controls = null;
+    this._earth = null;
+    this._earthTexture = null;
+    this._atmosphere = null;
+
+    this._markerSprites = [];
+    this._markerResources = [];
+
+    this._raycaster = new THREE.Raycaster();
+    this._pointer = new THREE.Vector2();
+    this._pointerDown = null;
+
+    this._resizeObserver = null;
+    this._animationFrame = null;
+    this._lastOrientationDispatch = 0;
+    this._deepZoomSent = false;
+
+    this._onPointerDown = this._onPointerDown.bind(this);
+    this._onPointerUp = this._onPointerUp.bind(this);
+    this._onVisibilityChange = this._onVisibilityChange.bind(this);
+  }
+
+  connectedCallback() {
+    this.style.display = 'block';
+    this.style.width = '100%';
+    this.style.height = '100%';
+    this.style.minWidth = '0';
+    this.style.minHeight = '0';
+    this.style.overflow = 'visible';
+    this.style.background = 'transparent';
+
+    if (!this._initialized) {
+      this._initialize();
+    }
+  }
+
+  disconnectedCallback() {
+    this._dispose();
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (oldValue === newValue) {
+      return;
+    }
+
+    if (name === 'data-config') {
+      this._readConfig();
+      if (this._initialized) {
+        this._applyConfig();
+      }
+    }
+
+    if (name === 'data-focus' && this._initialized) {
+      this._applyFocusAttribute();
+    }
+  }
+
+  _readConfig() {
+    try {
+      const raw = this.getAttribute('data-config');
+      this._config = raw ? JSON.parse(raw) : {};
+    } catch (error) {
+      console.error('[SocialVoteWebGlobe] invalid config', error);
+      this._config = {};
+    }
+  }
+
+  _initialize() {
+    this._readConfig();
+
+    try {
+      this._disposed = false;
+
+      this._scene = new THREE.Scene();
+
+      this._camera = new THREE.PerspectiveCamera(
+        38,
+        1,
+        0.1,
+        100,
+      );
+
+      this._renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: true,
+        powerPreference: 'high-performance',
+      });
+
+      this._renderer.setClearColor(0x000000, 0);
+      this._renderer.setPixelRatio(
+        Math.min(window.devicePixelRatio || 1, 1.5),
+      );
+      this._renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+      const canvas = this._renderer.domElement;
+      canvas.style.display = 'block';
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      canvas.style.background = 'transparent';
+      canvas.style.touchAction = 'none';
+      canvas.style.outline = 'none';
+
+      this.replaceChildren(canvas);
+
+      this._controls = new OrbitControls(
+        this._camera,
+        canvas,
+      );
+      this._controls.enablePan = false;
+      this._controls.enableDamping = true;
+      this._controls.dampingFactor = 0.065;
+      this._controls.rotateSpeed = 0.58;
+      this._controls.zoomSpeed = 0.72;
+      this._controls.target.set(0, 0, 0);
+
+      this._createEarth();
+      this._createLights();
+      this._createAtmosphere();
+      this._applyConfig();
+
+      canvas.addEventListener(
+        'pointerdown',
+        this._onPointerDown,
+        { passive: true },
+      );
+      canvas.addEventListener(
+        'pointerup',
+        this._onPointerUp,
+        { passive: true },
+      );
+
+      document.addEventListener(
+        'visibilitychange',
+        this._onVisibilityChange,
+      );
+
+      this._resizeObserver = new ResizeObserver(() => {
+        this._resize();
+      });
+      this._resizeObserver.observe(this);
+
+      this._initialized = true;
+      this._resize();
+
+      this._loadEarthTexture();
+      this._startLoop();
+    } catch (error) {
+      console.error('[SocialVoteWebGlobe] init failed', error);
+      dispatch(this, 'socialvote-globe-error', {
+        message: String(error),
+      });
+    }
+  }
+
+  _createEarth() {
+    const geometry = new THREE.SphereGeometry(
+      1,
+      72,
+      48,
+    );
+
+    const material = new THREE.MeshPhongMaterial({
+      color: 0xffffff,
+      shininess: 3,
+      specular: 0x1a2230,
+    });
+
+    this._earth = new THREE.Mesh(
+      geometry,
+      material,
+    );
+
+    this._scene.add(this._earth);
+  }
+
+  _createLights() {
+    const ambient = new THREE.AmbientLight(
+      0xffffff,
+      1.22,
+    );
+    this._scene.add(ambient);
+
+    const key = new THREE.DirectionalLight(
+      0xffffff,
+      1.72,
+    );
+    key.position.set(2.8, 1.4, 3.4);
+    this._scene.add(key);
+
+    const fill = new THREE.DirectionalLight(
+      0x8ebcff,
+      0.32,
+    );
+    fill.position.set(-3, -0.5, 1.5);
+    this._scene.add(fill);
+  }
+
+  _createAtmosphere() {
+    const geometry = new THREE.SphereGeometry(
+      1.035,
+      64,
+      40,
+    );
+
+    const material = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.FrontSide,
+      uniforms: {
+        glowColor: {
+          value: new THREE.Color(0x69b5ff),
+        },
+        glowStrength: {
+          value: 0.34,
+        },
+      },
+      vertexShader: `
+        varying vec3 vNormal;
+        varying vec3 vWorldPosition;
+
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+
+          vec4 worldPosition =
+              modelMatrix * vec4(position, 1.0);
+          vWorldPosition = worldPosition.xyz;
+
+          gl_Position =
+              projectionMatrix *
+              modelViewMatrix *
+              vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 glowColor;
+        uniform float glowStrength;
+
+        varying vec3 vNormal;
+        varying vec3 vWorldPosition;
+
+        void main() {
+          vec3 viewDirection =
+              normalize(cameraPosition - vWorldPosition);
+
+          float fresnel =
+              pow(
+                1.0 -
+                max(
+                  dot(
+                    normalize(vNormal),
+                    viewDirection
+                  ),
+                  0.0
+                ),
+                3.1
+              );
+
+          gl_FragColor =
+              vec4(
+                glowColor,
+                fresnel * glowStrength
+              );
+        }
+      `,
+    });
+
+    this._atmosphere = new THREE.Mesh(
+      geometry,
+      material,
+    );
+    this._scene.add(this._atmosphere);
+  }
+
+  _loadEarthTexture() {
+    const configured = this._config.textureUrl;
+    const relativeUrl =
+        configured ||
+        'assets/assets/globe/earth_day_nasa_blue_marble_2048.png';
+
+    const textureUrl = new URL(
+      relativeUrl,
+      document.baseURI,
+    ).href;
+
+    const loader = new THREE.TextureLoader();
+
+    loader.load(
+      textureUrl,
+      (texture) => {
+        if (this._disposed) {
+          texture.dispose();
+          return;
+        }
+
+        texture.colorSpace = THREE.SRGBColorSpace;
+
+        const maxAnisotropy =
+            this._renderer.capabilities.getMaxAnisotropy();
+        texture.anisotropy = Math.min(
+          8,
+          maxAnisotropy,
+        );
+
+        this._earthTexture?.dispose();
+        this._earthTexture = texture;
+
+        this._earth.material.map = texture;
+        this._earth.material.needsUpdate = true;
+
+        dispatch(
+          this,
+          'socialvote-globe-ready',
+          {},
+        );
+      },
+      undefined,
+      (error) => {
+        console.error(
+          '[SocialVoteWebGlobe] texture failed',
+          error,
+        );
+
+        dispatch(
+          this,
+          'socialvote-globe-error',
+          {
+            message: 'Earth texture failed',
+          },
+        );
+      },
+    );
+  }
+
+  _applyConfig() {
+    if (!this._controls || !this._camera) {
+      return;
+    }
+
+    const profile =
+        this._config.profile === 'home'
+          ? 'home'
+          : 'explore';
+
+    const maxTiltDegrees =
+        Number.isFinite(
+          Number(this._config.maxTiltDegrees),
+        )
+          ? Number(this._config.maxTiltDegrees)
+          : profile === 'home'
+            ? 22
+            : 55;
+
+    this._controls.minPolarAngle =
+        (90 - maxTiltDegrees) * DEG2RAD;
+    this._controls.maxPolarAngle =
+        (90 + maxTiltDegrees) * DEG2RAD;
+
+    this._controls.minDistance =
+        profile === 'home'
+          ? 2.12
+          : 1.52;
+    this._controls.maxDistance =
+        profile === 'home'
+          ? 3.85
+          : 4.10;
+
+    this._rebuildMarkers(
+      Array.isArray(this._config.markers)
+        ? this._config.markers
+        : [],
+    );
+
+    const initialLat =
+        Number(this._config.initialFocusLatitude);
+    const initialLng =
+        Number(this._config.initialFocusLongitude);
+
+    if (
+      Number.isFinite(initialLat) &&
+      Number.isFinite(initialLng)
+    ) {
+      const zoom =
+          Number(this._config.initialFocusZoom);
+      const distance = Number.isFinite(zoom)
+        ? clamp(
+            2.85 - zoom * 0.82,
+            1.78,
+            3.05,
+          )
+        : 2.72;
+
+      this._setCameraForLatLng(
+        initialLat,
+        initialLng,
+        distance,
+        false,
+      );
+    } else if (!this._initialPositionApplied) {
+      this._initialPositionApplied = true;
+      this._setCameraForLatLng(
+        18,
+        15,
+        profile === 'home' ? 3.45 : 3.30,
+        false,
+      );
+    }
+
+    this._controls.update();
+  }
+
+  _rebuildMarkers(markers) {
+    for (const sprite of this._markerSprites) {
+      this._scene.remove(sprite);
+    }
+
+    for (const resource of this._markerResources) {
+      resource.material?.dispose?.();
+      resource.texture?.dispose?.();
+    }
+
+    this._markerSprites = [];
+    this._markerResources = [];
+
+    for (const marker of markers) {
+      const latitude = Number(marker.latitude);
+      const longitude = Number(marker.longitude);
+
+      if (
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude)
+      ) {
+        continue;
+      }
+
+      const color =
+          typeof marker.color === 'string'
+            ? marker.color
+            : '#6CCBFF';
+
+      const count = Math.max(
+        1,
+        Math.round(Number(marker.count) || 1),
+      );
+
+      const sizeFactor = clamp(
+        Number(marker.size) || 1,
+        0.75,
+        1.45,
+      );
+
+      const texture = createMarkerTexture(
+        color,
+        count,
+      );
+
+      const material = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthTest: true,
+        depthWrite: false,
+        sizeAttenuation: true,
+      });
+
+      const sprite = new THREE.Sprite(material);
+
+      sprite.position.copy(
+        latLngToVector(
+          latitude,
+          longitude,
+          1.028,
+        ),
+      );
+
+      const scale = 0.118 * sizeFactor;
+      sprite.scale.set(scale, scale, 1);
+
+      sprite.userData.markerId =
+          String(marker.id || '');
+      sprite.userData.latitude = latitude;
+      sprite.userData.longitude = longitude;
+
+      this._scene.add(sprite);
+      this._markerSprites.push(sprite);
+      this._markerResources.push({
+        material,
+        texture,
+      });
+    }
+  }
+
+  _applyFocusAttribute() {
+    let focus;
+
+    try {
+      const raw = this.getAttribute('data-focus');
+      focus = raw ? JSON.parse(raw) : null;
+    } catch (_) {
+      focus = null;
+    }
+
+    if (!focus) {
+      return;
+    }
+
+    const latitude = Number(focus.latitude);
+    const longitude = Number(focus.longitude);
+    const distance = clamp(
+      Number(focus.distance) || 2.28,
+      1.65,
+      3.10,
+    );
+
+    if (
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude)
+    ) {
+      return;
+    }
+
+    this._setCameraForLatLng(
+      latitude,
+      longitude,
+      distance,
+      true,
+    );
+  }
+
+  _setCameraForLatLng(
+    latitude,
+    longitude,
+    distance,
+    animate,
+  ) {
+    const desiredDirection = latLngToVector(
+      latitude,
+      longitude,
+      1,
+    ).normalize();
+
+    if (!animate) {
+      this._camera.position.copy(
+        desiredDirection.multiplyScalar(distance),
+      );
+      this._camera.lookAt(0, 0, 0);
+      this._controls.update();
+      return;
+    }
+
+    const startDirection =
+        this._camera.position
+          .clone()
+          .normalize();
+    const startDistance =
+        this._camera.position.length();
+
+    const startedAt = performance.now();
+    const duration = 480;
+
+    const step = (now) => {
+      if (this._disposed) {
+        return;
+      }
+
+      const rawT = clamp(
+        (now - startedAt) / duration,
+        0,
+        1,
+      );
+      const t =
+          rawT < 0.5
+            ? 4 * rawT * rawT * rawT
+            : 1 - Math.pow(-2 * rawT + 2, 3) / 2;
+
+      const direction =
+          startDirection
+            .clone()
+            .lerp(desiredDirection, t)
+            .normalize();
+
+      const currentDistance =
+          THREE.MathUtils.lerp(
+            startDistance,
+            distance,
+            t,
+          );
+
+      this._camera.position.copy(
+        direction.multiplyScalar(
+          currentDistance,
+        ),
+      );
+
+      this._camera.lookAt(0, 0, 0);
+      this._controls.update();
+
+      if (rawT < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+
+    requestAnimationFrame(step);
+  }
+
+  _resize() {
+    if (
+      !this._renderer ||
+      !this._camera
+    ) {
+      return;
+    }
+
+    const rect = this.getBoundingClientRect();
+
+    const width = Math.max(
+      1,
+      Math.floor(rect.width),
+    );
+    const height = Math.max(
+      1,
+      Math.floor(rect.height),
+    );
+
+    this._renderer.setSize(
+      width,
+      height,
+      false,
+    );
+
+    this._camera.aspect = width / height;
+    this._camera.updateProjectionMatrix();
+  }
+
+  _startLoop() {
+    const renderFrame = () => {
+      if (this._disposed) {
+        return;
+      }
+
+      this._animationFrame =
+          requestAnimationFrame(
+            renderFrame,
+          );
+
+      if (document.hidden) {
+        return;
+      }
+
+      this._controls.update();
+      this._renderer.render(
+        this._scene,
+        this._camera,
+      );
+
+      this._dispatchOrientation();
+      this._checkDeepZoom();
+    };
+
+    renderFrame();
+  }
+
+  _dispatchOrientation() {
+    const now = performance.now();
+
+    if (
+      now - this._lastOrientationDispatch <
+      50
+    ) {
+      return;
+    }
+
+    this._lastOrientationDispatch = now;
+
+    const position =
+        this._camera.position
+          .clone()
+          .normalize();
+
+    const yaw = Math.atan2(
+      position.x,
+      position.z,
+    );
+
+    const pitch = Math.asin(
+      clamp(position.y, -1, 1),
+    );
+
+    dispatch(
+      this,
+      'socialvote-globe-orientation',
+      { yaw, pitch },
+    );
+  }
+
+  _checkDeepZoom() {
+    if (
+      this._config.profile === 'home'
+    ) {
+      return;
+    }
+
+    const distance =
+        this._camera.position.length();
+
+    if (distance > 1.90) {
+      this._deepZoomSent = false;
+      return;
+    }
+
+    if (
+      distance > 1.66 ||
+      this._deepZoomSent
+    ) {
+      return;
+    }
+
+    this._deepZoomSent = true;
+
+    const center =
+        vectorToLatLng(
+          this._camera.position,
+        );
+
+    dispatch(
+      this,
+      'socialvote-globe-deep-zoom',
+      center,
+    );
+  }
+
+  _onPointerDown(event) {
+    this._pointerDown = {
+      x: event.clientX,
+      y: event.clientY,
+      time: performance.now(),
+    };
+  }
+
+  _onPointerUp(event) {
+    const down = this._pointerDown;
+    this._pointerDown = null;
+
+    if (!down) {
+      return;
+    }
+
+    const movement = Math.hypot(
+      event.clientX - down.x,
+      event.clientY - down.y,
+    );
+
+    const elapsed =
+        performance.now() - down.time;
+
+    if (
+      movement > 6 ||
+      elapsed > 550
+    ) {
+      return;
+    }
+
+    this._handleTap(event);
+  }
+
+  _handleTap(event) {
+    const rect =
+        this._renderer.domElement
+          .getBoundingClientRect();
+
+    this._pointer.x =
+        ((event.clientX - rect.left) /
+          rect.width) *
+          2 -
+        1;
+
+    this._pointer.y =
+        -(
+          (event.clientY - rect.top) /
+          rect.height
+        ) *
+          2 +
+        1;
+
+    this._raycaster.setFromCamera(
+      this._pointer,
+      this._camera,
+    );
+
+    const earthHits =
+        this._raycaster.intersectObject(
+          this._earth,
+          false,
+        );
+
+    const markerHits =
+        this._raycaster.intersectObjects(
+          this._markerSprites,
+          false,
+        );
+
+    const earthDistance =
+        earthHits.length > 0
+          ? earthHits[0].distance
+          : Number.POSITIVE_INFINITY;
+
+    if (
+      markerHits.length > 0 &&
+      markerHits[0].distance <=
+        earthDistance + 0.10
+    ) {
+      const marker =
+          markerHits[0].object;
+
+      const markerId =
+          marker.userData.markerId;
+
+      if (markerId) {
+        dispatch(
+          this,
+          'socialvote-marker-tap',
+          {
+            markerId,
+          },
+        );
+        return;
+      }
+    }
+
+    if (earthHits.length === 0) {
+      return;
+    }
+
+    const coordinates =
+        vectorToLatLng(
+          earthHits[0].point,
+        );
+
+    dispatch(
+      this,
+      'socialvote-surface-tap',
+      coordinates,
+    );
+  }
+
+  _onVisibilityChange() {
+    if (
+      !document.hidden &&
+      this._renderer &&
+      this._camera
+    ) {
+      this._renderer.render(
+        this._scene,
+        this._camera,
+      );
+    }
+  }
+
+  _dispose() {
+    if (this._disposed) {
+      return;
+    }
+
+    this._disposed = true;
+
+    if (this._animationFrame != null) {
+      cancelAnimationFrame(
+        this._animationFrame,
+      );
+      this._animationFrame = null;
+    }
+
+    this._resizeObserver?.disconnect();
+    this._resizeObserver = null;
+
+    document.removeEventListener(
+      'visibilitychange',
+      this._onVisibilityChange,
+    );
+
+    const canvas =
+        this._renderer?.domElement;
+
+    canvas?.removeEventListener(
+      'pointerdown',
+      this._onPointerDown,
+    );
+    canvas?.removeEventListener(
+      'pointerup',
+      this._onPointerUp,
+    );
+
+    this._controls?.dispose();
+
+    for (const sprite of this._markerSprites) {
+      this._scene?.remove(sprite);
+    }
+
+    for (const resource of this._markerResources) {
+      resource.material?.dispose?.();
+      resource.texture?.dispose?.();
+    }
+
+    this._markerSprites = [];
+    this._markerResources = [];
+
+    this._earth?.geometry?.dispose?.();
+    this._earth?.material?.dispose?.();
+
+    this._atmosphere?.geometry?.dispose?.();
+    this._atmosphere?.material?.dispose?.();
+
+    this._earthTexture?.dispose?.();
+
+    this._renderer?.dispose();
+    this._renderer?.forceContextLoss?.();
+
+    this.replaceChildren();
+
+    this._initialized = false;
+  }
+}
+
+if (
+  !customElements.get(
+    'social-vote-globe',
+  )
+) {
+  customElements.define(
+    'social-vote-globe',
+    SocialVoteGlobeElement,
+  );
+}
