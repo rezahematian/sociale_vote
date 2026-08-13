@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-G3F-20260813-2335';
+
 const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
 
@@ -135,6 +137,7 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._animationFrame = null;
     this._lastOrientationDispatch = 0;
     this._deepZoomSent = false;
+    this._lastDiagnosticSignature = '';
 
     this._onPointerDown = this._onPointerDown.bind(this);
     this._onPointerUp = this._onPointerUp.bind(this);
@@ -209,7 +212,7 @@ class SocialVoteGlobeElement extends HTMLElement {
 
       this._renderer.setClearColor(0x000000, 0);
       this._renderer.setPixelRatio(
-        Math.min(window.devicePixelRatio || 1, 1.5),
+        Math.min(window.devicePixelRatio || 1, 2.0),
       );
       this._renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -229,9 +232,9 @@ class SocialVoteGlobeElement extends HTMLElement {
       );
       this._controls.enablePan = false;
       this._controls.enableDamping = true;
-      this._controls.dampingFactor = 0.065;
-      this._controls.rotateSpeed = 0.58;
-      this._controls.zoomSpeed = 0.72;
+      this._controls.dampingFactor = 0.10;
+      this._controls.rotateSpeed = 0.40;
+      this._controls.zoomSpeed = 0.55;
       this._controls.target.set(0, 0, 0);
 
       this._createEarth();
@@ -276,14 +279,14 @@ class SocialVoteGlobeElement extends HTMLElement {
   _createEarth() {
     const geometry = new THREE.SphereGeometry(
       1,
-      72,
-      48,
+      128,
+      96,
     );
 
     const material = new THREE.MeshPhongMaterial({
       color: 0xffffff,
-      shininess: 3,
-      specular: 0x1a2230,
+      shininess: 0,
+      specular: 0x000000,
     });
 
     this._earth = new THREE.Mesh(
@@ -295,45 +298,40 @@ class SocialVoteGlobeElement extends HTMLElement {
   }
 
   _createLights() {
+    // Match the approved native globe lighting profile:
+    // mostly ambient light, with a restrained directional component.
     const ambient = new THREE.AmbientLight(
       0xffffff,
-      1.22,
+      0.70,
     );
     this._scene.add(ambient);
 
     const key = new THREE.DirectionalLight(
       0xffffff,
-      1.72,
+      0.30,
     );
-    key.position.set(2.8, 1.4, 3.4);
+    key.position.set(2.4, -2.4, 1.7);
     this._scene.add(key);
-
-    const fill = new THREE.DirectionalLight(
-      0x8ebcff,
-      0.32,
-    );
-    fill.position.set(-3, -0.5, 1.5);
-    this._scene.add(fill);
   }
 
   _createAtmosphere() {
     const geometry = new THREE.SphereGeometry(
-      1.035,
+      1.014,
+      96,
       64,
-      40,
     );
 
     const material = new THREE.ShaderMaterial({
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
-      side: THREE.FrontSide,
+      side: THREE.BackSide,
       uniforms: {
         glowColor: {
           value: new THREE.Color(0x69b5ff),
         },
         glowStrength: {
-          value: 0.34,
+          value: 0.11,
         },
       },
       vertexShader: `
@@ -419,9 +417,13 @@ class SocialVoteGlobeElement extends HTMLElement {
         const maxAnisotropy =
             this._renderer.capabilities.getMaxAnisotropy();
         texture.anisotropy = Math.min(
-          8,
+          16,
           maxAnisotropy,
         );
+        texture.minFilter = THREE.LinearMipmapLinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = true;
+        texture.needsUpdate = true;
 
         this._earthTexture?.dispose();
         this._earthTexture = texture;
@@ -432,8 +434,16 @@ class SocialVoteGlobeElement extends HTMLElement {
         dispatch(
           this,
           'socialvote-globe-ready',
-          {},
+          {
+            build: SOCIAL_VOTE_GLOBE_BUILD,
+          },
         );
+
+        requestAnimationFrame(() => {
+          if (!this._disposed) {
+            this._emitDiagnostics('ready');
+          }
+        });
       },
       undefined,
       (error) => {
@@ -477,14 +487,17 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._controls.maxPolarAngle =
         (90 + maxTiltDegrees) * DEG2RAD;
 
-    this._controls.minDistance =
-        profile === 'home'
-          ? 2.12
-          : 1.52;
-    this._controls.maxDistance =
-        profile === 'home'
-          ? 3.85
-          : 4.10;
+    if (profile === 'home') {
+      // Home is a visual/navigation hero, not an exploration viewport.
+      // Keep one stable globe size so it can never expose the square canvas.
+      this._controls.enableZoom = false;
+      this._controls.minDistance = 3.55;
+      this._controls.maxDistance = 3.55;
+    } else {
+      this._controls.enableZoom = true;
+      this._controls.minDistance = 3.16;
+      this._controls.maxDistance = 4.10;
+    }
 
     this._rebuildMarkers(
       Array.isArray(this._config.markers)
@@ -492,24 +505,46 @@ class SocialVoteGlobeElement extends HTMLElement {
         : [],
     );
 
-    const initialLat =
-        Number(this._config.initialFocusLatitude);
-    const initialLng =
-        Number(this._config.initialFocusLongitude);
+    const rawInitialLat =
+        this._config.initialFocusLatitude;
+    const rawInitialLng =
+        this._config.initialFocusLongitude;
+    const rawInitialZoom =
+        this._config.initialFocusZoom;
 
-    if (
-      Number.isFinite(initialLat) &&
-      Number.isFinite(initialLng)
-    ) {
-      const zoom =
-          Number(this._config.initialFocusZoom);
-      const distance = Number.isFinite(zoom)
+    const hasInitialLat =
+        rawInitialLat !== null &&
+        rawInitialLat !== undefined &&
+        rawInitialLat !== '' &&
+        Number.isFinite(Number(rawInitialLat));
+
+    const hasInitialLng =
+        rawInitialLng !== null &&
+        rawInitialLng !== undefined &&
+        rawInitialLng !== '' &&
+        Number.isFinite(Number(rawInitialLng));
+
+    if (hasInitialLat && hasInitialLng) {
+      const initialLat = Number(rawInitialLat);
+      const initialLng = Number(rawInitialLng);
+
+      const hasInitialZoom =
+          rawInitialZoom !== null &&
+          rawInitialZoom !== undefined &&
+          rawInitialZoom !== '' &&
+          Number.isFinite(Number(rawInitialZoom));
+
+      const zoom = hasInitialZoom
+          ? Number(rawInitialZoom)
+          : null;
+
+      const distance = zoom !== null
         ? clamp(
-            2.85 - zoom * 0.82,
-            1.78,
-            3.05,
+            3.20 - zoom * 0.68,
+            1.90,
+            3.45,
           )
-        : 2.72;
+        : 3.20;
 
       this._setCameraForLatLng(
         initialLat,
@@ -522,7 +557,7 @@ class SocialVoteGlobeElement extends HTMLElement {
       this._setCameraForLatLng(
         18,
         15,
-        profile === 'home' ? 3.45 : 3.30,
+        profile === 'home' ? 3.55 : 3.40,
         false,
       );
     }
@@ -723,6 +758,52 @@ class SocialVoteGlobeElement extends HTMLElement {
     requestAnimationFrame(step);
   }
 
+  _emitDiagnostics(reason) {
+    if (!this._renderer || !this._camera) {
+      return;
+    }
+
+    const hostRect = this.getBoundingClientRect();
+    const canvas = this._renderer.domElement;
+    const canvasRect = canvas.getBoundingClientRect();
+
+    const detail = {
+      build: SOCIAL_VOTE_GLOBE_BUILD,
+      reason,
+      hostWidth: Number(hostRect.width.toFixed(2)),
+      hostHeight: Number(hostRect.height.toFixed(2)),
+      canvasCssWidth: Number(canvasRect.width.toFixed(2)),
+      canvasCssHeight: Number(canvasRect.height.toFixed(2)),
+      canvasBufferWidth: canvas.width,
+      canvasBufferHeight: canvas.height,
+      cameraAspect: Number(this._camera.aspect.toFixed(4)),
+      cameraFov: Number(this._camera.fov.toFixed(2)),
+      cameraDistance: Number(this._camera.position.length().toFixed(4)),
+      pixelRatio: Number(this._renderer.getPixelRatio().toFixed(2)),
+      hostOverflow: getComputedStyle(this).overflow,
+      canvasOverflow:
+          getComputedStyle(canvas).overflow || 'visible',
+    };
+
+    const signature = JSON.stringify(detail);
+    if (signature === this._lastDiagnosticSignature) {
+      return;
+    }
+
+    this._lastDiagnosticSignature = signature;
+
+    console.info(
+      '[SV-WEB-G3D]',
+      detail,
+    );
+
+    dispatch(
+      this,
+      'socialvote-globe-diagnostics',
+      detail,
+    );
+  }
+
   _resize() {
     if (
       !this._renderer ||
@@ -750,6 +831,12 @@ class SocialVoteGlobeElement extends HTMLElement {
 
     this._camera.aspect = width / height;
     this._camera.updateProjectionMatrix();
+
+    requestAnimationFrame(() => {
+      if (!this._disposed) {
+        this._emitDiagnostics('resize');
+      }
+    });
   }
 
   _startLoop() {
@@ -823,13 +910,13 @@ class SocialVoteGlobeElement extends HTMLElement {
     const distance =
         this._camera.position.length();
 
-    if (distance > 1.90) {
+    if (distance > 3.30) {
       this._deepZoomSent = false;
       return;
     }
 
     if (
-      distance > 1.66 ||
+      distance > 3.18 ||
       this._deepZoomSent
     ) {
       return;

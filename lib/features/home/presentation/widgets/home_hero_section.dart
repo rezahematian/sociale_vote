@@ -186,7 +186,9 @@ class HomeHeroSection extends StatelessWidget {
                                 backgroundColor: chipBackgroundColor,
                                 borderColor: chipBorderColor,
                                 onTap: onScopePressed,
-                                trailingIcon: Icons.expand_more_rounded,
+                                trailingIcon: onScopePressed == null
+                                    ? null
+                                    : Icons.expand_more_rounded,
                               ),
                             ),
                           ),

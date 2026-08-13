@@ -65,6 +65,7 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
   JSFunction? _surfaceTapListener;
   JSFunction? _orientationListener;
   JSFunction? _deepZoomListener;
+  JSFunction? _diagnosticsListener;
   JSFunction? _errorListener;
 
   Timer? _readyTimeout;
@@ -247,6 +248,31 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       callback(latitude, longitude);
     }).toJS;
 
+    _diagnosticsListener = ((web.Event event) {
+      final detail = _detailAsMap(event);
+      if (detail == null) {
+        return;
+      }
+
+      // If diagnostics arrive, the custom element + WebGL renderer are alive.
+      // Do not replace a working globe just because the texture took longer.
+      _readyTimeout?.cancel();
+
+      debugPrint(
+        '[WEB-G3D DOM] '
+        'build=${detail['build']} '
+        'reason=${detail['reason']} '
+        'host=${detail['hostWidth']}x${detail['hostHeight']} '
+        'canvasCss=${detail['canvasCssWidth']}x${detail['canvasCssHeight']} '
+        'canvasBuffer=${detail['canvasBufferWidth']}x${detail['canvasBufferHeight']} '
+        'aspect=${detail['cameraAspect']} '
+        'fov=${detail['cameraFov']} '
+        'distance=${detail['cameraDistance']} '
+        'pixelRatio=${detail['pixelRatio']} '
+        'hostOverflow=${detail['hostOverflow']}',
+      );
+    }).toJS;
+
     _errorListener = ((web.Event event) {
       _readyTimeout?.cancel();
 
@@ -281,6 +307,10 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       _deepZoomListener,
     );
     element.addEventListener(
+      'socialvote-globe-diagnostics',
+      _diagnosticsListener,
+    );
+    element.addEventListener(
       'socialvote-globe-error',
       _errorListener,
     );
@@ -289,7 +319,7 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     _applyFocusIfPossible(force: true);
 
     _readyTimeout?.cancel();
-    _readyTimeout = Timer(const Duration(seconds: 8), () {
+    _readyTimeout = Timer(const Duration(seconds: 30), () {
       if (!mounted || _ready) {
         return;
       }
@@ -334,6 +364,12 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       element.removeEventListener(
         'socialvote-globe-deep-zoom',
         _deepZoomListener,
+      );
+    }
+    if (_diagnosticsListener != null) {
+      element.removeEventListener(
+        'socialvote-globe-diagnostics',
+        _diagnosticsListener,
       );
     }
     if (_errorListener != null) {

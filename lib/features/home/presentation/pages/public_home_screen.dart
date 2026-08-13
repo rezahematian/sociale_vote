@@ -72,10 +72,20 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     _sessionSub = AppDI.instance.sessionRepository.watchCurrentUserId().listen((
       userId,
     ) {
+      final normalizedUserId = userId?.trim();
+      if (normalizedUserId == null || normalizedUserId.isEmpty) {
+        _geoScopeController.setWorld();
+      }
+
       _rebuildHomeNotificationsController(userId);
       if (!mounted) return;
       setState(() {});
     });
+
+    final initialUserId = AppDI.instance.currentUserId?.trim();
+    if (initialUserId == null || initialUserId.isEmpty) {
+      _geoScopeController.setWorld();
+    }
 
     _refreshHomeNewsLanguageKey();
     _rebuildHomeNotificationsController(AppDI.instance.currentUserId);
@@ -185,6 +195,14 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   }
 
   Future<void> _openScopeSelectorSheet() async {
+    final allowed = await AuthGuard.ensureAuthenticated(
+      context,
+      actionLabel: 'cambiare area geografica',
+    );
+    if (!allowed || !mounted) {
+      return;
+    }
+
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -269,6 +287,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     await AppDI.instance.logoutCurrentUser();
+    _geoScopeController.setWorld();
     if (!mounted) return;
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
@@ -285,6 +304,14 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   }
 
   Future<void> _onCreatePressed() async {
+    final allowed = await AuthGuard.ensureAuthenticated(
+      context,
+      actionLabel: 'creare contenuti',
+    );
+    if (!allowed || !mounted) {
+      return;
+    }
+
     final l10n = AppLocalizations.of(context)!;
 
     await showModalBottomSheet<void>(
@@ -384,6 +411,14 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   }
 
   Future<void> _onExplorePressed() async {
+    final allowed = await AuthGuard.ensureAuthenticated(
+      context,
+      actionLabel: 'aprire la Civic Map',
+    );
+    if (!allowed || !mounted) {
+      return;
+    }
+
     _handleHomeGlobeScrollLockChanged(false);
     await Navigator.of(context).pushNamed(AppRouter.civicMap);
   }
@@ -786,8 +821,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                               onCreate: _onCreatePressed,
                                               onExplore: _onExplorePressed,
                                               onOpenSearch: _openSearchPage,
-                                              onScopePressed:
-                                                  _openScopeSelectorSheet,
+                                              onScopePressed: isLoggedIn
+                                                  ? _openScopeSelectorSheet
+                                                  : null,
                                             ),
                                             const SizedBox(height: 14),
                                             Expanded(
@@ -844,7 +880,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                               onCreate: _onCreatePressed,
                               onExplore: _onExplorePressed,
                               onOpenSearch: _openSearchPage,
-                              onScopePressed: _openScopeSelectorSheet,
+                              onScopePressed:
+                                  isLoggedIn ? _openScopeSelectorSheet : null,
                             ),
                           ),
                           HomeMapSection(

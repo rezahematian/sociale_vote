@@ -94,6 +94,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
   GeoScope? _selectedCountryScope;
   int _countrySelectionRequestId = 0;
   bool _deepZoomHandoffTriggered = false;
+  String? _lastWebLayoutDiagnostic;
 
   bool get _isHomeProfile =>
       widget.interactionProfile == WorldGlobeInteractionProfile.home;
@@ -122,6 +123,16 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
           220.0,
           available - (_isHomeProfile ? 12.0 : 18.0),
         );
+
+        final diagnostic = '${finiteWidth.toStringAsFixed(1)}x'
+            '${finiteHeight.toStringAsFixed(1)}'
+            ' square=${squareSize.toStringAsFixed(1)}'
+            ' profile=${_isHomeProfile ? 'home' : 'explore'}';
+
+        if (_lastWebLayoutDiagnostic != diagnostic) {
+          _lastWebLayoutDiagnostic = diagnostic;
+          debugPrint('[WEB-G3D FLUTTER] $diagnostic');
+        }
 
         return Stack(
           fit: StackFit.expand,

@@ -161,6 +161,13 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
   }) async {
     widget.onGlobeScrollLockChanged?.call(false);
 
+    // Guest: il globo resta consultabile/ruotabile ma il tap non apre
+    // la Civic Map e non ripropone continuamente il login.
+    final currentUserId = AppDI.instance.currentUserId?.trim();
+    if (currentUserId == null || currentUserId.isEmpty) {
+      return;
+    }
+
     await Navigator.of(context).pushNamed(AppRouter.civicMap);
 
     if (!mounted) return;

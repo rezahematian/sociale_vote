@@ -159,7 +159,7 @@ class AppRouter {
 
       case civicMap:
         return MaterialPageRoute<void>(
-          builder: (_) => const CivicMapPage(),
+          builder: (_) => const _CivicMapAccessGate(),
           settings: settings,
         );
 
@@ -220,6 +220,78 @@ class AppRouter {
       builder: (_) => const PublicHomeScreen(),
       settings: settings,
     );
+  }
+}
+
+class _CivicMapAccessGate extends StatefulWidget {
+  const _CivicMapAccessGate();
+
+  @override
+  State<_CivicMapAccessGate> createState() => _CivicMapAccessGateState();
+}
+
+class _CivicMapAccessGateState extends State<_CivicMapAccessGate> {
+  bool _isCheckingAccess = true;
+  bool _isAllowed = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAccess();
+    });
+  }
+
+  Future<void> _checkAccess() async {
+    final allowed = await AuthGuard.ensureAuthenticated(
+      context,
+      actionLabel: 'aprire la Civic Map',
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (allowed) {
+      setState(() {
+        _isCheckingAccess = false;
+        _isAllowed = true;
+      });
+      return;
+    }
+
+    setState(() {
+      _isCheckingAccess = false;
+      _isAllowed = false;
+    });
+
+    final popped = await Navigator.of(context).maybePop();
+    if (!popped && mounted) {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRouter.home,
+        (route) => false,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isCheckingAccess) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (!_isAllowed) {
+      return const Scaffold(
+        body: SizedBox.shrink(),
+      );
+    }
+
+    return const CivicMapPage();
   }
 }
 

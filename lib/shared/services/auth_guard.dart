@@ -19,6 +19,38 @@ import 'package:sociale_vote/shared/ui/ui.dart';
 class AuthGuard {
   static const ParticipationPolicy _policy = ParticipationPolicy();
 
+  /// Verifica che esista una sessione autenticata valida per una feature
+  /// che non è una ParticipationAction (es. cambio GeoScope / Civic Map).
+  ///
+  /// Guest -> mostra login/registrazione e ritorna true solo se, al rientro,
+  /// esiste davvero un utente autenticato.
+  static Future<bool> ensureAuthenticated(
+    BuildContext context, {
+    required String actionLabel,
+  }) async {
+    final hasValidSession = await _ensureCurrentSessionIsValid(context);
+    if (!hasValidSession) {
+      return false;
+    }
+
+    final currentUserId = AppDI.instance.currentUserId?.trim();
+    if (currentUserId != null && currentUserId.isNotEmpty) {
+      return true;
+    }
+
+    if (!context.mounted) {
+      return false;
+    }
+
+    await _showFeatureLoginRequiredSheet(
+      context,
+      actionLabel: actionLabel,
+    );
+
+    final resolvedUserId = AppDI.instance.currentUserId?.trim();
+    return resolvedUserId != null && resolvedUserId.isNotEmpty;
+  }
+
   /// Verifica se l’utente può eseguire [action].
   ///
   /// - Se sì → ritorna true
@@ -316,6 +348,88 @@ class AuthGuard {
       actorType: resolvedActorType,
       verificationLevel: resolvedVerificationLevel,
       institutionLevel: resolvedInstitutionLevel,
+    );
+  }
+
+  static Future<void> _showFeatureLoginRequiredSheet(
+    BuildContext context, {
+    required String actionLabel,
+  }) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: AppRadius.sheetRadius,
+      ),
+      builder: (sheetContext) {
+        final theme = Theme.of(sheetContext);
+
+        Future<void> openAuthFlow(String routeName) async {
+          Navigator.of(sheetContext).pop();
+          await Navigator.of(context).pushNamed(routeName);
+        }
+
+        return Padding(
+          padding: EdgeInsets.only(
+            left: AppSpacing.m,
+            right: AppSpacing.m,
+            top: AppSpacing.m,
+            bottom:
+                MediaQuery.of(sheetContext).viewInsets.bottom + AppSpacing.m,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: AppSpacing.s),
+                decoration: BoxDecoration(
+                  color: theme.dividerColor,
+                  borderRadius: AppRadius.pillRadius,
+                ),
+              ),
+              Text(
+                'Accesso richiesto',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'Per $actionLabel devi accedere o registrarti. '
+                'Come ospite puoi consultare i contenuti pubblici.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.m),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppButton.secondary(
+                      label: 'Accedi',
+                      onPressed: () => openAuthFlow(AppRouter.login),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: AppButton.primary(
+                      label: 'Registrati',
+                      onPressed: () => openAuthFlow(AppRouter.register),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              AppButton.text(
+                label: 'Continua come ospite',
+                onPressed: () {
+                  Navigator.of(sheetContext).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
