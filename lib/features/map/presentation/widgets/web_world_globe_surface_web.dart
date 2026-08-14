@@ -25,6 +25,7 @@ class WebGlobeFocus {
 class WebWorldGlobeSurface extends StatefulWidget {
   final List<CivicMapItem> items;
   final bool homeProfile;
+  final bool isAuthenticated;
   final ValueChanged<CivicMapItem> onMarkerTap;
   final void Function(double latitude, double longitude) onSurfaceTap;
   final ValueChanged<Offset>? onOrientationChanged;
@@ -39,6 +40,7 @@ class WebWorldGlobeSurface extends StatefulWidget {
     super.key,
     required this.items,
     required this.homeProfile,
+    required this.isAuthenticated,
     required this.onMarkerTap,
     required this.onSurfaceTap,
     required this.onUnavailable,
@@ -56,7 +58,9 @@ class WebWorldGlobeSurface extends StatefulWidget {
 
 class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
   static const String _earthTextureUrl =
-      'assets/assets/globe/earth_day_nasa_blue_marble_2048.png';
+      'assets/assets/globe/earth_day_nasa_bmng_august_4096.jpg';
+  static const String _nightTextureUrl =
+      'assets/assets/globe/earth_night_nasa_black_marble_2016_3600.jpg';
 
   web.HTMLElement? _element;
 
@@ -452,7 +456,9 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
 
     return <String, Object?>{
       'profile': widget.homeProfile ? 'home' : 'explore',
+      'isAuthenticated': widget.isAuthenticated,
       'textureUrl': _earthTextureUrl,
+      'nightTextureUrl': _nightTextureUrl,
       'markers': markers,
       'maxTiltDegrees': widget.homeProfile ? 22.0 : 55.0,
       'initialFocusLatitude': widget.initialFocusLatitude,

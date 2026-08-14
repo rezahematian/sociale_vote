@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
+import 'package:sociale_vote/features/news/application/news_controller.dart';
 import 'package:sociale_vote/features/poll/application/poll_list_controller.dart';
 import 'package:sociale_vote/features/social/application/feed_controller.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
@@ -14,9 +15,10 @@ import 'package:sociale_vote/l10n/app_localizations.dart';
 /// Intentional scope:
 /// - polls
 /// - social discussions/posts
-/// - NO news
+/// - one compact world-news row
 ///
-/// The normal Home feed below remains unchanged and can still contain News.
+/// The normal Home feed below remains unchanged and continues to contain the
+/// full News section.
 class HomeWebWorldPanel extends StatefulWidget {
   final String scopeShortLabel;
   final String? currentUserId;
@@ -34,6 +36,7 @@ class HomeWebWorldPanel extends StatefulWidget {
 class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
   late final PollListController _pollController;
   late final FeedController _feedController;
+  late final NewsController _newsController;
 
   @override
   void initState() {
@@ -41,9 +44,11 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
 
     _pollController = AppDI.instance.createPollListController();
     _feedController = AppDI.instance.createFeedController();
+    _newsController = AppDI.instance.createNewsController();
 
     _pollController.addListener(_handleControllerChanged);
     _feedController.addListener(_handleControllerChanged);
+    _newsController.addListener(_handleControllerChanged);
 
     unawaited(
       _pollController.loadPolls(
@@ -52,6 +57,11 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
     );
     unawaited(
       _feedController.loadFeed(
+        userId: widget.currentUserId,
+      ),
+    );
+    unawaited(
+      _newsController.loadNews(
         userId: widget.currentUserId,
       ),
     );
@@ -73,6 +83,11 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
           userId: widget.currentUserId,
         ),
       );
+      unawaited(
+        _newsController.loadNews(
+          userId: widget.currentUserId,
+        ),
+      );
     }
   }
 
@@ -86,8 +101,10 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
   void dispose() {
     _pollController.removeListener(_handleControllerChanged);
     _feedController.removeListener(_handleControllerChanged);
+    _newsController.removeListener(_handleControllerChanged);
     _pollController.dispose();
     _feedController.dispose();
+    _newsController.dispose();
     super.dispose();
   }
 
@@ -114,6 +131,8 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
     });
 
     final post = posts.isEmpty ? null : posts.first;
+    final news =
+        _newsController.news.isEmpty ? null : _newsController.news.first;
 
     return Container(
       width: double.infinity,
@@ -201,6 +220,30 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
                   },
             onViewAll: () {
               Navigator.pushNamed(context, AppRouter.social);
+            },
+          ),
+          const SizedBox(height: 8),
+          _WebPulseRow(
+            icon: Icons.newspaper_outlined,
+            label: l10n.homeNewsTitle(widget.scopeShortLabel),
+            title: news?.title,
+            trailingValue: news == null
+                ? null
+                : _newsController.commentCountForNews(news).toString(),
+            loading: _newsController.isLoading && news == null,
+            onTap: news == null
+                ? () {
+                    Navigator.pushNamed(context, AppRouter.news);
+                  }
+                : () {
+                    Navigator.pushNamed(
+                      context,
+                      AppRouter.newsDetail,
+                      arguments: news,
+                    );
+                  },
+            onViewAll: () {
+              Navigator.pushNamed(context, AppRouter.news);
             },
           ),
         ],

@@ -108,6 +108,8 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final currentUserId = AppDI.instance.currentUserId?.trim();
+    final isAuthenticated = currentUserId != null && currentUserId.isNotEmpty;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -144,6 +146,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
                 child: WebWorldGlobeSurface(
                   items: widget.items,
                   homeProfile: _isHomeProfile,
+                  isAuthenticated: isAuthenticated,
                   onMarkerTap: _handleMarkerTap,
                   onSurfaceTap: _handleSurfaceTap,
                   onOrientationChanged: widget.onOrientationChanged,

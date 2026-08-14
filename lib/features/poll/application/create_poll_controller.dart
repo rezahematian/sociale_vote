@@ -508,6 +508,10 @@ class CreatePollController extends ChangeNotifier {
       return _normalizeString(profile.institutionName);
     }
 
+    if (profile.actorType == ActorType.organization) {
+      return _normalizeString(profile.organizationName);
+    }
+
     return null;
   }
 

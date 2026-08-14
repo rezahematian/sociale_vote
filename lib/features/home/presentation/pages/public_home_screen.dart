@@ -195,14 +195,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   }
 
   Future<void> _openScopeSelectorSheet() async {
-    final allowed = await AuthGuard.ensureAuthenticated(
-      context,
-      actionLabel: 'cambiare area geografica',
-    );
-    if (!allowed || !mounted) {
-      return;
-    }
-
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -411,14 +403,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   }
 
   Future<void> _onExplorePressed() async {
-    final allowed = await AuthGuard.ensureAuthenticated(
-      context,
-      actionLabel: 'aprire la Civic Map',
-    );
-    if (!allowed || !mounted) {
-      return;
-    }
-
     _handleHomeGlobeScrollLockChanged(false);
     await Navigator.of(context).pushNamed(AppRouter.civicMap);
   }

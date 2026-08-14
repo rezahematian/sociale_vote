@@ -109,6 +109,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/globe/earth_day_nasa_blue_marble_2048.png
+    - assets/globe/earth_day_nasa_bmng_august_4096.jpg
+    - assets/globe/earth_night_nasa_black_marble_2016_3600.jpg
     - assets/globe/gaia_edr3_sky_equirectangular_2160.png
   shaders:
     - shaders/scientific_sky.frag

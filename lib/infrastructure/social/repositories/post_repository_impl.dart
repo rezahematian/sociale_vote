@@ -371,6 +371,9 @@ class PostRepositoryImpl implements PostRepository {
         return ActorType.publicOfficial;
       case 'institution':
         return ActorType.institution;
+      case 'organization':
+      case 'verifiedorganization':
+        return ActorType.organization;
       case 'citizen':
       default:
         return ActorType.citizen;
