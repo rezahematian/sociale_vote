@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_earth_globe/flutter_earth_globe.dart';
 import 'package:flutter_earth_globe/flutter_earth_globe_controller.dart';
 import 'package:flutter_earth_globe/globe_coordinates.dart';
@@ -24,6 +25,13 @@ enum WorldGlobeInteractionProfile {
   explore,
 }
 
+enum _HomeGestureIntent {
+  idle,
+  undecided,
+  globe,
+  page,
+}
+
 class WorldGlobeMapHandoff {
   final double latitude;
   final double longitude;
@@ -34,13 +42,6 @@ class WorldGlobeMapHandoff {
     required this.longitude,
     required this.mapZoom,
   });
-}
-
-enum _HomeGestureIntent {
-  idle,
-  undecided,
-  globe,
-  page,
 }
 
 class WorldGlobeWidget extends StatefulWidget {
@@ -447,6 +448,22 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
   static const Duration _countryFocusDuration = Duration(milliseconds: 480);
   static const double _exploreTapMovementTolerance = 12.0;
 
+  static const String _nativeAutoRotatePreferenceKey =
+      'social_vote.native.globe.auto_rotate.v1';
+
+  // Use the renderer's own AnimationController for passive rotation. This is
+  // the same controller that already pauses during a gesture and resumes on
+  // release, so automatic rotation never competes with manual movement.
+  static const double _nativeGuestRotationSpeed = 0.0050;
+  static const double _nativeAuthenticatedRotationSpeed = 0.0065;
+  static const double _nativeNaturalLatitudeDegrees = 18.0;
+  static const Duration _nativeInitialRotationWarmup =
+      Duration(milliseconds: 700);
+  static const Duration _nativeNaturalTiltDelay = Duration(milliseconds: 90);
+  static const Duration _nativeNaturalTiltDuration =
+      Duration(milliseconds: 720);
+  static const Duration _countrySelectionAutoDismiss = Duration(seconds: 4);
+
   // G5B Explore marker/zoom baseline. Home stays visually untouched.
   static const double _exploreMaxZoom = 1.15;
 
@@ -500,6 +517,15 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
   bool _globeToMapHandoffTriggered = false;
   bool _initialFocusApplied = false;
 
+  bool _nativeAutoRotatePreference = false;
+  bool _nativeAutoRotatePreferenceLoaded = false;
+  bool? _lastNativeAuthenticatedState;
+  bool _nativeRotationWarmupComplete = false;
+  Timer? _nativeRotationWarmupTimer;
+  Timer? _nativeNaturalTiltTimer;
+  int _nativeNaturalTiltToken = 0;
+  Timer? _countrySelectionDismissTimer;
+
   double _viewportSize = 0.0;
   double _baseRadius = 0.0;
 
@@ -520,6 +546,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
       background: null,
       isBackgroundFollowingSphereRotation: false,
       isRotating: false,
+      rotationSpeed: _nativeGuestRotationSpeed,
 
       // Approved zoom envelope: the globe can approach the available edges
       // without exposing the square rendering viewport.
@@ -561,7 +588,18 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     _globeController.onLoaded = () {
       debugPrint('[WorldGlobe] controller loaded');
       _applyInitialFocusIfNeeded();
+
+      _nativeRotationWarmupTimer?.cancel();
+      _nativeRotationWarmupTimer = Timer(_nativeInitialRotationWarmup, () {
+        if (!mounted) {
+          return;
+        }
+        _nativeRotationWarmupComplete = true;
+        _applyNativeRotationPolicy();
+      });
     };
+
+    _loadNativeAutoRotatePreference();
 
     _scientificSkyTimer = Timer.periodic(
       const Duration(milliseconds: 33),
@@ -613,6 +651,158 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     );
   }
 
+  bool get _isAuthenticatedNow {
+    final currentUserId = AppDI.instance.currentUserId?.trim();
+    return currentUserId != null && currentUserId.isNotEmpty;
+  }
+
+  Future<void> _loadNativeAutoRotatePreference() async {
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      final stored =
+          preferences.getBool(_nativeAutoRotatePreferenceKey) ?? false;
+
+      if (!mounted) {
+        return;
+      }
+
+      _nativeAutoRotatePreference = stored;
+      _nativeAutoRotatePreferenceLoaded = true;
+      _applyNativeRotationPolicy();
+      setState(() {});
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      _nativeAutoRotatePreferenceLoaded = true;
+      _applyNativeRotationPolicy();
+    }
+  }
+
+  Future<void> _toggleNativeAutoRotate() async {
+    if (!_isAuthenticatedNow) {
+      return;
+    }
+
+    final next = !_nativeAutoRotatePreference;
+
+    _cancelNativeNaturalTiltRecovery();
+    setState(() {
+      _nativeAutoRotatePreference = next;
+      _nativeAutoRotatePreferenceLoaded = true;
+    });
+
+    _applyNativeRotationPolicy();
+
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setBool(_nativeAutoRotatePreferenceKey, next);
+    } catch (_) {
+      // Rotation remains available for the current session.
+    }
+  }
+
+  void _syncNativeAuthenticationState(bool isAuthenticated) {
+    if (_lastNativeAuthenticatedState == isAuthenticated) {
+      return;
+    }
+
+    _lastNativeAuthenticatedState = isAuthenticated;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _applyNativeRotationPolicy();
+      }
+    });
+  }
+
+  bool get _shouldNativeAutoRotate {
+    if (!_nativeRotationWarmupComplete) {
+      return false;
+    }
+
+    if (!_isAuthenticatedNow) {
+      // Match the Web policy: guest Home rotates as a passive presentation;
+      // guest Civic Map stays manual.
+      return _isHomeProfile;
+    }
+
+    return _nativeAutoRotatePreferenceLoaded && _nativeAutoRotatePreference;
+  }
+
+  double get _nativeRotationSpeed => _isAuthenticatedNow
+      ? _nativeAuthenticatedRotationSpeed
+      : _nativeGuestRotationSpeed;
+
+  void _applyNativeRotationPolicy() {
+    if (!_globeController.isReady || !_nativeRotationWarmupComplete) {
+      return;
+    }
+
+    if (_shouldNativeAutoRotate) {
+      if (_globeController.isRotating) {
+        _globeController.setRotationSpeed(_nativeRotationSpeed);
+      } else {
+        _globeController.startRotation(
+          rotationSpeed: _nativeRotationSpeed,
+        );
+      }
+      return;
+    }
+
+    if (_globeController.isRotating) {
+      _globeController.stopRotation();
+    }
+  }
+
+  void _cancelNativeNaturalTiltRecovery() {
+    _nativeNaturalTiltTimer?.cancel();
+    _nativeNaturalTiltToken += 1;
+  }
+
+  void _scheduleNativeNaturalTiltRecovery() {
+    if (!_shouldNativeAutoRotate || !_globeController.isReady) {
+      return;
+    }
+
+    final token = ++_nativeNaturalTiltToken;
+    _nativeNaturalTiltTimer?.cancel();
+
+    // The renderer has just finished its gesture/deceleration hand-off. Stop
+    // passive rotation while latitude returns to the same natural attitude as
+    // the Web globe; longitude is preserved.
+    _globeController.stopRotation();
+
+    _nativeNaturalTiltTimer = Timer(_nativeNaturalTiltDelay, () {
+      if (!mounted ||
+          token != _nativeNaturalTiltToken ||
+          !_shouldNativeAutoRotate ||
+          !_globeController.isReady) {
+        _applyNativeRotationPolicy();
+        return;
+      }
+
+      final globeState = _globeController.globeKey.currentState;
+      if (globeState == null) {
+        _applyNativeRotationPolicy();
+        return;
+      }
+
+      globeState.returnToNaturalTilt(
+        latitudeDegrees: _nativeNaturalLatitudeDegrees,
+        duration: _nativeNaturalTiltDuration,
+        curve: Curves.easeOutCubic,
+        onCompleted: () {
+          if (!mounted || token != _nativeNaturalTiltToken) {
+            return;
+          }
+          _applyNativeRotationPolicy();
+        },
+      );
+    });
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -626,6 +816,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
   @override
   void dispose() {
     _scientificSkyTimer?.cancel();
+    _nativeRotationWarmupTimer?.cancel();
+    _nativeNaturalTiltTimer?.cancel();
+    _countrySelectionDismissTimer?.cancel();
     _scientificSkyOrientation.dispose();
 
     if (_pageScrollLocked) {
@@ -667,6 +860,11 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
 
     if (oldWidget.interactionProfile != widget.interactionProfile) {
       _resetHomeGestureState();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _applyNativeRotationPolicy();
+        }
+      });
     }
 
     if (oldWidget.initialFocusLatitude != widget.initialFocusLatitude ||
@@ -693,6 +891,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
 
     final screenSize = MediaQuery.sizeOf(context);
     final theme = Theme.of(context);
+    final isAuthenticated = _isAuthenticatedNow;
+
+    _syncNativeAuthenticationState(isAuthenticated);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -741,7 +942,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
           //
           // Home:
           // - North stays up
-          // - horizontal rotation only
+          // - horizontal rotation with restrained vertical tilt
           // - short, restrained inertia
           //
           // Explore:
@@ -768,23 +969,42 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
                 fit: StackFit.expand,
                 clipBehavior: Clip.none,
                 children: [
-                  _isHomeProfile
-                      ? Listener(
+                  _isHomeProfile && !isAuthenticated
+                      ? GestureDetector(
                           behavior: HitTestBehavior.opaque,
-                          onPointerDown: _handleHomePointerDown,
-                          onPointerMove: _handleHomePointerMove,
-                          onPointerUp: _handleHomePointerUp,
-                          onPointerCancel: _handleHomePointerCancel,
-                          child: globe,
+                          onTapUp: (details) {
+                            if (_isInsideVisibleSphere(details.localPosition)) {
+                              widget.onUseClassicMap();
+                            }
+                          },
+                          child: IgnorePointer(child: globe),
                         )
-                      : Listener(
-                          behavior: HitTestBehavior.opaque,
-                          onPointerDown: _handleExplorePointerDown,
-                          onPointerMove: _handleExplorePointerMove,
-                          onPointerUp: _handleExplorePointerUp,
-                          onPointerCancel: _handleExplorePointerCancel,
-                          child: globe,
-                        ),
+                      : _isHomeProfile
+                          ? Listener(
+                              behavior: HitTestBehavior.opaque,
+                              onPointerDown: _handleHomePointerDown,
+                              onPointerMove: _handleHomePointerMove,
+                              onPointerUp: _handleHomePointerUp,
+                              onPointerCancel: _handleHomePointerCancel,
+                              child: globe,
+                            )
+                          : Listener(
+                              behavior: HitTestBehavior.opaque,
+                              onPointerDown: _handleExplorePointerDown,
+                              onPointerMove: _handleExplorePointerMove,
+                              onPointerUp: _handleExplorePointerUp,
+                              onPointerCancel: _handleExplorePointerCancel,
+                              child: globe,
+                            ),
+                  if (isAuthenticated)
+                    Positioned(
+                      right: 8,
+                      bottom: 8,
+                      child: _NativeAutoRotateControl(
+                        enabled: _nativeAutoRotatePreference,
+                        onPressed: _toggleNativeAutoRotate,
+                      ),
+                    ),
                   if (!_isHomeProfile &&
                       (_isSelectingCountry || _selectedCountryLabel != null))
                     Positioned(
@@ -889,6 +1109,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
   }
 
   void _handleExplorePointerDown(PointerDownEvent event) {
+    _cancelNativeNaturalTiltRecovery();
     _exploreTapPointers.add(event.pointer);
 
     if (_exploreTapPointers.length == 1) {
@@ -922,10 +1143,14 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
         _exploreTapStartedOnSphere;
 
     _exploreTapPointers.remove(event.pointer);
+    final interactionFinished = _exploreTapPointers.isEmpty;
 
     if (!confirmedTap) {
       if (event.pointer == _exploreTapCandidatePointer) {
         _resetExploreTapCandidate();
+      }
+      if (interactionFinished) {
+        _scheduleNativeNaturalTiltRecovery();
       }
       return;
     }
@@ -1245,6 +1470,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
   }
 
   void _handleGlobeMarkerTap(CivicMapItem item) {
+    _countrySelectionDismissTimer?.cancel();
     _countrySelectionRequestId += 1;
 
     if (mounted &&
@@ -1269,6 +1495,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     if (event.pointer == _exploreTapCandidatePointer) {
       _resetExploreTapCandidate();
     }
+    if (_exploreTapPointers.isEmpty) {
+      _scheduleNativeNaturalTiltRecovery();
+    }
   }
 
   void _resetExploreTapCandidate({bool keepPointers = false}) {
@@ -1289,6 +1518,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     }
 
     final requestId = ++_countrySelectionRequestId;
+    _countrySelectionDismissTimer?.cancel();
 
     setState(() {
       _isSelectingCountry = true;
@@ -1335,6 +1565,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
         _selectedCountryLabel = countryLabel;
         _selectedCountryScope = countryScope;
       });
+      _scheduleCountrySelectionDismiss(requestId);
 
       final targetLatitude = countryScope.centerLat ?? coordinates.latitude;
       final targetLongitude = countryScope.centerLng ?? coordinates.longitude;
@@ -1362,11 +1593,33 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     }
   }
 
+  void _scheduleCountrySelectionDismiss(int requestId) {
+    _countrySelectionDismissTimer?.cancel();
+    _countrySelectionDismissTimer = Timer(_countrySelectionAutoDismiss, () {
+      if (!mounted ||
+          requestId != _countrySelectionRequestId ||
+          _isSelectingCountry) {
+        return;
+      }
+
+      if (_selectedCountryLabel == null && _selectedCountryScope == null) {
+        return;
+      }
+
+      setState(() {
+        _selectedCountryLabel = null;
+        _selectedCountryScope = null;
+      });
+    });
+  }
+
   void _openSelectedCountry() {
     final countryScope = _selectedCountryScope;
     if (_isHomeProfile || _isSelectingCountry || countryScope == null) {
       return;
     }
+
+    _countrySelectionDismissTimer?.cancel();
 
     debugPrint(
       '[WorldGlobe] opening selected country: ${countryScope.countryCode}',
@@ -1440,6 +1693,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
       _primaryPointer = event.pointer;
       _primaryStartPosition = event.localPosition;
       _primaryStartedOnSphere = _isInsideVisibleSphere(event.localPosition);
+      if (_primaryStartedOnSphere) {
+        _cancelNativeNaturalTiltRecovery();
+      }
       _homeGestureIntent = _primaryStartedOnSphere
           ? _HomeGestureIntent.undecided
           : _HomeGestureIntent.page;
@@ -1527,6 +1783,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
 
   void _handleHomePointerUp(PointerUpEvent event) {
     final start = _primaryStartPosition;
+    final wasGlobeGesture = _homeGestureIntent == _HomeGestureIntent.globe;
     final wasSinglePointer = _activePointers.length == 1;
     final shouldOpenCivicMap = wasSinglePointer &&
         event.pointer == _primaryPointer &&
@@ -1539,6 +1796,10 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
 
     if (_activePointers.isEmpty) {
       _resetHomeGestureState();
+
+      if (wasGlobeGesture) {
+        _scheduleNativeNaturalTiltRecovery();
+      }
 
       if (shouldOpenCivicMap) {
         // Open after the pointer sequence is fully released. A drag, pinch or
@@ -1563,10 +1824,14 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
   }
 
   void _handleHomePointerCancel(PointerCancelEvent event) {
+    final wasGlobeGesture = _homeGestureIntent == _HomeGestureIntent.globe;
     _activePointers.remove(event.pointer);
 
     if (_activePointers.isEmpty) {
       _resetHomeGestureState();
+      if (wasGlobeGesture) {
+        _scheduleNativeNaturalTiltRecovery();
+      }
     }
   }
 
@@ -1630,6 +1895,51 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     );
 
     return (position - center).distance <= visibleRadius;
+  }
+}
+
+class _NativeAutoRotateControl extends StatelessWidget {
+  final bool enabled;
+  final VoidCallback onPressed;
+
+  const _NativeAutoRotateControl({
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final background = enabled
+        ? theme.colorScheme.primary
+        : theme.colorScheme.surface.withValues(alpha: 0.90);
+    final foreground =
+        enabled ? theme.colorScheme.onPrimary : theme.colorScheme.primary;
+
+    return Material(
+      color: background,
+      elevation: 3,
+      shape: CircleBorder(
+        side: BorderSide(
+          color: enabled
+              ? theme.colorScheme.primaryContainer
+              : theme.colorScheme.outlineVariant,
+        ),
+      ),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onPressed,
+        child: SizedBox(
+          width: 34,
+          height: 34,
+          child: Icon(
+            Icons.rotate_right,
+            size: 21,
+            color: foreground,
+          ),
+        ),
+      ),
+    );
   }
 }
 

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/app/theme/radius.dart';
 import 'package:sociale_vote/app/theme/spacing.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
@@ -309,22 +310,13 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
   Future<void> _onSharePressed(Poll poll) async {
     final l10n = AppLocalizations.of(context)!;
-    final description = poll.description?.trim();
-    final buffer = StringBuffer()..writeln(poll.title);
-
-    if (description != null && description.isNotEmpty) {
-      buffer
-        ..writeln()
-        ..writeln(description);
-    }
-
-    buffer
-      ..writeln()
-      ..writeln(l10n.pollDetail_shareMessage);
+    final title = poll.title.trim();
+    final url = AppRouter.publicPollUrl(poll.id.value);
+    final shareText = title.isEmpty ? url : 'Social Vote — $title\n$url';
 
     try {
       await Share.share(
-        buffer.toString().trim(),
+        shareText,
         subject: poll.title,
       );
     } catch (_) {
@@ -610,6 +602,22 @@ class _PollDetailPageState extends State<PollDetailPage> {
     return Scaffold(
       backgroundColor: pageBackground,
       appBar: AppBar(
+        leading: IconButton(
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            final navigator = Navigator.of(context);
+            if (navigator.canPop()) {
+              navigator.pop();
+              return;
+            }
+
+            navigator.pushNamedAndRemoveUntil(
+              AppRouter.home,
+              (route) => false,
+            );
+          },
+        ),
         backgroundColor: pageBackground,
         surfaceTintColor: Colors.transparent,
         elevation: 0,

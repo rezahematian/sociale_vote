@@ -20,8 +20,10 @@ class AuthGuard {
   static const ParticipationPolicy _policy = ParticipationPolicy();
 
   /// Verifica che esista una sessione autenticata valida per una feature
-  /// che non è una ParticipationAction (es. cambio GeoScope / Civic Map).
+  /// protetta che non è rappresentata da una ParticipationAction.
   ///
+  /// Non usare questo metodo per semplice esplorazione pubblica come
+  /// cambio GeoScope o apertura della Civic Map.
   /// Guest -> mostra login/registrazione e ritorna true solo se, al rientro,
   /// esiste davvero un utente autenticato.
   static Future<bool> ensureAuthenticated(
@@ -365,8 +367,13 @@ class AuthGuard {
         final theme = Theme.of(sheetContext);
 
         Future<void> openAuthFlow(String routeName) async {
-          Navigator.of(sheetContext).pop();
+          // Keep the sheet alive while login/register is open. Closing it
+          // first would let the caller resume before authentication finishes.
           await Navigator.of(context).pushNamed(routeName);
+
+          if (sheetContext.mounted) {
+            Navigator.of(sheetContext).pop();
+          }
         }
 
         return Padding(
@@ -448,9 +455,13 @@ class AuthGuard {
         final actionLabel = _actionLabel(action);
 
         Future<void> openAuthFlow(String routeName) async {
-          Navigator.of(sheetContext).pop();
-
+          // Keep the sheet alive while login/register is open so the protected
+          // action resumes only after the auth route has completed.
           await Navigator.of(context).pushNamed(routeName);
+
+          if (sheetContext.mounted) {
+            Navigator.of(sheetContext).pop();
+          }
         }
 
         return Padding(

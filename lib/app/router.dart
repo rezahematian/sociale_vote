@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
+import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 
@@ -13,11 +16,11 @@ import 'package:sociale_vote/features/auth/presentation/pages/login_page.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/register_page.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/reset_password_page.dart';
 import 'package:sociale_vote/features/home/presentation/pages/public_home_screen.dart';
-import 'package:sociale_vote/features/onboarding/presentation/first_time_onboarding_gate.dart';
 import 'package:sociale_vote/features/map/presentation/pages/civic_map_page.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
 import 'package:sociale_vote/features/news/presentation/pages/news_feed_page.dart';
 import 'package:sociale_vote/features/notifications/presentation/pages/notifications_page.dart';
+import 'package:sociale_vote/features/onboarding/presentation/first_time_onboarding_gate.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/create_poll_page.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/poll_detail_page.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/poll_list_page.dart';
@@ -25,6 +28,7 @@ import 'package:sociale_vote/features/profile/presentation/pages/my_profile_page
 import 'package:sociale_vote/features/profile/presentation/pages/verification_review_page.dart';
 import 'package:sociale_vote/features/social/presentation/pages/post_detail_page.dart';
 import 'package:sociale_vote/features/social/presentation/pages/social_feed_page.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 
 class AppRouter {
@@ -49,19 +53,105 @@ class AppRouter {
   static const String resetPassword = '/reset-password';
   static const String privacy = '/privacy';
 
+  static const String publicHost = 'socialevote.com';
+
+  static String publicPollPath(String pollId) {
+    final id = pollId.trim();
+    return '/poll/${Uri.encodeComponent(id)}';
+  }
+
+  static String publicPostPath(String postId) {
+    final id = postId.trim();
+    return '/post/${Uri.encodeComponent(id)}';
+  }
+
+  static String publicCityPath({
+    required String countryCode,
+    required String cityName,
+  }) {
+    final country = countryCode.trim().toLowerCase();
+    final citySlug =
+        cityName.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '-');
+
+    return '/city/${Uri.encodeComponent(country)}/${Uri.encodeComponent(citySlug)}';
+  }
+
+  static String publicPollUrl(String pollId) {
+    return 'https://$publicHost${publicPollPath(pollId)}';
+  }
+
+  static String publicPostUrl(String postId) {
+    return 'https://$publicHost${publicPostPath(postId)}';
+  }
+
+  static String publicCityUrl({
+    required String countryCode,
+    required String cityName,
+  }) {
+    return 'https://$publicHost${publicCityPath(countryCode: countryCode, cityName: cityName)}';
+  }
+
   static String get initialRoute {
-    if (kIsWeb) {
-      final path = Uri.base.path;
-      if (path == privacy || path == '$privacy/') {
-        return privacy;
-      }
+    if (!kIsWeb) {
+      return home;
     }
 
-    return home;
+    final path = _normalizePath(Uri.base.path);
+    return _isSupportedWebStartupPath(path) ? path : home;
+  }
+
+  /// Public content links must open the requested destination immediately,
+  /// while keeping Home underneath it in the Navigator stack. This gives a
+  /// first-time visitor a normal Back path into the rest of Social Vote.
+  static List<Route<dynamic>> onGenerateInitialRoutes(
+    String initialRouteName,
+  ) {
+    final routeName = _normalizePath(initialRouteName);
+    final isPublicDestination =
+        _publicContentId(routeName, prefix: 'poll') != null ||
+            _publicContentId(routeName, prefix: 'post') != null ||
+            _publicCityTarget(routeName) != null;
+
+    if (!isPublicDestination || routeName == home) {
+      return <Route<dynamic>>[
+        onGenerateRoute(RouteSettings(name: routeName)),
+      ];
+    }
+
+    return <Route<dynamic>>[
+      onGenerateRoute(const RouteSettings(name: home)),
+      onGenerateRoute(RouteSettings(name: routeName)),
+    ];
   }
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    switch (settings.name) {
+    final routeName = _normalizePath(settings.name ?? home);
+
+    final publicPollId = _publicContentId(routeName, prefix: 'poll');
+    if (publicPollId != null) {
+      return MaterialPageRoute<void>(
+        builder: (_) => PollDetailPage(pollId: PollId(publicPollId)),
+        settings: settings,
+      );
+    }
+
+    final publicPostId = _publicContentId(routeName, prefix: 'post');
+    if (publicPostId != null) {
+      return MaterialPageRoute<void>(
+        builder: (_) => PostDetailPage(postId: publicPostId),
+        settings: settings,
+      );
+    }
+
+    final publicCity = _publicCityTarget(routeName);
+    if (publicCity != null) {
+      return MaterialPageRoute<void>(
+        builder: (_) => _PublicCityRouteGate(target: publicCity),
+        settings: settings,
+      );
+    }
+
+    switch (routeName) {
       case home:
         return MaterialPageRoute<void>(
           builder: (_) => const FirstTimeOnboardingGate(),
@@ -219,6 +309,213 @@ class AppRouter {
     return MaterialPageRoute<void>(
       builder: (_) => const PublicHomeScreen(),
       settings: settings,
+    );
+  }
+
+  static String _normalizePath(String rawPath) {
+    final trimmed = rawPath.trim();
+    if (trimmed.isEmpty || trimmed == home) {
+      return home;
+    }
+
+    final parsed = Uri.tryParse(trimmed);
+    var path = parsed?.path ?? trimmed;
+    if (!path.startsWith('/')) {
+      path = '/$path';
+    }
+
+    while (path.length > 1 && path.endsWith('/')) {
+      path = path.substring(0, path.length - 1);
+    }
+
+    return path;
+  }
+
+  static bool _isSupportedWebStartupPath(String path) {
+    switch (path) {
+      case home:
+      case polls:
+      case news:
+      case social:
+      case civicMap:
+      case privacy:
+      case login:
+      case register:
+        return true;
+    }
+
+    return _publicContentId(path, prefix: 'poll') != null ||
+        _publicContentId(path, prefix: 'post') != null ||
+        _publicCityTarget(path) != null;
+  }
+
+  static String? _publicContentId(
+    String path, {
+    required String prefix,
+  }) {
+    final segments = Uri.tryParse(path)?.pathSegments ?? const <String>[];
+    if (segments.length != 2 || segments.first.toLowerCase() != prefix) {
+      return null;
+    }
+
+    final id = segments[1].trim();
+    return id.isEmpty ? null : id;
+  }
+
+  static _PublicCityTarget? _publicCityTarget(String path) {
+    final segments = Uri.tryParse(path)?.pathSegments ?? const <String>[];
+    if (segments.length != 3 || segments.first.toLowerCase() != 'city') {
+      return null;
+    }
+
+    final countryCode = segments[1].trim().toUpperCase();
+    final citySlug = segments[2].trim();
+    if (countryCode.length != 2 || citySlug.isEmpty) {
+      return null;
+    }
+
+    final cityName = citySlug.replaceAll('-', ' ').trim();
+    if (cityName.isEmpty) {
+      return null;
+    }
+
+    return _PublicCityTarget(
+      countryCode: countryCode,
+      cityName: cityName,
+    );
+  }
+}
+
+class _PublicCityTarget {
+  final String countryCode;
+  final String cityName;
+
+  const _PublicCityTarget({
+    required this.countryCode,
+    required this.cityName,
+  });
+}
+
+class _PublicCityRouteGate extends StatefulWidget {
+  final _PublicCityTarget target;
+
+  const _PublicCityRouteGate({
+    required this.target,
+  });
+
+  @override
+  State<_PublicCityRouteGate> createState() => _PublicCityRouteGateState();
+}
+
+class _PublicCityRouteGateState extends State<_PublicCityRouteGate> {
+  late Future<GeoScope?> _scopeFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _scopeFuture = _resolveScope();
+  }
+
+  Future<GeoScope?> _resolveScope() async {
+    final resolved =
+        await AppDI.instance.geocodingRepository.geocodeContentLocation(
+      ContentLocation(
+        source: ContentLocationSource.manual,
+        countryCode: widget.target.countryCode,
+        cityName: widget.target.cityName,
+      ),
+    );
+
+    if (resolved == null || (!resolved.hasCenter && !resolved.hasExactPoint)) {
+      return null;
+    }
+
+    final latitude = resolved.centerLat ?? resolved.latitude;
+    final longitude = resolved.centerLng ?? resolved.longitude;
+    if (latitude == null || longitude == null) {
+      return null;
+    }
+
+    final resolvedCityName = resolved.cityName?.trim();
+    final cityName = resolvedCityName == null || resolvedCityName.isEmpty
+        ? widget.target.cityName
+        : resolvedCityName;
+    final resolvedCountryCode = resolved.countryCode?.trim().toUpperCase();
+    final countryCode =
+        resolvedCountryCode == null || resolvedCountryCode.isEmpty
+            ? widget.target.countryCode
+            : resolvedCountryCode;
+
+    final scope = GeoScope.city(
+      countryCode: countryCode,
+      cityId: cityName,
+      centerLat: latitude,
+      centerLng: longitude,
+      radiusKm: 35,
+    );
+
+    AppDI.instance.geoScopeController.setScope(scope);
+    return scope;
+  }
+
+  void _retry() {
+    setState(() {
+      _scopeFuture = _resolveScope();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<GeoScope?>(
+      future: _scopeFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasError || snapshot.data == null) {
+          final l10n = AppLocalizations.of(context)!;
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Civic Map'),
+            ),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l10n.homeScopeCityNotFoundError,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      onPressed: _retry,
+                      child: Text(l10n.searchRetryButton),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          AppRouter.home,
+                          (route) => false,
+                        );
+                      },
+                      child: const Text('Home'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        return const CivicMapPage();
+      },
     );
   }
 }

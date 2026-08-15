@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-G3G-20260814-1533';
+const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-G3H-20260815-ROTATION-CACHE1';
 
 const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
@@ -707,7 +707,7 @@ class SocialVoteGlobeElement extends HTMLElement {
     const authenticated = configAuthenticationState(this._config);
 
     if (!force && authenticated === this._isAuthenticated) {
-      if (authenticated && this._config.profile === 'home') {
+      if (authenticated) {
         this._createAutoRotateControl();
       } else if (this._autoRotateButton) {
         this._autoRotateButton.remove();
@@ -729,12 +729,7 @@ class SocialVoteGlobeElement extends HTMLElement {
       this._autoRotatePreference =
           this._readStoredAutoRotatePreference();
 
-      if (this._config.profile === 'home') {
-        this._createAutoRotateControl();
-      } else {
-        this._autoRotateButton?.remove?.();
-        this._autoRotateButton = null;
-      }
+      this._createAutoRotateControl();
     } else {
       // Guest Home is a passive showcase: no mouse/touch interaction and no
       // rotate button. It always presents a naturally level, slowly rotating
@@ -770,7 +765,6 @@ class SocialVoteGlobeElement extends HTMLElement {
   _createAutoRotateControl() {
     if (
       !this._isAuthenticated ||
-      this._config.profile !== 'home' ||
       this._autoRotateButton
     ) {
       return;
@@ -786,7 +780,7 @@ class SocialVoteGlobeElement extends HTMLElement {
     Object.assign(button.style, {
       position: 'absolute',
       left: '50%',
-      bottom: '-20px',
+      bottom: this._config.profile === 'home' ? '-20px' : '12px',
       transform: 'translateX(-50%)',
       width: '32px',
       height: '32px',
@@ -856,7 +850,7 @@ class SocialVoteGlobeElement extends HTMLElement {
   _applyAutoRotatePreference() {
     this._autoRotateEnabled = Boolean(
       this._autoRotatePreference &&
-      this._config.profile === 'home'
+      (this._config.profile === 'home' || this._isAuthenticated)
     );
 
     if (this._controls) {
@@ -912,7 +906,12 @@ class SocialVoteGlobeElement extends HTMLElement {
       this._autoRotatePreference &&
       this._controls
     ) {
-      this._settleToNaturalRotation();
+      if (this._config.profile === 'home') {
+        this._settleToNaturalRotation();
+      } else {
+        this._controls.autoRotate = true;
+        this._controls.autoRotateSpeed = 0.30;
+      }
     }
 
     this._resumeAutoRotateAfterInteraction = false;

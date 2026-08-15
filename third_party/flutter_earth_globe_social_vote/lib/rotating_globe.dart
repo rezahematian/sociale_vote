@@ -532,6 +532,75 @@ class RotatingGlobeState extends State<RotatingGlobe>
     setState(() {});
   }
 
+  /// Smoothly restores a natural north-up viewing latitude while preserving
+  /// the user's current longitude. Social Vote drives longitude auto-rotation
+  /// outside this renderer so this animation only owns latitude/tilt.
+  void returnToNaturalTilt({
+    double latitudeDegrees = 18.0,
+    Duration duration = const Duration(milliseconds: 720),
+    Curve curve = Curves.easeOutCubic,
+    VoidCallback? onCompleted,
+  }) {
+    if (_decelerationController.isAnimating) {
+      _decelerationController.stop();
+      _decelerationController.reset();
+    }
+
+    if (_zoomAnimationController?.isAnimating == true) {
+      _zoomAnimationController?.stop();
+    }
+
+    _genericCurvedAnimation?.dispose();
+    genericAnimationController?.dispose();
+
+    final initialRotationX = rotationX;
+    final initialRotationY = rotationY;
+    final preservedRotationZ = rotationZ;
+    final targetRotationX =
+        radians(latitudeDegrees.clamp(-45.0, 45.0).toDouble());
+    final targetRotationY = -targetRotationX;
+
+    genericAnimationController = AnimationController(
+      vsync: this,
+      duration: duration,
+    );
+    _genericCurvedAnimation = CurvedAnimation(
+      parent: genericAnimationController!,
+      curve: curve,
+    );
+
+    _genericCurvedAnimation!.addListener(() {
+      final t = _genericCurvedAnimation!.value;
+      rotationX = initialRotationX + (targetRotationX - initialRotationX) * t;
+      rotationY = initialRotationY + (targetRotationY - initialRotationY) * t;
+      rotationZ = preservedRotationZ;
+      if (mounted) {
+        setState(() {});
+      }
+    });
+
+    genericAnimationController!.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        onCompleted?.call();
+      }
+    });
+
+    genericAnimationController!.forward();
+  }
+
+  /// Applies a small longitude delta without participating in the renderer's
+  /// gesture/deceleration controller. This keeps passive Social Vote rotation
+  /// smooth and independent from manual interaction.
+  void rotateLongitudeBy(double radiansDelta) {
+    if (!radiansDelta.isFinite || radiansDelta == 0.0) {
+      return;
+    }
+    rotationZ = adjustModRotation(rotationZ - radiansDelta);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   /// Add a connection to the sphere
   void _addConnection(AnimatedPointConnection connection,
       {required bool animateDraw, required Duration animateDrawDuration}) {
@@ -1924,6 +1993,12 @@ class RotatingGlobeState extends State<RotatingGlobe>
                 if (_decelerationController.isAnimating) {
                   _decelerationController.stop();
                   _decelerationController.reset();
+                }
+
+                // A new gesture always wins over a pending automatic
+                // re-level animation.
+                if (genericAnimationController?.isAnimating == true) {
+                  genericAnimationController?.stop();
                 }
 
                 // Stop zoom animation when starting new gesture

@@ -422,6 +422,7 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
                   ? <NavigatorObserver>[_analyticsObserver]
                   : const <NavigatorObserver>[],
               initialRoute: AppRouter.initialRoute,
+              onGenerateInitialRoutes: AppRouter.onGenerateInitialRoutes,
               onGenerateRoute: AppRouter.onGenerateRoute,
             );
           },

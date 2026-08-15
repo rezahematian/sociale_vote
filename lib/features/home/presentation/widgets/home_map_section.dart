@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -128,6 +129,7 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
                               controller: controller,
                               currentScopeLabel: widget.scopeShortLabel,
                               interactive: false,
+                              initialScope: kIsWeb ? activeScope : null,
                             ),
                           ),
                         ),
@@ -160,13 +162,6 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
     required GeoScope? scope,
   }) async {
     widget.onGlobeScrollLockChanged?.call(false);
-
-    // Guest: il globo resta consultabile/ruotabile ma il tap non apre
-    // la Civic Map e non ripropone continuamente il login.
-    final currentUserId = AppDI.instance.currentUserId?.trim();
-    if (currentUserId == null || currentUserId.isEmpty) {
-      return;
-    }
 
     await Navigator.of(context).pushNamed(AppRouter.civicMap);
 

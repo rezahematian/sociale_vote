@@ -26,6 +26,7 @@ class GetNewsFeed {
     String? language, // ✅ NUOVO
     int? limit,
     int? offset,
+    bool allowProviderRefresh = true,
   }) {
     return _repository.getNewsFeed(
       countryCode: countryCode,
@@ -34,6 +35,7 @@ class GetNewsFeed {
       language: language, // ✅ passato al repository
       limit: limit,
       offset: offset,
+      allowProviderRefresh: allowProviderRefresh,
     );
   }
 }

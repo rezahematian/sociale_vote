@@ -50,6 +50,39 @@
                     android:scheme="socialevote"
                     android:host="reset-password" />
             </intent-filter>
+
+            <!-- Verified public Poll links. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="socialevote.com" />
+                <data android:pathPrefix="/poll/" />
+            </intent-filter>
+
+            <!-- Verified public Post links. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="socialevote.com" />
+                <data android:pathPrefix="/post/" />
+            </intent-filter>
+
+            <!-- Verified public City links. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="socialevote.com" />
+                <data android:pathPrefix="/city/" />
+            </intent-filter>
         </activity>
 
         <!--

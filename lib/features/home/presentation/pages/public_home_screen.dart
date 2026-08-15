@@ -72,20 +72,10 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     _sessionSub = AppDI.instance.sessionRepository.watchCurrentUserId().listen((
       userId,
     ) {
-      final normalizedUserId = userId?.trim();
-      if (normalizedUserId == null || normalizedUserId.isEmpty) {
-        _geoScopeController.setWorld();
-      }
-
       _rebuildHomeNotificationsController(userId);
       if (!mounted) return;
       setState(() {});
     });
-
-    final initialUserId = AppDI.instance.currentUserId?.trim();
-    if (initialUserId == null || initialUserId.isEmpty) {
-      _geoScopeController.setWorld();
-    }
 
     _refreshHomeNewsLanguageKey();
     _rebuildHomeNotificationsController(AppDI.instance.currentUserId);
@@ -805,9 +795,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                               onCreate: _onCreatePressed,
                                               onExplore: _onExplorePressed,
                                               onOpenSearch: _openSearchPage,
-                                              onScopePressed: isLoggedIn
-                                                  ? _openScopeSelectorSheet
-                                                  : null,
+                                              onScopePressed:
+                                                  _openScopeSelectorSheet,
                                             ),
                                             const SizedBox(height: 14),
                                             Expanded(
@@ -864,8 +853,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                               onCreate: _onCreatePressed,
                               onExplore: _onExplorePressed,
                               onOpenSearch: _openSearchPage,
-                              onScopePressed:
-                                  isLoggedIn ? _openScopeSelectorSheet : null,
+                              onScopePressed: _openScopeSelectorSheet,
                             ),
                           ),
                           HomeMapSection(

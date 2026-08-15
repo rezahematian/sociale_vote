@@ -136,6 +136,7 @@ class NewsRepositoryImpl implements NewsRepository {
     String? language,
     int? limit,
     int? offset,
+    bool allowProviderRefresh = true,
   }) async {
     final candidate = _NewsFeedCandidate(
       countryCode: _normalize(countryCode),
@@ -147,6 +148,7 @@ class NewsRepositoryImpl implements NewsRepository {
     final cache = await _resolveBestAvailableCache(
       candidate,
       providerLimit: _defaultRefreshFetchLimit,
+      allowProviderRefresh: allowProviderRefresh,
     );
 
     if (cache == null || cache.items.isEmpty) {
@@ -251,6 +253,7 @@ class NewsRepositoryImpl implements NewsRepository {
   Future<_CachedNewsFeed?> _resolveBestAvailableCache(
     _NewsFeedCandidate candidate, {
     required int providerLimit,
+    bool allowProviderRefresh = true,
   }) async {
     final exactCache = await _readExactCache(
       cacheKey: candidate.cacheKey,
@@ -259,8 +262,15 @@ class NewsRepositoryImpl implements NewsRepository {
 
     if (exactCache != null &&
         exactCache.items.isNotEmpty &&
-        !_isCacheExpired(exactCache)) {
+        (!allowProviderRefresh || !_isCacheExpired(exactCache))) {
       return exactCache;
+    }
+
+    if (!allowProviderRefresh) {
+      return _readBestFallbackCache(
+        candidate: candidate,
+        requestedLanguage: candidate.language,
+      );
     }
 
     final refreshedItems = await _refreshCacheForCandidateDeduplicated(
@@ -703,7 +713,9 @@ class NewsRepositoryImpl implements NewsRepository {
     required _NewsFeedCandidate candidate,
     required _CachedNewsFeed cache,
   }) {
-    if (candidate.language != null && cache.language != candidate.language) {
+    if (candidate.language != null &&
+        cache.language != null &&
+        cache.language != candidate.language) {
       return -1;
     }
 

@@ -160,18 +160,12 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'World Pulse',
+                  'Social Vote · ${widget.scopeShortLabel}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
-                ),
-              ),
-              Text(
-                widget.scopeShortLabel,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -227,9 +221,7 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
             icon: Icons.newspaper_outlined,
             label: l10n.homeNewsTitle(widget.scopeShortLabel),
             title: news?.title,
-            trailingValue: news == null
-                ? null
-                : _newsController.commentCountForNews(news).toString(),
+            trailingValue: null,
             loading: _newsController.isLoading && news == null,
             onTap: news == null
                 ? () {

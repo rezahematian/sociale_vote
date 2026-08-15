@@ -28,6 +28,7 @@ class CivicMapWidget extends StatefulWidget {
   final CivicMapController? controller;
   final ValueChanged<CivicMapItem>? onItemTap;
   final bool interactive;
+  final GeoScope? initialScope;
   final double? handoffLatitude;
   final double? handoffLongitude;
   final double? handoffZoom;
@@ -40,6 +41,7 @@ class CivicMapWidget extends StatefulWidget {
     this.controller,
     this.onItemTap,
     this.interactive = true,
+    this.initialScope,
     this.handoffLatitude,
     this.handoffLongitude,
     this.handoffZoom,
@@ -77,6 +79,11 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     _currentZoom = _initialMapZoom();
     _globeReturnArmed = _currentZoom >= _globeReturnArmZoom;
 
+    final initialScope = widget.initialScope;
+    if (_hasValidInitialScopeViewport && initialScope != null) {
+      _lastAppliedViewportScopeKey = _viewportScopeKey(initialScope);
+    }
+
     if (_hasValidHandoffViewport && kDebugMode) {
       debugPrint(
         '[CivicMap] 3D->2D initial viewport: '
@@ -100,11 +107,24 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
         widget.handoffZoom!.isFinite;
   }
 
+  bool get _hasValidInitialScopeViewport {
+    final scope = widget.initialScope;
+    return scope != null && _isValidLatLng(scope.centerLat, scope.centerLng);
+  }
+
   lat_lng.LatLng _initialMapCenter() {
     if (_hasValidHandoffViewport) {
       return lat_lng.LatLng(
         widget.handoffLatitude!,
         widget.handoffLongitude!,
+      );
+    }
+
+    final initialScope = widget.initialScope;
+    if (_hasValidInitialScopeViewport && initialScope != null) {
+      return lat_lng.LatLng(
+        initialScope.centerLat!,
+        initialScope.centerLng!,
       );
     }
 
@@ -115,6 +135,11 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     final zoom = widget.handoffZoom;
     if (_hasValidHandoffViewport && zoom != null) {
       return zoom.clamp(2.0, 18.0).toDouble();
+    }
+
+    final initialScope = widget.initialScope;
+    if (_hasValidInitialScopeViewport && initialScope != null) {
+      return _zoomForScope(initialScope);
     }
 
     return _defaultZoom;

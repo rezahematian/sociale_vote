@@ -94,7 +94,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
           child: Column(
             children: [
               _MapTopControls(
@@ -105,74 +105,105 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                   value,
                   controller: controller,
                 ),
+                isWorldScope: isWorldScope,
+                useGlobe: _useWorldGlobe,
+                onWorldModeChanged: _setWorldGlobeEnabled,
               ),
-              if (isWorldScope) ...[
-                const SizedBox(height: 10),
-                _WorldMapModeSelector(
-                  useGlobe: _useWorldGlobe,
-                  onChanged: _setWorldGlobeEnabled,
-                ),
-              ],
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 360),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  child: showWorldGlobe
-                      ? WorldGlobeWidget(
-                          key: const ValueKey<String>('civic-map-world-3d'),
-                          items: controller.visibleItems,
-                          onItemTap: controller.selectItem,
-                          onUseClassicMap: () => _setWorldGlobeEnabled(false),
-                          onZoomIntoClassicMap: _handleGlobeZoomIntoClassicMap,
-                          initialFocusLatitude: worldGlobeHandoff?.latitude,
-                          initialFocusLongitude: worldGlobeHandoff?.longitude,
-                          initialFocusZoom: worldGlobeHandoff?.globeZoom,
-                        )
-                      : CivicMapWidget(
-                          key: const ValueKey<String>('civic-map-classic-2d'),
-                          controller: controller,
-                          handoffLatitude: worldMapHandoff?.latitude,
-                          handoffLongitude: worldMapHandoff?.longitude,
-                          handoffZoom: worldMapHandoff?.mapZoom,
-                          onZoomOutToGlobe: isWorldScope
-                              ? _handleClassicMapZoomOutToGlobe
-                              : null,
-                        ),
-                ),
-              ),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
-                child: controller.selectedItem == null
-                    ? const SizedBox.shrink()
-                    : Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: _MarkerPreviewCard(
-                          key: ValueKey<String>(controller.selectedItem!.id),
-                          item: controller.selectedItem!,
-                          onClose: controller.clearSelection,
-                          onOpen: () => _openTarget(
-                            context,
-                            controller,
-                            controller.selectedItem!.targetRef,
+                child: Stack(
+                  fit: StackFit.expand,
+                  clipBehavior: Clip.none,
+                  children: [
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 360),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      child: showWorldGlobe
+                          ? WorldGlobeWidget(
+                              key: const ValueKey<String>(
+                                'civic-map-world-3d',
+                              ),
+                              items: controller.visibleItems,
+                              onItemTap: controller.selectItem,
+                              onUseClassicMap: () =>
+                                  _setWorldGlobeEnabled(false),
+                              onZoomIntoClassicMap:
+                                  _handleGlobeZoomIntoClassicMap,
+                              initialFocusLatitude: worldGlobeHandoff?.latitude,
+                              initialFocusLongitude:
+                                  worldGlobeHandoff?.longitude,
+                              initialFocusZoom: worldGlobeHandoff?.globeZoom,
+                            )
+                          : CivicMapWidget(
+                              key: const ValueKey<String>(
+                                'civic-map-classic-2d',
+                              ),
+                              controller: controller,
+                              handoffLatitude: worldMapHandoff?.latitude,
+                              handoffLongitude: worldMapHandoff?.longitude,
+                              handoffZoom: worldMapHandoff?.mapZoom,
+                              onZoomOutToGlobe: isWorldScope
+                                  ? _handleClassicMapZoomOutToGlobe
+                                  : null,
+                            ),
+                    ),
+                    if (controller.selectedItem == null &&
+                        (controller.hasData || controller.isEmpty))
+                      Positioned(
+                        left: 12,
+                        bottom: 12,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface
+                                .withValues(alpha: 0.90),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: theme.colorScheme.outlineVariant,
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 11,
+                              vertical: 7,
+                            ),
+                            child: Text(
+                              'Contenuti visibili: '
+                              '${controller.visibleItems.length}',
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-              ),
-              if (controller.hasData || controller.isEmpty) ...[
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Contenuti visibili: ${controller.visibleItems.length}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                    if (controller.selectedItem != null)
+                      Positioned(
+                        left: 12,
+                        right: 12,
+                        bottom: 12,
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 720),
+                            child: _MarkerPreviewCard(
+                              key: ValueKey<String>(
+                                controller.selectedItem!.id,
+                              ),
+                              item: controller.selectedItem!,
+                              onClose: controller.clearSelection,
+                              onOpen: () => _openTarget(
+                                context,
+                                controller,
+                                controller.selectedItem!.targetRef,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ],
+              ),
             ],
           ),
         ),
@@ -294,7 +325,13 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
         await AppDI.instance.setContentLanguagePreference(language.name);
       }
 
-      await controller.refresh();
+      final activeScope = controller.currentScope;
+      if (activeScope != null) {
+        await controller.loadForScope(
+          activeScope,
+          clearSelection: false,
+        );
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -631,6 +668,10 @@ class _WorldMapModeSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isItalian =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'it';
+    final mapLabel = isItalian ? 'Mappa 2D' : '2D Map';
+    final globeLabel = isItalian ? 'Globo 3D' : '3D Globe';
 
     return Align(
       alignment: Alignment.centerLeft,
@@ -648,14 +689,14 @@ class _WorldMapModeSelector extends StatelessWidget {
               _WorldMapModeButton(
                 selected: !useGlobe,
                 icon: Icons.map_outlined,
-                label: '2D Map',
+                label: mapLabel,
                 onTap: () => onChanged(false),
               ),
               const SizedBox(width: 4),
               _WorldMapModeButton(
                 selected: useGlobe,
                 icon: Icons.public,
-                label: '3D Globe',
+                label: globeLabel,
                 onTap: () => onChanged(true),
               ),
             ],
@@ -719,12 +760,18 @@ class _MapTopControls extends StatelessWidget {
   final NewsLanguage selectedLanguage;
   final bool languageSelectorEnabled;
   final ValueChanged<NewsLanguage> onLanguageChanged;
+  final bool isWorldScope;
+  final bool useGlobe;
+  final ValueChanged<bool> onWorldModeChanged;
 
   const _MapTopControls({
     required this.controller,
     required this.selectedLanguage,
     required this.languageSelectorEnabled,
     required this.onLanguageChanged,
+    required this.isWorldScope,
+    required this.useGlobe,
+    required this.onWorldModeChanged,
   });
 
   @override
@@ -732,13 +779,20 @@ class _MapTopControls extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final languageSelector = SizedBox(
-          width: 250,
+          width: constraints.maxWidth >= 1000 ? 220 : 250,
           child: _MapLanguageSelector(
             selectedLanguage: selectedLanguage,
             enabled: languageSelectorEnabled,
             onChanged: onLanguageChanged,
           ),
         );
+
+        final modeSelector = isWorldScope
+            ? _WorldMapModeSelector(
+                useGlobe: useGlobe,
+                onChanged: onWorldModeChanged,
+              )
+            : null;
 
         if (constraints.maxWidth >= 900) {
           return Row(
@@ -750,6 +804,10 @@ class _MapTopControls extends StatelessWidget {
                   child: _MapTypeFilters(controller: controller),
                 ),
               ),
+              if (modeSelector != null) ...[
+                const SizedBox(width: 12),
+                modeSelector,
+              ],
               const SizedBox(width: 12),
               languageSelector,
             ],
@@ -761,9 +819,14 @@ class _MapTopControls extends StatelessWidget {
           children: [
             _MapTypeFilters(controller: controller),
             const SizedBox(height: 10),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: languageSelector,
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (modeSelector != null) modeSelector,
+                languageSelector,
+              ],
             ),
           ],
         );

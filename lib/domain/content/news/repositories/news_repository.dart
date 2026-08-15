@@ -10,6 +10,8 @@ import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 /// Filtro opzionale:
 /// - [topic] → categoria news (world, nation, business, technology, ecc.)
 /// - [language] → override lingua news (it/en/es/fr/de/ar/fa). Se null → AUTO.
+/// - [allowProviderRefresh] → se false legge solo cache già disponibile e
+///   non chiama i provider esterni. Utile per selezioni lingua guest.
 ///
 /// Nota:
 /// - [getNewsFeed] resta il percorso del feed cronologico
@@ -23,6 +25,7 @@ abstract class NewsRepository {
     String? language,
     int? limit,
     int? offset,
+    bool allowProviderRefresh = true,
   });
 
   Future<List<NewsItem>> getTrendingCandidates({

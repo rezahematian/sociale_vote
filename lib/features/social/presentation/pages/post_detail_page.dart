@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 
@@ -160,26 +161,13 @@ class _PostDetailViewState extends State<_PostDetailView> {
   }
 
   Future<void> _onSharePressed(Post post) async {
-    final content = post.content.trim();
-    final preview = content.length > 220
-        ? '${content.substring(0, 220).trim()}...'
-        : content;
-
-    final buffer = StringBuffer()..writeln(post.title);
-
-    if (preview.isNotEmpty) {
-      buffer
-        ..writeln()
-        ..writeln(preview);
-    }
-
-    buffer
-      ..writeln()
-      ..writeln(AppLocalizations.of(context)!.postDetail_shareMessage);
+    final title = post.title.trim();
+    final url = AppRouter.publicPostUrl(post.id.value);
+    final shareText = title.isEmpty ? url : 'Social Vote — $title\n$url';
 
     try {
       await Share.share(
-        buffer.toString().trim(),
+        shareText,
         subject: post.title,
       );
     } catch (_) {
@@ -582,6 +570,22 @@ class _PostDetailViewState extends State<_PostDetailView> {
     return Scaffold(
       backgroundColor: pageBackground,
       appBar: AppBar(
+        leading: IconButton(
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            final navigator = Navigator.of(context);
+            if (navigator.canPop()) {
+              navigator.pop();
+              return;
+            }
+
+            navigator.pushNamedAndRemoveUntil(
+              AppRouter.home,
+              (route) => false,
+            );
+          },
+        ),
         title: Text(l10n.postDetail_title),
         actions: [
           Consumer<PostDetailController>(

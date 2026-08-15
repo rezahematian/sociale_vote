@@ -89,20 +89,26 @@ class NewsController extends ChangeNotifier {
   Future<void> setLanguage(NewsLanguage language, {String? userId}) async {
     final effectiveUserId = _resolveCurrentUserId(userId);
 
-    if (effectiveUserId == null) {
-      await _ensureLanguagePreferenceHydrated(isAuthenticated: false);
-      return;
-    }
-
     if (_selectedLanguage == language) return;
 
     _languagePreferenceVersion += 1;
-    _languagePreferenceHydrated = true;
     _restoreLanguagePreferenceFuture = null;
 
     _selectedLanguage = language;
     _errorMessage = null;
     _errorKind = null;
+
+    if (effectiveUserId == null) {
+      // Guest: la scelta resta valida solo per questa istanza/sessione.
+      // Non scriviamo preferenze account e, per una lingua esplicita,
+      // il caricamento sottostante verrà limitato alla cache esistente.
+      _languagePreferenceHydrated = false;
+      _safeNotifyListeners();
+      await loadNews();
+      return;
+    }
+
+    _languagePreferenceHydrated = true;
     _safeNotifyListeners();
 
     await _persistSelectedLanguage(language);
@@ -217,11 +223,14 @@ class NewsController extends ChangeNotifier {
     required bool isAuthenticated,
   }) {
     if (!isAuthenticated) {
-      final languageChanged = _selectedLanguage != NewsLanguage.auto;
+      // Se questa stessa istanza proveniva da un account autenticato,
+      // al logout torniamo ad AUTO. Una scelta fatta direttamente dal guest,
+      // invece, deve restare attiva per la sessione corrente.
+      final hadAuthenticatedPreferenceState = _languagePreferenceHydrated ||
+          _restoreLanguagePreferenceFuture != null;
 
-      if (_languagePreferenceHydrated ||
-          _restoreLanguagePreferenceFuture != null ||
-          languageChanged) {
+      if (hadAuthenticatedPreferenceState) {
+        final languageChanged = _selectedLanguage != NewsLanguage.auto;
         _languagePreferenceVersion += 1;
         _languagePreferenceHydrated = false;
         _restoreLanguagePreferenceFuture = null;
@@ -398,6 +407,10 @@ class NewsController extends ChangeNotifier {
   Future<void> _loadNextPage({required int requestId}) async {
     final scopeFilter = _currentScopeFilter();
 
+    final isGuest = _lastKnownUserId == null;
+    final allowProviderRefresh =
+        !isGuest || _selectedLanguage == NewsLanguage.auto;
+
     final sourceResult = await _getNewsFeed(
       countryCode: scopeFilter.countryCode,
       cityId: scopeFilter.cityId,
@@ -405,6 +418,7 @@ class NewsController extends ChangeNotifier {
       language: _effectiveLanguageApiValue(),
       limit: _pageSize,
       offset: _currentOffset,
+      allowProviderRefresh: allowProviderRefresh,
     );
 
     if (!_isRequestStillValid(requestId)) {

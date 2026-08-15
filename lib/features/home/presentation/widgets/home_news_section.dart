@@ -282,14 +282,15 @@ class _SecondaryNewsCarouselState extends State<_SecondaryNewsCarousel> {
 
     final dx = event.scrollDelta.dx;
     final dy = event.scrollDelta.dy;
-    final dominantDelta = dx.abs() > dy.abs() ? dx : dy;
 
-    if (dominantDelta.abs() < 1) {
+    // Vertical wheel movement belongs to the Home ListView. The news carousel
+    // only consumes an explicitly horizontal wheel/trackpad gesture.
+    if (dx.abs() <= dy.abs() || dx.abs() < 1) {
       return;
     }
 
     GestureBinding.instance.pointerSignalResolver.register(event, (_) {
-      _consumeWheelDelta(dominantDelta);
+      _consumeWheelDelta(dx);
     });
   }
 

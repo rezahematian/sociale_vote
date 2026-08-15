@@ -298,7 +298,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                             scopeLabel: scopeLabel,
                             scopeDescription: scopeDescription,
                             newsCount: 0,
-                            canChangeLanguage: currentUserId != null,
+                            canChangeLanguage: true,
                             selectedLanguage: controller.selectedLanguage,
                             onLanguageSelected: (lang) {
                               controller.setLanguage(lang,
@@ -339,7 +339,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                                 scopeLabel: scopeLabel,
                                 scopeDescription: scopeDescription,
                                 newsCount: allNews.length,
-                                canChangeLanguage: currentUserId != null,
+                                canChangeLanguage: true,
                                 selectedLanguage: controller.selectedLanguage,
                                 onLanguageSelected: (lang) {
                                   controller.setLanguage(
