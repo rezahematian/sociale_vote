@@ -4,7 +4,7 @@
       "android": {
         "default": {
           "projectId": "socialevote",
-          "appId": "1:726104051748:android:88148eb58403df7a4e08b1",
+          "appId": "1:726104051748:android:3314405fb76ede524e08b1",
           "fileOutput": "android/app/google-services.json"
         }
       },
@@ -12,7 +12,7 @@
         "lib/firebase_options.dart": {
           "projectId": "socialevote",
           "configurations": {
-            "android": "1:726104051748:android:88148eb58403df7a4e08b1",
+            "android": "1:726104051748:android:3314405fb76ede524e08b1",
             "ios": "1:726104051748:ios:16e4bb226807e8364e08b1",
             "macos": "1:726104051748:ios:bb7ced079814c2ea4e08b1",
             "web": "1:726104051748:web:1e4fff3999bf07484e08b1",

@@ -164,7 +164,7 @@ class _LegalDocument {
         title: '1. Gestore, contatti e accettazione',
         body: 'Social Vote è gestito da Reza Hematian. Il sito ufficiale è '
             'socialevote.com e il contatto per account, supporto e questioni '
-            'relative ai presenti Termini è socialvote@hotmail.com. Creando '
+            'relative ai presenti Termini è support@socialevote.com. Creando '
             'un account, l’utente conferma di avere almeno 18 anni, accetta '
             'questi Termini e conferma di aver letto l’Informativa sulla '
             'privacy. Chi non accetta i Termini non deve creare o usare un '
@@ -234,7 +234,7 @@ class _LegalDocument {
             'altre misure proporzionate per violazioni, abuso, sicurezza o '
             'obblighi di legge. Quando applicabile, il motivo della decisione '
             'viene reso disponibile. Per chiedere un riesame è possibile '
-            'scrivere a socialvote@hotmail.com indicando le informazioni '
+            'scrivere a support@socialevote.com indicando le informazioni '
             'necessarie a identificare account, contenuto e decisione.',
       ),
       _LegalSection(
@@ -279,7 +279,7 @@ class _LegalDocument {
         body: 'Si applica la legge italiana, fatti salvi i diritti '
             'inderogabili riconosciuti all’utente dalla normativa applicabile '
             'nel proprio Paese. Per richieste sui Termini, moderazione o '
-            'account è possibile scrivere a socialvote@hotmail.com. I Termini '
+            'account è possibile scrivere a support@socialevote.com. I Termini '
             'sono disponibili pubblicamente su socialevote.com/terms.',
       ),
     ],
@@ -294,7 +294,7 @@ class _LegalDocument {
         title: '1. Operator, contact and acceptance',
         body: 'Social Vote is operated by Reza Hematian. The official website '
             'is socialevote.com and the contact address for accounts, support '
-            'and these Terms is socialvote@hotmail.com. By creating an '
+            'and these Terms is support@socialevote.com. By creating an '
             'account, users confirm that they are at least 18 years old, '
             'accept these Terms and confirm that they have read the Privacy '
             'Policy. Anyone who does not accept the Terms must not create or '
@@ -361,7 +361,7 @@ class _LegalDocument {
             'or take other proportionate measures for violations, abuse, '
             'security or legal obligations. Where applicable, reasons for a '
             'decision are made available. A review may be requested by '
-            'emailing socialvote@hotmail.com with enough information to '
+            'emailing support@socialevote.com with enough information to '
             'identify the account, content and decision.',
       ),
       _LegalSection(
@@ -403,7 +403,7 @@ class _LegalDocument {
         body: 'Italian law applies, without prejudice to mandatory rights '
             'available to users under the law applicable in their country. '
             'Questions about these Terms, moderation or accounts can be sent '
-            'to socialvote@hotmail.com. The Terms are publicly available at '
+            'to support@socialevote.com. The Terms are publicly available at '
             'socialevote.com/terms.',
       ),
     ],
@@ -418,7 +418,7 @@ class _LegalDocument {
         title: '1. Titolare e contatti',
         body: 'Il titolare del trattamento di Social Vote è Reza Hematian. '
             'Per richieste privacy e per esercitare i diritti previsti dalla '
-            'normativa è possibile scrivere a socialvote@hotmail.com. Il sito '
+            'normativa è possibile scrivere a support@socialevote.com. Il sito '
             'ufficiale è socialevote.com.',
       ),
       _LegalSection(
@@ -534,7 +534,7 @@ class _LegalDocument {
             'rettifica, cancellazione, limitazione, opposizione e portabilità '
             'dei propri dati, nonché revocare un consenso quando il trattamento '
             'si basa sul consenso. Le richieste possono essere inviate a '
-            'socialvote@hotmail.com. Può essere richiesta una verifica '
+            'support@socialevote.com. Può essere richiesta una verifica '
             'ragionevole dell’identità. L’utente può inoltre proporre reclamo '
             'al Garante per la protezione dei dati personali o all’autorità di '
             'controllo competente.',
@@ -567,7 +567,7 @@ class _LegalDocument {
         title: '1. Controller and contact details',
         body: 'The controller for Social Vote is Reza Hematian. Privacy '
             'requests and data-subject rights may be sent to '
-            'socialvote@hotmail.com. The official website is socialevote.com.',
+            'support@socialevote.com. The official website is socialevote.com.',
       ),
       _LegalSection(
         title: '2. Data processed',
@@ -677,7 +677,7 @@ class _LegalDocument {
         body: 'Where provided by law, users may request access, correction, '
             'erasure, restriction, objection and portability, and may '
             'withdraw consent where processing is based on consent. Requests '
-            'may be sent to socialvote@hotmail.com. Reasonable identity '
+            'may be sent to support@socialevote.com. Reasonable identity '
             'verification may be requested. Users may also lodge a complaint '
             'with the Italian Data Protection Authority or another competent '
             'supervisory authority.',

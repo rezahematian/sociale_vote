@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.hematianapps.socialvote",
+      "sha256_cert_fingerprints": [
+        "12:76:E3:95:51:AC:A8:10:BC:92:F9:8A:A4:43:E4:F2:7F:F9:79:63:38:60:FE:5E:D3:D0:5F:C5:0E:28:EB:52"
+      ]
+    }
+  }
+]
