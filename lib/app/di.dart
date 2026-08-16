@@ -170,6 +170,7 @@ class UserRepositoryImpl implements UserRepository {
     required String password,
     required String displayName,
     required String username,
+    required String language,
     required String country,
     required String city,
   }) {
@@ -178,6 +179,7 @@ class UserRepositoryImpl implements UserRepository {
       password: password,
       displayName: displayName,
       username: username,
+      language: language,
       country: country,
       city: city,
     );
@@ -234,6 +236,7 @@ class AppDI {
   static const int _pollMapBatchSize = 120;
   static const int _postMapBatchSize = 120;
   static const int _newsMapBatchSize = 80;
+  static const int _homeMapBatchSize = 12;
   static const Duration _mapEngagementCacheTtl = Duration(seconds: 20);
 
   final GeoScopeController _geoScopeController = GeoScopeController();
@@ -1007,12 +1010,35 @@ class AppDI {
     );
   }
 
-  CivicMapController createCivicMapController() {
+  CivicMapController createCivicMapController({bool homePreview = false}) {
+    if (!homePreview) {
+      return CivicMapController(
+        loadPollItems: _loadPollMapItemsForScope,
+        loadPostItems: _loadPostMapItemsForScope,
+        loadNewsItems: _loadNewsMapItemsForScope,
+        beforeRefresh: _refreshNewsCacheForMapScope,
+      );
+    }
+
+    // Home needs only a handful of representative markers. Do not perform
+    // the full Civic Map load (up to 320 entities + engagement metrics) while
+    // the first screen and native globe are becoming interactive.
     return CivicMapController(
-      loadPollItems: _loadPollMapItemsForScope,
-      loadPostItems: _loadPostMapItemsForScope,
-      loadNewsItems: _loadNewsMapItemsForScope,
-      beforeRefresh: _refreshNewsCacheForMapScope,
+      loadPollItems: (scope) => _loadPollMapItemsForScope(
+        scope,
+        batchSize: _homeMapBatchSize,
+        includeEngagement: false,
+      ),
+      loadPostItems: (scope) => _loadPostMapItemsForScope(
+        scope,
+        batchSize: _homeMapBatchSize,
+        includeEngagement: false,
+      ),
+      loadNewsItems: (scope) => _loadNewsMapItemsForScope(
+        scope,
+        batchSize: _homeMapBatchSize,
+        includeEngagement: false,
+      ),
     );
   }
 
@@ -1148,17 +1174,23 @@ class AppDI {
     ]);
   }
 
-  Future<List<Poll>> _loadPollsForMapScope(GeoScope scope) async {
+  Future<List<Poll>> _loadPollsForMapScope(
+    GeoScope scope, {
+    int batchSize = _pollMapBatchSize,
+  }) async {
     final polls = await _loadEntitiesForMapScope<Poll>(
       scope: scope,
       useCase: getPolls,
-      batchSize: _pollMapBatchSize,
+      batchSize: batchSize,
     );
 
     return _filterEntitiesForGeoScope(polls, scope);
   }
 
-  Future<List<NewsItem>> _loadNewsForMapScope(GeoScope scope) async {
+  Future<List<NewsItem>> _loadNewsForMapScope(
+    GeoScope scope, {
+    int batchSize = _newsMapBatchSize,
+  }) async {
     final levelName = _readScopeLevelName(scope);
     final countryCode = _readScopeCountryCode(scope);
     final cityId = _readScopeCityId(scope);
@@ -1169,7 +1201,7 @@ class AppDI {
         countryCode: null,
         cityId: null,
         language: language,
-        limit: _newsMapBatchSize,
+        limit: batchSize,
       );
       return _filterEntitiesForGeoScope(news, scope);
     }
@@ -1183,7 +1215,7 @@ class AppDI {
         countryCode: countryCode,
         cityId: null,
         language: language,
-        limit: _newsMapBatchSize,
+        limit: batchSize,
       );
 
       return _filterEntitiesForGeoScope(news, scope);
@@ -1198,7 +1230,7 @@ class AppDI {
         countryCode: countryCode,
         cityId: cityId,
         language: language,
-        limit: _newsMapBatchSize,
+        limit: batchSize,
       );
 
       return _filterEntitiesForGeoScope(news, scope);
@@ -1210,7 +1242,7 @@ class AppDI {
           countryCode: countryCode,
           cityId: cityId,
           language: language,
-          limit: _newsMapBatchSize,
+          limit: batchSize,
         );
 
         return _filterEntitiesForGeoScope(byCity, scope);
@@ -1221,7 +1253,7 @@ class AppDI {
           countryCode: countryCode,
           cityId: null,
           language: language,
-          limit: _newsMapBatchSize,
+          limit: batchSize,
         );
 
         return _filterEntitiesForGeoScope(byCountry, scope);
@@ -1231,7 +1263,7 @@ class AppDI {
         countryCode: null,
         cityId: null,
         language: language,
-        limit: _newsMapBatchSize,
+        limit: batchSize,
       );
 
       return _filterEntitiesForGeoScope(worldFallback, scope);
@@ -1241,7 +1273,7 @@ class AppDI {
       countryCode: null,
       cityId: null,
       language: language,
-      limit: _newsMapBatchSize,
+      limit: batchSize,
     );
 
     return _filterEntitiesForGeoScope(fallback, scope);
@@ -1343,11 +1375,14 @@ class AppDI {
         .toList(growable: false);
   }
 
-  Future<List<Post>> _loadPostsForMapScope(GeoScope scope) async {
+  Future<List<Post>> _loadPostsForMapScope(
+    GeoScope scope, {
+    int batchSize = _postMapBatchSize,
+  }) async {
     final posts = await _loadEntitiesForMapScope<Post>(
       scope: scope,
       useCase: getFeed,
-      batchSize: _postMapBatchSize,
+      batchSize: batchSize,
     );
 
     return _filterEntitiesForGeoScope(posts, scope);
@@ -1621,33 +1656,48 @@ class AppDI {
     return trimmed;
   }
 
-  Future<List<CivicMapItem>> _loadPollMapItemsForScope(GeoScope scope) async {
-    final polls = await _loadPollsForMapScope(scope);
+  Future<List<CivicMapItem>> _loadPollMapItemsForScope(
+    GeoScope scope, {
+    int batchSize = _pollMapBatchSize,
+    bool includeEngagement = true,
+  }) async {
+    final polls = await _loadPollsForMapScope(scope, batchSize: batchSize);
     return _buildMapItemsFromEntities<Poll>(
       entities: polls,
       scope: scope,
       type: CivicMapItemType.poll,
       readTargetRef: _readPollTargetRef,
+      includeEngagement: includeEngagement,
     );
   }
 
-  Future<List<CivicMapItem>> _loadPostMapItemsForScope(GeoScope scope) async {
-    final posts = await _loadPostsForMapScope(scope);
+  Future<List<CivicMapItem>> _loadPostMapItemsForScope(
+    GeoScope scope, {
+    int batchSize = _postMapBatchSize,
+    bool includeEngagement = true,
+  }) async {
+    final posts = await _loadPostsForMapScope(scope, batchSize: batchSize);
     return _buildMapItemsFromEntities<Post>(
       entities: posts,
       scope: scope,
       type: CivicMapItemType.post,
       readTargetRef: _readPostTargetRef,
+      includeEngagement: includeEngagement,
     );
   }
 
-  Future<List<CivicMapItem>> _loadNewsMapItemsForScope(GeoScope scope) async {
-    final news = await _loadNewsForMapScope(scope);
+  Future<List<CivicMapItem>> _loadNewsMapItemsForScope(
+    GeoScope scope, {
+    int batchSize = _newsMapBatchSize,
+    bool includeEngagement = true,
+  }) async {
+    final news = await _loadNewsForMapScope(scope, batchSize: batchSize);
     return _buildMapItemsFromEntities<NewsItem>(
       entities: news,
       scope: scope,
       type: CivicMapItemType.news,
       readTargetRef: _readNewsTargetRef,
+      includeEngagement: includeEngagement,
     );
   }
 
@@ -1656,11 +1706,13 @@ class AppDI {
     required GeoScope scope,
     required CivicMapItemType type,
     required TargetRef Function(T entity) readTargetRef,
+    bool includeEngagement = true,
   }) async {
     final targetRefs = entities.map(readTargetRef).toList(growable: false);
 
-    final engagementByTargetKey =
-        await _loadEngagementSnapshotsForTargets(targetRefs);
+    final engagementByTargetKey = includeEngagement
+        ? await _loadEngagementSnapshotsForTargets(targetRefs)
+        : const <String, _TargetEngagementSnapshot>{};
 
     final List<CivicMapItem> items = <CivicMapItem>[];
 

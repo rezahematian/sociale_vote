@@ -47,12 +47,15 @@ class AuthApi {
     required String password,
     required String displayName,
     required String username,
+    required String language,
     required String country,
     required String city,
   }) async {
     final normalizedEmail = email.trim();
     final normalizedDisplayName = displayName.trim();
     final normalizedUsername = _normalizeUsername(username);
+    final normalizedLanguage =
+        language.trim().toLowerCase() == 'it' ? 'it' : 'en';
     final normalizedCountry = country.trim();
     final normalizedCity = city.trim();
 
@@ -62,6 +65,7 @@ class AuthApi {
       data: <String, dynamic>{
         'display_name': normalizedDisplayName,
         'username': normalizedUsername,
+        'language': normalizedLanguage,
         'country': normalizedCountry,
         'city': normalizedCity,
       },

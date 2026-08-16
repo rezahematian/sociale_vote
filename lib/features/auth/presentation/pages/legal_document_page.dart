@@ -156,566 +156,547 @@ class _LegalDocument {
   }
 
   static const _LegalDocument _termsItalian = _LegalDocument(
-    notice: 'TERMINI PRE-RELEASE — aggiornati il 3 agosto 2026. Il gestore, '
-        'il contatto ufficiale, l’età minima e la legge applicabile sono '
-        'definiti. Prima della pubblicazione resta necessaria una revisione '
-        'professionale e, se richiesto, la definizione di un recapito '
-        'professionale e della procedura formale di ricorso.',
+    notice: 'Versione aggiornata al 16 agosto 2026. Sito ufficiale: '
+        'socialevote.com. Social Vote è destinato esclusivamente a persone '
+        'di almeno 18 anni.',
     sections: [
       _LegalSection(
-        title: '1. Gestore e accettazione',
-        body: 'Social Vote è gestito da Reza Hematian, contattabile a '
-            'socialvote@hotmail.com. Creando un account o usando le funzioni '
-            'autenticate, l’utente dichiara di aver letto e accettato questi '
-            'Termini e l’Informativa sulla privacy. Se non li accetta, non '
-            'deve creare un account o usare tali funzioni.',
+        title: '1. Gestore, contatti e accettazione',
+        body: 'Social Vote è gestito da Reza Hematian. Il sito ufficiale è '
+            'socialevote.com e il contatto per account, supporto e questioni '
+            'relative ai presenti Termini è socialvote@hotmail.com. Creando '
+            'un account, l’utente conferma di avere almeno 18 anni, accetta '
+            'questi Termini e conferma di aver letto l’Informativa sulla '
+            'privacy. Chi non accetta i Termini non deve creare o usare un '
+            'account.',
       ),
       _LegalSection(
-        title: '2. Servizio e stato pre-release',
-        body: 'Social Vote è una piattaforma civica e sociale che permette di '
-            'creare e partecipare a sondaggi, pubblicare contenuti, '
-            'commentare, reagire, usare funzioni geografiche e consultare '
-            'notizie. Il servizio è in fase pre-release: funzioni, limiti e '
-            'disponibilità possono cambiare per sicurezza, conformità o '
-            'miglioramento del prodotto.',
+        title: '2. Il servizio',
+        body: 'Social Vote è una piattaforma civica e sociale che consente di '
+            'consultare contenuti pubblici, partecipare a sondaggi, pubblicare '
+            'post e commenti, usare reazioni e preferiti, consultare News e '
+            'utilizzare funzioni geografiche e Civic Map. Alcune funzioni '
+            'richiedono autenticazione o un livello di verifica specifico. '
+            'Il servizio può essere modificato, sospeso o aggiornato per '
+            'sicurezza, conformità, manutenzione o miglioramento del prodotto.',
       ),
       _LegalSection(
-        title: '3. Età minima e account',
-        body: 'Per creare un account è necessario avere almeno 14 anni. Se la '
-            'legge applicabile richiede un’età superiore o l’autorizzazione '
-            'di chi esercita la responsabilità genitoriale, si applica tale '
-            'requisito. L’utente deve fornire informazioni corrette, '
-            'proteggere le credenziali e usare un solo account, salvo account '
-            'istituzionali o organizzativi espressamente autorizzati. Non è '
-            'consentito cedere, vendere o condividere l’account.',
+        title: '3. Età, account e credenziali',
+        body: 'Per creare un account è necessario avere almeno 18 anni. '
+            'L’utente deve fornire informazioni corrette, proteggere le '
+            'credenziali e non consentire a terzi di usare il proprio account. '
+            'Social Vote può applicare controlli contro abuso, account '
+            'multipli, email temporanee, riuso abusivo di credenziali o altre '
+            'condotte incompatibili con la sicurezza del servizio. Il nome '
+            'utente iniziale può essere generato automaticamente dal sistema e '
+            'può essere modificato in seguito secondo le regole disponibili '
+            'nel profilo.',
       ),
       _LegalSection(
         title: '4. Regole di comportamento',
-        body: 'Sono vietati contenuti o attività illegali, ingannevoli, '
-            'minacciosi, discriminatori, molesti o abusivi; sfruttamento di '
-            'minori; spam; impersonificazione; manipolazione di voti o '
-            'segnalazioni; accessi non autorizzati; diffusione illecita di '
-            'dati personali; e violazioni di copyright o altri diritti di '
-            'terzi. L’utente resta responsabile dei contenuti e delle azioni '
-            'eseguite con il proprio account.',
+        body: 'Sono vietati contenuti o attività illegali, fraudolenti, '
+            'ingannevoli, minacciosi, discriminatori, molesti o abusivi; '
+            'impersonificazione; spam; manipolazione di voti, segnalazioni o '
+            'sistemi di verifica; accessi non autorizzati; diffusione illecita '
+            'di dati personali; sfruttamento di minori; e violazioni di '
+            'copyright o di altri diritti di terzi. È inoltre vietato tentare '
+            'di aggirare limitazioni tecniche, controlli di sicurezza o regole '
+            'di partecipazione.',
       ),
       _LegalSection(
         title: '5. Contenuti dell’utente',
         body: 'L’utente conserva i diritti sui contenuti che pubblica e '
-            'conferma di avere le autorizzazioni necessarie. Con la '
-            'pubblicazione concede a Social Vote una licenza non esclusiva e '
-            'limitata a conservare, riprodurre, adattare tecnicamente, '
-            'mostrare e distribuire il contenuto nella piattaforma, nonché a '
-            'moderarlo per fornire e proteggere il servizio. La licenza cessa '
-            'quando il contenuto viene eliminato, salvo copie tecniche o dati '
-            'minimizzati conservati lecitamente come descritto '
-            'nell’Informativa sulla privacy.',
+            'dichiara di avere i diritti e le autorizzazioni necessari. Con la '
+            'pubblicazione concede a Social Vote una licenza non esclusiva, '
+            'limitata a quanto necessario per ospitare, riprodurre, adattare '
+            'tecnicamente, mostrare, distribuire e moderare il contenuto '
+            'all’interno del servizio. La gestione dei dati dopo la '
+            'cancellazione è descritta nell’Informativa sulla privacy.',
       ),
       _LegalSection(
-        title: '6. Sondaggi, News e posizione',
-        body: 'I sondaggi non sono elezioni ufficiali, referendum legalmente '
+        title: '6. Sondaggi, voti, News e posizione',
+        body: 'Salvo indicazione espressa e verificabile, i sondaggi di Social '
+            'Vote non sono elezioni ufficiali, referendum legalmente '
             'vincolanti, rilevazioni statisticamente rappresentative o '
-            'consulenza professionale, salvo indicazione espressa e '
-            'verificabile. Le News provengono da fonti esterne: titoli, '
-            'contenuti, disponibilità e accuratezza restano responsabilità '
-            'delle rispettive fonti. Le funzioni di posizione sono '
-            'facoltative e l’utente deve evitare di pubblicare luoghi o dati '
-            'che espongano sé stesso o terzi a rischi.',
+            'consulenza professionale. Le regole di partecipazione e '
+            'visibilità possono variare da sondaggio a sondaggio. Le News '
+            'provengono da fonti esterne e possono essere soggette a ritardi, '
+            'modifiche o indisponibilità. Le funzioni di posizione sono '
+            'facoltative e devono essere usate senza esporre indebitamente '
+            'dati personali propri o di terzi.',
       ),
       _LegalSection(
-        title: '7. Segnalazioni e moderazione',
-        body: 'Utenti e contenuti possono essere segnalati. Moderatori e '
-            'amministratori autorizzati possono esaminare segnalazioni, '
-            'limitare o ripristinare contenuti, sospendere o riattivare '
-            'account, revocare sessioni o adottare altre misure proporzionate '
-            'per violazioni, abuso, sicurezza o obblighi di legge. Quando '
-            'possibile, il motivo della decisione viene comunicato. L’utente '
-            'può chiederne il riesame scrivendo a socialvote@hotmail.com con '
-            'le informazioni necessarie a identificare account e decisione.',
+        title: '7. Segnalazioni, moderazione e riesame',
+        body: 'Contenuti e account possono essere segnalati. Moderatori e '
+            'amministratori autorizzati possono esaminare le segnalazioni e, '
+            'quando necessario, nascondere o ripristinare contenuti, '
+            'sospendere o riattivare account, revocare sessioni o adottare '
+            'altre misure proporzionate per violazioni, abuso, sicurezza o '
+            'obblighi di legge. Quando applicabile, il motivo della decisione '
+            'viene reso disponibile. Per chiedere un riesame è possibile '
+            'scrivere a socialvote@hotmail.com indicando le informazioni '
+            'necessarie a identificare account, contenuto e decisione.',
       ),
       _LegalSection(
-        title: '8. Cancellazione e cessazione',
-        body: 'L’utente può eliminare definitivamente il proprio account '
-            'dall’app mediante conferma forte. Gli effetti della '
-            'cancellazione e gli eventuali dati minimizzati conservati '
-            'lecitamente sono descritti nell’Informativa sulla privacy. '
-            'Social Vote può limitare o chiudere un account in caso di '
-            'violazioni gravi o ripetute, per rischio di sicurezza, obbligo '
-            'legale o impossibilità di continuare a fornire il servizio.',
+        title: '8. Cancellazione dell’account e cessazione',
+        body: 'L’utente può chiedere la cancellazione dell’account dall’app '
+            'mediante la procedura prevista oppure tramite la pagina pubblica '
+            'di cancellazione disponibile sul sito ufficiale. Gli effetti '
+            'della cancellazione sui diversi tipi di dati sono descritti '
+            'nell’Informativa sulla privacy. Social Vote può limitare o '
+            'chiudere un account per violazioni gravi o ripetute, rischio di '
+            'sicurezza, obbligo legale o impossibilità di continuare a fornire '
+            'il servizio.',
       ),
       _LegalSection(
-        title: '9. Proprietà intellettuale',
+        title: '9. Proprietà intellettuale e contenuti di terzi',
         body: 'Il software, il nome, la grafica e gli elementi originali di '
             'Social Vote sono protetti dalle norme applicabili. Marchi, News '
-            'e contenuti di terzi appartengono ai rispettivi titolari. Questi '
-            'Termini non trasferiscono all’utente diritti sul servizio o sui '
-            'contenuti di terzi oltre a quanto necessario per il normale '
-            'utilizzo dell’app.',
+            'e altri contenuti di terzi appartengono ai rispettivi titolari. '
+            'Questi Termini non trasferiscono diritti ulteriori rispetto a '
+            'quelli necessari per il normale uso del servizio.',
       ),
       _LegalSection(
         title: '10. Disponibilità e responsabilità',
         body: 'Social Vote adotta misure ragionevoli per sicurezza e '
-            'continuità, ma non garantisce un servizio ininterrotto o privo di '
-            'errori, né l’accuratezza dei contenuti pubblicati dagli utenti o '
-            'da fonti esterne. Nulla in questi Termini limita i diritti del '
-            'consumatore o le responsabilità che non possono essere escluse '
-            'dalla legge applicabile.',
+            'continuità, ma non garantisce che il servizio sia sempre '
+            'disponibile, privo di errori o che i contenuti pubblicati da '
+            'utenti o fonti esterne siano completi o accurati. Nulla nei '
+            'presenti Termini limita diritti dei consumatori o responsabilità '
+            'che non possono essere escluse dalla legge applicabile.',
       ),
       _LegalSection(
         title: '11. Modifiche ai Termini',
         body: 'I Termini possono essere aggiornati per modifiche del servizio, '
             'sicurezza, legge o conformità. Le modifiche sostanziali saranno '
-            'comunicate nell’app o tramite un canale appropriato prima della '
-            'loro efficacia, quando richiesto. Se è necessario un nuovo '
-            'consenso, l’utente dovrà accettare la versione aggiornata per '
-            'continuare a usare le funzioni interessate.',
+            'comunicate con un mezzo appropriato quando richiesto. Se una '
+            'modifica richiede una nuova accettazione, l’utente dovrà '
+            'accettare la versione aggiornata prima di continuare a usare le '
+            'funzioni interessate.',
       ),
       _LegalSection(
         title: '12. Legge applicabile e contatti',
         body: 'Si applica la legge italiana, fatti salvi i diritti '
-            'inderogabili riconosciuti al consumatore dalla legge del Paese '
-            'in cui risiede. Foro e strumenti di risoluzione delle '
-            'controversie sono quelli previsti dalle norme inderogabili '
-            'applicabili. Per richieste sui Termini, moderazione o account è '
-            'possibile scrivere a socialvote@hotmail.com.',
+            'inderogabili riconosciuti all’utente dalla normativa applicabile '
+            'nel proprio Paese. Per richieste sui Termini, moderazione o '
+            'account è possibile scrivere a socialvote@hotmail.com. I Termini '
+            'sono disponibili pubblicamente su socialevote.com/terms.',
       ),
     ],
   );
 
   static const _LegalDocument _termsEnglish = _LegalDocument(
-    notice: 'PRE-RELEASE TERMS — updated on 3 August 2026. The operator, '
-        'official contact, minimum age and applicable law have been defined. '
-        'Professional review is still required before publication, together '
-        'with a professional postal contact and formal appeal procedure if '
-        'required.',
+    notice: 'Version updated on 16 August 2026. Official website: '
+        'socialevote.com. Social Vote is intended only for people aged 18 or '
+        'older.',
     sections: [
       _LegalSection(
-        title: '1. Operator and acceptance',
-        body: 'Social Vote is operated by Reza Hematian, who can be contacted '
-            'at socialvote@hotmail.com. By creating an account or using '
-            'authenticated features, users confirm that they have read and '
-            'accepted these Terms and the Privacy Notice. Users who do not '
-            'accept them must not create an account or use those features.',
+        title: '1. Operator, contact and acceptance',
+        body: 'Social Vote is operated by Reza Hematian. The official website '
+            'is socialevote.com and the contact address for accounts, support '
+            'and these Terms is socialvote@hotmail.com. By creating an '
+            'account, users confirm that they are at least 18 years old, '
+            'accept these Terms and confirm that they have read the Privacy '
+            'Policy. Anyone who does not accept the Terms must not create or '
+            'use an account.',
       ),
       _LegalSection(
-        title: '2. Service and pre-release status',
-        body: 'Social Vote is a civic and social platform for creating and '
-            'participating in polls, publishing content, commenting, '
-            'reacting, using geographic features and reading News. The '
-            'service is in pre-release: features, limits and availability may '
-            'change for security, compliance or product improvement.',
+        title: '2. The service',
+        body: 'Social Vote is a civic and social platform that allows people '
+            'to read public content, participate in polls, publish posts and '
+            'comments, use reactions and favourites, read News and use '
+            'geographic features and Civic Map. Some features require '
+            'authentication or a specific verification level. The service '
+            'may be changed, suspended or updated for security, compliance, '
+            'maintenance or product improvement.',
       ),
       _LegalSection(
-        title: '3. Minimum age and accounts',
-        body: 'A user must be at least 14 years old to create an account. If '
-            'applicable law requires a higher age or authorisation from a '
-            'holder of parental responsibility, that requirement applies. '
-            'Users must provide accurate information, protect their '
-            'credentials and use one account, except for expressly authorised '
-            'institutional or organisational accounts. Accounts must not be '
-            'transferred, sold or shared.',
+        title: '3. Age, accounts and credentials',
+        body: 'Users must be at least 18 years old to create an account. Users '
+            'must provide accurate information, protect their credentials and '
+            'must not allow others to use their account. Social Vote may apply '
+            'controls against abuse, multiple accounts, disposable email '
+            'addresses, abusive credential reuse or other conduct that '
+            'conflicts with service security. The initial username may be '
+            'generated automatically by the system and may later be changed '
+            'subject to the profile rules available at that time.',
       ),
       _LegalSection(
         title: '4. Rules of conduct',
-        body: 'Illegal, deceptive, threatening, discriminatory, harassing or '
-            'abusive content or activity is prohibited, as are child '
-            'exploitation, spam, impersonation, manipulation of votes or '
-            'reports, unauthorised access, unlawful disclosure of personal '
-            'data and infringement of copyright or other third-party rights. '
-            'Users remain responsible for content and actions performed '
-            'through their account.',
+        body: 'Illegal, fraudulent, deceptive, threatening, discriminatory, '
+            'harassing or abusive content or activity is prohibited, as are '
+            'impersonation, spam, manipulation of votes, reports or '
+            'verification systems, unauthorised access, unlawful disclosure '
+            'of personal data, child exploitation and infringement of '
+            'copyright or other third-party rights. Attempts to bypass '
+            'technical restrictions, security controls or participation rules '
+            'are also prohibited.',
       ),
       _LegalSection(
         title: '5. User content',
         body: 'Users retain rights in the content they publish and confirm '
-            'that they have the required permissions. By publishing, users '
-            'grant Social Vote a non-exclusive licence limited to storing, '
-            'reproducing, technically adapting, displaying and distributing '
-            'the content within the platform, and moderating it to provide '
-            'and protect the service. The licence ends when the content is '
-            'deleted, except for technical copies or minimised data lawfully '
-            'retained as described in the Privacy Notice.',
+            'that they have the rights and permissions required to do so. By '
+            'publishing, users grant Social Vote a non-exclusive licence '
+            'limited to what is necessary to host, reproduce, technically '
+            'adapt, display, distribute and moderate the content within the '
+            'service. Data handling after account deletion is described in '
+            'the Privacy Policy.',
       ),
       _LegalSection(
-        title: '6. Polls, News and location',
-        body: 'Polls are not official elections, legally binding referendums, '
-            'statistically representative surveys or professional advice '
-            'unless expressly and verifiably stated. News comes from external '
-            'sources; titles, content, availability and accuracy remain the '
-            'responsibility of the relevant source. Location features are '
-            'optional, and users must avoid publishing places or data that '
-            'could expose themselves or others to risk.',
+        title: '6. Polls, votes, News and location',
+        body: 'Unless expressly and verifiably stated otherwise, Social Vote '
+            'polls are not official elections, legally binding referendums, '
+            'statistically representative surveys or professional advice. '
+            'Participation and visibility rules may vary between polls. News '
+            'comes from external sources and may be delayed, changed or '
+            'unavailable. Location features are optional and must be used '
+            'without unnecessarily exposing personal data belonging to the '
+            'user or third parties.',
       ),
       _LegalSection(
-        title: '7. Reports and moderation',
-        body: 'Users and content may be reported. Authorised moderators and '
-            'administrators may review reports, restrict or restore content, '
-            'suspend or reactivate accounts, revoke sessions or take other '
-            'proportionate measures for violations, abuse, security or legal '
-            'obligations. Where possible, reasons for a decision are '
-            'communicated. Users may request review by emailing '
-            'socialvote@hotmail.com with the information needed to identify '
-            'the account and decision.',
+        title: '7. Reports, moderation and review',
+        body: 'Content and accounts may be reported. Authorised moderators '
+            'and administrators may review reports and, where needed, hide or '
+            'restore content, suspend or reactivate accounts, revoke sessions '
+            'or take other proportionate measures for violations, abuse, '
+            'security or legal obligations. Where applicable, reasons for a '
+            'decision are made available. A review may be requested by '
+            'emailing socialvote@hotmail.com with enough information to '
+            'identify the account, content and decision.',
       ),
       _LegalSection(
-        title: '8. Deletion and termination',
-        body: 'Users can permanently delete their account in the app using '
-            'strong confirmation. The effects of deletion and any minimised '
-            'data lawfully retained are explained in the Privacy Notice. '
-            'Social Vote may restrict or close an account for serious or '
-            'repeated violations, security risk, legal obligation or an '
-            'inability to continue providing the service.',
+        title: '8. Account deletion and termination',
+        body: 'Users may request account deletion through the in-app procedure '
+            'or the public deletion page on the official website. The effects '
+            'of deletion on different categories of data are described in the '
+            'Privacy Policy. Social Vote may restrict or close an account for '
+            'serious or repeated violations, security risk, legal obligation '
+            'or an inability to continue providing the service.',
       ),
       _LegalSection(
-        title: '9. Intellectual property',
+        title: '9. Intellectual property and third-party content',
         body: 'The software, name, graphics and original elements of Social '
             'Vote are protected by applicable law. Third-party trademarks, '
-            'News and content belong to their respective owners. These Terms '
-            'do not transfer rights in the service or third-party content '
-            'beyond what is needed for normal use of the app.',
+            'News and other content belong to their respective owners. These '
+            'Terms do not transfer rights beyond those needed for normal use '
+            'of the service.',
       ),
       _LegalSection(
         title: '10. Availability and liability',
         body: 'Social Vote takes reasonable measures for security and '
-            'continuity but does not guarantee uninterrupted or error-free '
-            'operation or the accuracy of content published by users or '
-            'external sources. Nothing in these Terms limits consumer rights '
-            'or liability that cannot be excluded under applicable law.',
+            'continuity but does not guarantee that the service will always be '
+            'available or error-free, or that content published by users or '
+            'external sources will be complete or accurate. Nothing in these '
+            'Terms limits consumer rights or liability that cannot be excluded '
+            'under applicable law.',
       ),
       _LegalSection(
         title: '11. Changes to the Terms',
         body: 'The Terms may be updated for service changes, security, law or '
-            'compliance. Material changes will be communicated in the app or '
-            'through an appropriate channel before taking effect where '
-            'required. If renewed acceptance is necessary, users must accept '
-            'the updated version to continue using the affected features.',
+            'compliance. Material changes will be communicated through an '
+            'appropriate channel where required. If a change requires renewed '
+            'acceptance, users must accept the updated version before '
+            'continuing to use the affected features.',
       ),
       _LegalSection(
         title: '12. Applicable law and contact',
-        body: 'Italian law applies, without prejudice to mandatory consumer '
-            'rights under the law of the user’s country of residence. Courts '
-            'and dispute-resolution mechanisms are those provided by '
-            'applicable mandatory rules. Questions about these Terms, '
-            'moderation or accounts can be sent to '
-            'socialvote@hotmail.com.',
+        body: 'Italian law applies, without prejudice to mandatory rights '
+            'available to users under the law applicable in their country. '
+            'Questions about these Terms, moderation or accounts can be sent '
+            'to socialvote@hotmail.com. The Terms are publicly available at '
+            'socialevote.com/terms.',
       ),
     ],
   );
 
   static const _LegalDocument _privacyItalian = _LegalDocument(
-    notice: 'INFORMATIVA PRE-RELEASE — aggiornata il 5 agosto 2026. I dati '
-        'del titolare, il contatto privacy e l’età minima sono definiti. '
-        'Prima della pubblicazione devono essere completate la gestione dei '
-        'dati particolari eventualmente rivelati da voti e contenuti e la '
-        'verifica dei tempi di conservazione e dei trasferimenti '
-        'internazionali.',
+    notice: 'Informativa aggiornata al 16 agosto 2026. Sito ufficiale: '
+        'socialevote.com. Social Vote è destinato esclusivamente a persone '
+        'di almeno 18 anni.',
     sections: [
       _LegalSection(
         title: '1. Titolare e contatti',
-        body: 'Il titolare del trattamento di Social Vote è Reza Hematian, '
-            'persona fisica. Per richieste privacy e per esercitare i propri '
-            'diritti è possibile scrivere a socialvote@hotmail.com. '
-            'L’indirizzo di residenza non viene pubblicato; un eventuale '
-            'recapito postale professionale sarà definito prima della '
-            'pubblicazione quando richiesto dalla normativa o dagli store.',
+        body: 'Il titolare del trattamento di Social Vote è Reza Hematian. '
+            'Per richieste privacy e per esercitare i diritti previsti dalla '
+            'normativa è possibile scrivere a socialvote@hotmail.com. Il sito '
+            'ufficiale è socialevote.com.',
       ),
       _LegalSection(
         title: '2. Dati trattati',
-        body: 'Social Vote tratta i dati necessari all’account, tra cui '
-            'email, identificativo utente e dati di autenticazione gestiti da '
-            'Supabase; dati del profilo come nome visualizzato, username, '
-            'paese, città, biografia, avatar, tipo di identità e stato di '
-            'verifica; dati delle richieste di verifica come qualifica '
-            'ufficiale, nome dell’istituzione o dell’organizzazione, esito e '
-            'note di revisione; contenuti e interazioni come sondaggi, scelte '
-            'di voto, post, commenti, reazioni, preferiti, segnalazioni e '
-            'notifiche; dati di posizione scelti dall’utente; eventi tecnici '
-            'e di utilizzo descritti di seguito.',
+        body: 'Social Vote può trattare dati di account e autenticazione, '
+            'inclusi email, identificativo utente e sessione; dati del profilo '
+            'come nome pubblico, username inizialmente generato dal sistema, '
+            'paese e città di residenza, biografia, avatar, identità pubblica '
+            'e stato di verifica; dati delle richieste di verifica; sondaggi, '
+            'voti, post, commenti, reazioni, preferiti, segnalazioni e '
+            'notifiche; dati di posizione scelti dall’utente; preferenze '
+            'dell’app; e dati tecnici necessari a sicurezza, funzionamento e '
+            'diagnostica del servizio.',
       ),
       _LegalSection(
         title: '3. Finalità e basi giuridiche',
-        body: 'I dati sono usati per registrare e proteggere l’account, '
-            'fornire sondaggi e funzioni sociali, personalizzare lo scope '
-            'geografico, gestire verifiche, notifiche e preferenze, prevenire '
-            'abusi, moderare contenuti e account, assicurare il servizio e '
-            'rispondere a richieste legali. La base giuridica è l’esecuzione '
-            'del servizio richiesto dall’utente; per sicurezza, prevenzione '
-            'degli abusi e difesa dei diritti è il legittimo interesse del '
-            'titolare; quando necessario è l’adempimento di obblighi di legge. '
-            'La posizione precisa è usata soltanto dopo la scelta e il '
-            'permesso dell’utente. Eventuali trattamenti basati sul consenso '
-            'possono essere revocati senza pregiudicare quelli già effettuati.',
+        body: 'I dati sono trattati per creare e gestire l’account, fornire '
+            'sondaggi e funzioni sociali, applicare regole di partecipazione, '
+            'gestire profilo e verifiche, mostrare contenuti pertinenti allo '
+            'scope geografico scelto, inviare comunicazioni transazionali, '
+            'prevenire abusi, moderare contenuti e account, proteggere il '
+            'servizio e adempiere obblighi legali. A seconda del trattamento, '
+            'le basi giuridiche possono includere l’esecuzione del servizio '
+            'richiesto dall’utente, il legittimo interesse alla sicurezza e '
+            'alla prevenzione degli abusi, l’adempimento di obblighi di legge '
+            'e, quando richiesto, il consenso.',
       ),
       _LegalSection(
-        title: '4. Visibilità e dati particolari',
-        body: 'Nome visualizzato, username, avatar, indicatori di verifica e '
-            'contenuti pubblicati possono essere visibili ad altri utenti e '
-            'sul Web. La visibilità delle scelte di voto dipende dalle regole '
-            'del sondaggio. Contenuti, sondaggi e voti possono rivelare '
-            'opinioni politiche, convinzioni o altri dati particolari. '
-            'L’utente non deve pubblicare dati particolari propri o di terzi '
-            'se non è necessario e lecito. Prima della release pubblica '
-            'devono essere definite e implementate le condizioni specifiche '
-            'richieste dall’articolo 9 GDPR per tali dati.',
+        title: '4. Dati pubblici e dati particolari',
+        body: 'Nome pubblico, username, avatar, badge di verifica e contenuti '
+            'pubblicati possono essere visibili ad altri utenti e, per i '
+            'contenuti pubblici, sul Web. Sondaggi, voti o contenuti possono '
+            'rivelare opinioni politiche, convinzioni o altri dati particolari '
+            'ai sensi della normativa sulla protezione dei dati. Social Vote '
+            'non usa tali dati per pubblicità personalizzata o per dedurre '
+            'profili politici a fini commerciali. Quando un trattamento '
+            'richiede una specifica condizione prevista dall’articolo 9 GDPR, '
+            'tale condizione deve essere applicabile prima del trattamento.',
       ),
       _LegalSection(
-        title: '5. Posizione e geocodifica',
-        body: 'La posizione precisa viene richiesta solo quando l’utente '
-            'sceglie di usare la posizione del dispositivo per un post o un '
-            'sondaggio. Il permesso può essere negato o revocato nelle '
-            'impostazioni del dispositivo. Se applicata al contenuto, la '
-            'posizione può includere coordinate, paese e città ed essere '
-            'salvata insieme al contenuto. Per trasformare le coordinate in '
-            'un luogo può essere usato il servizio di geocodifica del sistema '
-            'operativo e, come fallback, Nominatim di OpenStreetMap, al quale '
-            'vengono inviate le coordinate necessarie alla richiesta.',
+        title: '5. Posizione, residenza e GeoScope',
+        body: 'Il paese e la città di residenza del profilo sono separati '
+            'dallo scope geografico di navigazione e dalla località associata '
+            'a un contenuto. La città di residenza è facoltativa. Quando '
+            'l’utente inserisce una città, Social Vote può verificarla tramite '
+            'Nominatim di OpenStreetMap. Se l’utente sceglie funzioni basate '
+            'sulla posizione del dispositivo, possono essere trattate '
+            'coordinate e informazioni di località necessarie alla funzione. '
+            'I permessi di posizione possono essere negati o revocati nelle '
+            'impostazioni del dispositivo.',
       ),
       _LegalSection(
-        title: '6. Memoria locale e componenti tecnici',
-        body: 'Social Vote configura Firebase Analytics con la raccolta '
-            'disattivata e non usa eventi Analytics per misurare schermate o '
-            'azioni dell’utente. I componenti Firebase inclusi nell’app possono '
-            'generare automaticamente un Firebase Installation ID (FID), cioè '
-            'un identificatore tecnico distinto per installazione che non '
-            'identifica direttamente la persona o il dispositivo fisico. La '
-            'raccolta dell’Advertising ID resta disattivata. Lingua, tema, '
-            'preferenze News e opzione “Ricordami” possono essere conservati '
-            'localmente sul dispositivo. Quando l’utente accede, una sessione '
-            'tecnica di autenticazione Supabase viene conservata localmente per '
-            'mantenere l’accesso e viene rimossa al logout.',
+        title: '6. Memoria locale, sessioni e Firebase',
+        body: 'L’app può conservare localmente preferenze come lingua, tema, '
+            'News e impostazione “Ricordami”. Quando “Ricordami” è attivo, '
+            'una sessione tecnica di autenticazione Supabase può essere '
+            'conservata localmente; al logout la sessione viene rimossa. '
+            'Firebase Analytics è configurato con la raccolta disattivata. '
+            'Componenti Firebase possono generare automaticamente un Firebase '
+            'Installation ID (FID), identificatore tecnico distinto per '
+            'installazione che non identifica direttamente una persona o un '
+            'dispositivo fisico. Social Vote non usa Advertising ID per '
+            'pubblicità personalizzata.',
       ),
       _LegalSection(
-        title: '7. Fornitori e trasferimenti',
-        body: 'Supabase fornisce autenticazione, database, archiviazione file, '
-            'funzioni backend e servizi realtime. Google Firebase fornisce '
-            'componenti tecnici sui runtime supportati; la raccolta Firebase '
-            'Analytics è disattivata. I servizi di geocodifica del dispositivo '
-            'e OpenStreetMap Nominatim possono ricevere le coordinate quando '
-            'la funzione di posizione è usata. Le News provengono da fonti '
-            'esterne e vengono elaborate dal backend. Questi fornitori possono '
-            'trattare dati in Paesi esterni allo Spazio economico europeo '
-            'applicando, quando necessario, decisioni di adeguatezza, clausole '
-            'contrattuali standard o altre garanzie previste dalla legge. '
-            'Configurazioni, regioni e garanzie devono essere verificate prima '
-            'della pubblicazione.',
+        title: '7. Fornitori e destinatari',
+        body: 'Supabase fornisce autenticazione, database, storage e funzioni '
+            'backend. Google Firebase fornisce componenti tecnici e hosting '
+            'Web sui runtime configurati. Brevo può essere utilizzato per '
+            'l’invio di email transazionali tramite la configurazione SMTP. '
+            'OpenStreetMap Nominatim può ricevere dati di località necessari '
+            'alla geocodifica. Fonti e provider News possono elaborare le '
+            'richieste necessarie a fornire notizie. Dati possono inoltre '
+            'essere comunicati ad autorità o altri soggetti quando richiesto '
+            'dalla legge o necessario per tutelare diritti e sicurezza.',
       ),
       _LegalSection(
-        title: '8. Moderazione, staff e sicurezza',
+        title: '8. Trasferimenti internazionali',
+        body: 'Alcuni fornitori possono trattare dati al di fuori dello Spazio '
+            'economico europeo. Quando il GDPR lo richiede, i trasferimenti '
+            'devono avvenire sulla base di una decisione di adeguatezza, '
+            'clausole contrattuali standard o altro meccanismo valido previsto '
+            'dalla normativa applicabile.',
+      ),
+      _LegalSection(
+        title: '9. Moderazione, sicurezza e audit',
         body: 'Segnalazioni, richieste di verifica e contenuti possono essere '
-            'esaminati da moderatori o amministratori autorizzati. Per '
-            'violazioni, abuso o rischi di sicurezza, contenuti possono essere '
-            'nascosti o ripristinati e account possono essere sospesi, '
-            'riattivati, disconnessi o eliminati. Le azioni sensibili dello '
-            'staff producono registri di audit minimizzati per responsabilità '
-            'e sicurezza. Sono usati controlli di accesso, sessioni protette e '
-            'altre misure tecniche, ma nessun sistema è completamente privo '
-            'di rischio.',
+            'esaminati da moderatori o amministratori autorizzati. In risposta '
+            'a violazioni, abuso o rischi di sicurezza, contenuti possono '
+            'essere nascosti o ripristinati e account possono essere sospesi, '
+            'riattivati, disconnessi o eliminati. Alcune azioni amministrative '
+            'e di sicurezza producono registri di audit minimizzati necessari '
+            'per responsabilità, sicurezza e difesa dei diritti.',
       ),
       _LegalSection(
-        title: '9. Conservazione e cancellazione account',
-        body: 'Account, profilo e contenuti sono conservati finché necessari '
-            'a fornire il servizio o fino alla cancellazione, salvo esigenze '
-            'di sicurezza, moderazione, difesa di diritti o obblighi di legge. '
-            'L’utente può eliminare definitivamente l’account dall’app con '
-            'conferma forte. L’email, l’avatar e i dati personali del profilo '
-            'vengono eliminati o anonimizzati. Alcuni contenuti storici, '
-            'riferimenti tecnici, segnalazioni e registri di audit possono '
-            'rimanere in forma anonimizzata o minimizzata per preservare '
-            'l’integrità delle discussioni, prevenire abusi e documentare '
-            'azioni amministrative. I periodi applicabili alle singole '
-            'categorie devono essere riesaminati prima della release.',
+        title: '10. Conservazione e cancellazione account',
+        body: 'I dati sono conservati per il tempo necessario alle finalità '
+            'descritte e secondo gli obblighi applicabili. Quando un account '
+            'viene eliminato, l’account Auth è cancellato; post, sondaggi e '
+            'commenti propri vengono eliminati; profilo, avatar, preferiti, '
+            'notifiche, sessioni e altri dati personali previsti dalla '
+            'procedura vengono eliminati. Voti e reazioni su contenuti altrui '
+            'possono essere mantenuti in forma anonimizzata per preservare '
+            'risultati e statistiche storiche. Un riferimento tecnico '
+            'anonimizzato può essere mantenuto dove necessario all’integrità '
+            'referenziale. Registri amministrativi o di sicurezza possono '
+            'essere conservati in forma minimizzata quando necessari per '
+            'sicurezza, responsabilità o obblighi legali.',
       ),
       _LegalSection(
-        title: '10. Diritti',
-        body: 'Nei casi previsti dalla legge l’utente può chiedere accesso, '
-            'rettifica, cancellazione, limitazione, opposizione, portabilità '
-            'e revoca del consenso scrivendo a socialvote@hotmail.com. Può '
-            'inoltre proporre reclamo al Garante per la protezione dei dati '
-            'personali o all’autorità di controllo competente. Potrà essere '
-            'richiesta una verifica ragionevole dell’identità prima di '
-            'rispondere alla richiesta.',
+        title: '11. Diritti dell’interessato',
+        body: 'Nei casi previsti dalla legge, l’utente può chiedere accesso, '
+            'rettifica, cancellazione, limitazione, opposizione e portabilità '
+            'dei propri dati, nonché revocare un consenso quando il trattamento '
+            'si basa sul consenso. Le richieste possono essere inviate a '
+            'socialvote@hotmail.com. Può essere richiesta una verifica '
+            'ragionevole dell’identità. L’utente può inoltre proporre reclamo '
+            'al Garante per la protezione dei dati personali o all’autorità di '
+            'controllo competente.',
       ),
       _LegalSection(
-        title: '11. Minori',
-        body: 'Social Vote è destinato a persone di almeno 14 anni. Chi ha '
-            'meno di 14 anni non deve creare un account o usare le funzioni '
-            'sociali. Se la legge del Paese dell’utente richiede un’età '
-            'superiore o l’autorizzazione di chi esercita la responsabilità '
-            'genitoriale, si applica tale requisito. Se viene rilevato un '
-            'account di un minore non autorizzato, il titolare può limitarlo '
-            'o eliminarlo e invita il genitore o tutore a contattare '
-            'socialvote@hotmail.com.',
-      ),
-      _LegalSection(
-        title: '12. Vendita dati e pubblicità',
-        body: 'Social Vote non vende i dati personali degli utenti e non usa '
-            'i dati dichiarati in questa informativa per pubblicità '
+        title: '12. Età minima, vendita dati e pubblicità',
+        body: 'Social Vote è destinato esclusivamente a persone di almeno 18 '
+            'anni. Social Vote non vende i dati personali degli utenti e non '
+            'usa i dati descritti in questa informativa per pubblicità '
             'personalizzata. Eventuali future funzioni pubblicitarie o nuovi '
-            'fornitori richiederanno un aggiornamento preventivo '
-            'dell’informativa e delle scelte disponibili all’utente.',
+            'trattamenti richiederanno un aggiornamento dell’informativa e, '
+            'quando necessario, delle scelte disponibili all’utente.',
       ),
       _LegalSection(
         title: '13. Modifiche ed efficacia',
-        body: 'Questa è una versione pre-release aggiornata il 5 agosto 2026. '
-            'Le modifiche sostanziali saranno comunicate nell’app o tramite '
-            'un canale appropriato. La versione destinata alla pubblicazione '
-            'dovrà essere riesaminata dopo il completamento dei punti indicati '
-            'nell’avviso iniziale.',
+        body: 'Questa informativa è aggiornata al 16 agosto 2026. Le modifiche '
+            'sostanziali saranno comunicate tramite l’app o un altro canale '
+            'appropriato quando richiesto. La versione pubblica è disponibile '
+            'su socialevote.com/privacy.',
       ),
     ],
   );
 
   static const _LegalDocument _privacyEnglish = _LegalDocument(
-    notice: 'PRE-RELEASE NOTICE — updated on 5 August 2026. The controller, '
-        'privacy contact and minimum age have been defined. Before public '
-        'release, the handling of special-category data potentially revealed '
-        'by votes and content, retention periods and international transfers '
-        'must be completed and verified.',
+    notice: 'Privacy Policy updated on 16 August 2026. Official website: '
+        'socialevote.com. Social Vote is intended only for people aged 18 or '
+        'older.',
     sections: [
       _LegalSection(
         title: '1. Controller and contact details',
-        body: 'The controller for Social Vote is Reza Hematian, acting as an '
-            'individual. Privacy requests and data-subject rights can be sent '
-            'to socialvote@hotmail.com. The controller’s home address is not '
-            'published; a professional postal contact will be defined before '
-            'release if required by applicable law or app stores.',
+        body: 'The controller for Social Vote is Reza Hematian. Privacy '
+            'requests and data-subject rights may be sent to '
+            'socialvote@hotmail.com. The official website is socialevote.com.',
       ),
       _LegalSection(
         title: '2. Data processed',
-        body: 'Social Vote processes account data required for the service, '
-            'including email address, user identifier and authentication data '
-            'managed by Supabase; profile data such as display name, username, '
-            'country, city, biography, avatar, public identity type and '
-            'verification status; verification-request data such as official '
-            'title, institution or organisation name, outcome and review '
-            'notes; content and interactions such as polls, voting choices, '
-            'posts, comments, reactions, favourites, reports and '
-            'notifications; location data chosen by the user; and technical '
-            'and usage events described below.',
+        body: 'Social Vote may process account and authentication data, '
+            'including email address, user identifier and session data; '
+            'profile data such as public name, a system-generated initial '
+            'username, country and city of residence, biography, avatar, '
+            'public identity and verification status; verification-request '
+            'data; polls, votes, posts, comments, reactions, favourites, '
+            'reports and notifications; location data chosen by the user; app '
+            'preferences; and technical data needed for security, operation '
+            'and diagnostics.',
       ),
       _LegalSection(
         title: '3. Purposes and legal bases',
-        body: 'Data is used to register and secure accounts, provide polls and '
-            'social features, personalise geographic scope, manage '
-            'verification, notifications and preferences, prevent abuse, '
-            'moderate content and accounts, secure the service and respond to '
-            'legal requests. The legal basis is performance of the service '
-            'requested by the user; security, abuse prevention and the defence '
-            'of rights rely on the controller’s legitimate interests; legal '
-            'obligations apply where required. Precise location is used only '
-            'after the user chooses the feature and grants permission. Any '
-            'consent-based processing can be withdrawn without affecting '
-            'processing already carried out lawfully.',
+        body: 'Data is processed to create and manage accounts, provide polls '
+            'and social features, apply participation rules, manage profiles '
+            'and verification, show content relevant to the selected '
+            'geographic scope, send transactional communications, prevent '
+            'abuse, moderate content and accounts, protect the service and '
+            'comply with legal obligations. Depending on the processing, the '
+            'legal basis may include performance of the service requested by '
+            'the user, legitimate interests in security and abuse prevention, '
+            'compliance with legal obligations and, where required, consent.',
       ),
       _LegalSection(
-        title: '4. Visibility and special-category data',
-        body: 'Display name, username, avatar, verification indicators and '
-            'published content may be visible to other users and on the Web. '
-            'The visibility of voting choices depends on each poll’s rules. '
-            'Content, polls and votes may reveal political opinions, beliefs '
-            'or other special-category data. Users must not publish their own '
-            'or another person’s special-category data unless doing so is '
-            'necessary and lawful. Before public release, Social Vote must '
-            'define and implement the specific conditions required by '
-            'Article 9 GDPR for such data.',
+        title: '4. Public data and special-category data',
+        body:
+            'Public name, username, avatar, verification badges and published '
+            'content may be visible to other users and, for public content, on '
+            'the Web. Polls, votes or content may reveal political opinions, '
+            'beliefs or other special-category data under data-protection law. '
+            'Social Vote does not use such data for personalised advertising '
+            'or to infer political profiles for commercial purposes. Where '
+            'processing requires a specific condition under Article 9 GDPR, '
+            'that condition must apply before the processing takes place.',
       ),
       _LegalSection(
-        title: '5. Location and geocoding',
-        body: 'Precise location is requested only when a user chooses to use '
-            'the device location for a post or poll. Permission can be denied '
-            'or revoked in device settings. When applied to content, location '
-            'may include coordinates, country and city and may be stored with '
-            'that content. The operating system’s geocoding service may be '
-            'used to turn coordinates into a place and OpenStreetMap '
-            'Nominatim may be used as a fallback; the coordinates required for '
-            'the request are then sent to that service.',
+        title: '5. Location, residence and GeoScope',
+        body: 'Profile country and city of residence are separate from the '
+            'geographic navigation scope and from the location attached to '
+            'content. City of residence is optional. When a city is entered, '
+            'Social Vote may verify it using OpenStreetMap Nominatim. If the '
+            'user chooses device-location features, coordinates and place '
+            'information needed for that feature may be processed. Location '
+            'permissions can be denied or revoked in device settings.',
       ),
       _LegalSection(
-        title: '6. Local storage and technical components',
-        body: 'Social Vote configures Firebase Analytics with collection '
-            'disabled and does not use Analytics events to measure screens or '
-            'user actions. Firebase components included in the app may '
+        title: '6. Local storage, sessions and Firebase',
+        body: 'The app may store preferences such as language, theme, News '
+            'settings and the “Remember me” choice locally. When “Remember '
+            'me” is enabled, a technical Supabase authentication session may '
+            'be stored locally; it is removed on logout. Firebase Analytics '
+            'is configured with collection disabled. Firebase components may '
             'automatically generate a Firebase Installation ID (FID), a '
-            'technical identifier that is different for each installation and '
-            'does not directly identify the person or physical device. '
-            'Advertising ID collection remains disabled. Language, theme, News '
-            'preferences and the “Remember me” option may be stored locally on '
-            'the device. When a user signs in, a technical Supabase '
-            'authentication session is stored locally to keep the user signed '
-            'in and is removed on logout.',
+            'technical identifier that is different for each installation '
+            'and does not directly identify a person or physical device. '
+            'Social Vote does not use Advertising ID for personalised '
+            'advertising.',
       ),
       _LegalSection(
-        title: '7. Providers and transfers',
-        body: 'Supabase provides authentication, database, file storage, '
-            'backend functions and realtime services. Google Firebase provides '
-            'technical components on supported runtimes; Firebase Analytics '
-            'collection is disabled. Device geocoding services and '
-            'OpenStreetMap Nominatim may receive coordinates when the location '
-            'feature is used. News comes from external sources and is processed '
-            'by the backend. These providers may process data outside the '
-            'European Economic Area using adequacy decisions, standard '
-            'contractual clauses or other safeguards where required. '
-            'Configurations, regions and safeguards must be verified before '
-            'release.',
+        title: '7. Providers and recipients',
+        body: 'Supabase provides authentication, database, storage and backend '
+            'functions. Google Firebase provides technical components and Web '
+            'hosting on configured runtimes. Brevo may be used to deliver '
+            'transactional email through the configured SMTP service. '
+            'OpenStreetMap Nominatim may receive location data required for '
+            'geocoding. News sources and providers may process requests '
+            'needed to provide News. Data may also be disclosed to authorities '
+            'or other recipients where required by law or necessary to '
+            'protect rights and security.',
       ),
       _LegalSection(
-        title: '8. Moderation, staff and security',
+        title: '8. International transfers',
+        body: 'Some providers may process data outside the European Economic '
+            'Area. Where the GDPR requires safeguards, transfers must rely on '
+            'an adequacy decision, standard contractual clauses or another '
+            'valid mechanism under applicable law.',
+      ),
+      _LegalSection(
+        title: '9. Moderation, security and audit',
         body: 'Reports, verification requests and content may be reviewed by '
             'authorised moderators or administrators. In response to '
             'violations, abuse or security risks, content may be hidden or '
             'restored and accounts may be suspended, reactivated, signed out '
-            'or deleted. Sensitive staff actions create minimised audit logs '
-            'for accountability and security. Access controls, protected '
-            'sessions and other technical safeguards are used, but no system '
-            'is completely risk-free.',
+            'or deleted. Some administrative and security actions create '
+            'minimised audit records needed for accountability, security and '
+            'the defence of rights.',
       ),
       _LegalSection(
-        title: '9. Retention and account deletion',
-        body: 'Accounts, profiles and content are retained while needed to '
-            'provide the service or until deletion, subject to security, '
-            'moderation, legal-defence and legal-obligation requirements. '
-            'Users can permanently delete their account in the app using a '
-            'strong confirmation. Email address, avatar and personal profile '
-            'data are deleted or anonymised. Some historical content, '
-            'technical references, reports and audit records may remain in '
-            'anonymised or minimised form to preserve discussion integrity, '
-            'prevent abuse and document administrative actions. Retention '
-            'periods for each category must be reviewed before release.',
+        title: '10. Retention and account deletion',
+        body: 'Data is retained for as long as needed for the purposes '
+            'described and applicable obligations. When an account is '
+            'deleted, the Auth account is deleted; the user’s own posts, polls '
+            'and comments are deleted; the profile, avatar, favourites, '
+            'notifications, sessions and other personal data covered by the '
+            'deletion procedure are removed. Votes and reactions on other '
+            'people’s content may be retained in anonymised form to preserve '
+            'historical results and statistics. An anonymised technical '
+            'reference may remain where needed for referential integrity. '
+            'Administrative or security records may be retained in minimised '
+            'form where needed for security, accountability or legal '
+            'obligations.',
       ),
       _LegalSection(
-        title: '10. Rights',
+        title: '11. Data-subject rights',
         body: 'Where provided by law, users may request access, correction, '
-            'erasure, restriction, objection, portability and withdrawal of '
-            'consent by writing to socialvote@hotmail.com. Users may also '
-            'lodge a complaint with the Italian Data Protection Authority or '
-            'their competent supervisory authority. Reasonable identity '
-            'verification may be requested before a request is fulfilled.',
+            'erasure, restriction, objection and portability, and may '
+            'withdraw consent where processing is based on consent. Requests '
+            'may be sent to socialvote@hotmail.com. Reasonable identity '
+            'verification may be requested. Users may also lodge a complaint '
+            'with the Italian Data Protection Authority or another competent '
+            'supervisory authority.',
       ),
       _LegalSection(
-        title: '11. Children',
-        body: 'Social Vote is intended for people aged 14 or older. A person '
-            'under 14 must not create an account or use social features. If '
-            'the user’s country requires a higher age or authorisation from a '
-            'holder of parental responsibility, that requirement applies. If '
-            'an unauthorised child account is identified, the controller may '
-            'restrict or delete it and asks the parent or guardian to contact '
-            'socialvote@hotmail.com.',
-      ),
-      _LegalSection(
-        title: '12. Data sales and advertising',
-        body: 'Social Vote does not sell users’ personal data and does not use '
+        title: '12. Minimum age, data sales and advertising',
+        body: 'Social Vote is intended only for people aged 18 or older. '
+            'Social Vote does not sell users’ personal data and does not use '
             'the data described in this notice for personalised advertising. '
-            'Any future advertising feature or new provider will require a '
-            'prior update to this notice and to the choices available to '
-            'users.',
+            'Future advertising features or new processing will require an '
+            'update to this notice and, where necessary, to the choices '
+            'available to users.',
       ),
       _LegalSection(
         title: '13. Changes and effective date',
-        body: 'This is a pre-release version updated on 5 August 2026. '
-            'Material changes will be communicated in the app or through an '
-            'appropriate channel. The publication version must be reviewed '
-            'after the items listed in the opening notice have been '
-            'completed.',
+        body: 'This Privacy Policy is updated as of 16 August 2026. Material '
+            'changes will be communicated through the app or another '
+            'appropriate channel where required. The public version is '
+            'available at socialevote.com/privacy.',
       ),
     ],
   );

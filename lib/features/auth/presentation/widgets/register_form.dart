@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +21,6 @@ class RegisterForm extends StatefulWidget {
 
 class _RegisterFormState extends State<RegisterForm> {
   final TextEditingController _displayNameController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -36,7 +37,6 @@ class _RegisterFormState extends State<RegisterForm> {
   bool _openedPrivacy = false;
 
   String? _displayNameError;
-  String? _usernameError;
   String? _emailError;
   String? _countryError;
   String? _cityError;
@@ -47,7 +47,6 @@ class _RegisterFormState extends State<RegisterForm> {
   @override
   void dispose() {
     _displayNameController.dispose();
-    _usernameController.dispose();
     _emailController.dispose();
     _cityController.dispose();
     _passwordController.dispose();
@@ -60,20 +59,6 @@ class _RegisterFormState extends State<RegisterForm> {
     return emailRegex.hasMatch(value);
   }
 
-  String _normalizeUsername(String value) {
-    var normalized = value.trim().toLowerCase();
-
-    if (normalized.startsWith('@')) {
-      normalized = normalized.substring(1);
-    }
-
-    return normalized;
-  }
-
-  bool _isValidUsername(String value) {
-    return RegExp(r'^[a-z0-9_]{3,20}$').hasMatch(value);
-  }
-
   void _clearControllerError(BuildContext context) {
     final controller = context.read<AuthController>();
     if (controller.errorMessage != null) {
@@ -83,14 +68,12 @@ class _RegisterFormState extends State<RegisterForm> {
 
   bool _validateInputs(AppLocalizations l10n) {
     final displayName = _displayNameController.text.trim();
-    final username = _normalizeUsername(_usernameController.text);
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final confirmPassword = _passwordConfirmController.text.trim();
     final countryCode = _selectedCountryCode?.trim();
 
     String? displayNameError;
-    String? usernameError;
     String? emailError;
     String? countryError;
     String? cityError;
@@ -102,12 +85,6 @@ class _RegisterFormState extends State<RegisterForm> {
       displayNameError = l10n.authDisplayNameRequiredError;
     } else if (displayName.length < 2) {
       displayNameError = l10n.authDisplayNameTooShortError;
-    }
-
-    if (username.isEmpty) {
-      usernameError = l10n.authUsernameRequiredError;
-    } else if (!_isValidUsername(username)) {
-      usernameError = l10n.authUsernameInvalidError;
     }
 
     if (email.isEmpty) {
@@ -132,13 +109,12 @@ class _RegisterFormState extends State<RegisterForm> {
       confirmPasswordError = l10n.authPasswordsDoNotMatchError;
     }
 
-    if (!_openedTerms || !_openedPrivacy || !_acceptedLegal) {
+    if (!_acceptedLegal) {
       legalError = l10n.authLegalConsentRequiredError;
     }
 
     setState(() {
       _displayNameError = displayNameError;
-      _usernameError = usernameError;
       _emailError = emailError;
       _countryError = countryError;
       _cityError = cityError;
@@ -148,7 +124,6 @@ class _RegisterFormState extends State<RegisterForm> {
     });
 
     return displayNameError == null &&
-        usernameError == null &&
         emailError == null &&
         countryError == null &&
         passwordError == null &&
@@ -176,15 +151,6 @@ class _RegisterFormState extends State<RegisterForm> {
     if (normalized.contains('invalid email') ||
         normalized.contains('email_address_invalid')) {
       return l10n.authEmailInvalidError;
-    }
-
-    if (normalized.contains('username_already_taken') ||
-        (normalized.contains('username') &&
-            (normalized.contains('duplicate') ||
-                normalized.contains('already') ||
-                normalized.contains('taken') ||
-                normalized.contains('unique')))) {
-      return l10n.authUsernameAlreadyTakenError;
     }
 
     if (normalized.contains('rate limit') || normalized.contains('too many')) {
@@ -251,35 +217,9 @@ class _RegisterFormState extends State<RegisterForm> {
             },
             decoration: InputDecoration(
               labelText: '${l10n.authDisplayNameLabel} *',
+              helperText: l10n.authPublicNameHelper,
               border: const OutlineInputBorder(),
               errorText: _displayNameError,
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _usernameController,
-            enabled: !isBusy,
-            textInputAction: TextInputAction.next,
-            autocorrect: false,
-            enableSuggestions: false,
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(
-                RegExp(r'[a-zA-Z0-9_@]'),
-              ),
-              LengthLimitingTextInputFormatter(21),
-            ],
-            onChanged: (_) {
-              _clearControllerError(context);
-              if (_usernameError != null) {
-                setState(() {
-                  _usernameError = null;
-                });
-              }
-            },
-            decoration: InputDecoration(
-              labelText: '${l10n.authUsernameLabel} *',
-              border: const OutlineInputBorder(),
-              errorText: _usernameError,
             ),
           ),
           const SizedBox(height: 16),
@@ -503,7 +443,7 @@ class _RegisterFormState extends State<RegisterForm> {
   }) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final canAccept = _openedTerms && _openedPrivacy && !isBusy;
+    final canAccept = !isBusy;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -558,11 +498,7 @@ class _RegisterFormState extends State<RegisterForm> {
               enabled: canAccept,
               contentPadding: EdgeInsets.zero,
               controlAffinity: ListTileControlAffinity.leading,
-              title: Text(
-                '${l10n.authLegalConsentPrefix} '
-                '${l10n.authTermsOfServiceAction} / '
-                '${l10n.authPrivacyPolicyAction}.',
-              ),
+              title: Text(l10n.authLegalConsentPrefix),
               onChanged: canAccept
                   ? (value) {
                       setState(() {
@@ -680,6 +616,23 @@ class _RegisterFormState extends State<RegisterForm> {
     );
   }
 
+  String _generateUsername(String displayName) {
+    final compactName =
+        displayName.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '');
+
+    final base = compactName.length >= 2 ? compactName : 'user';
+    final prefix = base.substring(0, min(base.length, 13));
+    const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    final random = Random();
+    final suffix = List<String>.generate(
+      6,
+      (_) => alphabet[random.nextInt(alphabet.length)],
+      growable: false,
+    ).join();
+
+    return '${prefix}_$suffix';
+  }
+
   Future<void> _submit(BuildContext context) async {
     if (_isSubmitting) {
       return;
@@ -692,8 +645,9 @@ class _RegisterFormState extends State<RegisterForm> {
     }
 
     final controller = context.read<AuthController>();
+    final localeLanguageCode = Localizations.localeOf(context).languageCode;
+    final language = localeLanguageCode == 'it' ? 'it' : 'en';
     final displayName = _displayNameController.text.trim();
-    final username = _normalizeUsername(_usernameController.text);
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final countryCode = _selectedCountryCode!.trim().toUpperCase();
@@ -757,14 +711,34 @@ class _RegisterFormState extends State<RegisterForm> {
     }
 
     try {
-      await controller.register(
-        email: email,
-        password: password,
-        displayName: displayName,
-        username: username,
-        country: resolvedCountry,
-        city: resolvedCity,
-      );
+      const maxUsernameAttempts = 3;
+
+      for (var attempt = 0; attempt < maxUsernameAttempts; attempt++) {
+        final generatedUsername = _generateUsername(displayName);
+
+        await controller.register(
+          email: email,
+          password: password,
+          displayName: displayName,
+          username: generatedUsername,
+          language: language,
+          country: resolvedCountry,
+          city: resolvedCity,
+        );
+
+        if (!context.mounted) {
+          return;
+        }
+
+        final usernameCollision =
+            controller.errorMessage?.trim() == 'username_already_taken';
+
+        if (!usernameCollision || attempt == maxUsernameAttempts - 1) {
+          break;
+        }
+
+        controller.clearError();
+      }
 
       if (!context.mounted) {
         return;

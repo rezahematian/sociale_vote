@@ -22,6 +22,7 @@ class RegisterUser {
     required String password,
     required String displayName,
     required String username,
+    required String language,
     required String country,
     required String city,
   }) async {
@@ -29,6 +30,7 @@ class RegisterUser {
     final trimmedPassword = password.trim();
     final trimmedDisplayName = displayName.trim();
     final normalizedUsername = _normalizeUsername(username);
+    final normalizedLanguage = _normalizeLanguage(language);
     final trimmedCountry = country.trim();
     final trimmedCity = city.trim();
 
@@ -36,6 +38,7 @@ class RegisterUser {
         trimmedPassword.isEmpty ||
         trimmedDisplayName.isEmpty ||
         normalizedUsername.isEmpty ||
+        normalizedLanguage.isEmpty ||
         trimmedCountry.isEmpty) {
       throw Exception('Invalid registration data.');
     }
@@ -58,11 +61,17 @@ class RegisterUser {
       password: trimmedPassword,
       displayName: trimmedDisplayName,
       username: normalizedUsername,
+      language: normalizedLanguage,
       country: trimmedCountry,
       city: trimmedCity,
     );
 
     await _sessionRepository.saveSession(session);
+  }
+
+  String _normalizeLanguage(String value) {
+    final normalized = value.trim().toLowerCase();
+    return normalized == 'it' ? 'it' : 'en';
   }
 
   String _normalizeUsername(String value) {

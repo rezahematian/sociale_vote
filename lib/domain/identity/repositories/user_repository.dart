@@ -32,6 +32,7 @@ abstract class UserRepository {
     required String password,
     required String displayName,
     required String username,
+    required String language,
     required String country,
     required String city,
   });

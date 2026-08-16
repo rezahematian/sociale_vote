@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Sociale Vote';
+  String get appTitle => 'Social Vote';
 
   @override
   String get voteButton => 'Vote';
@@ -877,7 +877,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeScopeCityFieldLabel => 'City';
 
   @override
-  String get homeScopeCityExampleHint => 'E.g. Rome, São Paulo, Tehran';
+  String get homeScopeCityExampleHint => 'Type a city, e.g. Merano';
 
   @override
   String get homeScopeCityRequiredError => 'Enter a city.';
@@ -997,7 +997,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postDetail_favoriteUpdateError => 'Unable to update favorites';
 
   @override
-  String get postDetail_shareMessage => 'Open Sociale_Vote to view this post.';
+  String get postDetail_shareMessage => 'Open Social Vote to view this post.';
 
   @override
   String get postDetail_shareError => 'Unable to share the post';
@@ -1063,7 +1063,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsDetail_favoriteUpdateError => 'Unable to update favorites';
 
   @override
-  String get newsDetail_shareMessage => 'Open Sociale_Vote to view this news item.';
+  String get newsDetail_shareMessage => 'Open Social Vote to view this news item.';
 
   @override
   String get newsDetail_shareError => 'Unable to share the news item';
@@ -1105,7 +1105,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authRegisterHeadline => 'Create an account';
 
   @override
-  String get authDisplayNameLabel => 'Display name';
+  String get authDisplayNameLabel => 'Public name';
 
   @override
   String get authUsernameLabel => 'Username';
@@ -1114,13 +1114,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authCountryOfResidenceLabel => 'Country of residence';
 
   @override
-  String get authCityOfResidenceLabel => 'City of residence';
+  String get authCityOfResidenceLabel => 'City of residence (optional)';
 
   @override
   String get authConfirmPasswordLabel => 'Confirm password';
 
   @override
-  String get authLegalConsentPrefix => 'I have read and accept';
+  String get authLegalConsentPrefix => 'I confirm that I am at least 18 years old. I accept the Terms of Service and confirm that I have read the Privacy Policy.';
 
   @override
   String get authTermsOfServiceAction => 'the Terms of Service';
@@ -1195,10 +1195,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authPasswordTooShortError => 'Password must be at least 8 characters.';
 
   @override
-  String get authDisplayNameRequiredError => 'Enter your display name.';
+  String get authDisplayNameRequiredError => 'Enter your public name.';
 
   @override
-  String get authDisplayNameTooShortError => 'Display name is too short.';
+  String get authDisplayNameTooShortError => 'Public name is too short.';
 
   @override
   String get authUsernameRequiredError => 'Enter a username.';
@@ -1222,7 +1222,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authPasswordsDoNotMatchError => 'Passwords do not match.';
 
   @override
-  String get authLegalConsentRequiredError => 'You must read and accept the Terms of Service and Privacy Policy.';
+  String get authLegalConsentRequiredError => 'To sign up, confirm that you are at least 18, accept the Terms of Service, and confirm that you have read the Privacy Policy.';
 
   @override
   String get authForgotPasswordEmailRequiredError => 'Enter the email for the account you want to recover.';
@@ -1273,7 +1273,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollDetail_favoriteUpdateError => 'Unable to update favorites';
 
   @override
-  String get pollDetail_shareMessage => 'Open Sociale_Vote to view and vote in this poll.';
+  String get pollDetail_shareMessage => 'Open Social Vote to view and vote in this poll.';
 
   @override
   String get pollDetail_shareError => 'Unable to share the poll';
@@ -2950,4 +2950,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminCenterAdminActionsMetric => 'Admin actions';
+
+  @override
+  String get authPublicNameHelper => 'This is the name other users will see. Your username is created automatically.';
 }

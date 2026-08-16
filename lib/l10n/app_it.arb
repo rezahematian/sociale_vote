@@ -1,6 +1,6 @@
 {
   "@@locale": "it",
-  "appTitle": "Sociale Vote",
+  "appTitle": "Social Vote",
   "voteButton": "Vota",
   "createPollPageTitle": "Crea sondaggio",
   "createPollPageSubtitle": "Definisci un nuovo voto civico",
@@ -447,7 +447,7 @@
   "@homeScopeCityFieldLabel": {
     "description": "Etichetta del campo città nel selettore scope Home"
   },
-  "homeScopeCityExampleHint": "Es. Roma, São Paulo, Tehran",
+  "homeScopeCityExampleHint": "Scrivi una città, es. Merano",
   "@homeScopeCityExampleHint": {
     "description": "Esempi mostrati nel campo città"
   },
@@ -607,7 +607,7 @@
   "@postDetail_favoriteUpdateError": {
     "description": "Errore aggiornamento preferiti nel dettaglio post"
   },
-  "postDetail_shareMessage": "Apri Sociale_Vote per vedere questo post.",
+  "postDetail_shareMessage": "Apri Social Vote per vedere questo post.",
   "@postDetail_shareMessage": {
     "description": "Testo aggiunto alla condivisione di un post"
   },
@@ -695,7 +695,7 @@
   "@newsDetail_favoriteUpdateError": {
     "description": "Errore aggiornamento preferiti nel dettaglio notizia"
   },
-  "newsDetail_shareMessage": "Apri Sociale_Vote per vedere questa notizia.",
+  "newsDetail_shareMessage": "Apri Social Vote per vedere questa notizia.",
   "@newsDetail_shareMessage": {
     "description": "Testo aggiunto alla condivisione di una notizia"
   },
@@ -751,7 +751,7 @@
   "@authRegisterHeadline": {
     "description": "Auth UI: authRegisterHeadline"
   },
-  "authDisplayNameLabel": "Nome visualizzato",
+  "authDisplayNameLabel": "Nome pubblico",
   "@authDisplayNameLabel": {
     "description": "Auth UI: authDisplayNameLabel"
   },
@@ -763,7 +763,7 @@
   "@authCountryOfResidenceLabel": {
     "description": "Auth UI: authCountryOfResidenceLabel"
   },
-  "authCityOfResidenceLabel": "Città di residenza",
+  "authCityOfResidenceLabel": "Città di residenza (facoltativa)",
   "@authCityOfResidenceLabel": {
     "description": "Auth UI: authCityOfResidenceLabel"
   },
@@ -771,7 +771,7 @@
   "@authConfirmPasswordLabel": {
     "description": "Auth UI: authConfirmPasswordLabel"
   },
-  "authLegalConsentPrefix": "Ho letto e accetto",
+  "authLegalConsentPrefix": "Confermo di avere almeno 18 anni. Accetto i Termini di servizio e confermo di aver letto l’Informativa sulla privacy.",
   "@authLegalConsentPrefix": {
     "description": "Auth UI: authLegalConsentPrefix"
   },
@@ -871,11 +871,11 @@
   "@authPasswordTooShortError": {
     "description": "Auth UI: authPasswordTooShortError"
   },
-  "authDisplayNameRequiredError": "Inserisci il nome visualizzato.",
+  "authDisplayNameRequiredError": "Inserisci il nome pubblico.",
   "@authDisplayNameRequiredError": {
     "description": "Auth UI: authDisplayNameRequiredError"
   },
-  "authDisplayNameTooShortError": "Il nome visualizzato è troppo corto.",
+  "authDisplayNameTooShortError": "Il nome pubblico è troppo corto.",
   "@authDisplayNameTooShortError": {
     "description": "Auth UI: authDisplayNameTooShortError"
   },
@@ -907,7 +907,7 @@
   "@authPasswordsDoNotMatchError": {
     "description": "Auth UI: authPasswordsDoNotMatchError"
   },
-  "authLegalConsentRequiredError": "Devi leggere e accettare i Termini di servizio e l’Informativa sulla privacy.",
+  "authLegalConsentRequiredError": "Per registrarti devi confermare di avere almeno 18 anni, accettare i Termini di servizio e confermare di aver letto l’Informativa sulla privacy.",
   "@authLegalConsentRequiredError": {
     "description": "Auth UI: authLegalConsentRequiredError"
   },
@@ -975,7 +975,7 @@
   "@pollDetail_favoriteUpdateError": {
     "description": "Poll detail UI: pollDetail_favoriteUpdateError"
   },
-  "pollDetail_shareMessage": "Apri Sociale_Vote per vedere e votare questo sondaggio.",
+  "pollDetail_shareMessage": "Apri Social Vote per vedere e votare questo sondaggio.",
   "@pollDetail_shareMessage": {
     "description": "Poll detail UI: pollDetail_shareMessage"
   },
@@ -2247,5 +2247,9 @@
   "adminCenterRecentSignInsMetric": "Accessi recenti",
   "adminCenterPollsCreatedMetric": "Poll creati",
   "adminCenterPostsCreatedMetric": "Post creati",
-  "adminCenterAdminActionsMetric": "Azioni amministrative"
+  "adminCenterAdminActionsMetric": "Azioni amministrative",
+  "authPublicNameHelper": "È il nome che vedranno gli altri utenti. Il nome utente viene creato automaticamente.",
+  "@authPublicNameHelper": {
+    "description": "Auth UI: explains public name and automatic username generation"
+  }
 }

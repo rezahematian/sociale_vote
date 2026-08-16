@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appTitle": "Sociale Vote",
+  "appTitle": "Social Vote",
   "voteButton": "Vote",
   "createPollPageTitle": "Create Poll",
   "createPollPageSubtitle": "Define a new civic vote",
@@ -447,7 +447,7 @@
   "@homeScopeCityFieldLabel": {
     "description": "City field label in the Home scope selector"
   },
-  "homeScopeCityExampleHint": "E.g. Rome, São Paulo, Tehran",
+  "homeScopeCityExampleHint": "Type a city, e.g. Merano",
   "@homeScopeCityExampleHint": {
     "description": "Examples shown in the city field"
   },
@@ -607,7 +607,7 @@
   "@postDetail_favoriteUpdateError": {
     "description": "Favorites update error on the post detail page"
   },
-  "postDetail_shareMessage": "Open Sociale_Vote to view this post.",
+  "postDetail_shareMessage": "Open Social Vote to view this post.",
   "@postDetail_shareMessage": {
     "description": "Text appended when sharing a post"
   },
@@ -695,7 +695,7 @@
   "@newsDetail_favoriteUpdateError": {
     "description": "Favorites update error on the news detail page"
   },
-  "newsDetail_shareMessage": "Open Sociale_Vote to view this news item.",
+  "newsDetail_shareMessage": "Open Social Vote to view this news item.",
   "@newsDetail_shareMessage": {
     "description": "Text appended when sharing a news item"
   },
@@ -751,7 +751,7 @@
   "@authRegisterHeadline": {
     "description": "Auth UI: authRegisterHeadline"
   },
-  "authDisplayNameLabel": "Display name",
+  "authDisplayNameLabel": "Public name",
   "@authDisplayNameLabel": {
     "description": "Auth UI: authDisplayNameLabel"
   },
@@ -763,7 +763,7 @@
   "@authCountryOfResidenceLabel": {
     "description": "Auth UI: authCountryOfResidenceLabel"
   },
-  "authCityOfResidenceLabel": "City of residence",
+  "authCityOfResidenceLabel": "City of residence (optional)",
   "@authCityOfResidenceLabel": {
     "description": "Auth UI: authCityOfResidenceLabel"
   },
@@ -771,7 +771,7 @@
   "@authConfirmPasswordLabel": {
     "description": "Auth UI: authConfirmPasswordLabel"
   },
-  "authLegalConsentPrefix": "I have read and accept",
+  "authLegalConsentPrefix": "I confirm that I am at least 18 years old. I accept the Terms of Service and confirm that I have read the Privacy Policy.",
   "@authLegalConsentPrefix": {
     "description": "Auth UI: authLegalConsentPrefix"
   },
@@ -871,11 +871,11 @@
   "@authPasswordTooShortError": {
     "description": "Auth UI: authPasswordTooShortError"
   },
-  "authDisplayNameRequiredError": "Enter your display name.",
+  "authDisplayNameRequiredError": "Enter your public name.",
   "@authDisplayNameRequiredError": {
     "description": "Auth UI: authDisplayNameRequiredError"
   },
-  "authDisplayNameTooShortError": "Display name is too short.",
+  "authDisplayNameTooShortError": "Public name is too short.",
   "@authDisplayNameTooShortError": {
     "description": "Auth UI: authDisplayNameTooShortError"
   },
@@ -907,7 +907,7 @@
   "@authPasswordsDoNotMatchError": {
     "description": "Auth UI: authPasswordsDoNotMatchError"
   },
-  "authLegalConsentRequiredError": "You must read and accept the Terms of Service and Privacy Policy.",
+  "authLegalConsentRequiredError": "To sign up, confirm that you are at least 18, accept the Terms of Service, and confirm that you have read the Privacy Policy.",
   "@authLegalConsentRequiredError": {
     "description": "Auth UI: authLegalConsentRequiredError"
   },
@@ -975,7 +975,7 @@
   "@pollDetail_favoriteUpdateError": {
     "description": "Poll detail UI: pollDetail_favoriteUpdateError"
   },
-  "pollDetail_shareMessage": "Open Sociale_Vote to view and vote in this poll.",
+  "pollDetail_shareMessage": "Open Social Vote to view and vote in this poll.",
   "@pollDetail_shareMessage": {
     "description": "Poll detail UI: pollDetail_shareMessage"
   },
@@ -2247,5 +2247,9 @@
   "adminCenterRecentSignInsMetric": "Recent sign-ins",
   "adminCenterPollsCreatedMetric": "Polls created",
   "adminCenterPostsCreatedMetric": "Posts created",
-  "adminCenterAdminActionsMetric": "Admin actions"
+  "adminCenterAdminActionsMetric": "Admin actions",
+  "authPublicNameHelper": "This is the name other users will see. Your username is created automatically.",
+  "@authPublicNameHelper": {
+    "description": "Auth UI: explains public name and automatic username generation"
+  }
 }

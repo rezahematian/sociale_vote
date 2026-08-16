@@ -1824,6 +1824,21 @@ class RotatingGlobeState extends State<RotatingGlobe>
       );
     }
 
+    // Native startup performance: while the GPU path is enabled but its
+    // shader/texture is still becoming ready, do NOT start the CPU sphere
+    // renderer. buildSphere() performs the full pixel projection on the UI
+    // isolate and can freeze older Android devices for several seconds.
+    //
+    // A real GPU failure flips _useGpuRendering to false above; only then is
+    // the deterministic CPU fallback allowed to run. Web keeps its existing
+    // CPU baseline unchanged.
+    if (!kIsWeb && _useGpuRendering) {
+      return SizedBox(
+        width: constraints.maxWidth,
+        height: constraints.maxHeight,
+      );
+    }
+
     // Fall back to CPU rendering
     return FutureBuilder(
       key: _futureBuilderKey,

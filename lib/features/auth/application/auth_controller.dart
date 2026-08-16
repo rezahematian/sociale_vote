@@ -194,6 +194,7 @@ class AuthController extends ChangeNotifier {
     required String password,
     required String displayName,
     required String username,
+    required String language,
     required String country,
     required String city,
   }) async {
@@ -210,6 +211,7 @@ class AuthController extends ChangeNotifier {
         password: password,
         displayName: displayName,
         username: username,
+        language: language,
         country: country,
         city: city,
       );

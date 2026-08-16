@@ -51,6 +51,7 @@ class AppRouter {
   static const String login = '/login';
   static const String register = '/register';
   static const String resetPassword = '/reset-password';
+  static const String terms = '/terms';
   static const String privacy = '/privacy';
 
   static const String publicHost = 'socialevote.com';
@@ -297,6 +298,14 @@ class AppRouter {
           settings: settings,
         );
 
+      case terms:
+        return MaterialPageRoute<void>(
+          builder: (_) => const LegalDocumentPage(
+            type: LegalDocumentType.terms,
+          ),
+          settings: settings,
+        );
+
       case privacy:
         return MaterialPageRoute<void>(
           builder: (_) => const LegalDocumentPage(
@@ -338,6 +347,7 @@ class AppRouter {
       case news:
       case social:
       case civicMap:
+      case terms:
       case privacy:
       case login:
       case register:

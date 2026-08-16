@@ -27,7 +27,7 @@ class HomeMapSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<CivicMapController>(
-      create: (_) => AppDI.instance.createCivicMapController(),
+      create: (_) => AppDI.instance.createCivicMapController(homePreview: true),
       child: _HomeMapSectionView(
         scopeShortLabel: scopeShortLabel,
         onGlobeScrollLockChanged: onGlobeScrollLockChanged,
@@ -204,9 +204,16 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
 
     _lastSyncedScopeKey = scopeKey;
 
+    final scheduledScopeKey = scopeKey;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      controller.syncScope(scope);
+      Future<void>.delayed(const Duration(milliseconds: 700), () {
+        if (!mounted || _lastSyncedScopeKey != scheduledScopeKey) {
+          return;
+        }
+
+        controller.syncScope(scope);
+      });
     });
   }
 

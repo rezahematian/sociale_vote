@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -10,9 +11,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:sociale_vote/app/app.dart';
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
+import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 import 'package:sociale_vote/firebase_options.dart';
-import 'package:sociale_vote/infrastructure/persistence/remote/rest/auth_api.dart';
 import 'package:sociale_vote/shared/services/storage_service.dart';
 
 const _supabaseUrl = 'https://rbuzlrclwhxaigkgndrb.supabase.co';
@@ -75,21 +77,12 @@ class _RememberMeLocalStorage extends LocalStorage {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Capture the startup URL before Supabase processes and potentially
-  // clears the authentication parameters from the browser address.
-  final startupUri = Uri.base;
-  final isPasswordRecoveryStartup = _hasPasswordRecoverySignal(startupUri);
-
-  final shouldInitFirebase = kIsWeb || !Platform.isWindows;
-
-  if (shouldInitFirebase) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-
-    // Analytics remains disabled until Social Vote provides an explicit
-    // consent flow. Firebase Core stays available for the configured targets.
-    await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(false);
+  // Web keeps its existing Firebase-before-app bootstrap. On native,
+  // Firebase is not needed for routing/auth startup and Analytics is already
+  // disabled by AndroidManifest metadata, so do not hold the first Flutter
+  // frame behind Firebase platform initialization.
+  if (kIsWeb) {
+    await _initializeFirebaseIfSupported();
   }
 
   await Supabase.initialize(
@@ -102,9 +95,7 @@ Future<void> main() async {
     ),
   );
 
-  await _restoreStartupAuthSession(
-    preserveRecoverySession: isPasswordRecoveryStartup,
-  );
+  await _restoreStartupAuthSessionLocally();
 
   runApp(
     ChangeNotifierProvider<GeoScopeController>.value(
@@ -112,54 +103,82 @@ Future<void> main() async {
       child: const SocialeVoteApp(),
     ),
   );
-}
 
-bool _hasPasswordRecoverySignal(Uri uri) {
-  final raw = uri.toString().toLowerCase();
-  final fragment = uri.fragment.toLowerCase();
-
-  if (raw.contains('type=recovery') || fragment.contains('type=recovery')) {
-    return true;
+  if (!kIsWeb) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Keep Firebase away from the critical first-paint window. Android
+      // Analytics collection is already disabled natively before Flutter.
+      Future<void>.delayed(const Duration(milliseconds: 1200), () {
+        unawaited(_initializeFirebaseIfSupported());
+      });
+    });
   }
-
-  return uri.queryParameters.containsKey('code');
 }
 
-Future<void> _restoreStartupAuthSession({
-  required bool preserveRecoverySession,
-}) async {
-  final storageService = AppDI.instance.storageService;
-  final sessionRepository = AppDI.instance.sessionRepository;
-  const authApi = AuthApi();
-  final rememberMe = await storageService.readRememberMe();
-
-  // A password-recovery link creates a temporary authenticated session.
-  // Do not destroy it only because Remember me is disabled.
-  if (!rememberMe && !preserveRecoverySession) {
-    try {
-      await authApi.logout();
-    } catch (_) {
-      // The app must still start unauthenticated even if the remote sign-out
-      // request cannot be completed. Supabase clears its local session during
-      // sign-out, while the app session is cleared explicitly below.
-    }
-
-    await sessionRepository.clearSession();
+Future<void> _initializeFirebaseIfSupported() async {
+  final shouldInitFirebase = kIsWeb || !Platform.isWindows;
+  if (!shouldInitFirebase) {
     return;
   }
 
   try {
-    final existingSession = await authApi.getCurrentSession();
-
-    if (existingSession == null) {
-      await sessionRepository.clearSession();
-      return;
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
     }
 
-    await sessionRepository.saveSession(existingSession);
+    // Analytics remains disabled until Social Vote provides an explicit
+    // consent flow. Android also enforces this from native startup metadata.
+    await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(false);
   } catch (_) {
-    // A stale, invalid or temporarily unavailable remembered session must
-    // never block app startup.
-    await sessionRepository.clearSession();
+    // Firebase/Analytics is non-critical for Social Vote startup.
   }
+}
+
+/// Restores only the app's in-memory session before the first Flutter frame.
+///
+/// Important: startup must not wait for Supabase network calls. The custom
+/// LocalStorage above already decides whether a persisted Supabase session is
+/// allowed to survive when Remember me is disabled. Backend/profile sync and
+/// active-session validation remain handled by the existing auth flow/guards
+/// after the UI is available.
+Future<void> _restoreStartupAuthSessionLocally() async {
+  final storageService = AppDI.instance.storageService;
+  final sessionRepository = AppDI.instance.sessionRepository;
+  final rememberMe = await storageService.readRememberMe();
+
+  if (!rememberMe) {
+    await sessionRepository.clearSession();
+    return;
+  }
+
+  final supabaseSession = Supabase.instance.client.auth.currentSession;
+  if (supabaseSession == null) {
+    await sessionRepository.clearSession();
+    return;
+  }
+
+  final user = supabaseSession.user;
+  final userMetadata = user.userMetadata ?? const <String, dynamic>{};
+  final appMetadata = user.appMetadata;
+
+  final rawDisplayName = userMetadata['display_name'];
+  final displayName =
+      rawDisplayName is String && rawDisplayName.trim().isNotEmpty
+          ? rawDisplayName.trim()
+          : null;
+
+  final rawRole = appMetadata['role'];
+
+  await sessionRepository.saveSession(
+    AuthSession(
+      userId: user.id,
+      accessToken: supabaseSession.accessToken,
+      refreshToken: supabaseSession.refreshToken,
+      email: user.email,
+      displayName: displayName,
+      role: RoleX.fromStorageKey(rawRole is String ? rawRole : null),
+    ),
+  );
 }

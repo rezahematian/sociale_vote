@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -222,30 +221,9 @@ class SocialeVoteApp extends StatefulWidget {
 }
 
 class _SocialeVoteAppState extends State<SocialeVoteApp> {
-  static final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
-  static final FirebaseAnalyticsObserver _analyticsObserver =
-      FirebaseAnalyticsObserver(analytics: _analytics);
-
   StreamSubscription<AuthState>? _authStateSubscription;
   StreamSubscription<String?>? _appearanceUserSubscription;
   bool _passwordRecoveryOpened = false;
-
-  bool get _enableAnalyticsObserver {
-    if (kIsWeb) {
-      return true;
-    }
-
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-        return true;
-      case TargetPlatform.windows:
-      case TargetPlatform.linux:
-      case TargetPlatform.fuchsia:
-        return false;
-    }
-  }
 
   @override
   void initState() {
@@ -296,14 +274,27 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
       await _syncAppSession(data.session);
     }
 
-    if (!_hasRecoverySignal(Uri.base) || data.session == null) {
+    if (data.session == null) {
+      return;
+    }
+
+    // On Android/iOS the recovery deep link is consumed by supabase_flutter,
+    // so Uri.base does not reliably contain `type=recovery`. The auth event is
+    // the authoritative signal for a native password-recovery flow.
+    if (data.event == AuthChangeEvent.passwordRecovery) {
+      _openResetPasswordPage();
+      return;
+    }
+
+    // Keep the URL-signal fallback for Web / cold-start cases where the
+    // recovery parameters are still visible in the browser URI.
+    if (!_hasRecoverySignal(Uri.base)) {
       return;
     }
 
     switch (data.event) {
       case AuthChangeEvent.initialSession:
       case AuthChangeEvent.signedIn:
-      case AuthChangeEvent.passwordRecovery:
       case AuthChangeEvent.tokenRefreshed:
         _openResetPasswordPage();
         break;
@@ -370,11 +361,18 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
 
     final navigator = NavigationService.navigatorKey.currentState;
     if (navigator == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _openResetPasswordPage();
+        }
+      });
       return;
     }
 
     _passwordRecoveryOpened = true;
-    navigator.pushNamed(AppRouter.resetPassword);
+    navigator.pushNamed(AppRouter.resetPassword).whenComplete(() {
+      _passwordRecoveryOpened = false;
+    });
   }
 
   @override
@@ -418,9 +416,7 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
                   child: child ?? const SizedBox.shrink(),
                 );
               },
-              navigatorObservers: _enableAnalyticsObserver
-                  ? <NavigatorObserver>[_analyticsObserver]
-                  : const <NavigatorObserver>[],
+              navigatorObservers: const <NavigatorObserver>[],
               initialRoute: AppRouter.initialRoute,
               onGenerateInitialRoutes: AppRouter.onGenerateInitialRoutes,
               onGenerateRoute: AppRouter.onGenerateRoute,

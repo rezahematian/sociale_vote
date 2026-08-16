@@ -98,7 +98,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Sociale Vote'**
+  /// **'Social Vote'**
   String get appTitle;
 
   /// No description provided for @voteButton.
@@ -1718,7 +1718,7 @@ abstract class AppLocalizations {
   /// Examples shown in the city field
   ///
   /// In en, this message translates to:
-  /// **'E.g. Rome, São Paulo, Tehran'**
+  /// **'Type a city, e.g. Merano'**
   String get homeScopeCityExampleHint;
 
   /// Error shown when the city field is empty
@@ -1958,7 +1958,7 @@ abstract class AppLocalizations {
   /// Text appended when sharing a post
   ///
   /// In en, this message translates to:
-  /// **'Open Sociale_Vote to view this post.'**
+  /// **'Open Social Vote to view this post.'**
   String get postDetail_shareMessage;
 
   /// Post sharing error
@@ -2090,7 +2090,7 @@ abstract class AppLocalizations {
   /// Text appended when sharing a news item
   ///
   /// In en, this message translates to:
-  /// **'Open Sociale_Vote to view this news item.'**
+  /// **'Open Social Vote to view this news item.'**
   String get newsDetail_shareMessage;
 
   /// News sharing error
@@ -2174,7 +2174,7 @@ abstract class AppLocalizations {
   /// Auth UI: authDisplayNameLabel
   ///
   /// In en, this message translates to:
-  /// **'Display name'**
+  /// **'Public name'**
   String get authDisplayNameLabel;
 
   /// Auth UI: authUsernameLabel
@@ -2192,7 +2192,7 @@ abstract class AppLocalizations {
   /// Auth UI: authCityOfResidenceLabel
   ///
   /// In en, this message translates to:
-  /// **'City of residence'**
+  /// **'City of residence (optional)'**
   String get authCityOfResidenceLabel;
 
   /// Auth UI: authConfirmPasswordLabel
@@ -2204,7 +2204,7 @@ abstract class AppLocalizations {
   /// Auth UI: authLegalConsentPrefix
   ///
   /// In en, this message translates to:
-  /// **'I have read and accept'**
+  /// **'I confirm that I am at least 18 years old. I accept the Terms of Service and confirm that I have read the Privacy Policy.'**
   String get authLegalConsentPrefix;
 
   /// Auth UI: authTermsOfServiceAction
@@ -2354,13 +2354,13 @@ abstract class AppLocalizations {
   /// Auth UI: authDisplayNameRequiredError
   ///
   /// In en, this message translates to:
-  /// **'Enter your display name.'**
+  /// **'Enter your public name.'**
   String get authDisplayNameRequiredError;
 
   /// Auth UI: authDisplayNameTooShortError
   ///
   /// In en, this message translates to:
-  /// **'Display name is too short.'**
+  /// **'Public name is too short.'**
   String get authDisplayNameTooShortError;
 
   /// Auth UI: authUsernameRequiredError
@@ -2408,7 +2408,7 @@ abstract class AppLocalizations {
   /// Auth UI: authLegalConsentRequiredError
   ///
   /// In en, this message translates to:
-  /// **'You must read and accept the Terms of Service and Privacy Policy.'**
+  /// **'To sign up, confirm that you are at least 18, accept the Terms of Service, and confirm that you have read the Privacy Policy.'**
   String get authLegalConsentRequiredError;
 
   /// Auth UI: authForgotPasswordEmailRequiredError
@@ -2510,7 +2510,7 @@ abstract class AppLocalizations {
   /// Poll detail UI: pollDetail_shareMessage
   ///
   /// In en, this message translates to:
-  /// **'Open Sociale_Vote to view and vote in this poll.'**
+  /// **'Open Social Vote to view and vote in this poll.'**
   String get pollDetail_shareMessage;
 
   /// Poll detail UI: pollDetail_shareError
@@ -5728,6 +5728,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Admin actions'**
   String get adminCenterAdminActionsMetric;
+
+  /// Auth UI: explains public name and automatic username generation
+  ///
+  /// In en, this message translates to:
+  /// **'This is the name other users will see. Your username is created automatically.'**
+  String get authPublicNameHelper;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

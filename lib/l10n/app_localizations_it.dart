@@ -9,7 +9,7 @@ class AppLocalizationsIt extends AppLocalizations {
   AppLocalizationsIt([String locale = 'it']) : super(locale);
 
   @override
-  String get appTitle => 'Sociale Vote';
+  String get appTitle => 'Social Vote';
 
   @override
   String get voteButton => 'Vota';
@@ -877,7 +877,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get homeScopeCityFieldLabel => 'Città';
 
   @override
-  String get homeScopeCityExampleHint => 'Es. Roma, São Paulo, Tehran';
+  String get homeScopeCityExampleHint => 'Scrivi una città, es. Merano';
 
   @override
   String get homeScopeCityRequiredError => 'Inserisci una città.';
@@ -997,7 +997,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get postDetail_favoriteUpdateError => 'Impossibile aggiornare i preferiti';
 
   @override
-  String get postDetail_shareMessage => 'Apri Sociale_Vote per vedere questo post.';
+  String get postDetail_shareMessage => 'Apri Social Vote per vedere questo post.';
 
   @override
   String get postDetail_shareError => 'Impossibile condividere il post';
@@ -1063,7 +1063,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get newsDetail_favoriteUpdateError => 'Impossibile aggiornare i preferiti';
 
   @override
-  String get newsDetail_shareMessage => 'Apri Sociale_Vote per vedere questa notizia.';
+  String get newsDetail_shareMessage => 'Apri Social Vote per vedere questa notizia.';
 
   @override
   String get newsDetail_shareError => 'Impossibile condividere la notizia';
@@ -1105,7 +1105,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get authRegisterHeadline => 'Crea un account';
 
   @override
-  String get authDisplayNameLabel => 'Nome visualizzato';
+  String get authDisplayNameLabel => 'Nome pubblico';
 
   @override
   String get authUsernameLabel => 'Nome utente';
@@ -1114,13 +1114,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get authCountryOfResidenceLabel => 'Paese di residenza';
 
   @override
-  String get authCityOfResidenceLabel => 'Città di residenza';
+  String get authCityOfResidenceLabel => 'Città di residenza (facoltativa)';
 
   @override
   String get authConfirmPasswordLabel => 'Conferma password';
 
   @override
-  String get authLegalConsentPrefix => 'Ho letto e accetto';
+  String get authLegalConsentPrefix => 'Confermo di avere almeno 18 anni. Accetto i Termini di servizio e confermo di aver letto l’Informativa sulla privacy.';
 
   @override
   String get authTermsOfServiceAction => 'i Termini di servizio';
@@ -1195,10 +1195,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get authPasswordTooShortError => 'La password deve contenere almeno 8 caratteri.';
 
   @override
-  String get authDisplayNameRequiredError => 'Inserisci il nome visualizzato.';
+  String get authDisplayNameRequiredError => 'Inserisci il nome pubblico.';
 
   @override
-  String get authDisplayNameTooShortError => 'Il nome visualizzato è troppo corto.';
+  String get authDisplayNameTooShortError => 'Il nome pubblico è troppo corto.';
 
   @override
   String get authUsernameRequiredError => 'Inserisci un nome utente.';
@@ -1222,7 +1222,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get authPasswordsDoNotMatchError => 'Le password non coincidono.';
 
   @override
-  String get authLegalConsentRequiredError => 'Devi leggere e accettare i Termini di servizio e l’Informativa sulla privacy.';
+  String get authLegalConsentRequiredError => 'Per registrarti devi confermare di avere almeno 18 anni, accettare i Termini di servizio e confermare di aver letto l’Informativa sulla privacy.';
 
   @override
   String get authForgotPasswordEmailRequiredError => 'Inserisci l’email dell’account da recuperare.';
@@ -1273,7 +1273,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get pollDetail_favoriteUpdateError => 'Impossibile aggiornare i preferiti';
 
   @override
-  String get pollDetail_shareMessage => 'Apri Sociale_Vote per vedere e votare questo sondaggio.';
+  String get pollDetail_shareMessage => 'Apri Social Vote per vedere e votare questo sondaggio.';
 
   @override
   String get pollDetail_shareError => 'Impossibile condividere il sondaggio';
@@ -2950,4 +2950,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get adminCenterAdminActionsMetric => 'Azioni amministrative';
+
+  @override
+  String get authPublicNameHelper => 'È il nome che vedranno gli altri utenti. Il nome utente viene creato automaticamente.';
 }
