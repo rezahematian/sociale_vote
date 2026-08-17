@@ -92,6 +92,34 @@ class AppRouter {
     return 'https://$publicHost${publicCityPath(countryCode: countryCode, cityName: cityName)}';
   }
 
+  static RouteSettings _pollRouteSettingsForPlatform(
+    RouteSettings original,
+    PollId pollId,
+  ) {
+    if (!kIsWeb) {
+      return original;
+    }
+
+    return RouteSettings(
+      name: publicPollPath(pollId.value),
+      arguments: original.arguments,
+    );
+  }
+
+  static RouteSettings _postRouteSettingsForPlatform(
+    RouteSettings original,
+    String postId,
+  ) {
+    if (!kIsWeb) {
+      return original;
+    }
+
+    return RouteSettings(
+      name: publicPostPath(postId),
+      arguments: original.arguments,
+    );
+  }
+
   static String get initialRoute {
     if (!kIsWeb) {
       return home;
@@ -171,16 +199,18 @@ class AppRouter {
         if (args is PollId) {
           return MaterialPageRoute<void>(
             builder: (_) => PollDetailPage(pollId: args),
-            settings: settings,
+            settings: _pollRouteSettingsForPlatform(settings, args),
           );
         }
 
         if (args is String && args.trim().isNotEmpty) {
+          final pollId = PollId(args.trim());
+
           return MaterialPageRoute<void>(
             builder: (_) => PollDetailPage(
-              pollId: PollId(args.trim()),
+              pollId: pollId,
             ),
-            settings: settings,
+            settings: _pollRouteSettingsForPlatform(settings, pollId),
           );
         }
 
@@ -204,7 +234,10 @@ class AppRouter {
                 pollId: resolvedPollId,
                 openCommentsOnLoad: openCommentsOnLoad,
               ),
-              settings: settings,
+              settings: _pollRouteSettingsForPlatform(
+                settings,
+                resolvedPollId,
+              ),
             );
           }
         }
@@ -241,9 +274,11 @@ class AppRouter {
       case socialDetail:
         final args = settings.arguments;
         if (args is String && args.trim().isNotEmpty) {
+          final postId = args.trim();
+
           return MaterialPageRoute<void>(
-            builder: (_) => PostDetailPage(postId: args),
-            settings: settings,
+            builder: (_) => PostDetailPage(postId: postId),
+            settings: _postRouteSettingsForPlatform(settings, postId),
           );
         }
         break;
