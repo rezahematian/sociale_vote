@@ -53,7 +53,53 @@ class _ScientificSkyBackgroundState extends State<ScientificSkyBackground> {
   @override
   void initState() {
     super.initState();
-    _loadResources();
+    if (kIsWeb) {
+      _loadWebImage();
+    } else {
+      _loadResources();
+    }
+  }
+
+  Future<void> _loadWebImage() async {
+    ui.Image? decodedImage;
+
+    try {
+      final data = await rootBundle.load(ScientificSkyBackground.assetPath);
+      final codec = await ui.instantiateImageCodec(
+        data.buffer.asUint8List(
+          data.offsetInBytes,
+          data.lengthInBytes,
+        ),
+      );
+
+      final frame = await codec.getNextFrame();
+      decodedImage = frame.image;
+      codec.dispose();
+
+      if (!mounted) {
+        decodedImage.dispose();
+        return;
+      }
+
+      setState(() {
+        _skyImage = decodedImage;
+        _loadError = null;
+      });
+    } catch (error) {
+      decodedImage?.dispose();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _loadError = error;
+      });
+
+      if (kDebugMode) {
+        debugPrint('[ScientificSky Web] image load failed: $error');
+      }
+    }
   }
 
   Future<void> _loadResources() async {
@@ -125,6 +171,36 @@ class _ScientificSkyBackgroundState extends State<ScientificSkyBackground> {
 
   @override
   Widget build(BuildContext context) {
+    if (kIsWeb) {
+      // Fragment shaders can lose their WebGL context behind the independent
+      // Three.js globe. Web therefore draws the decoded Gaia image directly,
+      // repeating it horizontally and moving it from the real globe attitude.
+      // This preserves coherent sky motion without a second WebGL context.
+      final skyImage = _skyImage;
+      if (skyImage == null || _loadError != null) {
+        return const ColoredBox(color: Color(0xFF02040A));
+      }
+
+      return ValueListenableBuilder<Offset>(
+        valueListenable: widget.orientationListenable,
+        builder: (context, orientation, _) {
+          return RepaintBoundary(
+            child: CustomPaint(
+              painter: _WebScientificSkyPainter(
+                skyImage: skyImage,
+                yaw: orientation.dx,
+                pitch: orientation.dy,
+                exposure: widget.exposure,
+              ),
+              isComplex: true,
+              willChange: true,
+              size: Size.infinite,
+            ),
+          );
+        },
+      );
+    }
+
     final shader = _shader;
 
     if (shader == null || _loadError != null) {
@@ -150,6 +226,94 @@ class _ScientificSkyBackgroundState extends State<ScientificSkyBackground> {
         );
       },
     );
+  }
+}
+
+class _WebScientificSkyPainter extends CustomPainter {
+  final ui.Image skyImage;
+  final double yaw;
+  final double pitch;
+  final double exposure;
+
+  const _WebScientificSkyPainter({
+    required this.skyImage,
+    required this.yaw,
+    required this.pitch,
+    required this.exposure,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) {
+      return;
+    }
+
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()..color = const Color(0xFF02040A),
+    );
+
+    final sourceSize = Size(
+      skyImage.width.toDouble(),
+      skyImage.height.toDouble(),
+    );
+
+    // Overscan keeps the viewport covered while pitch follows the globe.
+    final coverScale = math.max(
+      size.width / sourceSize.width,
+      size.height / sourceSize.height,
+    );
+    final scale = coverScale * 1.18;
+    final destinationWidth = sourceSize.width * scale;
+    final destinationHeight = sourceSize.height * scale;
+
+    // Matches the native shader convention: positive globe yaw moves the
+    // celestial texture right, so the visible centre samples inverse yaw.
+    final yawShift = yaw / (math.pi * 2.0) * destinationWidth;
+    final baseLeft = (size.width - destinationWidth) * 0.5 + yawShift;
+    var tileLeft = baseLeft % destinationWidth;
+    if (tileLeft > 0.0) {
+      tileLeft -= destinationWidth;
+    }
+
+    final baseTop = (size.height - destinationHeight) * 0.5;
+    final requestedTop =
+        baseTop + (pitch / math.pi * destinationHeight);
+    final top = requestedTop
+        .clamp(size.height - destinationHeight, 0.0)
+        .toDouble();
+
+    final opacity = (0.55 + exposure * 0.45).clamp(0.35, 1.0).toDouble();
+    final imagePaint = Paint()
+      ..filterQuality = ui.FilterQuality.medium
+      ..color = Color.fromRGBO(255, 255, 255, opacity);
+
+    final sourceRect = Offset.zero & sourceSize;
+    while (tileLeft < size.width) {
+      final destinationRect = Rect.fromLTWH(
+        tileLeft,
+        top,
+        destinationWidth,
+        destinationHeight,
+      );
+
+      canvas.drawImageRect(
+        skyImage,
+        sourceRect,
+        destinationRect,
+        imagePaint,
+      );
+
+      tileLeft += destinationWidth;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _WebScientificSkyPainter oldDelegate) {
+    return skyImage != oldDelegate.skyImage ||
+        (yaw - oldDelegate.yaw).abs() > 0.0005 ||
+        (pitch - oldDelegate.pitch).abs() > 0.0005 ||
+        (exposure - oldDelegate.exposure).abs() > 0.0005;
   }
 }
 

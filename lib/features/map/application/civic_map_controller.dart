@@ -175,6 +175,61 @@ class CivicMapImportanceRules {
   }
 }
 
+/// Selezione unica dei contenuti da consegnare ai renderer Globe.
+///
+/// Mantiene il ranking esistente ma impedisce che Poll/Post occupino tutti i
+/// posti disponibili quando esistono News con coordinate valide. Il limite
+/// News resta esplicito per evitare che il Globe diventi un secondo feed.
+class CivicMapMarkerSelectionRules {
+  const CivicMapMarkerSelectionRules._();
+
+  static List<CivicMapItem> select({
+    required Iterable<CivicMapItem> items,
+    required int totalLimit,
+    required int newsLimit,
+  }) {
+    if (totalLimit <= 0) {
+      return const <CivicMapItem>[];
+    }
+
+    final sorted = items.toList(growable: false)
+      ..sort(
+        (a, b) => b.mapImportanceScore.compareTo(a.mapImportanceScore),
+      );
+
+    if (sorted.isEmpty) {
+      return const <CivicMapItem>[];
+    }
+
+    final effectiveNewsLimit = math.min(
+      totalLimit,
+      math.max(0, newsLimit),
+    );
+
+    final selectedNews = sorted
+        .where((item) => item.type == CivicMapItemType.news)
+        .take(effectiveNewsLimit)
+        .toList(growable: false);
+    final remainingSlots = totalLimit - selectedNews.length;
+    final selectedOther = sorted
+        .where((item) => item.type != CivicMapItemType.news)
+        .take(remainingSlots)
+        .toList(growable: false);
+
+    final selectedKeys = <String>{
+      for (final item in selectedNews) '${item.type.name}:${item.id}',
+      for (final item in selectedOther) '${item.type.name}:${item.id}',
+    };
+
+    return sorted
+        .where(
+          (item) => selectedKeys.contains('${item.type.name}:${item.id}'),
+        )
+        .take(totalLimit)
+        .toList(growable: false);
+  }
+}
+
 class CivicMapItem {
   final String id;
   final TargetRef targetRef;

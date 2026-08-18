@@ -67,6 +67,8 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
 
   bool _initialLoadTriggered = false;
   late double _currentZoom;
+  bool _mapReady = false;
+  bool _initialViewportRefreshScheduled = false;
   bool _globeReturnArmed = false;
   bool _globeReturnTriggered = false;
   String? _lastAppliedViewportScopeKey;
@@ -79,9 +81,20 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     _currentZoom = _initialMapZoom();
     _globeReturnArmed = _currentZoom >= _globeReturnArmZoom;
 
+    final activeScope = AppDI.instance.geoScopeController.scope;
     final initialScope = widget.initialScope;
-    if (_hasValidInitialScopeViewport && initialScope != null) {
+    if (_hasValidHandoffViewport) {
+      // The handoff is already the viewport for the current navigation scope.
+      // Mark that scope as applied so the post-frame scope synchronizer cannot
+      // immediately overwrite the exact geographic center received from 3D.
+      _lastAppliedViewportScopeKey = _viewportScopeKey(activeScope);
+    } else if (_hasValidInitialScopeViewport && initialScope != null) {
       _lastAppliedViewportScopeKey = _viewportScopeKey(initialScope);
+    } else if (_hasValidScopeViewport(activeScope)) {
+      // CivicMapPage owns the navigation scope through GeoScopeController.
+      // When no explicit widget scope was supplied, FlutterMap already starts
+      // from that active scope and must not receive a second startup move.
+      _lastAppliedViewportScopeKey = _viewportScopeKey(activeScope);
     }
 
     if (_hasValidHandoffViewport && kDebugMode) {
@@ -109,6 +122,10 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
 
   bool get _hasValidInitialScopeViewport {
     final scope = widget.initialScope;
+    return _hasValidScopeViewport(scope);
+  }
+
+  bool _hasValidScopeViewport(GeoScope? scope) {
     return scope != null && _isValidLatLng(scope.centerLat, scope.centerLng);
   }
 
@@ -128,6 +145,14 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
       );
     }
 
+    final activeScope = AppDI.instance.geoScopeController.scope;
+    if (_hasValidScopeViewport(activeScope)) {
+      return lat_lng.LatLng(
+        activeScope.centerLat!,
+        activeScope.centerLng!,
+      );
+    }
+
     return _defaultCenter;
   }
 
@@ -142,7 +167,54 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
       return _zoomForScope(initialScope);
     }
 
+    final activeScope = AppDI.instance.geoScopeController.scope;
+    if (_hasValidScopeViewport(activeScope)) {
+      return _zoomForScope(activeScope);
+    }
+
     return _defaultZoom;
+  }
+
+  void _handleMapReady() {
+    if (_mapReady) {
+      return;
+    }
+
+    _mapReady = true;
+
+    if (_initialViewportRefreshScheduled) {
+      return;
+    }
+
+    _initialViewportRefreshScheduled = true;
+    _scheduleViewportSyncForScope(AppDI.instance.geoScopeController.scope);
+    final center = _initialMapCenter();
+    final zoom = _initialMapZoom();
+    _currentZoom = zoom;
+
+    // FlutterMap can be created immediately after the WebGL platform view is
+    // removed. Re-emit the initial camera after layout so TileLayer receives a
+    // real camera event instead of waiting for the user's first manual zoom.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_mapReady) {
+        return;
+      }
+
+      try {
+        final refreshZoom = zoom >= 18.0 ? zoom - 0.0001 : zoom + 0.0001;
+        _mapController.move(center, refreshZoom);
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || !_mapReady) {
+            return;
+          }
+
+          try {
+            _mapController.move(center, zoom);
+          } catch (_) {}
+        });
+      } catch (_) {}
+    });
   }
 
   Future<void> _loadInitialDataIfNeeded() async {
@@ -197,7 +269,7 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
   }
 
   void _scheduleViewportSyncForScope(GeoScope scope) {
-    if (!_isValidLatLng(scope.centerLat, scope.centerLng)) {
+    if (!_mapReady || !_isValidLatLng(scope.centerLat, scope.centerLng)) {
       return;
     }
 
@@ -538,8 +610,11 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
             options: MapOptions(
               initialCenter: _initialMapCenter(),
               initialZoom: _initialMapZoom(),
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerLowest,
               minZoom: 2.0,
               maxZoom: 18.0,
+              onMapReady: _handleMapReady,
               interactionOptions: InteractionOptions(
                 flags: widget.interactive
                     ? (InteractiveFlag.all & ~InteractiveFlag.rotate)

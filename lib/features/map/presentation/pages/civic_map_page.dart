@@ -115,39 +115,32 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                   fit: StackFit.expand,
                   clipBehavior: Clip.none,
                   children: [
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 360),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      child: showWorldGlobe
-                          ? WorldGlobeWidget(
-                              key: const ValueKey<String>(
-                                'civic-map-world-3d',
-                              ),
-                              items: controller.visibleItems,
-                              onItemTap: controller.selectItem,
-                              onUseClassicMap: () =>
-                                  _setWorldGlobeEnabled(false),
-                              onZoomIntoClassicMap:
-                                  _handleGlobeZoomIntoClassicMap,
-                              initialFocusLatitude: worldGlobeHandoff?.latitude,
-                              initialFocusLongitude:
-                                  worldGlobeHandoff?.longitude,
-                              initialFocusZoom: worldGlobeHandoff?.globeZoom,
-                            )
-                          : CivicMapWidget(
-                              key: const ValueKey<String>(
-                                'civic-map-classic-2d',
-                              ),
-                              controller: controller,
-                              handoffLatitude: worldMapHandoff?.latitude,
-                              handoffLongitude: worldMapHandoff?.longitude,
-                              handoffZoom: worldMapHandoff?.mapZoom,
-                              onZoomOutToGlobe: isWorldScope
-                                  ? _handleClassicMapZoomOutToGlobe
-                                  : null,
+                    showWorldGlobe
+                        ? WorldGlobeWidget(
+                            key: const ValueKey<String>(
+                              'civic-map-world-3d',
                             ),
-                    ),
+                            items: controller.visibleItems,
+                            onItemTap: controller.selectItem,
+                            onUseClassicMap: () => _setWorldGlobeEnabled(false),
+                            onZoomIntoClassicMap:
+                                _handleGlobeZoomIntoClassicMap,
+                            initialFocusLatitude: worldGlobeHandoff?.latitude,
+                            initialFocusLongitude: worldGlobeHandoff?.longitude,
+                            initialFocusZoom: worldGlobeHandoff?.globeZoom,
+                          )
+                        : CivicMapWidget(
+                            key: const ValueKey<String>(
+                              'civic-map-classic-2d',
+                            ),
+                            controller: controller,
+                            handoffLatitude: worldMapHandoff?.latitude,
+                            handoffLongitude: worldMapHandoff?.longitude,
+                            handoffZoom: worldMapHandoff?.mapZoom,
+                            onZoomOutToGlobe: isWorldScope
+                                ? _handleClassicMapZoomOutToGlobe
+                                : null,
+                          ),
                     if (controller.selectedItem == null &&
                         (controller.hasData || controller.isEmpty))
                       Positioned(

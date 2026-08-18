@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_earth_globe/flutter_earth_globe.dart';
 import 'package:flutter_earth_globe/flutter_earth_globe_controller.dart';
 import 'package:flutter_earth_globe/globe_coordinates.dart';
@@ -448,14 +447,10 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
   static const Duration _countryFocusDuration = Duration(milliseconds: 480);
   static const double _exploreTapMovementTolerance = 12.0;
 
-  static const String _nativeAutoRotatePreferenceKey =
-      'social_vote.native.globe.auto_rotate.v1';
-
   // Use the renderer's own AnimationController for passive rotation. This is
   // the same controller that already pauses during a gesture and resumes on
   // release, so automatic rotation never competes with manual movement.
-  static const double _nativeGuestRotationSpeed = 0.0050;
-  static const double _nativeAuthenticatedRotationSpeed = 0.0065;
+  static const double _nativeApprovedRotationSpeed = 0.0065;
   static const double _nativeNaturalLatitudeDegrees = 18.0;
   static const Duration _nativeInitialRotationWarmup =
       Duration(milliseconds: 700);
@@ -517,9 +512,6 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
   bool _globeToMapHandoffTriggered = false;
   bool _initialFocusApplied = false;
 
-  bool _nativeAutoRotatePreference = false;
-  bool _nativeAutoRotatePreferenceLoaded = false;
-  bool? _lastNativeAuthenticatedState;
   bool _nativeRotationWarmupComplete = false;
   Timer? _nativeRotationWarmupTimer;
   Timer? _nativeNaturalTiltTimer;
@@ -546,7 +538,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
       background: null,
       isBackgroundFollowingSphereRotation: false,
       isRotating: false,
-      rotationSpeed: _nativeGuestRotationSpeed,
+      rotationSpeed: _nativeApprovedRotationSpeed,
 
       // Approved zoom envelope: the globe can approach the available edges
       // without exposing the square rendering viewport.
@@ -598,8 +590,6 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
         _applyNativeRotationPolicy();
       });
     };
-
-    _loadNativeAutoRotatePreference();
 
     _scientificSkyTimer = Timer.periodic(
       const Duration(milliseconds: 33),
@@ -656,84 +646,11 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     return currentUserId != null && currentUserId.isNotEmpty;
   }
 
-  Future<void> _loadNativeAutoRotatePreference() async {
-    try {
-      final preferences = await SharedPreferences.getInstance();
-      final stored =
-          preferences.getBool(_nativeAutoRotatePreferenceKey) ?? false;
-
-      if (!mounted) {
-        return;
-      }
-
-      _nativeAutoRotatePreference = stored;
-      _nativeAutoRotatePreferenceLoaded = true;
-      _applyNativeRotationPolicy();
-      setState(() {});
-    } catch (_) {
-      if (!mounted) {
-        return;
-      }
-
-      _nativeAutoRotatePreferenceLoaded = true;
-      _applyNativeRotationPolicy();
-    }
-  }
-
-  Future<void> _toggleNativeAutoRotate() async {
-    if (!_isAuthenticatedNow) {
-      return;
-    }
-
-    final next = !_nativeAutoRotatePreference;
-
-    _cancelNativeNaturalTiltRecovery();
-    setState(() {
-      _nativeAutoRotatePreference = next;
-      _nativeAutoRotatePreferenceLoaded = true;
-    });
-
-    _applyNativeRotationPolicy();
-
-    try {
-      final preferences = await SharedPreferences.getInstance();
-      await preferences.setBool(_nativeAutoRotatePreferenceKey, next);
-    } catch (_) {
-      // Rotation remains available for the current session.
-    }
-  }
-
-  void _syncNativeAuthenticationState(bool isAuthenticated) {
-    if (_lastNativeAuthenticatedState == isAuthenticated) {
-      return;
-    }
-
-    _lastNativeAuthenticatedState = isAuthenticated;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _applyNativeRotationPolicy();
-      }
-    });
-  }
-
   bool get _shouldNativeAutoRotate {
-    if (!_nativeRotationWarmupComplete) {
-      return false;
-    }
-
-    if (!_isAuthenticatedNow) {
-      // Match the Web policy: guest Home rotates as a passive presentation;
-      // guest Civic Map stays manual.
-      return _isHomeProfile;
-    }
-
-    return _nativeAutoRotatePreferenceLoaded && _nativeAutoRotatePreference;
+    return _nativeRotationWarmupComplete;
   }
 
-  double get _nativeRotationSpeed => _isAuthenticatedNow
-      ? _nativeAuthenticatedRotationSpeed
-      : _nativeGuestRotationSpeed;
+  double get _nativeRotationSpeed => _nativeApprovedRotationSpeed;
 
   void _applyNativeRotationPolicy() {
     if (!_globeController.isReady || !_nativeRotationWarmupComplete) {
@@ -893,8 +810,6 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     final theme = Theme.of(context);
     final isAuthenticated = _isAuthenticatedNow;
 
-    _syncNativeAuthenticationState(isAuthenticated);
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final availableWidth = constraints.maxWidth;
@@ -996,15 +911,6 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
                               onPointerCancel: _handleExplorePointerCancel,
                               child: globe,
                             ),
-                  if (isAuthenticated)
-                    Positioned(
-                      right: 8,
-                      bottom: 8,
-                      child: _NativeAutoRotateControl(
-                        enabled: _nativeAutoRotatePreference,
-                        onPressed: _toggleNativeAutoRotate,
-                      ),
-                    ),
                   if (!_isHomeProfile &&
                       (_isSelectingCountry || _selectedCountryLabel != null))
                     Positioned(
@@ -1396,12 +1302,13 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
       return const <_WorldGlobeMarkerGroup>[];
     }
 
-    final candidates = items
-        .where(
-          (item) => _isValidLatLng(item.latitude, item.longitude),
-        )
-        .take(markerLimit)
-        .toList(growable: false);
+    final candidates = CivicMapMarkerSelectionRules.select(
+      items: items.where(
+        (item) => _isValidLatLng(item.latitude, item.longitude),
+      ),
+      totalLimit: markerLimit,
+      newsLimit: _isHomeProfile ? 2 : 12,
+    );
 
     final grouped = <String, List<CivicMapItem>>{};
 
@@ -1895,51 +1802,6 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     );
 
     return (position - center).distance <= visibleRadius;
-  }
-}
-
-class _NativeAutoRotateControl extends StatelessWidget {
-  final bool enabled;
-  final VoidCallback onPressed;
-
-  const _NativeAutoRotateControl({
-    required this.enabled,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final background = enabled
-        ? theme.colorScheme.primary
-        : theme.colorScheme.surface.withValues(alpha: 0.90);
-    final foreground =
-        enabled ? theme.colorScheme.onPrimary : theme.colorScheme.primary;
-
-    return Material(
-      color: background,
-      elevation: 3,
-      shape: CircleBorder(
-        side: BorderSide(
-          color: enabled
-              ? theme.colorScheme.primaryContainer
-              : theme.colorScheme.outlineVariant,
-        ),
-      ),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onPressed,
-        child: SizedBox(
-          width: 34,
-          height: 34,
-          child: Icon(
-            Icons.rotate_right,
-            size: 21,
-            color: foreground,
-          ),
-        ),
-      ),
-    );
   }
 }
 

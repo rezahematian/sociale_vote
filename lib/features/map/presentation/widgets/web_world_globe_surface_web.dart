@@ -473,24 +473,20 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     final clusterDegrees = widget.homeProfile ? 18.0 : 7.0;
     final markerLimit = widget.homeProfile ? 6 : 36;
 
-    final candidates = widget.items
-        .where(
-          (item) =>
-              item.latitude.isFinite &&
-              item.longitude.isFinite &&
-              item.latitude >= -90 &&
-              item.latitude <= 90 &&
-              item.longitude >= -180 &&
-              item.longitude <= 180,
-        )
-        .toList(growable: false)
-      ..sort(
-        (a, b) => b.mapImportanceScore.compareTo(
-          a.mapImportanceScore,
-        ),
-      );
-
-    final limited = candidates.take(markerLimit);
+    final validCandidates = widget.items.where(
+      (item) =>
+          item.latitude.isFinite &&
+          item.longitude.isFinite &&
+          item.latitude >= -90 &&
+          item.latitude <= 90 &&
+          item.longitude >= -180 &&
+          item.longitude <= 180,
+    );
+    final limited = CivicMapMarkerSelectionRules.select(
+      items: validCandidates,
+      totalLimit: markerLimit,
+      newsLimit: widget.homeProfile ? 2 : 12,
+    );
     final grouped = <String, List<CivicMapItem>>{};
 
     for (final item in limited) {

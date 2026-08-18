@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-G3H-20260815-ROTATION-CACHE1';
+const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-G3K-20260818-SPACE-ORIENTATION1';
 
 const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
@@ -98,9 +98,6 @@ function dispatch(element, name, detail = {}) {
     }),
   );
 }
-
-const AUTO_ROTATE_PREFERENCE_KEY =
-    'social_vote.web.globe.auto_rotate.v1';
 
 const NATURAL_HOME_LATITUDE = 18;
 
@@ -695,21 +692,11 @@ class SocialVoteGlobeElement extends HTMLElement {
     );
   }
 
-  _readStoredAutoRotatePreference() {
-    try {
-      return localStorage.getItem(AUTO_ROTATE_PREFERENCE_KEY) === '1';
-    } catch (_) {
-      return false;
-    }
-  }
-
   _refreshAuthenticationState(force = false) {
     const authenticated = configAuthenticationState(this._config);
 
     if (!force && authenticated === this._isAuthenticated) {
-      if (authenticated) {
-        this._createAutoRotateControl();
-      } else if (this._autoRotateButton) {
+      if (this._autoRotateButton) {
         this._autoRotateButton.remove();
         this._autoRotateButton = null;
       }
@@ -722,22 +709,12 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._isAuthenticated = authenticated;
     this._naturalSettleToken += 1;
 
-    if (authenticated) {
-      // Authenticated users own the auto-rotation preference. A fresh login
-      // never inherits the guest auto-rotation state; only a preference that
-      // the user explicitly enabled earlier is restored.
-      this._autoRotatePreference =
-          this._readStoredAutoRotatePreference();
-
-      this._createAutoRotateControl();
-    } else {
-      // Guest Home is a passive showcase: no mouse/touch interaction and no
-      // rotate button. It always presents a naturally level, slowly rotating
-      // Earth. No preference is persisted for guests.
-      this._autoRotatePreference = this._config.profile === 'home';
-      this._autoRotateButton?.remove?.();
-      this._autoRotateButton = null;
-    }
+    // All four Globe states use the approved Civic Map rotation baseline.
+    // Guest Home remains read-only through _applyInteractionPolicy(), while
+    // Home auth and Civic Map keep drag/zoom. Rotation has no manual button.
+    this._autoRotatePreference = true;
+    this._autoRotateButton?.remove?.();
+    this._autoRotateButton = null;
 
     this._applyInteractionPolicy();
     this._applyAutoRotatePreference();
@@ -762,96 +739,8 @@ class SocialVoteGlobeElement extends HTMLElement {
     }
   }
 
-  _createAutoRotateControl() {
-    if (
-      !this._isAuthenticated ||
-      this._autoRotateButton
-    ) {
-      return;
-    }
-
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.setAttribute('aria-label', 'Rotazione automatica Terra');
-    button.setAttribute('aria-pressed', 'false');
-    button.title = 'Avvia rotazione automatica';
-    button.textContent = '↻';
-
-    Object.assign(button.style, {
-      position: 'absolute',
-      left: '50%',
-      bottom: this._config.profile === 'home' ? '-20px' : '12px',
-      transform: 'translateX(-50%)',
-      width: '32px',
-      height: '32px',
-      borderRadius: '999px',
-      border: '1px solid rgba(111, 171, 255, 0.30)',
-      background: 'rgba(7, 15, 29, 0.86)',
-      color: '#C5E4FF',
-      font: '700 19px/30px system-ui, sans-serif',
-      textAlign: 'center',
-      padding: '0',
-      margin: '0',
-      cursor: 'pointer',
-      zIndex: '4',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.16)',
-      backdropFilter: 'blur(8px)',
-      WebkitBackdropFilter: 'blur(8px)',
-      transition:
-          'background 140ms ease, border-color 140ms ease, opacity 140ms ease',
-      userSelect: 'none',
-      WebkitUserSelect: 'none',
-    });
-
-    button.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      this._setAutoRotatePreference(!this._autoRotatePreference);
-    });
-
-    button.addEventListener('pointerdown', (event) => {
-      event.stopPropagation();
-    });
-
-    this._autoRotateButton = button;
-    this.appendChild(button);
-    this._updateAutoRotateControl();
-  }
-
-  _setAutoRotatePreference(enabled) {
-    this._autoRotatePreference = Boolean(enabled);
-
-    if (!this._autoRotatePreference) {
-      this._naturalSettleToken += 1;
-      this._naturalSettling = false;
-    }
-
-    if (this._isAuthenticated) {
-      try {
-        localStorage.setItem(
-          AUTO_ROTATE_PREFERENCE_KEY,
-          this._autoRotatePreference ? '1' : '0',
-        );
-      } catch (_) {
-        // Persistence is optional when browser storage is blocked.
-      }
-    }
-
-    this._applyAutoRotatePreference();
-
-    if (
-      this._autoRotatePreference &&
-      this._config.profile === 'home'
-    ) {
-      this._settleToNaturalRotation();
-    }
-  }
-
   _applyAutoRotatePreference() {
-    this._autoRotateEnabled = Boolean(
-      this._autoRotatePreference &&
-      (this._config.profile === 'home' || this._isAuthenticated)
-    );
+    this._autoRotateEnabled = Boolean(this._autoRotatePreference);
 
     if (this._controls) {
       if (!this._autoRotateEnabled) {
@@ -859,32 +748,10 @@ class SocialVoteGlobeElement extends HTMLElement {
       } else if (!this._naturalSettling) {
         this._controls.autoRotate = true;
       }
-      this._controls.autoRotateSpeed = this._isAuthenticated ? 0.30 : 0.22;
+      this._controls.autoRotateSpeed = 0.30;
     }
 
     this._applyInteractionPolicy();
-    this._updateAutoRotateControl();
-  }
-
-  _updateAutoRotateControl() {
-    const button = this._autoRotateButton;
-    if (!button) {
-      return;
-    }
-
-    const active = this._autoRotatePreference;
-    button.setAttribute('aria-pressed', active ? 'true' : 'false');
-    button.title = active
-      ? 'Ferma rotazione automatica'
-      : 'Avvia rotazione automatica';
-    button.style.background = active
-      ? 'rgba(34, 110, 231, 0.94)'
-      : 'rgba(7, 15, 29, 0.86)';
-    button.style.borderColor = active
-      ? 'rgba(163, 221, 255, 0.86)'
-      : 'rgba(111, 171, 255, 0.30)';
-    button.style.color = active ? '#FFFFFF' : '#C5E4FF';
-    button.style.opacity = active ? '1' : '0.84';
   }
 
   _onControlsStart() {
@@ -981,8 +848,7 @@ class SocialVoteGlobeElement extends HTMLElement {
       ) {
         this._naturalSettling = false;
         this._controls.autoRotate = true;
-        this._controls.autoRotateSpeed =
-            this._isAuthenticated ? 0.30 : 0.22;
+        this._controls.autoRotateSpeed = 0.30;
       }
     };
 
@@ -1257,17 +1123,8 @@ class SocialVoteGlobeElement extends HTMLElement {
       this._applyInteractionPolicy();
     }
 
-    if (!this._isAuthenticated) {
-      const shouldGuestRotate = profile === 'home';
-      if (shouldGuestRotate !== this._autoRotatePreference) {
-        this._autoRotatePreference = shouldGuestRotate;
-        this._applyAutoRotatePreference();
-      }
-
-      if (shouldGuestRotate) {
-        this._settleToNaturalRotation();
-      }
-    }
+    // Authentication changes gesture ownership, never the approved rotation.
+    // Guest Home is read-only; Guest Civic Map remains interactive.
   }
 
   _rebuildMarkers(markers) {
@@ -1637,10 +1494,12 @@ class SocialVoteGlobeElement extends HTMLElement {
 
     this._deepZoomSent = true;
 
-    const center =
-        vectorToLatLng(
-          this._camera.position,
-        );
+    const center = this._visibleCenterCoordinates();
+
+    if (!center) {
+      this._deepZoomSent = false;
+      return;
+    }
 
     dispatch(
       this,
@@ -1649,9 +1508,34 @@ class SocialVoteGlobeElement extends HTMLElement {
     );
   }
 
+  _visibleCenterCoordinates() {
+    this._pointer.set(0, 0);
+    this._raycaster.setFromCamera(
+      this._pointer,
+      this._camera,
+    );
+
+    const hits = this._raycaster.intersectObject(
+      this._earth,
+      false,
+    );
+
+    if (hits.length === 0) {
+      return null;
+    }
+
+    return vectorToLatLng(hits[0].point);
+  }
+
   _onPointerDown(event) {
     if (this._guestHomeIsReadOnly()) {
-      this._pointerDown = null;
+      // Guest Home remains non-draggable because OrbitControls is disabled,
+      // but a short tap must still reach Flutter and open Civic Map.
+      this._pointerDown = {
+        x: event.clientX,
+        y: event.clientY,
+        time: performance.now(),
+      };
       return;
     }
 
@@ -1669,15 +1553,10 @@ class SocialVoteGlobeElement extends HTMLElement {
   }
 
   _onPointerUp(event) {
-    if (this._guestHomeIsReadOnly()) {
-      this._pointerDown = null;
-      return;
-    }
-
     const down = this._pointerDown;
     this._pointerDown = null;
 
-    if (this._controls) {
+    if (!this._guestHomeIsReadOnly() && this._controls) {
       this._controls.rotateSpeed = 0.38;
       this._controls.zoomSpeed = 0.52;
     }

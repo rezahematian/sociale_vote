@@ -106,7 +106,13 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
             child: showHomeGlobe
                 ? WorldGlobeWidget(
                     items: controller.visibleItems,
-                    onItemTap: controller.selectItem,
+                    onItemTap: (_) async {
+                      await _openFullMap(
+                        context,
+                        controller: controller,
+                        scope: activeScope,
+                      );
+                    },
                     onUseClassicMap: () async {
                       await _openFullMap(
                         context,
