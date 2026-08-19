@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
@@ -531,89 +532,16 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
   }
 
   Future<NewsItem?> _resolveNewsItem(String newsId) async {
-    final appDi = AppDI.instance;
-    final currentScope = appDi.geoScopeController.scope;
-    final language = _selectedLanguage == NewsLanguage.auto
-        ? null
-        : _selectedLanguage.apiValue;
-
-    final attempts = <Future<List<NewsItem>> Function()>[];
-
-    switch (currentScope.level) {
-      case GeoScopeLevel.world:
-        attempts.add(
-          () => appDi.getNewsFeed(
-            language: language,
-            limit: 100,
-            offset: 0,
-          ),
-        );
-        break;
-
-      case GeoScopeLevel.country:
-        attempts.add(
-          () => appDi.getNewsFeed(
-            countryCode: currentScope.countryCode,
-            language: language,
-            limit: 100,
-            offset: 0,
-          ),
-        );
-        attempts.add(
-          () => appDi.getNewsFeed(
-            language: language,
-            limit: 100,
-            offset: 0,
-          ),
-        );
-        break;
-
-      case GeoScopeLevel.city:
-        attempts.add(
-          () => appDi.getNewsFeed(
-            countryCode: currentScope.countryCode,
-            cityId: currentScope.cityId,
-            language: language,
-            limit: 100,
-            offset: 0,
-          ),
-        );
-        attempts.add(
-          () => appDi.getNewsFeed(
-            countryCode: currentScope.countryCode,
-            language: language,
-            limit: 100,
-            offset: 0,
-          ),
-        );
-        attempts.add(
-          () => appDi.getNewsFeed(
-            language: language,
-            limit: 100,
-            offset: 0,
-          ),
-        );
-        break;
+    final normalizedNewsId = newsId.trim();
+    if (normalizedNewsId.isEmpty) {
+      return null;
     }
 
-    for (final attempt in attempts) {
-      try {
-        final items = await attempt();
-        for (final item in items) {
-          if (_matchesNewsId(item, newsId)) {
-            return item;
-          }
-        }
-      } catch (_) {
-        // best effort
-      }
+    try {
+      return await AppDI.instance.getNewsDetail(EntityId(normalizedNewsId));
+    } catch (_) {
+      return null;
     }
-
-    return null;
-  }
-
-  bool _matchesNewsId(NewsItem item, String newsId) {
-    return item.id.value.trim() == newsId.trim();
   }
 
   String? _readTargetRefId(TargetRef targetRef) {

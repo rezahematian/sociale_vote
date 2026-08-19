@@ -3,11 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:sociale_vote/app/app.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
-enum _TopBarMenuAction {
-  trending,
-  forYou,
-}
-
 enum _AccountMenuAction {
   account,
   appearanceLight,
@@ -24,8 +19,7 @@ class HomeTopBar extends StatelessWidget {
   final VoidCallback onRegisterPressed;
   final VoidCallback onProfilePressed;
   final VoidCallback onLogoutPressed;
-  final VoidCallback? onTrendingPressed;
-  final VoidCallback? onForYouPressed;
+  final VoidCallback? onDiscoveryPressed;
   final VoidCallback? onNotificationsPressed;
   final AppAppearanceMode? currentAppearanceMode;
   final ValueChanged<AppAppearanceMode>? onAppearanceModeChanged;
@@ -39,8 +33,7 @@ class HomeTopBar extends StatelessWidget {
     required this.onRegisterPressed,
     required this.onProfilePressed,
     required this.onLogoutPressed,
-    this.onTrendingPressed,
-    this.onForYouPressed,
+    this.onDiscoveryPressed,
     this.onNotificationsPressed,
     this.currentAppearanceMode,
     this.onAppearanceModeChanged,
@@ -51,13 +44,16 @@ class HomeTopBar extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     if (!isLoggedIn) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Expanded(
-            child: _ColorfulBrand(),
-          ),
-          const SizedBox(width: 8),
+      final guestActions = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          if (onDiscoveryPressed != null) ...[
+            _DiscoverIconButton(
+              scopeShortLabel: scopeShortLabel,
+              onPressed: onDiscoveryPressed!,
+            ),
+            const SizedBox(width: 6),
+          ],
           OutlinedButton(
             onPressed: onLoginPressed,
             style: OutlinedButton.styleFrom(
@@ -75,6 +71,33 @@ class HomeTopBar extends StatelessWidget {
           ),
         ],
       );
+
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 430) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                const _ColorfulBrand(),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: guestActions,
+                ),
+              ],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Expanded(child: _ColorfulBrand()),
+              const SizedBox(width: 8),
+              guestActions,
+            ],
+          );
+        },
+      );
     }
 
     return Row(
@@ -88,12 +111,11 @@ class HomeTopBar extends StatelessWidget {
           unreadCount: unreadNotificationsCount,
           onPressed: onNotificationsPressed,
         ),
-        if (onTrendingPressed != null || onForYouPressed != null) ...[
+        if (onDiscoveryPressed != null) ...[
           const SizedBox(width: 4),
-          _DiscoverMenuIconButton(
+          _DiscoverIconButton(
             scopeShortLabel: scopeShortLabel,
-            onTrendingPressed: onTrendingPressed,
-            onForYouPressed: onForYouPressed,
+            onPressed: onDiscoveryPressed!,
           ),
         ],
         const SizedBox(width: 4),
@@ -163,60 +185,25 @@ class _ColorfulBrand extends StatelessWidget {
   }
 }
 
-class _DiscoverMenuIconButton extends StatelessWidget {
+class _DiscoverIconButton extends StatelessWidget {
   final String scopeShortLabel;
-  final VoidCallback? onTrendingPressed;
-  final VoidCallback? onForYouPressed;
+  final VoidCallback onPressed;
 
-  const _DiscoverMenuIconButton({
+  const _DiscoverIconButton({
     required this.scopeShortLabel,
-    required this.onTrendingPressed,
-    required this.onForYouPressed,
+    required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    return PopupMenuButton<_TopBarMenuAction>(
-      tooltip:
-          '${l10n.homeTrendingTitle} / ${l10n.homeForYouTitle(scopeShortLabel)}',
-      onSelected: (value) {
-        switch (value) {
-          case _TopBarMenuAction.trending:
-            onTrendingPressed?.call();
-            break;
-          case _TopBarMenuAction.forYou:
-            onForYouPressed?.call();
-            break;
-        }
-      },
-      itemBuilder: (context) => [
-        if (onTrendingPressed != null)
-          PopupMenuItem<_TopBarMenuAction>(
-            value: _TopBarMenuAction.trending,
-            child: Row(
-              children: [
-                const Icon(Icons.local_fire_department_outlined, size: 18),
-                const SizedBox(width: 8),
-                Text(l10n.homeTrendingTitle),
-              ],
-            ),
-          ),
-        if (onForYouPressed != null)
-          PopupMenuItem<_TopBarMenuAction>(
-            value: _TopBarMenuAction.forYou,
-            child: Row(
-              children: [
-                const Icon(Icons.auto_awesome_outlined, size: 18),
-                const SizedBox(width: 8),
-                Text(l10n.homeForYouTitle(scopeShortLabel)),
-              ],
-            ),
-          ),
-      ],
-      child: const _TopBarIconShell(
-        icon: Icons.explore_outlined,
+    return Tooltip(
+      message: 'Discovery · $scopeShortLabel',
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(999),
+        child: const _TopBarIconShell(
+          icon: Icons.explore_outlined,
+        ),
       ),
     );
   }

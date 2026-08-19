@@ -9,6 +9,7 @@ import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/content/social/repositories/post_repository.dart';
 import 'package:sociale_vote/domain/discussion/repositories/comment_repository.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
+import 'package:sociale_vote/domain/identity/repositories/account_discovery_repository.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/repositories/poll_repository.dart';
 import 'package:sociale_vote/domain/search/entities/search_result_item.dart';
@@ -37,6 +38,7 @@ class SearchRepositoryInMemory implements SearchRepository {
   final NewsRepository _newsRepository;
   final PostRepository _postRepository;
   final CommentRepository _commentRepository;
+  final AccountDiscoveryRepository _accountDiscoveryRepository;
   final ContentVisibilityFilter _contentVisibilityFilter;
 
   SearchRepositoryInMemory({
@@ -44,11 +46,13 @@ class SearchRepositoryInMemory implements SearchRepository {
     required NewsRepository newsRepository,
     required PostRepository postRepository,
     required CommentRepository commentRepository,
+    required AccountDiscoveryRepository accountDiscoveryRepository,
     ContentVisibilityFilter? contentVisibilityFilter,
   })  : _pollRepository = pollRepository,
         _newsRepository = newsRepository,
         _postRepository = postRepository,
         _commentRepository = commentRepository,
+        _accountDiscoveryRepository = accountDiscoveryRepository,
         _contentVisibilityFilter = contentVisibilityFilter ??
             ContentVisibilityFilter(Supabase.instance.client);
 
@@ -74,6 +78,8 @@ class SearchRepositoryInMemory implements SearchRepository {
         query.type == SearchContentType.news;
     final includePosts = query.type == SearchContentType.all ||
         query.type == SearchContentType.post;
+    final includeAccounts = query.type == SearchContentType.all ||
+        query.type == SearchContentType.account;
 
     // Parametri di scope per i repository.
     final String? countryCode = scope.countryCode;
@@ -115,6 +121,7 @@ class SearchRepositoryInMemory implements SearchRepository {
       final sourceNewsItems = await _newsRepository.getNewsFeed(
         countryCode: countryCode,
         cityId: cityId,
+        allowProviderRefresh: false,
       );
 
       final visibleNewsIds = await _contentVisibilityFilter.filterVisibleIds(
@@ -174,6 +181,53 @@ class SearchRepositoryInMemory implements SearchRepository {
             date: createdAt,
             createdAt: createdAt,
             heat: heat,
+          ),
+        );
+      }
+    }
+
+    // ACCOUNT DISCOVERY
+    // Account search is intentionally global: it never reads or changes the
+    // navigation GeoScope and remains separate from geographic follow.
+    if (includeAccounts) {
+      // The repository paginates the combined result set below. Load enough
+      // account candidates to cover that final offset without changing the
+      // geographic pagination of Poll, News or Post.
+      final accountCandidateLimit = math.min(
+        filters.offset + filters.limit,
+        30,
+      );
+      final accounts = await _accountDiscoveryRepository.searchAccounts(
+        query: query.rawText,
+        limit: accountCandidateLimit,
+        offset: 0,
+      );
+
+      for (final account in accounts) {
+        final profile = account.profile;
+        final displayName = profile.displayName?.trim();
+        final username = profile.username?.trim();
+        final identityDetail = profile.identityDetailLabel?.trim();
+        final title = displayName?.isNotEmpty == true
+            ? displayName!
+            : username?.isNotEmpty == true
+                ? '@$username'
+                : 'Account';
+        final snippetParts = <String>[
+          if (username?.isNotEmpty == true) '@$username',
+          if (identityDetail?.isNotEmpty == true) identityDetail!,
+        ];
+
+        results.add(
+          SearchResultItem(
+            target: TargetRef.user(profile.id),
+            contentType: SearchContentType.account,
+            title: title,
+            snippet:
+                snippetParts.isEmpty ? profile.bio : snippetParts.join(' · '),
+            date: profile.createdAt,
+            createdAt: profile.createdAt,
+            heat: account.followerCount,
           ),
         );
       }

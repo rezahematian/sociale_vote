@@ -202,13 +202,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeLogoutMessage => 'Logout completed. You are now using the app as a guest (read-only).';
 
   @override
-  String get homeSearchHint => 'Search city, country, polls, news, posts...';
+  String get homeSearchHint => 'Search cities, countries, accounts and content...';
 
   @override
   String get searchPageTitle => 'Search';
 
   @override
-  String get searchInputHint => 'Search polls, news, posts...';
+  String get searchInputHint => 'Search accounts, polls, news, posts...';
 
   @override
   String get searchClearTooltip => 'Clear search';
@@ -224,6 +224,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchTypePosts => 'Posts';
+
+  @override
+  String get searchTypeAccounts => 'Accounts';
 
   @override
   String get searchSortHottest => 'Hottest';
@@ -263,6 +266,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchResultTypePost => 'Post';
+
+  @override
+  String get searchResultTypeAccount => 'Account';
 
   @override
   String get searchResultTypeMixed => 'Mixed';
@@ -2730,6 +2736,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileMyFavoritesTitle => 'My favorites';
 
   @override
+  String get profileAccountConnectionsTitle => 'Following and followers';
+
+  @override
+  String get accountConnectionsFollowingTab => 'Following';
+
+  @override
+  String get accountConnectionsFollowersTab => 'Followers';
+
+  @override
+  String get accountConnectionsEmptyFollowing =>
+      'You are not following any accounts yet.';
+
+  @override
+  String get accountConnectionsEmptyFollowers =>
+      'You do not have any followers yet.';
+
+  @override
+  String get accountConnectionsLoadError =>
+      'Unable to load accounts. Try again.';
+
+  @override
   String get profileMyFollowedScopesTitle => 'My followed areas';
 
   @override
@@ -2809,6 +2836,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get publicProfileBlockError => 'Unable to update the block. Try again.';
+
+  @override
+  String get publicProfileFollowersLabel => 'followers';
+
+  @override
+  String get publicProfileFollowingLabel => 'following';
+
+  @override
+  String get publicProfileFollowAction => 'Follow';
+
+  @override
+  String get publicProfileUnfollowAction => 'Unfollow';
+
+  @override
+  String get publicProfileFollowSuccess => 'Account followed.';
+
+  @override
+  String get publicProfileUnfollowSuccess => 'Account unfollowed.';
+
+  @override
+  String get publicProfileFollowError => 'Unable to update the follow. Try again.';
+
+  @override
+  String get publicProfileFollowRetry => 'Reload follow information';
 
   @override
   String get contentLanguageFieldLabel => 'Content language';

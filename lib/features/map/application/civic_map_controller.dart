@@ -128,6 +128,9 @@ class CivicMapImportanceRules {
     required double heat,
     required int commentCount,
     required DateTime? createdAt,
+    bool isBreaking = false,
+    bool isFeatured = false,
+    int editorialPriority = 0,
   }) {
     final normalizedHeat = CivicMapHeatRules.normalizeHeat(heat);
     final normalizedComments =
@@ -135,16 +138,33 @@ class CivicMapImportanceRules {
 
     // Crescita logaritmica: un contenuto molto popolare resta importante
     // senza schiacciare completamente tutti gli altri marker.
-    final engagementScore = math.log(1 + normalizedHeat) * 11.0 +
+    final rawEngagementScore = math.log(1 + normalizedHeat) * 11.0 +
         math.log(1 + normalizedComments) * 9.0;
+    final engagementScore = type == CivicMapItemType.news
+        ? rawEngagementScore * 0.25
+        : rawEngagementScore;
 
-    final recencyScore = _computeRecencyScore(createdAt);
+    final recencyScore = _computeRecencyScore(
+      createdAt,
+      windowHours: type == CivicMapItemType.news ? 24 * 7 : _recencyWindowHours,
+      maxScore: type == CivicMapItemType.news ? 20.0 : 12.0,
+    );
     final civicTypeBoost = _typeBoost(type);
+    final normalizedEditorialPriority = editorialPriority.clamp(0, 100);
+    final newsEditorialScore = type == CivicMapItemType.news
+        ? (isBreaking ? 20.0 : 0.0) +
+            (isFeatured ? 26.0 : 0.0) +
+            (normalizedEditorialPriority * 0.5)
+        : 0.0;
 
-    return engagementScore + recencyScore + civicTypeBoost;
+    return engagementScore + recencyScore + civicTypeBoost + newsEditorialScore;
   }
 
-  static double _computeRecencyScore(DateTime? createdAt) {
+  static double _computeRecencyScore(
+    DateTime? createdAt, {
+    required double windowHours,
+    required double maxScore,
+  }) {
     if (createdAt == null) {
       return 0;
     }
@@ -154,13 +174,13 @@ class CivicMapImportanceRules {
       DateTime.now().difference(createdAt).inMinutes / 60.0,
     );
 
-    if (ageHours >= _recencyWindowHours) {
+    if (ageHours >= windowHours) {
       return 0;
     }
 
-    final remainingRatio = 1.0 - (ageHours / _recencyWindowHours);
+    final remainingRatio = 1.0 - (ageHours / windowHours);
 
-    return remainingRatio * 12.0;
+    return remainingRatio * maxScore;
   }
 
   static double _typeBoost(CivicMapItemType type) {
@@ -246,6 +266,9 @@ class CivicMapItem {
 
   final int commentCount;
   final DateTime? createdAt;
+  final bool isBreaking;
+  final bool isFeatured;
+  final int editorialPriority;
 
   const CivicMapItem({
     required this.id,
@@ -260,6 +283,9 @@ class CivicMapItem {
     this.heat = 0,
     this.commentCount = 0,
     this.createdAt,
+    this.isBreaking = false,
+    this.isFeatured = false,
+    this.editorialPriority = 0,
   });
 
   double get normalizedHeat => CivicMapHeatRules.normalizeHeat(heat);
@@ -291,6 +317,9 @@ class CivicMapItem {
       heat: normalizedHeat,
       commentCount: normalizedCommentCount,
       createdAt: createdAt,
+      isBreaking: isBreaking,
+      isFeatured: isFeatured,
+      editorialPriority: editorialPriority,
     );
   }
 
@@ -322,6 +351,9 @@ class CivicMapItem {
     double? heat,
     int? commentCount,
     DateTime? createdAt,
+    bool? isBreaking,
+    bool? isFeatured,
+    int? editorialPriority,
   }) {
     return CivicMapItem(
       id: id ?? this.id,
@@ -336,6 +368,9 @@ class CivicMapItem {
       heat: heat ?? this.heat,
       commentCount: commentCount ?? this.commentCount,
       createdAt: createdAt ?? this.createdAt,
+      isBreaking: isBreaking ?? this.isBreaking,
+      isFeatured: isFeatured ?? this.isFeatured,
+      editorialPriority: editorialPriority ?? this.editorialPriority,
     );
   }
 }

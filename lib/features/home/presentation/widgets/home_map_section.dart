@@ -56,6 +56,9 @@ class _HomeMapSectionView extends StatefulWidget {
 }
 
 class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
+  static const Duration _webMarkerWarmupDelay = Duration(milliseconds: 700);
+  static const Duration _nativeMarkerWarmupDelay = Duration(milliseconds: 1900);
+
   String? _lastSyncedScopeKey;
 
   @override
@@ -211,9 +214,11 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
     _lastSyncedScopeKey = scopeKey;
 
     final scheduledScopeKey = scopeKey;
+    const warmupDelay =
+        kIsWeb ? _webMarkerWarmupDelay : _nativeMarkerWarmupDelay;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future<void>.delayed(const Duration(milliseconds: 700), () {
+      Future<void>.delayed(warmupDelay, () {
         if (!mounted || _lastSyncedScopeKey != scheduledScopeKey) {
           return;
         }

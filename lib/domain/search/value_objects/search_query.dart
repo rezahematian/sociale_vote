@@ -2,13 +2,14 @@ import 'package:meta/meta.dart';
 
 /// Tipologie di contenuti ricercabili.
 ///
-/// V1: ci concentriamo su Poll / News / Post.
+/// V1: Poll / News / Post / Account.
 /// [all] significa "qualunque tipo", sarà il default.
 enum SearchContentType {
   all,
   poll,
   news,
   post,
+  account,
 }
 
 /// Value object che rappresenta la query di ricerca
@@ -25,7 +26,7 @@ class SearchQuery {
   /// Testo così come inserito dall’utente (non normalizzato).
   final String rawText;
 
-  /// Tipo di contenuto che l’utente vuole cercare.
+  /// Tipo di risultato che l’utente vuole cercare.
   /// Di default [SearchContentType.all].
   final SearchContentType type;
 

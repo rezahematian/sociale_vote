@@ -171,41 +171,34 @@ class VerificationRequestRepositoryImpl
       throw ArgumentError('Stato review non valido.');
     }
 
-    final existingRequest =
-        await _getRequiredPendingRequest(normalizedRequestId);
-
-    final reviewedAtUtc = DateTime.now().toUtc();
-    final reviewedAtLocal = reviewedAtUtc.toLocal();
-
-    final updates = <String, dynamic>{
-      'status': status.storageKey,
-      'reviewed_by': normalizedReviewedBy,
-      'reviewed_at': reviewedAtUtc.toIso8601String(),
-      'review_note': normalizedReviewNote,
-    };
-
-    await AppSupabase.client
-        .from(_table)
-        .update(updates)
-        .eq('id', normalizedRequestId)
-        .eq('status', VerificationRequestStatus.pending.storageKey);
-
-    final refreshed = await getById(normalizedRequestId);
-    if (refreshed != null) {
-      if (refreshed.status != status) {
-        throw Exception('Review richiesta verifica fallita.');
-      }
-      return refreshed;
+    final currentReviewerId =
+        AppSupabase.client.auth.currentUser?.id.trim();
+    if (currentReviewerId == null ||
+        currentReviewerId.isEmpty ||
+        currentReviewerId != normalizedReviewedBy) {
+      throw Exception('Reviewer autenticato non valido.');
     }
 
-    return _buildLocallyUpdatedRequest(
-      existingRequest,
-      status: status,
-      reviewedBy: normalizedReviewedBy,
-      reviewedAt: reviewedAtLocal,
-      reviewNote: normalizedReviewNote,
-      updatedAt: reviewedAtLocal,
+    final response = await AppSupabase.client.rpc(
+      'review_verification_request_secure',
+      params: <String, dynamic>{
+        'p_request_id': normalizedRequestId,
+        'p_status': status.storageKey,
+        'p_review_note': normalizedReviewNote,
+      },
     );
+
+    if (response is! Map) {
+      throw Exception('Review richiesta verifica fallita.');
+    }
+
+    final reviewed = _mapRequest(Map<String, dynamic>.from(response));
+    if (reviewed.status != status ||
+        reviewed.reviewedBy != normalizedReviewedBy) {
+      throw Exception('Review richiesta verifica non coerente.');
+    }
+
+    return reviewed;
   }
 
   @override

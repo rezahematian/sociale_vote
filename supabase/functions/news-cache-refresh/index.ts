@@ -65,15 +65,34 @@ type AggregatedFetchResult = {
 
 type SupabaseCacheClient = ReturnType<typeof createClient>;
 
+type LocationCatalogEntry = {
+  catalogKey: string;
+  locationKind: "country" | "city";
+  label: string;
+  countryCode: string;
+  cityId: string | null;
+  latitude: number;
+  longitude: number;
+  aliases: string[];
+  priority: number;
+};
+
 const CACHE_TABLE = "news_feed_cache";
 const NEWS_ARTICLES_TABLE = "news_articles";
 const NEWS_ALIASES_TABLE = "news_article_aliases";
-const CACHE_PAYLOAD_VERSION = 2;
+const NEWS_LOCATION_CATALOG_TABLE = "news_location_catalog";
+const RUNTIME_VERSION = "news-global-n3.1";
+const CACHE_PAYLOAD_VERSION = 4;
 const NEWS_FINGERPRINT_VERSION = 1;
+const CANONICAL_NEWS_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const DEFAULT_LIMIT = 25;
-const MAX_LIMIT = 100;
-const PROVIDER_WARMUP_BATCH_SIZE = 80;
+const DEFAULT_LIMIT = 2;
+const MAX_LIMIT = 8;
+const CACHE_SCAN_LIMIT = 200;
+const PROVIDER_WARMUP_BATCH_SIZE = 10;
+const MAX_STABLE_CACHE_ITEMS = 25;
+const MAX_PRESERVED_LOCATED_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 const GNEWS_BASE_URL = "https://gnews.io/api/v4";
 const NEWSAPI_BASE_URL = "https://newsapi.org/v2";
@@ -505,6 +524,24 @@ function orderProvidersForRequest(
     );
 }
 
+function orderProvidersForCandidate(candidate: Candidate): string[] {
+  const isWorldwideCatalog =
+    candidate.countryCode == null &&
+    candidate.cityId == null &&
+    candidate.topic == null;
+
+  if (isWorldwideCatalog) {
+    // GNews top-headlines is already relevance-ranked and supports a language
+    // without creating one query per country. NewsAPI remains only fallback.
+    return ["gnews", "newsapi", "guardian"];
+  }
+
+  return orderProvidersForRequest(
+    resolveExecutionLanguage(candidate),
+    candidate.topic,
+  );
+}
+
 async function fetchJson(
   url: string,
   query: Record<string, string>,
@@ -669,7 +706,17 @@ async function fetchGNewsFeed(args: {
         (article) =>
           article && typeof article === "object" && !Array.isArray(article),
       )
-      .map((article) => ({ ...(article as Record<string, unknown>) }));
+      .map((article) => {
+        const normalized = { ...(article as Record<string, unknown>) };
+
+        // GNews applies `lang` to the request but does not consistently return
+        // a language field per article. Preserve the effective request
+        // language so valid results are not discarded as language-unknown.
+        normalized.lang =
+          normalizeLanguageForArticle(normalized.lang) ?? effectiveLanguage;
+
+        return normalized;
+      });
 
     if (effectiveLanguage) {
       return {
@@ -693,21 +740,26 @@ async function fetchGNewsFeed(args: {
 function shouldUseEverythingForGeneralLanguageFeed(
   q: string | null,
   category: string | null,
+  countryCode: string | null,
   language: string | null,
 ): boolean {
-  if (language !== "ar") {
-    return false;
-  }
-
-  return !q && !category;
+  return Boolean(language) && !q && !category && !countryCode;
 }
 
 function defaultEverythingQueryForLanguage(language: string): string {
   switch (language) {
+    case "it":
+      return "mondo OR internazionale";
+    case "de":
+      return "welt OR international";
+    case "fr":
+      return "monde OR international";
+    case "es":
+      return "mundo OR internacional";
     case "ar":
       return "أخبار";
     default:
-      return "news";
+      return "world OR international";
   }
 }
 
@@ -762,12 +814,19 @@ async function fetchNewsApiOrgFeed(args: {
     };
 
     if (
-      shouldUseEverythingForGeneralLanguageFeed(q, category, normalizedLanguage)
+      shouldUseEverythingForGeneralLanguageFeed(
+        q,
+        category,
+        args.countryCode,
+        normalizedLanguage,
+      )
     ) {
       endpoint = `${NEWSAPI_BASE_URL}/everything`;
       query.q = defaultEverythingQueryForLanguage(normalizedLanguage!);
       query.language = normalizedLanguage!;
-      query.sortBy = "publishedAt";
+      query.sortBy = "popularity";
+      query.from = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+        .toISOString();
     } else {
       if (args.countryCode) {
         query.country = args.countryCode;
@@ -1109,10 +1168,7 @@ async function fetchAggregatedNews(
   candidate: Candidate,
 ): Promise<AggregatedFetchResult> {
   const effectiveLanguage = resolveExecutionLanguage(candidate);
-  const providerOrder = orderProvidersForRequest(
-    effectiveLanguage,
-    candidate.topic,
-  );
+  const providerOrder = orderProvidersForCandidate(candidate);
 
   const attempts: AggregatedFetchResult["attempts"] = [];
 
@@ -1741,6 +1797,306 @@ function filterItemsForRequestedLanguage(
   return [...explicitMatches, ...unknownLanguage];
 }
 
+function normalizeLocationSearchText(value: string | null): string {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function containsLocationAlias(text: string, alias: string): boolean {
+  const normalizedAlias = normalizeLocationSearchText(alias);
+  if (normalizedAlias.length < 2 || !text) {
+    return false;
+  }
+
+  return ` ${text} `.includes(` ${normalizedAlias} `);
+}
+
+async function loadLocationCatalog(
+  supabase: SupabaseCacheClient,
+): Promise<LocationCatalogEntry[]> {
+  const { data, error } = await supabase
+    .from(NEWS_LOCATION_CATALOG_TABLE)
+    .select(
+      "catalog_key, location_kind, label, country_code, city_id, " +
+        "latitude, longitude, aliases, priority",
+    )
+    .eq("is_active", true)
+    .order("priority", { ascending: false });
+
+  if (error || !Array.isArray(data)) {
+    return [];
+  }
+
+  const entries: LocationCatalogEntry[] = [];
+
+  for (const row of data as Array<Record<string, unknown>>) {
+    const locationKind = normalize(row.location_kind);
+    const catalogKey = normalizeKeepCase(row.catalog_key);
+    const label = normalizeKeepCase(row.label);
+    const countryCode = normalizeKeepCase(row.country_code)?.toUpperCase();
+    const cityId = normalize(row.city_id);
+    const latitude = Number(row.latitude);
+    const longitude = Number(row.longitude);
+
+    if (
+      (locationKind !== "country" && locationKind !== "city") ||
+      !catalogKey ||
+      !label ||
+      !countryCode ||
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude)
+    ) {
+      continue;
+    }
+
+    const aliases = Array.isArray(row.aliases)
+      ? row.aliases
+        .map((value) => normalizeKeepCase(value))
+        .filter((value): value is string => Boolean(value))
+      : [];
+
+    entries.push({
+      catalogKey,
+      locationKind,
+      label,
+      countryCode,
+      cityId,
+      latitude,
+      longitude,
+      aliases: [...new Set([label, ...aliases])],
+      priority: Number(row.priority ?? 0),
+    });
+  }
+
+  return entries;
+}
+
+function uniqueCatalogEntries(
+  entries: LocationCatalogEntry[],
+): LocationCatalogEntry[] {
+  const byKey = new Map<string, LocationCatalogEntry>();
+  for (const entry of entries) {
+    byKey.set(entry.catalogKey, entry);
+  }
+  return [...byKey.values()];
+}
+
+function findCatalogMatches(
+  text: string,
+  catalog: LocationCatalogEntry[],
+  kind: "country" | "city",
+): LocationCatalogEntry[] {
+  return uniqueCatalogEntries(
+    catalog.filter(
+      (entry) =>
+        entry.locationKind === kind &&
+        entry.aliases.some((alias) => containsLocationAlias(text, alias)),
+    ),
+  );
+}
+
+function countryCatalogEntry(
+  catalog: LocationCatalogEntry[],
+  countryCode: string,
+): LocationCatalogEntry | null {
+  return catalog.find(
+    (entry) =>
+      entry.locationKind === "country" &&
+      entry.countryCode === countryCode,
+  ) ?? null;
+}
+
+function detectCatalogLocation(
+  item: ArticleItem,
+  catalog: LocationCatalogEntry[],
+): LocationCatalogEntry | null {
+  if (!catalog.length) {
+    return null;
+  }
+
+  const explicitCity = normalizeLocationSearchText(
+    firstNonEmptyString(item, ["city", "city_name", "cityName"]),
+  );
+  const explicitCountry = normalizeLocationSearchText(
+    firstNonEmptyString(item, [
+      "country_code",
+      "countryCode",
+      "country",
+    ]),
+  );
+  const explicitCountryCode = explicitCountry
+    ? catalog.find(
+      (entry) =>
+        entry.locationKind === "country" &&
+        (entry.countryCode.toLowerCase() === explicitCountry ||
+          entry.aliases.some(
+            (alias) =>
+              normalizeLocationSearchText(alias) === explicitCountry,
+          )),
+    )?.countryCode ?? null
+    : null;
+
+  if (explicitCity) {
+    const directCities = catalog.filter(
+      (entry) =>
+        entry.locationKind === "city" &&
+        entry.aliases.some(
+          (alias) => normalizeLocationSearchText(alias) === explicitCity,
+        ) &&
+        (!explicitCountryCode || entry.countryCode === explicitCountryCode),
+    );
+
+    if (directCities.length === 1) {
+      return directCities[0];
+    }
+  }
+
+  const titleText = normalizeLocationSearchText(
+    firstNonEmptyString(item, ["title", "headline", "webTitle"]),
+  );
+  const contextText = normalizeLocationSearchText(
+    [
+      firstNonEmptyString(item, ["description", "summary", "trailText"]),
+      firstNonEmptyString(item, ["content", "body"]),
+    ].filter(Boolean).join(" "),
+  );
+
+  const titleCities = findCatalogMatches(titleText, catalog, "city");
+  const contextCities = findCatalogMatches(contextText, catalog, "city");
+  const cityMatches = titleCities.length ? titleCities : contextCities;
+
+  const countryMatches = uniqueCatalogEntries([
+    ...findCatalogMatches(titleText, catalog, "country"),
+    ...findCatalogMatches(contextText, catalog, "country"),
+  ]);
+  const matchedCountryCodes = new Set(
+    countryMatches.map((entry) => entry.countryCode),
+  );
+
+  if (cityMatches.length === 1) {
+    const city = cityMatches[0];
+    if (
+      matchedCountryCodes.size === 0 ||
+      (matchedCountryCodes.size === 1 &&
+        matchedCountryCodes.has(city.countryCode))
+    ) {
+      return city;
+    }
+  }
+
+  // Multiple city names in one headline (for example two sports teams) are
+  // not precise enough. Use the shared country only when it is unambiguous.
+  if (cityMatches.length > 1) {
+    const cityCountryCodes = new Set(
+      cityMatches.map((entry) => entry.countryCode),
+    );
+    if (cityCountryCodes.size === 1) {
+      const [countryCode] = cityCountryCodes;
+      return countryCatalogEntry(catalog, countryCode);
+    }
+  }
+
+  if (matchedCountryCodes.size === 1) {
+    const [countryCode] = matchedCountryCodes;
+    return countryCatalogEntry(catalog, countryCode);
+  }
+
+  return null;
+}
+
+function contentLocationFromCatalog(
+  entry: LocationCatalogEntry,
+): Record<string, unknown> {
+  return {
+    source: "manual",
+    countryCode: entry.countryCode,
+    cityId: entry.cityId,
+    cityName: entry.locationKind === "city" ? entry.label : null,
+    centerLat: entry.latitude,
+    centerLng: entry.longitude,
+    latitude: entry.latitude,
+    longitude: entry.longitude,
+  };
+}
+
+function catalogEntryForEmbeddedLocation(
+  location: Record<string, unknown> | null,
+  catalog: LocationCatalogEntry[],
+): LocationCatalogEntry | null {
+  if (!location || !hasResolvedLocation(location) || !catalog.length) {
+    return null;
+  }
+
+  const latitude = Number(location.latitude ?? location.centerLat);
+  const longitude = Number(location.longitude ?? location.centerLng);
+  const countryCode = normalizeKeepCase(location.countryCode)?.toUpperCase();
+  const cityId = normalize(location.cityId);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null;
+  }
+
+  return catalog.find((entry) => {
+    if (countryCode && entry.countryCode !== countryCode) {
+      return false;
+    }
+
+    if (cityId && entry.locationKind === "city" && entry.cityId !== cityId) {
+      return false;
+    }
+
+    return Math.abs(entry.latitude - latitude) <= 0.001 &&
+      Math.abs(entry.longitude - longitude) <= 0.001;
+  }) ?? null;
+}
+
+function sanitizeItemsWithCatalogLocations(
+  items: ArticleItem[],
+  catalog: LocationCatalogEntry[],
+): ArticleItem[] {
+  return items.map((item) => {
+    const copy = { ...item };
+    const matchedEntry = catalogEntryForEmbeddedLocation(
+      readEmbeddedContentLocation(copy),
+      catalog,
+    );
+
+    for (const key of LOCATION_KEYS) {
+      delete copy[key];
+    }
+
+    if (matchedEntry) {
+      copy._sv_content_location = contentLocationFromCatalog(matchedEntry);
+    }
+
+    return copy;
+  });
+}
+
+function enrichItemsWithCatalogLocations(
+  items: ArticleItem[],
+  catalog: LocationCatalogEntry[],
+): ArticleItem[] {
+  return items.map((item) => {
+    const copy = { ...item };
+    if (hasResolvedLocation(readEmbeddedContentLocation(copy))) {
+      return copy;
+    }
+
+    const detected = detectCatalogLocation(copy, catalog);
+    if (detected) {
+      copy._sv_content_location = contentLocationFromCatalog(detected);
+    }
+
+    return copy;
+  });
+}
+
 function readEmbeddedContentLocation(
   json: ArticleItem,
 ): Record<string, unknown> | null {
@@ -1832,50 +2188,73 @@ function seedLocationsFromPreviousCache(
   return output;
 }
 
-function preferStablePayload(args: {
-  refreshedItems: ArticleItem[];
-  previousItems: ArticleItem[];
-}): {
-  items: ArticleItem[];
-  preservedPreviousPayload: boolean;
-} {
-  const refreshedItems = args.refreshedItems.map((item) => ({ ...item }));
-  const previousItems = args.previousItems.map((item) => ({ ...item }));
-
-  if (!refreshedItems.length && previousItems.length) {
-    return {
-      items: previousItems,
-      preservedPreviousPayload: true,
-    };
+function isRecentLocatedItem(item: ArticleItem): boolean {
+  if (!hasResolvedLocation(readEmbeddedContentLocation(item))) {
+    return false;
   }
 
-  const refreshedLocated = countItemsWithResolvedLocation(refreshedItems);
-  const previousLocated = countItemsWithResolvedLocation(previousItems);
-
-  if (refreshedLocated > 0) {
-    return {
-      items: refreshedItems,
-      preservedPreviousPayload: false,
-    };
+  const publishedAt = extractPublishedAt(item);
+  if (!publishedAt) {
+    return false;
   }
 
-  if (refreshedItems.length && previousLocated === 0) {
-    return {
-      items: refreshedItems,
-      preservedPreviousPayload: false,
-    };
+  const timestamp = Date.parse(publishedAt);
+  if (Number.isNaN(timestamp)) {
+    return false;
   }
 
-  if (refreshedLocated === 0 && previousLocated > 0) {
-    return {
-      items: previousItems,
-      preservedPreviousPayload: true,
-    };
+  return Date.now() - timestamp <= MAX_PRESERVED_LOCATED_AGE_MS;
+}
+
+function mergeWithRecentLocatedPreviousItems(
+  refreshedItems: ArticleItem[],
+  previousItems: ArticleItem[],
+): { items: ArticleItem[]; preservedPreviousPayload: boolean } {
+  const output = refreshedItems.map((item) => ({ ...item }));
+  const seen = new Set<string>();
+
+  for (const item of output) {
+    for (const key of buildStableArticleKeysFromJson(item)) {
+      seen.add(key);
+    }
   }
+
+  let preservedPreviousPayload = false;
+  const recentPrevious = previousItems
+    .filter(isRecentLocatedItem)
+    .slice()
+    .sort((a, b) => {
+      const aTime = Date.parse(extractPublishedAt(a) ?? "") || 0;
+      const bTime = Date.parse(extractPublishedAt(b) ?? "") || 0;
+      return bTime - aTime;
+    });
+
+  for (const item of recentPrevious) {
+    if (output.length >= MAX_STABLE_CACHE_ITEMS) {
+      break;
+    }
+
+    const keys = buildStableArticleKeysFromJson(item);
+    if (keys.length && keys.some((key) => seen.has(key))) {
+      continue;
+    }
+
+    output.push({ ...item });
+    preservedPreviousPayload = true;
+    for (const key of keys) {
+      seen.add(key);
+    }
+  }
+
+  output.sort((a, b) => {
+    const aTime = Date.parse(extractPublishedAt(a) ?? "") || 0;
+    const bTime = Date.parse(extractPublishedAt(b) ?? "") || 0;
+    return bTime - aTime;
+  });
 
   return {
-    items: refreshedItems,
-    preservedPreviousPayload: false,
+    items: output,
+    preservedPreviousPayload,
   };
 }
 
@@ -1937,13 +2316,67 @@ async function upsertCache(
 async function refreshSingleCandidate(
   supabase: SupabaseCacheClient,
   candidate: Candidate,
+  locationCatalog: LocationCatalogEntry[],
 ) {
-  const previousItems = candidate.previousItems.map((item) => ({ ...item }));
+  // Only exact coordinates from the curated catalog survive between refreshes.
+  // This removes legacy N2 geocoder false positives such as the Italian
+  // article "Il ..." being interpreted as Illinois.
+  const previousItems = sanitizeItemsWithCatalogLocations(
+    candidate.previousItems,
+    locationCatalog,
+  );
   const effectiveLanguage = resolveExecutionLanguage(candidate);
 
   const aggregated = await fetchAggregatedNews(candidate);
 
   if (!aggregated.items.length) {
+    const repairedPreviousItems = enrichItemsWithCatalogLocations(
+      previousItems,
+      locationCatalog,
+    );
+    const previousResolvedCount = countItemsWithResolvedLocation(previousItems);
+    const repairedResolvedCount = countItemsWithResolvedLocation(
+      repairedPreviousItems,
+    );
+    const needsCanonicalRegistration =
+      candidate.payloadVersion !== CACHE_PAYLOAD_VERSION ||
+      repairedPreviousItems.some((item) => {
+        const newsId = normalizeKeepCase(item.news_id);
+        return !newsId || !CANONICAL_NEWS_ID_PATTERN.test(newsId);
+      });
+    const gainedCatalogLocations =
+      repairedResolvedCount > previousResolvedCount;
+
+    if (
+      repairedPreviousItems.length > 0 &&
+      (needsCanonicalRegistration || gainedCatalogLocations)
+    ) {
+      const registeredPreviousItems = await registerCanonicalNewsItems(
+        supabase,
+        repairedPreviousItems,
+      );
+
+      await upsertCache(supabase, candidate, registeredPreviousItems);
+
+      return {
+        cacheKey: candidate.cacheKey,
+        ok: true,
+        updated: true,
+        providerUsed: null,
+        effectiveLanguage,
+        providerOrder: aggregated.providerOrder,
+        attempts: aggregated.attempts,
+        itemCount: registeredPreviousItems.length,
+        resolvedLocationCount: countItemsWithResolvedLocation(
+          registeredPreviousItems,
+        ),
+        preservedPreviousPayload: true,
+        reason: needsCanonicalRegistration
+          ? "no_provider_items_canonicalized_existing_cache"
+          : "no_provider_items_enriched_existing_cache",
+      };
+    }
+
     return {
       cacheKey: candidate.cacheKey,
       ok: previousItems.length > 0,
@@ -1967,12 +2400,22 @@ async function refreshSingleCandidate(
     candidate.language,
   );
 
-  const seeded = seedLocationsFromPreviousCache(filtered, previousItems);
-
-  const stabilized = preferStablePayload({
-    refreshedItems: seeded,
+  const sanitizedFreshItems = sanitizeItemsWithCatalogLocations(
+    filtered,
+    locationCatalog,
+  );
+  const seeded = seedLocationsFromPreviousCache(
+    sanitizedFreshItems,
     previousItems,
-  });
+  );
+  const catalogEnriched = enrichItemsWithCatalogLocations(
+    seeded,
+    locationCatalog,
+  );
+  const stabilized = mergeWithRecentLocatedPreviousItems(
+    catalogEnriched,
+    previousItems,
+  );
 
   const registeredItems = await registerCanonicalNewsItems(
     supabase,
@@ -1993,7 +2436,7 @@ async function refreshSingleCandidate(
     resolvedLocationCount: countItemsWithResolvedLocation(registeredItems),
     preservedPreviousPayload: stabilized.preservedPreviousPayload,
     reason: stabilized.preservedPreviousPayload
-      ? "refreshed_items_kept_previous_payload_for_location_stability"
+      ? "cache_refreshed_and_recent_locations_preserved"
       : "cache_refreshed",
   };
 }
@@ -2077,7 +2520,7 @@ Deno.serve(async (req) => {
     `,
     )
     .order("refreshed_at", { ascending: true, nullsFirst: true })
-    .limit(MAX_LIMIT);
+    .limit(CACHE_SCAN_LIMIT);
 
   if (error) {
     return json(
@@ -2108,6 +2551,7 @@ Deno.serve(async (req) => {
   if (dryRun) {
     return json({
       ok: true,
+      runtimeVersion: RUNTIME_VERSION,
       mode: "dry-run",
       scannedCount: allCandidates.length,
       selectedCount: filteredCandidates.length,
@@ -2123,10 +2567,7 @@ Deno.serve(async (req) => {
         resolvedLocationCount: candidate.resolvedLocationCount,
         providerSignatures: candidate.providerSignatures,
         languagesPresent: candidate.languagesPresent,
-        providerOrder: orderProvidersForRequest(
-          resolveExecutionLanguage(candidate),
-          candidate.topic,
-        ),
+        providerOrder: orderProvidersForCandidate(candidate),
       })),
     });
   }
@@ -2134,10 +2575,15 @@ Deno.serve(async (req) => {
   const results: Array<Record<string, unknown>> = [];
   let updatedCount = 0;
   let failedCount = 0;
+  const locationCatalog = await loadLocationCatalog(supabase);
 
   for (const candidate of filteredCandidates) {
     try {
-      const result = await refreshSingleCandidate(supabase, candidate);
+      const result = await refreshSingleCandidate(
+        supabase,
+        candidate,
+        locationCatalog,
+      );
       results.push(result);
 
       if (result.updated) {
@@ -2156,10 +2602,7 @@ Deno.serve(async (req) => {
         updated: false,
         providerUsed: null,
         effectiveLanguage: resolveExecutionLanguage(candidate),
-        providerOrder: orderProvidersForRequest(
-          resolveExecutionLanguage(candidate),
-          candidate.topic,
-        ),
+        providerOrder: orderProvidersForCandidate(candidate),
         attempts: [],
         itemCount: candidate.itemCount,
         resolvedLocationCount: candidate.resolvedLocationCount,
@@ -2171,9 +2614,11 @@ Deno.serve(async (req) => {
 
   return json({
     ok: failedCount === 0,
+    runtimeVersion: RUNTIME_VERSION,
     mode: "execute",
     scannedCount: allCandidates.length,
     selectedCount: filteredCandidates.length,
+    locationCatalogCount: locationCatalog.length,
     updatedCount,
     failedCount,
     results,

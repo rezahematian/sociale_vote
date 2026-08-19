@@ -136,7 +136,8 @@ class NewsRepositoryImpl implements NewsRepository {
     String? language,
     int? limit,
     int? offset,
-    bool allowProviderRefresh = true,
+    bool allowProviderRefresh = false,
+    bool allowFallbackCache = true,
   }) async {
     final candidate = _NewsFeedCandidate(
       countryCode: _normalize(countryCode),
@@ -149,6 +150,7 @@ class NewsRepositoryImpl implements NewsRepository {
       candidate,
       providerLimit: _defaultRefreshFetchLimit,
       allowProviderRefresh: allowProviderRefresh,
+      allowFallbackCache: allowFallbackCache,
     );
 
     if (cache == null || cache.items.isEmpty) {
@@ -182,6 +184,7 @@ class NewsRepositoryImpl implements NewsRepository {
     final cache = await _resolveBestAvailableCache(
       candidate,
       providerLimit: _defaultRefreshFetchLimit,
+      allowProviderRefresh: false,
     );
 
     if (cache == null || cache.items.isEmpty) {
@@ -219,41 +222,14 @@ class NewsRepositoryImpl implements NewsRepository {
       return cached;
     }
 
-    final json = await _aggregator.fetchNewsDetail(requestedId);
-    final normalized = _normalizeFetchedJsonList(
-      <dynamic>[json],
-      defaultLanguage: null,
-    );
-
-    if (normalized.isNotEmpty) {
-      final dto = NewsDto.fromJson(normalized.first);
-      final contentLocation = _readEmbeddedContentLocation(normalized.first);
-      final news = _mapper.toDomain(
-        dto,
-        contentLocation: contentLocation,
-      );
-
-      if (!await _isNewsAvailable(news.id.value)) {
-        throw StateError('News content has been permanently removed.');
-      }
-
-      return news;
-    }
-
-    final dto = NewsDto.fromJson(json);
-    final news = _mapper.toDomain(dto);
-
-    if (!await _isNewsAvailable(news.id.value)) {
-      throw StateError('News content has been permanently removed.');
-    }
-
-    return news;
+    throw StateError('News content is not available in the shared cache.');
   }
 
   Future<_CachedNewsFeed?> _resolveBestAvailableCache(
     _NewsFeedCandidate candidate, {
     required int providerLimit,
-    bool allowProviderRefresh = true,
+    bool allowProviderRefresh = false,
+    bool allowFallbackCache = true,
   }) async {
     final exactCache = await _readExactCache(
       cacheKey: candidate.cacheKey,
@@ -267,6 +243,10 @@ class NewsRepositoryImpl implements NewsRepository {
     }
 
     if (!allowProviderRefresh) {
+      if (!allowFallbackCache) {
+        return null;
+      }
+
       return _readBestFallbackCache(
         candidate: candidate,
         requestedLanguage: candidate.language,
@@ -297,6 +277,10 @@ class NewsRepositoryImpl implements NewsRepository {
 
     if (exactCache != null && exactCache.items.isNotEmpty) {
       return exactCache;
+    }
+
+    if (!allowFallbackCache) {
+      return null;
     }
 
     return _readBestFallbackCache(
@@ -469,16 +453,24 @@ class NewsRepositoryImpl implements NewsRepository {
       );
     }
 
+    final stabilizedRefreshedItems = _seedStablePreviousArticleMetadata(
+      previousItems: previousItems,
+      refreshedItems: refreshedItems,
+    );
+
     final previousResolved = _countItemsWithResolvedLocation(previousItems);
-    final refreshedResolved = _countItemsWithResolvedLocation(refreshedItems);
+    final refreshedResolved =
+        _countItemsWithResolvedLocation(stabilizedRefreshedItems);
 
     if (previousResolved <= refreshedResolved) {
       return List<Map<String, dynamic>>.unmodifiable(
-        refreshedItems.map((item) => Map<String, dynamic>.from(item)).toList(),
+        stabilizedRefreshedItems
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList(),
       );
     }
 
-    final merged = refreshedItems
+    final merged = stabilizedRefreshedItems
         .map((item) => Map<String, dynamic>.from(item))
         .toList(growable: true);
 
@@ -488,7 +480,8 @@ class NewsRepositoryImpl implements NewsRepository {
     }
 
     var mergedResolved = refreshedResolved;
-    final newestRefreshedPublishedAt = _findNewestPublishedAt(refreshedItems);
+    final newestRefreshedPublishedAt =
+        _findNewestPublishedAt(stabilizedRefreshedItems);
 
     for (final previous in previousItems) {
       if (!_hasResolvedLocation(previous)) {
@@ -531,6 +524,55 @@ class NewsRepositoryImpl implements NewsRepository {
     }
 
     return List<Map<String, dynamic>>.unmodifiable(sortedMerged);
+  }
+
+  List<Map<String, dynamic>> _seedStablePreviousArticleMetadata({
+    required List<Map<String, dynamic>> previousItems,
+    required List<Map<String, dynamic>> refreshedItems,
+  }) {
+    final previousByStableKey = <String, Map<String, dynamic>>{};
+
+    for (final previous in previousItems) {
+      for (final key in _buildStableArticleKeysFromJson(previous)) {
+        previousByStableKey.putIfAbsent(key, () => previous);
+      }
+    }
+
+    return refreshedItems.map((refreshed) {
+      final copy = Map<String, dynamic>.from(refreshed);
+      Map<String, dynamic>? matchedPrevious;
+
+      for (final key in _buildStableArticleKeysFromJson(copy)) {
+        matchedPrevious = previousByStableKey[key];
+        if (matchedPrevious != null) {
+          break;
+        }
+      }
+
+      if (matchedPrevious == null) {
+        return copy;
+      }
+
+      final currentCanonicalId = copy['news_id']?.toString().trim() ?? '';
+      final previousCanonicalId =
+          matchedPrevious['news_id']?.toString().trim() ?? '';
+
+      if (currentCanonicalId.isEmpty && previousCanonicalId.isNotEmpty) {
+        copy['news_id'] = previousCanonicalId;
+      }
+
+      final currentLocation = _readEmbeddedContentLocation(copy);
+      final previousLocation = _readEmbeddedContentLocation(matchedPrevious);
+
+      if ((currentLocation == null ||
+              (!currentLocation.hasExactPoint && !currentLocation.hasCenter)) &&
+          previousLocation != null &&
+          (previousLocation.hasExactPoint || previousLocation.hasCenter)) {
+        copy['_sv_content_location'] = previousLocation.toJson();
+      }
+
+      return copy;
+    }).toList(growable: false);
   }
 
   bool _hasResolvedLocation(Map<String, dynamic> item) {

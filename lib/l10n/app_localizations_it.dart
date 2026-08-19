@@ -202,13 +202,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get homeLogoutMessage => 'Disconnessione completata. Ora stai usando l’app come ospite (sola lettura).';
 
   @override
-  String get homeSearchHint => 'Cerca città, Paese, sondaggi, notizie, pubblicazioni...';
+  String get homeSearchHint => 'Cerca città, Paesi, account e contenuti...';
 
   @override
   String get searchPageTitle => 'Cerca';
 
   @override
-  String get searchInputHint => 'Cerca sondaggi, notizie, pubblicazioni...';
+  String get searchInputHint => 'Cerca account, sondaggi, notizie, pubblicazioni...';
 
   @override
   String get searchClearTooltip => 'Cancella ricerca';
@@ -224,6 +224,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get searchTypePosts => 'Pubblicazioni';
+
+  @override
+  String get searchTypeAccounts => 'Account';
 
   @override
   String get searchSortHottest => 'Più caldi';
@@ -263,6 +266,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get searchResultTypePost => 'Pubblicazione';
+
+  @override
+  String get searchResultTypeAccount => 'Account';
 
   @override
   String get searchResultTypeMixed => 'Misto';
@@ -2730,6 +2736,27 @@ class AppLocalizationsIt extends AppLocalizations {
   String get profileMyFavoritesTitle => 'I miei preferiti';
 
   @override
+  String get profileAccountConnectionsTitle => 'Seguiti e follower';
+
+  @override
+  String get accountConnectionsFollowingTab => 'Seguiti';
+
+  @override
+  String get accountConnectionsFollowersTab => 'Follower';
+
+  @override
+  String get accountConnectionsEmptyFollowing =>
+      'Non segui ancora nessun account.';
+
+  @override
+  String get accountConnectionsEmptyFollowers =>
+      'Non hai ancora follower.';
+
+  @override
+  String get accountConnectionsLoadError =>
+      'Impossibile caricare gli account. Riprova.';
+
+  @override
   String get profileMyFollowedScopesTitle => 'Le mie aree seguite';
 
   @override
@@ -2809,6 +2836,30 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get publicProfileBlockError => 'Impossibile aggiornare il blocco. Riprova.';
+
+  @override
+  String get publicProfileFollowersLabel => 'follower';
+
+  @override
+  String get publicProfileFollowingLabel => 'seguiti';
+
+  @override
+  String get publicProfileFollowAction => 'Segui';
+
+  @override
+  String get publicProfileUnfollowAction => 'Non seguire più';
+
+  @override
+  String get publicProfileFollowSuccess => 'Account seguito.';
+
+  @override
+  String get publicProfileUnfollowSuccess => 'Account non più seguito.';
+
+  @override
+  String get publicProfileFollowError => 'Impossibile aggiornare il follow. Riprova.';
+
+  @override
+  String get publicProfileFollowRetry => 'Ricarica informazioni follow';
 
   @override
   String get contentLanguageFieldLabel => 'Lingua del contenuto';

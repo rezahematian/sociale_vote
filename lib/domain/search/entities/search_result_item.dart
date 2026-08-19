@@ -16,7 +16,7 @@ import 'package:sociale_vote/domain/search/value_objects/search_query.dart';
 /// - La UI e i controller possono decidere come ordinare/filtrare.
 @immutable
 class SearchResultItem {
-  /// Riferimento generico al contenuto (poll/news/post).
+  /// Riferimento generico al risultato (poll/news/post/user).
   final TargetRef target;
 
   /// Tipo di contenuto (coerente con SearchContentType).

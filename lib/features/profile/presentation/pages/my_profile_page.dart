@@ -18,6 +18,7 @@ import 'package:sociale_vote/domain/identity/value_objects/verification_status.d
 import 'package:sociale_vote/features/profile/application/profile_controller.dart';
 import 'package:sociale_vote/features/profile/application/verification_requests_controller.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/edit_profile_page.dart';
+import 'package:sociale_vote/features/profile/presentation/pages/my_account_connections_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_comments_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_favorites_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_followed_scopes_page.dart';
@@ -25,6 +26,24 @@ import 'package:sociale_vote/features/profile/presentation/pages/my_polls_page.d
 import 'package:sociale_vote/features/profile/presentation/pages/my_posts_page.dart';
 import 'package:sociale_vote/shared/services/biometric_unlock_service.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
+
+void _goBackFromAccount(BuildContext context) {
+  final navigator = Navigator.of(context);
+  if (navigator.canPop()) {
+    navigator.pop();
+    return;
+  }
+
+  navigator.pushNamedAndRemoveUntil(AppRouter.home, (_) => false);
+}
+
+Widget _buildAccountBackButton(BuildContext context) {
+  return IconButton(
+    tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () => _goBackFromAccount(context),
+  );
+}
 
 class MyProfilePage extends StatelessWidget {
   const MyProfilePage({super.key});
@@ -37,6 +56,7 @@ class MyProfilePage extends StatelessWidget {
     if (currentUserId == null) {
       return Scaffold(
         appBar: AppBar(
+          leading: _buildAccountBackButton(context),
           title: Text(l10n.homeAccountMenuLabel),
         ),
         body: Center(
@@ -1114,6 +1134,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: _buildAccountBackButton(context),
         title: Text(l10n.homeAccountMenuLabel),
       ),
       body: RefreshIndicator(
@@ -1415,6 +1436,18 @@ class _MyProfileViewState extends State<_MyProfileView> {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => const MyFavoritesPage(),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                _SettingsTile(
+                  title: l10n.profileAccountConnectionsTitle,
+                  icon: Icons.people_alt_outlined,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MyAccountConnectionsPage(),
                       ),
                     );
                   },

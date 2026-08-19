@@ -26,6 +26,7 @@ class WebWorldGlobeSurface extends StatefulWidget {
   final List<CivicMapItem> items;
   final bool homeProfile;
   final bool isAuthenticated;
+  final bool autoRotateEnabled;
   final ValueChanged<CivicMapItem> onMarkerTap;
   final void Function(double latitude, double longitude) onSurfaceTap;
   final ValueChanged<Offset>? onOrientationChanged;
@@ -41,6 +42,7 @@ class WebWorldGlobeSurface extends StatefulWidget {
     required this.items,
     required this.homeProfile,
     required this.isAuthenticated,
+    required this.autoRotateEnabled,
     required this.onMarkerTap,
     required this.onSurfaceTap,
     required this.onUnavailable,
@@ -457,6 +459,7 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     return <String, Object?>{
       'profile': widget.homeProfile ? 'home' : 'explore',
       'isAuthenticated': widget.isAuthenticated,
+      'autoRotateEnabled': widget.autoRotateEnabled,
       'textureUrl': _earthTextureUrl,
       'nightTextureUrl': _nightTextureUrl,
       'markers': markers,
@@ -492,7 +495,10 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     for (final item in limited) {
       final latCell = (item.latitude / clusterDegrees).floor();
       final lngCell = (item.longitude / clusterDegrees).floor();
-      final key = '$latCell|$lngCell';
+      // Keep civic content visible when the asynchronous News load completes.
+      // A News item in the same geographic cell must not replace the existing
+      // Poll/Post marker by becoming the cluster representative.
+      final key = '${item.type.name}|$latCell|$lngCell';
 
       grouped.putIfAbsent(key, () => <CivicMapItem>[]).add(item);
     }

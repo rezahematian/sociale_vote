@@ -1,4 +1,4 @@
-<manifest
+﻿<manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -82,6 +82,16 @@
                 <data android:scheme="https" />
                 <data android:host="socialevote.com" />
                 <data android:pathPrefix="/city/" />
+            </intent-filter>
+            <!-- Verified public Join links. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="socialevote.com" />
+                <data android:pathPrefix="/join" />
             </intent-filter>
         </activity>
 

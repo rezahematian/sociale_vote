@@ -13,6 +13,7 @@ import 'package:sociale_vote/domain/search/value_objects/search_filters.dart';
 import 'package:sociale_vote/domain/search/value_objects/search_query.dart';
 import 'package:sociale_vote/features/search/application/search_controller.dart'
     as app_search;
+import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/ui/app_button.dart';
 import 'package:sociale_vote/shared/ui/app_card.dart';
@@ -177,6 +178,16 @@ class _SearchPageState extends State<SearchPage> {
           );
           break;
 
+        case SearchContentType.account:
+          await Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => PublicUserProfilePage(
+                userId: item.target.id,
+              ),
+            ),
+          );
+          break;
+
         case SearchContentType.all:
           throw StateError('Unsupported mixed search result');
       }
@@ -312,6 +323,13 @@ class _SearchPageState extends State<SearchPage> {
                                       _TypeFilterChip(
                                         label: l10n.searchTypePosts,
                                         type: SearchContentType.post,
+                                        selectedType: _selectedType,
+                                        onSelected: (type) =>
+                                            _updateType(controller, type),
+                                      ),
+                                      _TypeFilterChip(
+                                        label: l10n.searchTypeAccounts,
+                                        type: SearchContentType.account,
                                         selectedType: _selectedType,
                                         onSelected: (type) =>
                                             _updateType(controller, type),
@@ -744,6 +762,7 @@ class _SearchResultTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     final typeLabel = _labelForType(context, item.contentType);
     final dateText = _formatDate(context, item.date);
     final palette = _paletteForType(context, item.contentType);
@@ -832,6 +851,27 @@ class _SearchResultTile extends StatelessWidget {
                     ),
                   ),
                 ],
+                if (item.contentType == SearchContentType.account &&
+                    item.heat != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.people_outline_rounded,
+                        size: 15,
+                        color: colorScheme.onSurface.withValues(alpha: 0.62),
+                      ),
+                      const SizedBox(width: AppSpacing.xxs),
+                      Text(
+                        '${item.heat} ${l10n.publicProfileFollowersLabel}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color:
+                              colorScheme.onSurface.withValues(alpha: 0.68),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -848,6 +888,8 @@ class _SearchResultTile extends StatelessWidget {
         return Icons.article_rounded;
       case SearchContentType.post:
         return Icons.forum_rounded;
+      case SearchContentType.account:
+        return Icons.person_search_rounded;
       case SearchContentType.all:
         return Icons.search_rounded;
     }
@@ -863,6 +905,8 @@ class _SearchResultTile extends StatelessWidget {
         return l10n.searchResultTypeNews;
       case SearchContentType.post:
         return l10n.searchResultTypePost;
+      case SearchContentType.account:
+        return l10n.searchResultTypeAccount;
       case SearchContentType.all:
         return l10n.searchResultTypeMixed;
     }
@@ -890,6 +934,7 @@ class _SearchResultTile extends StatelessWidget {
               : AppColors.heatSoftBackground,
         );
       case SearchContentType.post:
+      case SearchContentType.account:
       case SearchContentType.all:
         return _SearchTypePalette(
           foreground: isDark

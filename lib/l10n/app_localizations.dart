@@ -476,7 +476,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeSearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search city, country, polls, news, posts...'**
+  /// **'Search cities, countries, accounts and content...'**
   String get homeSearchHint;
 
   /// No description provided for @searchPageTitle.
@@ -488,7 +488,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchInputHint.
   ///
   /// In en, this message translates to:
-  /// **'Search polls, news, posts...'**
+  /// **'Search accounts, polls, news, posts...'**
   String get searchInputHint;
 
   /// No description provided for @searchClearTooltip.
@@ -520,6 +520,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Posts'**
   String get searchTypePosts;
+
+  /// No description provided for @searchTypeAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get searchTypeAccounts;
 
   /// No description provided for @searchSortHottest.
   ///
@@ -598,6 +604,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Post'**
   String get searchResultTypePost;
+
+  /// No description provided for @searchResultTypeAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get searchResultTypeAccount;
 
   /// No description provided for @searchResultTypeMixed.
   ///
@@ -5285,6 +5297,42 @@ abstract class AppLocalizations {
   /// **'My favorites'**
   String get profileMyFavoritesTitle;
 
+  /// No description provided for @profileAccountConnectionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Following and followers'**
+  String get profileAccountConnectionsTitle;
+
+  /// No description provided for @accountConnectionsFollowingTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Following'**
+  String get accountConnectionsFollowingTab;
+
+  /// No description provided for @accountConnectionsFollowersTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Followers'**
+  String get accountConnectionsFollowersTab;
+
+  /// No description provided for @accountConnectionsEmptyFollowing.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not following any accounts yet.'**
+  String get accountConnectionsEmptyFollowing;
+
+  /// No description provided for @accountConnectionsEmptyFollowers.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have any followers yet.'**
+  String get accountConnectionsEmptyFollowers;
+
+  /// No description provided for @accountConnectionsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load accounts. Try again.'**
+  String get accountConnectionsLoadError;
+
   /// No description provided for @profileMyFollowedScopesTitle.
   ///
   /// In en, this message translates to:
@@ -5446,6 +5494,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to update the block. Try again.'**
   String get publicProfileBlockError;
+
+  /// No description provided for @publicProfileFollowersLabel.
+  String get publicProfileFollowersLabel;
+
+  /// No description provided for @publicProfileFollowingLabel.
+  String get publicProfileFollowingLabel;
+
+  /// No description provided for @publicProfileFollowAction.
+  String get publicProfileFollowAction;
+
+  /// No description provided for @publicProfileUnfollowAction.
+  String get publicProfileUnfollowAction;
+
+  /// No description provided for @publicProfileFollowSuccess.
+  String get publicProfileFollowSuccess;
+
+  /// No description provided for @publicProfileUnfollowSuccess.
+  String get publicProfileUnfollowSuccess;
+
+  /// No description provided for @publicProfileFollowError.
+  String get publicProfileFollowError;
+
+  /// No description provided for @publicProfileFollowRetry.
+  String get publicProfileFollowRetry;
 
   /// No description provided for @contentLanguageFieldLabel.
   ///

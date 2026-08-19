@@ -48,7 +48,6 @@ class NewsController extends ChangeNotifier {
   final Map<String, int> _commentCounts = <String, int>{};
 
   static const int _pageSize = 10;
-  static const int _manualRefreshFetchLimit = 50;
 
   int _currentOffset = 0;
   bool _hasMoreFromSource = true;
@@ -127,47 +126,6 @@ class NewsController extends ChangeNotifier {
     await _ensureLanguagePreferenceHydrated(
       isAuthenticated: effectiveUserId != null,
     );
-
-    if (effectiveUserId == null) {
-      await loadNews();
-      return;
-    }
-
-    final scopeFilter = _currentScopeFilter();
-
-    _errorMessage = null;
-    _errorKind = null;
-    _isLoading = true;
-    _safeNotifyListeners();
-
-    try {
-      await AppDI.instance.refreshNewsFeedCache(
-        countryCode: scopeFilter.countryCode,
-        cityId: scopeFilter.cityId,
-        topic: _selectedTopic.apiValue,
-        language: _effectiveLanguageApiValue(),
-        providerLimit: _manualRefreshFetchLimit,
-      );
-    } catch (e, stackTrace) {
-      if (kDebugMode) {
-        debugPrint('Error refreshing news cache: $e');
-        debugPrint('$stackTrace');
-      }
-
-      _applyError(
-        e,
-        fallbackMessage: 'Unable to refresh news at the moment.',
-      );
-    } finally {
-      if (!_isDisposed) {
-        _isLoading = false;
-        _safeNotifyListeners();
-      }
-    }
-
-    if (_isDisposed) {
-      return;
-    }
 
     await loadNews(userId: effectiveUserId);
   }
@@ -407,10 +365,6 @@ class NewsController extends ChangeNotifier {
   Future<void> _loadNextPage({required int requestId}) async {
     final scopeFilter = _currentScopeFilter();
 
-    final isGuest = _lastKnownUserId == null;
-    final allowProviderRefresh =
-        !isGuest || _selectedLanguage == NewsLanguage.auto;
-
     final sourceResult = await _getNewsFeed(
       countryCode: scopeFilter.countryCode,
       cityId: scopeFilter.cityId,
@@ -418,7 +372,7 @@ class NewsController extends ChangeNotifier {
       language: _effectiveLanguageApiValue(),
       limit: _pageSize,
       offset: _currentOffset,
-      allowProviderRefresh: allowProviderRefresh,
+      allowProviderRefresh: false,
     );
 
     if (!_isRequestStillValid(requestId)) {

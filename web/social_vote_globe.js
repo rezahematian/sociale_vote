@@ -152,6 +152,20 @@ function configAuthenticationState(config) {
   return browserSessionLooksAuthenticated();
 }
 
+function configAutoRotateState(config) {
+  const raw = config?.autoRotateEnabled;
+
+  if (typeof raw === 'boolean') {
+    return raw;
+  }
+
+  if (raw === 0 || raw === '0' || raw === 'false') {
+    return false;
+  }
+
+  return true;
+}
+
 function createMarkerTexture(color, count) {
   const size = 128;
   const canvas = document.createElement('canvas');
@@ -694,8 +708,13 @@ class SocialVoteGlobeElement extends HTMLElement {
 
   _refreshAuthenticationState(force = false) {
     const authenticated = configAuthenticationState(this._config);
+    const autoRotatePreference = configAutoRotateState(this._config);
 
-    if (!force && authenticated === this._isAuthenticated) {
+    if (
+      !force &&
+      authenticated === this._isAuthenticated &&
+      autoRotatePreference === this._autoRotatePreference
+    ) {
       if (this._autoRotateButton) {
         this._autoRotateButton.remove();
         this._autoRotateButton = null;
@@ -709,10 +728,9 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._isAuthenticated = authenticated;
     this._naturalSettleToken += 1;
 
-    // All four Globe states use the approved Civic Map rotation baseline.
-    // Guest Home remains read-only through _applyInteractionPolicy(), while
-    // Home auth and Civic Map keep drag/zoom. Rotation has no manual button.
-    this._autoRotatePreference = true;
+    // Flutter owns the authenticated rotation control. Guest Home remains
+    // read-only while keeping the approved passive rotation baseline.
+    this._autoRotatePreference = autoRotatePreference;
     this._autoRotateButton?.remove?.();
     this._autoRotateButton = null;
 

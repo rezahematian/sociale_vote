@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
+import 'package:sociale_vote/domain/identity/entities/account_follow_state.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/poll_detail_page.dart';
 import 'package:sociale_vote/features/social/presentation/pages/post_detail_page.dart';
@@ -36,6 +37,10 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
   bool _blockStateLoadError = false;
   bool _blockActionLoading = false;
   bool _isBlocked = false;
+  AccountFollowState? _followState;
+  bool _followStateLoading = false;
+  bool _followStateLoadError = false;
+  bool _followActionLoading = false;
 
   @override
   void initState() {
@@ -50,7 +55,10 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
       return;
     }
 
-    await _loadBlockState();
+    await Future.wait<void>([
+      _loadBlockState(),
+      _loadFollowState(),
+    ]);
     if (!mounted) return;
 
     await _loadPolls();
@@ -78,6 +86,10 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
         _blockStateLoadError = false;
         _blockActionLoading = false;
         _isBlocked = false;
+        _followState = null;
+        _followStateLoading = false;
+        _followStateLoadError = false;
+        _followActionLoading = false;
       });
       return;
     }
@@ -117,6 +129,10 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
         _blockStateLoadError = false;
         _blockActionLoading = false;
         _isBlocked = false;
+        _followState = null;
+        _followStateLoading = false;
+        _followStateLoadError = false;
+        _followActionLoading = false;
       });
     }
   }
@@ -246,6 +262,9 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
         _blockStateLoadError = false;
       });
 
+      await _loadFollowState();
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -266,6 +285,87 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
         SnackBar(
           content: Text(l10n.publicProfileBlockError),
         ),
+      );
+    }
+  }
+
+  Future<void> _loadFollowState() async {
+    if (!mounted) return;
+    final targetUserId = widget.userId.trim();
+    if (targetUserId.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _followStateLoading = true;
+      _followStateLoadError = false;
+    });
+
+    try {
+      final state = await AppDI.instance.accountFollowRepository
+          .getState(targetUserId);
+      if (!mounted) return;
+
+      setState(() {
+        _followState = state;
+        _followStateLoading = false;
+        _followStateLoadError = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _followStateLoading = false;
+        _followStateLoadError = true;
+      });
+    }
+  }
+
+  Future<void> _toggleAccountFollow(AppLocalizations l10n) async {
+    final currentUserId = AppDI.instance.currentUserId?.trim();
+    final targetUserId = widget.userId.trim();
+    final state = _followState;
+
+    if (currentUserId == null ||
+        currentUserId.isEmpty ||
+        targetUserId.isEmpty ||
+        currentUserId == targetUserId ||
+        state == null ||
+        !state.canFollow ||
+        _followActionLoading) {
+      return;
+    }
+
+    setState(() {
+      _followActionLoading = true;
+    });
+
+    try {
+      final updated = await AppDI.instance.accountFollowRepository
+          .toggleFollow(targetUserId);
+      if (!mounted) return;
+
+      setState(() {
+        _followState = updated;
+        _followActionLoading = false;
+        _followStateLoadError = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            updated.isFollowing
+                ? l10n.publicProfileFollowSuccess
+                : l10n.publicProfileUnfollowSuccess,
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _followActionLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.publicProfileFollowError)),
       );
     }
   }
@@ -462,6 +562,12 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
           _PublicProfileHeader(
             profile: profile,
             l10n: l10n,
+            followState: _followState,
+            followStateLoading: _followStateLoading,
+            followStateLoadError: _followStateLoadError,
+            followActionLoading: _followActionLoading,
+            onToggleFollow: () => _toggleAccountFollow(l10n),
+            onRetryFollow: _loadFollowState,
           ),
           const SizedBox(height: 20),
           _buildPublicContentSection(
@@ -703,10 +809,22 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
 class _PublicProfileHeader extends StatelessWidget {
   final UserProfile profile;
   final AppLocalizations l10n;
+  final AccountFollowState? followState;
+  final bool followStateLoading;
+  final bool followStateLoadError;
+  final bool followActionLoading;
+  final VoidCallback onToggleFollow;
+  final VoidCallback onRetryFollow;
 
   const _PublicProfileHeader({
     required this.profile,
     required this.l10n,
+    required this.followState,
+    required this.followStateLoading,
+    required this.followStateLoadError,
+    required this.followActionLoading,
+    required this.onToggleFollow,
+    required this.onRetryFollow,
   });
 
   @override
@@ -786,6 +904,16 @@ class _PublicProfileHeader extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 18),
+            _AccountFollowSummary(
+              state: followState,
+              isLoading: followStateLoading,
+              hasError: followStateLoadError,
+              isActionLoading: followActionLoading,
+              l10n: l10n,
+              onToggle: onToggleFollow,
+              onRetry: onRetryFollow,
+            ),
+            const SizedBox(height: 18),
             Text(
               bio ?? l10n.publicProfileNoBio,
               style: theme.textTheme.bodyLarge?.copyWith(
@@ -846,6 +974,130 @@ class _PublicProfileHeader extends StatelessWidget {
     }
 
     return '$city, $country';
+  }
+}
+
+class _AccountFollowSummary extends StatelessWidget {
+  final AccountFollowState? state;
+  final bool isLoading;
+  final bool hasError;
+  final bool isActionLoading;
+  final AppLocalizations l10n;
+  final VoidCallback onToggle;
+  final VoidCallback onRetry;
+
+  const _AccountFollowSummary({
+    required this.state,
+    required this.isLoading,
+    required this.hasError,
+    required this.isActionLoading,
+    required this.l10n,
+    required this.onToggle,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (isLoading && state == null) {
+      return const SizedBox(
+        height: 40,
+        child: Center(
+          child: SizedBox.square(
+            dimension: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
+    if (hasError && state == null) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton.icon(
+          onPressed: onRetry,
+          icon: const Icon(Icons.refresh_rounded),
+          label: Text(l10n.publicProfileFollowRetry),
+        ),
+      );
+    }
+
+    final currentState = state;
+    if (currentState == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 10,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        _FollowCount(
+          value: currentState.followerCount,
+          label: l10n.publicProfileFollowersLabel,
+        ),
+        _FollowCount(
+          value: currentState.followingCount,
+          label: l10n.publicProfileFollowingLabel,
+        ),
+        if (currentState.canFollow)
+          FilledButton.tonalIcon(
+            onPressed: isActionLoading ? null : onToggle,
+            icon: isActionLoading
+                ? const SizedBox.square(
+                    dimension: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(
+                    currentState.isFollowing
+                        ? Icons.person_remove_outlined
+                        : Icons.person_add_alt_1_outlined,
+                  ),
+            label: Text(
+              currentState.isFollowing
+                  ? l10n.publicProfileUnfollowAction
+                  : l10n.publicProfileFollowAction,
+            ),
+          ),
+        if (hasError && state != null)
+          IconButton(
+            onPressed: onRetry,
+            tooltip: l10n.publicProfileFollowRetry,
+            icon: Icon(
+              Icons.refresh_rounded,
+              color: theme.colorScheme.error,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _FollowCount extends StatelessWidget {
+  final int value;
+  final String label;
+
+  const _FollowCount({
+    required this.value,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: '$value ',
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+          TextSpan(text: label),
+        ],
+      ),
+      style: theme.textTheme.bodyMedium,
+    );
   }
 }
 

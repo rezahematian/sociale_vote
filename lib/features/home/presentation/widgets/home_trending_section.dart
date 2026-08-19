@@ -7,7 +7,14 @@ import 'package:sociale_vote/features/home/application/feed_item.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class HomeTrendingSection extends StatelessWidget {
-  const HomeTrendingSection({super.key});
+  final int? maxItems;
+  final String? explanation;
+
+  const HomeTrendingSection({
+    super.key,
+    this.maxItems = 3,
+    this.explanation,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -94,11 +101,12 @@ class HomeTrendingSection extends StatelessWidget {
         ),
       );
     } else {
-      final topItems =
-          items.length <= 3 ? items : items.take(3).toList(growable: false);
+      final visibleItems = maxItems == null || items.length <= maxItems!
+          ? items
+          : items.take(maxItems!).toList(growable: false);
 
       content = Column(
-        children: topItems
+        children: visibleItems
             .map(
               (item) => Padding(
                 padding: const EdgeInsets.only(top: 8),
@@ -116,6 +124,16 @@ class HomeTrendingSection extends StatelessWidget {
       padding: EdgeInsets.zero,
       children: [
         header,
+        if (explanation != null && explanation!.trim().isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(
+            explanation!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              height: 1.35,
+            ),
+          ),
+        ],
         const SizedBox(height: 8),
         content,
       ],

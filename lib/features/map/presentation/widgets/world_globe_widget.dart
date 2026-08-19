@@ -94,6 +94,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
   GeoScope? _selectedCountryScope;
   int _countrySelectionRequestId = 0;
   bool _deepZoomHandoffTriggered = false;
+  bool _autoRotateEnabled = true;
   String? _lastWebLayoutDiagnostic;
 
   bool get _isHomeProfile =>
@@ -147,6 +148,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
                   items: widget.items,
                   homeProfile: _isHomeProfile,
                   isAuthenticated: isAuthenticated,
+                  autoRotateEnabled: _autoRotateEnabled,
                   onMarkerTap: _handleMarkerTap,
                   onSurfaceTap: _handleSurfaceTap,
                   onOrientationChanged: widget.onOrientationChanged,
@@ -159,6 +161,19 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
                 ),
               ),
             ),
+            if (isAuthenticated)
+              Positioned(
+                right: 12,
+                bottom: 12,
+                child: _GlobeRotationButton(
+                  isRotating: _autoRotateEnabled,
+                  onPressed: () {
+                    setState(() {
+                      _autoRotateEnabled = !_autoRotateEnabled;
+                    });
+                  },
+                ),
+              ),
             if (!_isHomeProfile &&
                 (_isSelectingCountry || _selectedCountryLabel != null))
               Positioned(
@@ -479,6 +494,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
 
   late final FlutterEarthGlobeController _globeController;
   bool _texturePrecached = false;
+  bool _autoRotateEnabled = true;
 
   // Scientific sky runs independently of the Earth renderer. We sample the
   // renderer attitude at 30 fps: smooth enough for an infinite background and
@@ -647,7 +663,15 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
   }
 
   bool get _shouldNativeAutoRotate {
-    return _nativeRotationWarmupComplete;
+    return _nativeRotationWarmupComplete && _autoRotateEnabled;
+  }
+
+  void _toggleNativeAutoRotation() {
+    _cancelNativeNaturalTiltRecovery();
+    setState(() {
+      _autoRotateEnabled = !_autoRotateEnabled;
+    });
+    _applyNativeRotationPolicy();
   }
 
   double get _nativeRotationSpeed => _nativeApprovedRotationSpeed;
@@ -911,6 +935,15 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
                               onPointerCancel: _handleExplorePointerCancel,
                               child: globe,
                             ),
+                  if (isAuthenticated)
+                    Positioned(
+                      right: 12,
+                      bottom: 12,
+                      child: _GlobeRotationButton(
+                        isRotating: _autoRotateEnabled,
+                        onPressed: _toggleNativeAutoRotation,
+                      ),
+                    ),
                   if (!_isHomeProfile &&
                       (_isSelectingCountry || _selectedCountryLabel != null))
                     Positioned(
@@ -1315,7 +1348,10 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     for (final item in candidates) {
       final latCell = (item.latitude / clusterDegrees).floor();
       final lngCell = (item.longitude / clusterDegrees).floor();
-      final key = '$latCell|$lngCell';
+      // Keep civic content visible when the asynchronous News load completes.
+      // A News item in the same geographic cell must not replace the existing
+      // Poll/Post marker by becoming the cluster representative.
+      final key = '${item.type.name}|$latCell|$lngCell';
 
       grouped.putIfAbsent(key, () => <CivicMapItem>[]).add(item);
     }
@@ -1802,6 +1838,53 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     );
 
     return (position - center).distance <= visibleRadius;
+  }
+}
+
+class _GlobeRotationButton extends StatelessWidget {
+  final bool isRotating;
+  final VoidCallback onPressed;
+
+  const _GlobeRotationButton({
+    required this.isRotating,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final isItalian = languageCode == 'it';
+    final label = isRotating
+        ? (isItalian ? 'Ferma globo' : 'Stop globe')
+        : (isItalian ? 'Gira globo' : 'Rotate globe');
+
+    return IconButton(
+      onPressed: onPressed,
+      tooltip: label,
+      icon: const Icon(Icons.rotate_right_rounded, size: 19),
+      constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+      padding: EdgeInsets.zero,
+      style: IconButton.styleFrom(
+        minimumSize: const Size.square(32),
+        maximumSize: const Size.square(32),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+        shape: const CircleBorder(),
+        backgroundColor: isRotating
+            ? theme.colorScheme.primary
+            : theme.colorScheme.surface.withValues(alpha: 0.86),
+        foregroundColor: isRotating
+            ? theme.colorScheme.onPrimary
+            : theme.colorScheme.primary,
+        side: BorderSide(
+          color: isRotating
+              ? theme.colorScheme.primaryContainer
+              : theme.colorScheme.outlineVariant,
+        ),
+        elevation: isRotating ? 3 : 1,
+      ),
+    );
   }
 }
 

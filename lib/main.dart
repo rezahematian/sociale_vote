@@ -3,7 +3,7 @@ import 'dart:io' show Platform;
 
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:provider/provider.dart';
@@ -80,16 +80,24 @@ Future<void> main() async {
 
   if (kIsWeb) {
     usePathUrlStrategy();
-  }
 
-  // Web keeps its existing Firebase-before-app bootstrap. On native,
-  // Firebase is not needed for routing/auth startup and Analytics is already
-  // disabled by AndroidManifest metadata, so do not hold the first Flutter
-  // frame behind Firebase platform initialization.
-  if (kIsWeb) {
+    // Preserve the approved Web bootstrap. The native startup path below is
+    // intentionally isolated so the Web URL/deep-link behaviour cannot
+    // regress while Android startup is optimized.
     await _initializeFirebaseIfSupported();
+    await _initializeSupabase();
+    await _restoreStartupAuthSessionLocally();
+    runApp(_buildSocialeVoteApp());
+    return;
   }
 
+  // Render a Flutter frame immediately on native. Supabase/session recovery
+  // continues behind a lightweight app-owned startup surface instead of
+  // extending the Android launch screen for several seconds.
+  runApp(const _NativeStartupBootstrap());
+}
+
+Future<void> _initializeSupabase() async {
   await Supabase.initialize(
     url: _supabaseUrl,
     anonKey:
@@ -99,24 +107,144 @@ Future<void> main() async {
       localStorage: _RememberMeLocalStorage(),
     ),
   );
+}
 
-  await _restoreStartupAuthSessionLocally();
-
-  runApp(
-    ChangeNotifierProvider<GeoScopeController>.value(
-      value: AppDI.instance.geoScopeController,
-      child: const SocialeVoteApp(),
-    ),
+Widget _buildSocialeVoteApp() {
+  return ChangeNotifierProvider<GeoScopeController>.value(
+    value: AppDI.instance.geoScopeController,
+    child: const SocialeVoteApp(),
   );
+}
 
-  if (!kIsWeb) {
+class _NativeStartupBootstrap extends StatefulWidget {
+  const _NativeStartupBootstrap();
+
+  @override
+  State<_NativeStartupBootstrap> createState() =>
+      _NativeStartupBootstrapState();
+}
+
+class _NativeStartupBootstrapState extends State<_NativeStartupBootstrap> {
+  bool _supabaseInitialized = false;
+  bool _isInitializing = false;
+  bool _isReady = false;
+  bool _hasError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_initialize());
+  }
+
+  Future<void> _initialize() async {
+    if (_isInitializing || _isReady) {
+      return;
+    }
+
+    setState(() {
+      _isInitializing = true;
+      _hasError = false;
+    });
+
+    try {
+      if (!_supabaseInitialized) {
+        await _initializeSupabase();
+        _supabaseInitialized = true;
+      }
+
+      await _restoreStartupAuthSessionLocally();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isInitializing = false;
+        _isReady = true;
+      });
+
+      _scheduleNonCriticalNativeStartup();
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('Native startup initialization failed: $error');
+        debugPrint('$stackTrace');
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isInitializing = false;
+        _hasError = true;
+      });
+    }
+  }
+
+  void _scheduleNonCriticalNativeStartup() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Keep Firebase away from the critical first-paint window. Android
-      // Analytics collection is already disabled natively before Flutter.
       Future<void>.delayed(const Duration(milliseconds: 1200), () {
         unawaited(_initializeFirebaseIfSupported());
       });
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isReady) {
+      return _buildSocialeVoteApp();
+    }
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.how_to_vote_rounded,
+                    size: 64,
+                    color: Color(0xFF1565C0),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Social Vote',
+                    style: TextStyle(
+                      color: Color(0xFF111827),
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  if (_hasError) ...[
+                    const Text(
+                      'Impossibile avviare Social Vote.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Color(0xFF4B5563)),
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      onPressed: _isInitializing ? null : _initialize,
+                      child: const Text('Riprova'),
+                    ),
+                  ] else
+                    const SizedBox(
+                      width: 26,
+                      height: 26,
+                      child: CircularProgressIndicator(strokeWidth: 2.6),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

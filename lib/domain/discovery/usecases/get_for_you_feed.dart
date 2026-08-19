@@ -11,6 +11,7 @@ import 'package:sociale_vote/domain/engagement/entities/reaction_summary.dart';
 import 'package:sociale_vote/domain/engagement/usecases/get_reaction_summary.dart';
 import 'package:sociale_vote/domain/geo/repositories/follow_scope_repository.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
+import 'package:sociale_vote/domain/identity/repositories/account_follow_repository.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/repositories/poll_repository.dart';
 import 'package:sociale_vote/features/home/application/feed_item.dart';
@@ -27,6 +28,7 @@ class GetForYouFeed {
   final CommentRepository _commentRepository;
   final GetReactionSummary _getReactionSummary;
   final FollowScopeRepository _followScopeRepository;
+  final AccountFollowRepository _accountFollowRepository;
 
   GetForYouFeed({
     required PostRepository postRepository,
@@ -35,12 +37,14 @@ class GetForYouFeed {
     required CommentRepository commentRepository,
     required GetReactionSummary getReactionSummary,
     required FollowScopeRepository followScopeRepository,
+    required AccountFollowRepository accountFollowRepository,
   })  : _postRepository = postRepository,
         _newsRepository = newsRepository,
         _pollRepository = pollRepository,
         _commentRepository = commentRepository,
         _getReactionSummary = getReactionSummary,
-        _followScopeRepository = followScopeRepository;
+        _followScopeRepository = followScopeRepository,
+        _accountFollowRepository = accountFollowRepository;
 
   Future<List<FeedItem>> call({
     required String? userId,
@@ -51,6 +55,7 @@ class GetForYouFeed {
     final since = now.subtract(_recentWindow);
 
     final followedScopes = await _loadFollowedScopesOrEmpty(userId);
+    final followedAccountIds = await _loadFollowedAccountIdsOrEmpty(userId);
     final candidateScopes = _resolveCandidateScopes(
       currentScope: currentScope,
       followedScopes: followedScopes,
@@ -130,6 +135,7 @@ class GetForYouFeed {
         item: item,
         currentScope: currentScope,
         followedScopes: followedScopes,
+        followedAccountIds: followedAccountIds,
         now: now,
         totalHeat: totalHeat,
         recentHeat: recentHeat,
@@ -166,6 +172,7 @@ class GetForYouFeed {
       ranked: returned,
       currentScope: currentScope,
       followedScopes: followedScopes,
+      followedAccountIds: followedAccountIds,
       totalReactionByTargetKey: totalReactionByTargetKey,
       recentReactionByTargetKey: recentReactionByTargetKey,
       commentCountByTargetKey: commentCountByTargetKey,
@@ -189,6 +196,18 @@ class GetForYouFeed {
       return followed.map((f) => f.scope).toList(growable: false);
     } catch (_) {
       return const <GeoScope>[];
+    }
+  }
+
+  Future<Set<String>> _loadFollowedAccountIdsOrEmpty(String? userId) async {
+    if (userId == null || userId.trim().isEmpty) {
+      return const <String>{};
+    }
+
+    try {
+      return await _accountFollowRepository.getFollowedAccountIds();
+    } catch (_) {
+      return const <String>{};
     }
   }
 
@@ -363,6 +382,7 @@ class GetForYouFeed {
     required FeedItem item,
     required GeoScope currentScope,
     required List<GeoScope> followedScopes,
+    required Set<String> followedAccountIds,
     required DateTime now,
     required num totalHeat,
     required num recentHeat,
@@ -379,6 +399,10 @@ class GetForYouFeed {
       0.0,
       (best, scope) => math.max(best, _scopeAffinityForItem(item, scope)),
     );
+    final authorId = _itemAuthorId(item);
+    final isFollowedAuthor =
+        authorId != null && followedAccountIds.contains(authorId);
+    final followedAuthorBoost = isFollowedAuthor ? 1.35 : 0.0;
 
     final qualityScore = (_positiveValue(totalHeat) * 0.75) +
         (_scaleCount(commentCount) * 2.0) +
@@ -396,7 +420,9 @@ class GetForYouFeed {
     final discoveryBoost = discoveryFreshness *
         ((currentAffinity * 1.5) + (followedAffinity * 1.15));
 
-    final personalSignal = (currentAffinity * 1.15) + (followedAffinity * 0.95);
+    final personalSignal = (currentAffinity * 1.15) +
+        (followedAffinity * 0.95) +
+        followedAuthorBoost;
 
     final geoMultiplier =
         0.85 + (currentAffinity * 0.35) + (followedAffinity * 0.25);
@@ -415,6 +441,7 @@ class GetForYouFeed {
       voteCount: voteCount,
       currentAffinity: currentAffinity,
       followedAffinity: followedAffinity,
+      isFollowedAuthor: isFollowedAuthor,
     );
 
     final baseScore =
@@ -447,6 +474,7 @@ class GetForYouFeed {
     required int voteCount,
     required double currentAffinity,
     required double followedAffinity,
+    required bool isFollowedAuthor,
   }) {
     final localAffinity = math.max(currentAffinity, followedAffinity);
     final hasPositiveSignal =
@@ -457,6 +485,9 @@ class GetForYouFeed {
     }
 
     if (!hasPositiveSignal) {
+      if (isFollowedAuthor && ageHours <= 12) {
+        return 0.45;
+      }
       if (ageHours <= 4 && localAffinity >= 0.90) {
         return 0.55;
       }
@@ -482,6 +513,15 @@ class GetForYouFeed {
     }
 
     return 1.0;
+  }
+
+  String? _itemAuthorId(FeedItem item) {
+    final raw = item.post?.createdByUserId ?? item.poll?.createdByUserId;
+    final normalized = raw?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
   }
 
   double _scopeAffinityForItem(FeedItem item, GeoScope scope) {
@@ -731,6 +771,7 @@ class GetForYouFeed {
     required List<FeedItem> ranked,
     required GeoScope currentScope,
     required List<GeoScope> followedScopes,
+    required Set<String> followedAccountIds,
     required Map<String, ReactionSummary> totalReactionByTargetKey,
     required Map<String, ReactionSummary> recentReactionByTargetKey,
     required Map<String, int> commentCountByTargetKey,
@@ -756,6 +797,7 @@ class GetForYouFeed {
           item: item,
           currentScope: currentScope,
           followedScopes: followedScopes,
+          followedAccountIds: followedAccountIds,
           now: now,
           totalHeat: totalReaction?.heat.value ?? 0,
           recentHeat: recentReaction?.heat.value ?? 0,

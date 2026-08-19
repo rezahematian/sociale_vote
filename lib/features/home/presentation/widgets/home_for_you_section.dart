@@ -9,10 +9,14 @@ import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class HomeForYouSection extends StatelessWidget {
   final String scopeShortLabel;
+  final int? maxItems;
+  final String? explanation;
 
   const HomeForYouSection({
     super.key,
     required this.scopeShortLabel,
+    this.maxItems = 3,
+    this.explanation,
   });
 
   @override
@@ -53,6 +57,21 @@ class HomeForYouSection extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ),
+        if (controller.isLoading)
+          const SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+        else
+          IconButton(
+            tooltip:
+                MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
+            onPressed: () {
+              context.read<ForYouFeedController>().load(userId: userId);
+            },
+            icon: const Icon(Icons.refresh),
+          ),
       ],
     );
 
@@ -92,11 +111,12 @@ class HomeForYouSection extends StatelessWidget {
         ),
       );
     } else {
-      final topItems =
-          items.length <= 3 ? items : items.take(3).toList(growable: false);
+      final visibleItems = maxItems == null || items.length <= maxItems!
+          ? items
+          : items.take(maxItems!).toList(growable: false);
 
       content = Column(
-        children: topItems
+        children: visibleItems
             .map(
               (item) => Padding(
                 padding: const EdgeInsets.only(top: 8),
@@ -114,6 +134,16 @@ class HomeForYouSection extends StatelessWidget {
       padding: EdgeInsets.zero,
       children: [
         header,
+        if (explanation != null && explanation!.trim().isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(
+            explanation!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              height: 1.35,
+            ),
+          ),
+        ],
         const SizedBox(height: 8),
         content,
       ],

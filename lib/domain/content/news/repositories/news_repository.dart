@@ -11,7 +11,9 @@ import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 /// - [topic] → categoria news (world, nation, business, technology, ecc.)
 /// - [language] → override lingua news (it/en/es/fr/de/ar/fa). Se null → AUTO.
 /// - [allowProviderRefresh] → se false legge solo cache già disponibile e
-///   non chiama i provider esterni. Utile per selezioni lingua guest.
+///   non chiama i provider esterni.
+/// - [allowFallbackCache] → se false richiede la cache esatta dello scope.
+///   Utile per il catalogo geografico centrale Globe/Civic Map.
 ///
 /// Nota:
 /// - [getNewsFeed] resta il percorso del feed cronologico
@@ -25,7 +27,8 @@ abstract class NewsRepository {
     String? language,
     int? limit,
     int? offset,
-    bool allowProviderRefresh = true,
+    bool allowProviderRefresh = false,
+    bool allowFallbackCache = true,
   });
 
   Future<List<NewsItem>> getTrendingCandidates({

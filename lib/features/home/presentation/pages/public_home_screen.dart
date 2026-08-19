@@ -14,11 +14,9 @@ import 'package:sociale_vote/domain/geo/value_objects/content_location_source.da
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/login_page.dart';
 import 'package:sociale_vote/features/auth/presentation/pages/register_page.dart';
-import 'package:sociale_vote/features/discovery/application/for_you_feed_controller.dart';
-import 'package:sociale_vote/features/discovery/application/trending_controller.dart';
+import 'package:sociale_vote/features/discovery/presentation/pages/discovery_page.dart';
 import 'package:sociale_vote/features/geo/application/follow_scope_controller.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
-import 'package:sociale_vote/features/home/presentation/widgets/home_for_you_section.dart';
 import 'package:sociale_vote/features/home/presentation/widgets/home_hero_section.dart';
 import 'package:sociale_vote/features/home/presentation/widgets/home_map_section.dart';
 import 'package:sociale_vote/features/home/presentation/widgets/home_news_section.dart';
@@ -26,7 +24,6 @@ import 'package:sociale_vote/features/home/presentation/widgets/home_poll_sectio
 import 'package:sociale_vote/features/home/presentation/widgets/home_scope_header.dart';
 import 'package:sociale_vote/features/home/presentation/widgets/home_social_section.dart';
 import 'package:sociale_vote/features/home/presentation/widgets/home_top_bar.dart';
-import 'package:sociale_vote/features/home/presentation/widgets/home_trending_section.dart';
 import 'package:sociale_vote/features/home/presentation/widgets/home_web_world_panel.dart';
 import 'package:sociale_vote/features/news/application/news_controller.dart';
 import 'package:sociale_vote/features/notifications/application/notifications_controller.dart';
@@ -47,6 +44,12 @@ class PublicHomeScreen extends StatefulWidget {
 }
 
 class _PublicHomeScreenState extends State<PublicHomeScreen> {
+  static const Duration _nativePollWarmupDelay = Duration(milliseconds: 1400);
+  static const Duration _nativeNewsWarmupDelay = Duration(milliseconds: 2200);
+  static const Duration _nativeSocialWarmupDelay = Duration(milliseconds: 3000);
+  static const Duration _nativeNotificationsWarmupDelay =
+      Duration(milliseconds: 2600);
+
   final ValueNotifier<Offset> _homeSkyOrientation =
       ValueNotifier<Offset>(Offset.zero);
 
@@ -58,6 +61,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
   StreamSubscription<String?>? _sessionSub;
   NotificationsController? _homeNotificationsController;
+  Timer? _homeNotificationsWarmupTimer;
+  String? _homeNotificationsControllerUserId;
 
   String _homeNewsLanguageKey = 'auto';
   bool _isRefreshingHomeNewsLanguageKey = false;
@@ -109,7 +114,11 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   }
 
   void _disposeHomeNotificationsController() {
+    _homeNotificationsWarmupTimer?.cancel();
+    _homeNotificationsWarmupTimer = null;
+
     final controller = _homeNotificationsController;
+    _homeNotificationsControllerUserId = null;
     if (controller == null) {
       return;
     }
@@ -120,18 +129,51 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   }
 
   void _rebuildHomeNotificationsController(String? userId) {
-    _disposeHomeNotificationsController();
-
     final normalizedUserId = userId?.trim();
     if (normalizedUserId == null || normalizedUserId.isEmpty) {
+      _disposeHomeNotificationsController();
       return;
     }
+
+    if (_homeNotificationsController != null &&
+        _homeNotificationsControllerUserId == normalizedUserId) {
+      return;
+    }
+
+    _disposeHomeNotificationsController();
 
     final controller =
         AppDI.instance.createNotificationsControllerForUser(normalizedUserId);
     controller.addListener(_handleHomeNotificationsChanged);
     _homeNotificationsController = controller;
-    unawaited(controller.refreshUnreadCount());
+    _homeNotificationsControllerUserId = normalizedUserId;
+
+    if (kIsWeb) {
+      unawaited(controller.refreshUnreadCount());
+      return;
+    }
+
+    _homeNotificationsWarmupTimer = Timer(
+      _nativeNotificationsWarmupDelay,
+      () {
+        if (!mounted || !identical(_homeNotificationsController, controller)) {
+          return;
+        }
+        unawaited(controller.refreshUnreadCount());
+      },
+    );
+  }
+
+  void _scheduleHomeLoad(
+    Duration nativeDelay,
+    Future<void> Function() load,
+  ) {
+    if (kIsWeb) {
+      unawaited(load());
+      return;
+    }
+
+    unawaited(Future<void>.delayed(nativeDelay, load));
   }
 
   void _setWorld() => _geoScopeController.setWorld();
@@ -407,22 +449,12 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     }
   }
 
-  Future<void> _onTrendingPressed() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const _TrendingNowPage(),
-      ),
-    );
-  }
-
-  Future<void> _onForYouPressed() async {
-    final currentUserId = AppDI.instance.currentUserId;
+  Future<void> _onDiscoveryPressed() async {
     final scopeShortLabel = _scopeShortLabel(_geoScopeController.scope);
 
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => _ForYouPage(
-          userId: currentUserId,
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => DiscoveryPage(
           scopeShortLabel: scopeShortLabel,
         ),
       ),
@@ -689,8 +721,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
               onRegisterPressed: _onRegisterPressed,
               onProfilePressed: _onProfilePressed,
               onLogoutPressed: _onLogoutPressed,
-              onTrendingPressed: isLoggedIn ? _onTrendingPressed : null,
-              onForYouPressed: isLoggedIn ? _onForYouPressed : null,
+              onDiscoveryPressed: _onDiscoveryPressed,
               onNotificationsPressed:
                   isLoggedIn ? _onNotificationsPressed : null,
               currentAppearanceMode: isLoggedIn ? currentAppearanceMode : null,
@@ -891,7 +922,12 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                           .createPollListController();
                                       final userId =
                                           AppDI.instance.currentUserId;
-                                      controller.loadPolls(userId: userId);
+                                      _scheduleHomeLoad(
+                                        _nativePollWarmupDelay,
+                                        () => controller.loadPolls(
+                                          userId: userId,
+                                        ),
+                                      );
                                       return controller;
                                     },
                                     child: HomePollSection(
@@ -903,9 +939,15 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                     key: ValueKey(
                                       'home_news_${scope.level}_${scope.countryCode}_${scope.cityId}_${_homeNewsLanguageKey}_$_homeRefreshVersion',
                                     ),
-                                    create: (_) =>
-                                        AppDI.instance.createNewsController()
-                                          ..loadNews(),
+                                    create: (_) {
+                                      final controller =
+                                          AppDI.instance.createNewsController();
+                                      _scheduleHomeLoad(
+                                        _nativeNewsWarmupDelay,
+                                        () => controller.loadNews(),
+                                      );
+                                      return controller;
+                                    },
                                     child: HomeNewsSection(
                                       scopeShortLabel: scopeShortLabel,
                                     ),
@@ -915,11 +957,19 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                     key: ValueKey(
                                       'home_social_${scope.level}_${scope.countryCode}_${scope.cityId}_${AppDI.instance.currentUserId ?? 'guest'}_$_homeRefreshVersion',
                                     ),
-                                    create: (_) => AppDI.instance
-                                        .createFeedController()
-                                      ..loadFeed(
-                                        userId: AppDI.instance.currentUserId,
-                                      ),
+                                    create: (_) {
+                                      final controller =
+                                          AppDI.instance.createFeedController();
+                                      final userId =
+                                          AppDI.instance.currentUserId;
+                                      _scheduleHomeLoad(
+                                        _nativeSocialWarmupDelay,
+                                        () => controller.loadFeed(
+                                          userId: userId,
+                                        ),
+                                      );
+                                      return controller;
+                                    },
                                     child: HomeSocialSection(
                                       scopeShortLabel: scopeShortLabel,
                                     ),
@@ -1398,91 +1448,3 @@ class _CityScopeDialogState extends State<_CityScopeDialog> {
   }
 }
 
-class _TrendingNowPage extends StatelessWidget {
-  const _TrendingNowPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          AppLocalizations.of(context)!.homeTrendingTitle,
-        ),
-      ),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final contentWidth =
-                constraints.maxWidth > 1120.0 ? 1120.0 : constraints.maxWidth;
-
-            return Align(
-              alignment: Alignment.topCenter,
-              child: SizedBox(
-                width: contentWidth,
-                height: constraints.maxHeight,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                  child: ChangeNotifierProvider<TrendingController>(
-                    create: (_) => AppDI.instance.createTrendingController(),
-                    child: const HomeTrendingSection(),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _ForYouPage extends StatelessWidget {
-  final String? userId;
-  final String scopeShortLabel;
-
-  const _ForYouPage({
-    required this.userId,
-    required this.scopeShortLabel,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          AppLocalizations.of(context)!.homeForYouTitle(scopeShortLabel),
-        ),
-      ),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final contentWidth =
-                constraints.maxWidth > 1120.0 ? 1120.0 : constraints.maxWidth;
-
-            return Align(
-              alignment: Alignment.topCenter,
-              child: SizedBox(
-                width: contentWidth,
-                height: constraints.maxHeight,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                  child: ChangeNotifierProvider<ForYouFeedController>(
-                    create: (_) {
-                      final controller =
-                          AppDI.instance.createForYouFeedController();
-                      controller.load(userId: userId);
-                      return controller;
-                    },
-                    child: HomeForYouSection(
-                      scopeShortLabel: scopeShortLabel,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}

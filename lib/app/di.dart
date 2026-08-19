@@ -49,8 +49,11 @@ import 'package:sociale_vote/domain/geo/usecases/get_followed_scopes_for_user.da
 import 'package:sociale_vote/domain/geo/usecases/resolve_scope_from_point.dart';
 import 'package:sociale_vote/domain/geo/usecases/toggle_follow_scope.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
+import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 
+import 'package:sociale_vote/domain/identity/repositories/account_discovery_repository.dart';
+import 'package:sociale_vote/domain/identity/repositories/account_follow_repository.dart';
 import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
 import 'package:sociale_vote/domain/identity/repositories/user_profile_repository.dart';
 import 'package:sociale_vote/domain/identity/repositories/user_repository.dart';
@@ -125,6 +128,8 @@ import 'package:sociale_vote/infrastructure/geo/geo_resolver_impl.dart';
 import 'package:sociale_vote/infrastructure/geo/repositories/device_location_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/geo/repositories/follow_scope_repository_in_memory.dart';
 import 'package:sociale_vote/infrastructure/geo/repositories/geocoding_repository_impl.dart';
+import 'package:sociale_vote/infrastructure/identity/repositories/account_discovery_repository_impl.dart';
+import 'package:sociale_vote/infrastructure/identity/repositories/account_follow_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/identity/repositories/user_profile_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/identity/repositories/verification_request_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/moderation/repositories/moderation_repository_impl.dart';
@@ -215,6 +220,44 @@ class _CachedTargetEngagementSnapshot {
     required this.snapshot,
     required this.cachedAt,
   });
+}
+
+class _NewsMapEditorialRecord {
+  final bool mapVisible;
+  final bool featured;
+  final int priority;
+  final ContentLocation? contentLocation;
+
+  const _NewsMapEditorialRecord({
+    required this.mapVisible,
+    required this.featured,
+    required this.priority,
+    required this.contentLocation,
+  });
+}
+
+class _NewsMapCandidate {
+  final NewsItem news;
+  final _NewsMapEditorialRecord? editorial;
+
+  const _NewsMapCandidate({
+    required this.news,
+    required this.editorial,
+  });
+
+  dynamic get id => news.id;
+  String get title => news.title;
+  String get content => news.content;
+  String? get summary => news.summary;
+  String? get countryCode => contentLocation?.countryCode ?? news.countryCode;
+  String? get cityId => contentLocation?.cityId ?? news.cityId;
+  ContentLocation? get contentLocation =>
+      editorial?.contentLocation ?? news.contentLocation;
+  DateTime get publishedAt => news.publishedAt;
+  bool get isBreaking => news.isBreaking;
+  bool get mapVisible => editorial?.mapVisible ?? true;
+  bool get mapFeatured => editorial?.featured ?? false;
+  int get mapPriority => editorial?.priority ?? 0;
 }
 
 class AppDI {
@@ -309,6 +352,10 @@ class AppDI {
   late final UserRepository _userRepository = UserRepositoryImpl(_authApi);
   late final UserProfileRepository _userProfileRepository =
       UserProfileRepositoryImpl();
+  late final AccountFollowRepository _accountFollowRepository =
+      AccountFollowRepositoryImpl();
+  late final AccountDiscoveryRepository _accountDiscoveryRepository =
+      AccountDiscoveryRepositoryImpl();
   late final VerificationRequestRepository _verificationRequestRepository =
       VerificationRequestRepositoryImpl();
   late final GeoResolver _geoResolver = GeoResolverImpl();
@@ -339,6 +386,7 @@ class AppDI {
     newsRepository: newsRepository,
     postRepository: postRepository,
     commentRepository: commentRepository,
+    accountDiscoveryRepository: accountDiscoveryRepository,
   );
   final StorageService _storageService = const StorageService(
     SharedPreferencesKeyValueStorage(),
@@ -353,6 +401,10 @@ class AppDI {
   SessionRepository get sessionRepository => _sessionRepository;
   UserRepository get userRepository => _userRepository;
   UserProfileRepository get userProfileRepository => _userProfileRepository;
+  AccountFollowRepository get accountFollowRepository =>
+      _accountFollowRepository;
+  AccountDiscoveryRepository get accountDiscoveryRepository =>
+      _accountDiscoveryRepository;
   VerificationRequestRepository get verificationRequestRepository =>
       _verificationRequestRepository;
   PollRepository get pollRepository => _pollRepository;
@@ -715,7 +767,6 @@ class AppDI {
       get reviewVerificationRequestAndUpdateProfile =>
           ReviewVerificationRequestAndUpdateProfile(
             verificationRequestRepository: verificationRequestRepository,
-            userProfileRepository: userProfileRepository,
             reviewVerificationRequest: reviewVerificationRequest,
           );
 
@@ -832,6 +883,7 @@ class AppDI {
         commentRepository: commentRepository,
         getReactionSummary: getReactionSummary,
         followScopeRepository: followScopeRepository,
+        accountFollowRepository: accountFollowRepository,
       );
 
   SearchContent get searchContent => SearchContent(searchRepository);
@@ -1016,7 +1068,6 @@ class AppDI {
         loadPollItems: _loadPollMapItemsForScope,
         loadPostItems: _loadPostMapItemsForScope,
         loadNewsItems: _loadNewsMapItemsForScope,
-        beforeRefresh: _refreshNewsCacheForMapScope,
       );
     }
 
@@ -1187,7 +1238,7 @@ class AppDI {
     return _filterEntitiesForGeoScope(polls, scope);
   }
 
-  Future<List<NewsItem>> _loadNewsForMapScope(
+  Future<List<_NewsMapCandidate>> _loadNewsForMapScope(
     GeoScope scope, {
     int batchSize = _newsMapBatchSize,
   }) async {
@@ -1196,151 +1247,27 @@ class AppDI {
     final cityId = _readScopeCityId(scope);
     final language = await _readEffectiveContentLanguageApiValue();
 
-    if (levelName == 'world') {
-      final news = await _loadNewsBatch(
-        countryCode: null,
-        cityId: null,
-        language: language,
-        limit: batchSize,
-      );
-      return _filterEntitiesForGeoScope(news, scope);
+    if (levelName == 'country' && !_hasText(countryCode)) {
+      return <_NewsMapCandidate>[];
     }
 
-    if (levelName == 'country') {
-      if (!_hasText(countryCode)) {
-        return <NewsItem>[];
-      }
-
-      final news = await _loadNewsBatch(
-        countryCode: countryCode,
-        cityId: null,
-        language: language,
-        limit: batchSize,
-      );
-
-      return _filterEntitiesForGeoScope(news, scope);
+    if (levelName == 'city' &&
+        (!_hasText(countryCode) || !_hasText(cityId))) {
+      return <_NewsMapCandidate>[];
     }
 
-    if (levelName == 'city') {
-      if (!_hasText(countryCode) || !_hasText(cityId)) {
-        return <NewsItem>[];
-      }
-
-      final news = await _loadNewsBatch(
-        countryCode: countryCode,
-        cityId: cityId,
-        language: language,
-        limit: batchSize,
-      );
-
-      return _filterEntitiesForGeoScope(news, scope);
-    }
-
-    if (levelName == 'area') {
-      if (_hasText(countryCode) && _hasText(cityId)) {
-        final byCity = await _loadNewsBatch(
-          countryCode: countryCode,
-          cityId: cityId,
-          language: language,
-          limit: batchSize,
-        );
-
-        return _filterEntitiesForGeoScope(byCity, scope);
-      }
-
-      if (_hasText(countryCode)) {
-        final byCountry = await _loadNewsBatch(
-          countryCode: countryCode,
-          cityId: null,
-          language: language,
-          limit: batchSize,
-        );
-
-        return _filterEntitiesForGeoScope(byCountry, scope);
-      }
-
-      final worldFallback = await _loadNewsBatch(
-        countryCode: null,
-        cityId: null,
-        language: language,
-        limit: batchSize,
-      );
-
-      return _filterEntitiesForGeoScope(worldFallback, scope);
-    }
-
-    final fallback = await _loadNewsBatch(
+    // Globe/Civic Map use one shared worldwide catalog. Country, City and
+    // Area are views over the article's real contentLocation; navigation
+    // scope never becomes an invented News location and never creates a
+    // provider request per city.
+    final worldwideCatalog = await _loadNewsMapBatch(
       countryCode: null,
       cityId: null,
       language: language,
       limit: batchSize,
     );
 
-    return _filterEntitiesForGeoScope(fallback, scope);
-  }
-
-  Future<void> _refreshNewsCacheForMapScope(GeoScope scope) async {
-    final levelName = _readScopeLevelName(scope);
-    final countryCode = _readScopeCountryCode(scope);
-    final cityId = _readScopeCityId(scope);
-    final language = await _readEffectiveContentLanguageApiValue();
-
-    if (levelName == 'city') {
-      if (!_hasText(countryCode) || !_hasText(cityId)) {
-        return;
-      }
-
-      await refreshNewsFeedCache(
-        countryCode: countryCode,
-        cityId: cityId,
-        language: language,
-        providerLimit: _newsMapBatchSize,
-      );
-      return;
-    }
-
-    if (levelName == 'country') {
-      if (!_hasText(countryCode)) {
-        return;
-      }
-
-      await refreshNewsFeedCache(
-        countryCode: countryCode,
-        cityId: null,
-        language: language,
-        providerLimit: _newsMapBatchSize,
-      );
-      return;
-    }
-
-    if (levelName == 'area') {
-      if (_hasText(countryCode) && _hasText(cityId)) {
-        await refreshNewsFeedCache(
-          countryCode: countryCode,
-          cityId: cityId,
-          language: language,
-          providerLimit: _newsMapBatchSize,
-        );
-        return;
-      }
-
-      if (_hasText(countryCode)) {
-        await refreshNewsFeedCache(
-          countryCode: countryCode,
-          cityId: null,
-          language: language,
-          providerLimit: _newsMapBatchSize,
-        );
-        return;
-      }
-    }
-
-    await refreshNewsFeedCache(
-      countryCode: null,
-      cityId: null,
-      language: language,
-      providerLimit: _newsMapBatchSize,
-    );
+    return _filterEntitiesForGeoScope(worldwideCatalog, scope);
   }
 
   Future<List<NewsItem>> _loadNewsBatch({
@@ -1348,6 +1275,8 @@ class AppDI {
     required String? cityId,
     required String? language,
     required int limit,
+    bool allowProviderRefresh = false,
+    bool allowFallbackCache = true,
   }) async {
     final dynamic useCase = getNewsFeed;
 
@@ -1358,6 +1287,8 @@ class AppDI {
             language: language,
             limit: limit,
             offset: 0,
+            allowProviderRefresh: allowProviderRefresh,
+            allowFallbackCache: allowFallbackCache,
           ),
     ]);
 
@@ -1373,6 +1304,125 @@ class AppDI {
     return news
         .where((item) => visibleIds.contains(_readNewsId(item)))
         .toList(growable: false);
+  }
+
+  Future<List<_NewsMapCandidate>> _loadNewsMapBatch({
+    required String? countryCode,
+    required String? cityId,
+    required String? language,
+    required int limit,
+  }) async {
+    final news = await _loadNewsBatch(
+      countryCode: countryCode,
+      cityId: cityId,
+      language: language,
+      limit: limit,
+      allowProviderRefresh: false,
+      allowFallbackCache: false,
+    );
+
+    if (news.isEmpty) {
+      return const <_NewsMapCandidate>[];
+    }
+
+    final editorialByNewsId = await _loadNewsMapEditorial(news);
+
+    return List<_NewsMapCandidate>.unmodifiable(
+      news
+          .map(
+            (item) => _NewsMapCandidate(
+              news: item,
+              editorial: editorialByNewsId[item.id.value.trim()],
+            ),
+          )
+          .where((item) => item.mapVisible),
+    );
+  }
+
+  Future<Map<String, _NewsMapEditorialRecord>> _loadNewsMapEditorial(
+    List<NewsItem> news,
+  ) async {
+    final newsIds = news
+        .map((item) => item.id.value.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    if (newsIds.isEmpty) {
+      return const <String, _NewsMapEditorialRecord>{};
+    }
+
+    try {
+      final rows = await Supabase.instance.client
+          .from('news_map_editorial')
+          .select(
+            'news_id, map_visible, featured, priority, latitude, longitude, '
+            'country_code, city_id, location_label, expires_at',
+          )
+          .inFilter('news_id', newsIds);
+
+      final output = <String, _NewsMapEditorialRecord>{};
+
+      for (final row in rows) {
+        final newsId = row['news_id']?.toString().trim() ?? '';
+        if (newsId.isEmpty) {
+          continue;
+        }
+
+        final latitude = _readEditorialCoordinate(row['latitude']);
+        final longitude = _readEditorialCoordinate(row['longitude']);
+        final hasValidPoint = _isValidLatLng(latitude, longitude);
+
+        final countryCode = _normalizeEditorialText(row['country_code']);
+        final cityId = _normalizeEditorialText(row['city_id']);
+        final locationLabel = _normalizeEditorialText(row['location_label']);
+
+        output[newsId] = _NewsMapEditorialRecord(
+          mapVisible: row['map_visible'] != false,
+          featured: row['featured'] == true,
+          priority: _readEditorialPriority(row['priority']),
+          contentLocation: hasValidPoint
+              ? ContentLocation(
+                  source: ContentLocationSource.manual,
+                  countryCode: countryCode?.toUpperCase(),
+                  cityId: cityId,
+                  cityName: locationLabel,
+                  latitude: latitude,
+                  longitude: longitude,
+                )
+              : null,
+        );
+      }
+
+      return Map<String, _NewsMapEditorialRecord>.unmodifiable(output);
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint('News map editorial read skipped: $error');
+      }
+      return const <String, _NewsMapEditorialRecord>{};
+    }
+  }
+
+  String? _normalizeEditorialText(dynamic value) {
+    final normalized = value?.toString().trim();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
+  }
+
+  double? _readEditorialCoordinate(dynamic value) {
+    if (value is num) {
+      return value.toDouble();
+    }
+    return double.tryParse(value?.toString() ?? '');
+  }
+
+  int _readEditorialPriority(dynamic value) {
+    final parsed = value is num
+        ? value.toInt()
+        : int.tryParse(value?.toString() ?? '') ?? 0;
+    return parsed.clamp(0, 100).toInt();
   }
 
   Future<List<Post>> _loadPostsForMapScope(
@@ -1692,11 +1742,11 @@ class AppDI {
     bool includeEngagement = true,
   }) async {
     final news = await _loadNewsForMapScope(scope, batchSize: batchSize);
-    return _buildMapItemsFromEntities<NewsItem>(
+    return _buildMapItemsFromEntities<_NewsMapCandidate>(
       entities: news,
       scope: scope,
       type: CivicMapItemType.news,
-      readTargetRef: _readNewsTargetRef,
+      readTargetRef: (item) => _readNewsTargetRef(item.news),
       includeEngagement: includeEngagement,
     );
   }
@@ -1749,11 +1799,42 @@ class AppDI {
           heat: engagement.heat.toDouble(),
           commentCount: engagement.commentCount,
           createdAt: _readEntityCreatedAt(entity),
+          isBreaking: _readEntityIsBreaking(entity),
+          isFeatured: _readEntityMapFeatured(entity),
+          editorialPriority: _readEntityMapPriority(entity),
         ),
       );
     }
 
     return items;
+  }
+
+  bool _readEntityIsBreaking(dynamic entity) {
+    try {
+      return entity.isBreaking == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  bool _readEntityMapFeatured(dynamic entity) {
+    try {
+      return entity.mapFeatured == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  int _readEntityMapPriority(dynamic entity) {
+    try {
+      final dynamic value = entity.mapPriority;
+      final parsed = value is num
+          ? value.toInt()
+          : int.tryParse(value?.toString() ?? '') ?? 0;
+      return parsed.clamp(0, 100).toInt();
+    } catch (_) {
+      return 0;
+    }
   }
 
   ContentLocation? _readEntityContentLocation(dynamic entity) {

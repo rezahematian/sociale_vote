@@ -19,6 +19,7 @@ class WebWorldGlobeSurface extends StatelessWidget {
   final List<CivicMapItem> items;
   final bool homeProfile;
   final bool isAuthenticated;
+  final bool autoRotateEnabled;
   final ValueChanged<CivicMapItem> onMarkerTap;
   final void Function(double latitude, double longitude) onSurfaceTap;
   final ValueChanged<Offset>? onOrientationChanged;
@@ -34,6 +35,7 @@ class WebWorldGlobeSurface extends StatelessWidget {
     required this.items,
     required this.homeProfile,
     required this.isAuthenticated,
+    required this.autoRotateEnabled,
     required this.onMarkerTap,
     required this.onSurfaceTap,
     required this.onUnavailable,
