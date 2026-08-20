@@ -74,7 +74,23 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Civic Map'),
+        toolbarHeight: 64,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Civic Map'),
+            Text(
+              _scopeLabel(context, activeScope),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             tooltip: 'Refresh',
@@ -203,6 +219,39 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
         ),
       ),
     );
+  }
+
+  String _scopeLabel(BuildContext context, GeoScope? scope) {
+    final isItalian =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'it';
+
+    if (scope == null) {
+      return isItalian ? 'Caricamento area…' : 'Loading area…';
+    }
+
+    switch (scope.level) {
+      case GeoScopeLevel.world:
+        return isItalian ? 'Mondo' : 'World';
+      case GeoScopeLevel.country:
+        final countryCode = scope.countryCode?.trim().toUpperCase();
+        return countryCode == null || countryCode.isEmpty
+            ? (isItalian ? 'Paese' : 'Country')
+            : countryCode;
+      case GeoScopeLevel.city:
+        final city = scope.cityId?.trim();
+        final countryCode = scope.countryCode?.trim().toUpperCase();
+
+        if (city != null && city.isNotEmpty) {
+          if (countryCode != null && countryCode.isNotEmpty) {
+            return '$city · $countryCode';
+          }
+          return city;
+        }
+
+        return countryCode == null || countryCode.isEmpty
+            ? (isItalian ? 'Area locale' : 'Local area')
+            : countryCode;
+    }
   }
 
   Future<void> _restoreWorldMapModePreference() async {
@@ -589,39 +638,32 @@ class _WorldMapModeSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isItalian =
-        Localizations.localeOf(context).languageCode.toLowerCase() == 'it';
-    final mapLabel = isItalian ? 'Mappa 2D' : '2D Map';
-    final globeLabel = isItalian ? 'Globo 3D' : '3D Globe';
 
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: theme.colorScheme.outlineVariant),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _WorldMapModeButton(
-                selected: !useGlobe,
-                icon: Icons.map_outlined,
-                label: mapLabel,
-                onTap: () => onChanged(false),
-              ),
-              const SizedBox(width: 4),
-              _WorldMapModeButton(
-                selected: useGlobe,
-                icon: Icons.public,
-                label: globeLabel,
-                onTap: () => onChanged(true),
-              ),
-            ],
-          ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _WorldMapModeButton(
+              selected: !useGlobe,
+              icon: Icons.map_outlined,
+              label: '2D',
+              onTap: () => onChanged(false),
+            ),
+            const SizedBox(width: 4),
+            _WorldMapModeButton(
+              selected: useGlobe,
+              icon: Icons.public,
+              label: '3D',
+              onTap: () => onChanged(true),
+            ),
+          ],
         ),
       ),
     );
@@ -655,12 +697,12 @@ class _WorldMapModeButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(10),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 17, color: foreground),
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
               Text(
                 label,
                 style: theme.textTheme.labelMedium?.copyWith(
@@ -697,17 +739,10 @@ class _MapTopControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final languageSelector = SizedBox(
-          width: constraints.maxWidth >= 1000 ? 220 : 250,
-          child: _MapLanguageSelector(
-            selectedLanguage: selectedLanguage,
-            enabled: languageSelectorEnabled,
-            onChanged: onLanguageChanged,
-          ),
-        );
-
         final modeSelector = isWorldScope
             ? _WorldMapModeSelector(
                 useGlobe: useGlobe,
@@ -715,41 +750,54 @@ class _MapTopControls extends StatelessWidget {
               )
             : null;
 
-        if (constraints.maxWidth >= 900) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: _MapTypeFilters(controller: controller),
+        final languageSelector = SizedBox(
+          width: 126,
+          child: _MapLanguageSelector(
+            selectedLanguage: selectedLanguage,
+            enabled: languageSelectorEnabled,
+            onChanged: onLanguageChanged,
+          ),
+        );
+
+        final firstRow = Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (modeSelector != null) ...[
+              modeSelector,
+              const SizedBox(width: 10),
+            ],
+            languageSelector,
+          ],
+        );
+
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: constraints.maxWidth < 440
+                  ? constraints.maxWidth
+                  : 440,
+            ),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: theme.colorScheme.outlineVariant),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    firstRow,
+                    const SizedBox(height: 10),
+                    _MapTypeFilters(controller: controller),
+                  ],
                 ),
               ),
-              if (modeSelector != null) ...[
-                const SizedBox(width: 12),
-                modeSelector,
-              ],
-              const SizedBox(width: 12),
-              languageSelector,
-            ],
-          );
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _MapTypeFilters(controller: controller),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                if (modeSelector != null) modeSelector,
-                languageSelector,
-              ],
             ),
-          ],
+          ),
         );
       },
     );
@@ -774,19 +822,37 @@ class _MapLanguageSelector extends StatelessWidget {
       isExpanded: true,
       decoration: InputDecoration(
         isDense: true,
+        filled: true,
+        fillColor: Theme.of(context).colorScheme.surface,
         prefixIcon: const Icon(Icons.language, size: 18),
+        prefixIconConstraints: const BoxConstraints(
+          minWidth: 36,
+          minHeight: 36,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12,
+          horizontal: 8,
           vertical: 10,
         ),
       ),
+      selectedItemBuilder: (context) => NewsLanguage.values
+          .map(
+            (language) => Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                _compactLabelForLanguage(language),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          )
+          .toList(growable: false),
       items: NewsLanguage.values.map((language) {
         return DropdownMenuItem<NewsLanguage>(
           value: language,
-          child: Text(_labelForLanguage(language)),
+          child: Text(_fullLabelForLanguage(language)),
         );
       }).toList(growable: false),
       onChanged: enabled
@@ -799,7 +865,28 @@ class _MapLanguageSelector extends StatelessWidget {
     );
   }
 
-  String _labelForLanguage(NewsLanguage language) {
+  String _compactLabelForLanguage(NewsLanguage language) {
+    switch (language) {
+      case NewsLanguage.auto:
+        return 'Auto';
+      case NewsLanguage.it:
+        return 'IT';
+      case NewsLanguage.en:
+        return 'EN';
+      case NewsLanguage.es:
+        return 'ES';
+      case NewsLanguage.fr:
+        return 'FR';
+      case NewsLanguage.de:
+        return 'DE';
+      case NewsLanguage.ar:
+        return 'AR';
+      case NewsLanguage.fa:
+        return 'FA';
+    }
+  }
+
+  String _fullLabelForLanguage(NewsLanguage language) {
     switch (language) {
       case NewsLanguage.auto:
         return 'Auto';
@@ -1210,11 +1297,17 @@ class _MapTypeFilters extends StatelessWidget {
   Widget _buildChip(BuildContext context, CivicMapItemType type) {
     final active = controller.isTypeVisible(type);
     final color = _chipColor(type);
+    final count = controller.allItems
+        .where((item) => item.type == type)
+        .length;
 
     return FilterChip(
-      label: Text(_chipLabel(type)),
+      label: Text('${_chipLabel(type)} $count'),
       selected: active,
       onSelected: (_) => controller.toggleType(type),
+      showCheckmark: false,
+      visualDensity: VisualDensity.compact,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       avatar: Icon(
         _chipIcon(type),
         size: 18,

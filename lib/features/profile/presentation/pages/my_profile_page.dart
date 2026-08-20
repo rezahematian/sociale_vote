@@ -1137,17 +1137,23 @@ class _MyProfileViewState extends State<_MyProfileView> {
         leading: _buildAccountBackButton(context),
         title: Text(l10n.homeAccountMenuLabel),
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await Future.wait<void>([
-            context.read<ProfileController>().loadProfile(currentUserId),
-            context.read<VerificationRequestsController>().load(currentUserId),
-          ]);
-          _refreshUnreadNotificationsCount();
-        },
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-          children: [
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 840),
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await Future.wait<void>([
+                context.read<ProfileController>().loadProfile(currentUserId),
+                context
+                    .read<VerificationRequestsController>()
+                    .load(currentUserId),
+              ]);
+              _refreshUnreadNotificationsCount();
+            },
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+              children: [
             _SectionTitle(l10n.profilePublicProfileSectionTitle),
             Card(
               child: Padding(
@@ -1316,8 +1322,86 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 ),
               ),
             ],
-            const SizedBox(height: 18),
-            _SectionTitle(l10n.profileIdentityVerificationSectionTitle),
+                const SizedBox(height: 18),
+                _SectionTitle(l10n.profileActivitySectionTitle),
+                _SettingsGroup(
+                  children: [
+                    _SettingsTile(
+                      title: l10n.profileAccountConnectionsTitle,
+                      icon: Icons.people_alt_outlined,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const MyAccountConnectionsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
+                      title: l10n.profileMyPollsTitle,
+                      icon: Icons.how_to_vote,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const MyPollsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
+                      title: l10n.profileMyPostsTitle,
+                      icon: Icons.forum_outlined,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const MyPostsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
+                      title: l10n.profileMyCommentsTitle,
+                      icon: Icons.comment_outlined,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const MyCommentsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
+                      title: l10n.profileMyFavoritesTitle,
+                      icon: Icons.star_border_rounded,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const MyFavoritesPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
+                      title: l10n.profileMyFollowedScopesTitle,
+                      icon: Icons.public,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const MyFollowedScopesPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                _SectionTitle(l10n.profileIdentityVerificationSectionTitle),
             _SettingsGroup(
               children: [
                 _SettingsTile(
@@ -1388,83 +1472,6 @@ class _MyProfileViewState extends State<_MyProfileView> {
                   ],
                 );
               },
-            ),
-            const SizedBox(height: 18),
-            _SectionTitle(l10n.profileActivitySectionTitle),
-            _SettingsGroup(
-              children: [
-                _SettingsTile(
-                  title: l10n.profileMyPollsTitle,
-                  icon: Icons.how_to_vote,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const MyPollsPage(),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(height: 1),
-                _SettingsTile(
-                  title: l10n.profileMyPostsTitle,
-                  icon: Icons.forum_outlined,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const MyPostsPage(),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(height: 1),
-                _SettingsTile(
-                  title: l10n.profileMyCommentsTitle,
-                  icon: Icons.comment_outlined,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const MyCommentsPage(),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(height: 1),
-                _SettingsTile(
-                  title: l10n.profileMyFavoritesTitle,
-                  icon: Icons.star_border_rounded,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const MyFavoritesPage(),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(height: 1),
-                _SettingsTile(
-                  title: l10n.profileAccountConnectionsTitle,
-                  icon: Icons.people_alt_outlined,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const MyAccountConnectionsPage(),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(height: 1),
-                _SettingsTile(
-                  title: l10n.profileMyFollowedScopesTitle,
-                  icon: Icons.public,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const MyFollowedScopesPage(),
-                      ),
-                    );
-                  },
-                ),
-              ],
             ),
             const SizedBox(height: 18),
             _SectionTitle(l10n.profileSecurityAccountSectionTitle),
@@ -1572,7 +1579,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 ),
               ],
             ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -1970,7 +1979,8 @@ class _SettingsTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             )
           : null,
-      trailing: trailing ?? const Icon(Icons.chevron_right),
+      trailing: trailing ??
+          (onTap == null ? null : const Icon(Icons.chevron_right)),
       onTap: onTap,
     );
   }
