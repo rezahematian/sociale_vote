@@ -20,6 +20,7 @@ import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 class PollRepositorySupabase implements PollRepository {
   static const String _pollsTable = 'polls_with_vote_count';
   static const String _pollsInsertTable = 'polls';
+  static const String _userProfilesTable = 'user_profiles';
 
   @override
   Future<List<Poll>> getPolls({
@@ -59,10 +60,7 @@ class PollRepositorySupabase implements PollRepository {
 
     final rawRows = await query as List<dynamic>;
 
-    return rawRows
-        .whereType<Map<String, dynamic>>()
-        .map(_mapPoll)
-        .toList(growable: false);
+    return _mapPollRowsWithAuthors(rawRows);
   }
 
   @override
@@ -85,10 +83,7 @@ class PollRepositorySupabase implements PollRepository {
         .order('created_at', ascending: false)
         .range(safeOffset, safeOffset + limit - 1) as List<dynamic>;
 
-    return rawRows
-        .whereType<Map<String, dynamic>>()
-        .map(_mapPoll)
-        .toList(growable: false);
+    return _mapPollRowsWithAuthors(rawRows);
   }
 
   @override
@@ -103,12 +98,8 @@ class PollRepositorySupabase implements PollRepository {
       return null;
     }
 
-    final row = rawRows.first;
-    if (row is! Map<String, dynamic>) {
-      return null;
-    }
-
-    return _mapPoll(row);
+    final mapped = await _mapPollRowsWithAuthors(rawRows);
+    return mapped.isEmpty ? null : mapped.first;
   }
 
   @override
@@ -157,12 +148,12 @@ class PollRepositorySupabase implements PollRepository {
       throw Exception('Creazione poll fallita.');
     }
 
-    final row = rawRows.first;
-    if (row is! Map<String, dynamic>) {
+    final mapped = await _mapPollRowsWithAuthors(rawRows);
+    if (mapped.isEmpty) {
       throw Exception('Creazione poll fallita.');
     }
 
-    return _mapPoll(row);
+    return mapped.first;
   }
 
   @override
@@ -327,7 +318,10 @@ class PollRepositorySupabase implements PollRepository {
     };
   }
 
-  Poll _mapPoll(Map<String, dynamic> row) {
+  Poll _mapPoll(
+    Map<String, dynamic> row, {
+    _PollAuthorIdentity? authorIdentity,
+  }) {
     final optionsRaw = row['options'];
     final optionsList = optionsRaw is List ? optionsRaw : const [];
 
@@ -402,6 +396,11 @@ class PollRepositorySupabase implements PollRepository {
       cityId: cityId,
       contentLocation: contentLocation,
       createdByUserId: row['author_id'] as String?,
+      authorName: authorIdentity?.displayName,
+      authorActorType: authorIdentity?.actorType ?? ActorType.citizen,
+      authorVerificationLevel:
+          authorIdentity?.verificationLevel ?? VerificationLevel.none,
+      authorInstitutionLevel: authorIdentity?.institutionLevel,
       publishedAsActorType: publishedAsActorTypeValue == null
           ? null
           : ActorTypeX.fromStorageKey(publishedAsActorTypeValue),
@@ -415,6 +414,181 @@ class PollRepositorySupabase implements PollRepository {
       ),
       voteCount: (row['vote_count'] as int?) ?? 0,
     );
+  }
+
+  Future<List<Poll>> _mapPollRowsWithAuthors(List<dynamic> rawRows) async {
+    final rows = rawRows
+        .whereType<Map<String, dynamic>>()
+        .toList(growable: false);
+
+    if (rows.isEmpty) {
+      return const <Poll>[];
+    }
+
+    final authorIds = rows
+        .map((row) => row['author_id'])
+        .whereType<String>()
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    final authorsById = await _loadAuthorIdentityById(authorIds);
+
+    return rows
+        .map(
+          (row) => _mapPoll(
+            row,
+            authorIdentity: authorsById[(row['author_id'] as String?)?.trim()],
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  Future<Map<String, _PollAuthorIdentity>> _loadAuthorIdentityById(
+    List<String> authorIds,
+  ) async {
+    if (authorIds.isEmpty) {
+      return const {};
+    }
+
+    final rows = await AppSupabase.client
+        .from(_userProfilesTable)
+        .select(
+          'id, display_name, actor_type, account_type, verification_level, '
+          'is_verified, institution_level, institution_name, organization_name',
+        )
+        .inFilter('id', authorIds);
+
+    final result = <String, _PollAuthorIdentity>{};
+
+    for (final row in rows) {
+      final id = (row['id'] as String?)?.trim();
+      if (id == null || id.isEmpty) {
+        continue;
+      }
+
+      final actorType = _parseAuthorActorType(
+        row['actor_type'],
+        legacyValue: row['account_type'],
+      );
+      final verificationLevel = _parseAuthorVerificationLevel(
+        row['verification_level'],
+        legacyIsVerified: row['is_verified'],
+      );
+      final institutionLevel = _parseAuthorInstitutionLevel(
+        row['institution_level'],
+      );
+
+      result[id] = _PollAuthorIdentity(
+        displayName: _resolvePublicAuthorName(
+          row,
+          actorType: actorType,
+        ),
+        actorType: actorType,
+        verificationLevel: verificationLevel,
+        institutionLevel: institutionLevel,
+      );
+    }
+
+    return result;
+  }
+
+  String? _resolvePublicAuthorName(
+    Map<String, dynamic> row, {
+    required ActorType actorType,
+  }) {
+    String? read(String key) => _normalizeNullableText(row[key] as String?);
+
+    switch (actorType) {
+      case ActorType.organization:
+        return read('organization_name') ?? read('display_name');
+      case ActorType.institution:
+        return read('institution_name') ?? read('display_name');
+      case ActorType.publicOfficial:
+      case ActorType.citizen:
+        return read('display_name');
+    }
+  }
+
+  ActorType _parseAuthorActorType(
+    dynamic value, {
+    dynamic legacyValue,
+  }) {
+    final normalized = _normalizeIdentityValue(value);
+    final legacyNormalized = _normalizeIdentityValue(legacyValue);
+    final effective = normalized.isNotEmpty ? normalized : legacyNormalized;
+
+    switch (effective) {
+      case 'publicofficial':
+        return ActorType.publicOfficial;
+      case 'institution':
+        return ActorType.institution;
+      case 'organization':
+      case 'verifiedorganization':
+        return ActorType.organization;
+      case 'citizen':
+      case 'person':
+      default:
+        return ActorType.citizen;
+    }
+  }
+
+  VerificationLevel _parseAuthorVerificationLevel(
+    dynamic value, {
+    dynamic legacyIsVerified,
+  }) {
+    final normalized = _normalizeIdentityValue(value);
+
+    switch (normalized) {
+      case 'level1':
+        return VerificationLevel.level1;
+      case 'level2':
+        return VerificationLevel.level2;
+      case 'none':
+        return VerificationLevel.none;
+      default:
+        return legacyIsVerified == true
+            ? VerificationLevel.level1
+            : VerificationLevel.none;
+    }
+  }
+
+  InstitutionLevel? _parseAuthorInstitutionLevel(dynamic value) {
+    final normalized = _normalizeIdentityValue(value);
+
+    switch (normalized) {
+      case 'municipality':
+        return InstitutionLevel.municipality;
+      case 'province':
+        return InstitutionLevel.province;
+      case 'region':
+        return InstitutionLevel.region;
+      case 'ministry':
+        return InstitutionLevel.ministry;
+      case 'government':
+        return InstitutionLevel.government;
+      case 'publicagency':
+        return InstitutionLevel.publicAgency;
+      case 'otherpublicbody':
+        return InstitutionLevel.otherPublicBody;
+      default:
+        return null;
+    }
+  }
+
+  String _normalizeIdentityValue(dynamic value) {
+    if (value == null) {
+      return '';
+    }
+
+    return value
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replaceAll('_', '')
+        .replaceAll('-', '')
+        .replaceAll(' ', '');
   }
 
   PollStatus _resolveEffectiveStatus({
@@ -621,3 +795,17 @@ class PollRepositorySupabase implements PollRepository {
 }
 
 typedef PollRepositoryInMemory = PollRepositorySupabase;
+
+class _PollAuthorIdentity {
+  final String? displayName;
+  final ActorType actorType;
+  final VerificationLevel verificationLevel;
+  final InstitutionLevel? institutionLevel;
+
+  const _PollAuthorIdentity({
+    required this.displayName,
+    required this.actorType,
+    required this.verificationLevel,
+    required this.institutionLevel,
+  });
+}

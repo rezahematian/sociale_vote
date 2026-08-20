@@ -1747,6 +1747,7 @@ class AppDI {
       scope: scope,
       type: CivicMapItemType.news,
       readTargetRef: (item) => _readNewsTargetRef(item.news),
+      readNewsItem: (item) => item.news,
       includeEngagement: includeEngagement,
     );
   }
@@ -1756,6 +1757,7 @@ class AppDI {
     required GeoScope scope,
     required CivicMapItemType type,
     required TargetRef Function(T entity) readTargetRef,
+    NewsItem? Function(T entity)? readNewsItem,
     bool includeEngagement = true,
   }) async {
     final targetRefs = entities.map(readTargetRef).toList(growable: false);
@@ -1792,6 +1794,7 @@ class AppDI {
           type: type,
           title: _readEntityTitle(entity),
           subtitle: _readEntitySubtitle(entity),
+          newsItem: readNewsItem?.call(entity),
           geoScope: scope,
           contentLocation: _readEntityContentLocation(entity),
           latitude: point.$1,

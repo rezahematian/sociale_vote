@@ -33,6 +33,7 @@ class CivicMapWidget extends StatefulWidget {
   final double? handoffLongitude;
   final double? handoffZoom;
   final ValueChanged<CivicMapGlobeHandoff>? onZoomOutToGlobe;
+  final ValueChanged<bool>? onBeyondActiveScopeChanged;
 
   const CivicMapWidget({
     super.key,
@@ -46,6 +47,7 @@ class CivicMapWidget extends StatefulWidget {
     this.handoffLongitude,
     this.handoffZoom,
     this.onZoomOutToGlobe,
+    this.onBeyondActiveScopeChanged,
   });
 
   @override
@@ -66,6 +68,7 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
   static const double _globeReturnZoom = 0.0;
 
   bool _initialLoadTriggered = false;
+  late lat_lng.LatLng _currentCenter;
   late double _currentZoom;
   bool _mapReady = false;
   bool _initialViewportRefreshScheduled = false;
@@ -73,11 +76,13 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
   bool _globeReturnTriggered = false;
   String? _lastAppliedViewportScopeKey;
   String? _pendingViewportScopeKey;
+  bool? _lastBeyondActiveScope;
 
   @override
   void initState() {
     super.initState();
 
+    _currentCenter = _initialMapCenter();
     _currentZoom = _initialMapZoom();
     _globeReturnArmed = _currentZoom >= _globeReturnArmZoom;
 
@@ -190,6 +195,7 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     _scheduleViewportSyncForScope(AppDI.instance.geoScopeController.scope);
     final center = _initialMapCenter();
     final zoom = _initialMapZoom();
+    _currentCenter = center;
     _currentZoom = zoom;
 
     // FlutterMap can be created immediately after the WebGL platform view is
@@ -293,6 +299,8 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
         );
         final zoom = _zoomForScope(scope);
 
+        _currentCenter = center;
+        _currentZoom = zoom;
         _mapController.move(center, zoom);
         _lastAppliedViewportScopeKey = scopeKey;
 
@@ -339,6 +347,30 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     }
 
     return _defaultCenter;
+  }
+
+  void _handleBeyondActiveScope({
+    required GeoScope scope,
+    required double zoom,
+    required bool hasGesture,
+  }) {
+    final callback = widget.onBeyondActiveScopeChanged;
+    if (callback == null || !widget.interactive || !hasGesture) {
+      return;
+    }
+
+    final isBeyondScope = switch (scope.level) {
+      GeoScopeLevel.world => false,
+      GeoScopeLevel.country => zoom <= 3.4,
+      GeoScopeLevel.city => zoom <= 5.5,
+    };
+
+    if (_lastBeyondActiveScope == isBeyondScope) {
+      return;
+    }
+
+    _lastBeyondActiveScope = isBeyondScope;
+    callback(isBeyondScope);
   }
 
   void _handlePossibleGlobeReturn({
@@ -608,8 +640,9 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
           child: FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: _initialMapCenter(),
-              initialZoom: _initialMapZoom(),
+              initialCenter:
+                  _mapReady ? _currentCenter : _initialMapCenter(),
+              initialZoom: _mapReady ? _currentZoom : _initialMapZoom(),
               backgroundColor:
                   Theme.of(context).colorScheme.surfaceContainerLowest,
               minZoom: 2.0,
@@ -622,6 +655,19 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
               ),
               onPositionChanged: (camera, hasGesture) {
                 final zoom = camera.zoom;
+                final scope = AppDI.instance.geoScopeController.scope;
+
+                // Controller notifications (marker selection and Poll/Post/News
+                // filters) rebuild the parent page. Preserve the live camera so
+                // those UI-only changes never snap the 2D map back to the
+                // navigation scope's predefined center/zoom.
+                _currentCenter = camera.center;
+
+                _handleBeyondActiveScope(
+                  scope: scope,
+                  zoom: zoom,
+                  hasGesture: hasGesture,
+                );
 
                 _handlePossibleGlobeReturn(
                   latitude: camera.center.latitude,

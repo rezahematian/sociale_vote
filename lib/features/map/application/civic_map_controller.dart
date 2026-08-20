@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
+import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 
@@ -256,6 +257,7 @@ class CivicMapItem {
   final CivicMapItemType type;
   final String title;
   final String? subtitle;
+  final NewsItem? newsItem;
   final GeoScope? geoScope;
   final ContentLocation? contentLocation;
   final double latitude;
@@ -276,6 +278,7 @@ class CivicMapItem {
     required this.type,
     required this.title,
     this.subtitle,
+    this.newsItem,
     this.geoScope,
     this.contentLocation,
     required this.latitude,
@@ -344,6 +347,7 @@ class CivicMapItem {
     CivicMapItemType? type,
     String? title,
     String? subtitle,
+    NewsItem? newsItem,
     GeoScope? geoScope,
     ContentLocation? contentLocation,
     double? latitude,
@@ -361,6 +365,7 @@ class CivicMapItem {
       type: type ?? this.type,
       title: title ?? this.title,
       subtitle: subtitle ?? this.subtitle,
+      newsItem: newsItem ?? this.newsItem,
       geoScope: geoScope ?? this.geoScope,
       contentLocation: contentLocation ?? this.contentLocation,
       latitude: latitude ?? this.latitude,

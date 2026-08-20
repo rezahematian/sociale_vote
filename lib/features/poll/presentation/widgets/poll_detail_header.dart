@@ -12,6 +12,7 @@ import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
+import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 
 class PollDetailHeader extends StatelessWidget {
   final Poll poll;
@@ -105,7 +106,8 @@ class PollDetailHeader extends StatelessWidget {
 
   bool get _hasRepresentativePublisher =>
       poll.publishedAsActorType == ActorType.publicOfficial ||
-      poll.publishedAsActorType == ActorType.institution;
+      poll.publishedAsActorType == ActorType.institution ||
+      poll.publishedAsActorType == ActorType.organization;
 
   @override
   Widget build(BuildContext context) {
@@ -1268,6 +1270,11 @@ class PollDetailHeader extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
+        if (UserIdentityMark.shouldShowForProfile(profile))
+          UserIdentityMark.fromProfile(
+            profile,
+            size: secondary ? 14 : 16,
+          ),
         if (usernameLabel != null)
           Text(
             '· $usernameLabel',
@@ -1403,9 +1410,11 @@ class PollDetailHeader extends StatelessWidget {
       case ActorType.institution:
         return _localizedText(
           l10n,
-          it: 'Institution',
-          en: 'Institution',
+          it: 'Istituzione pubblica',
+          en: 'Public Institution',
         );
+      case ActorType.organization:
+        return l10n.identityBadgeVerifiedOrganization;
       default:
         return _localizedText(
           l10n,
@@ -1421,6 +1430,8 @@ class PollDetailHeader extends StatelessWidget {
         return Icons.workspace_premium_outlined;
       case ActorType.institution:
         return Icons.account_balance_outlined;
+      case ActorType.organization:
+        return Icons.groups_outlined;
       default:
         return Icons.verified_user_outlined;
     }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -69,6 +70,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   bool _isRefreshingHome = false;
   int _homeRefreshVersion = 0;
   bool _isHomeGlobeScrollLocked = false;
+  bool _isScopeSelectorActive = false;
 
   @override
   void initState() {
@@ -178,7 +180,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
   void _setWorld() => _geoScopeController.setWorld();
 
-  Future<void> _selectCountryScope() async {
+  Future<bool> _selectCountryScope() async {
     final countryCode = await showDialog<String>(
       context: context,
       builder: (_) => _CountryScopeDialog(
@@ -187,13 +189,14 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     );
 
     if (!mounted || countryCode == null) {
-      return;
+      return false;
     }
 
     _geoScopeController.setCountry(countryCode);
+    return true;
   }
 
-  Future<void> _selectCityScope() async {
+  Future<bool> _selectCityScope() async {
     var countryCode =
         _geoScopeController.scope.countryCode?.trim().toUpperCase();
 
@@ -205,7 +208,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     }
 
     if (!mounted || countryCode == null || countryCode.isEmpty) {
-      return;
+      return false;
     }
 
     final cityScope = await showDialog<GeoScope>(
@@ -220,18 +223,34 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     );
 
     if (!mounted || cityScope == null) {
-      return;
+      return false;
     }
 
     _geoScopeController.setScope(cityScope);
+    return true;
   }
 
   Future<void> _openScopeSelectorSheet() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (sheetContext) {
+    if (_isScopeSelectorActive) {
+      return;
+    }
+
+    setState(() {
+      _isScopeSelectorActive = true;
+      _isHomeGlobeScrollLocked = false;
+    });
+
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) {
+      return;
+    }
+
+    try {
+      await showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        isScrollControlled: true,
+        builder: (sheetContext) {
         return AnimatedBuilder(
           animation: Listenable.merge([
             _geoScopeController,
@@ -263,20 +282,31 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                     Navigator.of(sheetContext).pop();
                   },
                   onSelectCountry: () async {
-                    Navigator.of(sheetContext).pop();
-                    await _selectCountryScope();
+                    final changed = await _selectCountryScope();
+                    if (changed && sheetContext.mounted) {
+                      Navigator.of(sheetContext).pop();
+                    }
                   },
                   onSelectCity: () async {
-                    Navigator.of(sheetContext).pop();
-                    await _selectCityScope();
+                    final changed = await _selectCityScope();
+                    if (changed && sheetContext.mounted) {
+                      Navigator.of(sheetContext).pop();
+                    }
                   },
                 ),
               ),
             );
           },
-        );
-      },
-    );
+          );
+        },
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isScopeSelectorActive = false;
+        });
+      }
+    }
   }
 
   Future<void> _openSearchPage() async {
@@ -852,6 +882,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                           ),
                                           scopeShortLabel: scopeShortLabel,
                                           desktopHeroMode: true,
+                                          suspendWebSurface:
+                                              _isScopeSelectorActive,
                                           onGlobeScrollLockChanged: null,
                                           onGlobeOrientationChanged:
                                               _handleHomeGlobeOrientationChanged,
@@ -892,6 +924,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                               'home_map_${scope.level}_${scope.countryCode}_${scope.cityId}_$_homeRefreshVersion',
                             ),
                             scopeShortLabel: scopeShortLabel,
+                            suspendWebSurface: _isScopeSelectorActive,
                             onGlobeScrollLockChanged:
                                 _handleHomeGlobeScrollLockChanged,
                             onGlobeOrientationChanged:
@@ -1223,6 +1256,21 @@ class _CountryScopeDialogState extends State<_CountryScopeDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final languageCode = Localizations.localeOf(context).languageCode;
+    final mediaSize = MediaQuery.sizeOf(context);
+    final isCompact = mediaSize.width < 600;
+    final horizontalInset = isCompact ? 12.0 : 40.0;
+    final contentHorizontalPadding = isCompact ? 16.0 : 24.0;
+    final availableContentWidth = math.max(
+      220.0,
+      mediaSize.width -
+          (horizontalInset * 2) -
+          (contentHorizontalPadding * 2),
+    );
+    final dialogContentWidth = math.min(480.0, availableContentWidth);
+    final dialogContentHeight = math.min(
+      460.0,
+      math.max(300.0, mediaSize.height * (isCompact ? 0.58 : 0.66)),
+    );
     final normalizedQuery = _query.trim().toLowerCase();
     final countries = country_data.Countries.all.where((country) {
       if (normalizedQuery.isEmpty) {
@@ -1236,10 +1284,32 @@ class _CountryScopeDialogState extends State<_CountryScopeDialog> {
     }).toList(growable: false);
 
     return AlertDialog(
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: horizontalInset,
+        vertical: isCompact ? 16 : 24,
+      ),
+      titlePadding: EdgeInsets.fromLTRB(
+        contentHorizontalPadding,
+        isCompact ? 18 : 22,
+        contentHorizontalPadding,
+        12,
+      ),
+      contentPadding: EdgeInsets.fromLTRB(
+        contentHorizontalPadding,
+        0,
+        contentHorizontalPadding,
+        8,
+      ),
+      actionsPadding: EdgeInsets.fromLTRB(
+        contentHorizontalPadding,
+        4,
+        contentHorizontalPadding,
+        isCompact ? 12 : 16,
+      ),
       title: Text(l10n.homeScopeChooseCountry),
       content: SizedBox(
-        width: 480,
-        height: 460,
+        width: dialogContentWidth,
+        height: dialogContentHeight,
         child: Column(
           children: [
             TextField(
@@ -1393,11 +1463,45 @@ class _CityScopeDialogState extends State<_CityScopeDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final mediaSize = MediaQuery.sizeOf(context);
+    final isCompact = mediaSize.width < 600;
+    final horizontalInset = isCompact ? 12.0 : 40.0;
+    final contentHorizontalPadding = isCompact ? 16.0 : 24.0;
+    final availableContentWidth = math.max(
+      220.0,
+      mediaSize.width -
+          (horizontalInset * 2) -
+          (contentHorizontalPadding * 2),
+    );
+    final dialogContentWidth = math.min(420.0, availableContentWidth);
 
     return AlertDialog(
+      scrollable: true,
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: horizontalInset,
+        vertical: isCompact ? 16 : 24,
+      ),
+      titlePadding: EdgeInsets.fromLTRB(
+        contentHorizontalPadding,
+        isCompact ? 18 : 22,
+        contentHorizontalPadding,
+        12,
+      ),
+      contentPadding: EdgeInsets.fromLTRB(
+        contentHorizontalPadding,
+        0,
+        contentHorizontalPadding,
+        8,
+      ),
+      actionsPadding: EdgeInsets.fromLTRB(
+        contentHorizontalPadding,
+        4,
+        contentHorizontalPadding,
+        isCompact ? 12 : 16,
+      ),
       title: Text(l10n.homeScopeChooseCity),
       content: SizedBox(
-        width: 420,
+        width: dialogContentWidth,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

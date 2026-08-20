@@ -15,6 +15,7 @@ class HomeMapSection extends StatelessWidget {
   final ValueChanged<bool>? onGlobeScrollLockChanged;
   final ValueChanged<Offset>? onGlobeOrientationChanged;
   final bool desktopHeroMode;
+  final bool suspendWebSurface;
 
   const HomeMapSection({
     super.key,
@@ -22,10 +23,20 @@ class HomeMapSection extends StatelessWidget {
     this.onGlobeScrollLockChanged,
     this.onGlobeOrientationChanged,
     this.desktopHeroMode = false,
+    this.suspendWebSurface = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (kIsWeb && suspendWebSurface) {
+      return _HomeMapSuspendedSurface(
+        scopeShortLabel: scopeShortLabel,
+        desktopHeroMode: desktopHeroMode,
+        isWorldScope:
+            AppDI.instance.geoScopeController.scope.level == GeoScopeLevel.world,
+      );
+    }
+
     return ChangeNotifierProvider<CivicMapController>(
       create: (_) => AppDI.instance.createCivicMapController(homePreview: true),
       child: _HomeMapSectionView(
@@ -34,6 +45,70 @@ class HomeMapSection extends StatelessWidget {
         onGlobeOrientationChanged: onGlobeOrientationChanged,
         desktopHeroMode: desktopHeroMode,
       ),
+    );
+  }
+}
+
+class _HomeMapSuspendedSurface extends StatelessWidget {
+  final String scopeShortLabel;
+  final bool desktopHeroMode;
+  final bool isWorldScope;
+
+  const _HomeMapSuspendedSurface({
+    required this.scopeShortLabel,
+    required this.desktopHeroMode,
+    required this.isWorldScope,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 720;
+        final isVeryNarrow = constraints.maxWidth < 480;
+        final sectionHeight = desktopHeroMode
+            ? 560.0
+            : isWorldScope
+                ? (isCompact ? 360.0 : 430.0)
+                : (isCompact ? 300.0 : 330.0);
+        final horizontalPadding =
+            desktopHeroMode ? 0.0 : (isVeryNarrow ? 16.0 : 30.0);
+        final theme = Theme.of(context);
+
+        return SizedBox(
+          height: sectionHeight,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              16,
+              horizontalPadding,
+              16,
+            ),
+            child: Card(
+              clipBehavior: Clip.antiAlias,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.public,
+                      size: 34,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      scopeShortLabel,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

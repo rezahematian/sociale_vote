@@ -1,6 +1,7 @@
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/identity/value_objects/institution_level.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 
 import '../value_objects/poll_configuration.dart';
 import '../value_objects/poll_id.dart';
@@ -51,6 +52,16 @@ class Poll {
   /// Utente che ha creato tecnicamente il poll.
   final String? createdByUserId;
 
+  /// Snapshot pubblico del creatore usato dalle superfici elenco/card.
+  ///
+  /// Questi campi vengono valorizzati dalla repository leggendo il profilo
+  /// pubblico corrente dell'autore. Non cambiano l'autore tecnico
+  /// [createdByUserId] e non sostituiscono la pubblicazione rappresentativa.
+  final String? authorName;
+  final ActorType authorActorType;
+  final VerificationLevel authorVerificationLevel;
+  final InstitutionLevel? authorInstitutionLevel;
+
   /// Snapshot dell'identità rappresentativa usata in pubblicazione.
   ///
   /// - null = poll pubblicato come utente normale
@@ -91,6 +102,10 @@ class Poll {
     this.cityId,
     this.contentLocation,
     this.createdByUserId,
+    this.authorName,
+    this.authorActorType = ActorType.citizen,
+    this.authorVerificationLevel = VerificationLevel.none,
+    this.authorInstitutionLevel,
     this.publishedAsActorType,
     this.publishedAsInstitutionLevel,
     this.publishedAsDisplayName,
@@ -194,6 +209,10 @@ class Poll {
     String? cityId,
     ContentLocation? contentLocation,
     String? createdByUserId,
+    String? authorName,
+    ActorType? authorActorType,
+    VerificationLevel? authorVerificationLevel,
+    InstitutionLevel? authorInstitutionLevel,
     ActorType? publishedAsActorType,
     InstitutionLevel? publishedAsInstitutionLevel,
     String? publishedAsDisplayName,
@@ -214,6 +233,12 @@ class Poll {
       cityId: cityId ?? this.cityId,
       contentLocation: contentLocation ?? this.contentLocation,
       createdByUserId: createdByUserId ?? this.createdByUserId,
+      authorName: authorName ?? this.authorName,
+      authorActorType: authorActorType ?? this.authorActorType,
+      authorVerificationLevel:
+          authorVerificationLevel ?? this.authorVerificationLevel,
+      authorInstitutionLevel:
+          authorInstitutionLevel ?? this.authorInstitutionLevel,
       publishedAsActorType: publishedAsActorType ?? this.publishedAsActorType,
       publishedAsInstitutionLevel:
           publishedAsInstitutionLevel ?? this.publishedAsInstitutionLevel,
@@ -225,6 +250,6 @@ class Poll {
 
   @override
   String toString() {
-    return 'Poll(id: $id, title: $title, createdAt: $createdAt, votes: $voteCount, type: $type, status: $status, options: ${options.length}, countryCode: $countryCode, cityId: $cityId, contentLocation: $contentLocation, createdBy: $createdByUserId, publishedAsActorType: $publishedAsActorType, publishedAsInstitutionLevel: $publishedAsInstitutionLevel, publishedAsDisplayName: $publishedAsDisplayName)';
+    return 'Poll(id: $id, title: $title, createdAt: $createdAt, votes: $voteCount, type: $type, status: $status, options: ${options.length}, countryCode: $countryCode, cityId: $cityId, contentLocation: $contentLocation, createdBy: $createdByUserId, authorName: $authorName, authorActorType: $authorActorType, authorVerificationLevel: $authorVerificationLevel, authorInstitutionLevel: $authorInstitutionLevel, publishedAsActorType: $publishedAsActorType, publishedAsInstitutionLevel: $publishedAsInstitutionLevel, publishedAsDisplayName: $publishedAsDisplayName)';
   }
 }

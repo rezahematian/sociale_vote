@@ -791,12 +791,10 @@ class SocialVoteGlobeElement extends HTMLElement {
       this._autoRotatePreference &&
       this._controls
     ) {
-      if (this._config.profile === 'home') {
-        this._settleToNaturalRotation();
-      } else {
-        this._controls.autoRotate = true;
-        this._controls.autoRotateSpeed = 0.30;
-      }
+      // Match the native renderer: manual movement is temporary on both
+      // Home and Civic Map while auto-rotation is enabled. Restore the natural
+      // viewing latitude first, preserving longitude, then resume rotation.
+      this._settleToNaturalRotation();
     }
 
     this._resumeAutoRotateAfterInteraction = false;
@@ -806,8 +804,7 @@ class SocialVoteGlobeElement extends HTMLElement {
     if (
       !this._camera ||
       !this._controls ||
-      !this._autoRotatePreference ||
-      this._config.profile !== 'home'
+      !this._autoRotatePreference
     ) {
       return;
     }
@@ -832,8 +829,7 @@ class SocialVoteGlobeElement extends HTMLElement {
       if (
         this._disposed ||
         token !== this._naturalSettleToken ||
-        !this._autoRotatePreference ||
-        this._config.profile !== 'home'
+        !this._autoRotatePreference
       ) {
         if (token === this._naturalSettleToken) {
           this._naturalSettling = false;
@@ -1037,11 +1033,6 @@ class SocialVoteGlobeElement extends HTMLElement {
           ? 'home'
           : 'explore';
 
-    if (profile !== 'home' && this._naturalSettling) {
-      this._naturalSettleToken += 1;
-      this._naturalSettling = false;
-    }
-
     const maxTiltDegrees =
         Number.isFinite(
           Number(this._config.maxTiltDegrees),
@@ -1095,7 +1086,8 @@ class SocialVoteGlobeElement extends HTMLElement {
         rawInitialLng !== '' &&
         Number.isFinite(Number(rawInitialLng));
 
-    if (hasInitialLat && hasInitialLng) {
+    if (hasInitialLat && hasInitialLng && !this._initialPositionApplied) {
+      this._initialPositionApplied = true;
       const initialLat = Number(rawInitialLat);
       const initialLng = Number(rawInitialLng);
 

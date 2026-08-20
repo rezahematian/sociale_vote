@@ -336,7 +336,8 @@ class PostRepositoryImpl implements PostRepository {
     final rows = await AppSupabase.client
         .from(_userProfilesTable)
         .select(
-          'id, display_name, actor_type, verification_level, institution_level',
+          'id, display_name, actor_type, account_type, verification_level, '
+          'is_verified, institution_level, institution_name, organization_name',
         )
         .inFilter('id', authorIds);
 
@@ -348,14 +349,21 @@ class PostRepositoryImpl implements PostRepository {
         continue;
       }
 
-      final displayName = row['display_name'] as String?;
+      final actorType = _parseActorType(
+        row['actor_type'],
+        legacyValue: row['account_type'],
+      );
 
       result[id] = _PostAuthorIdentity(
-        displayName: displayName != null && displayName.trim().isNotEmpty
-            ? displayName.trim()
-            : null,
-        actorType: _parseActorType(row['actor_type']),
-        verificationLevel: _parseVerificationLevel(row['verification_level']),
+        displayName: _resolvePublicAuthorName(
+          row,
+          actorType: actorType,
+        ),
+        actorType: actorType,
+        verificationLevel: _parseVerificationLevel(
+          row['verification_level'],
+          legacyIsVerified: row['is_verified'],
+        ),
         institutionLevel: _parseInstitutionLevel(row['institution_level']),
       );
     }
@@ -363,10 +371,15 @@ class PostRepositoryImpl implements PostRepository {
     return result;
   }
 
-  ActorType _parseActorType(dynamic value) {
+  ActorType _parseActorType(
+    dynamic value, {
+    dynamic legacyValue,
+  }) {
     final normalized = _normalizeIdentityValue(value);
+    final legacyNormalized = _normalizeIdentityValue(legacyValue);
+    final effective = normalized.isNotEmpty ? normalized : legacyNormalized;
 
-    switch (normalized) {
+    switch (effective) {
       case 'publicofficial':
         return ActorType.publicOfficial;
       case 'institution':
@@ -380,7 +393,10 @@ class PostRepositoryImpl implements PostRepository {
     }
   }
 
-  VerificationLevel _parseVerificationLevel(dynamic value) {
+  VerificationLevel _parseVerificationLevel(
+    dynamic value, {
+    dynamic legacyIsVerified,
+  }) {
     final normalized = _normalizeIdentityValue(value);
 
     switch (normalized) {
@@ -389,8 +405,32 @@ class PostRepositoryImpl implements PostRepository {
       case 'level2':
         return VerificationLevel.level2;
       case 'none':
-      default:
         return VerificationLevel.none;
+      default:
+        return legacyIsVerified == true
+            ? VerificationLevel.level1
+            : VerificationLevel.none;
+    }
+  }
+
+  String? _resolvePublicAuthorName(
+    Map<String, dynamic> row, {
+    required ActorType actorType,
+  }) {
+    String? read(String key) {
+      final value = row[key] as String?;
+      final normalized = value?.trim();
+      return normalized == null || normalized.isEmpty ? null : normalized;
+    }
+
+    switch (actorType) {
+      case ActorType.organization:
+        return read('organization_name') ?? read('display_name');
+      case ActorType.institution:
+        return read('institution_name') ?? read('display_name');
+      case ActorType.publicOfficial:
+      case ActorType.citizen:
+        return read('display_name');
     }
   }
 

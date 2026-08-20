@@ -14,6 +14,25 @@ import 'package:sociale_vote/features/map/application/civic_map_controller.dart'
 import 'package:sociale_vote/features/map/presentation/widgets/civic_map_widget.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/world_globe_widget.dart';
 import 'package:sociale_vote/features/news/domain/news_language.dart';
+import 'package:sociale_vote/shared/data/countries.dart';
+
+void _goBackFromCivicMap(BuildContext context) {
+  final navigator = Navigator.of(context);
+  if (navigator.canPop()) {
+    navigator.pop();
+    return;
+  }
+
+  navigator.pushNamedAndRemoveUntil(AppRouter.home, (_) => false);
+}
+
+Widget _buildCivicMapBackButton(BuildContext context) {
+  return IconButton(
+    tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () => _goBackFromCivicMap(context),
+  );
+}
 
 class CivicMapPage extends StatelessWidget {
   const CivicMapPage({super.key});
@@ -44,6 +63,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
   bool _useWorldGlobe = false;
   WorldGlobeMapHandoff? _worldMapHandoff;
   CivicMapGlobeHandoff? _worldGlobeHandoff;
+  bool _showBroaderScopePrompt = false;
 
   @override
   void initState() {
@@ -75,6 +95,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 64,
+        leading: _buildCivicMapBackButton(context),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -157,7 +178,35 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                             onZoomOutToGlobe: isWorldScope
                                 ? _handleClassicMapZoomOutToGlobe
                                 : null,
+                            onBeyondActiveScopeChanged: isWorldScope
+                                ? null
+                                : _handleBeyondActiveScopeChanged,
                           ),
+                    if (_showBroaderScopePrompt &&
+                        activeScope != null &&
+                        !isWorldScope)
+                      Positioned(
+                        left: 12,
+                        right: 12,
+                        top: 12,
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: _BroaderScopePrompt(
+                            scope: activeScope,
+                            scopeLabel: _scopeLabel(context, activeScope),
+                            onShowCountry:
+                                activeScope.level == GeoScopeLevel.city &&
+                                        activeScope.countryCode != null
+                                    ? () => _switchToCountryScope(
+                                          geoScopeController,
+                                          activeScope.countryCode!,
+                                        )
+                                    : null,
+                            onShowWorld: () =>
+                                _switchToWorldScope(geoScopeController),
+                          ),
+                        ),
+                      ),
                     if (controller.selectedItem == null &&
                         (controller.hasData || controller.isEmpty))
                       Positioned(
@@ -204,8 +253,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                               onClose: controller.clearSelection,
                               onOpen: () => _openTarget(
                                 context,
-                                controller,
-                                controller.selectedItem!.targetRef,
+                                controller.selectedItem!,
                               ),
                             ),
                           ),
@@ -331,6 +379,53 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
       'center=(${handoff.latitude}, ${handoff.longitude}) '
       'globeZoom=${handoff.globeZoom.toStringAsFixed(2)}',
     );
+  }
+
+  void _handleBeyondActiveScopeChanged(bool isBeyondScope) {
+    if (!mounted || _showBroaderScopePrompt == isBeyondScope) {
+      return;
+    }
+
+    setState(() {
+      _showBroaderScopePrompt = isBeyondScope;
+    });
+  }
+
+  void _switchToCountryScope(
+    GeoScopeController? controller,
+    String countryCode,
+  ) {
+    if (controller == null) {
+      return;
+    }
+
+    setState(() {
+      _showBroaderScopePrompt = false;
+      _useWorldGlobe = false;
+      _worldMapHandoff = null;
+      _worldGlobeHandoff = null;
+    });
+
+    controller.setCountry(countryCode.trim().toUpperCase());
+  }
+
+  void _switchToWorldScope(GeoScopeController? controller) {
+    if (controller == null) {
+      return;
+    }
+
+    // The user is already exploring the 2D map. Expanding the geographic
+    // filter must reveal worldwide markers in the same view instead of
+    // unexpectedly switching renderers. The stored 2D/3D preference is not
+    // overwritten; this is a transient continuation of the current gesture.
+    setState(() {
+      _showBroaderScopePrompt = false;
+      _useWorldGlobe = false;
+      _worldMapHandoff = null;
+      _worldGlobeHandoff = null;
+    });
+
+    controller.setWorld();
   }
 
   Future<void> _restoreSavedLanguagePreference() async {
@@ -533,9 +628,9 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
 
   Future<void> _openTarget(
     BuildContext context,
-    CivicMapController controller,
-    TargetRef targetRef,
+    CivicMapItem item,
   ) async {
+    final targetRef = item.targetRef;
     final targetId = _readTargetRefId(targetRef);
     if (targetId == null || targetId.trim().isEmpty) {
       return;
@@ -557,7 +652,10 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
         return;
 
       case TargetType.news:
-        final newsItem = await _resolveNewsItem(targetId);
+        // The map loader already has the complete NewsItem used to build this
+        // marker. Reuse it so opening the detail is immediate. The repository
+        // lookup remains only as a compatibility fallback for older items.
+        final newsItem = item.newsItem ?? await _resolveNewsItem(targetId);
         if (!context.mounted) return;
 
         if (newsItem == null) {
@@ -623,6 +721,86 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
     } catch (_) {}
 
     return null;
+  }
+}
+
+class _BroaderScopePrompt extends StatelessWidget {
+  final GeoScope scope;
+  final String scopeLabel;
+  final VoidCallback? onShowCountry;
+  final VoidCallback onShowWorld;
+
+  const _BroaderScopePrompt({
+    required this.scope,
+    required this.scopeLabel,
+    required this.onShowCountry,
+    required this.onShowWorld,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final isItalian = languageCode.toLowerCase() == 'it';
+    final countryCode = scope.countryCode?.trim().toUpperCase();
+    final countryName = countryCode == null || countryCode.isEmpty
+        ? null
+        : Countries.nameForCode(
+            countryCode,
+            languageCode: languageCode,
+            fallback: countryCode,
+          );
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 560),
+      child: Material(
+        color: theme.colorScheme.surface.withValues(alpha: 0.96),
+        elevation: 4,
+        borderRadius: BorderRadius.circular(14),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Icon(
+                  Icons.filter_alt_outlined,
+                  size: 19,
+                  color: theme.colorScheme.primary,
+                ),
+                Text(
+                  isItalian
+                      ? 'La mappa è ancora filtrata su $scopeLabel'
+                      : 'The map is still filtered to $scopeLabel',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (onShowCountry != null && countryName != null)
+                  OutlinedButton(
+                    onPressed: onShowCountry,
+                    child: Text(
+                      isItalian
+                          ? 'Mostra $countryName'
+                          : 'Show $countryName',
+                    ),
+                  ),
+                FilledButton.tonal(
+                  onPressed: onShowWorld,
+                  child: Text(isItalian ? 'Mostra Mondo' : 'Show World'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
