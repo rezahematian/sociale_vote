@@ -77,6 +77,15 @@ type UserDetailRow = {
   account_status: string
   suspended_until: string | null
   created_at: string
+  reports_received_total?: number | string | null
+  reports_received_pending?: number | string | null
+  confirmed_violations_total?: number | string | null
+  reports_filed_total?: number | string | null
+  polls_created_total?: number | string | null
+  posts_created_total?: number | string | null
+  comments_created_total?: number | string | null
+  admin_actions_total?: number | string | null
+  last_report_received_at?: string | null
 }
 
 type AuditRow = {
@@ -711,6 +720,18 @@ Deno.serve(async (req: Request) => {
         accountStatus: row.account_status,
         suspendedUntil: row.suspended_until,
         createdAt: row.created_at,
+        reportsReceivedTotal: readCount(row.reports_received_total),
+        reportsReceivedPending: readCount(row.reports_received_pending),
+        confirmedViolationsTotal: readCount(row.confirmed_violations_total),
+        reportsFiledTotal: readCount(row.reports_filed_total),
+        pollsCreatedTotal: readCount(row.polls_created_total),
+        postsCreatedTotal: readCount(row.posts_created_total),
+        commentsCreatedTotal: readCount(row.comments_created_total),
+        adminActionsTotal: readCount(row.admin_actions_total),
+        lastReportReceivedAt:
+          typeof row.last_report_received_at === 'string'
+            ? row.last_report_received_at
+            : null,
       },
       permissions: {
         role: callerRole,

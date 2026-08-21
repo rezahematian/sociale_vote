@@ -181,7 +181,7 @@ class RotatingGlobeState extends State<RotatingGlobe>
   // Track currently hovered elements to avoid redundant callbacks
   String? _currentHoveredPointId;
   String? _currentHoveredConnectionId;
-  // TODO: Add satellite hover support in future
+  // Future enhancement: satellite hover support.
   // String? _currentHoveredSatelliteId;
 
   /// Calculate the converted radius based on zoom level

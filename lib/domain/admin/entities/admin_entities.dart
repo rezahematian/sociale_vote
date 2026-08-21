@@ -408,6 +408,9 @@ class AdminUserSummary {
   final Role systemRole;
   final Role mirrorRole;
   final bool roleSynchronized;
+  final ActorType actorType;
+  final VerificationLevel verificationLevel;
+  final VerificationStatus verificationStatus;
   final AdminAccountStatus accountStatus;
   final DateTime? suspendedUntil;
   final DateTime createdAt;
@@ -420,6 +423,9 @@ class AdminUserSummary {
     required this.systemRole,
     required this.mirrorRole,
     required this.roleSynchronized,
+    required this.actorType,
+    required this.verificationLevel,
+    required this.verificationStatus,
     required this.accountStatus,
     this.suspendedUntil,
     required this.createdAt,
@@ -452,6 +458,19 @@ class AdminUserDetail {
   final DateTime? suspendedUntil;
   final DateTime createdAt;
 
+  // Optional operational/moderation insight fields. They are nullable so the
+  // Flutter client stays backward-compatible while the protected backend read
+  // model is deployed.
+  final int? reportsReceivedTotal;
+  final int? reportsReceivedPending;
+  final int? confirmedViolationsTotal;
+  final int? reportsFiledTotal;
+  final int? pollsCreatedTotal;
+  final int? postsCreatedTotal;
+  final int? commentsCreatedTotal;
+  final int? adminActionsTotal;
+  final DateTime? lastReportReceivedAt;
+
   const AdminUserDetail({
     required this.id,
     this.email,
@@ -469,6 +488,15 @@ class AdminUserDetail {
     required this.accountStatus,
     this.suspendedUntil,
     required this.createdAt,
+    this.reportsReceivedTotal,
+    this.reportsReceivedPending,
+    this.confirmedViolationsTotal,
+    this.reportsFiledTotal,
+    this.pollsCreatedTotal,
+    this.postsCreatedTotal,
+    this.commentsCreatedTotal,
+    this.adminActionsTotal,
+    this.lastReportReceivedAt,
   });
 
   bool get isStaff => systemRole.isStaff;
@@ -488,6 +516,9 @@ class AdminUserDetail {
       systemRole: systemRole,
       mirrorRole: mirrorRole,
       roleSynchronized: roleSynchronized,
+      actorType: actorType,
+      verificationLevel: verificationLevel,
+      verificationStatus: verificationStatus,
       accountStatus: accountStatus,
       suspendedUntil: suspendedUntil,
       createdAt: createdAt,

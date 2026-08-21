@@ -152,13 +152,13 @@ abstract class AppLocalizations {
   /// No description provided for @createPollVotingModelTitle.
   ///
   /// In en, this message translates to:
-  /// **'Voting model'**
+  /// **'How voting works'**
   String get createPollVotingModelTitle;
 
   /// No description provided for @createPollVotingModelSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Choose how people will express their vote and basic rules.'**
+  /// **'Choose whether each person can select one answer or multiple answers.'**
   String get createPollVotingModelSubtitle;
 
   /// No description provided for @createPollTypeFieldLabel.
@@ -188,13 +188,13 @@ abstract class AppLocalizations {
   /// No description provided for @createPollOptionsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Options'**
+  /// **'Answers'**
   String get createPollOptionsTitle;
 
   /// No description provided for @createPollOptionsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Add at least two options for voters to choose from. Fields marked with * are mandatory.'**
+  /// **'Enter at least two answers for voters to choose from. Fields marked with * are mandatory.'**
   String get createPollOptionsSubtitle;
 
   /// No description provided for @createPollOptionLabel.
@@ -374,13 +374,13 @@ abstract class AppLocalizations {
   /// No description provided for @createPollPollTypeSingleChoiceLabel.
   ///
   /// In en, this message translates to:
-  /// **'Single choice'**
+  /// **'One answer'**
   String get createPollPollTypeSingleChoiceLabel;
 
   /// No description provided for @createPollPollTypeMultipleChoiceLabel.
   ///
   /// In en, this message translates to:
-  /// **'Multiple choice'**
+  /// **'Multiple answers'**
   String get createPollPollTypeMultipleChoiceLabel;
 
   /// No description provided for @createPollPollTypeApprovalLabel.
@@ -5496,27 +5496,51 @@ abstract class AppLocalizations {
   String get publicProfileBlockError;
 
   /// No description provided for @publicProfileFollowersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'followers'**
   String get publicProfileFollowersLabel;
 
   /// No description provided for @publicProfileFollowingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'following'**
   String get publicProfileFollowingLabel;
 
   /// No description provided for @publicProfileFollowAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow'**
   String get publicProfileFollowAction;
 
   /// No description provided for @publicProfileUnfollowAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfollow'**
   String get publicProfileUnfollowAction;
 
   /// No description provided for @publicProfileFollowSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Account followed.'**
   String get publicProfileFollowSuccess;
 
   /// No description provided for @publicProfileUnfollowSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Account unfollowed.'**
   String get publicProfileUnfollowSuccess;
 
   /// No description provided for @publicProfileFollowError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to update the follow. Try again.'**
   String get publicProfileFollowError;
 
   /// No description provided for @publicProfileFollowRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload follow information'**
   String get publicProfileFollowRetry;
 
   /// No description provided for @contentLanguageFieldLabel.
@@ -5806,6 +5830,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This is the name other users will see. Your username is created automatically.'**
   String get authPublicNameHelper;
+
+  /// No description provided for @adminCenterRefreshMarkersTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh globe markers'**
+  String get adminCenterRefreshMarkersTooltip;
+
+  /// No description provided for @adminCenterQuickActionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick account actions'**
+  String get adminCenterQuickActionsTitle;
+
+  /// No description provided for @adminCenterModerationSnapshotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderation and activity snapshot'**
+  String get adminCenterModerationSnapshotTitle;
+
+  /// No description provided for @adminCenterReportsReceivedMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports received'**
+  String get adminCenterReportsReceivedMetric;
+
+  /// No description provided for @adminCenterPendingReportsMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending reports'**
+  String get adminCenterPendingReportsMetric;
+
+  /// No description provided for @adminCenterConfirmedViolationsMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed violations'**
+  String get adminCenterConfirmedViolationsMetric;
+
+  /// No description provided for @adminCenterReportsFiledMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports filed'**
+  String get adminCenterReportsFiledMetric;
+
+  /// No description provided for @adminCenterCommentsCreatedMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments created'**
+  String get adminCenterCommentsCreatedMetric;
+
+  /// No description provided for @adminCenterAdminActionsOnAccountMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin actions on account'**
+  String get adminCenterAdminActionsOnAccountMetric;
+
+  /// No description provided for @adminCenterLastReportReceivedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last report received'**
+  String get adminCenterLastReportReceivedLabel;
+
+  /// No description provided for @adminCenterOpenFullAccountAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open full account controls'**
+  String get adminCenterOpenFullAccountAction;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

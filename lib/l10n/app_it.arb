@@ -2267,5 +2267,16 @@
   "authPublicNameHelper": "È il nome che vedranno gli altri utenti. Il nome utente viene creato automaticamente.",
   "@authPublicNameHelper": {
     "description": "Auth UI: explains public name and automatic username generation"
-  }
+  },
+  "adminCenterRefreshMarkersTooltip": "Aggiorna marker del globo",
+  "adminCenterQuickActionsTitle": "Azioni rapide account",
+  "adminCenterModerationSnapshotTitle": "Riepilogo moderazione e attività",
+  "adminCenterReportsReceivedMetric": "Segnalazioni ricevute",
+  "adminCenterPendingReportsMetric": "Segnalazioni in attesa",
+  "adminCenterConfirmedViolationsMetric": "Violazioni confermate",
+  "adminCenterReportsFiledMetric": "Segnalazioni inviate",
+  "adminCenterCommentsCreatedMetric": "Commenti creati",
+  "adminCenterAdminActionsOnAccountMetric": "Azioni admin sull’account",
+  "adminCenterLastReportReceivedLabel": "Ultima segnalazione ricevuta",
+  "adminCenterOpenFullAccountAction": "Apri controllo completo account"
 }

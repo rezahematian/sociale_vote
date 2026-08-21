@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
@@ -110,7 +111,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   AdminCenterSection _selectedSection = AdminCenterSection.dashboard;
   Locale? _adminLocaleOverride;
 
-  List<_AdminDestination> get _destinations {
+  List<_AdminDestination> _destinationsFor(BuildContext context) {
     return [
       _AdminDestination(
         section: AdminCenterSection.dashboard,
@@ -211,7 +212,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.currentRole != widget.currentRole &&
-        !_destinations.any(
+        !_destinationsFor(context).any(
           (destination) => destination.section == _selectedSection,
         )) {
       _selectedSection = AdminCenterSection.dashboard;
@@ -1106,9 +1107,54 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   }
 
   Future<void> _openReportedProfile(AdminReportEntry report) async {
-    if (!report.hasReportedUser) {
+    final reportedUserId = report.reportedUserId?.trim();
+    if (reportedUserId == null || reportedUserId.isEmpty) {
       _showReportNavigationMessage(
         _adminL10n(context).adminCenterNoReportedProfile,
+      );
+      return;
+    }
+
+    if (widget.currentRole == Role.admin) {
+      AdminUserDetail detail;
+      try {
+        detail = await _adminRepository.getUserDetail(userId: reportedUserId);
+      } catch (_) {
+        if (!mounted) {
+          return;
+        }
+        _showReportNavigationMessage(
+          _adminL10n(context).adminCenterAccountUnavailableTitle,
+        );
+        return;
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        showDragHandle: true,
+        builder: (sheetContext) {
+          return _AdminReportedAccountSheet(
+            detail: detail,
+            onOpenFullAccount: () {
+              Navigator.of(sheetContext).pop();
+              if (!mounted) {
+                return;
+              }
+              setState(() {
+                _selectedSection = AdminCenterSection.users;
+                _selectedUser = detail.toSummary();
+                _userDetail = detail;
+                _isUserDetailLoading = false;
+                _userDetailLoadFailed = false;
+              });
+            },
+          );
+        },
       );
       return;
     }
@@ -1888,49 +1934,79 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: _refresh,
-      child: ListView.separated(
-        key: ValueKey('${_userSearchController.text.trim()}-${page.page}'),
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-        itemCount: page.users.length + 2,
-        separatorBuilder: (context, index) {
-          if (index == 0 || index == page.users.length) {
-            return const SizedBox(height: 12);
-          }
-          return const SizedBox(height: 8);
-        },
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return _AdminUsersResultHeader(
-              totalCount: page.totalCount,
-              loadFailed: _usersLoadFailed,
-              retryInProgress: _isUsersLoading,
-              onRetry: () => _loadUsers(page: page.page, markLoading: false),
-            );
-          }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = switch (constraints.maxWidth) {
+          >= 1180 => 3,
+          >= 720 => 2,
+          _ => 1,
+        };
 
-          if (index <= page.users.length) {
-            final user = page.users[index - 1];
-
-            return _AdminUserCard(
-              user: user,
-              onTap: () => _openUserDetail(user),
-            );
-          }
-
-          return _AdminUsersPagination(
-            page: page,
-            loading: _isUsersLoading,
-            onPrevious: page.hasPreviousPage
-                ? () => _loadUsers(page: page.page - 1, markLoading: false)
-                : null,
-            onNext: page.hasNextPage
-                ? () => _loadUsers(page: page.page + 1, markLoading: false)
-                : null,
-          );
-        },
-      ),
+        return RefreshIndicator(
+          onRefresh: _refresh,
+          child: CustomScrollView(
+            key: ValueKey(
+              '${_userSearchController.text.trim()}-${page.page}-$columns',
+            ),
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                sliver: SliverToBoxAdapter(
+                  child: _AdminUsersResultHeader(
+                    totalCount: page.totalCount,
+                    loadFailed: _usersLoadFailed,
+                    retryInProgress: _isUsersLoading,
+                    onRetry: () =>
+                        _loadUsers(page: page.page, markLoading: false),
+                  ),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: SliverGrid(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: columns,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    mainAxisExtent: 170,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final user = page.users[index];
+                      return _AdminUserCard(
+                        user: user,
+                        onTap: () => _openUserDetail(user),
+                      );
+                    },
+                    childCount: page.users.length,
+                  ),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+                sliver: SliverToBoxAdapter(
+                  child: _AdminUsersPagination(
+                    page: page,
+                    loading: _isUsersLoading,
+                    onPrevious: page.hasPreviousPage
+                        ? () => _loadUsers(
+                              page: page.page - 1,
+                              markLoading: false,
+                            )
+                        : null,
+                    onNext: page.hasNextPage
+                        ? () => _loadUsers(
+                              page: page.page + 1,
+                              markLoading: false,
+                            )
+                        : null,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -1971,6 +2047,171 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     final email = detail.email?.trim();
     final displayName = detail.displayName?.trim();
     final username = detail.username?.trim();
+    final hasInsights = detail.reportsReceivedTotal != null ||
+        detail.reportsReceivedPending != null ||
+        detail.confirmedViolationsTotal != null ||
+        detail.reportsFiledTotal != null ||
+        detail.pollsCreatedTotal != null ||
+        detail.postsCreatedTotal != null ||
+        detail.commentsCreatedTotal != null ||
+        detail.adminActionsTotal != null;
+
+    Widget publicIdentitySection() {
+      return _AdminUserDetailSection(
+        title: _adminL10n(context).adminCenterPublicIdentitySection,
+        children: [
+          _AdminUserDetailField(
+            icon: Icons.badge_outlined,
+            label: _adminL10n(context).adminCenterDisplayNameLabel,
+            value: displayName == null || displayName.isEmpty
+                ? _adminL10n(context).adminCenterNotProvided
+                : displayName,
+          ),
+          _AdminUserDetailField(
+            icon: Icons.alternate_email,
+            label: _adminL10n(context).adminCenterUsernameLabel,
+            value: username == null || username.isEmpty
+                ? _adminL10n(context).adminCenterNotProvided
+                : '@$username',
+          ),
+          _AdminUserDetailField(
+            icon: Icons.fingerprint,
+            label: _adminL10n(context).adminCenterUserIdLabel,
+            value: detail.id,
+            selectable: true,
+          ),
+          _AdminUserDetailField(
+            icon: Icons.account_circle_outlined,
+            label: _adminL10n(context).adminCenterIdentityTypeLabel,
+            value: _actorTypeLabel(context, detail.actorType),
+          ),
+        ],
+      );
+    }
+
+    Widget accountSection() {
+      return _AdminUserDetailSection(
+        title: _adminL10n(context).adminCenterAccountSection,
+        children: [
+          _AdminUserDetailField(
+            icon: Icons.admin_panel_settings_outlined,
+            label: _adminL10n(context).adminCenterTechnicalRoleLabel,
+            value: _adminRoleLabel(context, detail.systemRole),
+          ),
+          _AdminUserDetailField(
+            icon: Icons.sync_outlined,
+            label: _adminL10n(context).adminCenterRoleMirrorLabel,
+            value: _adminRoleLabel(context, detail.mirrorRole),
+          ),
+          _AdminUserDetailField(
+            icon: detail.roleSynchronized ? Icons.sync : Icons.sync_problem,
+            label: _adminL10n(context).adminCenterRoleSynchronizationLabel,
+            value: detail.roleSynchronized
+                ? _adminL10n(context).adminCenterSynchronized
+                : _adminL10n(context).adminCenterNotSynchronized,
+            valueColor: detail.roleSynchronized
+                ? null
+                : Theme.of(context).colorScheme.error,
+          ),
+          _AdminUserDetailField(
+            icon: detail.isSuspended
+                ? Icons.person_off_outlined
+                : Icons.person_outline,
+            label: _adminL10n(context).adminCenterAccountStatusLabel,
+            value: _adminAccountStatusLabel(context, detail.accountStatus),
+          ),
+          if (detail.suspendedUntil != null)
+            _AdminUserDetailField(
+              icon: Icons.event_busy_outlined,
+              label: _adminL10n(context).adminCenterSuspendedUntilLabel,
+              value: _formatDateTime(context, detail.suspendedUntil!),
+            ),
+        ],
+      );
+    }
+
+    Widget verificationSection() {
+      return _AdminUserDetailSection(
+        title: _adminL10n(context).adminCenterVerificationNavigation,
+        children: [
+          _AdminUserDetailField(
+            icon: Icons.workspace_premium_outlined,
+            label: _adminL10n(context).adminCenterVerificationLevelLabel,
+            value: _verificationLevelLabel(context, detail.verificationLevel),
+          ),
+          _AdminUserDetailField(
+            icon: Icons.verified_user_outlined,
+            label: _adminL10n(context).adminCenterVerificationStatusLabel,
+            value: _adminVerificationStatusLabel(
+              context,
+              detail.verificationStatus,
+            ),
+          ),
+        ],
+      );
+    }
+
+    Widget accessSection() {
+      return _AdminUserDetailSection(
+        title: _adminL10n(context).adminCenterAccessInformationSection,
+        children: [
+          _AdminUserDetailField(
+            icon: Icons.email_outlined,
+            label: _adminL10n(context).adminCenterEmailLabel,
+            value: email == null || email.isEmpty
+                ? _adminL10n(context).adminCenterNotAvailable
+                : email,
+            selectable: true,
+          ),
+          _AdminUserDetailField(
+            icon: detail.emailConfirmedAt == null
+                ? Icons.mark_email_unread_outlined
+                : Icons.mark_email_read_outlined,
+            label: _adminL10n(context).adminCenterEmailConfirmationLabel,
+            value: detail.emailConfirmedAt == null
+                ? _adminL10n(context).adminCenterNotConfirmed
+                : _formatDateTime(context, detail.emailConfirmedAt!),
+          ),
+          _AdminUserDetailField(
+            icon: Icons.person_add_alt_outlined,
+            label: _adminL10n(context).adminCenterRegisteredLabel,
+            value: _formatDateTime(context, detail.createdAt),
+          ),
+          _AdminUserDetailField(
+            icon: Icons.login_outlined,
+            label: _adminL10n(context).adminCenterLastAccessLabel,
+            value: detail.lastSignInAt == null
+                ? _adminL10n(context).adminCenterNotAvailable
+                : _formatDateTime(context, detail.lastSignInAt!),
+          ),
+        ],
+      );
+    }
+
+    Widget responsivePair(Widget first, Widget second) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 860) {
+            return Column(
+              children: [
+                first,
+                const SizedBox(height: 12),
+                second,
+              ],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: first),
+              const SizedBox(width: 12),
+              Expanded(child: second),
+            ],
+          );
+        },
+      );
+    }
 
     return RefreshIndicator(
       onRefresh: _refresh,
@@ -1995,172 +2236,23 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             ),
           ),
           const SizedBox(height: 4),
-          _AdminUserDetailHeader(detail: detail),
-          const SizedBox(height: 12),
-          _AdminUserDetailSection(
-            title: _adminL10n(context).adminCenterPublicIdentitySection,
-            children: [
-              _AdminUserDetailField(
-                icon: Icons.badge_outlined,
-                label: _adminL10n(context).adminCenterDisplayNameLabel,
-                value: displayName == null || displayName.isEmpty
-                    ? _adminL10n(context).adminCenterNotProvided
-                    : displayName,
-              ),
-              _AdminUserDetailField(
-                icon: Icons.alternate_email,
-                label: _adminL10n(context).adminCenterUsernameLabel,
-                value: username == null || username.isEmpty
-                    ? _adminL10n(context).adminCenterNotProvided
-                    : '@$username',
-              ),
-              _AdminUserDetailField(
-                icon: Icons.fingerprint,
-                label: _adminL10n(context).adminCenterUserIdLabel,
-                value: detail.id,
-                selectable: true,
-              ),
-              _AdminUserDetailField(
-                icon: Icons.account_circle_outlined,
-                label: _adminL10n(context).adminCenterIdentityTypeLabel,
-                value: _actorTypeLabel(context, detail.actorType),
-              ),
-            ],
+          _AdminUserCommandCard(
+            detail: detail,
+            onChangeRole: () => _openChangeRoleDialog(detail),
+            onSuspend: () => _openSuspendAccountDialog(detail),
+            onReactivate: () => _openReactivateAccountDialog(detail),
+            onForceLogout: () => _openForceLogoutDialog(detail),
+            onChangeIdentity: () => _openPublicIdentityDialog(detail),
+            onDelete: () => _openDeleteAccountDialog(detail),
           ),
+          if (hasInsights) ...[
+            const SizedBox(height: 12),
+            _AdminUserInsightPanel(detail: detail),
+          ],
           const SizedBox(height: 12),
-          _AdminUserDetailSection(
-            title: _adminL10n(context).adminCenterAccountSection,
-            children: [
-              _AdminUserDetailField(
-                icon: Icons.admin_panel_settings_outlined,
-                label: _adminL10n(context).adminCenterTechnicalRoleLabel,
-                value: _adminRoleLabel(context, detail.systemRole),
-              ),
-              _AdminUserDetailField(
-                icon: Icons.sync_outlined,
-                label: _adminL10n(context).adminCenterRoleMirrorLabel,
-                value: _adminRoleLabel(context, detail.mirrorRole),
-              ),
-              _AdminUserDetailField(
-                icon: detail.roleSynchronized ? Icons.sync : Icons.sync_problem,
-                label: _adminL10n(context).adminCenterRoleSynchronizationLabel,
-                value: detail.roleSynchronized
-                    ? _adminL10n(context).adminCenterSynchronized
-                    : _adminL10n(context).adminCenterNotSynchronized,
-                valueColor: detail.roleSynchronized
-                    ? null
-                    : Theme.of(context).colorScheme.error,
-              ),
-              _AdminUserDetailField(
-                icon: detail.isSuspended
-                    ? Icons.person_off_outlined
-                    : Icons.person_outline,
-                label: _adminL10n(context).adminCenterAccountStatusLabel,
-                value: _adminAccountStatusLabel(context, detail.accountStatus),
-              ),
-              if (detail.suspendedUntil != null)
-                _AdminUserDetailField(
-                  icon: Icons.event_busy_outlined,
-                  label: _adminL10n(context).adminCenterSuspendedUntilLabel,
-                  value: _formatDateTime(context, detail.suspendedUntil!),
-                ),
-            ],
-          ),
+          responsivePair(publicIdentitySection(), accountSection()),
           const SizedBox(height: 12),
-          _AdminUserDetailSection(
-            title: _adminL10n(context).adminCenterAccountManagementSection,
-            children: [
-              _AdminAccountManagementActions(
-                isSuspended: detail.isSuspended,
-                enabled: detail.canReceiveAdminActions,
-                onSuspendPressed: () => _openSuspendAccountDialog(detail),
-                onReactivatePressed: () => _openReactivateAccountDialog(detail),
-                onForceLogoutPressed: () => _openForceLogoutDialog(detail),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _AdminUserDetailSection(
-            title: _adminL10n(context).adminCenterDangerZoneSection,
-            children: [
-              _AdminDeleteAccountAction(
-                enabled: detail.canReceiveAdminActions,
-                onPressed: () => _openDeleteAccountDialog(detail),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _AdminUserDetailSection(
-            title: _adminL10n(context).adminCenterRoleManagementSection,
-            children: [
-              _AdminUserRoleAction(
-                currentRole: detail.systemRole,
-                enabled: detail.roleSynchronized && !detail.isDeleted,
-                onPressed: () => _openChangeRoleDialog(detail),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _AdminUserDetailSection(
-            title: _adminL10n(context).adminCenterVerificationNavigation,
-            children: [
-              _AdminUserDetailField(
-                icon: Icons.workspace_premium_outlined,
-                label: _adminL10n(context).adminCenterVerificationLevelLabel,
-                value:
-                    _verificationLevelLabel(context, detail.verificationLevel),
-              ),
-              _AdminUserDetailField(
-                icon: Icons.verified_user_outlined,
-                label: _adminL10n(context).adminCenterVerificationStatusLabel,
-                value: _adminVerificationStatusLabel(
-                  context,
-                  detail.verificationStatus,
-                ),
-              ),
-              _AdminPublicIdentityAction(
-                actorType: detail.actorType,
-                verificationLevel: detail.verificationLevel,
-                enabled: detail.canReceiveAdminActions,
-                onPressed: () => _openPublicIdentityDialog(detail),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _AdminUserDetailSection(
-            title: _adminL10n(context).adminCenterAccessInformationSection,
-            children: [
-              _AdminUserDetailField(
-                icon: Icons.email_outlined,
-                label: _adminL10n(context).adminCenterEmailLabel,
-                value: email == null || email.isEmpty
-                    ? _adminL10n(context).adminCenterNotAvailable
-                    : email,
-                selectable: true,
-              ),
-              _AdminUserDetailField(
-                icon: detail.emailConfirmedAt == null
-                    ? Icons.mark_email_unread_outlined
-                    : Icons.mark_email_read_outlined,
-                label: _adminL10n(context).adminCenterEmailConfirmationLabel,
-                value: detail.emailConfirmedAt == null
-                    ? _adminL10n(context).adminCenterNotConfirmed
-                    : _formatDateTime(context, detail.emailConfirmedAt!),
-              ),
-              _AdminUserDetailField(
-                icon: Icons.person_add_alt_outlined,
-                label: _adminL10n(context).adminCenterRegisteredLabel,
-                value: _formatDateTime(context, detail.createdAt),
-              ),
-              _AdminUserDetailField(
-                icon: Icons.login_outlined,
-                label: _adminL10n(context).adminCenterLastAccessLabel,
-                value: detail.lastSignInAt == null
-                    ? _adminL10n(context).adminCenterNotAvailable
-                    : _formatDateTime(context, detail.lastSignInAt!),
-              ),
-            ],
-          ),
+          responsivePair(verificationSection(), accessSection()),
         ],
       ),
     );
@@ -2338,79 +2430,63 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       };
     }
 
-    Widget buildPriorityCard(
-      _AdminIndicator indicator,
-      int index, {
-      double? width,
-      double? height,
-    }) {
+    Widget buildPriorityCard(_AdminIndicator indicator, int index) {
       final accent = indicatorAccent(index);
 
-      return SizedBox(
-        width: width,
-        height: height,
-        child: Material(
-          color: colors.surface.withValues(alpha: 0.92),
-          borderRadius: BorderRadius.circular(18),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: indicator.section == null
-                ? null
-                : () => _selectSection(indicator.section!),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: accent.withValues(alpha: 0.24)),
-              ),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: accent.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(indicator.icon, size: 20, color: accent),
+      return Material(
+        color: colors.surface.withValues(alpha: 0.90),
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: indicator.section == null
+              ? null
+              : () => _selectSection(indicator.section!),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: accent.withValues(alpha: 0.22)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+              child: Row(
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: 0.11),
+                      borderRadius: BorderRadius.circular(11),
                     ),
-                    const SizedBox(width: 11),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${indicator.value}',
-                            maxLines: 1,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w900,
-                              height: 1,
-                            ),
+                    alignment: Alignment.center,
+                    child: Icon(indicator.icon, size: 18, color: accent),
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${indicator.value}',
+                          maxLines: 1,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            height: 1,
                           ),
-                          const SizedBox(height: 3),
-                          Text(
-                            indicator.label,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          indicator.label,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    if (indicator.section != null)
-                      Icon(
-                        Icons.north_east_rounded,
-                        size: 16,
-                        color: accent.withValues(alpha: 0.78),
-                      ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -2420,9 +2496,9 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
 
     Widget buildPriorityGrid(double width) {
       final columns = switch (width) {
-        >= 1120 => 5,
-        >= 720 => 3,
-        >= 480 => 2,
+        >= 940 => 5,
+        >= 580 => 3,
+        >= 340 => 2,
         _ => 1,
       };
 
@@ -2431,9 +2507,9 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: columns,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          mainAxisExtent: 78,
+          crossAxisSpacing: 9,
+          mainAxisSpacing: 9,
+          mainAxisExtent: 70,
         ),
         itemCount: indicators.length,
         itemBuilder: (context, index) {
@@ -2449,26 +2525,26 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       return DecoratedBox(
         decoration: BoxDecoration(
           color: colors.surface.withValues(alpha: 0.88),
-          borderRadius: BorderRadius.circular(17),
+          borderRadius: BorderRadius.circular(15),
           border: Border.all(
-            color: colors.outlineVariant.withValues(alpha: 0.66),
+            color: colors.outlineVariant.withValues(alpha: 0.58),
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
           child: Row(
             children: [
               Container(
-                width: 36,
-                height: 36,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   color: accent.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(11),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 alignment: Alignment.center,
-                child: Icon(metric.icon, size: 19, color: accent),
+                child: Icon(metric.icon, size: 18, color: accent),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 9),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -2478,11 +2554,11 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                       metric.label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelLarge?.copyWith(
+                      style: theme.textTheme.labelMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 5),
                     Row(
                       children: [
                         Expanded(
@@ -2492,7 +2568,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                             value: metric.last24Hours,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: _AdminOperationalValue(
                             label:
@@ -2511,38 +2587,42 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       );
     }
 
-    Widget buildOperationalPanel(double width) {
-      final columns = width >= 460 ? 2 : 1;
+    Widget buildOperationalPanel(double width, {bool boundedHeight = false}) {
+      final columns = width >= 340 ? 2 : 1;
+      final grid = GridView.builder(
+        shrinkWrap: !boundedHeight,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,
+          crossAxisSpacing: 9,
+          mainAxisSpacing: 9,
+          mainAxisExtent: boundedHeight ? 80 : 88,
+        ),
+        itemCount: operationalMetrics.length,
+        itemBuilder: (context, index) => buildOperationalMetricCard(index),
+      );
 
       return DecoratedBox(
         decoration: BoxDecoration(
-          color: colors.surfaceContainerLow.withValues(alpha: 0.78),
-          borderRadius: BorderRadius.circular(22),
+          color: colors.surface.withValues(alpha: 0.62),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: colors.outlineVariant.withValues(alpha: 0.65),
+            color: colors.outlineVariant.withValues(alpha: 0.44),
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: colors.primary.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(13),
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.monitor_heart_outlined,
-                      color: colors.primary,
-                    ),
+                  Icon(
+                    Icons.monitor_heart_outlined,
+                    size: 21,
+                    color: colors.primary,
                   ),
-                  const SizedBox(width: 11),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2550,19 +2630,18 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                         Text(
                           _adminL10n(context)
                               .adminCenterOperationalActivityTitle,
-                          style: theme.textTheme.titleLarge?.copyWith(
+                          style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w900,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 1),
                         Text(
                           _adminL10n(context)
                               .adminCenterOperationalActivitySubtitle,
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.textTheme.bodySmall?.color
-                                ?.withValues(alpha: 0.70),
+                            color: colors.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -2570,21 +2649,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: columns,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  mainAxisExtent: 96,
-                ),
-                itemCount: operationalMetrics.length,
-                itemBuilder: (context, index) {
-                  return buildOperationalMetricCard(index);
-                },
-              ),
+              const SizedBox(height: 11),
+              if (boundedHeight) Expanded(child: grid) else grid,
             ],
           ),
         ),
@@ -2607,62 +2673,53 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       );
     }
 
-    Widget buildGlobePanel(double width) {
-      final markerCount = _adminGlobeController.visibleItems.length;
-      final globeSize = width < 380 ? width - 20 : 360.0;
+    Widget buildGlobeStage(double width, double height) {
+      final globeSize =
+          (math.min(width, height) - 22).clamp(230.0, 390.0).toDouble();
+      final refreshing =
+          _adminGlobeController.isLoading || _adminGlobeController.isRefreshing;
 
-      return DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.surfaceContainerLow.withValues(alpha: 0.78),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: colors.outlineVariant.withValues(alpha: 0.65),
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: Center(child: buildGlobe(globeSize)),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.public_rounded, color: colors.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'World · $markerCount marker',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
+          Positioned(
+            top: 2,
+            right: 2,
+            child: Tooltip(
+              message: _adminL10n(context).adminCenterRefreshMarkersTooltip,
+              child: IconButton(
+                onPressed: refreshing
+                    ? null
+                    : () => unawaited(
+                          _loadAdminGlobe(forceRefresh: true),
+                        ),
+                icon: refreshing
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.refresh_rounded),
+                style: IconButton.styleFrom(
+                  backgroundColor: colors.surface.withValues(alpha: 0.82),
+                  foregroundColor: colors.primary,
+                  side: BorderSide(
+                    color: colors.outlineVariant.withValues(alpha: 0.55),
                   ),
-                  IconButton(
-                    tooltip: _adminL10n(context).adminCenterDashboardNavigation,
-                    onPressed: () {
-                      unawaited(
-                        Navigator.of(context).pushNamed(AppRouter.civicMap),
-                      );
-                    },
-                    icon: const Icon(Icons.open_in_full_rounded),
-                  ),
-                ],
-              ),
-              if (_adminGlobeController.isLoading ||
-                  _adminGlobeController.isRefreshing)
-                const LinearProgressIndicator(minHeight: 2),
-              Expanded(
-                child: Center(
-                  child: buildGlobe(globeSize),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       );
     }
 
     Widget buildCommandDeck(double width) {
-      final isWide = width >= 980;
+      final sideBySide = width >= 820;
+      final compact = width < 520;
+      final horizontalPadding = compact ? 12.0 : 18.0;
 
       return Container(
         decoration: BoxDecoration(
@@ -2670,29 +2727,32 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              colors.surfaceContainerHighest.withValues(alpha: 0.72),
-              colors.surface.withValues(alpha: 0.95),
-              colors.primaryContainer.withValues(alpha: 0.34),
+              colors.surfaceContainerHighest.withValues(alpha: 0.66),
+              colors.surface.withValues(alpha: 0.96),
+              colors.primaryContainer.withValues(alpha: 0.28),
             ],
           ),
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(compact ? 22 : 28),
           border: Border.all(
-            color: colors.outlineVariant.withValues(alpha: 0.72),
+            color: colors.outlineVariant.withValues(alpha: 0.62),
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(18),
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: compact ? 14 : 18,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 children: [
                   Container(
-                    width: 42,
-                    height: 42,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: colors.primary.withValues(alpha: 0.11),
-                      borderRadius: BorderRadius.circular(14),
+                      color: colors.primary.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(13),
                     ),
                     alignment: Alignment.center,
                     child: Icon(
@@ -2700,7 +2760,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                       color: colors.primary,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 11),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2713,12 +2773,11 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                             fontWeight: FontWeight.w900,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 1),
                         Text(
                           _adminRoleLabel(context, widget.currentRole),
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.textTheme.bodyMedium?.color
-                                ?.withValues(alpha: 0.66),
+                            color: colors.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -2726,8 +2785,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 9,
+                      horizontal: 12,
+                      vertical: 8,
                     ),
                     decoration: BoxDecoration(
                       color: hasPendingWork
@@ -2736,10 +2795,17 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      hasPendingWork
-                          ? '${summary.pendingWork + summary.suspendedAccounts}'
-                          : _adminL10n(context).adminCenterNoPendingWorkTitle,
-                      style: theme.textTheme.labelLarge?.copyWith(
+                      compact
+                          ? (hasPendingWork
+                              ? '${summary.pendingWork + summary.suspendedAccounts}'
+                              : 'OK')
+                          : hasPendingWork
+                              ? '${summary.pendingWork + summary.suspendedAccounts}'
+                              : _adminL10n(context)
+                                  .adminCenterNoPendingWorkTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                         color: hasPendingWork
                             ? colors.onErrorContainer
@@ -2749,33 +2815,39 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               LayoutBuilder(
                 builder: (context, innerConstraints) {
                   return buildPriorityGrid(innerConstraints.maxWidth);
                 },
               ),
               const SizedBox(height: 14),
-              if (isWide)
+              if (sideBySide)
                 SizedBox(
-                  height: 430,
+                  height: 360,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Expanded(
-                        flex: 10,
+                        flex: 9,
                         child: LayoutBuilder(
                           builder: (context, constraints) {
-                            return buildOperationalPanel(constraints.maxWidth);
+                            return buildOperationalPanel(
+                              constraints.maxWidth,
+                              boundedHeight: true,
+                            );
                           },
                         ),
                       ),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: 16),
                       Expanded(
                         flex: 11,
                         child: LayoutBuilder(
                           builder: (context, constraints) {
-                            return buildGlobePanel(constraints.maxWidth);
+                            return buildGlobeStage(
+                              constraints.maxWidth,
+                              constraints.maxHeight,
+                            );
                           },
                         ),
                       ),
@@ -2783,15 +2855,18 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                   ),
                 )
               else ...[
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SizedBox(
-                      height: width < 520 ? 360 : 392,
-                      child: buildGlobePanel(constraints.maxWidth),
-                    );
-                  },
+                SizedBox(
+                  height: compact ? 300 : 330,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return buildGlobeStage(
+                        constraints.maxWidth,
+                        constraints.maxHeight,
+                      );
+                    },
+                  ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 LayoutBuilder(
                   builder: (context, constraints) {
                     return buildOperationalPanel(constraints.maxWidth);
@@ -2819,14 +2894,14 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             return buildCommandDeck(constraints.maxWidth);
           },
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 14),
         _buildDashboardShortcuts(context),
       ],
     );
   }
 
   Widget _buildDashboardShortcuts(BuildContext context) {
-    final destinations = _destinations
+    final destinations = _destinationsFor(context)
         .where(
           (destination) => destination.section != AdminCenterSection.dashboard,
         )
@@ -2921,7 +2996,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   }
 
   Widget _buildDesktopLayout(BuildContext context, {required bool extendRail}) {
-    final destinations = _destinations;
+    final destinations = _destinationsFor(context);
     final selectedIndex = destinations.indexWhere(
       (destination) => destination.section == _selectedSection,
     );
@@ -2957,9 +3032,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         MediaQuery.sizeOf(context).width < _desktopBreakpoint;
     final showingUserDetail =
         _selectedSection == AdminCenterSection.users && _selectedUser != null;
-    final currentDestination = _destinations.firstWhere(
+    final destinations = _destinationsFor(context);
+    final currentDestination = destinations.firstWhere(
       (destination) => destination.section == _selectedSection,
-      orElse: () => _destinations.first,
+      orElse: () => destinations.first,
     );
 
     return Scaffold(
@@ -3195,47 +3271,6 @@ class _AdminOperationalValue extends StatelessWidget {
   }
 }
 
-class _AdminOrbitPainter extends CustomPainter {
-  final Color color;
-
-  const _AdminOrbitPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-
-    final shortest = size.shortestSide;
-    for (final factor in <double>[0.46, 0.62, 0.78]) {
-      canvas.drawCircle(center, shortest * factor / 2, paint);
-    }
-
-    final axisPaint = Paint()
-      ..color = color.withValues(alpha: 0.72)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-
-    canvas.drawLine(
-      Offset(center.dx, 28),
-      Offset(center.dx, size.height - 28),
-      axisPaint,
-    );
-    canvas.drawLine(
-      Offset(28, center.dy),
-      Offset(size.width - 28, center.dy),
-      axisPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _AdminOrbitPainter oldDelegate) {
-    return oldDelegate.color != color;
-  }
-}
-
 class _AdminUsersResultHeader extends StatelessWidget {
   final int totalCount;
   final bool loadFailed;
@@ -3385,6 +3420,17 @@ class _AdminUserCard extends StatelessWidget {
                           label: _adminAccountStatusLabel(
                               context, user.accountStatus),
                         ),
+                        _AdminUserAttribute(
+                          icon: Icons.account_circle_outlined,
+                          label: _actorTypeLabel(context, user.actorType),
+                        ),
+                        _AdminUserAttribute(
+                          icon: Icons.workspace_premium_outlined,
+                          label: _verificationLevelLabel(
+                            context,
+                            user.verificationLevel,
+                          ),
+                        ),
                         if (!user.roleSynchronized)
                           _AdminUserAttribute(
                             icon: Icons.sync_problem,
@@ -3410,20 +3456,32 @@ class _AdminUserCard extends StatelessWidget {
   }
 }
 
-class _AdminUserDetailHeader extends StatelessWidget {
+class _AdminUserCommandCard extends StatelessWidget {
   final AdminUserDetail detail;
+  final Future<void> Function() onChangeRole;
+  final Future<void> Function() onSuspend;
+  final Future<void> Function() onReactivate;
+  final Future<void> Function() onForceLogout;
+  final Future<void> Function() onChangeIdentity;
+  final Future<void> Function() onDelete;
 
-  const _AdminUserDetailHeader({required this.detail});
+  const _AdminUserCommandCard({
+    required this.detail,
+    required this.onChangeRole,
+    required this.onSuspend,
+    required this.onReactivate,
+    required this.onForceLogout,
+    required this.onChangeIdentity,
+    required this.onDelete,
+  });
 
   String _title(BuildContext context) {
     final displayName = detail.displayName?.trim();
-
     if (displayName != null && displayName.isNotEmpty) {
       return displayName;
     }
 
     final username = detail.username?.trim();
-
     if (username != null && username.isNotEmpty) {
       return username;
     }
@@ -3439,71 +3497,367 @@ class _AdminUserDetailHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     final username = detail.username?.trim();
+    final canManageAccount = detail.canReceiveAdminActions;
+    final canChangeRole = detail.roleSynchronized && !detail.isDeleted;
+
+    Widget actionButton({
+      required IconData icon,
+      required String label,
+      required VoidCallback? onPressed,
+      bool danger = false,
+      bool primary = false,
+    }) {
+      if (danger) {
+        return OutlinedButton.icon(
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: colors.error,
+            side: BorderSide(color: colors.error.withValues(alpha: 0.55)),
+          ),
+          icon: Icon(icon, size: 18),
+          label: Text(label),
+        );
+      }
+
+      if (primary) {
+        return FilledButton.tonalIcon(
+          onPressed: onPressed,
+          icon: Icon(icon, size: 18),
+          label: Text(label),
+        );
+      }
+
+      return OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 18),
+        label: Text(label),
+      );
+    }
+
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  child: Text(
+                    _avatarLabel(context),
+                    style: theme.textTheme.titleLarge,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _title(context),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      if (username != null && username.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          '@$username',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 7,
+                        runSpacing: 7,
+                        children: [
+                          _AdminUserAttribute(
+                            icon: Icons.admin_panel_settings_outlined,
+                            label: _adminRoleLabel(context, detail.systemRole),
+                          ),
+                          _AdminUserAttribute(
+                            icon: detail.isSuspended
+                                ? Icons.person_off_outlined
+                                : Icons.person_outline,
+                            label: _adminAccountStatusLabel(
+                              context,
+                              detail.accountStatus,
+                            ),
+                          ),
+                          _AdminUserAttribute(
+                            icon: Icons.account_circle_outlined,
+                            label: _actorTypeLabel(context, detail.actorType),
+                          ),
+                          _AdminUserAttribute(
+                            icon: Icons.workspace_premium_outlined,
+                            label: _verificationLevelLabel(
+                              context,
+                              detail.verificationLevel,
+                            ),
+                          ),
+                          _AdminUserAttribute(
+                            icon: Icons.verified_user_outlined,
+                            label: _adminVerificationStatusLabel(
+                              context,
+                              detail.verificationStatus,
+                            ),
+                          ),
+                          if (!detail.roleSynchronized)
+                            _AdminUserAttribute(
+                              icon: Icons.sync_problem,
+                              label: _adminL10n(context)
+                                  .adminCenterRoleNotSynchronized,
+                              color: colors.error,
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Divider(color: colors.outlineVariant),
+            const SizedBox(height: 10),
+            Text(
+              _adminL10n(context).adminCenterQuickActionsTitle,
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 9),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                actionButton(
+                  icon: Icons.manage_accounts_outlined,
+                  label: _adminL10n(context).adminCenterChangeRoleAction,
+                  onPressed:
+                      canChangeRole ? () => unawaited(onChangeRole()) : null,
+                ),
+                actionButton(
+                  icon: detail.isSuspended
+                      ? Icons.person_outline
+                      : Icons.person_off_outlined,
+                  label: detail.isSuspended
+                      ? _adminL10n(context).adminCenterReactivateAccountAction
+                      : _adminL10n(context).adminCenterSuspendAccountAction,
+                  onPressed: canManageAccount
+                      ? () => unawaited(
+                            detail.isSuspended ? onReactivate() : onSuspend(),
+                          )
+                      : null,
+                  primary: true,
+                ),
+                actionButton(
+                  icon: Icons.logout,
+                  label: _adminL10n(context).adminCenterForceLogoutAction,
+                  onPressed: canManageAccount && !detail.isSuspended
+                      ? () => unawaited(onForceLogout())
+                      : null,
+                ),
+                actionButton(
+                  icon: Icons.verified_user_outlined,
+                  label: _adminL10n(context).adminCenterChangeIdentityAction,
+                  onPressed: canManageAccount
+                      ? () => unawaited(onChangeIdentity())
+                      : null,
+                ),
+                actionButton(
+                  icon: Icons.delete_forever_outlined,
+                  label: _adminL10n(context)
+                      .adminCenterDeleteAccountPermanentlyAction,
+                  onPressed:
+                      canManageAccount ? () => unawaited(onDelete()) : null,
+                  danger: true,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AdminUserInsightPanel extends StatelessWidget {
+  final AdminUserDetail detail;
+
+  const _AdminUserInsightPanel({required this.detail});
+
+  String _value(int? value) => value == null ? '—' : '$value';
+
+  String _formatDateTime(BuildContext context, DateTime value) {
+    final localValue = value.toLocal();
+    final localizations = MaterialLocalizations.of(context);
+    final date = localizations.formatMediumDate(localValue);
+    final time = localizations.formatTimeOfDay(
+      TimeOfDay.fromDateTime(localValue),
+      alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    return '$date, $time';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final metrics = <({String label, String value, IconData icon, bool alert})>[
+      (
+        label: _adminL10n(context).adminCenterReportsReceivedMetric,
+        value: _value(detail.reportsReceivedTotal),
+        icon: Icons.flag_outlined,
+        alert: (detail.reportsReceivedTotal ?? 0) > 0,
+      ),
+      (
+        label: _adminL10n(context).adminCenterPendingReportsMetric,
+        value: _value(detail.reportsReceivedPending),
+        icon: Icons.pending_actions_outlined,
+        alert: (detail.reportsReceivedPending ?? 0) > 0,
+      ),
+      (
+        label: _adminL10n(context).adminCenterConfirmedViolationsMetric,
+        value: _value(detail.confirmedViolationsTotal),
+        icon: Icons.gpp_bad_outlined,
+        alert: (detail.confirmedViolationsTotal ?? 0) > 0,
+      ),
+      (
+        label: _adminL10n(context).adminCenterReportsFiledMetric,
+        value: _value(detail.reportsFiledTotal),
+        icon: Icons.outlined_flag,
+        alert: false,
+      ),
+      (
+        label: _adminL10n(context).adminCenterPollsCreatedMetric,
+        value: _value(detail.pollsCreatedTotal),
+        icon: Icons.poll_outlined,
+        alert: false,
+      ),
+      (
+        label: _adminL10n(context).adminCenterPostsCreatedMetric,
+        value: _value(detail.postsCreatedTotal),
+        icon: Icons.forum_outlined,
+        alert: false,
+      ),
+      (
+        label: _adminL10n(context).adminCenterCommentsCreatedMetric,
+        value: _value(detail.commentsCreatedTotal),
+        icon: Icons.mode_comment_outlined,
+        alert: false,
+      ),
+      (
+        label: _adminL10n(context).adminCenterAdminActionsOnAccountMetric,
+        value: _value(detail.adminActionsTotal),
+        icon: Icons.admin_panel_settings_outlined,
+        alert: (detail.adminActionsTotal ?? 0) > 0,
+      ),
+    ];
 
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            CircleAvatar(
-              radius: 28,
-              child: Text(_avatarLabel(context),
-                  style: theme.textTheme.titleLarge),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _title(context),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  if (username != null && username.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      '@$username',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      _AdminUserAttribute(
-                        icon: Icons.admin_panel_settings_outlined,
-                        label: _adminRoleLabel(context, detail.systemRole),
-                      ),
-                      _AdminUserAttribute(
-                        icon: detail.isSuspended
-                            ? Icons.person_off_outlined
-                            : Icons.person_outline,
-                        label: _adminAccountStatusLabel(
-                            context, detail.accountStatus),
-                      ),
-                      if (!detail.roleSynchronized)
-                        _AdminUserAttribute(
-                          icon: Icons.sync_problem,
-                          label: _adminL10n(context)
-                              .adminCenterRoleNotSynchronized,
-                          color: theme.colorScheme.error,
-                        ),
-                    ],
-                  ),
-                ],
+            Text(
+              _adminL10n(context).adminCenterModerationSnapshotTitle,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
               ),
+            ),
+            if (detail.lastReportReceivedAt != null) ...[
+              const SizedBox(height: 3),
+              Text(
+                '${_adminL10n(context).adminCenterLastReportReceivedLabel}: '
+                '${_formatDateTime(context, detail.lastReportReceivedAt!)}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            ],
+            const SizedBox(height: 12),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = switch (constraints.maxWidth) {
+                  >= 960 => 4,
+                  >= 620 => 3,
+                  >= 340 => 2,
+                  _ => 1,
+                };
+
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: columns,
+                    crossAxisSpacing: 9,
+                    mainAxisSpacing: 9,
+                    mainAxisExtent: 78,
+                  ),
+                  itemCount: metrics.length,
+                  itemBuilder: (context, index) {
+                    final metric = metrics[index];
+                    final accent = metric.alert ? colors.error : colors.primary;
+                    return DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.055),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.18),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 11,
+                          vertical: 9,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(metric.icon, size: 19, color: accent),
+                            const SizedBox(width: 9),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    metric.value,
+                                    style:
+                                        theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    metric.label,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ],
         ),
@@ -3600,169 +3954,6 @@ class _AdminUserDetailField extends StatelessWidget {
                 else
                   Text(value, style: valueStyle),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AdminAccountManagementActions extends StatelessWidget {
-  final bool isSuspended;
-  final bool enabled;
-  final Future<void> Function() onSuspendPressed;
-  final Future<void> Function() onReactivatePressed;
-  final Future<void> Function() onForceLogoutPressed;
-
-  const _AdminAccountManagementActions({
-    required this.isSuspended,
-    required this.enabled,
-    required this.onSuspendPressed,
-    required this.onReactivatePressed,
-    required this.onForceLogoutPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            _adminL10n(context).adminCenterTemporarySuspensionTitle,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            isSuspended
-                ? _adminL10n(context).adminCenterReactivateDescription
-                : enabled
-                    ? _adminL10n(context).adminCenterSuspendDescription
-                    : _adminL10n(context)
-                        .adminCenterSuspensionUnavailableDescription,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: FilledButton.icon(
-              onPressed: enabled
-                  ? () {
-                      unawaited(
-                        isSuspended
-                            ? onReactivatePressed()
-                            : onSuspendPressed(),
-                      );
-                    }
-                  : null,
-              icon: Icon(
-                isSuspended ? Icons.person_outline : Icons.person_off_outlined,
-              ),
-              label: Text(
-                isSuspended
-                    ? _adminL10n(context).adminCenterReactivateAccountAction
-                    : _adminL10n(context).adminCenterSuspendAccountAction,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Divider(color: theme.colorScheme.outlineVariant),
-          const SizedBox(height: 12),
-          Text(
-            _adminL10n(context).adminCenterForceLogoutAction,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            isSuspended
-                ? _adminL10n(context).adminCenterSuspendedForceLogoutDescription
-                : enabled
-                    ? _adminL10n(context).adminCenterForceLogoutDescription
-                    : _adminL10n(context)
-                        .adminCenterForceLogoutUnavailableDescription,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: OutlinedButton.icon(
-              onPressed: enabled && !isSuspended
-                  ? () {
-                      unawaited(onForceLogoutPressed());
-                    }
-                  : null,
-              icon: const Icon(Icons.logout),
-              label: Text(_adminL10n(context).adminCenterForceLogoutAction),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AdminDeleteAccountAction extends StatelessWidget {
-  final bool enabled;
-  final Future<void> Function() onPressed;
-
-  const _AdminDeleteAccountAction({
-    required this.enabled,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            _adminL10n(context).adminCenterPermanentDeletionTitle,
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: theme.colorScheme.error,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            enabled
-                ? _adminL10n(context).adminCenterPermanentDeletionDescription
-                : _adminL10n(context).adminCenterDeletionUnavailableDescription,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: theme.colorScheme.error,
-                foregroundColor: theme.colorScheme.onError,
-              ),
-              onPressed: enabled
-                  ? () {
-                      unawaited(onPressed());
-                    }
-                  : null,
-              icon: const Icon(Icons.delete_forever_outlined),
-              label: Text(_adminL10n(context)
-                  .adminCenterDeleteAccountPermanentlyAction),
             ),
           ),
         ],
@@ -4522,71 +4713,6 @@ class _AdminDeleteAccountDialogState extends State<_AdminDeleteAccountDialog> {
   }
 }
 
-class _AdminUserRoleAction extends StatelessWidget {
-  final Role currentRole;
-  final bool enabled;
-  final Future<void> Function() onPressed;
-
-  const _AdminUserRoleAction({
-    required this.currentRole,
-    required this.enabled,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            _adminL10n(context).adminCenterChangeTechnicalRoleTitle,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            enabled
-                ? _adminL10n(context).adminCenterChangeRoleDescription
-                : _adminL10n(context)
-                    .adminCenterChangeRoleUnavailableDescription,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 12,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              _AdminUserAttribute(
-                icon: Icons.admin_panel_settings_outlined,
-                label: _adminL10n(context).adminCenterCurrentRoleValue(
-                  _adminRoleLabel(context, currentRole),
-                ),
-              ),
-              FilledButton.icon(
-                onPressed: enabled
-                    ? () {
-                        unawaited(onPressed());
-                      }
-                    : null,
-                icon: const Icon(Icons.swap_horiz),
-                label: Text(_adminL10n(context).adminCenterChangeRoleAction),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _AdminPublicIdentitySelection {
   final ActorType actorType;
   final VerificationLevel verificationLevel;
@@ -4595,76 +4721,6 @@ class _AdminPublicIdentitySelection {
     required this.actorType,
     required this.verificationLevel,
   });
-}
-
-class _AdminPublicIdentityAction extends StatelessWidget {
-  final ActorType actorType;
-  final VerificationLevel verificationLevel;
-  final bool enabled;
-  final Future<void> Function() onPressed;
-
-  const _AdminPublicIdentityAction({
-    required this.actorType,
-    required this.verificationLevel,
-    required this.enabled,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            _adminL10n(context).adminCenterChangePublicIdentityTitle,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            enabled
-                ? _adminL10n(context).adminCenterChangeIdentityDescription
-                : _adminL10n(context)
-                    .adminCenterChangeIdentityUnavailableDescription,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 12,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              _AdminUserAttribute(
-                icon: Icons.badge_outlined,
-                label: _actorTypeLabel(context, actorType),
-              ),
-              _AdminUserAttribute(
-                icon: Icons.workspace_premium_outlined,
-                label: _verificationLevelLabel(context, verificationLevel),
-              ),
-              FilledButton.icon(
-                onPressed: enabled
-                    ? () {
-                        unawaited(onPressed());
-                      }
-                    : null,
-                icon: const Icon(Icons.manage_accounts_outlined),
-                label:
-                    Text(_adminL10n(context).adminCenterChangeIdentityAction),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _AdminPublicIdentityDialog extends StatefulWidget {
@@ -6729,6 +6785,132 @@ class _AdminReportContentVisibilityDialogState
           ),
         ),
       ],
+    );
+  }
+}
+
+class _AdminReportedAccountSheet extends StatelessWidget {
+  final AdminUserDetail detail;
+  final VoidCallback onOpenFullAccount;
+
+  const _AdminReportedAccountSheet({
+    required this.detail,
+    required this.onOpenFullAccount,
+  });
+
+  String _title(BuildContext context) {
+    final displayName = detail.displayName?.trim();
+    if (displayName != null && displayName.isNotEmpty) {
+      return displayName;
+    }
+    final username = detail.username?.trim();
+    if (username != null && username.isNotEmpty) {
+      return '@$username';
+    }
+    return _adminL10n(context).adminCenterReportedProfileTitle;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final username = detail.username?.trim();
+    final hasInsights = detail.reportsReceivedTotal != null ||
+        detail.reportsReceivedPending != null ||
+        detail.confirmedViolationsTotal != null ||
+        detail.reportsFiledTotal != null;
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          4,
+          20,
+          20 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 26,
+                  child: Text(
+                    _title(context).trim().isEmpty
+                        ? '?'
+                        : _title(context).trim().substring(0, 1).toUpperCase(),
+                  ),
+                ),
+                const SizedBox(width: 13),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _title(context),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      if (username != null && username.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          '@$username',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 9),
+                      Wrap(
+                        spacing: 7,
+                        runSpacing: 7,
+                        children: [
+                          _AdminUserAttribute(
+                            icon: Icons.admin_panel_settings_outlined,
+                            label: _adminRoleLabel(context, detail.systemRole),
+                          ),
+                          _AdminUserAttribute(
+                            icon: detail.isSuspended
+                                ? Icons.person_off_outlined
+                                : Icons.person_outline,
+                            label: _adminAccountStatusLabel(
+                              context,
+                              detail.accountStatus,
+                            ),
+                          ),
+                          _AdminUserAttribute(
+                            icon: Icons.workspace_premium_outlined,
+                            label: _verificationLevelLabel(
+                              context,
+                              detail.verificationLevel,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (hasInsights) ...[
+              const SizedBox(height: 14),
+              _AdminUserInsightPanel(detail: detail),
+            ],
+            const SizedBox(height: 14),
+            FilledButton.icon(
+              onPressed: onOpenFullAccount,
+              icon: const Icon(Icons.manage_accounts_outlined),
+              label: Text(
+                _adminL10n(context).adminCenterOpenFullAccountAction,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

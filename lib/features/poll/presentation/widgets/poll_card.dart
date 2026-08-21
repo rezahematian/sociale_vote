@@ -593,28 +593,6 @@ class PollCard extends StatelessWidget {
     }
   }
 
-  String _representativeLabel(AppLocalizations l10n) {
-    switch (poll.publishedAsActorType) {
-      case ActorType.publicOfficial:
-        return l10n.pollCard_publicOfficialPublisher;
-      case ActorType.institution:
-        return l10n.pollCard_institutionPublisher;
-      default:
-        return l10n.pollCard_representativePublisher;
-    }
-  }
-
-  IconData _representativeIcon() {
-    switch (poll.publishedAsActorType) {
-      case ActorType.publicOfficial:
-        return Icons.workspace_premium_outlined;
-      case ActorType.institution:
-        return Icons.account_balance_outlined;
-      default:
-        return Icons.verified_user_outlined;
-    }
-  }
-
   String? _resolveCountryName(AppLocalizations l10n, String? code) {
     if (code == null) return null;
 
@@ -818,39 +796,6 @@ class PollCard extends StatelessWidget {
     );
   }
 
-  _PollChipTone _representativeTone(ThemeData theme, ActorType actorType) {
-    switch (actorType) {
-      case ActorType.publicOfficial:
-        if (theme.brightness == Brightness.dark) {
-          return const _PollChipTone(
-            backgroundColor: Color(0xFF392126),
-            foregroundColor: Color(0xFFF2AEA3),
-            borderColor: Color(0xFF614047),
-          );
-        }
-        return const _PollChipTone(
-          backgroundColor: Color(0xFFFFF1EF),
-          foregroundColor: Color(0xFFBF5B49),
-          borderColor: Color(0xFFF4D8D2),
-        );
-      case ActorType.institution:
-        if (theme.brightness == Brightness.dark) {
-          return const _PollChipTone(
-            backgroundColor: Color(0xFF16253A),
-            foregroundColor: Color(0xFFAEC9F8),
-            borderColor: Color(0xFF334A66),
-          );
-        }
-        return const _PollChipTone(
-          backgroundColor: Color(0xFFF1F6FF),
-          foregroundColor: Color(0xFF4F6FCB),
-          borderColor: Color(0xFFD8E5FF),
-        );
-      default:
-        return _neutralBlueTone(theme);
-    }
-  }
-
   _PollChipTone _statusTone(ThemeData theme, PollStatus status) {
     switch (status) {
       case PollStatus.open:
@@ -986,26 +931,6 @@ class PollCard extends StatelessWidget {
       backgroundColor: tone.backgroundColor,
       foregroundColor: tone.foregroundColor,
       borderColor: tone.borderColor,
-    );
-  }
-
-  Widget _buildRepresentativeChip(ThemeData theme, AppLocalizations l10n) {
-    final actorType = poll.publishedAsActorType;
-    if (actorType == null) {
-      return const SizedBox.shrink();
-    }
-
-    final tone = _representativeTone(theme, actorType);
-
-    return _buildMetaPill(
-      theme: theme,
-      metrics: _chipMetrics,
-      icon: _representativeIcon(),
-      label: _representativeLabel(l10n),
-      backgroundColor: tone.backgroundColor,
-      foregroundColor: tone.foregroundColor,
-      borderColor: tone.borderColor,
-      bold: true,
     );
   }
 

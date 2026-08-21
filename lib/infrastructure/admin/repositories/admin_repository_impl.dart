@@ -572,6 +572,15 @@ class AdminRepositoryImpl implements AdminRepository {
         row,
         'roleSynchronized',
       ),
+      actorType: ActorTypeX.fromStorageKey(
+        _readOptionalString(row, 'actorType'),
+      ),
+      verificationLevel: VerificationLevelX.fromStorageKey(
+        _readOptionalString(row, 'verificationLevel'),
+      ),
+      verificationStatus: VerificationStatusX.fromStorageKey(
+        _readOptionalString(row, 'verificationStatus'),
+      ),
       accountStatus: AdminAccountStatusX.fromStorageKey(
         _readOptionalString(row, 'accountStatus'),
       ),
@@ -632,6 +641,42 @@ class AdminRepositoryImpl implements AdminRepository {
       createdAt: _readRequiredDateTime(
         row,
         'createdAt',
+      ),
+      reportsReceivedTotal: _readOptionalNonNegativeInt(
+        row,
+        'reportsReceivedTotal',
+      ),
+      reportsReceivedPending: _readOptionalNonNegativeInt(
+        row,
+        'reportsReceivedPending',
+      ),
+      confirmedViolationsTotal: _readOptionalNonNegativeInt(
+        row,
+        'confirmedViolationsTotal',
+      ),
+      reportsFiledTotal: _readOptionalNonNegativeInt(
+        row,
+        'reportsFiledTotal',
+      ),
+      pollsCreatedTotal: _readOptionalNonNegativeInt(
+        row,
+        'pollsCreatedTotal',
+      ),
+      postsCreatedTotal: _readOptionalNonNegativeInt(
+        row,
+        'postsCreatedTotal',
+      ),
+      commentsCreatedTotal: _readOptionalNonNegativeInt(
+        row,
+        'commentsCreatedTotal',
+      ),
+      adminActionsTotal: _readOptionalNonNegativeInt(
+        row,
+        'adminActionsTotal',
+      ),
+      lastReportReceivedAt: _readOptionalDateTime(
+        row,
+        'lastReportReceivedAt',
       ),
     );
   }

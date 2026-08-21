@@ -19,9 +19,17 @@ import 'package:sociale_vote/shared/data/countries.dart';
 import 'web_world_globe_surface_stub.dart'
     if (dart.library.js_interop) 'web_world_globe_surface_web.dart';
 
-enum WorldGlobeInteractionProfile { home, explore }
+enum WorldGlobeInteractionProfile {
+  home,
+  explore,
+}
 
-enum _HomeGestureIntent { idle, undecided, globe, page }
+enum _HomeGestureIntent {
+  idle,
+  undecided,
+  globe,
+  page,
+}
 
 class WorldGlobeMapHandoff {
   final double latitude;
@@ -119,8 +127,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
           available - (_isHomeProfile ? 12.0 : 18.0),
         );
 
-        final diagnostic =
-            '${finiteWidth.toStringAsFixed(1)}x'
+        final diagnostic = '${finiteWidth.toStringAsFixed(1)}x'
             '${finiteHeight.toStringAsFixed(1)}'
             ' square=${squareSize.toStringAsFixed(1)}'
             ' profile=${_isHomeProfile ? 'home' : 'explore'}';
@@ -213,9 +220,8 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
                           Flexible(
                             child: Text(
                               _selectedCountryLabel ??
-                                  (Localizations.localeOf(
-                                            context,
-                                          ).languageCode ==
+                                  (Localizations.localeOf(context)
+                                              .languageCode ==
                                           'it'
                                       ? 'Identificazione Paese…'
                                       : 'Identifying country…'),
@@ -294,7 +300,10 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
     );
   }
 
-  Future<void> _resolveCountryFromTap(double latitude, double longitude) async {
+  Future<void> _resolveCountryFromTap(
+    double latitude,
+    double longitude,
+  ) async {
     if (_isHomeProfile || _isSelectingCountry) {
       return;
     }
@@ -309,7 +318,10 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
 
     try {
       final resolved = await AppDI.instance.resolveScopeFromPoint(
-        GeoPoint(latitude: latitude, longitude: longitude),
+        GeoPoint(
+          latitude: latitude,
+          longitude: longitude,
+        ),
       );
 
       if (!mounted || requestId != _countrySelectionRequestId) {
@@ -383,7 +395,10 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
     required double tappedLongitude,
   }) async {
     if (resolvedScope.level == GeoScopeLevel.country &&
-        _isValidLatLng(resolvedScope.centerLat, resolvedScope.centerLng)) {
+        _isValidLatLng(
+          resolvedScope.centerLat,
+          resolvedScope.centerLng,
+        )) {
       return resolvedScope;
     }
 
@@ -392,13 +407,13 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
         : null;
 
     try {
-      final geocoded = await AppDI.instance.geocodingRepository
-          .geocodeContentLocation(
-            ContentLocation(
-              source: ContentLocationSource.geoScopeFallback,
-              countryCode: countryCode,
-            ),
-          );
+      final geocoded =
+          await AppDI.instance.geocodingRepository.geocodeContentLocation(
+        ContentLocation(
+          source: ContentLocationSource.geoScopeFallback,
+          countryCode: countryCode,
+        ),
+      );
 
       final centerLat = geocoded?.centerLat ?? geocoded?.latitude;
       final centerLng = geocoded?.centerLng ?? geocoded?.longitude;
@@ -423,7 +438,10 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
     );
   }
 
-  bool _isValidLatLng(double? latitude, double? longitude) {
+  bool _isValidLatLng(
+    double? latitude,
+    double? longitude,
+  ) {
     if (latitude == null || longitude == null) {
       return false;
     }
@@ -459,13 +477,11 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
   // release, so automatic rotation never competes with manual movement.
   static const double _nativeApprovedRotationSpeed = 0.0065;
   static const double _nativeNaturalLatitudeDegrees = 18.0;
-  static const Duration _nativeInitialRotationWarmup = Duration(
-    milliseconds: 700,
-  );
+  static const Duration _nativeInitialRotationWarmup =
+      Duration(milliseconds: 700);
   static const Duration _nativeNaturalTiltDelay = Duration(milliseconds: 90);
-  static const Duration _nativeNaturalTiltDuration = Duration(
-    milliseconds: 720,
-  );
+  static const Duration _nativeNaturalTiltDuration =
+      Duration(milliseconds: 720);
   static const Duration _countrySelectionAutoDismiss = Duration(seconds: 4);
 
   // G5B Explore marker/zoom baseline. Home stays visually untouched.
@@ -493,9 +509,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
   // Scientific sky runs independently of the Earth renderer. We sample the
   // renderer attitude at 30 fps: smooth enough for an infinite background and
   // deliberately lighter than 60 fps on older Android devices.
-  final ValueNotifier<Offset> _scientificSkyOrientation = ValueNotifier<Offset>(
-    Offset.zero,
-  );
+  final ValueNotifier<Offset> _scientificSkyOrientation =
+      ValueNotifier<Offset>(Offset.zero);
   Timer? _scientificSkyTimer;
 
   final Map<int, Offset> _activePointers = <int, Offset>{};
@@ -680,7 +695,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
       if (_globeController.isRotating) {
         _globeController.setRotationSpeed(_nativeRotationSpeed);
       } else {
-        _globeController.startRotation(rotationSpeed: _nativeRotationSpeed);
+        _globeController.startRotation(
+          rotationSpeed: _nativeRotationSpeed,
+        );
       }
       return;
     }
@@ -774,7 +791,10 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
 
     // Renderer angles are in radians. For the sky we publish the visual
     // camera attitude rather than a second artificial 2D pan.
-    final next = Offset(globeState.rotationZ, globeState.rotationX);
+    final next = Offset(
+      globeState.rotationZ,
+      globeState.rotationX,
+    );
 
     final previous = _scientificSkyOrientation.value;
     if ((next - previous).distanceSquared < 0.000001) {
@@ -815,7 +835,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
   @override
   Widget build(BuildContext context) {
     if (!_canRenderGlobe) {
-      return _WasmRequiredFallback(onUseClassicMap: widget.onUseClassicMap);
+      return _WasmRequiredFallback(
+        onUseClassicMap: widget.onUseClassicMap,
+      );
     }
 
     final screenSize = MediaQuery.sizeOf(context);
@@ -829,12 +851,14 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
             ? constraints.maxHeight
             : availableWidth;
 
-        final maxViewport = _isHomeProfile
-            ? _homeMaxViewport
-            : _exploreMaxViewport;
+        final maxViewport =
+            _isHomeProfile ? _homeMaxViewport : _exploreMaxViewport;
 
         final viewportSize = math
-            .min(availableWidth, availableHeight)
+            .min(
+              availableWidth,
+              availableHeight,
+            )
             .clamp(1.0, maxViewport)
             .toDouble();
 
@@ -845,20 +869,23 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
 
         final alignmentX = screenSize.width > 0
             ? ((viewportSize / screenSize.width) - 1.0)
-                  .clamp(-1.0, 1.0)
-                  .toDouble()
+                .clamp(-1.0, 1.0)
+                .toDouble()
             : 0.0;
 
         final alignmentY = screenSize.height > 0
             ? ((viewportSize / screenSize.height) - 1.0)
-                  .clamp(-1.0, 1.0)
-                  .toDouble()
+                .clamp(-1.0, 1.0)
+                .toDouble()
             : 0.0;
 
         final globe = FlutterEarthGlobe(
           controller: _globeController,
           radius: radius,
-          alignment: Alignment(alignmentX, alignmentY),
+          alignment: Alignment(
+            alignmentX,
+            alignmentY,
+          ),
 
           // G3 interaction profile.
           //
@@ -902,22 +929,22 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
                           child: IgnorePointer(child: globe),
                         )
                       : _isHomeProfile
-                      ? Listener(
-                          behavior: HitTestBehavior.opaque,
-                          onPointerDown: _handleHomePointerDown,
-                          onPointerMove: _handleHomePointerMove,
-                          onPointerUp: _handleHomePointerUp,
-                          onPointerCancel: _handleHomePointerCancel,
-                          child: globe,
-                        )
-                      : Listener(
-                          behavior: HitTestBehavior.opaque,
-                          onPointerDown: _handleExplorePointerDown,
-                          onPointerMove: _handleExplorePointerMove,
-                          onPointerUp: _handleExplorePointerUp,
-                          onPointerCancel: _handleExplorePointerCancel,
-                          child: globe,
-                        ),
+                          ? Listener(
+                              behavior: HitTestBehavior.opaque,
+                              onPointerDown: _handleHomePointerDown,
+                              onPointerMove: _handleHomePointerMove,
+                              onPointerUp: _handleHomePointerUp,
+                              onPointerCancel: _handleHomePointerCancel,
+                              child: globe,
+                            )
+                          : Listener(
+                              behavior: HitTestBehavior.opaque,
+                              onPointerDown: _handleExplorePointerDown,
+                              onPointerMove: _handleExplorePointerMove,
+                              onPointerUp: _handleExplorePointerUp,
+                              onPointerCancel: _handleExplorePointerCancel,
+                              child: globe,
+                            ),
                   if (isAuthenticated)
                     Positioned(
                       right: 12,
@@ -936,9 +963,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
                       child: Center(
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.surface.withValues(
-                              alpha: 0.90,
-                            ),
+                            color: theme.colorScheme.surface
+                                .withValues(alpha: 0.90),
                             borderRadius: BorderRadius.circular(999),
                             border: Border.all(
                               color: theme.colorScheme.outlineVariant,
@@ -975,16 +1001,17 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
                                 Flexible(
                                   child: Text(
                                     _selectedCountryLabel ??
-                                        (Localizations.localeOf(
-                                                  context,
-                                                ).languageCode ==
+                                        (Localizations.localeOf(context)
+                                                    .languageCode ==
                                                 'it'
                                             ? 'Identificazione Paese…'
                                             : 'Identifying country…'),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.labelMedium
-                                        ?.copyWith(fontWeight: FontWeight.w700),
+                                    style:
+                                        theme.textTheme.labelMedium?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ),
                                 if (!_isSelectingCountry &&
@@ -993,9 +1020,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
                                   TextButton(
                                     onPressed: _openSelectedCountry,
                                     child: Text(
-                                      Localizations.localeOf(
-                                                context,
-                                              ).languageCode ==
+                                      Localizations.localeOf(context)
+                                                  .languageCode ==
                                               'it'
                                           ? 'Apri Paese'
                                           : 'Open country',
@@ -1022,9 +1048,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: theme.colorScheme.primary.withValues(
-                                  alpha: 0.25,
-                                ),
+                                color: theme.colorScheme.primary
+                                    .withValues(alpha: 0.25),
                                 blurRadius: 12,
                                 spreadRadius: 2,
                               ),
@@ -1071,8 +1096,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
   }
 
   void _handleExplorePointerUp(PointerUpEvent event) {
-    final confirmedTap =
-        event.pointer == _exploreTapCandidatePointer &&
+    final confirmedTap = event.pointer == _exploreTapCandidatePointer &&
         _exploreTapPointers.length == 1 &&
         !_exploreTapMoved &&
         _exploreTapStartedOnSphere;
@@ -1115,9 +1139,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     // The vendored renderer compensates its internal alignment and returns the
     // visible point id directly, so this does not depend on a delayed paint
     // callback or Flutter's gesture arena.
-    final markerPointId = globeState.pointIdAtLocalPosition(
-      rendererLocalPosition,
-    );
+    final markerPointId =
+        globeState.pointIdAtLocalPosition(rendererLocalPosition);
     if (markerPointId != null) {
       final markerItem = _globeMarkerItemsByPointId[markerPointId];
       if (markerItem != null) {
@@ -1127,9 +1150,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
       }
     }
 
-    final coordinates = globeState.coordinatesAtLocalPosition(
-      rendererLocalPosition,
-    );
+    final coordinates =
+        globeState.coordinatesAtLocalPosition(rendererLocalPosition);
 
     debugPrint('[WorldGlobe] Explore tap coordinates: $coordinates');
     _handleExploreGlobeTap(coordinates);
@@ -1162,11 +1184,13 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
         return;
       }
 
-      final centerCoordinates = _globeController.globeKey.currentState
-          ?.centerCoordinates();
+      final centerCoordinates =
+          _globeController.globeKey.currentState?.centerCoordinates();
 
       if (centerCoordinates == null) {
-        debugPrint('[WorldGlobe] 3D->2D handoff skipped: center unavailable');
+        debugPrint(
+          '[WorldGlobe] 3D->2D handoff skipped: center unavailable',
+        );
         return;
       }
 
@@ -1221,9 +1245,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
   }
 
   int _markerLimitForZoom(double zoom) {
-    final t = ((zoom + 0.22) / (_exploreMaxZoom + 0.22))
-        .clamp(0.0, 1.0)
-        .toDouble();
+    final t =
+        ((zoom + 0.22) / (_exploreMaxZoom + 0.22)).clamp(0.0, 1.0).toDouble();
     return (_exploreMarkerLimitFar +
             ((_exploreMarkerLimitNear - _exploreMarkerLimitFar) * t))
         .round();
@@ -1234,9 +1257,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     final clusterDegrees = _isHomeProfile
         ? _homeMarkerClusterDegrees
         : _markerClusterDegreesForZoom(zoom);
-    final markerLimit = _isHomeProfile
-        ? _homeFeaturedMarkerLimit
-        : _markerLimitForZoom(zoom);
+    final markerLimit =
+        _isHomeProfile ? _homeFeaturedMarkerLimit : _markerLimitForZoom(zoom);
     final groups = _buildExploreMarkerGroups(
       widget.items,
       clusterDegrees: clusterDegrees,
@@ -1249,9 +1271,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     for (final group in groups) {
       final item = group.representative;
       final isCluster = group.items.length > 1;
-      final importance = (item.mapImportanceScore / 70.0)
-          .clamp(0.0, 1.0)
-          .toDouble();
+      final importance =
+          (item.mapImportanceScore / 70.0).clamp(0.0, 1.0).toDouble();
 
       // Home beacons are intentionally more visible than Explore markers,
       // but fewer in number. Explore keeps the denser functional marker scale.
@@ -1260,11 +1281,14 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
           : 2.8 + (importance * 1.8);
       final clusterBoost = isCluster
           ? (_isHomeProfile
-                ? math.min(2.1, math.log(group.items.length + 1) * 0.90)
-                : math.min(1.8, math.log(group.items.length + 1) * 0.72))
+              ? math.min(2.1, math.log(group.items.length + 1) * 0.90)
+              : math.min(1.8, math.log(group.items.length + 1) * 0.72))
           : 0.0;
       final markerSize = (baseSize + clusterBoost)
-          .clamp(_isHomeProfile ? 4.25 : 2.8, _isHomeProfile ? 7.6 : 6.2)
+          .clamp(
+            _isHomeProfile ? 4.25 : 2.8,
+            _isHomeProfile ? 7.6 : 6.2,
+          )
           .toDouble();
 
       final pointId = 'social-vote:${item.type.name}:${item.id}';
@@ -1273,7 +1297,10 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
       points.add(
         Point(
           id: pointId,
-          coordinates: GlobeCoordinates(group.latitude, group.longitude),
+          coordinates: GlobeCoordinates(
+            group.latitude,
+            group.longitude,
+          ),
           label: isCluster
               ? (group.items.length > 99 ? '99+' : '${group.items.length}')
               : null,
@@ -1284,16 +1311,22 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
             fontSize: _isHomeProfile ? 10.5 : 9,
             fontWeight: FontWeight.w800,
             shadows: const <Shadow>[
-              Shadow(blurRadius: 4, color: Color(0xCC000000)),
+              Shadow(
+                blurRadius: 4,
+                color: Color(0xCC000000),
+              ),
             ],
           ),
           style: PointStyle(
             size: markerSize,
             color: isCluster
                 ? (_isHomeProfile
-                      ? const Color(0xFFC8B3FF)
-                      : const Color(0xFFB89CFF))
-                : _markerColorForType(item.type, homeProfile: _isHomeProfile),
+                    ? const Color(0xFFC8B3FF)
+                    : const Color(0xFFB89CFF))
+                : _markerColorForType(
+                    item.type,
+                    homeProfile: _isHomeProfile,
+                  ),
             altitude: _isHomeProfile ? 0.024 : 0.018,
             transitionDuration: 180,
           ),
@@ -1414,7 +1447,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
       });
     }
 
-    debugPrint('[WorldGlobe] G5 marker tap: ${item.type.name} ${item.id}');
+    debugPrint(
+      '[WorldGlobe] G5 marker tap: ${item.type.name} ${item.id}',
+    );
     widget.onItemTap(item);
   }
 
@@ -1438,7 +1473,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     _exploreTapStartedOnSphere = false;
   }
 
-  Future<void> _handleExploreGlobeTap(GlobeCoordinates? coordinates) async {
+  Future<void> _handleExploreGlobeTap(
+    GlobeCoordinates? coordinates,
+  ) async {
     if (_isHomeProfile || coordinates == null || _isSelectingCountry) {
       return;
     }
@@ -1507,7 +1544,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
         curve: Curves.easeInOutCubic,
       );
     } catch (error, stackTrace) {
-      debugPrint('[WorldGlobe] country selection failed: $error\n$stackTrace');
+      debugPrint(
+        '[WorldGlobe] country selection failed: $error\n$stackTrace',
+      );
     } finally {
       if (mounted && requestId == _countrySelectionRequestId) {
         setState(() {
@@ -1566,13 +1605,13 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
         : null;
 
     try {
-      final geocoded = await AppDI.instance.geocodingRepository
-          .geocodeContentLocation(
-            ContentLocation(
-              source: ContentLocationSource.geoScopeFallback,
-              countryCode: countryCode,
-            ),
-          );
+      final geocoded =
+          await AppDI.instance.geocodingRepository.geocodeContentLocation(
+        ContentLocation(
+          source: ContentLocationSource.geoScopeFallback,
+          countryCode: countryCode,
+        ),
+      );
 
       final centerLat = geocoded?.centerLat ?? geocoded?.latitude;
       final centerLng = geocoded?.centerLng ?? geocoded?.longitude;
@@ -1709,8 +1748,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     final start = _primaryStartPosition;
     final wasGlobeGesture = _homeGestureIntent == _HomeGestureIntent.globe;
     final wasSinglePointer = _activePointers.length == 1;
-    final shouldOpenCivicMap =
-        wasSinglePointer &&
+    final shouldOpenCivicMap = wasSinglePointer &&
         event.pointer == _primaryPointer &&
         _primaryStartedOnSphere &&
         _homeGestureIntent == _HomeGestureIntent.undecided &&
@@ -1835,36 +1873,62 @@ class _GlobeRotationButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     final languageCode = Localizations.localeOf(context).languageCode;
     final isItalian = languageCode == 'it';
     final label = isRotating
-        ? (isItalian ? 'Ferma globo' : 'Stop globe')
-        : (isItalian ? 'Gira globo' : 'Rotate globe');
+        ? (isItalian ? 'Ferma rotazione' : 'Stop rotation')
+        : (isItalian ? 'Avvia rotazione' : 'Start rotation');
 
-    return IconButton(
-      onPressed: onPressed,
-      tooltip: label,
-      icon: const Icon(Icons.rotate_right_rounded, size: 19),
-      constraints: const BoxConstraints.tightFor(width: 32, height: 32),
-      padding: EdgeInsets.zero,
-      style: IconButton.styleFrom(
-        minimumSize: const Size.square(32),
-        maximumSize: const Size.square(32),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
-        shape: const CircleBorder(),
-        backgroundColor: isRotating
-            ? theme.colorScheme.primary
-            : theme.colorScheme.surface.withValues(alpha: 0.86),
-        foregroundColor: isRotating
-            ? theme.colorScheme.onPrimary
-            : theme.colorScheme.primary,
-        side: BorderSide(
-          color: isRotating
-              ? theme.colorScheme.primaryContainer
-              : theme.colorScheme.outlineVariant,
+    final backgroundColor =
+        isRotating ? colors.primary : colors.surface.withValues(alpha: 0.94);
+    final foregroundColor = isRotating ? colors.onPrimary : colors.primary;
+
+    return Semantics(
+      button: true,
+      toggled: isRotating,
+      label: label,
+      child: Tooltip(
+        message: label,
+        child: Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onPressed,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              curve: Curves.easeOut,
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: backgroundColor,
+                border: Border.all(
+                  width: isRotating ? 1.5 : 1.0,
+                  color: isRotating
+                      ? colors.primaryContainer
+                      : colors.outlineVariant,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: colors.shadow.withValues(
+                      alpha: isRotating ? 0.20 : 0.10,
+                    ),
+                    blurRadius: isRotating ? 8 : 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.rotate_right_rounded,
+                size: 21,
+                color: foregroundColor,
+              ),
+            ),
+          ),
         ),
-        elevation: isRotating ? 3 : 1,
       ),
     );
   }
@@ -1887,7 +1951,9 @@ class _WorldGlobeMarkerGroup {
 class _WasmRequiredFallback extends StatelessWidget {
   final VoidCallback onUseClassicMap;
 
-  const _WasmRequiredFallback({required this.onUseClassicMap});
+  const _WasmRequiredFallback({
+    required this.onUseClassicMap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1897,7 +1963,9 @@ class _WasmRequiredFallback extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant,
+        ),
       ),
       padding: const EdgeInsets.all(24),
       child: Center(
@@ -1906,7 +1974,11 @@ class _WasmRequiredFallback extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.public, size: 44, color: theme.colorScheme.primary),
+              Icon(
+                Icons.public,
+                size: 44,
+                color: theme.colorScheme.primary,
+              ),
               const SizedBox(height: 14),
               Text(
                 Localizations.localeOf(context).languageCode == 'it'
