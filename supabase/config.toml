@@ -5,3 +5,11 @@ verify_jwt = false
 
 [functions.admin-account-actions]
 verify_jwt = false
+
+# AI foundation is source-ready but OFF by default.
+# Both functions also perform their own authorization checks.
+[functions.news-ai-enrichment]
+verify_jwt = false
+
+[functions.admin-ai-assistant]
+verify_jwt = false

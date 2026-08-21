@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
+import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/admin/entities/admin_entities.dart';
 import 'package:sociale_vote/domain/admin/repositories/admin_repository.dart';
 import 'package:sociale_vote/domain/admin/usecases/change_system_role.dart';
@@ -24,6 +25,8 @@ import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_status.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
+import 'package:sociale_vote/features/map/presentation/widgets/world_globe_widget.dart';
 
 enum AdminCenterSection { dashboard, users, verification, reports, audit }
 
@@ -72,6 +75,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   late final ForceAdminLogout _forceAdminLogout;
   late final DeleteAdminAccount _deleteAdminAccount;
   late final AdminRepository _adminRepository;
+  late final CivicMapController _adminGlobeController;
   final TextEditingController _userSearchController = TextEditingController();
   final TextEditingController _auditActorController = TextEditingController();
   final TextEditingController _auditActionController = TextEditingController();
@@ -148,6 +152,9 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     super.initState();
 
     _adminRepository = AppDI.instance.adminRepository;
+    _adminGlobeController =
+        AppDI.instance.createCivicMapController(homePreview: true);
+    _adminGlobeController.addListener(_handleAdminGlobeChanged);
     _loadAdminDashboard = LoadAdminDashboard(_adminRepository);
     _loadAdminAudit = LoadAdminAudit(_adminRepository);
     _loadAdminReports = LoadAdminReports(_adminRepository);
@@ -161,16 +168,42 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     _forceAdminLogout = ForceAdminLogout(_adminRepository);
     _deleteAdminAccount = DeleteAdminAccount(_adminRepository);
     unawaited(_loadDashboard(markLoading: false));
+    unawaited(_loadAdminGlobe());
   }
 
   @override
   void dispose() {
+    _adminGlobeController.removeListener(_handleAdminGlobeChanged);
+    _adminGlobeController.dispose();
     _userSearchDebounce?.cancel();
     _userSearchController.dispose();
     _auditActorController.dispose();
     _auditActionController.dispose();
     _auditTargetController.dispose();
     super.dispose();
+  }
+
+  void _handleAdminGlobeChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _loadAdminGlobe({bool forceRefresh = false}) async {
+    try {
+      if (forceRefresh && _adminGlobeController.currentScope != null) {
+        await _adminGlobeController.refresh();
+        return;
+      }
+
+      await _adminGlobeController.syncScope(
+        GeoScope.world(),
+        forceReload: forceRefresh,
+        clearSelection: false,
+      );
+    } catch (_) {
+      // Dashboard/admin controls must remain usable even if map content fails.
+    }
   }
 
   @override
@@ -288,6 +321,9 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         await _loadAudit(markLoading: _auditEntries.isEmpty);
       } else {
         await _loadDashboard(markLoading: _dashboardSummary == null);
+        if (_selectedSection == AdminCenterSection.dashboard) {
+          await _loadAdminGlobe(forceRefresh: true);
+        }
       }
     } catch (_) {
       if (mounted) {
@@ -2130,6 +2166,45 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     );
   }
 
+  Future<void> _openAdminGlobeItem(CivicMapItem item) async {
+    final targetId = item.targetRef.id.trim();
+    if (targetId.isEmpty) {
+      return;
+    }
+
+    try {
+      switch (item.type) {
+        case CivicMapItemType.poll:
+          await Navigator.of(context).pushNamed(
+            AppRouter.pollDetail,
+            arguments: targetId,
+          );
+          return;
+        case CivicMapItemType.post:
+          await Navigator.of(context).pushNamed(
+            AppRouter.socialDetail,
+            arguments: targetId,
+          );
+          return;
+        case CivicMapItemType.news:
+          final navigator = Navigator.of(context);
+          final news = await AppDI.instance.getNewsDetail(EntityId(targetId));
+          if (!navigator.mounted) {
+            return;
+          }
+          await navigator.pushNamed(AppRouter.newsDetail, arguments: news);
+          return;
+      }
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      _showReportNavigationMessage(
+        _adminL10n(context).adminCenterOriginalContentUnavailable,
+      );
+    }
+  }
+
   String _formatDateTime(BuildContext context, DateTime value) {
     final localValue = value.toLocal();
     final localizations = MaterialLocalizations.of(context);
@@ -2177,6 +2252,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       );
     }
 
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     final indicators = <_AdminIndicator>[
       _AdminIndicator(
         label: _adminL10n(context).adminCenterVerificationPendingIndicator,
@@ -2218,16 +2295,16 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       IconData icon,
     })>[
       (
-        label: _adminL10n(context).adminCenterNewUsersMetric,
-        last24Hours: summary.newUsers24h,
-        last7Days: summary.newUsers7d,
-        icon: Icons.person_add_alt_1_outlined,
-      ),
-      (
         label: _adminL10n(context).adminCenterRecentSignInsMetric,
         last24Hours: summary.recentSignIns24h,
         last7Days: summary.recentSignIns7d,
         icon: Icons.login_rounded,
+      ),
+      (
+        label: _adminL10n(context).adminCenterNewUsersMetric,
+        last24Hours: summary.newUsers24h,
+        last7Days: summary.newUsers7d,
+        icon: Icons.person_add_alt_1_outlined,
       ),
       (
         label: _adminL10n(context).adminCenterPollsCreatedMetric,
@@ -2249,9 +2326,483 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       ),
     ];
 
-    final hasPendingWork = summary.pendingVerificationRequests > 0 ||
-        summary.openReports > 0 ||
-        summary.suspendedAccounts > 0;
+    final hasPendingWork =
+        summary.pendingWork > 0 || summary.suspendedAccounts > 0;
+
+    Color indicatorAccent(int index) {
+      return switch (index) {
+        0 => colors.tertiary,
+        1 => colors.error,
+        2 => colors.secondary,
+        _ => colors.primary,
+      };
+    }
+
+    Widget buildPriorityCard(
+      _AdminIndicator indicator,
+      int index, {
+      double? width,
+      double? height,
+    }) {
+      final accent = indicatorAccent(index);
+
+      return SizedBox(
+        width: width,
+        height: height,
+        child: Material(
+          color: colors.surface.withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(18),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: indicator.section == null
+                ? null
+                : () => _selectSection(indicator.section!),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: accent.withValues(alpha: 0.24)),
+              ),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(indicator.icon, size: 20, color: accent),
+                    ),
+                    const SizedBox(width: 11),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${indicator.value}',
+                            maxLines: 1,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              height: 1,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            indicator.label,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (indicator.section != null)
+                      Icon(
+                        Icons.north_east_rounded,
+                        size: 16,
+                        color: accent.withValues(alpha: 0.78),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    Widget buildPriorityGrid(double width) {
+      final columns = switch (width) {
+        >= 1120 => 5,
+        >= 720 => 3,
+        >= 480 => 2,
+        _ => 1,
+      };
+
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          mainAxisExtent: 78,
+        ),
+        itemCount: indicators.length,
+        itemBuilder: (context, index) {
+          return buildPriorityCard(indicators[index], index);
+        },
+      );
+    }
+
+    Widget buildOperationalMetricCard(int index) {
+      final metric = operationalMetrics[index];
+      final accent = index == 0 ? colors.tertiary : colors.primary;
+
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.surface.withValues(alpha: 0.88),
+          borderRadius: BorderRadius.circular(17),
+          border: Border.all(
+            color: colors.outlineVariant.withValues(alpha: 0.66),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                alignment: Alignment.center,
+                child: Icon(metric.icon, size: 19, color: accent),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      metric.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _AdminOperationalValue(
+                            label:
+                                _adminL10n(context).adminCenterLast24HoursLabel,
+                            value: metric.last24Hours,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _AdminOperationalValue(
+                            label:
+                                _adminL10n(context).adminCenterLast7DaysLabel,
+                            value: metric.last7Days,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    Widget buildOperationalPanel(double width) {
+      final columns = width >= 460 ? 2 : 1;
+
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.surfaceContainerLow.withValues(alpha: 0.78),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: colors.outlineVariant.withValues(alpha: 0.65),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: colors.primary.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.monitor_heart_outlined,
+                      color: colors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 11),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _adminL10n(context)
+                              .adminCenterOperationalActivityTitle,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _adminL10n(context)
+                              .adminCenterOperationalActivitySubtitle,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.textTheme.bodySmall?.color
+                                ?.withValues(alpha: 0.70),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: columns,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  mainAxisExtent: 96,
+                ),
+                itemCount: operationalMetrics.length,
+                itemBuilder: (context, index) {
+                  return buildOperationalMetricCard(index);
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    Widget buildGlobe(double size) {
+      return SizedBox.square(
+        dimension: size,
+        child: WorldGlobeWidget(
+          items: _adminGlobeController.visibleItems,
+          interactionProfile: WorldGlobeInteractionProfile.home,
+          onItemTap: (item) {
+            unawaited(_openAdminGlobeItem(item));
+          },
+          onUseClassicMap: () {
+            unawaited(Navigator.of(context).pushNamed(AppRouter.civicMap));
+          },
+        ),
+      );
+    }
+
+    Widget buildGlobePanel(double width) {
+      final markerCount = _adminGlobeController.visibleItems.length;
+      final globeSize = width < 380 ? width - 20 : 360.0;
+
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.surfaceContainerLow.withValues(alpha: 0.78),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: colors.outlineVariant.withValues(alpha: 0.65),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.public_rounded, color: colors.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'World · $markerCount marker',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: _adminL10n(context).adminCenterDashboardNavigation,
+                    onPressed: () {
+                      unawaited(
+                        Navigator.of(context).pushNamed(AppRouter.civicMap),
+                      );
+                    },
+                    icon: const Icon(Icons.open_in_full_rounded),
+                  ),
+                ],
+              ),
+              if (_adminGlobeController.isLoading ||
+                  _adminGlobeController.isRefreshing)
+                const LinearProgressIndicator(minHeight: 2),
+              Expanded(
+                child: Center(
+                  child: buildGlobe(globeSize),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    Widget buildCommandDeck(double width) {
+      final isWide = width >= 980;
+
+      return Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colors.surfaceContainerHighest.withValues(alpha: 0.72),
+              colors.surface.withValues(alpha: 0.95),
+              colors.primaryContainer.withValues(alpha: 0.34),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: colors.outlineVariant.withValues(alpha: 0.72),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: colors.primary.withValues(alpha: 0.11),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.admin_panel_settings_rounded,
+                      color: colors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _adminL10n(context).adminCenterTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _adminRoleLabel(context, widget.currentRole),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.textTheme.bodyMedium?.color
+                                ?.withValues(alpha: 0.66),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: hasPendingWork
+                          ? colors.errorContainer
+                          : colors.primaryContainer,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      hasPendingWork
+                          ? '${summary.pendingWork + summary.suspendedAccounts}'
+                          : _adminL10n(context).adminCenterNoPendingWorkTitle,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: hasPendingWork
+                            ? colors.onErrorContainer
+                            : colors.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              LayoutBuilder(
+                builder: (context, innerConstraints) {
+                  return buildPriorityGrid(innerConstraints.maxWidth);
+                },
+              ),
+              const SizedBox(height: 14),
+              if (isWide)
+                SizedBox(
+                  height: 430,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        flex: 10,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return buildOperationalPanel(constraints.maxWidth);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        flex: 11,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return buildGlobePanel(constraints.maxWidth);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else ...[
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SizedBox(
+                      height: width < 520 ? 360 : 392,
+                      child: buildGlobePanel(constraints.maxWidth),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return buildOperationalPanel(constraints.maxWidth);
+                  },
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2263,321 +2814,12 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           ),
           const SizedBox(height: 12),
         ],
-        if (!hasPendingWork) ...[
-          _AdminDashboardStateCard(
-            icon: Icons.check_circle_outline,
-            title: _adminL10n(context).adminCenterNoPendingWorkTitle,
-            message: _adminL10n(context).adminCenterNoPendingWorkMessage,
-          ),
-          const SizedBox(height: 12),
-        ],
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Theme.of(context).colorScheme.primaryContainer,
-                Theme.of(context).colorScheme.tertiaryContainer,
-              ],
-            ),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.16),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surface.withValues(alpha: 0.72),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      Icons.admin_panel_settings,
-                      size: 30,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _adminL10n(context).adminCenterTitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w800),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          _adminRoleLabel(context, widget.currentRole),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimaryContainer,
-                                  ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _AdminDashboardStatusChip(
-                    icon: Icons.verified_user_outlined,
-                    label: _adminL10n(
-                      context,
-                    ).adminCenterVerificationPendingIndicator,
-                    value: summary.pendingVerificationRequests,
-                  ),
-                  _AdminDashboardStatusChip(
-                    icon: Icons.flag_outlined,
-                    label: _adminL10n(
-                      context,
-                    ).adminCenterOpenReportsIndicator,
-                    value: summary.openReports,
-                  ),
-                  _AdminDashboardStatusChip(
-                    icon: Icons.person_off_outlined,
-                    label: _adminL10n(
-                      context,
-                    ).adminCenterSuspendedAccountsIndicator,
-                    value: summary.suspendedAccounts,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
         LayoutBuilder(
           builder: (context, constraints) {
-            final crossAxisCount = switch (constraints.maxWidth) {
-              < 360 => 1,
-              < 700 => 2,
-              < 1100 => 3,
-              _ => 5,
-            };
-
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                mainAxisExtent: 156,
-              ),
-              itemCount: indicators.length,
-              itemBuilder: (context, index) {
-                final indicator = indicators[index];
-                final colors = Theme.of(context).colorScheme;
-                final accent = switch (index) {
-                  0 => colors.tertiary,
-                  1 => colors.error,
-                  2 => colors.secondary,
-                  _ => colors.primary,
-                };
-
-                return Card(
-                  margin: EdgeInsets.zero,
-                  clipBehavior: Clip.antiAlias,
-                  color: accent.withValues(alpha: 0.08),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(color: accent.withValues(alpha: 0.18)),
-                  ),
-                  child: InkWell(
-                    onTap: indicator.section == null
-                        ? null
-                        : () => _selectSection(indicator.section!),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 38,
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: accent.withValues(alpha: 0.14),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(
-                                  indicator.icon,
-                                  size: 21,
-                                  color: accent,
-                                ),
-                              ),
-                              const Spacer(),
-                              if (indicator.section != null)
-                                Icon(
-                                  Icons.arrow_forward_rounded,
-                                  size: 19,
-                                  color: accent,
-                                ),
-                            ],
-                          ),
-                          const Spacer(),
-                          Text(
-                            '${indicator.value}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                          Text(
-                            indicator.label,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
+            return buildCommandDeck(constraints.maxWidth);
           },
         ),
-        const SizedBox(height: 24),
-        Text(
-          _adminL10n(context).adminCenterOperationalActivityTitle,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          _adminL10n(context).adminCenterOperationalActivitySubtitle,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.color
-                    ?.withValues(alpha: 0.72),
-              ),
-        ),
-        const SizedBox(height: 12),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final crossAxisCount = switch (constraints.maxWidth) {
-              < 420 => 1,
-              < 840 => 2,
-              _ => 3,
-            };
-
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                mainAxisExtent: 132,
-              ),
-              itemCount: operationalMetrics.length,
-              itemBuilder: (context, index) {
-                final metric = operationalMetrics[index];
-
-                return Card(
-                  margin: EdgeInsets.zero,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            color:
-                                Theme.of(context).colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            metric.icon,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                metric.label,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _AdminOperationalValue(
-                                      label: _adminL10n(context)
-                                          .adminCenterLast24HoursLabel,
-                                      value: metric.last24Hours,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _AdminOperationalValue(
-                                      label: _adminL10n(context)
-                                          .adminCenterLast7DaysLabel,
-                                      value: metric.last7Days,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
         _buildDashboardShortcuts(context),
       ],
     );
@@ -2953,49 +3195,44 @@ class _AdminOperationalValue extends StatelessWidget {
   }
 }
 
-class _AdminDashboardStatusChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final int value;
+class _AdminOrbitPainter extends CustomPainter {
+  final Color color;
 
-  const _AdminDashboardStatusChip({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
+  const _AdminOrbitPainter({required this.color});
 
   @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 360),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: colors.surface.withValues(alpha: 0.72),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: colors.outline.withValues(alpha: 0.18)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 17),
-            const SizedBox(width: 7),
-            Flexible(
-              child: Text(
-                '$value · $label',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(
-                  context,
-                ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
-              ),
-            ),
-          ],
-        ),
-      ),
+    final shortest = size.shortestSide;
+    for (final factor in <double>[0.46, 0.62, 0.78]) {
+      canvas.drawCircle(center, shortest * factor / 2, paint);
+    }
+
+    final axisPaint = Paint()
+      ..color = color.withValues(alpha: 0.72)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    canvas.drawLine(
+      Offset(center.dx, 28),
+      Offset(center.dx, size.height - 28),
+      axisPaint,
     );
+    canvas.drawLine(
+      Offset(28, center.dy),
+      Offset(size.width - 28, center.dy),
+      axisPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _AdminOrbitPainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }
 

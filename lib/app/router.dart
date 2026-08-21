@@ -136,12 +136,13 @@ class AppRouter {
     String initialRouteName,
   ) {
     final routeName = _normalizePath(initialRouteName);
-    final isPublicDestination =
+    final needsHomeUnderneath =
         _publicContentId(routeName, prefix: 'poll') != null ||
             _publicContentId(routeName, prefix: 'post') != null ||
-            _publicCityTarget(routeName) != null;
+            _publicCityTarget(routeName) != null ||
+            routeName == adminCenter;
 
-    if (!isPublicDestination || routeName == home) {
+    if (!needsHomeUnderneath || routeName == home) {
       return <Route<dynamic>>[
         onGenerateRoute(RouteSettings(name: routeName)),
       ];
@@ -382,6 +383,7 @@ class AppRouter {
       case news:
       case social:
       case civicMap:
+      case adminCenter:
       case terms:
       case privacy:
       case login:
