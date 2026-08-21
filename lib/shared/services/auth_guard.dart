@@ -19,6 +19,9 @@ import 'package:sociale_vote/shared/ui/ui.dart';
 class AuthGuard {
   static const ParticipationPolicy _policy = ParticipationPolicy();
 
+  static bool _isItalian(BuildContext context) =>
+      Localizations.localeOf(context).languageCode.toLowerCase() == 'it';
+
   /// Verifica che esista una sessione autenticata valida per una feature
   /// protetta che non è rappresentata da una ParticipationAction.
   ///
@@ -44,10 +47,7 @@ class AuthGuard {
       return false;
     }
 
-    await _showFeatureLoginRequiredSheet(
-      context,
-      actionLabel: actionLabel,
-    );
+    await _showFeatureLoginRequiredSheet(context, actionLabel: actionLabel);
 
     final resolvedUserId = AppDI.instance.currentUserId?.trim();
     return resolvedUserId != null && resolvedUserId.isNotEmpty;
@@ -125,9 +125,7 @@ class AuthGuard {
     return false;
   }
 
-  static Future<bool> _ensureCurrentSessionIsValid(
-    BuildContext context,
-  ) async {
+  static Future<bool> _ensureCurrentSessionIsValid(BuildContext context) async {
     if (AppDI.instance.currentUserId == null) {
       return true;
     }
@@ -163,10 +161,13 @@ class AuthGuard {
       barrierDismissible: false,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Sessione terminata'),
-          content: const Text(
-            'Questo account è stato aperto su un altro dispositivo oppure '
-            'non è più disponibile. Accedi di nuovo per continuare.',
+          title: Text(
+            _isItalian(dialogContext) ? 'Sessione terminata' : 'Session ended',
+          ),
+          content: Text(
+            _isItalian(dialogContext)
+                ? 'Questo account è stato aperto su un altro dispositivo oppure non è più disponibile. Accedi di nuovo per continuare.'
+                : 'This account was opened on another device or is no longer available. Sign in again to continue.',
           ),
           actions: [
             TextButton(
@@ -179,54 +180,41 @@ class AuthGuard {
     );
 
     if (context.mounted) {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        AppRouter.home,
-        (route) => false,
-      );
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRouter.home, (route) => false);
     }
 
     return false;
   }
 
   /// Accesso alla shell Admin Center per moderator/admin.
-  static bool canAccessAdminCenter({
-    required Role role,
-  }) {
+  static bool canAccessAdminCenter({required Role role}) {
     return _policy.canAccessAdminCenter(role: role);
   }
 
   /// Wrapper centrale per ruolo reviewer/admin.
-  static bool canReviewVerificationRequests({
-    required Role role,
-  }) {
+  static bool canReviewVerificationRequests({required Role role}) {
     return _policy.canReviewVerificationRequests(role: role);
   }
 
   /// Gestione delle segnalazioni per moderator/admin.
-  static bool canReviewReports({
-    required Role role,
-  }) {
+  static bool canReviewReports({required Role role}) {
     return _policy.canReviewReports(role: role);
   }
 
   /// Gestione dei ruoli tecnici riservata agli admin.
-  static bool canManageSystemRoles({
-    required Role role,
-  }) {
+  static bool canManageSystemRoles({required Role role}) {
     return _policy.canManageSystemRoles(role: role);
   }
 
   /// Azioni amministrative sugli account riservate agli admin.
-  static bool canManageAccounts({
-    required Role role,
-  }) {
+  static bool canManageAccounts({required Role role}) {
     return _policy.canManageAccounts(role: role);
   }
 
   /// Consultazione dell'audit amministrativo riservata agli admin.
-  static bool canViewAdminAuditLog({
-    required Role role,
-  }) {
+  static bool canViewAdminAuditLog({required Role role}) {
     return _policy.canViewAdminAuditLog(role: role);
   }
 
@@ -319,15 +307,16 @@ class AuthGuard {
 
     if (userId != null && role == null) {
       try {
-        final session =
-            await AppDI.instance.sessionRepository.getCurrentSession();
+        final session = await AppDI.instance.sessionRepository
+            .getCurrentSession();
         resolvedRole = session?.role ?? Role.user;
       } catch (_) {
         resolvedRole = Role.user;
       }
     }
 
-    final needsProfileLookup = userId != null &&
+    final needsProfileLookup =
+        userId != null &&
         (actorType == null ||
             verificationLevel == null ||
             institutionLevel == null);
@@ -360,9 +349,7 @@ class AuthGuard {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: AppRadius.sheetRadius,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.sheetRadius),
       builder: (sheetContext) {
         final theme = Theme.of(sheetContext);
 
@@ -397,15 +384,18 @@ class AuthGuard {
                 ),
               ),
               Text(
-                'Accesso richiesto',
+                _isItalian(sheetContext)
+                    ? 'Accesso richiesto'
+                    : 'Sign-in required',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Per $actionLabel devi accedere o registrarti. '
-                'Come ospite puoi consultare i contenuti pubblici.',
+                _isItalian(sheetContext)
+                    ? 'Per $actionLabel devi accedere o registrarti. Come ospite puoi consultare i contenuti pubblici.'
+                    : 'To $actionLabel, sign in or create an account. As a guest you can browse public content.',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.m),
@@ -413,14 +403,16 @@ class AuthGuard {
                 children: [
                   Expanded(
                     child: AppButton.secondary(
-                      label: 'Accedi',
+                      label: _isItalian(sheetContext) ? 'Accedi' : 'Log in',
                       onPressed: () => openAuthFlow(AppRouter.login),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.xs),
                   Expanded(
                     child: AppButton.primary(
-                      label: 'Registrati',
+                      label: _isItalian(sheetContext)
+                          ? 'Registrati'
+                          : 'Sign up',
                       onPressed: () => openAuthFlow(AppRouter.register),
                     ),
                   ),
@@ -428,7 +420,9 @@ class AuthGuard {
               ),
               const SizedBox(height: AppSpacing.xs),
               AppButton.text(
-                label: 'Continua come ospite',
+                label: _isItalian(sheetContext)
+                    ? 'Continua come ospite'
+                    : 'Continue as guest',
                 onPressed: () {
                   Navigator.of(sheetContext).pop();
                 },
@@ -447,12 +441,10 @@ class AuthGuard {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: AppRadius.sheetRadius,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.sheetRadius),
       builder: (sheetContext) {
         final theme = Theme.of(sheetContext);
-        final actionLabel = _actionLabel(action);
+        final actionLabel = _actionLabel(sheetContext, action);
 
         Future<void> openAuthFlow(String routeName) async {
           // Keep the sheet alive while login/register is open so the protected
@@ -485,15 +477,18 @@ class AuthGuard {
                 ),
               ),
               Text(
-                'Vuoi partecipare?',
+                _isItalian(sheetContext)
+                    ? 'Vuoi partecipare?'
+                    : 'Want to participate?',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Per $actionLabel devi accedere o registrarti. '
-                'Come ospite puoi solo visualizzare contenuti.',
+                _isItalian(sheetContext)
+                    ? 'Per $actionLabel devi accedere o registrarti. Come ospite puoi solo visualizzare contenuti.'
+                    : 'To $actionLabel, sign in or create an account. As a guest you can only view content.',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.m),
@@ -501,14 +496,16 @@ class AuthGuard {
                 children: [
                   Expanded(
                     child: AppButton.secondary(
-                      label: 'Accedi',
+                      label: _isItalian(sheetContext) ? 'Accedi' : 'Log in',
                       onPressed: () => openAuthFlow(AppRouter.login),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.xs),
                   Expanded(
                     child: AppButton.primary(
-                      label: 'Registrati',
+                      label: _isItalian(sheetContext)
+                          ? 'Registrati'
+                          : 'Sign up',
                       onPressed: () => openAuthFlow(AppRouter.register),
                     ),
                   ),
@@ -516,7 +513,9 @@ class AuthGuard {
               ),
               const SizedBox(height: AppSpacing.xs),
               AppButton.text(
-                label: 'Continua come ospite',
+                label: _isItalian(sheetContext)
+                    ? 'Continua come ospite'
+                    : 'Continue as guest',
                 onPressed: () {
                   Navigator.of(sheetContext).pop();
                 },
@@ -536,8 +535,10 @@ class AuthGuard {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Accesso negato'),
-          content: Text(_permissionDeniedMessage(action)),
+          title: Text(
+            _isItalian(dialogContext) ? 'Accesso negato' : 'Access denied',
+          ),
+          content: Text(_permissionDeniedMessage(dialogContext, action)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
@@ -549,16 +550,24 @@ class AuthGuard {
     );
   }
 
-  static String _permissionDeniedMessage(ParticipationAction action) {
+  static String _permissionDeniedMessage(
+    BuildContext context,
+    ParticipationAction action,
+  ) {
+    final isItalian = _isItalian(context);
     switch (action) {
       case ParticipationAction.accessAdminCenter:
       case ParticipationAction.reviewVerificationRequests:
       case ParticipationAction.reviewReports:
-        return 'Questa area è riservata a moderator/admin.';
+        return isItalian
+            ? 'Questa area è riservata a moderator/admin.'
+            : 'This area is restricted to moderators and admins.';
       case ParticipationAction.manageSystemRoles:
       case ParticipationAction.manageAccounts:
       case ParticipationAction.viewAdminAuditLog:
-        return 'Questa azione è riservata agli admin.';
+        return isItalian
+            ? 'Questa azione è riservata agli admin.'
+            : 'This action is restricted to admins.';
       case ParticipationAction.vote:
       case ParticipationAction.createPoll:
       case ParticipationAction.react:
@@ -566,38 +575,49 @@ class AuthGuard {
       case ParticipationAction.createPost:
       case ParticipationAction.followScope:
       case ParticipationAction.reportContent:
-        return 'Non hai i permessi necessari per questa azione.';
+        return isItalian
+            ? 'Non hai i permessi necessari per questa azione.'
+            : 'You do not have permission to perform this action.';
     }
   }
 
-  static String _actionLabel(ParticipationAction action) {
+  static String _actionLabel(BuildContext context, ParticipationAction action) {
+    final isItalian = _isItalian(context);
     switch (action) {
       case ParticipationAction.vote:
-        return 'votare';
+        return isItalian ? 'votare' : 'vote';
       case ParticipationAction.createPoll:
-        return 'creare una votazione';
+        return isItalian ? 'creare un sondaggio' : 'create a poll';
       case ParticipationAction.react:
-        return 'reagire con 🔥 o ❄';
+        return isItalian ? 'reagire con 🔥 o ❄' : 'react with 🔥 or ❄';
       case ParticipationAction.comment:
-        return 'commentare';
+        return isItalian ? 'commentare' : 'comment';
       case ParticipationAction.createPost:
-        return 'creare un post';
+        return isItalian ? 'creare un post' : 'create a post';
       case ParticipationAction.followScope:
-        return 'seguire quest\'area geografica';
+        return isItalian
+            ? 'seguire quest\'area geografica'
+            : 'follow this geographic area';
       case ParticipationAction.reportContent:
-        return 'segnalare un contenuto';
+        return isItalian ? 'segnalare un contenuto' : 'report content';
       case ParticipationAction.accessAdminCenter:
-        return 'accedere all\'Admin Center';
+        return isItalian
+            ? 'accedere all\'Admin Center'
+            : 'open the Admin Center';
       case ParticipationAction.reviewVerificationRequests:
-        return 'revisionare richieste di verifica';
+        return isItalian
+            ? 'revisionare richieste di verifica'
+            : 'review verification requests';
       case ParticipationAction.reviewReports:
-        return 'gestire le segnalazioni';
+        return isItalian ? 'gestire le segnalazioni' : 'review reports';
       case ParticipationAction.manageSystemRoles:
-        return 'gestire i ruoli di sistema';
+        return isItalian ? 'gestire i ruoli di sistema' : 'manage system roles';
       case ParticipationAction.manageAccounts:
-        return 'gestire gli account';
+        return isItalian ? 'gestire gli account' : 'manage accounts';
       case ParticipationAction.viewAdminAuditLog:
-        return 'consultare il registro amministrativo';
+        return isItalian
+            ? 'consultare il registro amministrativo'
+            : 'view the admin activity log';
     }
   }
 }

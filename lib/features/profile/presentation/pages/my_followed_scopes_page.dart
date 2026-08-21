@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/geo/entities/follow_scope.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class MyFollowedScopesPage extends StatefulWidget {
   const MyFollowedScopesPage({super.key});
 
   @override
-  State<MyFollowedScopesPage> createState() =>
-      _MyFollowedScopesPageState();
+  State<MyFollowedScopesPage> createState() => _MyFollowedScopesPageState();
 }
 
-class _MyFollowedScopesPageState
-    extends State<MyFollowedScopesPage> {
+class _MyFollowedScopesPageState extends State<MyFollowedScopesPage> {
   bool _isLoading = true;
   List<GeoScope> _scopes = [];
 
@@ -29,8 +28,8 @@ class _MyFollowedScopesPageState
       return;
     }
 
-    final List<FollowScope> result =
-        await AppDI.instance.getFollowedScopesForUser(userId);
+    final List<FollowScope> result = await AppDI.instance
+        .getFollowedScopesForUser(userId);
 
     setState(() {
       _scopes = result.map((e) => e.scope).toList();
@@ -41,58 +40,61 @@ class _MyFollowedScopesPageState
   @override
   Widget build(BuildContext context) {
     final userId = AppDI.instance.currentUserId;
+    final l10n = AppLocalizations.of(context)!;
+    final isItalian = Localizations.localeOf(context).languageCode == 'it';
 
     if (userId == null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('My Followed Scopes'),
-        ),
-        body: const Center(
-          child: Text('You must be logged in.'),
+        appBar: AppBar(title: Text(l10n.profileMyFollowedScopesTitle)),
+        body: Center(
+          child: Text(isItalian ? 'Devi accedere.' : 'You must be logged in.'),
         ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Followed Scopes'),
-      ),
+      appBar: AppBar(title: Text(l10n.profileMyFollowedScopesTitle)),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _scopes.isEmpty
-              ? const Center(
-                  child: Text('You are not following any scopes yet.'),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _scopes.length,
-                  itemBuilder: (context, index) {
-                    final scope = _scopes[index];
+          ? Center(
+              child: Text(
+                isItalian
+                    ? 'Non stai ancora seguendo nessuna area.'
+                    : 'You are not following any areas yet.',
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _scopes.length,
+              itemBuilder: (context, index) {
+                final scope = _scopes[index];
 
-                    return Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.public),
-                        title: Text(_buildScopeLabel(scope)),
-                      ),
-                    );
-                  },
-                ),
+                return Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.public),
+                    title: Text(_buildScopeLabel(context, scope)),
+                  ),
+                );
+              },
+            ),
     );
   }
 
-  String _buildScopeLabel(GeoScope scope) {
+  String _buildScopeLabel(BuildContext context, GeoScope scope) {
+    final isItalian = Localizations.localeOf(context).languageCode == 'it';
     switch (scope.level.name) {
       case 'world':
-        return 'World';
+        return isItalian ? 'Mondo' : 'World';
 
       case 'country':
-        return 'Country: ${scope.countryCode}';
+        return '${isItalian ? 'Paese' : 'Country'}: ${scope.countryCode}';
 
       case 'city':
-        return 'City: ${scope.cityId}';
+        return '${isItalian ? 'Città' : 'City'}: ${scope.cityId}';
 
       case 'area':
-        return 'Area (${scope.radiusKm} km)';
+        return '${isItalian ? 'Area' : 'Area'} (${scope.radiusKm} km)';
 
       default:
         return scope.level.name;

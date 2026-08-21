@@ -56,6 +56,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
     super.dispose();
   }
 
+  bool get _isItalian =>
+      Localizations.localeOf(context).languageCode.toLowerCase() == 'it';
+
   Future<void> _loadPublishingIdentity() async {
     final userId = AppDI.instance.currentUserId;
     if (userId == null) {
@@ -102,8 +105,221 @@ class _CreatePollViewState extends State<_CreatePollView> {
     }
   }
 
+  String _pollTypeDescription(PollType type) {
+    switch (type) {
+      case PollType.yesNo:
+        return _isItalian
+            ? 'Per una domanda con due sole risposte: Sì oppure No.'
+            : 'For a question with exactly two answers: Yes or No.';
+      case PollType.singleChoice:
+        return _isItalian
+            ? 'Consigliato nella maggior parte dei casi: ogni persona sceglie una sola risposta.'
+            : 'Recommended for most polls: each person selects one answer.';
+      case PollType.multipleChoice:
+        return _isItalian
+            ? 'Usalo quando più risposte possono essere valide insieme.'
+            : 'Use this when more than one answer can be valid at the same time.';
+      case PollType.approval:
+        return _isItalian
+            ? 'Modalità avanzata non disponibile per nuovi sondaggi.'
+            : 'Advanced mode is not available for new polls.';
+      case PollType.ranked:
+        return _isItalian
+            ? 'Modalità avanzata non disponibile per nuovi sondaggi.'
+            : 'Advanced mode is not available for new polls.';
+      case PollType.score:
+        return _isItalian
+            ? 'Modalità avanzata non disponibile per nuovi sondaggi.'
+            : 'Advanced mode is not available for new polls.';
+    }
+  }
+
+  String _selectionSummary(CreatePollController controller) {
+    if (controller.type == PollType.yesNo ||
+        controller.type == PollType.singleChoice) {
+      return _isItalian
+          ? 'Chi vota può selezionare una sola risposta.'
+          : 'Voters can select one answer.';
+    }
+
+    return _isItalian
+        ? 'Chi vota può selezionare da 1 a ${controller.maxSelections} risposte.'
+        : 'Voters can select from 1 to ${controller.maxSelections} answers.';
+  }
+
+  void _selectPollType(CreatePollController controller, PollType type) {
+    controller.setType(type);
+
+    if (type == PollType.yesNo) {
+      while (controller.options.length > 2) {
+        controller.removeOption(controller.options.length - 1);
+      }
+      controller.setOptionText(0, _isItalian ? 'Sì' : 'Yes');
+      controller.setOptionText(1, 'No');
+    }
+  }
+
+  Widget _buildPollTypeChoice(
+    BuildContext context, {
+    required CreatePollController controller,
+    required PollType type,
+    required IconData icon,
+    required bool enabled,
+  }) {
+    final theme = Theme.of(context);
+    final selected = controller.type == type;
+    final colorScheme = theme.colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: enabled ? () => _selectPollType(controller, type) : null,
+          borderRadius: BorderRadius.circular(14),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: selected
+                  ? colorScheme.primaryContainer.withValues(alpha: 0.34)
+                  : colorScheme.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: selected
+                    ? colorScheme.primary.withValues(alpha: 0.75)
+                    : colorScheme.outline.withValues(alpha: 0.22),
+                width: selected ? 1.5 : 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Icon(
+                    icon,
+                    size: 22,
+                    color: selected
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _pollTypeLabel(type),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        _pollTypeDescription(type),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.textTheme.bodySmall?.color?.withValues(
+                            alpha: 0.78,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  selected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  color: selected
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _localizedControllerError(CreatePollController controller) {
+    final raw = controller.errorMessage?.trim();
+    if (raw == null || raw.isEmpty) {
+      return _isItalian
+          ? 'Impossibile completare l’operazione.'
+          : 'Unable to complete the operation.';
+    }
+
+    final messages = <String, List<String>>{
+      'Device location is not available.': [
+        'La posizione del dispositivo non è disponibile.',
+        'Device location is not available.',
+      ],
+      'Location services are disabled.': [
+        'I servizi di localizzazione sono disattivati.',
+        'Location services are disabled.',
+      ],
+      'Location permission was denied.': [
+        'Il permesso di localizzazione è stato negato.',
+        'Location permission was denied.',
+      ],
+      'Unable to read current device location.': [
+        'Impossibile leggere la posizione attuale.',
+        'Unable to read the current device location.',
+      ],
+      'Unable to access device location.': [
+        'Impossibile accedere alla posizione del dispositivo.',
+        'Unable to access the device location.',
+      ],
+      'Location validation is not available.': [
+        'La verifica della località non è disponibile.',
+        'Location validation is not available.',
+      ],
+      'Please select a country before entering a city.': [
+        'Seleziona un Paese prima di inserire una città.',
+        'Select a country before entering a city.',
+      ],
+      'Unable to validate the selected location.': [
+        'Impossibile verificare la località selezionata.',
+        'Unable to validate the selected location.',
+      ],
+      'Title is required.': ['Inserisci un titolo.', 'Enter a title.'],
+      'At least two options are required.': [
+        'Inserisci almeno due risposte.',
+        'Enter at least two answers.',
+      ],
+      'Start and end dates are required.': [
+        'Seleziona la data di inizio e la data di fine.',
+        'Select a start date and an end date.',
+      ],
+      'End date must be after start date.': [
+        'La data di fine deve essere successiva alla data di inizio.',
+        'The end date must be after the start date.',
+      ],
+      'Poll duration cannot exceed 31 days.': [
+        'Il sondaggio non può durare più di 31 giorni.',
+        'The poll cannot last more than 31 days.',
+      ],
+      'Please select a country for this poll.': [
+        'Seleziona un Paese per questo sondaggio.',
+        'Select a country for this poll.',
+      ],
+    };
+
+    final localized = messages[raw];
+    if (localized != null) {
+      return localized[_isItalian ? 0 : 1];
+    }
+
+    return raw;
+  }
+
   String _formatDate(DateTime dt) {
-    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+    return MaterialLocalizations.of(context).formatMediumDate(dt.toLocal());
   }
 
   String _participationScopeLabel(ParticipationScope scope) {
@@ -157,13 +373,13 @@ class _CreatePollViewState extends State<_CreatePollView> {
   String _contentLocationSourceLabel(ContentLocationSource source) {
     switch (source) {
       case ContentLocationSource.manual:
-        return 'Manuale';
+        return _isItalian ? 'Manuale' : 'Manual';
       case ContentLocationSource.device:
-        return 'Posizione attuale';
+        return _isItalian ? 'Posizione attuale' : 'Current location';
       case ContentLocationSource.profile:
-        return 'Profilo';
+        return _isItalian ? 'Profilo' : 'Profile';
       case ContentLocationSource.geoScopeFallback:
-        return 'Scope corrente';
+        return _isItalian ? 'Ambito corrente' : 'Current scope';
     }
   }
 
@@ -181,19 +397,21 @@ class _CreatePollViewState extends State<_CreatePollView> {
 
     if (parts.isEmpty) {
       if (_showManualContentLocationFields) {
-        return 'Seleziona una località';
+        return _isItalian ? 'Seleziona una località' : 'Select a location';
       }
       if (location.source == ContentLocationSource.geoScopeFallback) {
-        return 'Globale';
+        return _isItalian ? 'Globale' : 'Global';
       }
       if (location.source == ContentLocationSource.device &&
           location.hasExactPoint) {
-        return 'Coordinate GPS disponibili';
+        return _isItalian
+            ? 'Coordinate GPS disponibili'
+            : 'GPS coordinates available';
       }
       if (location.hasCenter) {
-        return 'Coordinate disponibili';
+        return _isItalian ? 'Coordinate disponibili' : 'Coordinates available';
       }
-      return 'Globale / nessuna località';
+      return _isItalian ? 'Globale / nessuna località' : 'Global / no location';
     }
 
     return parts.join(', ');
@@ -221,15 +439,21 @@ class _CreatePollViewState extends State<_CreatePollView> {
 
   String? _submitHintText(CreatePollController controller) {
     if (!controller.hasExplicitTimeWindow) {
-      return 'Imposta data di inizio e data di fine prima di creare il poll.';
+      return _isItalian
+          ? 'Imposta data di inizio e data di fine prima di creare il sondaggio.'
+          : 'Set a start date and an end date before creating the poll.';
     }
 
     if (controller.endAt.isBefore(controller.startAt)) {
-      return 'La data di fine deve essere successiva alla data di inizio.';
+      return _isItalian
+          ? 'La data di fine deve essere successiva alla data di inizio.'
+          : 'The end date must be after the start date.';
     }
 
     if (_isTimingTooLong(controller)) {
-      return 'La votazione non può durare più di 31 giorni.';
+      return _isItalian
+          ? 'La votazione non può durare più di 31 giorni.'
+          : 'The poll cannot last more than 31 days.';
     }
 
     return null;
@@ -253,11 +477,11 @@ class _CreatePollViewState extends State<_CreatePollView> {
     }
 
     if (profile.isPublicOfficial) {
-      return 'Public Official';
+      return _isItalian ? 'Funzionario pubblico' : 'Public official';
     }
 
     if (profile.isInstitutionActor) {
-      return 'Institution';
+      return _isItalian ? 'Istituzione' : 'Institution';
     }
 
     return null;
@@ -287,10 +511,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
             children: [
               if (profile != null &&
                   UserIdentityMark.shouldShowForProfile(profile))
-                UserIdentityMark.fromProfile(
-                  profile,
-                  size: 18,
-                )
+                UserIdentityMark.fromProfile(profile, size: 18)
               else
                 Icon(
                   Icons.campaign_outlined,
@@ -300,7 +521,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Pubblicazione rappresentativa',
+                  _isItalian
+                      ? 'Pubblicazione rappresentativa'
+                      : 'Representative publishing',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -311,8 +534,12 @@ class _CreatePollViewState extends State<_CreatePollView> {
           const SizedBox(height: 8),
           Text(
             identityTypeLabel == null
-                ? 'Questo poll verrà pubblicato con la tua identity verificata.'
-                : 'Questo poll verrà pubblicato come $identityTypeLabel.',
+                ? (_isItalian
+                      ? 'Questo sondaggio verrà pubblicato con la tua identità verificata.'
+                      : 'This poll will be published with your verified identity.')
+                : (_isItalian
+                      ? 'Questo sondaggio verrà pubblicato come $identityTypeLabel.'
+                      : 'This poll will be published as $identityTypeLabel.'),
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,
             ),
@@ -322,8 +549,12 @@ class _CreatePollViewState extends State<_CreatePollView> {
             const SizedBox(height: 10),
             Text(
               profile!.isInstitutionActor
-                  ? 'Ente verificato: $identityDetailLabel'
-                  : 'Titolo verificato: $identityDetailLabel',
+                  ? (_isItalian
+                        ? 'Ente verificato: $identityDetailLabel'
+                        : 'Verified institution: $identityDetailLabel')
+                  : (_isItalian
+                        ? 'Titolo verificato: $identityDetailLabel'
+                        : 'Verified title: $identityDetailLabel'),
               style: theme.textTheme.bodyMedium,
             ),
           ],
@@ -331,13 +562,17 @@ class _CreatePollViewState extends State<_CreatePollView> {
               institutionLevelLabel.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
-              'Livello istituzionale: $institutionLevelLabel',
+              _isItalian
+                  ? 'Livello istituzionale: $institutionLevelLabel'
+                  : 'Institution level: $institutionLevelLabel',
               style: theme.textTheme.bodyMedium,
             ),
           ],
           const SizedBox(height: 10),
           Text(
-            'Non puoi cambiare manualmente questa identità qui: viene dal profilo già verificato.',
+            _isItalian
+                ? 'Non puoi cambiare manualmente questa identità qui: viene dal profilo già verificato.'
+                : 'You cannot change this identity here: it comes from your verified profile.',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
             ),
@@ -347,10 +582,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
     );
   }
 
-  Widget _buildInlineErrorBox(
-    BuildContext context, {
-    required String text,
-  }) {
+  Widget _buildInlineErrorBox(BuildContext context, {required String text}) {
     final theme = Theme.of(context);
 
     return Container(
@@ -365,11 +597,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 18,
-            color: theme.colorScheme.error,
-          ),
+          Icon(Icons.error_outline, size: 18, color: theme.colorScheme.error),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -385,10 +613,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
     );
   }
 
-  Widget _buildInlineInfoBox(
-    BuildContext context, {
-    required String text,
-  }) {
+  Widget _buildInlineInfoBox(BuildContext context, {required String text}) {
     final theme = Theme.of(context);
 
     return Container(
@@ -403,11 +628,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline,
-            size: 18,
-            color: theme.colorScheme.primary,
-          ),
+          Icon(Icons.info_outline, size: 18, color: theme.colorScheme.primary),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -423,10 +644,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
     );
   }
 
-  Widget _buildSectionCard(
-    BuildContext context, {
-    required Widget child,
-  }) {
+  Widget _buildSectionCard(BuildContext context, {required Widget child}) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
@@ -436,8 +654,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
       colorScheme.surface,
     );
 
-    final borderColor =
-        colorScheme.outline.withValues(alpha: isDark ? 0.26 : 0.12);
+    final borderColor = colorScheme.outline.withValues(
+      alpha: isDark ? 0.26 : 0.12,
+    );
 
     final shadowColor = isDark
         ? Colors.black.withValues(alpha: 0.18)
@@ -449,10 +668,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
       decoration: BoxDecoration(
         color: surfaceColor,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: borderColor,
-          width: 1,
-        ),
+        border: Border.all(color: borderColor, width: 1),
         boxShadow: [
           BoxShadow(
             color: shadowColor,
@@ -461,23 +677,14 @@ class _CreatePollViewState extends State<_CreatePollView> {
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: child,
-      ),
+      child: Material(color: Colors.transparent, child: child),
     );
   }
 
-  void _showSnackBarMessage(
-    String message, {
-    SnackBarBehavior? behavior,
-  }) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: behavior,
-        content: Text(message),
-      ),
-    );
+  void _showSnackBarMessage(String message, {SnackBarBehavior? behavior}) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(behavior: behavior, content: Text(message)));
   }
 
   void _applyCurrentDeviceLocation(CreatePollController controller) {
@@ -487,8 +694,11 @@ class _CreatePollViewState extends State<_CreatePollView> {
   }
 
   void _showCurrentDeviceLocationError(CreatePollController controller) {
-    final message = controller.errorMessage ??
-        'Impossibile recuperare la posizione attuale.';
+    final message = controller.errorMessage == null
+        ? (_isItalian
+              ? 'Impossibile recuperare la posizione attuale.'
+              : 'Unable to retrieve the current location.')
+        : _localizedControllerError(controller);
     _showSnackBarMessage(message);
   }
 
@@ -506,14 +716,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
     _showCurrentDeviceLocationError(controller);
   }
 
-  void _completePollSubmission(
-    PollId pollId,
-    String successMessage,
-  ) {
-    _showSnackBarMessage(
-      successMessage,
-      behavior: SnackBarBehavior.floating,
-    );
+  void _completePollSubmission(PollId pollId, String successMessage) {
+    _showSnackBarMessage(successMessage, behavior: SnackBarBehavior.floating);
     Navigator.of(context).pop(pollId);
   }
 
@@ -549,14 +753,16 @@ class _CreatePollViewState extends State<_CreatePollView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Località contenuto',
+            _isItalian ? 'Località del contenuto' : 'Content location',
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            'Scegli se il poll è globale, associato a una località oppure alla tua posizione attuale. Lo scope di navigazione non modifica questa scelta.',
+            _isItalian
+                ? 'Scegli se il sondaggio è globale, associato a una località oppure alla tua posizione attuale. L’ambito di navigazione non modifica questa scelta.'
+                : 'Choose whether the poll is global, linked to a location, or linked to your current location. Navigation scope does not change this choice.',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
             ),
@@ -566,8 +772,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest
-                  .withValues(alpha: 0.35),
+              color: theme.colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.35,
+              ),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: theme.colorScheme.outline.withValues(alpha: 0.15),
@@ -577,7 +784,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Località attiva',
+                  _isItalian ? 'Località attiva' : 'Active location',
                   style: theme.textTheme.labelMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -591,10 +798,15 @@ class _CreatePollViewState extends State<_CreatePollView> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Origine: ${isGlobalSelected ? 'Globale' : _showManualContentLocationFields ? 'Manuale' : _contentLocationSourceLabel(effectiveLocation.source)}',
+                  '${_isItalian ? 'Origine' : 'Source'}: ${isGlobalSelected
+                      ? (_isItalian ? 'Globale' : 'Global')
+                      : _showManualContentLocationFields
+                      ? (_isItalian ? 'Manuale' : 'Manual')
+                      : _contentLocationSourceLabel(effectiveLocation.source)}',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.textTheme.bodySmall?.color
-                        ?.withValues(alpha: 0.75),
+                    color: theme.textTheme.bodySmall?.color?.withValues(
+                      alpha: 0.75,
+                    ),
                   ),
                 ),
               ],
@@ -638,7 +850,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                       ),
                     ),
                     icon: const Icon(Icons.public, size: 16),
-                    label: const Text('Globale'),
+                    label: Text(_isItalian ? 'Globale' : 'Global'),
                   ),
                   OutlinedButton.icon(
                     onPressed: isSubmitting
@@ -668,22 +880,24 @@ class _CreatePollViewState extends State<_CreatePollView> {
                       ),
                     ),
                     icon: const Icon(Icons.place_outlined, size: 16),
-                    label: const Text('Scegli località'),
+                    label: Text(
+                      _isItalian ? 'Scegli località' : 'Choose location',
+                    ),
                   ),
                   OutlinedButton.icon(
                     onPressed:
                         isSubmitting || controller.isResolvingContentLocation
-                            ? null
-                            : () async {
-                                await _useCurrentDeviceLocation(controller);
-                                if (!mounted) return;
-                                if (controller.contentLocation?.source ==
-                                    ContentLocationSource.device) {
-                                  setState(() {
-                                    _showManualContentLocationFields = false;
-                                  });
-                                }
-                              },
+                        ? null
+                        : () async {
+                            await _useCurrentDeviceLocation(controller);
+                            if (!mounted) return;
+                            if (controller.contentLocation?.source ==
+                                ContentLocationSource.device) {
+                              setState(() {
+                                _showManualContentLocationFields = false;
+                              });
+                            }
+                          },
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -711,10 +925,18 @@ class _CreatePollViewState extends State<_CreatePollView> {
                         : const Icon(Icons.my_location, size: 16),
                     label: Text(
                       controller.isResolvingContentLocation
-                          ? (compact ? 'Attendo...' : 'Ricavo posizione...')
+                          ? (compact
+                                ? (_isItalian ? 'Attendo...' : 'Please wait...')
+                                : (_isItalian
+                                      ? 'Ricavo posizione...'
+                                      : 'Getting location...'))
                           : (compact
-                              ? 'Posizione attuale'
-                              : 'Usa posizione attuale'),
+                                ? (_isItalian
+                                      ? 'Posizione attuale'
+                                      : 'Current location')
+                                : (_isItalian
+                                      ? 'Usa posizione attuale'
+                                      : 'Use current location')),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -730,24 +952,22 @@ class _CreatePollViewState extends State<_CreatePollView> {
               ),
               selectedCountryCode: selectedContentCountryCode,
               onCountrySelected: (code) {
-                _applyManualContentLocation(
-                  controller,
-                  countryCode: code,
-                );
+                _applyManualContentLocation(controller, countryCode: code);
                 setState(() {});
               },
-              label: 'Paese del contenuto',
+              label: _isItalian ? 'Paese del contenuto' : 'Content country',
               required: false,
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _contentCityController,
               enabled: !isSubmitting,
-              decoration: const InputDecoration(
-                labelText: 'Città del contenuto',
-                border: OutlineInputBorder(),
-                helperText:
-                    'Facoltativo. Serve per posizionare meglio il poll.',
+              decoration: InputDecoration(
+                labelText: _isItalian ? 'Città del contenuto' : 'Content city',
+                border: const OutlineInputBorder(),
+                helperText: _isItalian
+                    ? 'Facoltativo. Serve per posizionare meglio il sondaggio.'
+                    : 'Optional. Helps place the poll more accurately.',
               ),
               onChanged: (_) => _applyManualContentLocation(controller),
             ),
@@ -755,7 +975,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
           if (explicitLocation != null) ...[
             const SizedBox(height: 8),
             Text(
-              'Località personalizzata pronta per il submit.',
+              _isItalian
+                  ? 'Località personalizzata pronta per la pubblicazione.'
+                  : 'Custom location ready for publishing.',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.primary,
                 fontWeight: FontWeight.w600,
@@ -806,16 +1028,15 @@ class _CreatePollViewState extends State<_CreatePollView> {
         child: SafeArea(
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 720,
-              ),
+              constraints: const BoxConstraints(maxWidth: 720),
               child: Consumer<CreatePollController>(
                 builder: (context, controller, _) {
                   final isSubmitting = controller.isSubmitting;
                   final selectedParticipationCountryCode =
                       controller.countryCodeForParticipation;
                   final submitHintText = _submitHintText(controller);
-                  final canSubmitPoll = controller.canSubmit &&
+                  final canSubmitPoll =
+                      controller.canSubmit &&
                       controller.hasExplicitTimeWindow &&
                       !_isTimingTooLong(controller);
 
@@ -873,7 +1094,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                             ),
                           ),
                           if (_canPublishAsRepresentative(
-                              _currentUserProfile)) ...[
+                            _currentUserProfile,
+                          )) ...[
                             const SizedBox(height: 16),
                             _buildRepresentativePublishingCard(context),
                           ],
@@ -933,40 +1155,33 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-                                InputDecorator(
-                                  decoration: InputDecoration(
-                                    labelText: l10n.createPollTypeFieldLabel,
-                                    border: const OutlineInputBorder(),
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<PollType>(
-                                      isExpanded: true,
-                                      value: controller.type,
-                                      onChanged: isSubmitting
-                                          ? null
-                                          : (value) {
-                                              if (value != null) {
-                                                controller.setType(value);
-                                              }
-                                            },
-                                      items: PollType.values
-                                          .map(
-                                            (type) => DropdownMenuItem(
-                                              value: type,
-                                              child: Text(
-                                                _pollTypeLabel(type),
-                                              ),
-                                            ),
-                                          )
-                                          .toList(),
-                                    ),
-                                  ),
+                                _buildPollTypeChoice(
+                                  context,
+                                  controller: controller,
+                                  type: PollType.yesNo,
+                                  icon: Icons.thumbs_up_down_outlined,
+                                  enabled: !isSubmitting,
                                 ),
-                                const SizedBox(height: 12),
+                                _buildPollTypeChoice(
+                                  context,
+                                  controller: controller,
+                                  type: PollType.singleChoice,
+                                  icon: Icons.radio_button_checked,
+                                  enabled: !isSubmitting,
+                                ),
+                                _buildPollTypeChoice(
+                                  context,
+                                  controller: controller,
+                                  type: PollType.multipleChoice,
+                                  icon: Icons.check_box_outlined,
+                                  enabled: !isSubmitting,
+                                ),
+                                const SizedBox(height: 4),
                                 Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Icon(
-                                      Icons.rule,
+                                      Icons.info_outline,
                                       size: 18,
                                       color: theme.colorScheme.primary
                                           .withValues(alpha: 0.8),
@@ -974,16 +1189,15 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        l10n.createPollSelectionRules(
-                                          controller.minSelections,
-                                          controller.maxSelections,
-                                        ),
-                                        style:
-                                            theme.textTheme.bodySmall?.copyWith(
-                                          color: theme
-                                              .textTheme.bodySmall?.color
-                                              ?.withValues(alpha: 0.8),
-                                        ),
+                                        _selectionSummary(controller),
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: theme
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.color
+                                                  ?.withValues(alpha: 0.8),
+                                            ),
                                       ),
                                     ),
                                   ],
@@ -997,11 +1211,14 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     ),
                                     subtitle: Text(
                                       l10n.createPollAllowVoteChangeSubtitle,
-                                      style:
-                                          theme.textTheme.bodySmall?.copyWith(
-                                        color: theme.textTheme.bodySmall?.color
-                                            ?.withValues(alpha: 0.8),
-                                      ),
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: theme
+                                                .textTheme
+                                                .bodySmall
+                                                ?.color
+                                                ?.withValues(alpha: 0.8),
+                                          ),
                                     ),
                                     value: controller.allowVoteChange,
                                     onChanged: isSubmitting
@@ -1026,78 +1243,108 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  l10n.createPollOptionsSubtitle,
+                                  controller.type == PollType.yesNo
+                                      ? (_isItalian
+                                            ? 'Le due risposte sono impostate automaticamente.'
+                                            : 'The two answers are set automatically.')
+                                      : l10n.createPollOptionsSubtitle,
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.textTheme.bodySmall?.color
                                         ?.withValues(alpha: 0.8),
                                   ),
                                 ),
                                 const SizedBox(height: 12),
-                                Column(
-                                  children: List.generate(
-                                    controller.options.length,
-                                    (index) {
-                                      final optionLabel =
-                                          l10n.createPollOptionLabel(
-                                        index + 1,
-                                        index < 2 ? ' *' : '',
-                                      );
-                                      final canRemove =
-                                          controller.options.length > 2;
-
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 8),
-                                        child: Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Expanded(
-                                              child: TextField(
-                                                enabled: !isSubmitting,
-                                                decoration: InputDecoration(
-                                                  labelText: optionLabel,
-                                                  border:
-                                                      const OutlineInputBorder(),
-                                                ),
-                                                onChanged: (value) =>
-                                                    controller.setOptionText(
-                                                  index,
-                                                  value,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            if (canRemove)
-                                              IconButton(
-                                                tooltip: l10n
-                                                    .createPollRemoveOptionTooltip,
-                                                onPressed: isSubmitting
-                                                    ? null
-                                                    : () => controller
-                                                        .removeOption(index),
-                                                icon: const Icon(
-                                                  Icons.remove_circle_outline,
-                                                ),
-                                              ),
-                                          ],
+                                if (controller.type == PollType.yesNo)
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      Chip(
+                                        avatar: const Icon(
+                                          Icons.check_circle_outline,
+                                          size: 18,
                                         ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: TextButton.icon(
-                                    onPressed: isSubmitting
-                                        ? null
-                                        : controller.addOption,
-                                    icon: const Icon(Icons.add),
-                                    label: Text(
-                                      l10n.createPollAddOptionButton,
+                                        label: Text(_isItalian ? 'Sì' : 'Yes'),
+                                      ),
+                                      const Chip(
+                                        avatar: Icon(
+                                          Icons.cancel_outlined,
+                                          size: 18,
+                                        ),
+                                        label: Text('No'),
+                                      ),
+                                    ],
+                                  )
+                                else ...[
+                                  Column(
+                                    children: List.generate(
+                                      controller.options.length,
+                                      (index) {
+                                        final optionLabel = l10n
+                                            .createPollOptionLabel(
+                                              index + 1,
+                                              index < 2 ? ' *' : '',
+                                            );
+                                        final canRemove =
+                                            controller.options.length > 2;
+
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 8,
+                                          ),
+                                          child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                child: TextField(
+                                                  enabled: !isSubmitting,
+                                                  decoration: InputDecoration(
+                                                    labelText: optionLabel,
+                                                    border:
+                                                        const OutlineInputBorder(),
+                                                  ),
+                                                  onChanged: (value) =>
+                                                      controller.setOptionText(
+                                                        index,
+                                                        value,
+                                                      ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              if (canRemove)
+                                                IconButton(
+                                                  tooltip: l10n
+                                                      .createPollRemoveOptionTooltip,
+                                                  onPressed: isSubmitting
+                                                      ? null
+                                                      : () => controller
+                                                            .removeOption(
+                                                              index,
+                                                            ),
+                                                  icon: const Icon(
+                                                    Icons.remove_circle_outline,
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
-                                ),
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: TextButton.icon(
+                                      onPressed: isSubmitting
+                                          ? null
+                                          : controller.addOption,
+                                      icon: const Icon(Icons.add),
+                                      label: Text(
+                                        l10n.createPollAddOptionButton,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),
@@ -1154,10 +1401,12 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                           l10n.createPollParticipationEveryoneSubtitle,
                                           style: theme.textTheme.bodySmall
                                               ?.copyWith(
-                                            color: theme
-                                                .textTheme.bodySmall?.color
-                                                ?.withValues(alpha: 0.8),
-                                          ),
+                                                color: theme
+                                                    .textTheme
+                                                    .bodySmall
+                                                    ?.color
+                                                    ?.withValues(alpha: 0.8),
+                                              ),
                                         ),
                                         value: ParticipationScope.everyone,
                                       ),
@@ -1172,10 +1421,12 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                           l10n.createPollParticipationGeoScopeSubtitle,
                                           style: theme.textTheme.bodySmall
                                               ?.copyWith(
-                                            color: theme
-                                                .textTheme.bodySmall?.color
-                                                ?.withValues(alpha: 0.8),
-                                          ),
+                                                color: theme
+                                                    .textTheme
+                                                    .bodySmall
+                                                    ?.color
+                                                    ?.withValues(alpha: 0.8),
+                                              ),
                                         ),
                                         value: ParticipationScope.geoScopeOnly,
                                       ),
@@ -1192,8 +1443,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     selectedCountryCode:
                                         selectedParticipationCountryCode,
                                     onCountrySelected: (code) {
-                                      controller
-                                          .setCountryCodeForParticipation(code);
+                                      controller.setCountryCodeForParticipation(
+                                        code,
+                                      );
                                       setState(() {});
                                     },
                                     label: l10n.createPollCountryFieldLabel,
@@ -1221,8 +1473,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                       controller.minimumVerificationLevel,
                                   onChanged: (value) {
                                     if (isSubmitting || value == null) return;
-                                    controller
-                                        .setMinimumVerificationLevel(value);
+                                    controller.setMinimumVerificationLevel(
+                                      value,
+                                    );
                                   },
                                   child: Column(
                                     children: [
@@ -1284,10 +1537,12 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                             l10n.createPollAnonymityAnonymousSubtitle,
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
-                                              color: theme
-                                                  .textTheme.bodySmall?.color
-                                                  ?.withValues(alpha: 0.8),
-                                            ),
+                                                  color: theme
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.color
+                                                      ?.withValues(alpha: 0.8),
+                                                ),
                                           ),
                                           value: AnonymityLevel.anonymous,
                                         ),
@@ -1302,10 +1557,12 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                             l10n.createPollAnonymityPublicSubtitle,
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
-                                              color: theme
-                                                  .textTheme.bodySmall?.color
-                                                  ?.withValues(alpha: 0.8),
-                                            ),
+                                                  color: theme
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.color
+                                                      ?.withValues(alpha: 0.8),
+                                                ),
                                           ),
                                           value: AnonymityLevel.public,
                                         ),
@@ -1325,10 +1582,8 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 children: [
                                   Text(
                                     l10n.createPollResultsValidityTitle,
-                                    style:
-                                        theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w700),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
@@ -1348,31 +1603,31 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     child: DropdownButtonHideUnderline(
                                       child:
                                           DropdownButton<ResultsVisibilityMode>(
-                                        isExpanded: true,
-                                        value: controller.resultsVisibility,
-                                        onChanged: isSubmitting
-                                            ? null
-                                            : (value) {
-                                                if (value != null) {
-                                                  controller
-                                                      .setResultsVisibility(
-                                                    value,
-                                                  );
-                                                }
-                                              },
-                                        items: ResultsVisibilityMode.values
-                                            .map(
-                                              (mode) => DropdownMenuItem(
-                                                value: mode,
-                                                child: Text(
-                                                  _resultsVisibilityLabel(
-                                                    mode,
+                                            isExpanded: true,
+                                            value: controller.resultsVisibility,
+                                            onChanged: isSubmitting
+                                                ? null
+                                                : (value) {
+                                                    if (value != null) {
+                                                      controller
+                                                          .setResultsVisibility(
+                                                            value,
+                                                          );
+                                                    }
+                                                  },
+                                            items: ResultsVisibilityMode.values
+                                                .map(
+                                                  (mode) => DropdownMenuItem(
+                                                    value: mode,
+                                                    child: Text(
+                                                      _resultsVisibilityLabel(
+                                                        mode,
+                                                      ),
+                                                    ),
                                                   ),
-                                                ),
-                                              ),
-                                            )
-                                            .toList(),
-                                      ),
+                                                )
+                                                .toList(),
+                                          ),
                                     ),
                                   ),
                                   const SizedBox(height: 16),
@@ -1395,7 +1650,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     enabled: !isSubmitting,
                                     initialValue:
                                         controller.minQuorumVotes?.toString() ??
-                                            '',
+                                        '',
                                     keyboardType: TextInputType.number,
                                     decoration: InputDecoration(
                                       border: const OutlineInputBorder(),
@@ -1406,8 +1661,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                       if (value.trim().isEmpty) {
                                         controller.setMinQuorumVotes(null);
                                       } else {
-                                        final parsed =
-                                            int.tryParse(value.trim());
+                                        final parsed = int.tryParse(
+                                          value.trim(),
+                                        );
                                         controller.setMinQuorumVotes(parsed);
                                       }
                                     },
@@ -1439,15 +1695,16 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 const SizedBox(height: 12),
                                 ListTile(
                                   contentPadding: EdgeInsets.zero,
-                                  leading:
-                                      const Icon(Icons.play_circle_outline),
-                                  title: Text(
-                                    l10n.createPollStartDateLabel,
+                                  leading: const Icon(
+                                    Icons.play_circle_outline,
                                   ),
+                                  title: Text(l10n.createPollStartDateLabel),
                                   subtitle: Text(
                                     controller.hasExplicitStartAt
                                         ? _formatDate(controller.startAt)
-                                        : 'Non impostata',
+                                        : (_isItalian
+                                              ? 'Non impostata'
+                                              : 'Not set'),
                                   ),
                                   trailing: TextButton(
                                     onPressed: isSubmitting
@@ -1461,15 +1718,15 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                             );
                                             final initialDate =
                                                 controller.hasExplicitStartAt
-                                                    ? controller.startAt
-                                                    : now;
+                                                ? controller.startAt
+                                                : now;
 
                                             final picked = await showDatePicker(
                                               context: context,
                                               initialDate:
                                                   initialDate.isBefore(baseDate)
-                                                      ? now
-                                                      : initialDate,
+                                                  ? now
+                                                  : initialDate,
                                               firstDate: now.subtract(
                                                 const Duration(days: 365),
                                               ),
@@ -1494,21 +1751,24 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     child: Text(
                                       controller.hasExplicitStartAt
                                           ? l10n.createPollChangeDateButtonLabel
-                                          : 'Seleziona',
+                                          : (_isItalian
+                                                ? 'Seleziona'
+                                                : 'Select'),
                                     ),
                                   ),
                                 ),
                                 ListTile(
                                   contentPadding: EdgeInsets.zero,
-                                  leading:
-                                      const Icon(Icons.stop_circle_outlined),
-                                  title: Text(
-                                    l10n.createPollEndDateLabel,
+                                  leading: const Icon(
+                                    Icons.stop_circle_outlined,
                                   ),
+                                  title: Text(l10n.createPollEndDateLabel),
                                   subtitle: Text(
                                     controller.hasExplicitEndAt
                                         ? _formatDate(controller.endAt)
-                                        : 'Non impostata',
+                                        : (_isItalian
+                                              ? 'Non impostata'
+                                              : 'Not set'),
                                   ),
                                   trailing: TextButton(
                                     onPressed: isSubmitting
@@ -1522,15 +1782,15 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                             );
                                             final initialDate =
                                                 controller.hasExplicitEndAt
-                                                    ? controller.endAt
-                                                    : now;
+                                                ? controller.endAt
+                                                : now;
 
                                             final picked = await showDatePicker(
                                               context: context,
                                               initialDate:
                                                   initialDate.isBefore(baseDate)
-                                                      ? now
-                                                      : initialDate,
+                                                  ? now
+                                                  : initialDate,
                                               firstDate: now.subtract(
                                                 const Duration(days: 365),
                                               ),
@@ -1554,7 +1814,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     child: Text(
                                       controller.hasExplicitEndAt
                                           ? l10n.createPollChangeDateButtonLabel
-                                          : 'Seleziona',
+                                          : (_isItalian
+                                                ? 'Seleziona'
+                                                : 'Select'),
                                     ),
                                   ),
                                 ),
@@ -1580,7 +1842,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                           if (controller.errorMessage != null) ...[
                             _buildInlineErrorBox(
                               context,
-                              text: controller.errorMessage!,
+                              text: _localizedControllerError(controller),
                             ),
                             const SizedBox(height: 12),
                           ],
@@ -1589,9 +1851,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
                             child: ElevatedButton.icon(
                               onPressed: canSubmitPoll && !isSubmitting
                                   ? () => _submitPoll(
-                                        controller,
-                                        l10n.createPollSuccessMessage,
-                                      )
+                                      controller,
+                                      l10n.createPollSuccessMessage,
+                                    )
                                   : null,
                               icon: isSubmitting
                                   ? const SizedBox(

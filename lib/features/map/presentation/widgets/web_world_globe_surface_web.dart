@@ -121,12 +121,11 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
           constraints: const BoxConstraints(maxWidth: 360),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest
-                  .withValues(alpha: 0.72),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: theme.colorScheme.outlineVariant,
+              color: theme.colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.72,
               ),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: theme.colorScheme.outlineVariant),
             ),
             child: Padding(
               padding: const EdgeInsets.all(18),
@@ -139,21 +138,29 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    '3D Web non disponibile',
+                    Localizations.localeOf(context).languageCode == 'it'
+                        ? '3D Web non disponibile'
+                        : '3D Web unavailable',
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Puoi continuare con la Civic Map 2D.',
+                    Localizations.localeOf(context).languageCode == 'it'
+                        ? 'Puoi continuare con la Civic Map 2D.'
+                        : 'You can continue with the 2D Civic Map.',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodySmall,
                   ),
                   const SizedBox(height: 12),
                   FilledButton.tonal(
                     onPressed: widget.onUnavailable,
-                    child: const Text('Apri mappa 2D'),
+                    child: Text(
+                      Localizations.localeOf(context).languageCode == 'it'
+                          ? 'Apri mappa 2D'
+                          : 'Open 2D map',
+                    ),
                   ),
                 ],
               ),
@@ -292,34 +299,19 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       });
     }).toJS;
 
-    element.addEventListener(
-      'socialvote-globe-ready',
-      _readyListener,
-    );
-    element.addEventListener(
-      'socialvote-marker-tap',
-      _markerTapListener,
-    );
-    element.addEventListener(
-      'socialvote-surface-tap',
-      _surfaceTapListener,
-    );
+    element.addEventListener('socialvote-globe-ready', _readyListener);
+    element.addEventListener('socialvote-marker-tap', _markerTapListener);
+    element.addEventListener('socialvote-surface-tap', _surfaceTapListener);
     element.addEventListener(
       'socialvote-globe-orientation',
       _orientationListener,
     );
-    element.addEventListener(
-      'socialvote-globe-deep-zoom',
-      _deepZoomListener,
-    );
+    element.addEventListener('socialvote-globe-deep-zoom', _deepZoomListener);
     element.addEventListener(
       'socialvote-globe-diagnostics',
       _diagnosticsListener,
     );
-    element.addEventListener(
-      'socialvote-globe-error',
-      _errorListener,
-    );
+    element.addEventListener('socialvote-globe-error', _errorListener);
 
     _applyConfigIfPossible(force: true);
     _applyFocusIfPossible(force: true);
@@ -343,16 +335,10 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     }
 
     if (_readyListener != null) {
-      element.removeEventListener(
-        'socialvote-globe-ready',
-        _readyListener,
-      );
+      element.removeEventListener('socialvote-globe-ready', _readyListener);
     }
     if (_markerTapListener != null) {
-      element.removeEventListener(
-        'socialvote-marker-tap',
-        _markerTapListener,
-      );
+      element.removeEventListener('socialvote-marker-tap', _markerTapListener);
     }
     if (_surfaceTapListener != null) {
       element.removeEventListener(
@@ -379,10 +365,7 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       );
     }
     if (_errorListener != null) {
-      element.removeEventListener(
-        'socialvote-globe-error',
-        _errorListener,
-      );
+      element.removeEventListener('socialvote-globe-error', _errorListener);
     }
   }
 

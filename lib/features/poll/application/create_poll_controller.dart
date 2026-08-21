@@ -42,11 +42,11 @@ class CreatePollController extends ChangeNotifier {
     required String? createdByUserId,
     DeviceLocationRepository? deviceLocationRepository,
     GeocodingRepository? geocodingRepository,
-  })  : _createPollUseCase = createPollUseCase,
-        _geoScopeController = geoScopeController,
-        _createdByUserId = createdByUserId,
-        _deviceLocationRepository = deviceLocationRepository,
-        _geocodingRepository = geocodingRepository;
+  }) : _createPollUseCase = createPollUseCase,
+       _geoScopeController = geoScopeController,
+       _createdByUserId = createdByUserId,
+       _deviceLocationRepository = deviceLocationRepository,
+       _geocodingRepository = geocodingRepository;
 
   String _title = '';
   String _description = '';
@@ -114,21 +114,11 @@ class CreatePollController extends ChangeNotifier {
   int get _validNonEmptyOptionsCount =>
       _options.where((o) => o.trim().isNotEmpty).length;
 
-  DateTime get _effectiveStartAt => DateTime(
-        _startAt.year,
-        _startAt.month,
-        _startAt.day,
-      );
+  DateTime get _effectiveStartAt =>
+      DateTime(_startAt.year, _startAt.month, _startAt.day);
 
-  DateTime get _effectiveEndAt => DateTime(
-        _endAt.year,
-        _endAt.month,
-        _endAt.day,
-        23,
-        59,
-        59,
-        999,
-      );
+  DateTime get _effectiveEndAt =>
+      DateTime(_endAt.year, _endAt.month, _endAt.day, 23, 59, 59, 999);
 
   bool get _hasValidDates =>
       !hasExplicitTimeWindow || !_effectiveEndAt.isBefore(_effectiveStartAt);
@@ -154,9 +144,7 @@ class CreatePollController extends ChangeNotifier {
       return _locationFromScope(_geoScopeController.scope);
     }
 
-    return const ContentLocation(
-      source: ContentLocationSource.manual,
-    );
+    return const ContentLocation(source: ContentLocationSource.manual);
   }
 
   void setTitle(String value) {
@@ -174,12 +162,14 @@ class CreatePollController extends ChangeNotifier {
   void setOptionText(int index, String value) {
     if (index < 0 || index >= _options.length) return;
     _options[index] = value;
+    _synchronizeSelectionLimits();
     _errorMessage = null;
     notifyListeners();
   }
 
   void addOption() {
     _options.add('');
+    _synchronizeSelectionLimits();
     notifyListeners();
   }
 
@@ -189,6 +179,7 @@ class CreatePollController extends ChangeNotifier {
     }
     if (index < 0 || index >= _options.length) return;
     _options.removeAt(index);
+    _synchronizeSelectionLimits();
     notifyListeners();
   }
 
@@ -203,24 +194,54 @@ class CreatePollController extends ChangeNotifier {
         break;
       case PollType.multipleChoice:
         _minSelections = 1;
-        _maxSelections =
-            _validNonEmptyOptionsCount > 0 ? _validNonEmptyOptionsCount : 2;
+        _maxSelections = _validNonEmptyOptionsCount > 0
+            ? _validNonEmptyOptionsCount
+            : 2;
         break;
       case PollType.approval:
         _minSelections = 0;
-        _maxSelections =
-            _validNonEmptyOptionsCount > 0 ? _validNonEmptyOptionsCount : 2;
+        _maxSelections = _validNonEmptyOptionsCount > 0
+            ? _validNonEmptyOptionsCount
+            : 2;
         break;
       case PollType.ranked:
       case PollType.score:
         _minSelections = 1;
-        _maxSelections =
-            _validNonEmptyOptionsCount > 0 ? _validNonEmptyOptionsCount : 2;
+        _maxSelections = _validNonEmptyOptionsCount > 0
+            ? _validNonEmptyOptionsCount
+            : 2;
         break;
     }
 
     _errorMessage = null;
     notifyListeners();
+  }
+
+  void _synchronizeSelectionLimits() {
+    final selectableCount = _validNonEmptyOptionsCount < 2
+        ? 2
+        : _validNonEmptyOptionsCount;
+
+    switch (_type) {
+      case PollType.yesNo:
+      case PollType.singleChoice:
+        _minSelections = 1;
+        _maxSelections = 1;
+        break;
+      case PollType.multipleChoice:
+        _minSelections = 1;
+        _maxSelections = selectableCount;
+        break;
+      case PollType.approval:
+        _minSelections = 1;
+        _maxSelections = selectableCount;
+        break;
+      case PollType.ranked:
+      case PollType.score:
+        _minSelections = 1;
+        _maxSelections = selectableCount;
+        break;
+    }
   }
 
   void setMinSelections(int value) {
@@ -336,10 +357,8 @@ class CreatePollController extends ChangeNotifier {
 
   void setContentLocation(ContentLocation? location) {
     _useGeoScopeFallback = false;
-    _contentLocation = location ??
-        const ContentLocation(
-          source: ContentLocationSource.manual,
-        );
+    _contentLocation =
+        location ?? const ContentLocation(source: ContentLocationSource.manual);
     _errorMessage = null;
     notifyListeners();
   }
@@ -376,8 +395,8 @@ class CreatePollController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final serviceEnabled =
-          await _deviceLocationRepository.isLocationServiceEnabled();
+      final serviceEnabled = await _deviceLocationRepository
+          .isLocationServiceEnabled();
 
       if (!serviceEnabled) {
         _isResolvingContentLocation = false;
@@ -398,8 +417,8 @@ class CreatePollController extends ChangeNotifier {
         return false;
       }
 
-      final location =
-          await _deviceLocationRepository.getCurrentContentLocation();
+      final location = await _deviceLocationRepository
+          .getCurrentContentLocation();
 
       if (location == null || location.isEmpty) {
         _isResolvingContentLocation = false;
@@ -453,8 +472,9 @@ class CreatePollController extends ChangeNotifier {
     }
 
     try {
-      final geocoded =
-          await _geocodingRepository.geocodeContentLocation(rawLocation);
+      final geocoded = await _geocodingRepository.geocodeContentLocation(
+        rawLocation,
+      );
 
       if (geocoded == null || geocoded.isEmpty) {
         _errorMessage = 'Unable to validate the selected location.';
@@ -477,12 +497,12 @@ class CreatePollController extends ChangeNotifier {
     try {
       final profile = await AppDI.instance.getUserProfile(userId);
 
-      final canPublishAsRepresentative =
-          _participationPolicy.canUseRepresentativeIdentityFeatures(
-        actorType: profile.actorType,
-        verificationLevel: profile.verificationLevel,
-        institutionLevel: profile.institutionLevel,
-      );
+      final canPublishAsRepresentative = _participationPolicy
+          .canUseRepresentativeIdentityFeatures(
+            actorType: profile.actorType,
+            verificationLevel: profile.verificationLevel,
+            institutionLevel: profile.institutionLevel,
+          );
 
       if (!canPublishAsRepresentative) {
         return null;
@@ -520,8 +540,10 @@ class CreatePollController extends ChangeNotifier {
 
     final trimmedTitle = _title.trim();
     final trimmedDescription = _description.trim();
-    final nonEmptyOptions =
-        _options.map((o) => o.trim()).where((o) => o.isNotEmpty).toList();
+    final nonEmptyOptions = _options
+        .map((o) => o.trim())
+        .where((o) => o.isNotEmpty)
+        .toList();
 
     final effectiveStartAt = _effectiveStartAt;
     final effectiveEndAt = _effectiveEndAt;
@@ -570,8 +592,9 @@ class CreatePollController extends ChangeNotifier {
         return null;
       }
 
-      String? geoCountryCode =
-          _normalizeCountryCode(effectiveLocation.countryCode);
+      String? geoCountryCode = _normalizeCountryCode(
+        effectiveLocation.countryCode,
+      );
       String? cityId = effectiveLocation.cityId;
 
       if (_useGeoScopeFallback) {
@@ -589,9 +612,9 @@ class CreatePollController extends ChangeNotifier {
 
       final effectiveParticipationCountry =
           _participationScope == ParticipationScope.geoScopeOnly
-              ? (_normalizeCountryCode(_countryCodeForParticipation) ??
-                  geoCountryCode)
-              : null;
+          ? (_normalizeCountryCode(_countryCodeForParticipation) ??
+                geoCountryCode)
+          : null;
 
       if (_participationScope == ParticipationScope.geoScopeOnly &&
           effectiveParticipationCountry == null) {
@@ -608,10 +631,7 @@ class CreatePollController extends ChangeNotifier {
       final pollOptions = <PollOption>[];
       for (var i = 0; i < nonEmptyOptions.length; i++) {
         pollOptions.add(
-          PollOption(
-            id: 'opt_${i + 1}',
-            label: nonEmptyOptions[i],
-          ),
+          PollOption(id: 'opt_${i + 1}', label: nonEmptyOptions[i]),
         );
       }
 
@@ -633,15 +653,7 @@ class CreatePollController extends ChangeNotifier {
 
       final now = DateTime.now();
       final todayStart = DateTime(now.year, now.month, now.day);
-      final todayEnd = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        23,
-        59,
-        59,
-        999,
-      );
+      final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
 
       late PollStatus status;
 
@@ -676,8 +688,8 @@ class CreatePollController extends ChangeNotifier {
         publishedAsActorType: representativeProfile?.actorType,
         publishedAsInstitutionLevel:
             representativeProfile?.actorType == ActorType.institution
-                ? representativeProfile?.institutionLevel
-                : null,
+            ? representativeProfile?.institutionLevel
+            : null,
         publishedAsDisplayName: representativeDisplayName,
       );
 

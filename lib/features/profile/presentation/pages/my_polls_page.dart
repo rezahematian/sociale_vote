@@ -6,6 +6,7 @@ import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/features/poll/application/poll_list_controller.dart';
 import 'package:sociale_vote/features/poll/presentation/widgets/poll_card.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class MyPollsPage extends StatelessWidget {
   const MyPollsPage({super.key});
@@ -13,17 +14,19 @@ class MyPollsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String? currentUserId = AppDI.instance.currentUserId;
+    final l10n = AppLocalizations.of(context)!;
+    final isItalian = Localizations.localeOf(context).languageCode == 'it';
 
     if (currentUserId == null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('My Polls'),
-        ),
-        body: const Center(
+        appBar: AppBar(title: Text(l10n.profileMyPollsTitle)),
+        body: Center(
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Text(
-              'You must be logged in to view your polls.',
+              isItalian
+                  ? 'Devi accedere per vedere i tuoi sondaggi.'
+                  : 'You must be logged in to view your polls.',
               textAlign: TextAlign.center,
             ),
           ),
@@ -48,6 +51,8 @@ class _MyPollsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final isItalian = Localizations.localeOf(context).languageCode == 'it';
     final controller = context.watch<PollListController>();
 
     final String? currentUserId = AppDI.instance.currentUserId;
@@ -59,13 +64,11 @@ class _MyPollsView extends StatelessWidget {
     final List<Poll> polls = currentUserId == null
         ? <Poll>[]
         : allPolls
-            .where((p) => p.createdByUserId == currentUserId)
-            .toList(growable: false);
+              .where((p) => p.createdByUserId == currentUserId)
+              .toList(growable: false);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Polls'),
-      ),
+      appBar: AppBar(title: Text(l10n.profileMyPollsTitle)),
       body: RefreshIndicator(
         onRefresh: () async {
           final userId = AppDI.instance.currentUserId;
@@ -76,7 +79,7 @@ class _MyPollsView extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              'Polls created by you',
+              isItalian ? 'Sondaggi creati da te' : 'Polls created by you',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -93,7 +96,9 @@ class _MyPollsView extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Text(
-                    'You have not created any polls yet.',
+                    isItalian
+                        ? 'Non hai ancora creato sondaggi.'
+                        : 'You have not created any polls yet.',
                     style: theme.textTheme.bodyMedium,
                   ),
                 ),

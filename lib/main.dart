@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io' show Platform;
+import 'dart:ui' show PlatformDispatcher;
 
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -23,9 +24,9 @@ const _supabasePersistSessionKey = 'sb-rbuzlrclwhxaigkgndrb-auth-token';
 
 class _RememberMeLocalStorage extends LocalStorage {
   _RememberMeLocalStorage()
-      : _delegate = SharedPreferencesLocalStorage(
-          persistSessionKey: _supabasePersistSessionKey,
-        );
+    : _delegate = SharedPreferencesLocalStorage(
+        persistSessionKey: _supabasePersistSessionKey,
+      );
 
   final SharedPreferencesLocalStorage _delegate;
 
@@ -195,6 +196,9 @@ class _NativeStartupBootstrapState extends State<_NativeStartupBootstrap> {
       return _buildSocialeVoteApp();
     }
 
+    final isItalian =
+        PlatformDispatcher.instance.locale.languageCode.toLowerCase() == 'it';
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -222,15 +226,17 @@ class _NativeStartupBootstrapState extends State<_NativeStartupBootstrap> {
                   ),
                   const SizedBox(height: 24),
                   if (_hasError) ...[
-                    const Text(
-                      'Impossibile avviare Social Vote.',
+                    Text(
+                      isItalian
+                          ? 'Impossibile avviare Social Vote.'
+                          : 'Unable to start Social Vote.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Color(0xFF4B5563)),
+                      style: const TextStyle(color: Color(0xFF4B5563)),
                     ),
                     const SizedBox(height: 12),
                     FilledButton(
                       onPressed: _isInitializing ? null : _initialize,
-                      child: const Text('Riprova'),
+                      child: Text(isItalian ? 'Riprova' : 'Retry'),
                     ),
                   ] else
                     const SizedBox(
@@ -299,8 +305,8 @@ Future<void> _restoreStartupAuthSessionLocally() async {
   final rawDisplayName = userMetadata['display_name'];
   final displayName =
       rawDisplayName is String && rawDisplayName.trim().isNotEmpty
-          ? rawDisplayName.trim()
-          : null;
+      ? rawDisplayName.trim()
+      : null;
 
   final rawRole = appMetadata['role'];
 

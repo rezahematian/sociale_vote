@@ -9,8 +9,8 @@
   "createPollTitleFieldLabel": "Titolo *",
   "createPollTitleFieldHelper": "Una domanda o affermazione chiara e concisa.",
   "createPollDescriptionFieldLabel": "Descrizione (facoltativa)",
-  "createPollVotingModelTitle": "Modello di voto",
-  "createPollVotingModelSubtitle": "Scegli come verrà espresso il voto e le regole di base.",
+  "createPollVotingModelTitle": "Come si vota",
+  "createPollVotingModelSubtitle": "Scegli se ogni persona può dare una sola risposta oppure più risposte.",
   "createPollTypeFieldLabel": "Tipo di sondaggio",
   "createPollSelectionRules": "Regole di selezione: minimo {min}, massimo {max} scelte (regolate automaticamente in base al tipo di sondaggio e alle opzioni).",
   "@createPollSelectionRules": {
@@ -25,8 +25,8 @@
   },
   "createPollAllowVoteChangeTitle": "Consenti agli utenti di modificare il proprio voto",
   "createPollAllowVoteChangeSubtitle": "Fino alla chiusura del sondaggio.",
-  "createPollOptionsTitle": "Opzioni",
-  "createPollOptionsSubtitle": "Aggiungi almeno due opzioni tra cui gli utenti possano scegliere. I campi contrassegnati con * sono obbligatori.",
+  "createPollOptionsTitle": "Risposte",
+  "createPollOptionsSubtitle": "Scrivi almeno due risposte tra cui gli utenti possano scegliere. I campi contrassegnati con * sono obbligatori.",
   "createPollOptionLabel": "Opzione {index}{requiredMarker}",
   "@createPollOptionLabel": {
     "placeholders": {
@@ -64,8 +64,8 @@
   "createPollSubmitCreatingLabel": "Creazione in corso...",
   "createPollSubmitLabel": "Crea sondaggio",
   "createPollPollTypeYesNoLabel": "Sì / No",
-  "createPollPollTypeSingleChoiceLabel": "Scelta singola",
-  "createPollPollTypeMultipleChoiceLabel": "Scelta multipla",
+  "createPollPollTypeSingleChoiceLabel": "Una risposta",
+  "createPollPollTypeMultipleChoiceLabel": "Più risposte",
   "createPollPollTypeApprovalLabel": "Voto di approvazione",
   "createPollPollTypeRankedLabel": "Voto a scelta ordinata",
   "createPollPollTypeScoreLabel": "Punteggio / Valutazione",

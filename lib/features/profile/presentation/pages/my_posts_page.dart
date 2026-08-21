@@ -9,6 +9,7 @@ import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart'
 
 import 'package:sociale_vote/features/social/application/feed_controller.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class MyPostsPage extends StatelessWidget {
   const MyPostsPage({super.key});
@@ -16,18 +17,20 @@ class MyPostsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String? currentUserId = AppDI.instance.currentUserId;
+    final l10n = AppLocalizations.of(context)!;
+    final isItalian = Localizations.localeOf(context).languageCode == 'it';
 
     // Blocco guest: per vedere i propri post devi essere loggato
     if (currentUserId == null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('My Posts'),
-        ),
-        body: const Center(
+        appBar: AppBar(title: Text(l10n.profileMyPostsTitle)),
+        body: Center(
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Text(
-              'You must be logged in to view your posts.',
+              isItalian
+                  ? 'Devi accedere per vedere i tuoi post.'
+                  : 'You must be logged in to view your posts.',
               textAlign: TextAlign.center,
             ),
           ),
@@ -54,6 +57,8 @@ class _MyPostsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final isItalian = Localizations.localeOf(context).languageCode == 'it';
     final controller = context.watch<FeedController>();
 
     final String? currentUserId = AppDI.instance.currentUserId;
@@ -65,13 +70,11 @@ class _MyPostsView extends StatelessWidget {
     final List<Post> posts = currentUserId == null
         ? <Post>[]
         : allPosts
-            .where((p) => p.createdByUserId == currentUserId)
-            .toList(growable: false);
+              .where((p) => p.createdByUserId == currentUserId)
+              .toList(growable: false);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Posts'),
-      ),
+      appBar: AppBar(title: Text(l10n.profileMyPostsTitle)),
       body: RefreshIndicator(
         onRefresh: () async {
           final userId = AppDI.instance.currentUserId;
@@ -82,7 +85,7 @@ class _MyPostsView extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              'Posts created by you',
+              isItalian ? 'Post creati da te' : 'Posts created by you',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -91,16 +94,16 @@ class _MyPostsView extends StatelessWidget {
             if (controller.isLoading && posts.isEmpty) ...[
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: Center(child: CircularProgressIndicator()),
               ),
             ] else if (posts.isEmpty) ...[
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Text(
-                    'You have not created any posts yet.',
+                    isItalian
+                        ? 'Non hai ancora creato post.'
+                        : 'You have not created any posts yet.',
                     style: theme.textTheme.bodyMedium,
                   ),
                 ),
@@ -179,17 +182,14 @@ class _MyPostCard extends StatelessWidget {
               const SizedBox(height: 6),
               Row(
                 children: [
-                  Icon(
-                    Icons.schedule,
-                    size: 14,
-                    color: theme.hintColor,
-                  ),
+                  Icon(Icons.schedule, size: 14, color: theme.hintColor),
                   const SizedBox(width: 4),
                   Text(
-                    _formatPostCreatedAt(post.createdAt),
+                    _formatPostCreatedAt(context, post.createdAt),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.textTheme.bodySmall?.color
-                          ?.withValues(alpha: 0.7),
+                      color: theme.textTheme.bodySmall?.color?.withValues(
+                        alpha: 0.7,
+                      ),
                     ),
                   ),
                 ],
@@ -212,10 +212,7 @@ class _MyPostCard extends StatelessWidget {
                 onIceTap: () async {
                   final userId = AppDI.instance.currentUserId;
                   if (userId == null) return;
-                  await controller.toggleIceForPost(
-                    userId: userId,
-                    post: post,
-                  );
+                  await controller.toggleIceForPost(userId: userId, post: post);
                 },
               ),
             ],
@@ -225,13 +222,14 @@ class _MyPostCard extends StatelessWidget {
     );
   }
 
-  String _formatPostCreatedAt(DateTime dateTime) {
+  String _formatPostCreatedAt(BuildContext context, DateTime dateTime) {
     final local = dateTime.toLocal();
-    final day = local.day.toString().padLeft(2, '0');
-    final month = local.month.toString().padLeft(2, '0');
-    final year = local.year.toString();
-    final hour = local.hour.toString().padLeft(2, '0');
-    final minute = local.minute.toString().padLeft(2, '0');
-    return '$day/$month/$year $hour:$minute';
+    final material = MaterialLocalizations.of(context);
+    final date = material.formatMediumDate(local);
+    final time = material.formatTimeOfDay(
+      TimeOfDay.fromDateTime(local),
+      alwaysUse24HourFormat: MediaQuery.of(context).alwaysUse24HourFormat,
+    );
+    return '$date $time';
   }
 }

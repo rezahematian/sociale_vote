@@ -37,6 +37,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
     super.dispose();
   }
 
+  bool get _isItalian =>
+      Localizations.localeOf(context).languageCode.toLowerCase() == 'it';
+
   void _setManualLocation() {
     setState(() {
       _showManualLocationFields = true;
@@ -58,22 +61,24 @@ class _CreatePostPageState extends State<CreatePostPage> {
   String _sourceLabel(ContentLocationSource source) {
     switch (source) {
       case ContentLocationSource.manual:
-        return 'Manuale';
+        return _isItalian ? 'Manuale' : 'Manual';
       case ContentLocationSource.device:
-        return 'Posizione attuale';
+        return _isItalian ? 'Posizione attuale' : 'Current location';
       case ContentLocationSource.profile:
-        return 'Profilo';
+        return _isItalian ? 'Profilo' : 'Profile';
       case ContentLocationSource.geoScopeFallback:
-        return 'Scope corrente';
+        return _isItalian ? 'Ambito corrente' : 'Current scope';
     }
   }
 
   String _locationSummary(ContentLocation? location) {
     if (location == null || location.isEmpty) {
       if (_showManualLocationFields) {
-        return 'Seleziona una località';
+        return _isItalian ? 'Seleziona una località' : 'Select a location';
       }
-      return 'Globale / nessuna località specifica';
+      return _isItalian
+          ? 'Globale / nessuna località specifica'
+          : 'Global / no specific location';
     }
 
     final parts = <String>[];
@@ -89,19 +94,22 @@ class _CreatePostPageState extends State<CreatePostPage> {
       return parts.join(', ');
     }
 
-    final hasCoordinates = location.latitude != null &&
+    final hasCoordinates =
+        location.latitude != null &&
         location.longitude != null &&
         location.latitude!.isFinite &&
         location.longitude!.isFinite;
 
     if (hasCoordinates) {
-      return 'Coordinate disponibili';
+      return _isItalian ? 'Coordinate disponibili' : 'Coordinates available';
     }
     if (location.hasCenter) {
-      return 'Centro geografico disponibile';
+      return _isItalian
+          ? 'Centro geografico disponibile'
+          : 'Geographic center available';
     }
 
-    return 'Località non definita';
+    return _isItalian ? 'Località non definita' : 'Location not defined';
   }
 
   Future<void> _useCurrentDeviceLocation() async {
@@ -117,9 +125,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
       if (!serviceEnabled) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Attiva i servizi di localizzazione e riprova.',
+              _isItalian
+                  ? 'Attiva i servizi di localizzazione e riprova.'
+                  : 'Turn on location services and try again.',
             ),
           ),
         );
@@ -137,9 +147,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
         if (!permissionGranted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
-                'Permesso posizione non concesso. Abilitalo nelle impostazioni di sistema.',
+                _isItalian
+                    ? 'Permesso posizione non concesso. Abilitalo nelle impostazioni di sistema.'
+                    : 'Location permission was not granted. Enable it in system settings.',
               ),
             ),
           );
@@ -153,9 +165,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
       if (location == null || location.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Impossibile determinare la posizione attuale.',
+              _isItalian
+                  ? 'Impossibile determinare la posizione attuale.'
+                  : 'Unable to determine the current location.',
             ),
           ),
         );
@@ -172,7 +186,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Posizione attuale applicata: ${_locationSummary(location)}.',
+            _isItalian
+                ? 'Posizione attuale applicata: ${_locationSummary(location)}.'
+                : 'Current location applied: ${_locationSummary(location)}.',
           ),
         ),
       );
@@ -180,7 +196,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Errore accesso posizione: $e'),
+          content: Text(
+            _isItalian
+                ? 'Errore accesso posizione: $e'
+                : 'Location access error: $e',
+          ),
         ),
       );
     } finally {
@@ -237,7 +257,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
     final userId = AppDI.instance.currentUserId;
     if (userId == null) {
       setState(() {
-        _submitError = 'Errore: utente non disponibile nella sessione.';
+        _submitError = _isItalian
+            ? 'Errore: utente non disponibile nella sessione.'
+            : 'Error: user is not available in the current session.';
       });
       return;
     }
@@ -279,10 +301,16 @@ class _CreatePostPageState extends State<CreatePostPage> {
         SnackBar(
           content: Text(
             effectiveLocation == null
-                ? 'Post globale creato con successo.'
+                ? (_isItalian
+                      ? 'Post globale creato con successo.'
+                      : 'Global post created successfully.')
                 : effectiveLocation.hasExactPoint || effectiveLocation.hasCenter
-                    ? 'Post creato con successo.'
-                    : 'Post creato con successo. Località salvata senza coordinate precise.',
+                ? (_isItalian
+                      ? 'Post creato con successo.'
+                      : 'Post created successfully.')
+                : (_isItalian
+                      ? 'Post creato con successo. Località salvata senza coordinate precise.'
+                      : 'Post created successfully. Location saved without precise coordinates.'),
           ),
         ),
       );
@@ -331,9 +359,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
         (location == null || location.isEmpty) && !_showManualLocationFields;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create post'),
-      ),
+      appBar: AppBar(title: Text(_isItalian ? 'Crea post' : 'Create post')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -342,14 +368,16 @@ class _CreatePostPageState extends State<CreatePostPage> {
             child: ListView(
               children: [
                 Text(
-                  'New post',
+                  _isItalian ? 'Nuovo post' : 'New post',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Condividi una proposta, un’idea o un commento per quest’area geografica.',
+                  _isItalian
+                      ? 'Condividi una proposta, un’idea o un commento per quest’area geografica.'
+                      : 'Share a proposal, an idea, or a comment for this geographic area.',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                   ),
@@ -357,14 +385,16 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 const SizedBox(height: 24),
                 TextFormField(
                   controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Title',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: _isItalian ? 'Titolo' : 'Title',
+                    border: const OutlineInputBorder(),
                   ),
                   maxLength: 120,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Inserisci un titolo';
+                      return _isItalian
+                          ? 'Inserisci un titolo'
+                          : 'Enter a title';
                     }
                     return null;
                   },
@@ -372,19 +402,23 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _contentController,
-                  decoration: const InputDecoration(
-                    labelText: 'Content',
+                  decoration: InputDecoration(
+                    labelText: _isItalian ? 'Contenuto' : 'Content',
                     alignLabelWithHint: true,
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                   maxLines: 6,
                   minLines: 4,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Inserisci il contenuto del post';
+                      return _isItalian
+                          ? 'Inserisci il contenuto del post'
+                          : 'Enter the post content';
                     }
                     if (value.trim().length < 10) {
-                      return 'Il contenuto è troppo corto (min 10 caratteri)';
+                      return _isItalian
+                          ? 'Il contenuto è troppo corto (minimo 10 caratteri)'
+                          : 'The content is too short (minimum 10 characters)';
                     }
                     return null;
                   },
@@ -401,17 +435,22 @@ class _CreatePostPageState extends State<CreatePostPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Località contenuto',
+                          _isItalian
+                              ? 'Località del contenuto'
+                              : 'Content location',
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Scegli se il post è globale, associato a una località oppure alla tua posizione attuale.',
+                          _isItalian
+                              ? 'Scegli se il post è globale, associato a una località oppure alla tua posizione attuale.'
+                              : 'Choose whether the post is global, linked to a location, or linked to your current location.',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.75),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.75,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 14),
@@ -423,15 +462,18 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                 .withValues(alpha: 0.35),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: theme.colorScheme.outline
-                                  .withValues(alpha: 0.15),
+                              color: theme.colorScheme.outline.withValues(
+                                alpha: 0.15,
+                              ),
                             ),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Località attiva',
+                                _isItalian
+                                    ? 'Località attiva'
+                                    : 'Active location',
                                 style: theme.textTheme.labelMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -445,10 +487,17 @@ class _CreatePostPageState extends State<CreatePostPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Origine: ${isGlobalSelected ? 'Globale' : _showManualLocationFields ? 'Manuale' : location == null || location.isEmpty ? 'Globale' : _sourceLabel(location.source)}',
+                                '${_isItalian ? 'Origine' : 'Source'}: ${isGlobalSelected
+                                    ? (_isItalian ? 'Globale' : 'Global')
+                                    : _showManualLocationFields
+                                    ? (_isItalian ? 'Manuale' : 'Manual')
+                                    : location == null || location.isEmpty
+                                    ? (_isItalian ? 'Globale' : 'Global')
+                                    : _sourceLabel(location.source)}',
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.7),
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.7,
+                                  ),
                                 ),
                               ),
                             ],
@@ -479,7 +528,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                     : null,
                               ),
                               icon: const Icon(Icons.public),
-                              label: const Text('Globale'),
+                              label: Text(_isItalian ? 'Globale' : 'Global'),
                             ),
                             OutlinedButton.icon(
                               onPressed: _isSubmitting
@@ -507,7 +556,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                     : null,
                               ),
                               icon: const Icon(Icons.place_outlined),
-                              label: const Text('Scegli località'),
+                              label: Text(
+                                _isItalian
+                                    ? 'Scegli località'
+                                    : 'Choose location',
+                              ),
                             ),
                             OutlinedButton.icon(
                               onPressed: _isSubmitting || _isResolvingLocation
@@ -532,8 +585,12 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                   : const Icon(Icons.my_location),
                               label: Text(
                                 _isResolvingLocation
-                                    ? 'Ricavo posizione...'
-                                    : 'Usa posizione attuale',
+                                    ? (_isItalian
+                                          ? 'Ricavo posizione...'
+                                          : 'Getting location...')
+                                    : (_isItalian
+                                          ? 'Usa posizione attuale'
+                                          : 'Use current location'),
                               ),
                             ),
                           ],
@@ -554,17 +611,22 @@ class _CreatePostPageState extends State<CreatePostPage> {
                               });
                               _setManualLocation();
                             },
-                            label: 'Paese del contenuto',
+                            label: _isItalian
+                                ? 'Paese del contenuto'
+                                : 'Content country',
                             required: false,
                           ),
                           const SizedBox(height: 12),
                           TextField(
                             controller: _cityController,
-                            decoration: const InputDecoration(
-                              labelText: 'Città del contenuto',
-                              border: OutlineInputBorder(),
-                              helperText:
-                                  'Facoltativo. Puoi indicare solo il paese oppure anche la città.',
+                            decoration: InputDecoration(
+                              labelText: _isItalian
+                                  ? 'Città del contenuto'
+                                  : 'Content city',
+                              border: const OutlineInputBorder(),
+                              helperText: _isItalian
+                                  ? 'Facoltativo. Puoi indicare solo il Paese oppure anche la città.'
+                                  : 'Optional. You can specify only the country or also the city.',
                             ),
                             onChanged: (_) => _setManualLocation(),
                           ),
@@ -579,16 +641,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .errorContainer
-                          .withValues(alpha: 0.55),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.errorContainer.withValues(alpha: 0.55),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .error
-                            .withValues(alpha: 0.35),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.error.withValues(alpha: 0.35),
                       ),
                     ),
                     child: Row(
@@ -621,7 +681,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Publish post'),
+                      : Text(_isItalian ? 'Pubblica post' : 'Publish post'),
                 ),
               ],
             ),

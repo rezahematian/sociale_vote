@@ -50,21 +50,9 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
     _feedController.addListener(_handleControllerChanged);
     _newsController.addListener(_handleControllerChanged);
 
-    unawaited(
-      _pollController.loadPolls(
-        userId: widget.currentUserId,
-      ),
-    );
-    unawaited(
-      _feedController.loadFeed(
-        userId: widget.currentUserId,
-      ),
-    );
-    unawaited(
-      _newsController.loadNews(
-        userId: widget.currentUserId,
-      ),
-    );
+    unawaited(_pollController.loadPolls(userId: widget.currentUserId));
+    unawaited(_feedController.loadFeed(userId: widget.currentUserId));
+    unawaited(_newsController.loadNews(userId: widget.currentUserId));
   }
 
   @override
@@ -73,21 +61,9 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
 
     if (oldWidget.currentUserId != widget.currentUserId ||
         oldWidget.scopeShortLabel != widget.scopeShortLabel) {
-      unawaited(
-        _pollController.loadPolls(
-          userId: widget.currentUserId,
-        ),
-      );
-      unawaited(
-        _feedController.loadFeed(
-          userId: widget.currentUserId,
-        ),
-      );
-      unawaited(
-        _newsController.loadNews(
-          userId: widget.currentUserId,
-        ),
-      );
+      unawaited(_pollController.loadPolls(userId: widget.currentUserId));
+      unawaited(_feedController.loadFeed(userId: widget.currentUserId));
+      unawaited(_newsController.loadNews(userId: widget.currentUserId));
     }
   }
 
@@ -113,14 +89,17 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    final poll =
-        _pollController.polls.isEmpty ? null : _pollController.polls.first;
+    final poll = _pollController.polls.isEmpty
+        ? null
+        : _pollController.polls.first;
 
     final posts = List<Post>.from(_feedController.posts);
     posts.sort((a, b) {
-      final heatA = _feedController.likeCountForPost(a) -
+      final heatA =
+          _feedController.likeCountForPost(a) -
           _feedController.dislikeCountForPost(a);
-      final heatB = _feedController.likeCountForPost(b) -
+      final heatB =
+          _feedController.likeCountForPost(b) -
           _feedController.dislikeCountForPost(b);
 
       if (heatA != heatB) {
@@ -131,8 +110,9 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
     });
 
     final post = posts.isEmpty ? null : posts.first;
-    final news =
-        _newsController.news.isEmpty ? null : _newsController.news.first;
+    final news = _newsController.news.isEmpty
+        ? null
+        : _newsController.news.first;
 
     return Container(
       width: double.infinity,
@@ -152,11 +132,7 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.public,
-                size: 17,
-                color: theme.colorScheme.primary,
-              ),
+              Icon(Icons.public, size: 17, color: theme.colorScheme.primary),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -286,11 +262,7 @@ class _WebPulseRow extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: theme.colorScheme.primary.withValues(alpha: 0.10),
                   ),
-                  child: Icon(
-                    icon,
-                    size: 16,
-                    color: theme.colorScheme.primary,
-                  ),
+                  child: Icon(icon, size: 16, color: theme.colorScheme.primary),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -299,9 +271,7 @@ class _WebPulseRow extends StatelessWidget {
                           alignment: Alignment.centerLeft,
                           child: SizedBox.square(
                             dimension: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           ),
                         )
                       : Column(
@@ -321,7 +291,12 @@ class _WebPulseRow extends StatelessWidget {
                             Text(
                               title?.trim().isNotEmpty == true
                                   ? title!
-                                  : 'Apri',
+                                  : (Localizations.localeOf(
+                                              context,
+                                            ).languageCode ==
+                                            'it'
+                                        ? 'Apri'
+                                        : 'Open'),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.bodyMedium?.copyWith(
@@ -343,13 +318,12 @@ class _WebPulseRow extends StatelessWidget {
                 ],
                 const SizedBox(width: 6),
                 IconButton(
-                  tooltip: 'Vedi tutti',
+                  tooltip: Localizations.localeOf(context).languageCode == 'it'
+                      ? 'Vedi tutti'
+                      : 'View all',
                   visualDensity: VisualDensity.compact,
                   onPressed: onViewAll,
-                  icon: const Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 14,
-                  ),
+                  icon: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
                 ),
               ],
             ),

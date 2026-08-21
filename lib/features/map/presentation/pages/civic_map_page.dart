@@ -114,7 +114,9 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
         ),
         actions: [
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: Localizations.localeOf(context).languageCode == 'it'
+                ? 'Aggiorna'
+                : 'Refresh',
             onPressed: controller.isLoading
                 ? null
                 : () {
@@ -139,10 +141,8 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                 controller: controller,
                 selectedLanguage: _selectedLanguage,
                 languageSelectorEnabled: !selectorBusy,
-                onLanguageChanged: (value) => _handleLanguageChanged(
-                  value,
-                  controller: controller,
-                ),
+                onLanguageChanged: (value) =>
+                    _handleLanguageChanged(value, controller: controller),
                 isWorldScope: isWorldScope,
                 useGlobe: _useWorldGlobe,
                 onWorldModeChanged: _setWorldGlobeEnabled,
@@ -155,9 +155,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                   children: [
                     showWorldGlobe
                         ? WorldGlobeWidget(
-                            key: const ValueKey<String>(
-                              'civic-map-world-3d',
-                            ),
+                            key: const ValueKey<String>('civic-map-world-3d'),
                             items: controller.visibleItems,
                             onItemTap: controller.selectItem,
                             onUseClassicMap: () => _setWorldGlobeEnabled(false),
@@ -168,9 +166,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                             initialFocusZoom: worldGlobeHandoff?.globeZoom,
                           )
                         : CivicMapWidget(
-                            key: const ValueKey<String>(
-                              'civic-map-classic-2d',
-                            ),
+                            key: const ValueKey<String>('civic-map-classic-2d'),
                             controller: controller,
                             handoffLatitude: worldMapHandoff?.latitude,
                             handoffLongitude: worldMapHandoff?.longitude,
@@ -196,12 +192,12 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                             scopeLabel: _scopeLabel(context, activeScope),
                             onShowCountry:
                                 activeScope.level == GeoScopeLevel.city &&
-                                        activeScope.countryCode != null
-                                    ? () => _switchToCountryScope(
-                                          geoScopeController,
-                                          activeScope.countryCode!,
-                                        )
-                                    : null,
+                                    activeScope.countryCode != null
+                                ? () => _switchToCountryScope(
+                                    geoScopeController,
+                                    activeScope.countryCode!,
+                                  )
+                                : null,
                             onShowWorld: () =>
                                 _switchToWorldScope(geoScopeController),
                           ),
@@ -214,8 +210,9 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                         bottom: 12,
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.surface
-                                .withValues(alpha: 0.90),
+                            color: theme.colorScheme.surface.withValues(
+                              alpha: 0.90,
+                            ),
                             borderRadius: BorderRadius.circular(999),
                             border: Border.all(
                               color: theme.colorScheme.outlineVariant,
@@ -336,9 +333,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
     }
   }
 
-  void _handleGlobeZoomIntoClassicMap(
-    WorldGlobeMapHandoff handoff,
-  ) {
+  void _handleGlobeZoomIntoClassicMap(WorldGlobeMapHandoff handoff) {
     if (!mounted) {
       return;
     }
@@ -359,9 +354,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
     );
   }
 
-  void _handleClassicMapZoomOutToGlobe(
-    CivicMapGlobeHandoff handoff,
-  ) {
+  void _handleClassicMapZoomOutToGlobe(CivicMapGlobeHandoff handoff) {
     if (!mounted) {
       return;
     }
@@ -465,10 +458,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
 
       final activeScope = controller.currentScope;
       if (activeScope != null) {
-        await controller.loadForScope(
-          activeScope,
-          clearSelection: false,
-        );
+        await controller.loadForScope(activeScope, clearSelection: false);
       }
     } finally {
       if (mounted) {
@@ -626,10 +616,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
     ].join('|');
   }
 
-  Future<void> _openTarget(
-    BuildContext context,
-    CivicMapItem item,
-  ) async {
+  Future<void> _openTarget(BuildContext context, CivicMapItem item) async {
     final targetRef = item.targetRef;
     final targetId = _readTargetRefId(targetRef);
     if (targetId == null || targetId.trim().isEmpty) {
@@ -638,17 +625,15 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
 
     switch (targetRef.type) {
       case TargetType.poll:
-        await Navigator.of(context).pushNamed(
-          AppRouter.pollDetail,
-          arguments: PollId(targetId),
-        );
+        await Navigator.of(
+          context,
+        ).pushNamed(AppRouter.pollDetail, arguments: PollId(targetId));
         return;
 
       case TargetType.post:
-        await Navigator.of(context).pushNamed(
-          AppRouter.socialDetail,
-          arguments: targetId,
-        );
+        await Navigator.of(
+          context,
+        ).pushNamed(AppRouter.socialDetail, arguments: targetId);
         return;
 
       case TargetType.news:
@@ -660,17 +645,20 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
 
         if (newsItem == null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Impossibile aprire il dettaglio news'),
+            SnackBar(
+              content: Text(
+                Localizations.localeOf(context).languageCode == 'it'
+                    ? 'Impossibile aprire il dettaglio della notizia'
+                    : 'Unable to open news detail',
+              ),
             ),
           );
           return;
         }
 
-        await Navigator.of(context).pushNamed(
-          AppRouter.newsDetail,
-          arguments: newsItem,
-        );
+        await Navigator.of(
+          context,
+        ).pushNamed(AppRouter.newsDetail, arguments: newsItem);
         return;
 
       default:
@@ -786,9 +774,7 @@ class _BroaderScopePrompt extends StatelessWidget {
                   OutlinedButton(
                     onPressed: onShowCountry,
                     child: Text(
-                      isItalian
-                          ? 'Mostra $countryName'
-                          : 'Show $countryName',
+                      isItalian ? 'Mostra $countryName' : 'Show $countryName',
                     ),
                   ),
                 FilledButton.tonal(
@@ -953,9 +939,7 @@ class _MapTopControls extends StatelessWidget {
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: constraints.maxWidth < 440
-                  ? constraints.maxWidth
-                  : 440,
+              maxWidth: constraints.maxWidth < 440 ? constraints.maxWidth : 440,
             ),
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -1007,13 +991,8 @@ class _MapLanguageSelector extends StatelessWidget {
           minWidth: 36,
           minHeight: 36,
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 10,
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       ),
       selectedItemBuilder: (context) => NewsLanguage.values
           .map(
@@ -1027,12 +1006,14 @@ class _MapLanguageSelector extends StatelessWidget {
             ),
           )
           .toList(growable: false),
-      items: NewsLanguage.values.map((language) {
-        return DropdownMenuItem<NewsLanguage>(
-          value: language,
-          child: Text(_fullLabelForLanguage(language)),
-        );
-      }).toList(growable: false),
+      items: NewsLanguage.values
+          .map((language) {
+            return DropdownMenuItem<NewsLanguage>(
+              value: language,
+              child: Text(_fullLabelForLanguage(language)),
+            );
+          })
+          .toList(growable: false),
       onChanged: enabled
           ? (value) {
               if (value != null) {
@@ -1129,9 +1110,7 @@ class _MarkerPreviewCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: typeColor.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: typeColor.withValues(alpha: 0.16),
-                ),
+                border: Border.all(color: typeColor.withValues(alpha: 0.16)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1143,31 +1122,36 @@ class _MarkerPreviewCard extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         _CompactBadge(
-                          label: _typeLabel(item.type),
+                          label: _typeLabel(context, item.type),
                           icon: _typeIcon(item.type),
                           backgroundColor: typeColor.withValues(alpha: 0.12),
                           foregroundColor: typeColor,
                         ),
                         if (item.heatTier != CivicMapHeatTier.normal)
                           _CompactBadge(
-                            label: _activityLabel(item.heatTier),
+                            label: _activityLabel(context, item.heatTier),
                             icon: _activityIcon(item.heatTier),
-                            backgroundColor: _activityColor(item.heatTier)
-                                .withValues(alpha: 0.12),
+                            backgroundColor: _activityColor(
+                              item.heatTier,
+                            ).withValues(alpha: 0.12),
                             foregroundColor: _activityColor(item.heatTier),
                           ),
                       ],
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Chiudi',
+                    tooltip:
+                        Localizations.localeOf(context).languageCode == 'it'
+                        ? 'Chiudi'
+                        : 'Close',
                     visualDensity: VisualDensity.compact,
                     splashRadius: 18,
                     onPressed: onClose,
                     icon: Icon(
                       Icons.close,
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.72),
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.72,
+                      ),
                     ),
                   ),
                 ],
@@ -1199,14 +1183,16 @@ class _MarkerPreviewCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Expanded(
-                  child: _PreviewMetaRow(item: item),
-                ),
+                Expanded(child: _PreviewMetaRow(item: item)),
                 const SizedBox(width: 12),
                 FilledButton.icon(
                   onPressed: onOpen,
                   icon: const Icon(Icons.open_in_new),
-                  label: const Text('Apri dettaglio'),
+                  label: Text(
+                    Localizations.localeOf(context).languageCode == 'it'
+                        ? 'Apri dettaglio'
+                        : 'Open details',
+                  ),
                 ),
               ],
             ),
@@ -1247,25 +1233,33 @@ class _MarkerPreviewCard extends StatelessWidget {
     }
   }
 
-  String _typeLabel(CivicMapItemType type) {
+  String _typeLabel(BuildContext context, CivicMapItemType type) {
     switch (type) {
       case CivicMapItemType.poll:
-        return 'Poll';
+        return Localizations.localeOf(context).languageCode == 'it'
+            ? 'Sondaggio'
+            : 'Poll';
       case CivicMapItemType.post:
         return 'Post';
       case CivicMapItemType.news:
-        return 'News';
+        return Localizations.localeOf(context).languageCode == 'it'
+            ? 'Notizia'
+            : 'News';
     }
   }
 
-  String _activityLabel(CivicMapHeatTier tier) {
+  String _activityLabel(BuildContext context, CivicMapHeatTier tier) {
     switch (tier) {
       case CivicMapHeatTier.hot:
         return 'Hot';
       case CivicMapHeatTier.active:
-        return 'Attivo';
+        return Localizations.localeOf(context).languageCode == 'it'
+            ? 'Attivo'
+            : 'Active';
       case CivicMapHeatTier.normal:
-        return 'Normale';
+        return Localizations.localeOf(context).languageCode == 'it'
+            ? 'Normale'
+            : 'Normal';
     }
   }
 
@@ -1295,9 +1289,7 @@ class _MarkerPreviewCard extends StatelessWidget {
 class _PreviewMetaRow extends StatelessWidget {
   final CivicMapItem item;
 
-  const _PreviewMetaRow({
-    required this.item,
-  });
+  const _PreviewMetaRow({required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -1305,7 +1297,7 @@ class _PreviewMetaRow extends StatelessWidget {
 
     final heat = item.normalizedHeat.toInt();
     final comments = item.normalizedCommentCount;
-    final timeText = _formatRelativeTime(item.createdAt) ?? '—';
+    final timeText = _formatRelativeTime(context, item.createdAt) ?? '—';
 
     return DefaultTextStyle(
       style: theme.textTheme.bodySmall!.copyWith(
@@ -1321,20 +1313,14 @@ class _PreviewMetaRow extends StatelessWidget {
             icon: Icons.local_fire_department_outlined,
             text: '$heat',
           ),
-          _MetaInlineItem(
-            icon: Icons.mode_comment_outlined,
-            text: '$comments',
-          ),
-          _MetaInlineItem(
-            icon: Icons.schedule_outlined,
-            text: timeText,
-          ),
+          _MetaInlineItem(icon: Icons.mode_comment_outlined, text: '$comments'),
+          _MetaInlineItem(icon: Icons.schedule_outlined, text: timeText),
         ],
       ),
     );
   }
 
-  String? _formatRelativeTime(DateTime? value) {
+  String? _formatRelativeTime(BuildContext context, DateTime? value) {
     if (value == null) {
       return null;
     }
@@ -1344,7 +1330,9 @@ class _PreviewMetaRow extends StatelessWidget {
     final diff = now.difference(date);
 
     if (diff.inSeconds < 60) {
-      return 'ora';
+      return Localizations.localeOf(context).languageCode == 'it'
+          ? 'ora'
+          : 'now';
     }
     if (diff.inMinutes < 60) {
       return '${diff.inMinutes} min';
@@ -1353,9 +1341,11 @@ class _PreviewMetaRow extends StatelessWidget {
       return '${diff.inHours} h';
     }
     if (diff.inDays < 7) {
-      return '${diff.inDays} g';
+      return Localizations.localeOf(context).languageCode == 'it'
+          ? '${diff.inDays} g'
+          : '${diff.inDays} d';
     }
-    return '${date.day}/${date.month}/${date.year}';
+    return MaterialLocalizations.of(context).formatShortDate(date);
   }
 }
 
@@ -1363,24 +1353,18 @@ class _MetaInlineItem extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _MetaInlineItem({
-    required this.icon,
-    required this.text,
-  });
+  const _MetaInlineItem({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72);
+    final color = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.72);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: 15,
-          color: color,
-        ),
+        Icon(icon, size: 15, color: color),
         const SizedBox(width: 5),
         Text(text),
       ],
@@ -1413,18 +1397,14 @@ class _CompactBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 15,
-            color: foregroundColor,
-          ),
+          Icon(icon, size: 15, color: foregroundColor),
           const SizedBox(width: 6),
           Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: foregroundColor,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: foregroundColor,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -1435,9 +1415,7 @@ class _CompactBadge extends StatelessWidget {
 class _MapTypeFilters extends StatelessWidget {
   final CivicMapController controller;
 
-  const _MapTypeFilters({
-    required this.controller,
-  });
+  const _MapTypeFilters({required this.controller});
 
   Color _chipColor(CivicMapItemType type) {
     switch (type) {
@@ -1461,36 +1439,34 @@ class _MapTypeFilters extends StatelessWidget {
     }
   }
 
-  String _chipLabel(CivicMapItemType type) {
+  String _chipLabel(BuildContext context, CivicMapItemType type) {
     switch (type) {
       case CivicMapItemType.poll:
-        return 'Poll';
+        return Localizations.localeOf(context).languageCode == 'it'
+            ? 'Sondaggio'
+            : 'Poll';
       case CivicMapItemType.post:
         return 'Post';
       case CivicMapItemType.news:
-        return 'News';
+        return Localizations.localeOf(context).languageCode == 'it'
+            ? 'Notizie'
+            : 'News';
     }
   }
 
   Widget _buildChip(BuildContext context, CivicMapItemType type) {
     final active = controller.isTypeVisible(type);
     final color = _chipColor(type);
-    final count = controller.allItems
-        .where((item) => item.type == type)
-        .length;
+    final count = controller.allItems.where((item) => item.type == type).length;
 
     return FilterChip(
-      label: Text('${_chipLabel(type)} $count'),
+      label: Text('${_chipLabel(context, type)} $count'),
       selected: active,
       onSelected: (_) => controller.toggleType(type),
       showCheckmark: false,
       visualDensity: VisualDensity.compact,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      avatar: Icon(
-        _chipIcon(type),
-        size: 18,
-        color: active ? color : null,
-      ),
+      avatar: Icon(_chipIcon(type), size: 18, color: active ? color : null),
       selectedColor: color.withValues(alpha: 0.15),
       checkmarkColor: color,
       side: BorderSide(
