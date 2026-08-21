@@ -1,0 +1,15 @@
+data_class,example,default_proposal,maximum_without_review,owner_role,deletion_trigger,notes
+phone_claim_hmac,HMAC of normalized phone,active life + 90d released cooldown,policy-defined,Social Vote controller,cooldown/reclaim completion,Pseudonymous personal data; server-only
+phone_otp,OTP code,never store,0,OTP provider,verification/expiry,Never log plaintext OTP
+l2_provider_reference,Stripe/other session ID,account life or reverify cycle,policy-defined,Social Vote controller,account deletion/evidence expiry,Opaque reference only
+l2_raw_document,ID image,do not copy to Social Vote,0,provider/controller split,provider redaction,Use provider-hosted flow
+l2_manual_upload,manual document evidence,delete shortly after review,30d proposed,Social Vote controller,review complete,Only if unavoidable; private storage
+organization_registry_ref,RUNTS/REA/RASD ref,while org verified,24m reverify cycle,Social Vote controller,org deletion/expiry,Public registry reference
+representative_authority_evidence,delegation/appointment,review + short dispute window,90d proposed,Social Vote controller,review/dispute close,Keep decision/reference longer than raw file
+session_open_technical,join/session config,session life,30d after close,Customer controller/SV processor,retention job,No advertising analytics
+session_token_hash,anonymous access token hash,session raw retention,30d default,Customer controller/SV processor,retention job,No plaintext token after issue
+session_token_question_use,credential used for question,session raw retention,30d default,Customer controller/SV processor,retention job,Separate from ballot content
+session_ballot,selected option IDs,7d Free / 30d paid proposal,30d default without explicit archive review,Customer controller/SV processor,retention job,No token/user FK
+session_aggregate,counts/percentages,organization-selected archive,contract-defined,Customer controller/SV processor,org deletion/contract,May be retained/published if non-identifying
+billing_records,subscription/payment references,statutory accounting period,legal requirement,Social Vote controller,legal retention expiry,Do not delete on ordinary account cancellation if law requires
+security_audit,admin/verification/billing audit,security/legal policy,policy-defined,Social Vote controller,retention expiry,Never include secret ballot content

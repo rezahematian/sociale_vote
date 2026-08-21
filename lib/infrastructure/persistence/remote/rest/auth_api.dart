@@ -54,8 +54,11 @@ class AuthApi {
     final normalizedEmail = email.trim();
     final normalizedDisplayName = displayName.trim();
     final normalizedUsername = _normalizeUsername(username);
-    final normalizedLanguage =
-        language.trim().toLowerCase() == 'it' ? 'it' : 'en';
+    final normalizedLanguage = switch (language.trim().toLowerCase()) {
+      'it' => 'it',
+      'de' => 'de',
+      _ => 'en',
+    };
     final normalizedCountry = country.trim();
     final normalizedCity = city.trim();
 

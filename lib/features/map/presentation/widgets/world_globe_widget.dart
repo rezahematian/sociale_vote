@@ -16,6 +16,8 @@ import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
 
+import 'package:sociale_vote/app/localization/de_fallback.dart';
+
 import 'web_world_globe_surface_stub.dart'
     if (dart.library.js_interop) 'web_world_globe_surface_web.dart';
 
@@ -224,7 +226,9 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
                                               .languageCode ==
                                           'it'
                                       ? 'Identificazione Paese…'
-                                      : 'Identifying country…'),
+                                      : deOrEnglish(context,
+                                          english: 'Identifying country…',
+                                          german: 'Land wird identifiziert…')),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.labelMedium?.copyWith(
@@ -241,7 +245,9 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
                                 Localizations.localeOf(context).languageCode ==
                                         'it'
                                     ? 'Apri Paese'
-                                    : 'Open country',
+                                    : deOrEnglish(context,
+                                        english: 'Open country',
+                                        german: 'Land öffnen'),
                               ),
                             ),
                           ],
@@ -1005,7 +1011,10 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
                                                     .languageCode ==
                                                 'it'
                                             ? 'Identificazione Paese…'
-                                            : 'Identifying country…'),
+                                            : deOrEnglish(context,
+                                                english: 'Identifying country…',
+                                                german:
+                                                    'Land wird identifiziert…')),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style:
@@ -1024,7 +1033,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
                                                   .languageCode ==
                                               'it'
                                           ? 'Apri Paese'
-                                          : 'Open country',
+                                          : deOrEnglish(context,
+                                              english: 'Open country',
+                                              german: 'Land öffnen'),
                                     ),
                                   ),
                                 ],
@@ -1877,8 +1888,14 @@ class _GlobeRotationButton extends StatelessWidget {
     final languageCode = Localizations.localeOf(context).languageCode;
     final isItalian = languageCode == 'it';
     final label = isRotating
-        ? (isItalian ? 'Ferma rotazione' : 'Stop rotation')
-        : (isItalian ? 'Avvia rotazione' : 'Start rotation');
+        ? (isItalian
+            ? 'Ferma rotazione'
+            : deOrEnglish(context,
+                english: 'Stop rotation', german: 'Drehung stoppen'))
+        : (isItalian
+            ? 'Avvia rotazione'
+            : deOrEnglish(context,
+                english: 'Start rotation', german: 'Drehung starten'));
 
     final backgroundColor =
         isRotating ? colors.primary : colors.surface.withValues(alpha: 0.94);
@@ -1983,7 +2000,10 @@ class _WasmRequiredFallback extends StatelessWidget {
               Text(
                 Localizations.localeOf(context).languageCode == 'it'
                     ? 'Il Globe 3D richiede la build WebAssembly sul Web'
-                    : '3D Globe requires the WebAssembly web build',
+                    : deOrEnglish(context,
+                        english: '3D Globe requires the WebAssembly web build',
+                        german:
+                            'Der 3D-Globus benötigt im Web den WebAssembly-Build.'),
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
@@ -1993,7 +2013,11 @@ class _WasmRequiredFallback extends StatelessWidget {
               Text(
                 Localizations.localeOf(context).languageCode == 'it'
                     ? 'La Civic Map 2D resta disponibile e invariata.'
-                    : 'The classic Civic Map is still available and unchanged.',
+                    : deOrEnglish(context,
+                        english:
+                            'The classic Civic Map is still available and unchanged.',
+                        german:
+                            'Die klassische Civic Map bleibt unverändert verfügbar.'),
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium,
               ),
@@ -2004,7 +2028,8 @@ class _WasmRequiredFallback extends StatelessWidget {
                 label: Text(
                   Localizations.localeOf(context).languageCode == 'it'
                       ? 'Usa mappa 2D'
-                      : 'Use 2D map',
+                      : deOrEnglish(context,
+                          english: 'Use 2D map', german: '2D-Karte verwenden'),
                 ),
               ),
             ],

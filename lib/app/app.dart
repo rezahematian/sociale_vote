@@ -176,6 +176,7 @@ class AppLocaleController {
       final supportedLanguageCode = switch (languageCode) {
         'it' => 'it',
         'en' => 'en',
+        'de' => 'de',
         _ => null,
       };
 

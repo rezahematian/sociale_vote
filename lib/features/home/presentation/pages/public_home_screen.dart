@@ -36,6 +36,7 @@ import 'package:sociale_vote/features/social/presentation/pages/create_post_page
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/data/countries.dart' as country_data;
 import 'package:sociale_vote/shared/services/auth_guard.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class PublicHomeScreen extends StatefulWidget {
   const PublicHomeScreen({super.key});
@@ -48,13 +49,11 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   static const Duration _nativePollWarmupDelay = Duration(milliseconds: 1400);
   static const Duration _nativeNewsWarmupDelay = Duration(milliseconds: 2200);
   static const Duration _nativeSocialWarmupDelay = Duration(milliseconds: 3000);
-  static const Duration _nativeNotificationsWarmupDelay = Duration(
-    milliseconds: 2600,
-  );
+  static const Duration _nativeNotificationsWarmupDelay =
+      Duration(milliseconds: 2600);
 
-  final ValueNotifier<Offset> _homeSkyOrientation = ValueNotifier<Offset>(
-    Offset.zero,
-  );
+  final ValueNotifier<Offset> _homeSkyOrientation =
+      ValueNotifier<Offset>(Offset.zero);
 
   GeoScopeController get _geoScopeController =>
       AppDI.instance.geoScopeController;
@@ -146,9 +145,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
     _disposeHomeNotificationsController();
 
-    final controller = AppDI.instance.createNotificationsControllerForUser(
-      normalizedUserId,
-    );
+    final controller =
+        AppDI.instance.createNotificationsControllerForUser(normalizedUserId);
     controller.addListener(_handleHomeNotificationsChanged);
     _homeNotificationsController = controller;
     _homeNotificationsControllerUserId = normalizedUserId;
@@ -158,15 +156,21 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       return;
     }
 
-    _homeNotificationsWarmupTimer = Timer(_nativeNotificationsWarmupDelay, () {
-      if (!mounted || !identical(_homeNotificationsController, controller)) {
-        return;
-      }
-      unawaited(controller.refreshUnreadCount());
-    });
+    _homeNotificationsWarmupTimer = Timer(
+      _nativeNotificationsWarmupDelay,
+      () {
+        if (!mounted || !identical(_homeNotificationsController, controller)) {
+          return;
+        }
+        unawaited(controller.refreshUnreadCount());
+      },
+    );
   }
 
-  void _scheduleHomeLoad(Duration nativeDelay, Future<void> Function() load) {
+  void _scheduleHomeLoad(
+    Duration nativeDelay,
+    Future<void> Function() load,
+  ) {
     if (kIsWeb) {
       unawaited(load());
       return;
@@ -194,9 +198,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   }
 
   Future<bool> _selectCityScope() async {
-    var countryCode = _geoScopeController.scope.countryCode
-        ?.trim()
-        .toUpperCase();
+    var countryCode =
+        _geoScopeController.scope.countryCode?.trim().toUpperCase();
 
     if (countryCode == null || countryCode.isEmpty) {
       countryCode = await showDialog<String>(
@@ -308,23 +311,29 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   }
 
   Future<void> _openSearchPage() async {
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const SearchPage()));
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const SearchPage(),
+      ),
+    );
   }
 
   Future<void> _onLoginPressed() async {
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const LoginPage()));
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const LoginPage(),
+      ),
+    );
     if (!mounted) return;
     setState(() {});
   }
 
   Future<void> _onRegisterPressed() async {
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const RegisterPage()));
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const RegisterPage(),
+      ),
+    );
     if (!mounted) return;
     setState(() {});
   }
@@ -336,9 +345,11 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     _geoScopeController.setWorld();
     if (!mounted) return;
     setState(() {});
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(l10n.homeLogoutMessage)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.homeLogoutMessage),
+      ),
+    );
   }
 
   Future<void> _onOpenNewsPressed() async {
@@ -352,7 +363,10 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
         Localizations.localeOf(context).languageCode.toLowerCase() == 'it';
     final allowed = await AuthGuard.ensureAuthenticated(
       context,
-      actionLabel: isItalian ? 'creare contenuti' : 'create content',
+      actionLabel: isItalian
+          ? 'creare contenuti'
+          : deOrEnglish(context,
+              english: 'create content', german: 'Inhalte zu erstellen'),
     );
     if (!allowed || !mounted) {
       return;
@@ -376,8 +390,10 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                   padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
                   child: Text(
                     l10n.homeHeroCreateAction,
-                    style: Theme.of(sheetContext).textTheme.titleLarge
-                        ?.copyWith(fontWeight: FontWeight.w800),
+                    style:
+                        Theme.of(sheetContext).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
                   ),
                 ),
                 ListTile(
@@ -439,9 +455,11 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       return;
     }
 
-    final result = await Navigator.of(
-      context,
-    ).push<bool>(MaterialPageRoute(builder: (_) => const CreatePostPage()));
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => const CreatePostPage(),
+      ),
+    );
 
     if (!mounted || result != true) {
       return;
@@ -472,7 +490,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (_) => DiscoveryPage(scopeShortLabel: scopeShortLabel),
+        builder: (_) => DiscoveryPage(
+          scopeShortLabel: scopeShortLabel,
+        ),
       ),
     );
   }
@@ -657,11 +677,17 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
         bodyColor: onSurface,
         displayColor: onSurface,
       ),
-      iconTheme: const IconThemeData(color: onSurface),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(foregroundColor: primary),
+      iconTheme: const IconThemeData(
+        color: onSurface,
       ),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(color: primary),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: primary,
+        ),
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: primary,
+      ),
       dividerTheme: DividerThemeData(
         color: const Color(0xFF7A8DA8).withValues(alpha: 0.24),
       ),
@@ -672,9 +698,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   Widget build(BuildContext context) {
     final String? currentUserId = AppDI.instance.currentUserId;
     final bool isLoggedIn = currentUserId != null;
-    final int unreadNotificationsCount = isLoggedIn
-        ? (_homeNotificationsController?.unreadCount ?? 0)
-        : 0;
+    final int unreadNotificationsCount =
+        isLoggedIn ? (_homeNotificationsController?.unreadCount ?? 0) : 0;
 
     return AnimatedBuilder(
       animation: Listenable.merge([
@@ -692,22 +717,26 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
         final isDark = baseTheme.brightness == Brightness.dark;
         final isSpaceHome =
             isLoggedIn && currentAppearanceMode == AppAppearanceMode.space;
-        final homeContentTheme = isSpaceHome
-            ? _spaceHomeTheme(baseTheme)
-            : baseTheme;
+        final homeContentTheme =
+            isSpaceHome ? _spaceHomeTheme(baseTheme) : baseTheme;
 
         final screenWidth = MediaQuery.sizeOf(context).width;
         // WEB-G1B: use logical CSS pixels. 900 keeps ordinary desktop
         // windows in the split layout even with 125% display/browser scaling.
         final isDesktopWeb = kIsWeb && screenWidth >= 900.0;
         final isCompactGuestTopBar = !isLoggedIn && screenWidth < 520.0;
-        final appBarToolbarHeight = isLoggedIn
-            ? 74.0
-            : (isCompactGuestTopBar ? 104.0 : 74.0);
+        final appBarToolbarHeight =
+            isLoggedIn ? 74.0 : (isCompactGuestTopBar ? 104.0 : 74.0);
 
         final backgroundGradient = isDark
-            ? const [AppColors.backgroundDark, AppColors.backgroundAltDark]
-            : const [AppColors.background, AppColors.backgroundAlt];
+            ? const [
+                AppColors.backgroundDark,
+                AppColors.backgroundAltDark,
+              ]
+            : const [
+                AppColors.background,
+                AppColors.backgroundAlt,
+              ];
 
         return Scaffold(
           backgroundColor: Colors.transparent,
@@ -729,13 +758,11 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
               onProfilePressed: _onProfilePressed,
               onLogoutPressed: _onLogoutPressed,
               onDiscoveryPressed: _onDiscoveryPressed,
-              onNotificationsPressed: isLoggedIn
-                  ? _onNotificationsPressed
-                  : null,
+              onNotificationsPressed:
+                  isLoggedIn ? _onNotificationsPressed : null,
               currentAppearanceMode: isLoggedIn ? currentAppearanceMode : null,
-              onAppearanceModeChanged: isLoggedIn
-                  ? _onAppearanceModeChanged
-                  : null,
+              onAppearanceModeChanged:
+                  isLoggedIn ? _onAppearanceModeChanged : null,
             ),
           ),
           body: Theme(
@@ -774,18 +801,15 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                             colors: isDark
                                 ? [
                                     Colors.black.withValues(alpha: 0.08),
-                                    const Color(
-                                      0xFF030712,
-                                    ).withValues(alpha: 0.16),
+                                    const Color(0xFF030712)
+                                        .withValues(alpha: 0.16),
                                     Colors.black.withValues(alpha: 0.28),
                                   ]
                                 : [
-                                    const Color(
-                                      0xFF030712,
-                                    ).withValues(alpha: 0.10),
-                                    const Color(
-                                      0xFF050B18,
-                                    ).withValues(alpha: 0.20),
+                                    const Color(0xFF030712)
+                                        .withValues(alpha: 0.10),
+                                    const Color(0xFF050B18)
+                                        .withValues(alpha: 0.20),
                                     Colors.white.withValues(alpha: 0.20),
                                   ],
                             stops: const [0.0, 0.68, 1.0],
@@ -879,12 +903,20 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                           )
                         else ...[
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(30, 14, 30, 0),
+                            padding: const EdgeInsets.fromLTRB(
+                              30,
+                              14,
+                              30,
+                              0,
+                            ),
                             child: HomeHeroSection(
                               scopeShortLabel: scopeShortLabel,
                               spaceStyle: isSpaceHome,
                               onOpenPolls: () {
-                                Navigator.pushNamed(context, AppRouter.polls);
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRouter.polls,
+                                );
                               },
                               onOpenNews: _onOpenNewsPressed,
                               onCreate: _onCreatePressed,
@@ -947,8 +979,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                       'home_news_${scope.level}_${scope.countryCode}_${scope.cityId}_${_homeNewsLanguageKey}_$_homeRefreshVersion',
                                     ),
                                     create: (_) {
-                                      final controller = AppDI.instance
-                                          .createNewsController();
+                                      final controller =
+                                          AppDI.instance.createNewsController();
                                       _scheduleHomeLoad(
                                         _nativeNewsWarmupDelay,
                                         () => controller.loadNews(),
@@ -965,14 +997,15 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                       'home_social_${scope.level}_${scope.countryCode}_${scope.cityId}_${AppDI.instance.currentUserId ?? 'guest'}_$_homeRefreshVersion',
                                     ),
                                     create: (_) {
-                                      final controller = AppDI.instance
-                                          .createFeedController();
+                                      final controller =
+                                          AppDI.instance.createFeedController();
                                       final userId =
                                           AppDI.instance.currentUserId;
                                       _scheduleHomeLoad(
                                         _nativeSocialWarmupDelay,
-                                        () =>
-                                            controller.loadFeed(userId: userId),
+                                        () => controller.loadFeed(
+                                          userId: userId,
+                                        ),
                                       );
                                       return controller;
                                     },
@@ -1034,16 +1067,24 @@ class _HomeScopeSelector extends StatelessWidget {
     final isCity = scope.level == GeoScopeLevel.city;
     final isItalian =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'it';
-    final styleTitle = isItalian ? 'Aspetto' : 'Appearance';
-    final lightLabel = isItalian ? 'Chiaro' : 'Light';
-    final darkLabel = isItalian ? 'Scuro' : 'Dark';
+    final styleTitle = isItalian
+        ? 'Aspetto'
+        : deOrEnglish(context, english: 'Appearance', german: 'Darstellung');
+    final lightLabel = isItalian
+        ? 'Chiaro'
+        : deOrEnglish(context, english: 'Light', german: 'Hell');
+    final darkLabel = isItalian
+        ? 'Scuro'
+        : deOrEnglish(context, english: 'Dark', german: 'Dunkel');
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(30, 16, 30, 0),
       child: Card(
         elevation: 0,
         color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Column(
@@ -1051,7 +1092,10 @@ class _HomeScopeSelector extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(_scopeIcon(), color: theme.colorScheme.primary),
+                  Icon(
+                    _scopeIcon(),
+                    color: theme.colorScheme.primary,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -1187,7 +1231,9 @@ class _HomeScopeSelector extends StatelessWidget {
             ? theme.colorScheme.primary.withValues(alpha: 0.45)
             : theme.dividerColor.withValues(alpha: 0.6),
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(999),
+      ),
       visualDensity: VisualDensity.compact,
     );
   }
@@ -1207,7 +1253,9 @@ class _HomeScopeSelector extends StatelessWidget {
 class _CountryScopeDialog extends StatefulWidget {
   final String? selectedCountryCode;
 
-  const _CountryScopeDialog({this.selectedCountryCode});
+  const _CountryScopeDialog({
+    this.selectedCountryCode,
+  });
 
   @override
   State<_CountryScopeDialog> createState() => _CountryScopeDialogState();
@@ -1234,20 +1282,16 @@ class _CountryScopeDialogState extends State<_CountryScopeDialog> {
       math.max(300.0, mediaSize.height * (isCompact ? 0.58 : 0.66)),
     );
     final normalizedQuery = _query.trim().toLowerCase();
-    final countries = country_data.Countries.all
-        .where((country) {
-          if (normalizedQuery.isEmpty) {
-            return true;
-          }
+    final countries = country_data.Countries.all.where((country) {
+      if (normalizedQuery.isEmpty) {
+        return true;
+      }
 
-          final localizedName = country
-              .localizedName(languageCode)
-              .toLowerCase();
-          return localizedName.contains(normalizedQuery) ||
-              country.name.toLowerCase().contains(normalizedQuery) ||
-              country.code.toLowerCase().contains(normalizedQuery);
-        })
-        .toList(growable: false);
+      final localizedName = country.localizedName(languageCode).toLowerCase();
+      return localizedName.contains(normalizedQuery) ||
+          country.name.toLowerCase().contains(normalizedQuery) ||
+          country.code.toLowerCase().contains(normalizedQuery);
+    }).toList(growable: false);
 
     return AlertDialog(
       insetPadding: EdgeInsets.symmetric(
@@ -1296,8 +1340,7 @@ class _CountryScopeDialogState extends State<_CountryScopeDialog> {
                 itemCount: countries.length,
                 itemBuilder: (context, index) {
                   final country = countries[index];
-                  final selected =
-                      country.code.toUpperCase() ==
+                  final selected = country.code.toUpperCase() ==
                       widget.selectedCountryCode?.trim().toUpperCase();
 
                   return ListTile(
@@ -1331,7 +1374,10 @@ class _CityScopeDialog extends StatefulWidget {
   final String countryCode;
   final String? initialCityName;
 
-  const _CityScopeDialog({required this.countryCode, this.initialCityName});
+  const _CityScopeDialog({
+    required this.countryCode,
+    this.initialCityName,
+  });
 
   @override
   State<_CityScopeDialog> createState() => _CityScopeDialogState();
@@ -1370,14 +1416,14 @@ class _CityScopeDialogState extends State<_CityScopeDialog> {
     });
 
     try {
-      final resolved = await AppDI.instance.geocodingRepository
-          .geocodeContentLocation(
-            ContentLocation(
-              source: ContentLocationSource.manual,
-              countryCode: widget.countryCode,
-              cityName: cityName,
-            ),
-          );
+      final resolved =
+          await AppDI.instance.geocodingRepository.geocodeContentLocation(
+        ContentLocation(
+          source: ContentLocationSource.manual,
+          countryCode: widget.countryCode,
+          cityName: cityName,
+        ),
+      );
 
       if (!mounted) {
         return;
@@ -1394,8 +1440,8 @@ class _CityScopeDialogState extends State<_CityScopeDialog> {
       final resolvedCityName = resolved.cityName?.trim();
       final effectiveCityName =
           resolvedCityName == null || resolvedCityName.isEmpty
-          ? cityName
-          : resolvedCityName;
+              ? cityName
+              : resolvedCityName;
       final latitude = resolved.centerLat ?? resolved.latitude;
       final longitude = resolved.centerLng ?? resolved.longitude;
 
@@ -1469,7 +1515,9 @@ class _CityScopeDialogState extends State<_CityScopeDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              l10n.homeScopeCountryWithCode(widget.countryCode.toUpperCase()),
+              l10n.homeScopeCountryWithCode(
+                widget.countryCode.toUpperCase(),
+              ),
             ),
             const SizedBox(height: 12),
             TextField(

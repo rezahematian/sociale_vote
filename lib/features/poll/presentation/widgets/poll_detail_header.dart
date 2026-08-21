@@ -125,11 +125,13 @@ class PollDetailHeader extends StatelessWidget {
       l10n,
       it: 'Condividi',
       en: 'Share',
+      de: 'Teilen',
     );
     final saveLabel = _localizedText(
       l10n,
       it: 'Salva',
       en: 'Save',
+      de: 'Speichern',
     );
 
     final representativeLabel =
@@ -152,11 +154,13 @@ class PollDetailHeader extends StatelessWidget {
             l10n,
             it: 'Voto modificabile',
             en: 'Vote can change',
+            de: 'Stimme änderbar',
           )
         : _localizedText(
             l10n,
             it: 'Voto non modificabile',
             en: 'Vote locked',
+            de: 'Stimme gesperrt',
           );
     final anonymityLabel =
         config.anonymityRules.level == AnonymityLevel.anonymous
@@ -164,11 +168,13 @@ class PollDetailHeader extends StatelessWidget {
                 l10n,
                 it: 'Voto anonimo',
                 en: 'Anonymous vote',
+                de: 'Anonyme Abstimmung',
               )
             : _localizedText(
                 l10n,
                 it: 'Voto pubblico',
                 en: 'Public vote',
+                de: 'Öffentliche Abstimmung',
               );
     final resultsVisibilityLabel = _mapResultsVisibilityLabel(
       l10n,
@@ -181,11 +187,13 @@ class PollDetailHeader extends StatelessWidget {
                 l10n,
                 it: 'Quorum raggiunto • $totalVotes/$minQuorum',
                 en: 'Quorum reached • $totalVotes/$minQuorum',
+                de: 'Quorum erreicht • $totalVotes/$minQuorum',
               )
             : _localizedText(
                 l10n,
                 it: 'Quorum non raggiunto • $totalVotes/$minQuorum',
                 en: 'Quorum not reached • $totalVotes/$minQuorum',
+                de: 'Quorum nicht erreicht • $totalVotes/$minQuorum',
               ))
         : null;
 
@@ -345,6 +353,7 @@ class PollDetailHeader extends StatelessWidget {
                   l10n,
                   it: 'Creato il ${_formatDateTime(createdAt)}',
                   en: 'Created on ${_formatDateTime(createdAt)}',
+                  de: 'Erstellt am ${_formatDateTime(createdAt)}',
                 ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: metaTextColor,
@@ -360,6 +369,7 @@ class PollDetailHeader extends StatelessWidget {
                   l10n,
                   it: 'Regole di voto',
                   en: 'Voting rules',
+                  de: 'Abstimmungsregeln',
                 ),
                 values: ruleSummaryValues,
               ),
@@ -1209,6 +1219,7 @@ class PollDetailHeader extends StatelessWidget {
                   l10n,
                   it: 'Pubblicato come $actorLabel',
                   en: 'Published as $actorLabel',
+                  de: 'Veröffentlicht als $actorLabel',
                 ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
@@ -1237,6 +1248,7 @@ class PollDetailHeader extends StatelessWidget {
                 l10n,
                 it: 'Utente',
                 en: 'User',
+                de: 'Benutzer',
               ));
     final usernameLabel =
         displayName != null && username != null ? '@$username' : null;
@@ -1255,6 +1267,7 @@ class PollDetailHeader extends StatelessWidget {
               l10n,
               it: 'Creato da',
               en: 'Created by',
+              de: 'Erstellt von',
             ),
             style: theme.textTheme.bodySmall?.copyWith(
               color: mutedColor,
@@ -1366,12 +1379,14 @@ class PollDetailHeader extends StatelessWidget {
           l10n,
           it: 'Verifica minima: Livello 1',
           en: 'Minimum verification: Level 1',
+          de: 'Mindestverifizierung: Stufe 1',
         );
       case VerificationLevel.level2:
         return _localizedText(
           l10n,
           it: 'Verifica minima: Livello 2',
           en: 'Minimum verification: Level 2',
+          de: 'Mindestverifizierung: Stufe 2',
         );
     }
   }
@@ -1389,6 +1404,7 @@ class PollDetailHeader extends StatelessWidget {
         l10n,
         it: 'Solo utenti $countryName',
         en: 'Only $countryName users',
+        de: 'Nur Nutzer aus $countryName',
       );
     }
 
@@ -1396,6 +1412,7 @@ class PollDetailHeader extends StatelessWidget {
       l10n,
       it: 'Partecipazione ristretta',
       en: 'Restricted access',
+      de: 'Eingeschränkte Teilnahme',
     );
   }
 
@@ -1404,22 +1421,25 @@ class PollDetailHeader extends StatelessWidget {
       case ActorType.publicOfficial:
         return _localizedText(
           l10n,
-          it: 'Public Official',
+          it: 'Funzionario pubblico',
           en: 'Public Official',
+          de: 'Amtsträger',
         );
       case ActorType.institution:
         return _localizedText(
           l10n,
           it: 'Istituzione pubblica',
           en: 'Public Institution',
+          de: 'Öffentliche Institution',
         );
       case ActorType.organization:
         return l10n.identityBadgeVerifiedOrganization;
       default:
         return _localizedText(
           l10n,
-          it: 'Representative',
+          it: 'Rappresentante',
           en: 'Representative',
+          de: 'Vertreter',
         );
     }
   }
@@ -1469,6 +1489,7 @@ class PollDetailHeader extends StatelessWidget {
         l10n,
         it: 'Da ${_formatShortDate(startAt)}',
         en: 'From ${_formatShortDate(startAt)}',
+        de: 'Ab ${_formatShortDate(startAt)}',
       );
     }
 
@@ -1476,6 +1497,7 @@ class PollDetailHeader extends StatelessWidget {
       l10n,
       it: 'Fino ${_formatShortDate(endAt!)}',
       en: 'Until ${_formatShortDate(endAt)}',
+      de: 'Bis ${_formatShortDate(endAt)}',
     );
   }
 
@@ -1534,18 +1556,21 @@ class PollDetailHeader extends StatelessWidget {
           l10n,
           it: 'Risultati sempre visibili',
           en: 'Results always visible',
+          de: 'Ergebnisse immer sichtbar',
         );
       case ResultsVisibilityMode.afterVote:
         return _localizedText(
           l10n,
           it: 'Risultati visibili dopo voto',
           en: 'Results visible after vote',
+          de: 'Ergebnisse nach der Abstimmung sichtbar',
         );
       case ResultsVisibilityMode.afterClose:
         return _localizedText(
           l10n,
           it: 'Risultati visibili dopo chiusura',
           en: 'Results visible after close',
+          de: 'Ergebnisse nach Schließung sichtbar',
         );
     }
   }
@@ -1554,9 +1579,12 @@ class PollDetailHeader extends StatelessWidget {
     AppLocalizations l10n, {
     required String it,
     required String en,
+    required String de,
   }) {
     final locale = l10n.localeName.toLowerCase();
-    return locale.startsWith('it') ? it : en;
+    if (locale.startsWith('it')) return it;
+    if (locale.startsWith('de')) return de;
+    return en;
   }
 
   String? _normalizeString(String? value) {

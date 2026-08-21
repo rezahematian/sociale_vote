@@ -9,6 +9,7 @@ import 'package:sociale_vote/features/home/presentation/widgets/home_trending_se
 import 'package:sociale_vote/features/profile/presentation/pages/my_account_connections_page.dart';
 import 'package:sociale_vote/features/search/presentation/pages/search_page.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class DiscoveryPage extends StatefulWidget {
   final String scopeShortLabel;
@@ -87,7 +88,9 @@ class _DiscoveryPageState extends State<DiscoveryPage> {
   }
 
   String _forYouTabLabel(BuildContext context) {
-    return _isItalian(context) ? 'Per te' : 'For You';
+    return _isItalian(context)
+        ? 'Per te'
+        : deOrEnglish(context, english: 'For You', german: 'Für dich');
   }
 
   String _forYouExplanation(BuildContext context) {
@@ -96,8 +99,13 @@ class _DiscoveryPageState extends State<DiscoveryPage> {
           'freschezza dei contenuti. Seguire un account aggiorna questo feed.';
     }
 
-    return 'Combines accounts and areas you follow with content activity, '
-        'quality and freshness. Following an account updates this feed.';
+    return deOrEnglish(
+      context,
+      english:
+          'Combines accounts and areas you follow with content activity, quality and freshness. Following an account updates this feed.',
+      german:
+          'Kombiniert Konten und Bereiche, denen du folgst, mit Aktivität, Qualität und Aktualität der Inhalte. Wenn du einem Konto folgst, wird dieser Feed aktualisiert.',
+    );
   }
 
   String _trendingExplanation(BuildContext context) {
@@ -107,8 +115,13 @@ class _DiscoveryPageState extends State<DiscoveryPage> {
           'classifica.';
     }
 
-    return 'Shows the most active content in ${widget.scopeShortLabel}. '
-        'Account follows do not change this ranking.';
+    return deOrEnglish(
+      context,
+      english:
+          'Shows the most active content in ${widget.scopeShortLabel}. Account follows do not change this ranking.',
+      german:
+          'Zeigt die aktivsten Inhalte in ${widget.scopeShortLabel}. Gefolgte Konten verändern diese Rangfolge nicht.',
+    );
   }
 
   Widget _buildForYouTab() {
@@ -146,7 +159,7 @@ class _DiscoveryPageState extends State<DiscoveryPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        const Text('Discovery'),
+        Text(l10n.discoveryPageTitle),
         Text(
           widget.scopeShortLabel,
           style: Theme.of(context).textTheme.labelMedium,

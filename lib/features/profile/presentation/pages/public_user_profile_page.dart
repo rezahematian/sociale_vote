@@ -10,6 +10,7 @@ import 'package:sociale_vote/features/social/presentation/pages/post_detail_page
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/ui/avatar.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class PublicUserProfilePage extends StatefulWidget {
   final String userId;
@@ -302,8 +303,8 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
     });
 
     try {
-      final state = await AppDI.instance.accountFollowRepository
-          .getState(targetUserId);
+      final state =
+          await AppDI.instance.accountFollowRepository.getState(targetUserId);
       if (!mounted) return;
 
       setState(() {
@@ -639,7 +640,10 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
                     child: Text(
                       isItalian
                           ? 'Impossibile caricare i sondaggi pubblici.'
-                          : 'Unable to load public polls.',
+                          : deOrEnglish(context,
+                              english: 'Unable to load public polls.',
+                              german:
+                                  'Öffentliche Umfragen konnten nicht geladen werden.'),
                       style: theme.textTheme.bodyMedium,
                     ),
                   ),
@@ -669,7 +673,9 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
                     child: Text(
                       isItalian
                           ? 'Nessun sondaggio pubblico.'
-                          : 'No public polls.',
+                          : deOrEnglish(context,
+                              english: 'No public polls.',
+                              german: 'Keine öffentlichen Umfragen.'),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface.withValues(
                           alpha: 0.68,
@@ -743,7 +749,10 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
                     child: Text(
                       isItalian
                           ? 'Impossibile caricare i post pubblici.'
-                          : 'Unable to load public posts.',
+                          : deOrEnglish(context,
+                              english: 'Unable to load public posts.',
+                              german:
+                                  'Öffentliche Beiträge konnten nicht geladen werden.'),
                       style: theme.textTheme.bodyMedium,
                     ),
                   ),
@@ -771,7 +780,11 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      isItalian ? 'Nessun post pubblico.' : 'No public posts.',
+                      isItalian
+                          ? 'Nessun post pubblico.'
+                          : deOrEnglish(context,
+                              english: 'No public posts.',
+                              german: 'Keine öffentlichen Beiträge.'),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface.withValues(
                           alpha: 0.68,

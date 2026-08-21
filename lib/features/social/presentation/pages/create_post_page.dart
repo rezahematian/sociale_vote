@@ -7,6 +7,7 @@ import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class CreatePostPage extends StatefulWidget {
   const CreatePostPage({super.key});
@@ -61,24 +62,39 @@ class _CreatePostPageState extends State<CreatePostPage> {
   String _sourceLabel(ContentLocationSource source) {
     switch (source) {
       case ContentLocationSource.manual:
-        return _isItalian ? 'Manuale' : 'Manual';
+        return _isItalian
+            ? 'Manuale'
+            : deOrEnglish(context, english: 'Manual', german: 'Manuell');
       case ContentLocationSource.device:
-        return _isItalian ? 'Posizione attuale' : 'Current location';
+        return _isItalian
+            ? 'Posizione attuale'
+            : deOrEnglish(context,
+                english: 'Current location', german: 'Aktueller Standort');
       case ContentLocationSource.profile:
-        return _isItalian ? 'Profilo' : 'Profile';
+        return _isItalian
+            ? 'Profilo'
+            : deOrEnglish(context, english: 'Profile', german: 'Profil');
       case ContentLocationSource.geoScopeFallback:
-        return _isItalian ? 'Ambito corrente' : 'Current scope';
+        return _isItalian
+            ? 'Ambito corrente'
+            : deOrEnglish(context,
+                english: 'Current scope', german: 'Aktueller Bereich');
     }
   }
 
   String _locationSummary(ContentLocation? location) {
     if (location == null || location.isEmpty) {
       if (_showManualLocationFields) {
-        return _isItalian ? 'Seleziona una località' : 'Select a location';
+        return _isItalian
+            ? 'Seleziona una località'
+            : deOrEnglish(context,
+                english: 'Select a location', german: 'Standort auswählen');
       }
       return _isItalian
           ? 'Globale / nessuna località specifica'
-          : 'Global / no specific location';
+          : deOrEnglish(context,
+              english: 'Global / no specific location',
+              german: 'Global / kein bestimmter Standort');
     }
 
     final parts = <String>[];
@@ -94,22 +110,31 @@ class _CreatePostPageState extends State<CreatePostPage> {
       return parts.join(', ');
     }
 
-    final hasCoordinates =
-        location.latitude != null &&
+    final hasCoordinates = location.latitude != null &&
         location.longitude != null &&
         location.latitude!.isFinite &&
         location.longitude!.isFinite;
 
     if (hasCoordinates) {
-      return _isItalian ? 'Coordinate disponibili' : 'Coordinates available';
+      return _isItalian
+          ? 'Coordinate disponibili'
+          : deOrEnglish(context,
+              english: 'Coordinates available',
+              german: 'Koordinaten verfügbar');
     }
     if (location.hasCenter) {
       return _isItalian
           ? 'Centro geografico disponibile'
-          : 'Geographic center available';
+          : deOrEnglish(context,
+              english: 'Geographic center available',
+              german: 'Geografischer Mittelpunkt verfügbar');
     }
 
-    return _isItalian ? 'Località non definita' : 'Location not defined';
+    return _isItalian
+        ? 'Località non definita'
+        : deOrEnglish(context,
+            english: 'Location not defined',
+            german: 'Standort nicht festgelegt');
   }
 
   Future<void> _useCurrentDeviceLocation() async {
@@ -129,7 +154,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
             content: Text(
               _isItalian
                   ? 'Attiva i servizi di localizzazione e riprova.'
-                  : 'Turn on location services and try again.',
+                  : deOrEnglish(context,
+                      english: 'Turn on location services and try again.',
+                      german:
+                          'Aktiviere die Standortdienste und versuche es erneut.'),
             ),
           ),
         );
@@ -151,7 +179,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
               content: Text(
                 _isItalian
                     ? 'Permesso posizione non concesso. Abilitalo nelle impostazioni di sistema.'
-                    : 'Location permission was not granted. Enable it in system settings.',
+                    : deOrEnglish(context,
+                        english:
+                            'Location permission was not granted. Enable it in system settings.',
+                        german:
+                            'Die Standortberechtigung wurde nicht erteilt. Aktiviere sie in den Systemeinstellungen.'),
               ),
             ),
           );
@@ -169,7 +201,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
             content: Text(
               _isItalian
                   ? 'Impossibile determinare la posizione attuale.'
-                  : 'Unable to determine the current location.',
+                  : deOrEnglish(context,
+                      english: 'Unable to determine the current location.',
+                      german:
+                          'Der aktuelle Standort konnte nicht bestimmt werden.'),
             ),
           ),
         );
@@ -188,7 +223,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
           content: Text(
             _isItalian
                 ? 'Posizione attuale applicata: ${_locationSummary(location)}.'
-                : 'Current location applied: ${_locationSummary(location)}.',
+                : deOrEnglish(context,
+                    english:
+                        'Current location applied: ${_locationSummary(location)}.',
+                    german:
+                        'Aktueller Standort angewendet: ${_locationSummary(location)}.'),
           ),
         ),
       );
@@ -196,11 +235,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            _isItalian
-                ? 'Errore accesso posizione: $e'
-                : 'Location access error: $e',
-          ),
+          content: Text(_isItalian
+              ? 'Errore accesso posizione: $e'
+              : deOrEnglish(context,
+                  english: 'Location access error: $e',
+                  german: 'Fehler beim Standortzugriff: $e')),
         ),
       );
     } finally {
@@ -259,7 +298,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
       setState(() {
         _submitError = _isItalian
             ? 'Errore: utente non disponibile nella sessione.'
-            : 'Error: user is not available in the current session.';
+            : deOrEnglish(context,
+                english: 'Error: user is not available in the current session.',
+                german:
+                    'Fehler: Der Benutzer ist in der aktuellen Sitzung nicht verfügbar.');
       });
       return;
     }
@@ -302,15 +344,23 @@ class _CreatePostPageState extends State<CreatePostPage> {
           content: Text(
             effectiveLocation == null
                 ? (_isItalian
-                      ? 'Post globale creato con successo.'
-                      : 'Global post created successfully.')
+                    ? 'Post globale creato con successo.'
+                    : deOrEnglish(context,
+                        english: 'Global post created successfully.',
+                        german: 'Globaler Beitrag erfolgreich erstellt.'))
                 : effectiveLocation.hasExactPoint || effectiveLocation.hasCenter
-                ? (_isItalian
-                      ? 'Post creato con successo.'
-                      : 'Post created successfully.')
-                : (_isItalian
-                      ? 'Post creato con successo. Località salvata senza coordinate precise.'
-                      : 'Post created successfully. Location saved without precise coordinates.'),
+                    ? (_isItalian
+                        ? 'Post creato con successo.'
+                        : deOrEnglish(context,
+                            english: 'Post created successfully.',
+                            german: 'Beitrag erfolgreich erstellt.'))
+                    : (_isItalian
+                        ? 'Post creato con successo. Località salvata senza coordinate precise.'
+                        : deOrEnglish(context,
+                            english:
+                                'Post created successfully. Location saved without precise coordinates.',
+                            german:
+                                'Beitrag erfolgreich erstellt. Standort ohne genaue Koordinaten gespeichert.')),
           ),
         ),
       );
@@ -318,11 +368,18 @@ class _CreatePostPageState extends State<CreatePostPage> {
       Navigator.of(context).pop(true);
     } catch (_) {
       if (!mounted) return;
-      final languageCode = Localizations.localeOf(context).languageCode;
+      final languageCode =
+          Localizations.localeOf(context).languageCode.toLowerCase();
       setState(() {
         _submitError = languageCode == 'it'
             ? 'Impossibile pubblicare il post. Controlla la connessione e riprova.'
-            : 'Unable to publish the post. Check your connection and try again.';
+            : deOrEnglish(
+                context,
+                english:
+                    'Unable to publish the post. Check your connection and try again.',
+                german:
+                    'Der Beitrag konnte nicht veröffentlicht werden. Prüfe die Verbindung und versuche es erneut.',
+              );
       });
     } finally {
       if (mounted) {
@@ -359,7 +416,12 @@ class _CreatePostPageState extends State<CreatePostPage> {
         (location == null || location.isEmpty) && !_showManualLocationFields;
 
     return Scaffold(
-      appBar: AppBar(title: Text(_isItalian ? 'Crea post' : 'Create post')),
+      appBar: AppBar(
+        title: Text(_isItalian
+            ? 'Crea post'
+            : deOrEnglish(context,
+                english: 'Create post', german: 'Beitrag erstellen')),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -368,7 +430,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
             child: ListView(
               children: [
                 Text(
-                  _isItalian ? 'Nuovo post' : 'New post',
+                  _isItalian
+                      ? 'Nuovo post'
+                      : deOrEnglish(context,
+                          english: 'New post', german: 'Neuer Beitrag'),
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -377,7 +442,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 Text(
                   _isItalian
                       ? 'Condividi una proposta, un’idea o un commento per quest’area geografica.'
-                      : 'Share a proposal, an idea, or a comment for this geographic area.',
+                      : deOrEnglish(context,
+                          english:
+                              'Share a proposal, an idea, or a comment for this geographic area.',
+                          german:
+                              'Teile einen Vorschlag, eine Idee oder einen Kommentar für diesen geografischen Bereich.'),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                   ),
@@ -386,7 +455,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 TextFormField(
                   controller: _titleController,
                   decoration: InputDecoration(
-                    labelText: _isItalian ? 'Titolo' : 'Title',
+                    labelText: _isItalian
+                        ? 'Titolo'
+                        : deOrEnglish(context,
+                            english: 'Title', german: 'Titel'),
                     border: const OutlineInputBorder(),
                   ),
                   maxLength: 120,
@@ -394,7 +466,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
                     if (value == null || value.trim().isEmpty) {
                       return _isItalian
                           ? 'Inserisci un titolo'
-                          : 'Enter a title';
+                          : deOrEnglish(context,
+                              english: 'Enter a title',
+                              german: 'Titel eingeben');
                     }
                     return null;
                   },
@@ -403,7 +477,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 TextFormField(
                   controller: _contentController,
                   decoration: InputDecoration(
-                    labelText: _isItalian ? 'Contenuto' : 'Content',
+                    labelText: _isItalian
+                        ? 'Contenuto'
+                        : deOrEnglish(context,
+                            english: 'Content', german: 'Inhalt'),
                     alignLabelWithHint: true,
                     border: const OutlineInputBorder(),
                   ),
@@ -413,12 +490,18 @@ class _CreatePostPageState extends State<CreatePostPage> {
                     if (value == null || value.trim().isEmpty) {
                       return _isItalian
                           ? 'Inserisci il contenuto del post'
-                          : 'Enter the post content';
+                          : deOrEnglish(context,
+                              english: 'Enter the post content',
+                              german: 'Beitragsinhalt eingeben');
                     }
                     if (value.trim().length < 10) {
                       return _isItalian
                           ? 'Il contenuto è troppo corto (minimo 10 caratteri)'
-                          : 'The content is too short (minimum 10 characters)';
+                          : deOrEnglish(context,
+                              english:
+                                  'The content is too short (minimum 10 characters)',
+                              german:
+                                  'Der Inhalt ist zu kurz (mindestens 10 Zeichen).');
                     }
                     return null;
                   },
@@ -437,7 +520,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
                         Text(
                           _isItalian
                               ? 'Località del contenuto'
-                              : 'Content location',
+                              : deOrEnglish(context,
+                                  english: 'Content location',
+                                  german: 'Inhaltsstandort'),
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -446,11 +531,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
                         Text(
                           _isItalian
                               ? 'Scegli se il post è globale, associato a una località oppure alla tua posizione attuale.'
-                              : 'Choose whether the post is global, linked to a location, or linked to your current location.',
+                              : deOrEnglish(context,
+                                  english:
+                                      'Choose whether the post is global, linked to a location, or linked to your current location.',
+                                  german:
+                                      'Wähle, ob der Beitrag global, mit einem Standort oder mit deinem aktuellen Standort verknüpft ist.'),
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.75,
-                            ),
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.75),
                           ),
                         ),
                         const SizedBox(height: 14),
@@ -462,9 +550,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                 .withValues(alpha: 0.35),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: theme.colorScheme.outline.withValues(
-                                alpha: 0.15,
-                              ),
+                              color: theme.colorScheme.outline
+                                  .withValues(alpha: 0.15),
                             ),
                           ),
                           child: Column(
@@ -473,7 +560,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
                               Text(
                                 _isItalian
                                     ? 'Località attiva'
-                                    : 'Active location',
+                                    : deOrEnglish(context,
+                                        english: 'Active location',
+                                        german: 'Aktiver Standort'),
                                 style: theme.textTheme.labelMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -487,17 +576,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '${_isItalian ? 'Origine' : 'Source'}: ${isGlobalSelected
-                                    ? (_isItalian ? 'Globale' : 'Global')
-                                    : _showManualLocationFields
-                                    ? (_isItalian ? 'Manuale' : 'Manual')
-                                    : location == null || location.isEmpty
-                                    ? (_isItalian ? 'Globale' : 'Global')
-                                    : _sourceLabel(location.source)}',
+                                '${_isItalian ? 'Origine' : deOrEnglish(context, english: 'Source', german: 'Quelle')}: ${isGlobalSelected ? (_isItalian ? 'Globale' : deOrEnglish(context, english: 'Global', german: 'Global')) : _showManualLocationFields ? (_isItalian ? 'Manuale' : deOrEnglish(context, english: 'Manual', german: 'Manuell')) : location == null || location.isEmpty ? (_isItalian ? 'Globale' : deOrEnglish(context, english: 'Global', german: 'Global')) : _sourceLabel(location.source)}',
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.7,
-                                  ),
+                                  color: theme.colorScheme.onSurface
+                                      .withValues(alpha: 0.7),
                                 ),
                               ),
                             ],
@@ -528,7 +610,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                     : null,
                               ),
                               icon: const Icon(Icons.public),
-                              label: Text(_isItalian ? 'Globale' : 'Global'),
+                              label: Text(_isItalian
+                                  ? 'Globale'
+                                  : deOrEnglish(context,
+                                      english: 'Global', german: 'Global')),
                             ),
                             OutlinedButton.icon(
                               onPressed: _isSubmitting
@@ -556,11 +641,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                     : null,
                               ),
                               icon: const Icon(Icons.place_outlined),
-                              label: Text(
-                                _isItalian
-                                    ? 'Scegli località'
-                                    : 'Choose location',
-                              ),
+                              label: Text(_isItalian
+                                  ? 'Scegli località'
+                                  : deOrEnglish(context,
+                                      english: 'Choose location',
+                                      german: 'Standort auswählen')),
                             ),
                             OutlinedButton.icon(
                               onPressed: _isSubmitting || _isResolvingLocation
@@ -586,11 +671,17 @@ class _CreatePostPageState extends State<CreatePostPage> {
                               label: Text(
                                 _isResolvingLocation
                                     ? (_isItalian
-                                          ? 'Ricavo posizione...'
-                                          : 'Getting location...')
+                                        ? 'Ricavo posizione...'
+                                        : deOrEnglish(context,
+                                            english: 'Getting location...',
+                                            german:
+                                                'Standort wird ermittelt...'))
                                     : (_isItalian
-                                          ? 'Usa posizione attuale'
-                                          : 'Use current location'),
+                                        ? 'Usa posizione attuale'
+                                        : deOrEnglish(context,
+                                            english: 'Use current location',
+                                            german:
+                                                'Aktuellen Standort verwenden')),
                               ),
                             ),
                           ],
@@ -613,7 +704,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
                             },
                             label: _isItalian
                                 ? 'Paese del contenuto'
-                                : 'Content country',
+                                : deOrEnglish(context,
+                                    english: 'Content country',
+                                    german: 'Land des Inhalts'),
                             required: false,
                           ),
                           const SizedBox(height: 12),
@@ -622,11 +715,17 @@ class _CreatePostPageState extends State<CreatePostPage> {
                             decoration: InputDecoration(
                               labelText: _isItalian
                                   ? 'Città del contenuto'
-                                  : 'Content city',
+                                  : deOrEnglish(context,
+                                      english: 'Content city',
+                                      german: 'Stadt des Inhalts'),
                               border: const OutlineInputBorder(),
                               helperText: _isItalian
                                   ? 'Facoltativo. Puoi indicare solo il Paese oppure anche la città.'
-                                  : 'Optional. You can specify only the country or also the city.',
+                                  : deOrEnglish(context,
+                                      english:
+                                          'Optional. You can specify only the country or also the city.',
+                                      german:
+                                          'Optional. Du kannst nur das Land oder zusätzlich die Stadt angeben.'),
                             ),
                             onChanged: (_) => _setManualLocation(),
                           ),
@@ -641,14 +740,16 @@ class _CreatePostPageState extends State<CreatePostPage> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.errorContainer.withValues(alpha: 0.55),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .errorContainer
+                          .withValues(alpha: 0.55),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.error.withValues(alpha: 0.35),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .error
+                            .withValues(alpha: 0.35),
                       ),
                     ),
                     child: Row(
@@ -681,7 +782,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : Text(_isItalian ? 'Pubblica post' : 'Publish post'),
+                      : Text(_isItalian
+                          ? 'Pubblica post'
+                          : deOrEnglish(context,
+                              english: 'Publish post',
+                              german: 'Beitrag veröffentlichen')),
                 ),
               ],
             ),

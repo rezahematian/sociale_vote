@@ -224,6 +224,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     final locale = switch (value) {
       'it' => const Locale('it'),
       'en' => const Locale('en'),
+      'de' => const Locale('de'),
       _ => null,
     };
 
@@ -269,6 +270,16 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               Icon(Icons.language),
               SizedBox(width: 12),
               Text('English'),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'de',
+          child: Row(
+            children: [
+              Icon(Icons.language),
+              SizedBox(width: 12),
+              Text('Deutsch'),
             ],
           ),
         ),

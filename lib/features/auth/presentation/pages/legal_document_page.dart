@@ -18,10 +18,11 @@ class LegalDocumentPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isItalian = Localizations.localeOf(context).languageCode == 'it';
+    final languageCode =
+        Localizations.localeOf(context).languageCode.toLowerCase();
     final document = _LegalDocument.forType(
       type,
-      isItalian: isItalian,
+      languageCode: languageCode,
     );
 
     final title = switch (type) {
@@ -146,13 +147,20 @@ class _LegalDocument {
 
   factory _LegalDocument.forType(
     LegalDocumentType type, {
-    required bool isItalian,
+    required String languageCode,
   }) {
+    final isItalian = languageCode == 'it';
+    final isGerman = languageCode == 'de';
+
     if (type == LegalDocumentType.terms) {
-      return isItalian ? _termsItalian : _termsEnglish;
+      if (isItalian) return _termsItalian;
+      if (isGerman) return _termsGerman;
+      return _termsEnglish;
     }
 
-    return isItalian ? _privacyItalian : _privacyEnglish;
+    if (isItalian) return _privacyItalian;
+    if (isGerman) return _privacyGerman;
+    return _privacyEnglish;
   }
 
   static const _LegalDocument _termsItalian = _LegalDocument(
@@ -697,6 +705,307 @@ class _LegalDocument {
             'changes will be communicated through the app or another '
             'appropriate channel where required. The public version is '
             'available at socialevote.com/privacy.',
+      ),
+    ],
+  );
+
+  static const _LegalDocument _termsGerman = _LegalDocument(
+    notice: 'Version aktualisiert am 16. August 2026. Offizielle Website: '
+        'socialevote.com. Social Vote richtet sich ausschließlich an Personen '
+        'ab 18 Jahren.',
+    sections: [
+      _LegalSection(
+        title: '1. Betreiber, Kontakt und Zustimmung',
+        body: 'Social Vote wird von Reza Hematian betrieben. Die offizielle '
+            'Website ist socialevote.com; die Kontaktadresse für Konten, '
+            'Support und diese Nutzungsbedingungen ist support@socialevote.com. '
+            'Mit der Erstellung eines Kontos bestätigt die nutzende Person, '
+            'mindestens 18 Jahre alt zu sein, diese Nutzungsbedingungen zu '
+            'akzeptieren und die Datenschutzerklärung gelesen zu haben. Wer '
+            'diese Bedingungen nicht akzeptiert, darf kein Konto erstellen '
+            'oder verwenden.',
+      ),
+      _LegalSection(
+        title: '2. Der Dienst',
+        body: 'Social Vote ist eine bürgerorientierte und soziale Plattform. '
+            'Sie ermöglicht das Lesen öffentlicher Inhalte, die Teilnahme an '
+            'Umfragen, das Veröffentlichen von Beiträgen und Kommentaren, '
+            'Reaktionen und Favoriten, das Lesen von Nachrichten sowie die '
+            'Nutzung geografischer Funktionen und der Civic Map. Einige '
+            'Funktionen erfordern eine Anmeldung oder einen bestimmten '
+            'Verifizierungsstand. Der Dienst kann aus Gründen der Sicherheit, '
+            'Compliance, Wartung oder Produktverbesserung geändert, '
+            'vorübergehend ausgesetzt oder aktualisiert werden.',
+      ),
+      _LegalSection(
+        title: '3. Alter, Konten und Zugangsdaten',
+        body: 'Für die Erstellung eines Kontos ist ein Mindestalter von 18 '
+            'Jahren erforderlich. Nutzende müssen korrekte Angaben machen, '
+            'ihre Zugangsdaten schützen und dürfen anderen Personen die '
+            'Nutzung ihres Kontos nicht gestatten. Social Vote kann Maßnahmen '
+            'gegen Missbrauch, Mehrfachkonten, Wegwerf-E-Mail-Adressen, '
+            'missbräuchliche Wiederverwendung von Zugangsdaten oder anderes '
+            'sicherheitswidriges Verhalten einsetzen. Der anfängliche '
+            'Benutzername kann automatisch vom System erzeugt und später '
+            'gemäß den jeweils verfügbaren Profilregeln geändert werden.',
+      ),
+      _LegalSection(
+        title: '4. Verhaltensregeln',
+        body: 'Verboten sind rechtswidrige, betrügerische, irreführende, '
+            'bedrohende, diskriminierende, belästigende oder missbräuchliche '
+            'Inhalte oder Handlungen sowie Identitätstäuschung, Spam, die '
+            'Manipulation von Abstimmungen, Meldungen oder '
+            'Verifizierungssystemen, unbefugter Zugriff, die rechtswidrige '
+            'Offenlegung personenbezogener Daten, die Ausbeutung Minderjähriger '
+            'und die Verletzung von Urheberrechten oder sonstigen Rechten '
+            'Dritter. Auch der Versuch, technische Beschränkungen, '
+            'Sicherheitskontrollen oder Teilnahmeregeln zu umgehen, ist '
+            'untersagt.',
+      ),
+      _LegalSection(
+        title: '5. Inhalte der Nutzenden',
+        body: 'Nutzende behalten ihre Rechte an den von ihnen veröffentlichten '
+            'Inhalten und bestätigen, über die hierfür erforderlichen Rechte '
+            'und Genehmigungen zu verfügen. Mit der Veröffentlichung wird '
+            'Social Vote eine nicht ausschließliche Lizenz eingeräumt, soweit '
+            'dies erforderlich ist, um den Inhalt innerhalb des Dienstes zu '
+            'hosten, zu vervielfältigen, technisch anzupassen, anzuzeigen, zu '
+            'verbreiten und zu moderieren. Der Umgang mit Daten nach der '
+            'Löschung eines Kontos ist in der Datenschutzerklärung beschrieben.',
+      ),
+      _LegalSection(
+        title: '6. Umfragen, Stimmen, Nachrichten und Standort',
+        body: 'Sofern nicht ausdrücklich und überprüfbar anders angegeben, '
+            'sind Social-Vote-Umfragen keine offiziellen Wahlen, rechtlich '
+            'bindenden Referenden, statistisch repräsentativen Erhebungen oder '
+            'professionelle Beratung. Teilnahme- und Sichtbarkeitsregeln '
+            'können je nach Umfrage variieren. Nachrichten stammen aus externen '
+            'Quellen und können verzögert, geändert oder nicht verfügbar sein. '
+            'Standortfunktionen sind freiwillig und müssen so verwendet werden, '
+            'dass personenbezogene Daten der nutzenden Person oder Dritter '
+            'nicht unnötig offengelegt werden.',
+      ),
+      _LegalSection(
+        title: '7. Meldungen, Moderation und Überprüfung',
+        body: 'Inhalte und Konten können gemeldet werden. Autorisierte '
+            'Moderatoren und Administratoren dürfen Meldungen prüfen und, '
+            'soweit erforderlich, Inhalte ausblenden oder wiederherstellen, '
+            'Konten sperren oder reaktivieren, Sitzungen widerrufen oder andere '
+            'verhältnismäßige Maßnahmen wegen Verstößen, Missbrauch, '
+            'Sicherheitsrisiken oder rechtlichen Pflichten ergreifen. Soweit '
+            'anwendbar, werden Gründe für eine Entscheidung bereitgestellt. '
+            'Eine Überprüfung kann per E-Mail an support@socialevote.com '
+            'beantragt werden; dabei müssen genügend Angaben zur Identifizierung '
+            'des Kontos, Inhalts und der Entscheidung gemacht werden.',
+      ),
+      _LegalSection(
+        title: '8. Kontolöschung und Beendigung',
+        body: 'Nutzende können die Löschung ihres Kontos über das Verfahren in '
+            'der App oder über die öffentliche Löschseite auf der offiziellen '
+            'Website beantragen. Die Auswirkungen der Löschung auf verschiedene '
+            'Datenkategorien sind in der Datenschutzerklärung beschrieben. '
+            'Social Vote kann ein Konto bei schweren oder wiederholten '
+            'Verstößen, Sicherheitsrisiken, rechtlichen Verpflichtungen oder '
+            'wenn der Dienst nicht weiter bereitgestellt werden kann, '
+            'einschränken oder schließen.',
+      ),
+      _LegalSection(
+        title: '9. Geistiges Eigentum und Inhalte Dritter',
+        body: 'Software, Name, Grafik und originäre Elemente von Social Vote '
+            'sind nach den anwendbaren Vorschriften geschützt. Marken, '
+            'Nachrichten und sonstige Inhalte Dritter gehören ihren jeweiligen '
+            'Rechteinhabern. Diese Bedingungen übertragen keine Rechte, die '
+            'über das für die normale Nutzung des Dienstes erforderliche Maß '
+            'hinausgehen.',
+      ),
+      _LegalSection(
+        title: '10. Verfügbarkeit und Haftung',
+        body: 'Social Vote trifft angemessene Maßnahmen für Sicherheit und '
+            'Kontinuität, garantiert jedoch nicht, dass der Dienst jederzeit '
+            'verfügbar oder fehlerfrei ist oder dass von Nutzenden oder '
+            'externen Quellen veröffentlichte Inhalte vollständig oder '
+            'zutreffend sind. Diese Bedingungen beschränken keine '
+            'Verbraucherrechte oder Haftung, die nach dem anwendbaren Recht '
+            'nicht ausgeschlossen werden können.',
+      ),
+      _LegalSection(
+        title: '11. Änderungen der Nutzungsbedingungen',
+        body: 'Die Nutzungsbedingungen können wegen Änderungen am Dienst, aus '
+            'Sicherheitsgründen, aufgrund gesetzlicher Anforderungen oder zur '
+            'Compliance aktualisiert werden. Wesentliche Änderungen werden, '
+            'soweit erforderlich, über einen geeigneten Kanal mitgeteilt. '
+            'Erfordert eine Änderung eine erneute Zustimmung, muss die '
+            'aktualisierte Fassung akzeptiert werden, bevor die betroffenen '
+            'Funktionen weiter genutzt werden.',
+      ),
+      _LegalSection(
+        title: '12. Anwendbares Recht und Kontakt',
+        body: 'Es gilt italienisches Recht, unbeschadet zwingender Rechte, die '
+            'Nutzenden nach dem in ihrem Land anwendbaren Recht zustehen. '
+            'Fragen zu diesen Bedingungen, zur Moderation oder zu Konten '
+            'können an support@socialevote.com gesendet werden. Die '
+            'Nutzungsbedingungen sind öffentlich unter '
+            'socialevote.com/terms verfügbar.',
+      ),
+    ],
+  );
+
+  static const _LegalDocument _privacyGerman = _LegalDocument(
+    notice: 'Datenschutzerklärung aktualisiert am 16. August 2026. Offizielle '
+        'Website: socialevote.com. Social Vote richtet sich ausschließlich an '
+        'Personen ab 18 Jahren.',
+    sections: [
+      _LegalSection(
+        title: '1. Verantwortlicher und Kontakt',
+        body: 'Verantwortlicher für Social Vote ist Reza Hematian. Anfragen '
+            'zum Datenschutz und zur Ausübung von Betroffenenrechten können an '
+            'support@socialevote.com gesendet werden. Die offizielle Website '
+            'ist socialevote.com.',
+      ),
+      _LegalSection(
+        title: '2. Verarbeitete Daten',
+        body:
+            'Social Vote kann Konto- und Authentifizierungsdaten verarbeiten, '
+            'einschließlich E-Mail-Adresse, Benutzerkennung und Sitzungsdaten; '
+            'Profildaten wie öffentlicher Name, ein vom System erzeugter '
+            'anfänglicher Benutzername, Wohnsitzland und -stadt, Biografie, '
+            'Avatar, öffentliche Identität und Verifizierungsstatus; Daten aus '
+            'Verifizierungsanfragen; Umfragen, Stimmen, Beiträge, Kommentare, '
+            'Reaktionen, Favoriten, Meldungen und Benachrichtigungen; vom '
+            'Nutzer gewählte Standortdaten; App-Einstellungen sowie technische '
+            'Daten, die für Sicherheit, Betrieb und Diagnose erforderlich sind.',
+      ),
+      _LegalSection(
+        title: '3. Zwecke und Rechtsgrundlagen',
+        body: 'Daten werden verarbeitet, um Konten zu erstellen und zu '
+            'verwalten, Umfragen und soziale Funktionen bereitzustellen, '
+            'Teilnahmeregeln anzuwenden, Profile und Verifizierung zu verwalten, '
+            'für den gewählten geografischen Bereich relevante Inhalte '
+            'anzuzeigen, Transaktionsnachrichten zu versenden, Missbrauch zu '
+            'verhindern, Inhalte und Konten zu moderieren, den Dienst zu '
+            'schützen und rechtliche Verpflichtungen zu erfüllen. Je nach '
+            'Verarbeitung können die Rechtsgrundlagen die Erfüllung des vom '
+            'Nutzer angeforderten Dienstes, berechtigte Interessen an '
+            'Sicherheit und Missbrauchsprävention, rechtliche Verpflichtungen '
+            'und, soweit erforderlich, eine Einwilligung umfassen.',
+      ),
+      _LegalSection(
+        title: '4. Öffentliche Daten und besondere Kategorien',
+        body:
+            'Öffentlicher Name, Benutzername, Avatar, Verifizierungsabzeichen '
+            'und veröffentlichte Inhalte können für andere Nutzende und bei '
+            'öffentlichen Inhalten auch im Web sichtbar sein. Umfragen, Stimmen '
+            'oder Inhalte können politische Meinungen, Überzeugungen oder '
+            'andere besondere Kategorien personenbezogener Daten im Sinne des '
+            'Datenschutzrechts erkennen lassen. Social Vote nutzt solche Daten '
+            'nicht für personalisierte Werbung oder zur kommerziellen '
+            'Ableitung politischer Profile. Soweit eine Verarbeitung eine '
+            'besondere Voraussetzung nach Artikel 9 DSGVO erfordert, muss '
+            'diese Voraussetzung vor der Verarbeitung vorliegen.',
+      ),
+      _LegalSection(
+        title: '5. Standort, Wohnsitz und GeoScope',
+        body: 'Land und Stadt des Wohnsitzes im Profil sind vom geografischen '
+            'Navigationsbereich und vom Standort eines Inhalts getrennt. Die '
+            'Wohnsitzstadt ist optional. Bei Eingabe einer Stadt kann Social '
+            'Vote diese über OpenStreetMap Nominatim überprüfen. Wenn die '
+            'nutzende Person Geräte-Standortfunktionen verwendet, können die '
+            'für diese Funktion erforderlichen Koordinaten und Ortsangaben '
+            'verarbeitet werden. Standortberechtigungen können in den '
+            'Geräteeinstellungen verweigert oder widerrufen werden.',
+      ),
+      _LegalSection(
+        title: '6. Lokaler Speicher, Sitzungen und Firebase',
+        body: 'Die App kann Einstellungen wie Sprache, Design, '
+            'Nachrichteneinstellungen und die Auswahl „Angemeldet bleiben“ '
+            'lokal speichern. Wenn „Angemeldet bleiben“ aktiviert ist, kann '
+            'eine technische Supabase-Authentifizierungssitzung lokal '
+            'gespeichert werden; beim Abmelden wird sie entfernt. Firebase '
+            'Analytics ist mit deaktivierter Datenerfassung konfiguriert. '
+            'Firebase-Komponenten können automatisch eine Firebase '
+            'Installation ID (FID) erzeugen, eine technische Kennung, die pro '
+            'Installation unterschiedlich ist und weder eine Person noch ein '
+            'physisches Gerät unmittelbar identifiziert. Social Vote verwendet '
+            'die Advertising ID nicht für personalisierte Werbung.',
+      ),
+      _LegalSection(
+        title: '7. Anbieter und Empfänger',
+        body: 'Supabase stellt Authentifizierung, Datenbank, Speicher und '
+            'Backend-Funktionen bereit. Google Firebase stellt auf den '
+            'konfigurierten Laufzeitumgebungen technische Komponenten und '
+            'Webhosting bereit. Brevo kann für Transaktions-E-Mails über den '
+            'konfigurierten SMTP-Dienst verwendet werden. OpenStreetMap '
+            'Nominatim kann Standortdaten erhalten, die für Geokodierung '
+            'erforderlich sind. Nachrichtenquellen und -anbieter können '
+            'Anfragen verarbeiten, die zur Bereitstellung der Nachrichten '
+            'erforderlich sind. Daten können außerdem an Behörden oder andere '
+            'Empfänger offengelegt werden, wenn dies gesetzlich vorgeschrieben '
+            'oder zum Schutz von Rechten und Sicherheit erforderlich ist.',
+      ),
+      _LegalSection(
+        title: '8. Internationale Übermittlungen',
+        body: 'Einige Anbieter können Daten außerhalb des Europäischen '
+            'Wirtschaftsraums verarbeiten. Soweit die DSGVO Schutzmaßnahmen '
+            'verlangt, müssen Übermittlungen auf einem '
+            'Angemessenheitsbeschluss, Standardvertragsklauseln oder einem '
+            'anderen gültigen Mechanismus nach dem anwendbaren Recht beruhen.',
+      ),
+      _LegalSection(
+        title: '9. Moderation, Sicherheit und Audit',
+        body: 'Meldungen, Verifizierungsanfragen und Inhalte können von '
+            'autorisierten Moderatoren oder Administratoren geprüft werden. '
+            'Bei Verstößen, Missbrauch oder Sicherheitsrisiken können Inhalte '
+            'ausgeblendet oder wiederhergestellt und Konten gesperrt, '
+            'reaktiviert, abgemeldet oder gelöscht werden. Bestimmte '
+            'administrative und sicherheitsbezogene Maßnahmen erzeugen '
+            'minimierte Audit-Datensätze, soweit diese für Rechenschaft, '
+            'Sicherheit und die Verteidigung von Rechten erforderlich sind.',
+      ),
+      _LegalSection(
+        title: '10. Aufbewahrung und Kontolöschung',
+        body:
+            'Daten werden so lange gespeichert, wie dies für die beschriebenen '
+            'Zwecke und anwendbaren Verpflichtungen erforderlich ist. Bei '
+            'Löschung eines Kontos wird das Auth-Konto gelöscht; eigene '
+            'Beiträge, Umfragen und Kommentare werden gelöscht; Profil, Avatar, '
+            'Favoriten, Benachrichtigungen, Sitzungen und andere vom '
+            'Löschverfahren erfasste personenbezogene Daten werden entfernt. '
+            'Stimmen und Reaktionen auf Inhalte anderer Personen können in '
+            'anonymisierter Form erhalten bleiben, um historische Ergebnisse '
+            'und Statistiken zu bewahren. Eine anonymisierte technische '
+            'Referenz kann bestehen bleiben, soweit dies für die referenzielle '
+            'Integrität erforderlich ist. Administrative oder '
+            'Sicherheitsaufzeichnungen können in minimierter Form gespeichert '
+            'bleiben, soweit dies für Sicherheit, Rechenschaft oder rechtliche '
+            'Pflichten erforderlich ist.',
+      ),
+      _LegalSection(
+        title: '11. Rechte der betroffenen Person',
+        body: 'Soweit gesetzlich vorgesehen, können Nutzende Auskunft, '
+            'Berichtigung, Löschung, Einschränkung, Widerspruch und '
+            'Datenübertragbarkeit verlangen sowie eine Einwilligung widerrufen, '
+            'wenn die Verarbeitung auf Einwilligung beruht. Anfragen können an '
+            'support@socialevote.com gesendet werden. Eine angemessene '
+            'Identitätsprüfung kann verlangt werden. Nutzende können außerdem '
+            'Beschwerde bei der italienischen Datenschutzaufsichtsbehörde oder '
+            'einer anderen zuständigen Aufsichtsbehörde einlegen.',
+      ),
+      _LegalSection(
+        title: '12. Mindestalter, Datenverkauf und Werbung',
+        body: 'Social Vote richtet sich ausschließlich an Personen ab 18 '
+            'Jahren. Social Vote verkauft keine personenbezogenen Daten der '
+            'Nutzenden und verwendet die in dieser Erklärung beschriebenen '
+            'Daten nicht für personalisierte Werbung. Künftige Werbefunktionen '
+            'oder neue Verarbeitungen erfordern eine Aktualisierung dieser '
+            'Erklärung und, soweit erforderlich, der den Nutzenden '
+            'bereitgestellten Auswahlmöglichkeiten.',
+      ),
+      _LegalSection(
+        title: '13. Änderungen und Stand',
+        body: 'Diese Datenschutzerklärung hat den Stand 16. August 2026. '
+            'Wesentliche Änderungen werden, soweit erforderlich, über die App '
+            'oder einen anderen geeigneten Kanal mitgeteilt. Die öffentliche '
+            'Fassung ist unter socialevote.com/privacy verfügbar.',
       ),
     ],
   );

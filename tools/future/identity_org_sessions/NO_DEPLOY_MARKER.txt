@@ -1,0 +1,9 @@
+SOCIAL VOTE FUTURE FOUNDATION — DO NOT DEPLOY
+
+Nothing in this folder is approved as a production migration or Edge Function.
+Do not run these SQL files against production.
+Do not configure SMS, identity, Stripe, subscription webhooks, or payment keys from this package.
+Do not advertise Sessions as a legally certified election service.
+
+Activation requires the legal/privacy/tax/store gates listed in:
+blueprint/11_LEGAL_COMPLIANCE_GATES.md

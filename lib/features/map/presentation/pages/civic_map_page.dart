@@ -15,6 +15,7 @@ import 'package:sociale_vote/features/map/presentation/widgets/civic_map_widget.
 import 'package:sociale_vote/features/map/presentation/widgets/world_globe_widget.dart';
 import 'package:sociale_vote/features/news/domain/news_language.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 void _goBackFromCivicMap(BuildContext context) {
   final navigator = Navigator.of(context);
@@ -116,7 +117,8 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
           IconButton(
             tooltip: Localizations.localeOf(context).languageCode == 'it'
                 ? 'Aggiorna'
-                : 'Refresh',
+                : deOrEnglish(context,
+                    english: 'Refresh', german: 'Aktualisieren'),
             onPressed: controller.isLoading
                 ? null
                 : () {
@@ -141,8 +143,10 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                 controller: controller,
                 selectedLanguage: _selectedLanguage,
                 languageSelectorEnabled: !selectorBusy,
-                onLanguageChanged: (value) =>
-                    _handleLanguageChanged(value, controller: controller),
+                onLanguageChanged: (value) => _handleLanguageChanged(
+                  value,
+                  controller: controller,
+                ),
                 isWorldScope: isWorldScope,
                 useGlobe: _useWorldGlobe,
                 onWorldModeChanged: _setWorldGlobeEnabled,
@@ -155,7 +159,9 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                   children: [
                     showWorldGlobe
                         ? WorldGlobeWidget(
-                            key: const ValueKey<String>('civic-map-world-3d'),
+                            key: const ValueKey<String>(
+                              'civic-map-world-3d',
+                            ),
                             items: controller.visibleItems,
                             onItemTap: controller.selectItem,
                             onUseClassicMap: () => _setWorldGlobeEnabled(false),
@@ -166,7 +172,9 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                             initialFocusZoom: worldGlobeHandoff?.globeZoom,
                           )
                         : CivicMapWidget(
-                            key: const ValueKey<String>('civic-map-classic-2d'),
+                            key: const ValueKey<String>(
+                              'civic-map-classic-2d',
+                            ),
                             controller: controller,
                             handoffLatitude: worldMapHandoff?.latitude,
                             handoffLongitude: worldMapHandoff?.longitude,
@@ -192,12 +200,12 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                             scopeLabel: _scopeLabel(context, activeScope),
                             onShowCountry:
                                 activeScope.level == GeoScopeLevel.city &&
-                                    activeScope.countryCode != null
-                                ? () => _switchToCountryScope(
-                                    geoScopeController,
-                                    activeScope.countryCode!,
-                                  )
-                                : null,
+                                        activeScope.countryCode != null
+                                    ? () => _switchToCountryScope(
+                                          geoScopeController,
+                                          activeScope.countryCode!,
+                                        )
+                                    : null,
                             onShowWorld: () =>
                                 _switchToWorldScope(geoScopeController),
                           ),
@@ -210,9 +218,8 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                         bottom: 12,
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.surface.withValues(
-                              alpha: 0.90,
-                            ),
+                            color: theme.colorScheme.surface
+                                .withValues(alpha: 0.90),
                             borderRadius: BorderRadius.circular(999),
                             border: Border.all(
                               color: theme.colorScheme.outlineVariant,
@@ -271,16 +278,23 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
         Localizations.localeOf(context).languageCode.toLowerCase() == 'it';
 
     if (scope == null) {
-      return isItalian ? 'Caricamento area…' : 'Loading area…';
+      return isItalian
+          ? 'Caricamento area…'
+          : deOrEnglish(context,
+              english: 'Loading area…', german: 'Bereich wird geladen…');
     }
 
     switch (scope.level) {
       case GeoScopeLevel.world:
-        return isItalian ? 'Mondo' : 'World';
+        return isItalian
+            ? 'Mondo'
+            : deOrEnglish(context, english: 'World', german: 'Welt');
       case GeoScopeLevel.country:
         final countryCode = scope.countryCode?.trim().toUpperCase();
         return countryCode == null || countryCode.isEmpty
-            ? (isItalian ? 'Paese' : 'Country')
+            ? (isItalian
+                ? 'Paese'
+                : deOrEnglish(context, english: 'Country', german: 'Land'))
             : countryCode;
       case GeoScopeLevel.city:
         final city = scope.cityId?.trim();
@@ -294,7 +308,10 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
         }
 
         return countryCode == null || countryCode.isEmpty
-            ? (isItalian ? 'Area locale' : 'Local area')
+            ? (isItalian
+                ? 'Area locale'
+                : deOrEnglish(context,
+                    english: 'Local area', german: 'Lokaler Bereich'))
             : countryCode;
     }
   }
@@ -333,7 +350,9 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
     }
   }
 
-  void _handleGlobeZoomIntoClassicMap(WorldGlobeMapHandoff handoff) {
+  void _handleGlobeZoomIntoClassicMap(
+    WorldGlobeMapHandoff handoff,
+  ) {
     if (!mounted) {
       return;
     }
@@ -354,7 +373,9 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
     );
   }
 
-  void _handleClassicMapZoomOutToGlobe(CivicMapGlobeHandoff handoff) {
+  void _handleClassicMapZoomOutToGlobe(
+    CivicMapGlobeHandoff handoff,
+  ) {
     if (!mounted) {
       return;
     }
@@ -458,7 +479,10 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
 
       final activeScope = controller.currentScope;
       if (activeScope != null) {
-        await controller.loadForScope(activeScope, clearSelection: false);
+        await controller.loadForScope(
+          activeScope,
+          clearSelection: false,
+        );
       }
     } finally {
       if (mounted) {
@@ -616,7 +640,10 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
     ].join('|');
   }
 
-  Future<void> _openTarget(BuildContext context, CivicMapItem item) async {
+  Future<void> _openTarget(
+    BuildContext context,
+    CivicMapItem item,
+  ) async {
     final targetRef = item.targetRef;
     final targetId = _readTargetRefId(targetRef);
     if (targetId == null || targetId.trim().isEmpty) {
@@ -625,15 +652,17 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
 
     switch (targetRef.type) {
       case TargetType.poll:
-        await Navigator.of(
-          context,
-        ).pushNamed(AppRouter.pollDetail, arguments: PollId(targetId));
+        await Navigator.of(context).pushNamed(
+          AppRouter.pollDetail,
+          arguments: PollId(targetId),
+        );
         return;
 
       case TargetType.post:
-        await Navigator.of(
-          context,
-        ).pushNamed(AppRouter.socialDetail, arguments: targetId);
+        await Navigator.of(context).pushNamed(
+          AppRouter.socialDetail,
+          arguments: targetId,
+        );
         return;
 
       case TargetType.news:
@@ -649,16 +678,20 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
               content: Text(
                 Localizations.localeOf(context).languageCode == 'it'
                     ? 'Impossibile aprire il dettaglio della notizia'
-                    : 'Unable to open news detail',
+                    : deOrEnglish(context,
+                        english: 'Unable to open news detail',
+                        german:
+                            'Nachrichtendetails konnten nicht geöffnet werden.'),
               ),
             ),
           );
           return;
         }
 
-        await Navigator.of(
-          context,
-        ).pushNamed(AppRouter.newsDetail, arguments: newsItem);
+        await Navigator.of(context).pushNamed(
+          AppRouter.newsDetail,
+          arguments: newsItem,
+        );
         return;
 
       default:
@@ -765,7 +798,10 @@ class _BroaderScopePrompt extends StatelessWidget {
                 Text(
                   isItalian
                       ? 'La mappa è ancora filtrata su $scopeLabel'
-                      : 'The map is still filtered to $scopeLabel',
+                      : deOrEnglish(context,
+                          english: 'The map is still filtered to $scopeLabel',
+                          german:
+                              'Die Karte ist weiterhin auf $scopeLabel gefiltert.'),
                   style: theme.textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -774,12 +810,19 @@ class _BroaderScopePrompt extends StatelessWidget {
                   OutlinedButton(
                     onPressed: onShowCountry,
                     child: Text(
-                      isItalian ? 'Mostra $countryName' : 'Show $countryName',
+                      isItalian
+                          ? 'Mostra $countryName'
+                          : deOrEnglish(context,
+                              english: 'Show $countryName',
+                              german: '$countryName anzeigen'),
                     ),
                   ),
                 FilledButton.tonal(
                   onPressed: onShowWorld,
-                  child: Text(isItalian ? 'Mostra Mondo' : 'Show World'),
+                  child: Text(isItalian
+                      ? 'Mostra Mondo'
+                      : deOrEnglish(context,
+                          english: 'Show World', german: 'Welt anzeigen')),
                 ),
               ],
             ),
@@ -991,8 +1034,13 @@ class _MapLanguageSelector extends StatelessWidget {
           minWidth: 36,
           minHeight: 36,
         ),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 8,
+          vertical: 10,
+        ),
       ),
       selectedItemBuilder: (context) => NewsLanguage.values
           .map(
@@ -1006,14 +1054,12 @@ class _MapLanguageSelector extends StatelessWidget {
             ),
           )
           .toList(growable: false),
-      items: NewsLanguage.values
-          .map((language) {
-            return DropdownMenuItem<NewsLanguage>(
-              value: language,
-              child: Text(_fullLabelForLanguage(language)),
-            );
-          })
-          .toList(growable: false),
+      items: NewsLanguage.values.map((language) {
+        return DropdownMenuItem<NewsLanguage>(
+          value: language,
+          child: Text(_fullLabelForLanguage(language)),
+        );
+      }).toList(growable: false),
       onChanged: enabled
           ? (value) {
               if (value != null) {
@@ -1110,7 +1156,9 @@ class _MarkerPreviewCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: typeColor.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: typeColor.withValues(alpha: 0.16)),
+                border: Border.all(
+                  color: typeColor.withValues(alpha: 0.16),
+                ),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1131,9 +1179,8 @@ class _MarkerPreviewCard extends StatelessWidget {
                           _CompactBadge(
                             label: _activityLabel(context, item.heatTier),
                             icon: _activityIcon(item.heatTier),
-                            backgroundColor: _activityColor(
-                              item.heatTier,
-                            ).withValues(alpha: 0.12),
+                            backgroundColor: _activityColor(item.heatTier)
+                                .withValues(alpha: 0.12),
                             foregroundColor: _activityColor(item.heatTier),
                           ),
                       ],
@@ -1142,16 +1189,16 @@ class _MarkerPreviewCard extends StatelessWidget {
                   IconButton(
                     tooltip:
                         Localizations.localeOf(context).languageCode == 'it'
-                        ? 'Chiudi'
-                        : 'Close',
+                            ? 'Chiudi'
+                            : deOrEnglish(context,
+                                english: 'Close', german: 'Schließen'),
                     visualDensity: VisualDensity.compact,
                     splashRadius: 18,
                     onPressed: onClose,
                     icon: Icon(
                       Icons.close,
-                      color: theme.colorScheme.onSurface.withValues(
-                        alpha: 0.72,
-                      ),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.72),
                     ),
                   ),
                 ],
@@ -1183,7 +1230,9 @@ class _MarkerPreviewCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Expanded(child: _PreviewMetaRow(item: item)),
+                Expanded(
+                  child: _PreviewMetaRow(item: item),
+                ),
                 const SizedBox(width: 12),
                 FilledButton.icon(
                   onPressed: onOpen,
@@ -1191,7 +1240,8 @@ class _MarkerPreviewCard extends StatelessWidget {
                   label: Text(
                     Localizations.localeOf(context).languageCode == 'it'
                         ? 'Apri dettaglio'
-                        : 'Open details',
+                        : deOrEnglish(context,
+                            english: 'Open details', german: 'Details öffnen'),
                   ),
                 ),
               ],
@@ -1238,13 +1288,13 @@ class _MarkerPreviewCard extends StatelessWidget {
       case CivicMapItemType.poll:
         return Localizations.localeOf(context).languageCode == 'it'
             ? 'Sondaggio'
-            : 'Poll';
+            : deOrEnglish(context, english: 'Poll', german: 'Umfrage');
       case CivicMapItemType.post:
         return 'Post';
       case CivicMapItemType.news:
         return Localizations.localeOf(context).languageCode == 'it'
             ? 'Notizia'
-            : 'News';
+            : deOrEnglish(context, english: 'News', german: 'Nachrichten');
     }
   }
 
@@ -1255,11 +1305,11 @@ class _MarkerPreviewCard extends StatelessWidget {
       case CivicMapHeatTier.active:
         return Localizations.localeOf(context).languageCode == 'it'
             ? 'Attivo'
-            : 'Active';
+            : deOrEnglish(context, english: 'Active', german: 'Aktiv');
       case CivicMapHeatTier.normal:
         return Localizations.localeOf(context).languageCode == 'it'
             ? 'Normale'
-            : 'Normal';
+            : deOrEnglish(context, english: 'Normal', german: 'Normal');
     }
   }
 
@@ -1289,7 +1339,9 @@ class _MarkerPreviewCard extends StatelessWidget {
 class _PreviewMetaRow extends StatelessWidget {
   final CivicMapItem item;
 
-  const _PreviewMetaRow({required this.item});
+  const _PreviewMetaRow({
+    required this.item,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1313,8 +1365,14 @@ class _PreviewMetaRow extends StatelessWidget {
             icon: Icons.local_fire_department_outlined,
             text: '$heat',
           ),
-          _MetaInlineItem(icon: Icons.mode_comment_outlined, text: '$comments'),
-          _MetaInlineItem(icon: Icons.schedule_outlined, text: timeText),
+          _MetaInlineItem(
+            icon: Icons.mode_comment_outlined,
+            text: '$comments',
+          ),
+          _MetaInlineItem(
+            icon: Icons.schedule_outlined,
+            text: timeText,
+          ),
         ],
       ),
     );
@@ -1332,7 +1390,7 @@ class _PreviewMetaRow extends StatelessWidget {
     if (diff.inSeconds < 60) {
       return Localizations.localeOf(context).languageCode == 'it'
           ? 'ora'
-          : 'now';
+          : deOrEnglish(context, english: 'now', german: 'jetzt');
     }
     if (diff.inMinutes < 60) {
       return '${diff.inMinutes} min';
@@ -1343,7 +1401,8 @@ class _PreviewMetaRow extends StatelessWidget {
     if (diff.inDays < 7) {
       return Localizations.localeOf(context).languageCode == 'it'
           ? '${diff.inDays} g'
-          : '${diff.inDays} d';
+          : deOrEnglish(context,
+              english: '${diff.inDays} d', german: '${diff.inDays} T');
     }
     return MaterialLocalizations.of(context).formatShortDate(date);
   }
@@ -1353,18 +1412,24 @@ class _MetaInlineItem extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _MetaInlineItem({required this.icon, required this.text});
+  const _MetaInlineItem({
+    required this.icon,
+    required this.text,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(
-      context,
-    ).colorScheme.onSurface.withValues(alpha: 0.72);
+    final color =
+        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 15, color: color),
+        Icon(
+          icon,
+          size: 15,
+          color: color,
+        ),
         const SizedBox(width: 5),
         Text(text),
       ],
@@ -1397,14 +1462,18 @@ class _CompactBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 15, color: foregroundColor),
+          Icon(
+            icon,
+            size: 15,
+            color: foregroundColor,
+          ),
           const SizedBox(width: 6),
           Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: foregroundColor,
-              fontWeight: FontWeight.w700,
-            ),
+                  color: foregroundColor,
+                  fontWeight: FontWeight.w700,
+                ),
           ),
         ],
       ),
@@ -1415,7 +1484,9 @@ class _CompactBadge extends StatelessWidget {
 class _MapTypeFilters extends StatelessWidget {
   final CivicMapController controller;
 
-  const _MapTypeFilters({required this.controller});
+  const _MapTypeFilters({
+    required this.controller,
+  });
 
   Color _chipColor(CivicMapItemType type) {
     switch (type) {
@@ -1444,13 +1515,13 @@ class _MapTypeFilters extends StatelessWidget {
       case CivicMapItemType.poll:
         return Localizations.localeOf(context).languageCode == 'it'
             ? 'Sondaggio'
-            : 'Poll';
+            : deOrEnglish(context, english: 'Poll', german: 'Umfrage');
       case CivicMapItemType.post:
         return 'Post';
       case CivicMapItemType.news:
         return Localizations.localeOf(context).languageCode == 'it'
             ? 'Notizie'
-            : 'News';
+            : deOrEnglish(context, english: 'News', german: 'Nachrichten');
     }
   }
 
@@ -1466,7 +1537,11 @@ class _MapTypeFilters extends StatelessWidget {
       showCheckmark: false,
       visualDensity: VisualDensity.compact,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      avatar: Icon(_chipIcon(type), size: 18, color: active ? color : null),
+      avatar: Icon(
+        _chipIcon(type),
+        size: 18,
+        color: active ? color : null,
+      ),
       selectedColor: color.withValues(alpha: 0.15),
       checkmarkColor: color,
       side: BorderSide(

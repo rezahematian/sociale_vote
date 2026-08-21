@@ -13,6 +13,7 @@ import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 /// Sezione commenti generica basata su [DiscussionController].
 ///
@@ -181,8 +182,10 @@ class _CommentSectionState extends State<CommentSection> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        controller.errorMessage ??
-                            l10n.commentSection_errorGeneric,
+                        _localizedControllerError(
+                          l10n,
+                          controller.errorMessage,
+                        ),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.error,
                         ),
@@ -222,11 +225,13 @@ class _CommentSectionState extends State<CommentSection> {
                           l10n,
                           it: 'Chiudi commenti',
                           en: 'Hide comments',
+                          de: 'Kommentare ausblenden',
                         )
                       : _localizedText(
                           l10n,
                           it: 'Visualizza commenti',
                           en: 'View comments',
+                          de: 'Kommentare anzeigen',
                         ),
                 ),
               ),
@@ -388,6 +393,7 @@ class _CommentSectionState extends State<CommentSection> {
                                             l10n,
                                             it: 'Nascondi risposte',
                                             en: 'Hide replies',
+                                            de: 'Antworten ausblenden',
                                           )
                                         : _viewRepliesLabel(
                                             l10n,
@@ -551,6 +557,7 @@ class _CommentSectionState extends State<CommentSection> {
                       l10n,
                       it: 'Stai modificando: ${_shorten(_editingComment!.content)}',
                       en: 'Editing: ${_shorten(_editingComment!.content)}',
+                      de: 'Wird bearbeitet: ${_shorten(_editingComment!.content)}',
                     ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.secondary,
@@ -566,6 +573,7 @@ class _CommentSectionState extends State<CommentSection> {
                       l10n,
                       it: 'Annulla',
                       en: 'Cancel',
+                      de: 'Abbrechen',
                     ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.secondary,
@@ -593,11 +601,13 @@ class _CommentSectionState extends State<CommentSection> {
                           l10n,
                           it: 'Modifica il tuo commento',
                           en: 'Edit your comment',
+                          de: 'Kommentar bearbeiten',
                         )
                       : _localizedText(
                           l10n,
                           it: 'Aggiungi un commento...',
                           en: 'Add a comment...',
+                          de: 'Kommentar hinzufügen...',
                         ),
                 ),
                 enabled: !isSubmitting,
@@ -673,6 +683,7 @@ class _CommentSectionState extends State<CommentSection> {
                     l10n,
                     it: 'Rispondi a $replyingToLabel',
                     en: 'Reply to $replyingToLabel',
+                    de: 'Antwort an $replyingToLabel',
                   ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.primary,
@@ -854,6 +865,7 @@ class _CommentSectionState extends State<CommentSection> {
         AppLocalizations.of(context)!,
         it: 'Utente',
         en: 'User',
+        de: 'Benutzer',
       );
     }
 
@@ -890,6 +902,7 @@ class _CommentSectionState extends State<CommentSection> {
         AppLocalizations.of(context)!,
         it: 'Utente',
         en: 'User',
+        de: 'Benutzer',
       );
     }
     if (normalized.length <= 8) {
@@ -1059,9 +1072,16 @@ class _CommentSectionState extends State<CommentSection> {
     final isItalian = l10n.localeName.toLowerCase().startsWith('it');
 
     if (count == 1) {
-      return isItalian ? 'Visualizza 1 risposta' : 'View 1 reply';
+      return isItalian
+          ? 'Visualizza 1 risposta'
+          : deOrEnglish(context,
+              english: 'View 1 reply', german: '1 Antwort anzeigen');
     }
-    return isItalian ? 'Visualizza $count risposte' : 'View $count replies';
+    return isItalian
+        ? 'Visualizza $count risposte'
+        : deOrEnglish(context,
+            english: 'View $count replies',
+            german: '$count Antworten anzeigen');
   }
 
   String _shorten(String text, {int max = 40}) {
@@ -1070,13 +1090,62 @@ class _CommentSectionState extends State<CommentSection> {
     return '${trimmed.substring(0, max)}…';
   }
 
+  String _localizedControllerError(
+    AppLocalizations l10n,
+    String? rawError,
+  ) {
+    switch (rawError) {
+      case 'Impossibile aggiungere il commento.':
+        return _localizedText(
+          l10n,
+          it: 'Impossibile aggiungere il commento.',
+          en: 'Unable to add the comment.',
+          de: 'Der Kommentar konnte nicht hinzugefügt werden.',
+        );
+      case 'Le risposte nidificate oltre un livello non sono supportate.':
+        return _localizedText(
+          l10n,
+          it: 'Le risposte nidificate oltre un livello non sono supportate.',
+          en: 'Nested replies beyond one level are not supported.',
+          de: 'Verschachtelte Antworten über eine Ebene hinaus werden nicht unterstützt.',
+        );
+      case 'Impossibile aggiungere la risposta.':
+        return _localizedText(
+          l10n,
+          it: 'Impossibile aggiungere la risposta.',
+          en: 'Unable to add the reply.',
+          de: 'Die Antwort konnte nicht hinzugefügt werden.',
+        );
+      case 'Impossibile modificare il commento.':
+        return _localizedText(
+          l10n,
+          it: 'Impossibile modificare il commento.',
+          en: 'Unable to edit the comment.',
+          de: 'Der Kommentar konnte nicht bearbeitet werden.',
+        );
+      case 'Impossibile eliminare il commento.':
+        return _localizedText(
+          l10n,
+          it: 'Impossibile eliminare il commento.',
+          en: 'Unable to delete the comment.',
+          de: 'Der Kommentar konnte nicht gelöscht werden.',
+        );
+      case 'Impossibile caricare i commenti.':
+      default:
+        return l10n.commentSection_errorGeneric;
+    }
+  }
+
   String _localizedText(
     AppLocalizations l10n, {
     required String it,
     required String en,
+    required String de,
   }) {
     final locale = l10n.localeName.toLowerCase();
-    return locale.startsWith('it') ? it : en;
+    if (locale.startsWith('it')) return it;
+    if (locale.startsWith('de')) return de;
+    return en;
   }
 }
 
@@ -1219,8 +1288,9 @@ class _CommentTile extends StatelessWidget {
                             child: Text(
                               _localizedText(
                                 l10n,
-                                it: 'Reply',
+                                it: 'Risposta',
                                 en: 'Reply',
+                                de: 'Antwort',
                               ),
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: colorScheme.primary,
@@ -1251,6 +1321,7 @@ class _CommentTile extends StatelessWidget {
                               l10n,
                               it: 'Modificato',
                               en: 'Edited',
+                              de: 'Bearbeitet',
                             )} ${_formatTime(comment.updatedAt!)}',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurface.withValues(
@@ -1285,6 +1356,7 @@ class _CommentTile extends StatelessWidget {
                             l10n,
                             it: 'Modifica',
                             en: 'Edit',
+                            de: 'Bearbeiten',
                           ),
                         ),
                       ),
@@ -1364,9 +1436,12 @@ class _CommentTile extends StatelessWidget {
     AppLocalizations l10n, {
     required String it,
     required String en,
+    required String de,
   }) {
     final locale = l10n.localeName.toLowerCase();
-    return locale.startsWith('it') ? it : en;
+    if (locale.startsWith('it')) return it;
+    if (locale.startsWith('de')) return de;
+    return en;
   }
 }
 

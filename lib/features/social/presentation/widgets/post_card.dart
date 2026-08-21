@@ -12,6 +12,7 @@ import 'package:sociale_vote/features/profile/presentation/pages/public_user_pro
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 /// Card visuale per un singolo post social.
 ///
@@ -458,7 +459,7 @@ class PostCard extends StatelessWidget {
   String _editedLabel(BuildContext context) {
     return Localizations.localeOf(context).languageCode == 'it'
         ? 'Modificato'
-        : 'Edited';
+        : deOrEnglish(context, english: 'Edited', german: 'Bearbeitet');
   }
 
   String _formatTime(BuildContext context, DateTime value) {

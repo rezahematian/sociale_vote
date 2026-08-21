@@ -24,9 +24,9 @@ const _supabasePersistSessionKey = 'sb-rbuzlrclwhxaigkgndrb-auth-token';
 
 class _RememberMeLocalStorage extends LocalStorage {
   _RememberMeLocalStorage()
-    : _delegate = SharedPreferencesLocalStorage(
-        persistSessionKey: _supabasePersistSessionKey,
-      );
+      : _delegate = SharedPreferencesLocalStorage(
+          persistSessionKey: _supabasePersistSessionKey,
+        );
 
   final SharedPreferencesLocalStorage _delegate;
 
@@ -196,8 +196,18 @@ class _NativeStartupBootstrapState extends State<_NativeStartupBootstrap> {
       return _buildSocialeVoteApp();
     }
 
-    final isItalian =
-        PlatformDispatcher.instance.locale.languageCode.toLowerCase() == 'it';
+    final startupLanguageCode =
+        PlatformDispatcher.instance.locale.languageCode.toLowerCase();
+    final startupErrorText = switch (startupLanguageCode) {
+      'it' => 'Impossibile avviare Social Vote.',
+      'de' => 'Social Vote konnte nicht gestartet werden.',
+      _ => 'Unable to start Social Vote.',
+    };
+    final startupRetryText = switch (startupLanguageCode) {
+      'it' => 'Riprova',
+      'de' => 'Erneut versuchen',
+      _ => 'Retry',
+    };
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -227,16 +237,14 @@ class _NativeStartupBootstrapState extends State<_NativeStartupBootstrap> {
                   const SizedBox(height: 24),
                   if (_hasError) ...[
                     Text(
-                      isItalian
-                          ? 'Impossibile avviare Social Vote.'
-                          : 'Unable to start Social Vote.',
+                      startupErrorText,
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Color(0xFF4B5563)),
                     ),
                     const SizedBox(height: 12),
                     FilledButton(
                       onPressed: _isInitializing ? null : _initialize,
-                      child: Text(isItalian ? 'Riprova' : 'Retry'),
+                      child: Text(startupRetryText),
                     ),
                   ] else
                     const SizedBox(
@@ -305,8 +313,8 @@ Future<void> _restoreStartupAuthSessionLocally() async {
   final rawDisplayName = userMetadata['display_name'];
   final displayName =
       rawDisplayName is String && rawDisplayName.trim().isNotEmpty
-      ? rawDisplayName.trim()
-      : null;
+          ? rawDisplayName.trim()
+          : null;
 
   final rawRole = appMetadata['role'];
 

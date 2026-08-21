@@ -2278,5 +2278,13 @@
   "adminCenterCommentsCreatedMetric": "Comments created",
   "adminCenterAdminActionsOnAccountMetric": "Admin actions on account",
   "adminCenterLastReportReceivedLabel": "Last report received",
-  "adminCenterOpenFullAccountAction": "Open full account controls"
+  "adminCenterOpenFullAccountAction": "Open full account controls",
+  "profileAppLanguageGerman": "German",
+  "@profileAppLanguageGerman": {
+    "description": "Label for the German app language option"
+  },
+  "discoveryPageTitle": "Discovery",
+  "@discoveryPageTitle": {
+    "description": "Title of the Discovery section"
+  }
 }

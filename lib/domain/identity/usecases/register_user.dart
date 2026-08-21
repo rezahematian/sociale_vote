@@ -71,7 +71,11 @@ class RegisterUser {
 
   String _normalizeLanguage(String value) {
     final normalized = value.trim().toLowerCase();
-    return normalized == 'it' ? 'it' : 'en';
+    return switch (normalized) {
+      'it' => 'it',
+      'de' => 'de',
+      _ => 'en',
+    };
   }
 
   String _normalizeUsername(String value) {

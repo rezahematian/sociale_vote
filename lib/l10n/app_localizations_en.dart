@@ -3034,4 +3034,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminCenterOpenFullAccountAction => 'Open full account controls';
+
+  @override
+  String get profileAppLanguageGerman => 'German';
+
+  @override
+  String get discoveryPageTitle => 'Discovery';
 }

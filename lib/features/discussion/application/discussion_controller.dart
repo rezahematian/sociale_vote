@@ -18,11 +18,14 @@ typedef SubmitComment = Future<Comment> Function({
   String? parentId,
 });
 
+typedef DeleteComment = Future<void> Function(String commentId);
+
 class DiscussionController extends ChangeNotifier {
   final TargetRef target;
   final SubmitComment _addComment;
   final GetCommentsForTarget _getCommentsForTarget;
   final UpdateComment _updateComment;
+  final DeleteComment _deleteComment;
   final VoidCallback? onCommentsChanged;
 
   DiscussionController({
@@ -30,10 +33,12 @@ class DiscussionController extends ChangeNotifier {
     required SubmitComment addComment,
     required GetCommentsForTarget getCommentsForTarget,
     required UpdateComment updateComment,
+    required DeleteComment deleteComment,
     this.onCommentsChanged,
   })  : _addComment = addComment,
         _getCommentsForTarget = getCommentsForTarget,
-        _updateComment = updateComment;
+        _updateComment = updateComment,
+        _deleteComment = deleteComment;
 
   List<Comment> _comments = [];
   bool _isLoading = false;
@@ -286,6 +291,14 @@ class DiscussionController extends ChangeNotifier {
 
     try {
       final id = comment.id;
+
+      // Persist first. The UI must not pretend the comment was deleted if
+      // Supabase/RLS did not actually remove it.
+      await _deleteComment(id);
+
+      if (_isDisposed) {
+        return;
+      }
 
       _comments = _comments
           .where((c) => c.id != id && c.parentId != id)

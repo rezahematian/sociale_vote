@@ -7,6 +7,7 @@ import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/features/poll/application/poll_list_controller.dart';
 import 'package:sociale_vote/features/poll/presentation/widgets/poll_card.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class MyPollsPage extends StatelessWidget {
   const MyPollsPage({super.key});
@@ -19,14 +20,19 @@ class MyPollsPage extends StatelessWidget {
 
     if (currentUserId == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.profileMyPollsTitle)),
+        appBar: AppBar(
+          title: Text(l10n.profileMyPollsTitle),
+        ),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
               isItalian
                   ? 'Devi accedere per vedere i tuoi sondaggi.'
-                  : 'You must be logged in to view your polls.',
+                  : deOrEnglish(context,
+                      english: 'You must be logged in to view your polls.',
+                      german:
+                          'Du musst angemeldet sein, um deine Umfragen anzuzeigen.'),
               textAlign: TextAlign.center,
             ),
           ),
@@ -64,11 +70,13 @@ class _MyPollsView extends StatelessWidget {
     final List<Poll> polls = currentUserId == null
         ? <Poll>[]
         : allPolls
-              .where((p) => p.createdByUserId == currentUserId)
-              .toList(growable: false);
+            .where((p) => p.createdByUserId == currentUserId)
+            .toList(growable: false);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.profileMyPollsTitle)),
+      appBar: AppBar(
+        title: Text(l10n.profileMyPollsTitle),
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           final userId = AppDI.instance.currentUserId;
@@ -79,13 +87,16 @@ class _MyPollsView extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              isItalian ? 'Sondaggi creati da te' : 'Polls created by you',
+              isItalian
+                  ? 'Sondaggi creati da te'
+                  : deOrEnglish(context,
+                      english: 'Polls created by you',
+                      german: 'Von dir erstellte Umfragen'),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
-
             if (controller.isLoading && polls.isEmpty) ...[
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
@@ -98,7 +109,9 @@ class _MyPollsView extends StatelessWidget {
                   child: Text(
                     isItalian
                         ? 'Non hai ancora creato sondaggi.'
-                        : 'You have not created any polls yet.',
+                        : deOrEnglish(context,
+                            english: 'You have not created any polls yet.',
+                            german: 'Du hast noch keine Umfragen erstellt.'),
                     style: theme.textTheme.bodyMedium,
                   ),
                 ),

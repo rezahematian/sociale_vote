@@ -80,9 +80,8 @@ class MyProfilePage extends StatelessWidget {
           )..loadProfile(currentUserId),
         ),
         ChangeNotifierProvider(
-          create: (_) =>
-              AppDI.instance.createVerificationRequestsController()
-                ..load(currentUserId),
+          create: (_) => AppDI.instance.createVerificationRequestsController()
+            ..load(currentUserId),
         ),
       ],
       child: _MyProfileView(currentUserId: currentUserId),
@@ -93,7 +92,9 @@ class MyProfilePage extends StatelessWidget {
 class _MyProfileView extends StatefulWidget {
   final String currentUserId;
 
-  const _MyProfileView({required this.currentUserId});
+  const _MyProfileView({
+    required this.currentUserId,
+  });
 
   @override
   State<_MyProfileView> createState() => _MyProfileViewState();
@@ -192,7 +193,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.profileBiometricDisabledMessage)),
+          SnackBar(
+            content: Text(l10n.profileBiometricDisabledMessage),
+          ),
         );
       }
       return;
@@ -200,15 +203,19 @@ class _MyProfileViewState extends State<_MyProfileView> {
 
     if (!_rememberMeEnabled) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.profileBiometricRequiresRememberMe)),
+        SnackBar(
+          content: Text(l10n.profileBiometricRequiresRememberMe),
+        ),
       );
       return;
     }
 
     if (!_biometricAvailable) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.profileBiometricUnavailable)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.profileBiometricUnavailable),
+        ),
+      );
       return;
     }
 
@@ -230,7 +237,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.profileBiometricAuthFailedMessage)),
+        SnackBar(
+          content: Text(l10n.profileBiometricAuthFailedMessage),
+        ),
       );
       return;
     }
@@ -247,16 +256,20 @@ class _MyProfileViewState extends State<_MyProfileView> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.profileBiometricEnabledMessage)),
+      SnackBar(
+        content: Text(l10n.profileBiometricEnabledMessage),
+      ),
     );
   }
 
   Future<void> _openEditProfile() async {
     final controller = context.read<ProfileController>();
 
-    final result = await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const EditProfilePage()));
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const EditProfilePage(),
+      ),
+    );
 
     if (result == true && mounted) {
       await controller.loadProfile(currentUserId);
@@ -307,9 +320,11 @@ class _MyProfileViewState extends State<_MyProfileView> {
                   value: AppAppearanceMode.space,
                   title: const Text('Space'),
                   subtitle: Text(
-                    Localizations.localeOf(sheetContext).languageCode == 'it'
-                        ? 'Scuro + cielo scientifico'
-                        : 'Dark + Scientific Sky',
+                    switch (Localizations.localeOf(sheetContext).languageCode) {
+                      'it' => 'Scuro + cielo scientifico',
+                      'de' => 'Dunkel + wissenschaftlicher Himmel',
+                      _ => 'Dark + Scientific Sky',
+                    },
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -342,6 +357,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
               final locale = switch (value) {
                 'it' => const Locale('it'),
                 'en' => const Locale('en'),
+                'de' => const Locale('de'),
                 _ => null,
               };
 
@@ -354,7 +370,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 RadioListTile<String>(
                   value: 'system',
                   title: Text(l10n.profileAppLanguageSystem),
-                  subtitle: Text(l10n.profileAppLanguageSystemDescription),
+                  subtitle: Text(
+                    l10n.profileAppLanguageSystemDescription,
+                  ),
                 ),
                 RadioListTile<String>(
                   value: 'it',
@@ -363,6 +381,10 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 RadioListTile<String>(
                   value: 'en',
                   title: Text(l10n.profileAppLanguageEnglish),
+                ),
+                RadioListTile<String>(
+                  value: 'de',
+                  title: Text(l10n.profileAppLanguageGerman),
                 ),
                 const SizedBox(height: 8),
               ],
@@ -387,46 +409,35 @@ class _MyProfileViewState extends State<_MyProfileView> {
     final institutionLevel = profile?.institutionLevel;
 
     final actorTypeLabel = _formatActorTypeLabel(l10n, actorType);
-    final verificationLevelLabel = _formatVerificationLevelLabel(
-      l10n,
-      verificationLevel,
-    );
-    final institutionLevelLabel = _formatInstitutionLevelLabel(
-      l10n,
-      institutionLevel,
-    );
+    final verificationLevelLabel =
+        _formatVerificationLevelLabel(l10n, verificationLevel);
+    final institutionLevelLabel =
+        _formatInstitutionLevelLabel(l10n, institutionLevel);
     final identityDetailLabel = profile?.identityDetailLabel;
-    final primaryIdentityBadgeLabel = profile == null
-        ? null
-        : _primaryIdentityBadgeLabel(l10n, profile);
-    final secondaryIdentityBadgeLabel = profile?.isInstitutionActor == true
-        ? institutionLevelLabel
-        : null;
-    final hasIdentityBadges =
-        primaryIdentityBadgeLabel != null ||
+    final primaryIdentityBadgeLabel =
+        profile == null ? null : _primaryIdentityBadgeLabel(l10n, profile);
+    final secondaryIdentityBadgeLabel =
+        profile?.isInstitutionActor == true ? institutionLevelLabel : null;
+    final hasIdentityBadges = primaryIdentityBadgeLabel != null ||
         secondaryIdentityBadgeLabel != null;
 
     final hasPendingRequest = pendingRequest != null;
-    final hasRejectedState =
-        !hasPendingRequest &&
+    final hasRejectedState = !hasPendingRequest &&
         verificationStatus == VerificationStatus.rejected &&
         latestRejectedRequest != null;
     final hasPendingState =
         hasPendingRequest || verificationStatus == VerificationStatus.pending;
     final rejectionNote = latestRejectedRequest?.reviewNote?.trim();
 
-    final canRequestCitizenLevel1 =
-        actorType == ActorType.citizen &&
+    final canRequestCitizenLevel1 = actorType == ActorType.citizen &&
         verificationLevel == VerificationLevel.none;
-    final canRequestCitizenLevel2 =
-        actorType == ActorType.citizen &&
+    final canRequestCitizenLevel2 = actorType == ActorType.citizen &&
         verificationLevel != VerificationLevel.level2;
     final canRequestPublicOfficial = actorType == ActorType.citizen;
     final canRequestInstitution = actorType == ActorType.citizen;
     final canRequestOrganization = actorType == ActorType.citizen;
 
-    final hasAvailableUpgradeActions =
-        !hasPendingState &&
+    final hasAvailableUpgradeActions = !hasPendingState &&
         (canRequestCitizenLevel1 ||
             canRequestCitizenLevel2 ||
             canRequestPublicOfficial ||
@@ -448,15 +459,15 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 Text(
                   l10n.verificationCenterTitle,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   l10n.verificationCurrentAccountSection,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Wrap(
@@ -467,25 +478,34 @@ class _MyProfileViewState extends State<_MyProfileView> {
                     Text(l10n.verificationAccountTypeValue(actorTypeLabel)),
                     if (profile != null &&
                         UserIdentityMark.shouldShowForProfile(profile))
-                      UserIdentityMark.fromProfile(profile, size: 16),
+                      UserIdentityMark.fromProfile(
+                        profile,
+                        size: 16,
+                      ),
                   ],
                 ),
                 if (actorType == ActorType.citizen)
-                  Text(l10n.verificationLevelValue(verificationLevelLabel)),
+                  Text(
+                    l10n.verificationLevelValue(verificationLevelLabel),
+                  ),
                 if (identityDetailLabel != null)
-                  Text(switch (actorType) {
-                    ActorType.publicOfficial =>
-                      l10n.verificationOfficialTitleValue(identityDetailLabel),
-                    ActorType.institution =>
-                      l10n.verificationInstitutionNameValue(
-                        identityDetailLabel,
-                      ),
-                    ActorType.organization =>
-                      l10n.verificationOrganizationNameValue(
-                        identityDetailLabel,
-                      ),
-                    ActorType.citizen => identityDetailLabel,
-                  }),
+                  Text(
+                    switch (actorType) {
+                      ActorType.publicOfficial =>
+                        l10n.verificationOfficialTitleValue(
+                          identityDetailLabel,
+                        ),
+                      ActorType.institution =>
+                        l10n.verificationInstitutionNameValue(
+                          identityDetailLabel,
+                        ),
+                      ActorType.organization =>
+                        l10n.verificationOrganizationNameValue(
+                          identityDetailLabel,
+                        ),
+                      ActorType.citizen => identityDetailLabel,
+                    },
+                  ),
                 if (institutionLevelLabel != null)
                   Text(
                     l10n.verificationInstitutionLevelValue(
@@ -504,7 +524,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
                           isPrimary: true,
                         ),
                       if (secondaryIdentityBadgeLabel != null)
-                        _IdentityBadgeChip(label: secondaryIdentityBadgeLabel),
+                        _IdentityBadgeChip(
+                          label: secondaryIdentityBadgeLabel,
+                        ),
                     ],
                   ),
                 ],
@@ -513,8 +535,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
                   Text(
                     l10n.verificationActiveRequestSection,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
                   const SizedBox(height: 8),
                   if (pendingRequest != null) ...[
@@ -551,8 +573,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
                   Text(
                     l10n.verificationNoActiveRequestSection,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -564,8 +586,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
                     Text(
                       l10n.verificationLastRejectedSection,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -580,9 +602,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
                             TextSpan(
                               text:
                                   '${l10n.verificationReviewRequiredNoteLabel}: ',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w700),
                             ),
                             TextSpan(text: rejectionNote),
                           ],
@@ -600,9 +621,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 const SizedBox(height: 16),
                 Text(
                   l10n.verificationAvailableRequestsSection,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 if (hasAvailableUpgradeActions) ...[
@@ -696,9 +717,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
         ? l10n.verificationRequestSubmitSuccess
         : (controller.errorMessage ?? l10n.verificationRequestSubmitFailure);
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   Future<void> _promptPublicOfficialRequest() async {
@@ -752,9 +773,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
         ? l10n.verificationRequestSubmitSuccess
         : (controller.errorMessage ?? l10n.verificationRequestSubmitFailure);
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   Future<void> _promptInstitutionRequest() async {
@@ -848,9 +869,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
         ? l10n.verificationRequestSubmitSuccess
         : (controller.errorMessage ?? l10n.verificationRequestSubmitFailure);
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   Future<void> _promptOrganizationRequest() async {
@@ -904,18 +925,17 @@ class _MyProfileViewState extends State<_MyProfileView> {
         ? l10n.verificationRequestSubmitSuccess
         : (controller.errorMessage ?? l10n.verificationRequestSubmitFailure);
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   Future<void> _confirmCancelPendingRequest() async {
     final l10n = AppLocalizations.of(context)!;
-    final verificationController = context
-        .read<VerificationRequestsController>();
+    final verificationController =
+        context.read<VerificationRequestsController>();
 
-    final shouldCancel =
-        await showDialog<bool>(
+    final shouldCancel = await showDialog<bool>(
           context: context,
           builder: (dialogContext) {
             return AlertDialog(
@@ -938,26 +958,24 @@ class _MyProfileViewState extends State<_MyProfileView> {
 
     if (!shouldCancel) return;
 
-    final success = await verificationController.cancelPendingRequest(
-      currentUserId,
-    );
+    final success =
+        await verificationController.cancelPendingRequest(currentUserId);
 
     if (!mounted) return;
 
     final message = success
         ? l10n.verificationCancelSuccess
         : (verificationController.errorMessage ??
-              l10n.verificationCancelFailure);
+            l10n.verificationCancelFailure);
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   Future<void> _confirmLogout() async {
     final l10n = AppLocalizations.of(context)!;
-    final shouldLogout =
-        await showDialog<bool>(
+    final shouldLogout = await showDialog<bool>(
           context: context,
           builder: (dialogContext) {
             return AlertDialog(
@@ -990,8 +1008,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
     final l10n = AppLocalizations.of(context)!;
     var confirmationMatches = false;
 
-    final shouldDelete =
-        await showDialog<bool>(
+    final shouldDelete = await showDialog<bool>(
           context: context,
           barrierDismissible: false,
           builder: (dialogContext) {
@@ -1028,12 +1045,10 @@ class _MyProfileViewState extends State<_MyProfileView> {
                     ),
                     FilledButton(
                       style: FilledButton.styleFrom(
-                        backgroundColor: Theme.of(
-                          dialogContext,
-                        ).colorScheme.error,
-                        foregroundColor: Theme.of(
-                          dialogContext,
-                        ).colorScheme.onError,
+                        backgroundColor:
+                            Theme.of(dialogContext).colorScheme.error,
+                        foregroundColor:
+                            Theme.of(dialogContext).colorScheme.onError,
                       ),
                       onPressed: confirmationMatches
                           ? () => Navigator.of(dialogContext).pop(true)
@@ -1063,7 +1078,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.profileDeleteAccountFailureMessage)),
+        SnackBar(
+          content: Text(l10n.profileDeleteAccountFailureMessage),
+        ),
       );
     } finally {
       if (mounted) {
@@ -1079,8 +1096,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final controller = context.watch<ProfileController>();
-    final verificationController = context
-        .watch<VerificationRequestsController>();
+    final verificationController =
+        context.watch<VerificationRequestsController>();
     final profile = controller.profile;
 
     final avatarUrl = profile?.avatarUrl?.trim() ?? '';
@@ -1099,12 +1116,10 @@ class _MyProfileViewState extends State<_MyProfileView> {
     final verificationStatus =
         profile?.verificationStatus ?? VerificationStatus.none;
     final pendingRequest = verificationController.pendingRequest;
-    final rejectedRequests = verificationController.requests.where(
-      (request) => request.isRejected,
-    );
-    final latestRejectedRequest = rejectedRequests.isEmpty
-        ? null
-        : rejectedRequests.first;
+    final rejectedRequests =
+        verificationController.requests.where((request) => request.isRejected);
+    final latestRejectedRequest =
+        rejectedRequests.isEmpty ? null : rejectedRequests.first;
 
     final accountStatusLabel = _accountStatusLabel(
       l10n: l10n,
@@ -1120,14 +1135,12 @@ class _MyProfileViewState extends State<_MyProfileView> {
     );
     final locationLabel = finalLocation(city: city, country: country);
     final identityDetailLabel = profile?.identityDetailLabel;
-    final primaryIdentityBadgeLabel = profile == null
-        ? null
-        : _primaryIdentityBadgeLabel(l10n, profile);
+    final primaryIdentityBadgeLabel =
+        profile == null ? null : _primaryIdentityBadgeLabel(l10n, profile);
     final secondaryIdentityBadgeLabel = profile?.isInstitutionActor == true
         ? _formatInstitutionLevelLabel(l10n, institutionLevel)
         : null;
-    final hasIdentityBadges =
-        primaryIdentityBadgeLabel != null ||
+    final hasIdentityBadges = primaryIdentityBadgeLabel != null ||
         secondaryIdentityBadgeLabel != null;
 
     return Scaffold(
@@ -1143,9 +1156,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
             onRefresh: () async {
               await Future.wait<void>([
                 context.read<ProfileController>().loadProfile(currentUserId),
-                context.read<VerificationRequestsController>().load(
-                  currentUserId,
-                ),
+                context
+                    .read<VerificationRequestsController>()
+                    .load(currentUserId),
               ]);
               _refreshUnreadNotificationsCount();
             },
@@ -1193,16 +1206,17 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                             Text(
                                               displayName.isNotEmpty
                                                   ? displayName
-                                                  : l10n.notificationsUserFallback,
+                                                  : l10n
+                                                      .notificationsUserFallback,
                                               style: theme.textTheme.titleMedium
                                                   ?.copyWith(
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
+                                                fontWeight: FontWeight.w700,
+                                              ),
                                             ),
                                             if (profile != null &&
-                                                UserIdentityMark.shouldShowForProfile(
-                                                  profile,
-                                                ))
+                                                UserIdentityMark
+                                                    .shouldShowForProfile(
+                                                        profile))
                                               UserIdentityMark.fromProfile(
                                                 profile,
                                                 size: 16,
@@ -1215,10 +1229,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                             '@$username',
                                             style: theme.textTheme.bodyMedium
                                                 ?.copyWith(
-                                                  color:
-                                                      theme.colorScheme.primary,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
+                                              color: theme.colorScheme.primary,
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                           ),
                                         ],
                                         if (identityDetailLabel != null) ...[
@@ -1227,8 +1240,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                             identityDetailLabel,
                                             style: theme.textTheme.bodyMedium
                                                 ?.copyWith(
-                                                  fontWeight: FontWeight.w600,
-                                                ),
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                           ),
                                         ],
                                         const SizedBox(height: 8),
@@ -1269,7 +1282,10 @@ class _MyProfileViewState extends State<_MyProfileView> {
                               ),
                               if (bio.isNotEmpty) ...[
                                 const SizedBox(height: 12),
-                                Text(bio, style: theme.textTheme.bodyMedium),
+                                Text(
+                                  bio,
+                                  style: theme.textTheme.bodyMedium,
+                                ),
                               ],
                               const SizedBox(height: 16),
                               Row(
@@ -1304,7 +1320,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
                       padding: const EdgeInsets.all(12),
                       child: Text(
                         controller.errorMessage!,
-                        style: TextStyle(color: theme.colorScheme.error),
+                        style: TextStyle(
+                          color: theme.colorScheme.error,
+                        ),
                       ),
                     ),
                   ),
@@ -1316,7 +1334,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
                       padding: const EdgeInsets.all(12),
                       child: Text(
                         verificationController.errorMessage!,
-                        style: TextStyle(color: theme.colorScheme.error),
+                        style: TextStyle(
+                          color: theme.colorScheme.error,
+                        ),
                       ),
                     ),
                   ),
@@ -1490,9 +1510,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
                       onTap: _isDeletingAccount
                           ? null
                           : () {
-                              Navigator.of(
-                                context,
-                              ).pushNamed(AppRouter.resetPassword);
+                              Navigator.of(context).pushNamed(
+                                AppRouter.resetPassword,
+                              );
                             },
                     ),
                     const Divider(height: 1),
@@ -1501,23 +1521,25 @@ class _MyProfileViewState extends State<_MyProfileView> {
                       subtitle: _biometricLoading
                           ? l10n.profileBiometricUnlockDescription
                           : !_rememberMeEnabled
-                          ? l10n.profileBiometricRequiresRememberMe
-                          : !_biometricAvailable
-                          ? l10n.profileBiometricUnavailable
-                          : l10n.profileBiometricUnlockDescription,
+                              ? l10n.profileBiometricRequiresRememberMe
+                              : !_biometricAvailable
+                                  ? l10n.profileBiometricUnavailable
+                                  : l10n.profileBiometricUnlockDescription,
                       icon: Icons.fingerprint_rounded,
                       trailing: _biometricLoading || _biometricBusy
                           ? const SizedBox(
                               width: 22,
                               height: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
                             )
                           : Switch.adaptive(
                               value: _biometricEnabled,
                               onChanged:
                                   !_rememberMeEnabled || !_biometricAvailable
-                                  ? null
-                                  : _setBiometricEnabled,
+                                      ? null
+                                      : _setBiometricEnabled,
                             ),
                       onTap: _biometricLoading || _biometricBusy
                           ? null
@@ -1584,7 +1606,10 @@ class _MyProfileViewState extends State<_MyProfileView> {
     );
   }
 
-  String _formatActorTypeLabel(AppLocalizations l10n, ActorType value) {
+  String _formatActorTypeLabel(
+    AppLocalizations l10n,
+    ActorType value,
+  ) {
     switch (value) {
       case ActorType.citizen:
         return l10n.identityActorTypePerson;
@@ -1683,12 +1708,12 @@ class _MyProfileViewState extends State<_MyProfileView> {
     required VerificationLevel verificationLevel,
     required InstitutionLevel? institutionLevel,
   }) {
-    final parts = <String>[_formatActorTypeLabel(l10n, actorType)];
+    final parts = <String>[
+      _formatActorTypeLabel(l10n, actorType),
+    ];
 
-    final institutionLevelLabel = _formatInstitutionLevelLabel(
-      l10n,
-      institutionLevel,
-    );
+    final institutionLevelLabel =
+        _formatInstitutionLevelLabel(l10n, institutionLevel);
     if (actorType == ActorType.institution && institutionLevelLabel != null) {
       parts.add(institutionLevelLabel);
     }
@@ -1717,7 +1742,10 @@ class _MyProfileViewState extends State<_MyProfileView> {
     return accountStatusLabel;
   }
 
-  String _appearanceModeLabel(AppLocalizations l10n, AppAppearanceMode mode) {
+  String _appearanceModeLabel(
+    AppLocalizations l10n,
+    AppAppearanceMode mode,
+  ) {
     switch (mode) {
       case AppAppearanceMode.light:
         return l10n.profileThemeLight;
@@ -1734,12 +1762,17 @@ class _MyProfileViewState extends State<_MyProfileView> {
         return l10n.profileAppLanguageItalian;
       case 'en':
         return l10n.profileAppLanguageEnglish;
+      case 'de':
+        return l10n.profileAppLanguageGerman;
       default:
         return l10n.profileAppLanguageSystem;
     }
   }
 
-  String? finalLocation({required String city, required String country}) {
+  String? finalLocation({
+    required String city,
+    required String country,
+  }) {
     if (city.isNotEmpty && country.isNotEmpty) {
       return '$city, $country';
     }
@@ -1774,9 +1807,9 @@ class _SectionTitle extends StatelessWidget {
       padding: const EdgeInsets.only(left: 4, bottom: 8),
       child: Text(
         title,
-        style: Theme.of(
-          context,
-        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
       ),
     );
   }
@@ -1786,14 +1819,20 @@ class _StatusChip extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _StatusChip({required this.icon, required this.label});
+  const _StatusChip({
+    required this.icon,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(999),
@@ -1804,7 +1843,11 @@ class _StatusChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: theme.colorScheme.primary),
+          Icon(
+            icon,
+            size: 16,
+            color: theme.colorScheme.primary,
+          ),
           const SizedBox(width: 6),
           Text(
             label,
@@ -1823,7 +1866,10 @@ class _IdentityBadgeChip extends StatelessWidget {
   final String label;
   final bool isPrimary;
 
-  const _IdentityBadgeChip({required this.label, this.isPrimary = false});
+  const _IdentityBadgeChip({
+    required this.label,
+    this.isPrimary = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1834,12 +1880,14 @@ class _IdentityBadgeChip extends StatelessWidget {
     final borderColor = isPrimary
         ? theme.colorScheme.primary.withValues(alpha: 0.22)
         : theme.colorScheme.outline.withValues(alpha: 0.14);
-    final textColor = isPrimary
-        ? theme.colorScheme.primary
-        : theme.colorScheme.onSurface;
+    final textColor =
+        isPrimary ? theme.colorScheme.primary : theme.colorScheme.onSurface;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(999),
@@ -1887,14 +1935,19 @@ class _VerificationActionTile extends StatelessWidget {
 class _SettingsGroup extends StatelessWidget {
   final List<Widget> children;
 
-  const _SettingsGroup({required this.children});
+  const _SettingsGroup({
+    required this.children,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
-      child: Column(mainAxisSize: MainAxisSize.min, children: children),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: children,
+      ),
     );
   }
 }
@@ -1923,8 +1976,14 @@ class _SettingsTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      leading: Icon(icon, color: iconColor),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 2,
+      ),
+      leading: Icon(
+        icon,
+        color: iconColor,
+      ),
       title: Text(
         title,
         style: textColor != null
@@ -1935,7 +1994,11 @@ class _SettingsTile extends StatelessWidget {
             : theme.textTheme.bodyLarge,
       ),
       subtitle: subtitle != null
-          ? Text(subtitle!, maxLines: 2, overflow: TextOverflow.ellipsis)
+          ? Text(
+              subtitle!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            )
           : null,
       trailing:
           trailing ?? (onTap == null ? null : const Icon(Icons.chevron_right)),
@@ -1947,7 +2010,9 @@ class _SettingsTile extends StatelessWidget {
 class _NotificationsTrailingBadge extends StatelessWidget {
   final int unreadCount;
 
-  const _NotificationsTrailingBadge({required this.unreadCount});
+  const _NotificationsTrailingBadge({
+    required this.unreadCount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1963,7 +2028,10 @@ class _NotificationsTrailingBadge extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 4,
+          ),
           decoration: BoxDecoration(
             color: theme.colorScheme.primary,
             borderRadius: BorderRadius.circular(999),

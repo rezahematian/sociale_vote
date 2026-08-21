@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_it.dart';
 
@@ -91,6 +92,7 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('de'),
     Locale('en'),
     Locale('it')
   ];
@@ -5896,6 +5898,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open full account controls'**
   String get adminCenterOpenFullAccountAction;
+
+  /// Label for the German app language option
+  ///
+  /// In en, this message translates to:
+  /// **'German'**
+  String get profileAppLanguageGerman;
+
+  /// Title of the Discovery section
+  ///
+  /// In en, this message translates to:
+  /// **'Discovery'**
+  String get discoveryPageTitle;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
@@ -5907,7 +5921,7 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'it'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['de', 'en', 'it'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -5918,6 +5932,7 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
 
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'de': return AppLocalizationsDe();
     case 'en': return AppLocalizationsEn();
     case 'it': return AppLocalizationsIt();
   }

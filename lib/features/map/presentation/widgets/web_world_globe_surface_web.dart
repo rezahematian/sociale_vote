@@ -9,6 +9,7 @@ import 'package:flutter/rendering.dart';
 import 'package:web/web.dart' as web;
 
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class WebGlobeFocus {
   final double latitude;
@@ -121,11 +122,12 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
           constraints: const BoxConstraints(maxWidth: 360),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.72,
-              ),
+              color: theme.colorScheme.surfaceContainerHighest
+                  .withValues(alpha: 0.72),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: theme.colorScheme.outlineVariant),
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant,
+              ),
             ),
             child: Padding(
               padding: const EdgeInsets.all(18),
@@ -140,7 +142,9 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
                   Text(
                     Localizations.localeOf(context).languageCode == 'it'
                         ? '3D Web non disponibile'
-                        : '3D Web unavailable',
+                        : deOrEnglish(context,
+                            english: '3D Web unavailable',
+                            german: '3D im Web nicht verfügbar'),
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -149,7 +153,10 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
                   Text(
                     Localizations.localeOf(context).languageCode == 'it'
                         ? 'Puoi continuare con la Civic Map 2D.'
-                        : 'You can continue with the 2D Civic Map.',
+                        : deOrEnglish(context,
+                            english: 'You can continue with the 2D Civic Map.',
+                            german:
+                                'Du kannst mit der 2D Civic Map fortfahren.'),
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodySmall,
                   ),
@@ -159,7 +166,9 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
                     child: Text(
                       Localizations.localeOf(context).languageCode == 'it'
                           ? 'Apri mappa 2D'
-                          : 'Open 2D map',
+                          : deOrEnglish(context,
+                              english: 'Open 2D map',
+                              german: '2D-Karte öffnen'),
                     ),
                   ),
                 ],
@@ -299,19 +308,34 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       });
     }).toJS;
 
-    element.addEventListener('socialvote-globe-ready', _readyListener);
-    element.addEventListener('socialvote-marker-tap', _markerTapListener);
-    element.addEventListener('socialvote-surface-tap', _surfaceTapListener);
+    element.addEventListener(
+      'socialvote-globe-ready',
+      _readyListener,
+    );
+    element.addEventListener(
+      'socialvote-marker-tap',
+      _markerTapListener,
+    );
+    element.addEventListener(
+      'socialvote-surface-tap',
+      _surfaceTapListener,
+    );
     element.addEventListener(
       'socialvote-globe-orientation',
       _orientationListener,
     );
-    element.addEventListener('socialvote-globe-deep-zoom', _deepZoomListener);
+    element.addEventListener(
+      'socialvote-globe-deep-zoom',
+      _deepZoomListener,
+    );
     element.addEventListener(
       'socialvote-globe-diagnostics',
       _diagnosticsListener,
     );
-    element.addEventListener('socialvote-globe-error', _errorListener);
+    element.addEventListener(
+      'socialvote-globe-error',
+      _errorListener,
+    );
 
     _applyConfigIfPossible(force: true);
     _applyFocusIfPossible(force: true);
@@ -335,10 +359,16 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     }
 
     if (_readyListener != null) {
-      element.removeEventListener('socialvote-globe-ready', _readyListener);
+      element.removeEventListener(
+        'socialvote-globe-ready',
+        _readyListener,
+      );
     }
     if (_markerTapListener != null) {
-      element.removeEventListener('socialvote-marker-tap', _markerTapListener);
+      element.removeEventListener(
+        'socialvote-marker-tap',
+        _markerTapListener,
+      );
     }
     if (_surfaceTapListener != null) {
       element.removeEventListener(
@@ -365,7 +395,10 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       );
     }
     if (_errorListener != null) {
-      element.removeEventListener('socialvote-globe-error', _errorListener);
+      element.removeEventListener(
+        'socialvote-globe-error',
+        _errorListener,
+      );
     }
   }
 

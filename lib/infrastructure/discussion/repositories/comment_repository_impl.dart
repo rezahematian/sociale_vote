@@ -176,7 +176,28 @@ class CommentRepositoryImpl implements CommentRepository {
 
   @override
   Future<void> deleteComment(String commentId) async {
-    await AppSupabase.client.from(_commentsTable).delete().eq('id', commentId);
+    final normalizedId = commentId.trim();
+    if (normalizedId.isEmpty) {
+      throw ArgumentError.value(commentId, 'commentId', 'Invalid comment id.');
+    }
+
+    await AppSupabase.client
+        .from(_commentsTable)
+        .delete()
+        .eq('id', normalizedId);
+
+    // PostgREST can return a successful response when RLS simply filters the
+    // target row out of a DELETE. Read back the id so the controller only
+    // updates local state after a real persistent deletion.
+    final remainingRows = await AppSupabase.client
+        .from(_commentsTable)
+        .select('id')
+        .eq('id', normalizedId)
+        .limit(1);
+
+    if (remainingRows.isNotEmpty) {
+      throw StateError('Comment deletion was not persisted.');
+    }
   }
 
   Future<int> _resolveDepth(String? parentId) async {

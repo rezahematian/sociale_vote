@@ -645,8 +645,13 @@ class _RegisterFormState extends State<RegisterForm> {
     }
 
     final controller = context.read<AuthController>();
-    final localeLanguageCode = Localizations.localeOf(context).languageCode;
-    final language = localeLanguageCode == 'it' ? 'it' : 'en';
+    final localeLanguageCode =
+        Localizations.localeOf(context).languageCode.toLowerCase();
+    final language = switch (localeLanguageCode) {
+      'it' => 'it',
+      'de' => 'de',
+      _ => 'en',
+    };
     final displayName = _displayNameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();

@@ -385,13 +385,27 @@ class PollResultsSection extends StatelessWidget {
   }
 
   String _votesLabel(AppLocalizations l10n, int votes) {
-    final isItalian = l10n.localeName.toLowerCase().startsWith('it');
+    final localeName = l10n.localeName.toLowerCase();
+    final isItalian = localeName.startsWith('it');
+    final isGerman = localeName.startsWith('de');
 
     if (votes == 1) {
-      return isItalian ? '1 voto' : '1 vote';
+      if (isItalian) {
+        return '1 voto';
+      }
+      if (isGerman) {
+        return '1 Stimme';
+      }
+      return '1 vote';
     }
 
-    return isItalian ? '$votes voti' : '$votes votes';
+    if (isItalian) {
+      return '$votes voti';
+    }
+    if (isGerman) {
+      return '$votes Stimmen';
+    }
+    return '$votes votes';
   }
 
   String _mapOutcomeLabel(AppLocalizations l10n, PollOutcome outcome) {

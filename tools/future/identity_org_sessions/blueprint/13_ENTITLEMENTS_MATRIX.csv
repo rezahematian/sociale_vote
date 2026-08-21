@@ -1,0 +1,14 @@
+entitlement,free,starter,pro,team,event
+sessions_monthly_limit,2,12_per_year,fair_use,fair_use,1_event
+participants_per_session,25,100,300,1000,100_500_1500_by_pass
+questions_per_session,10,50,100,250,100
+workspace_operators,1,3,5,15,1
+controlled_token_pool,true,true,true,true,true
+csv_export,false,true,true,true,true
+pdf_export,false,false,true,true,true
+branding,false,basic,true,true,basic
+archive_days,7,90,365,extended,30
+concurrent_sessions,1,1,1,3,1
+priority_support,false,false,email,priority,event_window
+api_webhooks,false,false,false,future,false
+public_aggregate_publish,true,true,true,true,true

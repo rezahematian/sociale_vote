@@ -10,6 +10,7 @@ import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart'
 import 'package:sociale_vote/features/social/application/feed_controller.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class MyPostsPage extends StatelessWidget {
   const MyPostsPage({super.key});
@@ -23,14 +24,19 @@ class MyPostsPage extends StatelessWidget {
     // Blocco guest: per vedere i propri post devi essere loggato
     if (currentUserId == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.profileMyPostsTitle)),
+        appBar: AppBar(
+          title: Text(l10n.profileMyPostsTitle),
+        ),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
               isItalian
                   ? 'Devi accedere per vedere i tuoi post.'
-                  : 'You must be logged in to view your posts.',
+                  : deOrEnglish(context,
+                      english: 'You must be logged in to view your posts.',
+                      german:
+                          'Du musst angemeldet sein, um deine Beiträge anzuzeigen.'),
               textAlign: TextAlign.center,
             ),
           ),
@@ -70,11 +76,13 @@ class _MyPostsView extends StatelessWidget {
     final List<Post> posts = currentUserId == null
         ? <Post>[]
         : allPosts
-              .where((p) => p.createdByUserId == currentUserId)
-              .toList(growable: false);
+            .where((p) => p.createdByUserId == currentUserId)
+            .toList(growable: false);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.profileMyPostsTitle)),
+      appBar: AppBar(
+        title: Text(l10n.profileMyPostsTitle),
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           final userId = AppDI.instance.currentUserId;
@@ -85,7 +93,11 @@ class _MyPostsView extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              isItalian ? 'Post creati da te' : 'Posts created by you',
+              isItalian
+                  ? 'Post creati da te'
+                  : deOrEnglish(context,
+                      english: 'Posts created by you',
+                      german: 'Von dir erstellte Beiträge'),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -94,7 +106,9 @@ class _MyPostsView extends StatelessWidget {
             if (controller.isLoading && posts.isEmpty) ...[
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
             ] else if (posts.isEmpty) ...[
               Card(
@@ -103,7 +117,9 @@ class _MyPostsView extends StatelessWidget {
                   child: Text(
                     isItalian
                         ? 'Non hai ancora creato post.'
-                        : 'You have not created any posts yet.',
+                        : deOrEnglish(context,
+                            english: 'You have not created any posts yet.',
+                            german: 'Du hast noch keine Beiträge erstellt.'),
                     style: theme.textTheme.bodyMedium,
                   ),
                 ),
@@ -182,14 +198,17 @@ class _MyPostCard extends StatelessWidget {
               const SizedBox(height: 6),
               Row(
                 children: [
-                  Icon(Icons.schedule, size: 14, color: theme.hintColor),
+                  Icon(
+                    Icons.schedule,
+                    size: 14,
+                    color: theme.hintColor,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     _formatPostCreatedAt(context, post.createdAt),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.textTheme.bodySmall?.color?.withValues(
-                        alpha: 0.7,
-                      ),
+                      color: theme.textTheme.bodySmall?.color
+                          ?.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -212,7 +231,10 @@ class _MyPostCard extends StatelessWidget {
                 onIceTap: () async {
                   final userId = AppDI.instance.currentUserId;
                   if (userId == null) return;
-                  await controller.toggleIceForPost(userId: userId, post: post);
+                  await controller.toggleIceForPost(
+                    userId: userId,
+                    post: post,
+                  );
                 },
               ),
             ],

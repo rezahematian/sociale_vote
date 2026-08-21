@@ -1127,6 +1127,7 @@ class AppDI {
       addComment: addCommentAndNotify.call,
       getCommentsForTarget: getCommentsForTarget,
       updateComment: updateComment,
+      deleteComment: commentRepository.deleteComment,
       onCommentsChanged: onCommentsChanged,
     );
   }

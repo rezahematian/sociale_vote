@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/domain/discussion/entities/comment.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class MyCommentsPage extends StatefulWidget {
   const MyCommentsPage({super.key});
@@ -28,9 +29,8 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
       _isLoading = true;
     });
 
-    final myComments = await AppDI.instance.commentRepository.getCommentsByUser(
-      userId,
-    );
+    final myComments =
+        await AppDI.instance.commentRepository.getCommentsByUser(userId);
 
     setState(() {
       _comments = myComments;
@@ -46,14 +46,19 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
 
     if (currentUserId == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.profileMyCommentsTitle)),
+        appBar: AppBar(
+          title: Text(l10n.profileMyCommentsTitle),
+        ),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
               isItalian
                   ? 'Devi accedere per vedere i tuoi commenti.'
-                  : 'You must be logged in to view your comments.',
+                  : deOrEnglish(context,
+                      english: 'You must be logged in to view your comments.',
+                      german:
+                          'Du musst angemeldet sein, um deine Kommentare anzuzeigen.'),
               textAlign: TextAlign.center,
             ),
           ),
@@ -62,51 +67,61 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.profileMyCommentsTitle)),
+      appBar: AppBar(
+        title: Text(l10n.profileMyCommentsTitle),
+      ),
       body: RefreshIndicator(
         onRefresh: _loadComments,
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _comments.isEmpty
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    isItalian
-                        ? 'Non hai ancora scritto commenti.'
-                        : 'You have not written any comments yet.',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _comments.length,
-                itemBuilder: (context, index) {
-                  final comment = _comments[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
+                ? Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            comment.content,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            _formatDate(context, comment.createdAt),
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: Colors.grey[600]),
-                          ),
-                        ],
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        isItalian
+                            ? 'Non hai ancora scritto commenti.'
+                            : deOrEnglish(context,
+                                english:
+                                    'You have not written any comments yet.',
+                                german:
+                                    'Du hast noch keine Kommentare geschrieben.'),
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                  );
-                },
-              ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _comments.length,
+                    itemBuilder: (context, index) {
+                      final comment = _comments[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                comment.content,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                _formatDate(context, comment.createdAt),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: Colors.grey[600],
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
       ),
     );
   }

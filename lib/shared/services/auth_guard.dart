@@ -11,6 +11,7 @@ import 'package:sociale_vote/domain/identity/value_objects/institution_level.dar
 import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/shared/ui/ui.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 /// Guard centrale per azioni protette (vote, comment, react, createPoll, ecc).
 ///
@@ -47,7 +48,10 @@ class AuthGuard {
       return false;
     }
 
-    await _showFeatureLoginRequiredSheet(context, actionLabel: actionLabel);
+    await _showFeatureLoginRequiredSheet(
+      context,
+      actionLabel: actionLabel,
+    );
 
     final resolvedUserId = AppDI.instance.currentUserId?.trim();
     return resolvedUserId != null && resolvedUserId.isNotEmpty;
@@ -125,7 +129,9 @@ class AuthGuard {
     return false;
   }
 
-  static Future<bool> _ensureCurrentSessionIsValid(BuildContext context) async {
+  static Future<bool> _ensureCurrentSessionIsValid(
+    BuildContext context,
+  ) async {
     if (AppDI.instance.currentUserId == null) {
       return true;
     }
@@ -162,12 +168,19 @@ class AuthGuard {
       builder: (dialogContext) {
         return AlertDialog(
           title: Text(
-            _isItalian(dialogContext) ? 'Sessione terminata' : 'Session ended',
+            _isItalian(dialogContext)
+                ? 'Sessione terminata'
+                : deOrEnglish(context,
+                    english: 'Session ended', german: 'Sitzung beendet'),
           ),
           content: Text(
             _isItalian(dialogContext)
                 ? 'Questo account è stato aperto su un altro dispositivo oppure non è più disponibile. Accedi di nuovo per continuare.'
-                : 'This account was opened on another device or is no longer available. Sign in again to continue.',
+                : deOrEnglish(context,
+                    english:
+                        'This account was opened on another device or is no longer available. Sign in again to continue.',
+                    german:
+                        'Dieses Konto wurde auf einem anderen Gerät geöffnet oder ist nicht mehr verfügbar. Melde dich erneut an, um fortzufahren.'),
           ),
           actions: [
             TextButton(
@@ -180,41 +193,54 @@ class AuthGuard {
     );
 
     if (context.mounted) {
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil(AppRouter.home, (route) => false);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRouter.home,
+        (route) => false,
+      );
     }
 
     return false;
   }
 
   /// Accesso alla shell Admin Center per moderator/admin.
-  static bool canAccessAdminCenter({required Role role}) {
+  static bool canAccessAdminCenter({
+    required Role role,
+  }) {
     return _policy.canAccessAdminCenter(role: role);
   }
 
   /// Wrapper centrale per ruolo reviewer/admin.
-  static bool canReviewVerificationRequests({required Role role}) {
+  static bool canReviewVerificationRequests({
+    required Role role,
+  }) {
     return _policy.canReviewVerificationRequests(role: role);
   }
 
   /// Gestione delle segnalazioni per moderator/admin.
-  static bool canReviewReports({required Role role}) {
+  static bool canReviewReports({
+    required Role role,
+  }) {
     return _policy.canReviewReports(role: role);
   }
 
   /// Gestione dei ruoli tecnici riservata agli admin.
-  static bool canManageSystemRoles({required Role role}) {
+  static bool canManageSystemRoles({
+    required Role role,
+  }) {
     return _policy.canManageSystemRoles(role: role);
   }
 
   /// Azioni amministrative sugli account riservate agli admin.
-  static bool canManageAccounts({required Role role}) {
+  static bool canManageAccounts({
+    required Role role,
+  }) {
     return _policy.canManageAccounts(role: role);
   }
 
   /// Consultazione dell'audit amministrativo riservata agli admin.
-  static bool canViewAdminAuditLog({required Role role}) {
+  static bool canViewAdminAuditLog({
+    required Role role,
+  }) {
     return _policy.canViewAdminAuditLog(role: role);
   }
 
@@ -307,16 +333,15 @@ class AuthGuard {
 
     if (userId != null && role == null) {
       try {
-        final session = await AppDI.instance.sessionRepository
-            .getCurrentSession();
+        final session =
+            await AppDI.instance.sessionRepository.getCurrentSession();
         resolvedRole = session?.role ?? Role.user;
       } catch (_) {
         resolvedRole = Role.user;
       }
     }
 
-    final needsProfileLookup =
-        userId != null &&
+    final needsProfileLookup = userId != null &&
         (actorType == null ||
             verificationLevel == null ||
             institutionLevel == null);
@@ -349,7 +374,9 @@ class AuthGuard {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: AppRadius.sheetRadius),
+      shape: const RoundedRectangleBorder(
+        borderRadius: AppRadius.sheetRadius,
+      ),
       builder: (sheetContext) {
         final theme = Theme.of(sheetContext);
 
@@ -386,7 +413,9 @@ class AuthGuard {
               Text(
                 _isItalian(sheetContext)
                     ? 'Accesso richiesto'
-                    : 'Sign-in required',
+                    : deOrEnglish(context,
+                        english: 'Sign-in required',
+                        german: 'Anmeldung erforderlich'),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -395,7 +424,11 @@ class AuthGuard {
               Text(
                 _isItalian(sheetContext)
                     ? 'Per $actionLabel devi accedere o registrarti. Come ospite puoi consultare i contenuti pubblici.'
-                    : 'To $actionLabel, sign in or create an account. As a guest you can browse public content.',
+                    : deOrEnglish(context,
+                        english:
+                            'To $actionLabel, sign in or create an account. As a guest you can browse public content.',
+                        german:
+                            'Um $actionLabel, melde dich an oder erstelle ein Konto. Als Gast kannst du öffentliche Inhalte ansehen.'),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.m),
@@ -403,7 +436,10 @@ class AuthGuard {
                 children: [
                   Expanded(
                     child: AppButton.secondary(
-                      label: _isItalian(sheetContext) ? 'Accedi' : 'Log in',
+                      label: _isItalian(sheetContext)
+                          ? 'Accedi'
+                          : deOrEnglish(context,
+                              english: 'Log in', german: 'Anmelden'),
                       onPressed: () => openAuthFlow(AppRouter.login),
                     ),
                   ),
@@ -412,7 +448,8 @@ class AuthGuard {
                     child: AppButton.primary(
                       label: _isItalian(sheetContext)
                           ? 'Registrati'
-                          : 'Sign up',
+                          : deOrEnglish(context,
+                              english: 'Sign up', german: 'Registrieren'),
                       onPressed: () => openAuthFlow(AppRouter.register),
                     ),
                   ),
@@ -422,7 +459,9 @@ class AuthGuard {
               AppButton.text(
                 label: _isItalian(sheetContext)
                     ? 'Continua come ospite'
-                    : 'Continue as guest',
+                    : deOrEnglish(context,
+                        english: 'Continue as guest',
+                        german: 'Als Gast fortfahren'),
                 onPressed: () {
                   Navigator.of(sheetContext).pop();
                 },
@@ -441,7 +480,9 @@ class AuthGuard {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: AppRadius.sheetRadius),
+      shape: const RoundedRectangleBorder(
+        borderRadius: AppRadius.sheetRadius,
+      ),
       builder: (sheetContext) {
         final theme = Theme.of(sheetContext);
         final actionLabel = _actionLabel(sheetContext, action);
@@ -479,7 +520,9 @@ class AuthGuard {
               Text(
                 _isItalian(sheetContext)
                     ? 'Vuoi partecipare?'
-                    : 'Want to participate?',
+                    : deOrEnglish(context,
+                        english: 'Want to participate?',
+                        german: 'Möchtest du teilnehmen?'),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -488,7 +531,11 @@ class AuthGuard {
               Text(
                 _isItalian(sheetContext)
                     ? 'Per $actionLabel devi accedere o registrarti. Come ospite puoi solo visualizzare contenuti.'
-                    : 'To $actionLabel, sign in or create an account. As a guest you can only view content.',
+                    : deOrEnglish(context,
+                        english:
+                            'To $actionLabel, sign in or create an account. As a guest you can only view content.',
+                        german:
+                            'Um $actionLabel, melde dich an oder erstelle ein Konto. Als Gast kannst du Inhalte nur ansehen.'),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.m),
@@ -496,7 +543,10 @@ class AuthGuard {
                 children: [
                   Expanded(
                     child: AppButton.secondary(
-                      label: _isItalian(sheetContext) ? 'Accedi' : 'Log in',
+                      label: _isItalian(sheetContext)
+                          ? 'Accedi'
+                          : deOrEnglish(context,
+                              english: 'Log in', german: 'Anmelden'),
                       onPressed: () => openAuthFlow(AppRouter.login),
                     ),
                   ),
@@ -505,7 +555,8 @@ class AuthGuard {
                     child: AppButton.primary(
                       label: _isItalian(sheetContext)
                           ? 'Registrati'
-                          : 'Sign up',
+                          : deOrEnglish(context,
+                              english: 'Sign up', german: 'Registrieren'),
                       onPressed: () => openAuthFlow(AppRouter.register),
                     ),
                   ),
@@ -515,7 +566,9 @@ class AuthGuard {
               AppButton.text(
                 label: _isItalian(sheetContext)
                     ? 'Continua come ospite'
-                    : 'Continue as guest',
+                    : deOrEnglish(context,
+                        english: 'Continue as guest',
+                        german: 'Als Gast fortfahren'),
                 onPressed: () {
                   Navigator.of(sheetContext).pop();
                 },
@@ -536,7 +589,10 @@ class AuthGuard {
       builder: (dialogContext) {
         return AlertDialog(
           title: Text(
-            _isItalian(dialogContext) ? 'Accesso negato' : 'Access denied',
+            _isItalian(dialogContext)
+                ? 'Accesso negato'
+                : deOrEnglish(context,
+                    english: 'Access denied', german: 'Zugriff verweigert'),
           ),
           content: Text(_permissionDeniedMessage(dialogContext, action)),
           actions: [
@@ -561,13 +617,18 @@ class AuthGuard {
       case ParticipationAction.reviewReports:
         return isItalian
             ? 'Questa area è riservata a moderator/admin.'
-            : 'This area is restricted to moderators and admins.';
+            : deOrEnglish(context,
+                english: 'This area is restricted to moderators and admins.',
+                german:
+                    'Dieser Bereich ist Moderatoren und Administratoren vorbehalten.');
       case ParticipationAction.manageSystemRoles:
       case ParticipationAction.manageAccounts:
       case ParticipationAction.viewAdminAuditLog:
         return isItalian
             ? 'Questa azione è riservata agli admin.'
-            : 'This action is restricted to admins.';
+            : deOrEnglish(context,
+                english: 'This action is restricted to admins.',
+                german: 'Diese Aktion ist Administratoren vorbehalten.');
       case ParticipationAction.vote:
       case ParticipationAction.createPoll:
       case ParticipationAction.react:
@@ -577,47 +638,89 @@ class AuthGuard {
       case ParticipationAction.reportContent:
         return isItalian
             ? 'Non hai i permessi necessari per questa azione.'
-            : 'You do not have permission to perform this action.';
+            : deOrEnglish(context,
+                english: 'You do not have permission to perform this action.',
+                german:
+                    'Du hast keine Berechtigung, diese Aktion auszuführen.');
     }
   }
 
-  static String _actionLabel(BuildContext context, ParticipationAction action) {
+  static String _actionLabel(
+    BuildContext context,
+    ParticipationAction action,
+  ) {
     final isItalian = _isItalian(context);
     switch (action) {
       case ParticipationAction.vote:
-        return isItalian ? 'votare' : 'vote';
+        return isItalian
+            ? 'votare'
+            : deOrEnglish(context, english: 'vote', german: 'abzustimmen');
       case ParticipationAction.createPoll:
-        return isItalian ? 'creare un sondaggio' : 'create a poll';
+        return isItalian
+            ? 'creare un sondaggio'
+            : deOrEnglish(context,
+                english: 'create a poll', german: 'eine Umfrage zu erstellen');
       case ParticipationAction.react:
-        return isItalian ? 'reagire con 🔥 o ❄' : 'react with 🔥 or ❄';
+        return isItalian
+            ? 'reagire con 🔥 o ❄'
+            : deOrEnglish(context,
+                english: 'react with 🔥 or ❄',
+                german: 'mit 🔥 oder ❄ zu reagieren');
       case ParticipationAction.comment:
-        return isItalian ? 'commentare' : 'comment';
+        return isItalian
+            ? 'commentare'
+            : deOrEnglish(context,
+                english: 'comment', german: 'zu kommentieren');
       case ParticipationAction.createPost:
-        return isItalian ? 'creare un post' : 'create a post';
+        return isItalian
+            ? 'creare un post'
+            : deOrEnglish(context,
+                english: 'create a post', german: 'einen Beitrag zu erstellen');
       case ParticipationAction.followScope:
         return isItalian
             ? 'seguire quest\'area geografica'
-            : 'follow this geographic area';
+            : deOrEnglish(context,
+                english: 'follow this geographic area',
+                german: 'diesem geografischen Bereich zu folgen');
       case ParticipationAction.reportContent:
-        return isItalian ? 'segnalare un contenuto' : 'report content';
+        return isItalian
+            ? 'segnalare un contenuto'
+            : deOrEnglish(context,
+                english: 'report content', german: 'Inhalte zu melden');
       case ParticipationAction.accessAdminCenter:
         return isItalian
             ? 'accedere all\'Admin Center'
-            : 'open the Admin Center';
+            : deOrEnglish(context,
+                english: 'open the Admin Center',
+                german: 'das Admin Center zu öffnen');
       case ParticipationAction.reviewVerificationRequests:
         return isItalian
             ? 'revisionare richieste di verifica'
-            : 'review verification requests';
+            : deOrEnglish(context,
+                english: 'review verification requests',
+                german: 'Verifizierungsanfragen zu prüfen');
       case ParticipationAction.reviewReports:
-        return isItalian ? 'gestire le segnalazioni' : 'review reports';
+        return isItalian
+            ? 'gestire le segnalazioni'
+            : deOrEnglish(context,
+                english: 'review reports', german: 'Meldungen zu prüfen');
       case ParticipationAction.manageSystemRoles:
-        return isItalian ? 'gestire i ruoli di sistema' : 'manage system roles';
+        return isItalian
+            ? 'gestire i ruoli di sistema'
+            : deOrEnglish(context,
+                english: 'manage system roles',
+                german: 'Systemrollen zu verwalten');
       case ParticipationAction.manageAccounts:
-        return isItalian ? 'gestire gli account' : 'manage accounts';
+        return isItalian
+            ? 'gestire gli account'
+            : deOrEnglish(context,
+                english: 'manage accounts', german: 'Konten zu verwalten');
       case ParticipationAction.viewAdminAuditLog:
         return isItalian
             ? 'consultare il registro amministrativo'
-            : 'view the admin activity log';
+            : deOrEnglish(context,
+                english: 'view the admin activity log',
+                german: 'das Admin-Aktivitätsprotokoll anzuzeigen');
     }
   }
 }

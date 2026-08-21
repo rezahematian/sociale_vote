@@ -18,6 +18,7 @@ import 'package:sociale_vote/features/social/application/post_detail_controller.
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 /// Pagina di dettaglio per un singolo post del social feed.
 ///
@@ -1087,7 +1088,7 @@ class _PostDetailHeroCard extends StatelessWidget {
   static String _editedLabel(BuildContext context) {
     return Localizations.localeOf(context).languageCode == 'it'
         ? 'Modificato'
-        : 'Edited';
+        : deOrEnglish(context, english: 'Edited', german: 'Bearbeitet');
   }
 
   static String _formatDateTime(DateTime value) {
