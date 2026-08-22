@@ -112,6 +112,7 @@ class LiveQuestion {
       );
 
   bool get isOpen => status == 'open';
+  bool get isClosed => status == 'closed';
 }
 
 class LiveSessionSummary {
@@ -127,6 +128,9 @@ class LiveSessionSummary {
   final String rawRetention;
   final int expectedParticipants;
   final int tokenCount;
+  final int participantCount;
+  final int usedAccessCount;
+  final int questionCount;
   final int responseCount;
   final DateTime createdAt;
   final DateTime? openedAt;
@@ -146,6 +150,9 @@ class LiveSessionSummary {
     required this.rawRetention,
     required this.expectedParticipants,
     required this.tokenCount,
+    required this.participantCount,
+    required this.usedAccessCount,
+    required this.questionCount,
     required this.responseCount,
     required this.createdAt,
     required this.openedAt,
@@ -169,12 +176,19 @@ class LiveSessionSummary {
         rawRetention: _string(json['raw_retention']) ?? '7d',
         expectedParticipants: _int(json['expected_participants']),
         tokenCount: _int(json['token_count']),
+        participantCount: _int(json['participant_count']),
+        usedAccessCount: _int(json['used_access_count']),
+        questionCount: _int(json['question_count']),
         responseCount: _int(json['response_count']),
         createdAt: _date(json['created_at']) ?? DateTime.now(),
         openedAt: _date(json['opened_at']),
         closedAt: _date(json['closed_at']),
         reportId: _string(json['report_id']),
       );
+
+  bool get isDraft => status == 'draft';
+  bool get isOpen => status == 'open';
+  bool get isClosed => status == 'closed';
 }
 
 class LiveSessionDetail {
@@ -201,6 +215,14 @@ class LiveSessionDetail {
       if (question.isOpen) return question;
     }
     return null;
+  }
+
+  int get closedQuestionCount =>
+      questions.where((question) => question.isClosed).length;
+
+  int? indexOfQuestion(String questionId) {
+    final index = questions.indexWhere((question) => question.id == questionId);
+    return index < 0 ? null : index;
   }
 }
 

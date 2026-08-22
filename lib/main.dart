@@ -17,6 +17,7 @@ import 'package:sociale_vote/domain/identity/repositories/session_repository.dar
 import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 import 'package:sociale_vote/firebase_options.dart';
+import 'package:sociale_vote/shared/services/current_location_uri.dart';
 import 'package:sociale_vote/shared/services/storage_service.dart';
 
 const _supabaseUrl = 'https://rbuzlrclwhxaigkgndrb.supabase.co';
@@ -80,6 +81,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (kIsWeb) {
+    // Capture the QR URL before PathUrlStrategy can normalize browser state.
+    // The participant page consumes this initial URI once to recover an
+    // Access Pass carried in the URL fragment.
+    captureCurrentLocationUriForBootstrap();
     usePathUrlStrategy();
 
     // Preserve the approved Web bootstrap. The native startup path below is

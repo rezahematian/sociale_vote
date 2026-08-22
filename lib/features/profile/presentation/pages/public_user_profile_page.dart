@@ -588,6 +588,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
             OrganizationCoverHeader(
               organization: _organization!,
               verifiedLabel: l10n.organizationVerifiedLabel,
+              compact: true,
             ),
             const SizedBox(height: 12),
             _OrganizationPublicActions(
@@ -900,53 +901,74 @@ class _OrganizationPublicActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final website = organization.websiteUrl?.trim();
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                Chip(
-                  avatar: const Icon(Icons.category_outlined, size: 16),
-                  label: Text(
-                      _organizationTypeLabel(l10n, organization.entityType)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            _AccountFollowSummary(
-              state: followState,
-              isLoading: followStateLoading,
-              hasError: followStateLoadError,
-              isActionLoading: followActionLoading,
-              l10n: l10n,
-              onToggle: onToggleFollow,
-              onRetry: onRetryFollow,
-            ),
-            if (website != null && website.isNotEmpty) ...[
-              const SizedBox(height: 14),
-              OutlinedButton.icon(
-                onPressed: () async {
-                  final normalized = website.startsWith('http://') ||
-                          website.startsWith('https://')
-                      ? website
-                      : 'https://$website';
-                  final uri = Uri.tryParse(normalized);
-                  if (uri != null) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  }
-                },
-                icon: const Icon(Icons.language_rounded),
-                label: Text(l10n.organizationOfficialWebsiteAction),
+    final typeLabel = _organizationTypeLabel(l10n, organization.entityType);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final identity = Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Chip(
+                avatar: const Icon(Icons.category_outlined, size: 16),
+                label: Text(typeLabel),
+              ),
+              _AccountFollowSummary(
+                state: followState,
+                isLoading: followStateLoading,
+                hasError: followStateLoadError,
+                isActionLoading: followActionLoading,
+                l10n: l10n,
+                onToggle: onToggleFollow,
+                onRetry: onRetryFollow,
               ),
             ],
-          ],
-        ),
+          );
+
+          final websiteButton = website == null || website.isEmpty
+              ? null
+              : OutlinedButton.icon(
+                  onPressed: () async {
+                    final normalized = website.startsWith('http://') ||
+                            website.startsWith('https://')
+                        ? website
+                        : 'https://$website';
+                    final uri = Uri.tryParse(normalized);
+                    if (uri != null) {
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  icon: const Icon(Icons.language_rounded),
+                  label: Text(l10n.organizationOfficialWebsiteAction),
+                );
+
+          if (constraints.maxWidth < 620) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                identity,
+                if (websiteButton != null) ...[
+                  const SizedBox(height: 10),
+                  Align(alignment: Alignment.centerLeft, child: websiteButton),
+                ],
+              ],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(child: identity),
+              if (websiteButton != null) ...[
+                const SizedBox(width: 12),
+                websiteButton,
+              ],
+            ],
+          );
+        },
       ),
     );
   }

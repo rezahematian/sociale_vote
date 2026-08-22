@@ -6660,6 +6660,384 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Required field.'**
   String get organizationVerificationRequired;
+
+  /// No description provided for @sessionControlRoomTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Control Room'**
+  String get sessionControlRoomTitle;
+
+  /// No description provided for @sessionSectionLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get sessionSectionLive;
+
+  /// No description provided for @sessionSectionQuestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions'**
+  String get sessionSectionQuestions;
+
+  /// No description provided for @sessionSectionAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Access'**
+  String get sessionSectionAccess;
+
+  /// No description provided for @sessionSectionSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get sessionSectionSettings;
+
+  /// No description provided for @sessionStageAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Stage'**
+  String get sessionStageAction;
+
+  /// No description provided for @sessionAccessPassesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Participant access passes'**
+  String get sessionAccessPassesTitle;
+
+  /// No description provided for @sessionAccessPassesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Each pass opens this Controlled Anonymous Session without requiring the participant to type the long credential. The plaintext pass is not stored by Social Vote.'**
+  String get sessionAccessPassesSubtitle;
+
+  /// No description provided for @sessionAccessPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Access pass'**
+  String get sessionAccessPass;
+
+  /// No description provided for @sessionAccessPassDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Access pass detected'**
+  String get sessionAccessPassDetected;
+
+  /// No description provided for @sessionAccessPassAutomatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Your personal pass is ready. Continue to enter the Session anonymously.'**
+  String get sessionAccessPassAutomatic;
+
+  /// No description provided for @sessionAccessPassFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter pass manually'**
+  String get sessionAccessPassFallback;
+
+  /// No description provided for @sessionAccessPassInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This access pass is invalid, already unavailable, or the Session is not open.'**
+  String get sessionAccessPassInvalid;
+
+  /// No description provided for @sessionAccessPassPrintWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Print, save or distribute these passes now. Once you leave this screen, Social Vote cannot show the plaintext passes again.'**
+  String get sessionAccessPassPrintWarning;
+
+  /// No description provided for @sessionCopyPassLinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy pass links'**
+  String get sessionCopyPassLinks;
+
+  /// No description provided for @sessionJoinedParticipants.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined access credentials'**
+  String get sessionJoinedParticipants;
+
+  /// No description provided for @sessionAccessesUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Accesses that voted'**
+  String get sessionAccessesUsed;
+
+  /// No description provided for @sessionBallotsRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Ballots recorded'**
+  String get sessionBallotsRecorded;
+
+  /// No description provided for @sessionQuestionsCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions completed'**
+  String get sessionQuestionsCompleted;
+
+  /// No description provided for @sessionCurrentQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Current question'**
+  String get sessionCurrentQuestion;
+
+  /// No description provided for @sessionNoOpenQuestionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No question is open'**
+  String get sessionNoOpenQuestionTitle;
+
+  /// No description provided for @sessionNoOpenQuestionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Participants are connected and waiting. Open the next question when you are ready.'**
+  String get sessionNoOpenQuestionBody;
+
+  /// No description provided for @sessionNotStartedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Session not started yet'**
+  String get sessionNotStartedTitle;
+
+  /// No description provided for @sessionNotStartedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This Session exists but is not open yet. Keep this page open and wait for the organizer to start it.'**
+  String get sessionNotStartedBody;
+
+  /// No description provided for @sessionNoAccountRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'No Social Vote account required'**
+  String get sessionNoAccountRequired;
+
+  /// No description provided for @sessionReceiptDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt details'**
+  String get sessionReceiptDetails;
+
+  /// No description provided for @sessionOpenAccessInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Display or share this QR. Anyone with the link can enter while the Session is open.'**
+  String get sessionOpenAccessInstructions;
+
+  /// No description provided for @sessionControlledAccessInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Create personal access passes and give one to each participant. The QR in each pass contains the credential automatically.'**
+  String get sessionControlledAccessInstructions;
+
+  /// No description provided for @sessionControlRoomHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage access, questions, the projected Stage and the final Verified Result from one place.'**
+  String get sessionControlRoomHint;
+
+  /// No description provided for @sessionPresenterScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live Stage'**
+  String get sessionPresenterScreenTitle;
+
+  /// No description provided for @sessionStageWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the next question'**
+  String get sessionStageWaiting;
+
+  /// No description provided for @sessionStageScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to join the Session'**
+  String get sessionStageScan;
+
+  /// No description provided for @sessionConfigurationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Session configuration'**
+  String get sessionConfigurationTitle;
+
+  /// No description provided for @sessionAccessRecommended.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended for controlled meetings'**
+  String get sessionAccessRecommended;
+
+  /// No description provided for @sessionCreateIntroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up the meeting'**
+  String get sessionCreateIntroTitle;
+
+  /// No description provided for @sessionCreateIntroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how participants enter, when results become visible and how long raw ballots are retained. These settings are enforced by the backend.'**
+  String get sessionCreateIntroBody;
+
+  /// No description provided for @verifiedCertificateNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate number'**
+  String get verifiedCertificateNumber;
+
+  /// No description provided for @verifiedCertificateStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Integrity status'**
+  String get verifiedCertificateStatus;
+
+  /// No description provided for @verifiedCertificateIntegrityVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'INTEGRITY VERIFIED'**
+  String get verifiedCertificateIntegrityVerified;
+
+  /// No description provided for @verifiedCertificateIntegrityFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'INTEGRITY CHECK FAILED'**
+  String get verifiedCertificateIntegrityFailed;
+
+  /// No description provided for @verifiedCertificateOrganizationSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization'**
+  String get verifiedCertificateOrganizationSection;
+
+  /// No description provided for @verifiedCertificateSessionSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Session'**
+  String get verifiedCertificateSessionSection;
+
+  /// No description provided for @verifiedCertificateParticipationSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Participation'**
+  String get verifiedCertificateParticipationSection;
+
+  /// No description provided for @verifiedCertificateResultsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified results'**
+  String get verifiedCertificateResultsSection;
+
+  /// No description provided for @verifiedCertificateIntegritySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Result integrity'**
+  String get verifiedCertificateIntegritySection;
+
+  /// No description provided for @verifiedCertificateLegalName.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal name'**
+  String get verifiedCertificateLegalName;
+
+  /// No description provided for @verifiedCertificateOrganizationType.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization type'**
+  String get verifiedCertificateOrganizationType;
+
+  /// No description provided for @verifiedCertificateLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get verifiedCertificateLocation;
+
+  /// No description provided for @verifiedCertificateWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get verifiedCertificateWebsite;
+
+  /// No description provided for @verifiedCertificateVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification'**
+  String get verifiedCertificateVerification;
+
+  /// No description provided for @verifiedCertificateIssuedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate issued'**
+  String get verifiedCertificateIssuedAt;
+
+  /// No description provided for @verifiedCertificateAlgorithm.
+  ///
+  /// In en, this message translates to:
+  /// **'Integrity algorithm'**
+  String get verifiedCertificateAlgorithm;
+
+  /// No description provided for @verifiedCertificateSchema.
+  ///
+  /// In en, this message translates to:
+  /// **'Report schema'**
+  String get verifiedCertificateSchema;
+
+  /// No description provided for @verifiedCertificateJoinedCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined credentials'**
+  String get verifiedCertificateJoinedCredentials;
+
+  /// No description provided for @verifiedCertificateBallotsTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Ballots recorded'**
+  String get verifiedCertificateBallotsTotal;
+
+  /// No description provided for @verifiedCertificateQuestionsTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions'**
+  String get verifiedCertificateQuestionsTotal;
+
+  /// No description provided for @verifiedCertificatePrivacyModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Anonymous result model'**
+  String get verifiedCertificatePrivacyModel;
+
+  /// No description provided for @verifiedCertificatePrivacyText.
+  ///
+  /// In en, this message translates to:
+  /// **'The immutable snapshot contains aggregate results only. It does not contain a participant identity, plaintext access pass, participant secret, or any mapping from a participant credential to a ballot choice.'**
+  String get verifiedCertificatePrivacyText;
+
+  /// No description provided for @verifiedCertificateVerifyQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan this QR to verify the report online.'**
+  String get verifiedCertificateVerifyQr;
+
+  /// No description provided for @organizationDashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization overview'**
+  String get organizationDashboardTitle;
+
+  /// No description provided for @organizationActiveSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Live Sessions'**
+  String get organizationActiveSessions;
+
+  /// No description provided for @organizationVerifiedReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified reports'**
+  String get organizationVerifiedReports;
+
+  /// No description provided for @organizationTotalSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Sessions'**
+  String get organizationTotalSessions;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -3421,4 +3421,193 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get organizationVerificationRequired => 'Required field.';
+
+  @override
+  String get sessionControlRoomTitle => 'Session Control Room';
+
+  @override
+  String get sessionSectionLive => 'Live';
+
+  @override
+  String get sessionSectionQuestions => 'Questions';
+
+  @override
+  String get sessionSectionAccess => 'Access';
+
+  @override
+  String get sessionSectionSettings => 'Settings';
+
+  @override
+  String get sessionStageAction => 'Open Stage';
+
+  @override
+  String get sessionAccessPassesTitle => 'Participant access passes';
+
+  @override
+  String get sessionAccessPassesSubtitle => 'Each pass opens this Controlled Anonymous Session without requiring the participant to type the long credential. The plaintext pass is not stored by Social Vote.';
+
+  @override
+  String get sessionAccessPass => 'Access pass';
+
+  @override
+  String get sessionAccessPassDetected => 'Access pass detected';
+
+  @override
+  String get sessionAccessPassAutomatic => 'Your personal pass is ready. Continue to enter the Session anonymously.';
+
+  @override
+  String get sessionAccessPassFallback => 'Enter pass manually';
+
+  @override
+  String get sessionAccessPassInvalid => 'This access pass is invalid, already unavailable, or the Session is not open.';
+
+  @override
+  String get sessionAccessPassPrintWarning => 'Print, save or distribute these passes now. Once you leave this screen, Social Vote cannot show the plaintext passes again.';
+
+  @override
+  String get sessionCopyPassLinks => 'Copy pass links';
+
+  @override
+  String get sessionJoinedParticipants => 'Joined access credentials';
+
+  @override
+  String get sessionAccessesUsed => 'Accesses that voted';
+
+  @override
+  String get sessionBallotsRecorded => 'Ballots recorded';
+
+  @override
+  String get sessionQuestionsCompleted => 'Questions completed';
+
+  @override
+  String get sessionCurrentQuestion => 'Current question';
+
+  @override
+  String get sessionNoOpenQuestionTitle => 'No question is open';
+
+  @override
+  String get sessionNoOpenQuestionBody => 'Participants are connected and waiting. Open the next question when you are ready.';
+
+  @override
+  String get sessionNotStartedTitle => 'Session not started yet';
+
+  @override
+  String get sessionNotStartedBody => 'This Session exists but is not open yet. Keep this page open and wait for the organizer to start it.';
+
+  @override
+  String get sessionNoAccountRequired => 'No Social Vote account required';
+
+  @override
+  String get sessionReceiptDetails => 'Receipt details';
+
+  @override
+  String get sessionOpenAccessInstructions => 'Display or share this QR. Anyone with the link can enter while the Session is open.';
+
+  @override
+  String get sessionControlledAccessInstructions => 'Create personal access passes and give one to each participant. The QR in each pass contains the credential automatically.';
+
+  @override
+  String get sessionControlRoomHint => 'Manage access, questions, the projected Stage and the final Verified Result from one place.';
+
+  @override
+  String get sessionPresenterScreenTitle => 'Live Stage';
+
+  @override
+  String get sessionStageWaiting => 'Waiting for the next question';
+
+  @override
+  String get sessionStageScan => 'Scan to join the Session';
+
+  @override
+  String get sessionConfigurationTitle => 'Session configuration';
+
+  @override
+  String get sessionAccessRecommended => 'Recommended for controlled meetings';
+
+  @override
+  String get sessionCreateIntroTitle => 'Set up the meeting';
+
+  @override
+  String get sessionCreateIntroBody => 'Choose how participants enter, when results become visible and how long raw ballots are retained. These settings are enforced by the backend.';
+
+  @override
+  String get verifiedCertificateNumber => 'Certificate number';
+
+  @override
+  String get verifiedCertificateStatus => 'Integrity status';
+
+  @override
+  String get verifiedCertificateIntegrityVerified => 'INTEGRITY VERIFIED';
+
+  @override
+  String get verifiedCertificateIntegrityFailed => 'INTEGRITY CHECK FAILED';
+
+  @override
+  String get verifiedCertificateOrganizationSection => 'Organization';
+
+  @override
+  String get verifiedCertificateSessionSection => 'Session';
+
+  @override
+  String get verifiedCertificateParticipationSection => 'Participation';
+
+  @override
+  String get verifiedCertificateResultsSection => 'Verified results';
+
+  @override
+  String get verifiedCertificateIntegritySection => 'Result integrity';
+
+  @override
+  String get verifiedCertificateLegalName => 'Legal name';
+
+  @override
+  String get verifiedCertificateOrganizationType => 'Organization type';
+
+  @override
+  String get verifiedCertificateLocation => 'Location';
+
+  @override
+  String get verifiedCertificateWebsite => 'Website';
+
+  @override
+  String get verifiedCertificateVerification => 'Verification';
+
+  @override
+  String get verifiedCertificateIssuedAt => 'Certificate issued';
+
+  @override
+  String get verifiedCertificateAlgorithm => 'Integrity algorithm';
+
+  @override
+  String get verifiedCertificateSchema => 'Report schema';
+
+  @override
+  String get verifiedCertificateJoinedCredentials => 'Joined credentials';
+
+  @override
+  String get verifiedCertificateBallotsTotal => 'Ballots recorded';
+
+  @override
+  String get verifiedCertificateQuestionsTotal => 'Questions';
+
+  @override
+  String get verifiedCertificatePrivacyModel => 'Anonymous result model';
+
+  @override
+  String get verifiedCertificatePrivacyText => 'The immutable snapshot contains aggregate results only. It does not contain a participant identity, plaintext access pass, participant secret, or any mapping from a participant credential to a ballot choice.';
+
+  @override
+  String get verifiedCertificateVerifyQr => 'Scan this QR to verify the report online.';
+
+  @override
+  String get organizationDashboardTitle => 'Organization overview';
+
+  @override
+  String get organizationActiveSessions => 'Live Sessions';
+
+  @override
+  String get organizationVerifiedReports => 'Verified reports';
+
+  @override
+  String get organizationTotalSessions => 'Total Sessions';
 }

@@ -3421,4 +3421,193 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get organizationVerificationRequired => 'Pflichtfeld.';
+
+  @override
+  String get sessionControlRoomTitle => 'Session-Regie';
+
+  @override
+  String get sessionSectionLive => 'Live';
+
+  @override
+  String get sessionSectionQuestions => 'Fragen';
+
+  @override
+  String get sessionSectionAccess => 'Zugang';
+
+  @override
+  String get sessionSectionSettings => 'Einstellungen';
+
+  @override
+  String get sessionStageAction => 'Stage öffnen';
+
+  @override
+  String get sessionAccessPassesTitle => 'Teilnehmer-Zugangspässe';
+
+  @override
+  String get sessionAccessPassesSubtitle => 'Jeder Pass öffnet diese kontrolliert anonyme Session, ohne dass der Teilnehmer die lange Zugangsdatenfolge eingeben muss. Social Vote speichert den Pass nicht im Klartext.';
+
+  @override
+  String get sessionAccessPass => 'Zugangspass';
+
+  @override
+  String get sessionAccessPassDetected => 'Zugangspass erkannt';
+
+  @override
+  String get sessionAccessPassAutomatic => 'Dein persönlicher Pass ist bereit. Fahre fort, um anonym an der Session teilzunehmen.';
+
+  @override
+  String get sessionAccessPassFallback => 'Pass manuell eingeben';
+
+  @override
+  String get sessionAccessPassInvalid => 'Dieser Zugangspass ist ungültig, nicht mehr verfügbar oder die Session ist nicht geöffnet.';
+
+  @override
+  String get sessionAccessPassPrintWarning => 'Drucke, speichere oder verteile diese Pässe jetzt. Nach Verlassen dieser Ansicht kann Social Vote die Klartext-Pässe nicht erneut anzeigen.';
+
+  @override
+  String get sessionCopyPassLinks => 'Pass-Links kopieren';
+
+  @override
+  String get sessionJoinedParticipants => 'Beigetretene Zugangsdaten';
+
+  @override
+  String get sessionAccessesUsed => 'Zugänge mit Stimme';
+
+  @override
+  String get sessionBallotsRecorded => 'Erfasste Stimmzettel';
+
+  @override
+  String get sessionQuestionsCompleted => 'Abgeschlossene Fragen';
+
+  @override
+  String get sessionCurrentQuestion => 'Aktuelle Frage';
+
+  @override
+  String get sessionNoOpenQuestionTitle => 'Keine Frage ist geöffnet';
+
+  @override
+  String get sessionNoOpenQuestionBody => 'Die Teilnehmenden sind verbunden und warten. Öffne die nächste Frage, wenn du bereit bist.';
+
+  @override
+  String get sessionNotStartedTitle => 'Session noch nicht gestartet';
+
+  @override
+  String get sessionNotStartedBody => 'Diese Session existiert, ist aber noch nicht geöffnet. Lass diese Seite offen und warte, bis der Organisator sie startet.';
+
+  @override
+  String get sessionNoAccountRequired => 'Kein Social-Vote-Konto erforderlich';
+
+  @override
+  String get sessionReceiptDetails => 'Belegdetails';
+
+  @override
+  String get sessionOpenAccessInstructions => 'Zeige oder teile diesen QR-Code. Jeder mit dem Link kann beitreten, solange die Session geöffnet ist.';
+
+  @override
+  String get sessionControlledAccessInstructions => 'Erstelle persönliche Zugangspässe und gib jedem Teilnehmer einen. Der QR-Code jedes Passes enthält die Zugangsdaten automatisch.';
+
+  @override
+  String get sessionControlRoomHint => 'Verwalte Zugänge, Fragen, die projizierte Stage und das finale Verified Result an einem Ort.';
+
+  @override
+  String get sessionPresenterScreenTitle => 'Live-Stage';
+
+  @override
+  String get sessionStageWaiting => 'Warten auf die nächste Frage';
+
+  @override
+  String get sessionStageScan => 'Scannen, um der Session beizutreten';
+
+  @override
+  String get sessionConfigurationTitle => 'Session-Konfiguration';
+
+  @override
+  String get sessionAccessRecommended => 'Empfohlen für kontrollierte Meetings';
+
+  @override
+  String get sessionCreateIntroTitle => 'Meeting einrichten';
+
+  @override
+  String get sessionCreateIntroBody => 'Lege fest, wie Teilnehmende eintreten, wann Ergebnisse sichtbar werden und wie lange Rohstimmzettel aufbewahrt werden. Diese Regeln werden im Backend durchgesetzt.';
+
+  @override
+  String get verifiedCertificateNumber => 'Zertifikatsnummer';
+
+  @override
+  String get verifiedCertificateStatus => 'Integritätsstatus';
+
+  @override
+  String get verifiedCertificateIntegrityVerified => 'INTEGRITÄT VERIFIZIERT';
+
+  @override
+  String get verifiedCertificateIntegrityFailed => 'INTEGRITÄTSPRÜFUNG FEHLGESCHLAGEN';
+
+  @override
+  String get verifiedCertificateOrganizationSection => 'Organisation';
+
+  @override
+  String get verifiedCertificateSessionSection => 'Session';
+
+  @override
+  String get verifiedCertificateParticipationSection => 'Teilnahme';
+
+  @override
+  String get verifiedCertificateResultsSection => 'Verifizierte Ergebnisse';
+
+  @override
+  String get verifiedCertificateIntegritySection => 'Ergebnisintegrität';
+
+  @override
+  String get verifiedCertificateLegalName => 'Rechtlicher Name';
+
+  @override
+  String get verifiedCertificateOrganizationType => 'Organisationstyp';
+
+  @override
+  String get verifiedCertificateLocation => 'Ort';
+
+  @override
+  String get verifiedCertificateWebsite => 'Website';
+
+  @override
+  String get verifiedCertificateVerification => 'Verifizierung';
+
+  @override
+  String get verifiedCertificateIssuedAt => 'Zertifikat ausgestellt';
+
+  @override
+  String get verifiedCertificateAlgorithm => 'Integritätsalgorithmus';
+
+  @override
+  String get verifiedCertificateSchema => 'Berichtsschema';
+
+  @override
+  String get verifiedCertificateJoinedCredentials => 'Beigetretene Zugangsdaten';
+
+  @override
+  String get verifiedCertificateBallotsTotal => 'Erfasste Stimmzettel';
+
+  @override
+  String get verifiedCertificateQuestionsTotal => 'Fragen';
+
+  @override
+  String get verifiedCertificatePrivacyModel => 'Anonymes Ergebnismodell';
+
+  @override
+  String get verifiedCertificatePrivacyText => 'Der unveränderliche Snapshot enthält nur aggregierte Ergebnisse. Er enthält keine Teilnehmeridentität, keinen Klartext-Zugangspass, kein Teilnehmergeheimnis und keine Zuordnung zwischen Zugangsdaten und Stimmabgabe.';
+
+  @override
+  String get verifiedCertificateVerifyQr => 'Scanne diesen QR-Code, um den Bericht online zu prüfen.';
+
+  @override
+  String get organizationDashboardTitle => 'Organisationsübersicht';
+
+  @override
+  String get organizationActiveSessions => 'Live-Sessions';
+
+  @override
+  String get organizationVerifiedReports => 'Verifizierte Berichte';
+
+  @override
+  String get organizationTotalSessions => 'Sessions gesamt';
 }
