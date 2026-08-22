@@ -107,6 +107,15 @@ class VerificationRequestRepositoryImpl
     String? officialTitle,
     String? institutionName,
     String? organizationName,
+    String? organizationLegalName,
+    String? organizationPublicName,
+    String? organizationEntityType,
+    String? organizationCountryCode,
+    String? organizationCity,
+    String? organizationWebsiteUrl,
+    String? organizationRepresentativeRole,
+    String? organizationRegistryId,
+    String? organizationAuthorityNote,
   }) async {
     final normalizedUserId = userId.trim();
     if (normalizedUserId.isEmpty) {
@@ -132,6 +141,18 @@ class VerificationRequestRepositoryImpl
       'official_title': _normalizeNullable(officialTitle),
       'institution_name': _normalizeNullable(institutionName),
       'organization_name': _normalizeNullable(organizationName),
+      'organization_legal_name': _normalizeNullable(organizationLegalName),
+      'organization_public_name': _normalizeNullable(organizationPublicName),
+      'organization_entity_type': _normalizeNullable(organizationEntityType),
+      'organization_country_code':
+          _normalizeCountryCode(organizationCountryCode),
+      'organization_city': _normalizeNullable(organizationCity),
+      'organization_website_url': _normalizeNullable(organizationWebsiteUrl),
+      'organization_representative_role':
+          _normalizeNullable(organizationRepresentativeRole),
+      'organization_registry_id': _normalizeNullable(organizationRegistryId),
+      'organization_authority_note':
+          _normalizeNullable(organizationAuthorityNote),
       'voting_country_code': votingCountryCode,
       'status': VerificationRequestStatus.pending.storageKey,
     };
@@ -171,8 +192,7 @@ class VerificationRequestRepositoryImpl
       throw ArgumentError('Stato review non valido.');
     }
 
-    final currentReviewerId =
-        AppSupabase.client.auth.currentUser?.id.trim();
+    final currentReviewerId = AppSupabase.client.auth.currentUser?.id.trim();
     if (currentReviewerId == null ||
         currentReviewerId.isEmpty ||
         currentReviewerId != normalizedReviewedBy) {
@@ -281,6 +301,15 @@ class VerificationRequestRepositoryImpl
       officialTitle: existing.officialTitle,
       institutionName: existing.institutionName,
       organizationName: existing.organizationName,
+      organizationLegalName: existing.organizationLegalName,
+      organizationPublicName: existing.organizationPublicName,
+      organizationEntityType: existing.organizationEntityType,
+      organizationCountryCode: existing.organizationCountryCode,
+      organizationCity: existing.organizationCity,
+      organizationWebsiteUrl: existing.organizationWebsiteUrl,
+      organizationRepresentativeRole: existing.organizationRepresentativeRole,
+      organizationRegistryId: existing.organizationRegistryId,
+      organizationAuthorityNote: existing.organizationAuthorityNote,
       status: status,
       submittedAt: existing.submittedAt,
       reviewedAt: reviewedAt,
@@ -313,6 +342,24 @@ class VerificationRequestRepositoryImpl
       officialTitle: _normalizeNullable(row['official_title'] as String?),
       institutionName: _normalizeNullable(row['institution_name'] as String?),
       organizationName: _normalizeNullable(row['organization_name'] as String?),
+      organizationLegalName:
+          _normalizeNullable(row['organization_legal_name'] as String?),
+      organizationPublicName:
+          _normalizeNullable(row['organization_public_name'] as String?),
+      organizationEntityType:
+          _normalizeNullable(row['organization_entity_type'] as String?),
+      organizationCountryCode:
+          _normalizeCountryCode(row['organization_country_code'] as String?),
+      organizationCity: _normalizeNullable(row['organization_city'] as String?),
+      organizationWebsiteUrl:
+          _normalizeNullable(row['organization_website_url'] as String?),
+      organizationRepresentativeRole: _normalizeNullable(
+        row['organization_representative_role'] as String?,
+      ),
+      organizationRegistryId:
+          _normalizeNullable(row['organization_registry_id'] as String?),
+      organizationAuthorityNote:
+          _normalizeNullable(row['organization_authority_note'] as String?),
       status: VerificationRequestStatusX.fromStorageKey(
         row['status'] as String?,
       ),

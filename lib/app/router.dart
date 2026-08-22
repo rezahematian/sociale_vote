@@ -21,6 +21,9 @@ import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.d
 import 'package:sociale_vote/features/news/presentation/pages/news_feed_page.dart';
 import 'package:sociale_vote/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:sociale_vote/features/onboarding/presentation/first_time_onboarding_gate.dart';
+import 'package:sociale_vote/features/organization/presentation/pages/live_session_participant_page.dart';
+import 'package:sociale_vote/features/organization/presentation/pages/organization_workspace_page.dart';
+import 'package:sociale_vote/features/organization/presentation/pages/verified_session_report_page.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/create_poll_page.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/poll_detail_page.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/poll_list_page.dart';
@@ -48,6 +51,7 @@ class AppRouter {
   static const String notifications = '/notifications';
   static const String adminCenter = '/admin';
   static const String verificationReview = '/verification-review';
+  static const String organizationWorkspace = '/organization';
   static const String login = '/login';
   static const String register = '/register';
   static const String resetPassword = '/reset-password';
@@ -64,6 +68,24 @@ class AppRouter {
   static String publicPostPath(String postId) {
     final id = postId.trim();
     return '/post/${Uri.encodeComponent(id)}';
+  }
+
+  static String publicSessionJoinPath(String joinCode) {
+    final code = joinCode.trim().toUpperCase();
+    return '/session/${Uri.encodeComponent(code)}';
+  }
+
+  static String publicVerifiedSessionPath(String reportId) {
+    final id = reportId.trim();
+    return '/verify/session/${Uri.encodeComponent(id)}';
+  }
+
+  static String publicSessionJoinUrl(String joinCode) {
+    return 'https://$publicHost${publicSessionJoinPath(joinCode)}';
+  }
+
+  static String publicVerifiedSessionUrl(String reportId) {
+    return 'https://$publicHost${publicVerifiedSessionPath(reportId)}';
   }
 
   static String publicCityPath({
@@ -139,6 +161,8 @@ class AppRouter {
     final needsHomeUnderneath =
         _publicContentId(routeName, prefix: 'poll') != null ||
             _publicContentId(routeName, prefix: 'post') != null ||
+            _publicSessionJoinCode(routeName) != null ||
+            _publicVerifiedSessionId(routeName) != null ||
             _publicCityTarget(routeName) != null ||
             routeName == adminCenter;
 
@@ -169,6 +193,22 @@ class AppRouter {
     if (publicPostId != null) {
       return MaterialPageRoute<void>(
         builder: (_) => PostDetailPage(postId: publicPostId),
+        settings: settings,
+      );
+    }
+
+    final publicSessionCode = _publicSessionJoinCode(routeName);
+    if (publicSessionCode != null) {
+      return MaterialPageRoute<void>(
+        builder: (_) => LiveSessionParticipantPage(joinCode: publicSessionCode),
+        settings: settings,
+      );
+    }
+
+    final publicVerifiedReportId = _publicVerifiedSessionId(routeName);
+    if (publicVerifiedReportId != null) {
+      return MaterialPageRoute<void>(
+        builder: (_) => VerifiedSessionReportPage(reportId: publicVerifiedReportId),
         settings: settings,
       );
     }
@@ -296,6 +336,12 @@ class AppRouter {
           settings: settings,
         );
 
+      case organizationWorkspace:
+        return MaterialPageRoute<void>(
+          builder: (_) => const _OrganizationWorkspaceAccessGate(),
+          settings: settings,
+        );
+
       case notifications:
         return MaterialPageRoute<void>(
           builder: (_) => NotificationsPage(
@@ -384,6 +430,7 @@ class AppRouter {
       case social:
       case civicMap:
       case adminCenter:
+      case organizationWorkspace:
       case terms:
       case privacy:
       case login:
@@ -393,6 +440,8 @@ class AppRouter {
 
     return _publicContentId(path, prefix: 'poll') != null ||
         _publicContentId(path, prefix: 'post') != null ||
+        _publicSessionJoinCode(path) != null ||
+        _publicVerifiedSessionId(path) != null ||
         _publicCityTarget(path) != null;
   }
 
@@ -406,6 +455,26 @@ class AppRouter {
     }
 
     final id = segments[1].trim();
+    return id.isEmpty ? null : id;
+  }
+
+  static String? _publicSessionJoinCode(String path) {
+    final segments = Uri.tryParse(path)?.pathSegments ?? const <String>[];
+    if (segments.length != 2 || segments.first.toLowerCase() != 'session') {
+      return null;
+    }
+    final code = segments[1].trim().toUpperCase();
+    return code.isEmpty ? null : code;
+  }
+
+  static String? _publicVerifiedSessionId(String path) {
+    final segments = Uri.tryParse(path)?.pathSegments ?? const <String>[];
+    if (segments.length != 3 ||
+        segments[0].toLowerCase() != 'verify' ||
+        segments[1].toLowerCase() != 'session') {
+      return null;
+    }
+    final id = segments[2].trim();
     return id.isEmpty ? null : id;
   }
 
@@ -564,6 +633,75 @@ class _PublicCityRouteGateState extends State<_PublicCityRouteGate> {
         return const CivicMapPage();
       },
     );
+  }
+}
+
+class _OrganizationWorkspaceAccessGate extends StatefulWidget {
+  const _OrganizationWorkspaceAccessGate();
+
+  @override
+  State<_OrganizationWorkspaceAccessGate> createState() =>
+      _OrganizationWorkspaceAccessGateState();
+}
+
+class _OrganizationWorkspaceAccessGateState
+    extends State<_OrganizationWorkspaceAccessGate> {
+  bool _checking = true;
+  bool _allowed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _check());
+  }
+
+  Future<void> _check() async {
+    if (AppDI.instance.currentUserId == null) {
+      if (!mounted) return;
+      setState(() {
+        _checking = false;
+        _allowed = false;
+      });
+      final popped = await Navigator.of(context).maybePop();
+      if (!popped && mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRouter.home,
+          (_) => false,
+        );
+      }
+      return;
+    }
+
+    final allowed = await AuthGuard.ensureCanPerformAction(
+      context,
+      ParticipationAction.manageOrganizationSessions,
+    );
+    if (!mounted) return;
+    setState(() {
+      _checking = false;
+      _allowed = allowed;
+    });
+    if (!allowed) {
+      final popped = await Navigator.of(context).maybePop();
+      if (!popped && mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRouter.home,
+          (_) => false,
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_checking) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    return _allowed
+        ? const OrganizationWorkspacePage()
+        : const Scaffold(body: SizedBox.shrink());
   }
 }
 

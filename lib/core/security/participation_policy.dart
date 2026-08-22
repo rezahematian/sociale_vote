@@ -15,6 +15,7 @@ enum ParticipationAction {
   createPost, // Creare un post nel social feed
   followScope, // Seguire / smettere di seguire uno scope geografico
   reportContent, // Segnalare un contenuto
+  manageOrganizationSessions, // Workspace e Sessions per organizzazioni verificate
   accessAdminCenter, // Accesso base lato moderator/admin
   reviewVerificationRequests, // Review richieste verifica lato moderator/admin
   reviewReports, // Gestione segnalazioni lato moderator/admin
@@ -55,6 +56,12 @@ class ParticipationPolicy {
       case ParticipationAction.followScope:
       case ParticipationAction.reportContent:
         return true;
+
+      case ParticipationAction.manageOrganizationSessions:
+        return canActAsOrganization(
+          actorType: actorType,
+          verificationLevel: verificationLevel,
+        );
 
       case ParticipationAction.accessAdminCenter:
       case ParticipationAction.reviewVerificationRequests:

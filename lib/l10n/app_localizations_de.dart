@@ -1715,7 +1715,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get verificationRequestOrganizationTitle => 'Konto als verifizierte Organisation beantragen';
 
   @override
-  String get verificationRequestOrganizationSubtitle => 'Erfordert den Namen der Organisation und eine Prüfung';
+  String get verificationRequestOrganizationSubtitle => 'Erfordert Organisationsdaten, Vertretungsrolle und Admin-Prüfung';
 
   @override
   String get verificationNoSelfServiceUpgrade => 'Für deinen aktuellen Kontostatus sind keine Verifizierungsoptionen verfügbar.';
@@ -3040,4 +3040,385 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get discoveryPageTitle => 'Entdecken';
+
+  @override
+  String get organizationWorkspaceTitle => 'Organisationsbereich';
+
+  @override
+  String get organizationPilotBannerTitle => 'Kostenloser Pilot';
+
+  @override
+  String get organizationPilotBannerBody => 'Während des Piloten sind Sessions kostenlos. Einige professionelle Funktionen können künftig kostenpflichtig werden; die Abrechnung ist derzeit nicht aktiv.';
+
+  @override
+  String get organizationVerifiedLabel => 'Verifizierte Organisation';
+
+  @override
+  String get organizationEditProfile => 'Organisationsprofil bearbeiten';
+
+  @override
+  String get organizationCreateSession => 'Neue Session';
+
+  @override
+  String get organizationNoSessions => 'Noch keine Sessions. Erstelle die erste für ein Meeting, einen Workshop oder eine Veranstaltung.';
+
+  @override
+  String get organizationSessionsTitle => 'Live-Sessions';
+
+  @override
+  String get organizationRequiresVerificationTitle => 'Verifizierte Organisation erforderlich';
+
+  @override
+  String get organizationRequiresVerificationBody => 'Dieser Bereich ist nur für Konten verfügbar, die von Social Vote als verifizierte Organisation bestätigt wurden.';
+
+  @override
+  String get organizationProfileEditorTitle => 'Organisationsprofil';
+
+  @override
+  String get organizationLegalName => 'Rechtlicher Name';
+
+  @override
+  String get organizationPublicName => 'Öffentlicher Name';
+
+  @override
+  String get organizationType => 'Organisationstyp';
+
+  @override
+  String get organizationCountryCode => 'Ländercode';
+
+  @override
+  String get organizationCity => 'Stadt';
+
+  @override
+  String get organizationWebsite => 'Offizielle Website';
+
+  @override
+  String get organizationDescription => 'Beschreibung';
+
+  @override
+  String get organizationUploadCover => 'Titelbild ändern';
+
+  @override
+  String get organizationUploadLogo => 'Logo ändern';
+
+  @override
+  String get organizationMediaUpdated => 'Organisationsbild aktualisiert.';
+
+  @override
+  String get organizationNamesRequired => 'Rechtlicher und öffentlicher Name sind erforderlich.';
+
+  @override
+  String get organizationTypeAssociation => 'Verein';
+
+  @override
+  String get organizationTypeNonprofit => 'Gemeinnützige Organisation';
+
+  @override
+  String get organizationTypeCompany => 'Unternehmen';
+
+  @override
+  String get organizationTypeCooperative => 'Genossenschaft';
+
+  @override
+  String get organizationTypeSports => 'Sportorganisation';
+
+  @override
+  String get organizationTypePublicBody => 'Öffentliche Stelle';
+
+  @override
+  String get organizationTypeCommittee => 'Komitee / Gruppe';
+
+  @override
+  String get organizationTypeOther => 'Andere';
+
+  @override
+  String get sessionCreateTitle => 'Live-Session erstellen';
+
+  @override
+  String get sessionTitleLabel => 'Session-Titel';
+
+  @override
+  String get sessionExpectedParticipants => 'Erwartete Teilnehmende';
+
+  @override
+  String get sessionAccessMode => 'Teilnehmerzugang';
+
+  @override
+  String get sessionAccessOpen => 'Offen anonym';
+
+  @override
+  String get sessionAccessOpenHint => 'Jeder mit Link/Code kann teilnehmen. Die Duplikatvermeidung ist nur bestmöglich; dieser Modus garantiert nicht eine Person – eine Stimme.';
+
+  @override
+  String get sessionAccessControlled => 'Kontrolliert anonym';
+
+  @override
+  String get sessionAccessControlledHint => 'Verwendet einmalige anonyme Zugangsdaten. Social Vote speichert Token-Hashes und verknüpft Abstimmungsentscheidungen nicht mit Teilnehmerzugängen.';
+
+  @override
+  String get sessionResultsVisibility => 'Sichtbarkeit der Ergebnisse';
+
+  @override
+  String get sessionResultsLive => 'Live';
+
+  @override
+  String get sessionResultsAfterVote => 'Nach eigener Stimmabgabe';
+
+  @override
+  String get sessionResultsAfterClose => 'Nach Schließen der Frage';
+
+  @override
+  String get sessionResultsOrganizerOnly => 'Nur Organisator';
+
+  @override
+  String get sessionCreateAction => 'Session erstellen';
+
+  @override
+  String get sessionPilotLimit => 'Pilotlimit: 1 bis 250 Teilnehmende pro Session.';
+
+  @override
+  String get sessionStatusDraft => 'Entwurf';
+
+  @override
+  String get sessionStatusOpen => 'Offen';
+
+  @override
+  String get sessionStatusClosed => 'Geschlossen';
+
+  @override
+  String get sessionJoinCode => 'Zugangscode';
+
+  @override
+  String get sessionShareJoin => 'Teilnahmelink teilen';
+
+  @override
+  String get sessionGenerateTokens => 'Tokens erzeugen';
+
+  @override
+  String get sessionGenerateTokensCount => 'Anzahl Tokens';
+
+  @override
+  String get sessionTokensOneTimeTitle => 'Diese Zugangsdaten jetzt speichern';
+
+  @override
+  String get sessionTokensOneTimeBody => 'Klartext-Tokens werden nur in diesem Batch-Ergebnis angezeigt. Social Vote speichert nur deren Hashes. Sicher kopieren und verteilen.';
+
+  @override
+  String get sessionCopyTokens => 'Tokens kopieren';
+
+  @override
+  String get sessionTokensSavedAction => 'Ich habe sie gespeichert';
+
+  @override
+  String get sessionOpenAction => 'Session öffnen';
+
+  @override
+  String get sessionCloseAction => 'Session schließen';
+
+  @override
+  String get sessionCloseConfirm => 'Abstimmung schließen und den unveränderlichen Verified-Result-Snapshot erzeugen?';
+
+  @override
+  String get sessionQuestionsTitle => 'Fragen';
+
+  @override
+  String get sessionAddQuestion => 'Frage hinzufügen';
+
+  @override
+  String get sessionQuestionTitle => 'Frage';
+
+  @override
+  String get sessionQuestionType => 'Fragetyp';
+
+  @override
+  String get sessionTypeYesNo => 'Ja / Nein';
+
+  @override
+  String get sessionTypeSingle => 'Eine Antwort';
+
+  @override
+  String get sessionTypeMultiple => 'Mehrere Antworten';
+
+  @override
+  String get sessionOptions => 'Optionen';
+
+  @override
+  String get sessionOptionHint => 'Eine Option pro Zeile.';
+
+  @override
+  String get sessionMinSelections => 'Minimale Auswahl';
+
+  @override
+  String get sessionMaxSelections => 'Maximale Auswahl';
+
+  @override
+  String get sessionAddAction => 'Hinzufügen';
+
+  @override
+  String get sessionOpenQuestion => 'Frage öffnen';
+
+  @override
+  String get sessionCloseQuestion => 'Frage schließen';
+
+  @override
+  String get sessionNoQuestions => 'Noch keine Fragen.';
+
+  @override
+  String get sessionPresenterTitle => 'Präsentation';
+
+  @override
+  String get sessionParticipantTitle => 'Social Vote Live';
+
+  @override
+  String get sessionJoinAction => 'Session beitreten';
+
+  @override
+  String get sessionTokenLabel => 'Teilnehmer-Token';
+
+  @override
+  String get sessionTokenHint => 'SV-…';
+
+  @override
+  String get sessionWaitingQuestion => 'Warten, bis der Organisator eine Frage öffnet…';
+
+  @override
+  String get sessionVoteAction => 'Stimme senden';
+
+  @override
+  String get sessionVoteReceived => 'Stimme empfangen';
+
+  @override
+  String get sessionResultsUnavailable => 'Die Ergebnisse sind nach der gewählten Session-Regel noch nicht sichtbar.';
+
+  @override
+  String get sessionPrivacyNotice => 'Der Organisator bestimmt Zweck und Fragen. Social Vote verarbeitet die Session. Anonyme Modi zeigen dem Organisator keine individuellen Abstimmungsentscheidungen.';
+
+  @override
+  String get sessionNonBindingNotice => 'Pilot-Sessions dienen Konsultation und Beteiligung. Sie sind keine rechtsverbindliche Wahl, Satzungsabstimmung oder rechtliche Zertifizierung.';
+
+  @override
+  String get sessionOptionYes => 'Ja';
+
+  @override
+  String get sessionOptionNo => 'Nein';
+
+  @override
+  String get verifiedResultTitle => 'Verified Result';
+
+  @override
+  String get verifiedResultValid => 'Integritätsprüfung bestanden';
+
+  @override
+  String get verifiedResultInvalid => 'Integritätsprüfung fehlgeschlagen';
+
+  @override
+  String get verifiedResultReportId => 'Report-ID';
+
+  @override
+  String get verifiedResultHash => 'SHA-256-Ergebnis-Hash';
+
+  @override
+  String get verifiedResultGeneratedBy => 'Von Social Vote erzeugt und integritätsgesiegelt';
+
+  @override
+  String get verifiedResultNotLegalCertificate => 'Dies ist ein überprüfbarer aggregierter Ergebnisbericht, kein Rechtszertifikat und keine Zertifizierung einer rechtsverbindlichen Wahl.';
+
+  @override
+  String get verifiedResultShare => 'Prüflink teilen';
+
+  @override
+  String sessionResponses(int count) {
+    return '$count Antworten';
+  }
+
+  @override
+  String sessionResultVotes(int count) {
+    return '$count Stimmen';
+  }
+
+  @override
+  String get organizationVerifiedIdentityLocked => 'Name und Land gehören zur verifizierten Identität der Organisation. Änderungen erfordern eine neue Verifizierung. Titelbild, Logo, Typ, Stadt, Website und Beschreibung können frei geändert werden.';
+
+  @override
+  String get verifiedResultOpenedAt => 'Session eröffnet';
+
+  @override
+  String get verifiedResultEligibleCredentials => 'Berechtigte Zugangsdaten';
+
+  @override
+  String get verifiedResultIntegritySeal => 'Social Vote Integritätssiegel';
+
+  @override
+  String get organizationVerifiedNameLocked => 'Verifizierter Name und Land sind gesperrt. Eine Änderung erfordert eine neue Verifizierungsprüfung.';
+
+  @override
+  String get sessionRetentionLabel => 'Aufbewahrung der Rohstimmzettel';
+
+  @override
+  String get sessionRetention24h => '24 Stunden';
+
+  @override
+  String get sessionRetention7d => '7 Tage';
+
+  @override
+  String get sessionRetention30d => '30 Tage';
+
+  @override
+  String sessionRetentionValue(String value) {
+    return 'Aufbewahrung der Rohstimmzettel: $value';
+  }
+
+  @override
+  String get verifiedResultPrintPdf => 'Drucken / Als PDF speichern';
+
+  @override
+  String get organizationAccountSectionTitle => 'Deine Organisationen';
+
+  @override
+  String get organizationManageAction => 'Verwalten';
+
+  @override
+  String get organizationViewPublicProfileAction => 'Profil ansehen';
+
+  @override
+  String get organizationOfficialWebsiteAction => 'Offizielle Website';
+
+  @override
+  String get organizationVerificationIntro => 'Die Verifizierung betrifft sowohl die Existenz der Organisation als auch deine Berechtigung, sie zu vertreten. Social Vote prüft die Angaben vor der Freigabe.';
+
+  @override
+  String get organizationVerificationLegalName => 'Rechtlicher Name';
+
+  @override
+  String get organizationVerificationPublicName => 'Öffentlicher Name';
+
+  @override
+  String get organizationVerificationType => 'Organisationstyp';
+
+  @override
+  String get organizationVerificationCountry => 'Land';
+
+  @override
+  String get organizationVerificationCountryRequired => 'Wähle das Land der Organisation aus.';
+
+  @override
+  String get organizationVerificationCity => 'Stadt';
+
+  @override
+  String get organizationVerificationWebsite => 'Offizielle Website';
+
+  @override
+  String get organizationVerificationRepresentativeRole => 'Deine Rolle in der Organisation';
+
+  @override
+  String get organizationVerificationRegistryId => 'Register / Steuer- / Organisationskennung';
+
+  @override
+  String get organizationVerificationAuthorityNote => 'Wie können wir deine Vertretungsberechtigung prüfen?';
+
+  @override
+  String get organizationVerificationAuthorityHelper => 'Beschreibe kurz deine Rolle oder einen Nachweis, den ein Admin während des Piloten prüfen kann.';
+
+  @override
+  String get organizationVerificationRequired => 'Pflichtfeld.';
 }

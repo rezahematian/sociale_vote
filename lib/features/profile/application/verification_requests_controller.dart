@@ -154,6 +154,15 @@ class VerificationRequestsController extends ChangeNotifier {
     String? officialTitle,
     String? institutionName,
     String? organizationName,
+    String? organizationLegalName,
+    String? organizationPublicName,
+    String? organizationEntityType,
+    String? organizationCountryCode,
+    String? organizationCity,
+    String? organizationWebsiteUrl,
+    String? organizationRepresentativeRole,
+    String? organizationRegistryId,
+    String? organizationAuthorityNote,
     InstitutionLevel? targetInstitutionLevel,
   }) async {
     if (_isCreating || _isDisposed) return false;
@@ -169,6 +178,15 @@ class VerificationRequestsController extends ChangeNotifier {
         officialTitle: officialTitle,
         institutionName: institutionName,
         organizationName: organizationName,
+        organizationLegalName: organizationLegalName,
+        organizationPublicName: organizationPublicName,
+        organizationEntityType: organizationEntityType,
+        organizationCountryCode: organizationCountryCode,
+        organizationCity: organizationCity,
+        organizationWebsiteUrl: organizationWebsiteUrl,
+        organizationRepresentativeRole: organizationRepresentativeRole,
+        organizationRegistryId: organizationRegistryId,
+        organizationAuthorityNote: organizationAuthorityNote,
         targetInstitutionLevel: targetInstitutionLevel,
       );
 

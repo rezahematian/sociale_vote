@@ -313,6 +313,7 @@ class AuthGuard {
       case ParticipationAction.createPost:
       case ParticipationAction.followScope:
       case ParticipationAction.reportContent:
+      case ParticipationAction.manageOrganizationSessions:
         return false;
     }
   }
@@ -629,6 +630,12 @@ class AuthGuard {
             : deOrEnglish(context,
                 english: 'This action is restricted to admins.',
                 german: 'Diese Aktion ist Administratoren vorbehalten.');
+      case ParticipationAction.manageOrganizationSessions:
+        return isItalian
+            ? 'Questa area è disponibile solo per organizzazioni verificate.'
+            : deOrEnglish(context,
+                english: 'This area is available only to verified organizations.',
+                german: 'Dieser Bereich ist nur für verifizierte Organisationen verfügbar.');
       case ParticipationAction.vote:
       case ParticipationAction.createPoll:
       case ParticipationAction.react:
@@ -687,6 +694,12 @@ class AuthGuard {
             ? 'segnalare un contenuto'
             : deOrEnglish(context,
                 english: 'report content', german: 'Inhalte zu melden');
+      case ParticipationAction.manageOrganizationSessions:
+        return isItalian
+            ? 'gestire Organization Sessions'
+            : deOrEnglish(context,
+                english: 'manage Organization Sessions',
+                german: 'Organization Sessions zu verwalten');
       case ParticipationAction.accessAdminCenter:
         return isItalian
             ? 'accedere all\'Admin Center'

@@ -3352,7 +3352,7 @@ abstract class AppLocalizations {
   /// Action subtitle for verified organization verification
   ///
   /// In en, this message translates to:
-  /// **'Requires the organization name and review'**
+  /// **'Requires organization details, representative role and Admin review'**
   String get verificationRequestOrganizationSubtitle;
 
   /// Message when no self-service verification action is available
@@ -5910,6 +5910,756 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discovery'**
   String get discoveryPageTitle;
+
+  /// No description provided for @organizationWorkspaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization workspace'**
+  String get organizationWorkspaceTitle;
+
+  /// No description provided for @organizationPilotBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Free pilot'**
+  String get organizationPilotBannerTitle;
+
+  /// No description provided for @organizationPilotBannerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sessions are free during the pilot. Some professional features may become paid in the future; billing is not active now.'**
+  String get organizationPilotBannerBody;
+
+  /// No description provided for @organizationVerifiedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified organization'**
+  String get organizationVerifiedLabel;
+
+  /// No description provided for @organizationEditProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit organization profile'**
+  String get organizationEditProfile;
+
+  /// No description provided for @organizationCreateSession.
+  ///
+  /// In en, this message translates to:
+  /// **'New Session'**
+  String get organizationCreateSession;
+
+  /// No description provided for @organizationNoSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'No Sessions yet. Create the first one for a meeting, workshop or event.'**
+  String get organizationNoSessions;
+
+  /// No description provided for @organizationSessionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live Sessions'**
+  String get organizationSessionsTitle;
+
+  /// No description provided for @organizationRequiresVerificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified organization required'**
+  String get organizationRequiresVerificationTitle;
+
+  /// No description provided for @organizationRequiresVerificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This workspace is available only to accounts approved as a verified organization by Social Vote.'**
+  String get organizationRequiresVerificationBody;
+
+  /// No description provided for @organizationProfileEditorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization profile'**
+  String get organizationProfileEditorTitle;
+
+  /// No description provided for @organizationLegalName.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal name'**
+  String get organizationLegalName;
+
+  /// No description provided for @organizationPublicName.
+  ///
+  /// In en, this message translates to:
+  /// **'Public name'**
+  String get organizationPublicName;
+
+  /// No description provided for @organizationType.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization type'**
+  String get organizationType;
+
+  /// No description provided for @organizationCountryCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Country code'**
+  String get organizationCountryCode;
+
+  /// No description provided for @organizationCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get organizationCity;
+
+  /// No description provided for @organizationWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Official website'**
+  String get organizationWebsite;
+
+  /// No description provided for @organizationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get organizationDescription;
+
+  /// No description provided for @organizationUploadCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Change cover'**
+  String get organizationUploadCover;
+
+  /// No description provided for @organizationUploadLogo.
+  ///
+  /// In en, this message translates to:
+  /// **'Change logo'**
+  String get organizationUploadLogo;
+
+  /// No description provided for @organizationMediaUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization image updated.'**
+  String get organizationMediaUpdated;
+
+  /// No description provided for @organizationNamesRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal and public names are required.'**
+  String get organizationNamesRequired;
+
+  /// No description provided for @organizationTypeAssociation.
+  ///
+  /// In en, this message translates to:
+  /// **'Association'**
+  String get organizationTypeAssociation;
+
+  /// No description provided for @organizationTypeNonprofit.
+  ///
+  /// In en, this message translates to:
+  /// **'Nonprofit'**
+  String get organizationTypeNonprofit;
+
+  /// No description provided for @organizationTypeCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get organizationTypeCompany;
+
+  /// No description provided for @organizationTypeCooperative.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooperative'**
+  String get organizationTypeCooperative;
+
+  /// No description provided for @organizationTypeSports.
+  ///
+  /// In en, this message translates to:
+  /// **'Sports organization'**
+  String get organizationTypeSports;
+
+  /// No description provided for @organizationTypePublicBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Public body'**
+  String get organizationTypePublicBody;
+
+  /// No description provided for @organizationTypeCommittee.
+  ///
+  /// In en, this message translates to:
+  /// **'Committee / group'**
+  String get organizationTypeCommittee;
+
+  /// No description provided for @organizationTypeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get organizationTypeOther;
+
+  /// No description provided for @sessionCreateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Live Session'**
+  String get sessionCreateTitle;
+
+  /// No description provided for @sessionTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Session title'**
+  String get sessionTitleLabel;
+
+  /// No description provided for @sessionExpectedParticipants.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected participants'**
+  String get sessionExpectedParticipants;
+
+  /// No description provided for @sessionAccessMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Participant access'**
+  String get sessionAccessMode;
+
+  /// No description provided for @sessionAccessOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open anonymous'**
+  String get sessionAccessOpen;
+
+  /// No description provided for @sessionAccessOpenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone with the link/code can join. Duplicate prevention is best-effort; this mode does not guarantee one-person-one-vote.'**
+  String get sessionAccessOpenHint;
+
+  /// No description provided for @sessionAccessControlled.
+  ///
+  /// In en, this message translates to:
+  /// **'Controlled anonymous'**
+  String get sessionAccessControlled;
+
+  /// No description provided for @sessionAccessControlledHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Use one-time anonymous credentials. Social Vote stores token hashes and does not link ballot choices to participant credentials.'**
+  String get sessionAccessControlledHint;
+
+  /// No description provided for @sessionResultsVisibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Result visibility'**
+  String get sessionResultsVisibility;
+
+  /// No description provided for @sessionResultsLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get sessionResultsLive;
+
+  /// No description provided for @sessionResultsAfterVote.
+  ///
+  /// In en, this message translates to:
+  /// **'After participant votes'**
+  String get sessionResultsAfterVote;
+
+  /// No description provided for @sessionResultsAfterClose.
+  ///
+  /// In en, this message translates to:
+  /// **'After question closes'**
+  String get sessionResultsAfterClose;
+
+  /// No description provided for @sessionResultsOrganizerOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Organizer only'**
+  String get sessionResultsOrganizerOnly;
+
+  /// No description provided for @sessionCreateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Session'**
+  String get sessionCreateAction;
+
+  /// No description provided for @sessionPilotLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Pilot limit: 1 to 250 participants per Session.'**
+  String get sessionPilotLimit;
+
+  /// No description provided for @sessionStatusDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get sessionStatusDraft;
+
+  /// No description provided for @sessionStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get sessionStatusOpen;
+
+  /// No description provided for @sessionStatusClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get sessionStatusClosed;
+
+  /// No description provided for @sessionJoinCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Join code'**
+  String get sessionJoinCode;
+
+  /// No description provided for @sessionShareJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Share join link'**
+  String get sessionShareJoin;
+
+  /// No description provided for @sessionGenerateTokens.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate tokens'**
+  String get sessionGenerateTokens;
+
+  /// No description provided for @sessionGenerateTokensCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of tokens'**
+  String get sessionGenerateTokensCount;
+
+  /// No description provided for @sessionTokensOneTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save these credentials now'**
+  String get sessionTokensOneTimeTitle;
+
+  /// No description provided for @sessionTokensOneTimeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Plaintext tokens are shown only in this batch result. Social Vote stores only their hashes. Copy and distribute them securely.'**
+  String get sessionTokensOneTimeBody;
+
+  /// No description provided for @sessionCopyTokens.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy tokens'**
+  String get sessionCopyTokens;
+
+  /// No description provided for @sessionTokensSavedAction.
+  ///
+  /// In en, this message translates to:
+  /// **'I saved them'**
+  String get sessionTokensSavedAction;
+
+  /// No description provided for @sessionOpenAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Session'**
+  String get sessionOpenAction;
+
+  /// No description provided for @sessionCloseAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Close Session'**
+  String get sessionCloseAction;
+
+  /// No description provided for @sessionCloseConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Close voting and create the immutable Verified Result snapshot?'**
+  String get sessionCloseConfirm;
+
+  /// No description provided for @sessionQuestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions'**
+  String get sessionQuestionsTitle;
+
+  /// No description provided for @sessionAddQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Add question'**
+  String get sessionAddQuestion;
+
+  /// No description provided for @sessionQuestionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Question'**
+  String get sessionQuestionTitle;
+
+  /// No description provided for @sessionQuestionType.
+  ///
+  /// In en, this message translates to:
+  /// **'Question type'**
+  String get sessionQuestionType;
+
+  /// No description provided for @sessionTypeYesNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes / No'**
+  String get sessionTypeYesNo;
+
+  /// No description provided for @sessionTypeSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Single choice'**
+  String get sessionTypeSingle;
+
+  /// No description provided for @sessionTypeMultiple.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple choice'**
+  String get sessionTypeMultiple;
+
+  /// No description provided for @sessionOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get sessionOptions;
+
+  /// No description provided for @sessionOptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One option per line.'**
+  String get sessionOptionHint;
+
+  /// No description provided for @sessionMinSelections.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum selections'**
+  String get sessionMinSelections;
+
+  /// No description provided for @sessionMaxSelections.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum selections'**
+  String get sessionMaxSelections;
+
+  /// No description provided for @sessionAddAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get sessionAddAction;
+
+  /// No description provided for @sessionOpenQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Open question'**
+  String get sessionOpenQuestion;
+
+  /// No description provided for @sessionCloseQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Close question'**
+  String get sessionCloseQuestion;
+
+  /// No description provided for @sessionNoQuestions.
+  ///
+  /// In en, this message translates to:
+  /// **'No questions yet.'**
+  String get sessionNoQuestions;
+
+  /// No description provided for @sessionPresenterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Presenter'**
+  String get sessionPresenterTitle;
+
+  /// No description provided for @sessionParticipantTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Vote Live'**
+  String get sessionParticipantTitle;
+
+  /// No description provided for @sessionJoinAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Join Session'**
+  String get sessionJoinAction;
+
+  /// No description provided for @sessionTokenLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Participant token'**
+  String get sessionTokenLabel;
+
+  /// No description provided for @sessionTokenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'SV-…'**
+  String get sessionTokenHint;
+
+  /// No description provided for @sessionWaitingQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the organizer to open a question…'**
+  String get sessionWaitingQuestion;
+
+  /// No description provided for @sessionVoteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit vote'**
+  String get sessionVoteAction;
+
+  /// No description provided for @sessionVoteReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote received'**
+  String get sessionVoteReceived;
+
+  /// No description provided for @sessionResultsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Results are not visible yet under this Session policy.'**
+  String get sessionResultsUnavailable;
+
+  /// No description provided for @sessionPrivacyNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'The organizer controls the purpose and questions. Social Vote processes the Session. Anonymous modes do not expose participant-level choices to the organizer.'**
+  String get sessionPrivacyNotice;
+
+  /// No description provided for @sessionNonBindingNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Pilot Sessions are for consultation and participation. They are not a legal election, statutory assembly vote or legally binding certification.'**
+  String get sessionNonBindingNotice;
+
+  /// No description provided for @sessionOptionYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get sessionOptionYes;
+
+  /// No description provided for @sessionOptionNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get sessionOptionNo;
+
+  /// No description provided for @verifiedResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified Result'**
+  String get verifiedResultTitle;
+
+  /// No description provided for @verifiedResultValid.
+  ///
+  /// In en, this message translates to:
+  /// **'Integrity check passed'**
+  String get verifiedResultValid;
+
+  /// No description provided for @verifiedResultInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Integrity check failed'**
+  String get verifiedResultInvalid;
+
+  /// No description provided for @verifiedResultReportId.
+  ///
+  /// In en, this message translates to:
+  /// **'Report ID'**
+  String get verifiedResultReportId;
+
+  /// No description provided for @verifiedResultHash.
+  ///
+  /// In en, this message translates to:
+  /// **'SHA-256 result hash'**
+  String get verifiedResultHash;
+
+  /// No description provided for @verifiedResultGeneratedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated and integrity-sealed by Social Vote'**
+  String get verifiedResultGeneratedBy;
+
+  /// No description provided for @verifiedResultNotLegalCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a verifiable aggregate result report, not a legal certificate or certification of a legally binding election.'**
+  String get verifiedResultNotLegalCertificate;
+
+  /// No description provided for @verifiedResultShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share verification link'**
+  String get verifiedResultShare;
+
+  /// No description provided for @sessionResponses.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} responses'**
+  String sessionResponses(int count);
+
+  /// No description provided for @sessionResultVotes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} votes'**
+  String sessionResultVotes(int count);
+
+  /// No description provided for @organizationVerifiedIdentityLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Name and country are part of the organization’s verified identity. Changing them will require a new verification. You can freely change the cover, logo, type, city, website and description.'**
+  String get organizationVerifiedIdentityLocked;
+
+  /// No description provided for @verifiedResultOpenedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Session opened'**
+  String get verifiedResultOpenedAt;
+
+  /// No description provided for @verifiedResultEligibleCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Eligible credentials'**
+  String get verifiedResultEligibleCredentials;
+
+  /// No description provided for @verifiedResultIntegritySeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Vote integrity seal'**
+  String get verifiedResultIntegritySeal;
+
+  /// No description provided for @organizationVerifiedNameLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified name and country are locked. Changing them requires a new verification review.'**
+  String get organizationVerifiedNameLocked;
+
+  /// No description provided for @sessionRetentionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw ballot retention'**
+  String get sessionRetentionLabel;
+
+  /// No description provided for @sessionRetention24h.
+  ///
+  /// In en, this message translates to:
+  /// **'24 hours'**
+  String get sessionRetention24h;
+
+  /// No description provided for @sessionRetention7d.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days'**
+  String get sessionRetention7d;
+
+  /// No description provided for @sessionRetention30d.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days'**
+  String get sessionRetention30d;
+
+  /// No description provided for @sessionRetentionValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw ballot retention: {value}'**
+  String sessionRetentionValue(String value);
+
+  /// No description provided for @verifiedResultPrintPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Print / Save PDF'**
+  String get verifiedResultPrintPdf;
+
+  /// No description provided for @organizationAccountSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your organizations'**
+  String get organizationAccountSectionTitle;
+
+  /// No description provided for @organizationManageAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get organizationManageAction;
+
+  /// No description provided for @organizationViewPublicProfileAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View profile'**
+  String get organizationViewPublicProfileAction;
+
+  /// No description provided for @organizationOfficialWebsiteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Official website'**
+  String get organizationOfficialWebsiteAction;
+
+  /// No description provided for @organizationVerificationIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification covers both the organization’s existence and your authority to represent it. Social Vote will review the submitted information before approval.'**
+  String get organizationVerificationIntro;
+
+  /// No description provided for @organizationVerificationLegalName.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal name'**
+  String get organizationVerificationLegalName;
+
+  /// No description provided for @organizationVerificationPublicName.
+  ///
+  /// In en, this message translates to:
+  /// **'Public name'**
+  String get organizationVerificationPublicName;
+
+  /// No description provided for @organizationVerificationType.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization type'**
+  String get organizationVerificationType;
+
+  /// No description provided for @organizationVerificationCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get organizationVerificationCountry;
+
+  /// No description provided for @organizationVerificationCountryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the organization country.'**
+  String get organizationVerificationCountryRequired;
+
+  /// No description provided for @organizationVerificationCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get organizationVerificationCity;
+
+  /// No description provided for @organizationVerificationWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Official website'**
+  String get organizationVerificationWebsite;
+
+  /// No description provided for @organizationVerificationRepresentativeRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Your role in the organization'**
+  String get organizationVerificationRepresentativeRole;
+
+  /// No description provided for @organizationVerificationRegistryId.
+  ///
+  /// In en, this message translates to:
+  /// **'Registry / tax / organization identifier'**
+  String get organizationVerificationRegistryId;
+
+  /// No description provided for @organizationVerificationAuthorityNote.
+  ///
+  /// In en, this message translates to:
+  /// **'How can we verify that you may represent it?'**
+  String get organizationVerificationAuthorityNote;
+
+  /// No description provided for @organizationVerificationAuthorityHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Briefly state your role or the evidence an Admin can verify during the pilot.'**
+  String get organizationVerificationAuthorityHelper;
+
+  /// No description provided for @organizationVerificationRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required field.'**
+  String get organizationVerificationRequired;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

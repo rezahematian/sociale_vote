@@ -70,6 +70,7 @@ import 'package:sociale_vote/domain/identity/usecases/review_verification_reques
 import 'package:sociale_vote/domain/identity/usecases/review_verification_request_and_update_profile.dart';
 import 'package:sociale_vote/domain/identity/usecases/update_user_profile.dart';
 
+import 'package:sociale_vote/domain/organization/repositories/organization_repository.dart';
 import 'package:sociale_vote/domain/moderation/repositories/moderation_repository.dart';
 import 'package:sociale_vote/domain/moderation/usecases/report_content.dart';
 
@@ -108,6 +109,7 @@ import 'package:sociale_vote/features/home/application/civic_feed_controller.dar
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/features/news/application/news_controller.dart';
 import 'package:sociale_vote/features/notifications/application/notifications_controller.dart';
+import 'package:sociale_vote/features/organization/application/organization_workspace_controller.dart';
 import 'package:sociale_vote/features/poll/application/create_poll_controller.dart';
 import 'package:sociale_vote/features/poll/application/poll_detail_controller.dart';
 import 'package:sociale_vote/features/poll/application/poll_list_controller.dart';
@@ -132,6 +134,7 @@ import 'package:sociale_vote/infrastructure/identity/repositories/account_discov
 import 'package:sociale_vote/infrastructure/identity/repositories/account_follow_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/identity/repositories/user_profile_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/identity/repositories/verification_request_repository_impl.dart';
+import 'package:sociale_vote/infrastructure/organization/repositories/organization_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/moderation/repositories/moderation_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/moderation/services/content_visibility_filter.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/gnews_provider.dart';
@@ -358,6 +361,8 @@ class AppDI {
       AccountDiscoveryRepositoryImpl();
   late final VerificationRequestRepository _verificationRequestRepository =
       VerificationRequestRepositoryImpl();
+  late final OrganizationRepository _organizationRepository =
+      OrganizationRepositoryImpl();
   late final GeoResolver _geoResolver = GeoResolverImpl();
   late final DeviceLocationRepository _deviceLocationRepository =
       const DeviceLocationRepositoryImpl();
@@ -407,6 +412,7 @@ class AppDI {
       _accountDiscoveryRepository;
   VerificationRequestRepository get verificationRequestRepository =>
       _verificationRequestRepository;
+  OrganizationRepository get organizationRepository => _organizationRepository;
   PollRepository get pollRepository => _pollRepository;
   VoteRepository get voteRepository => _voteRepository;
   NewsRepository get newsRepository => _newsRepository;
@@ -937,6 +943,12 @@ class AppDI {
       loginUser: loginUser,
       registerUser: registerUser,
       authApi: _authApi,
+    );
+  }
+
+  OrganizationWorkspaceController createOrganizationWorkspaceController() {
+    return OrganizationWorkspaceController(
+      repository: organizationRepository,
     );
   }
 

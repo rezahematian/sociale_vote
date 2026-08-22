@@ -1,0 +1,607 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/domain/organization/entities/live_session_models.dart';
+import 'package:sociale_vote/domain/organization/repositories/organization_repository.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
+
+class LiveSessionParticipantPage extends StatefulWidget {
+  final String joinCode;
+
+  const LiveSessionParticipantPage({
+    super.key,
+    required this.joinCode,
+  });
+
+  @override
+  State<LiveSessionParticipantPage> createState() =>
+      _LiveSessionParticipantPageState();
+}
+
+class _LiveSessionParticipantPageState
+    extends State<LiveSessionParticipantPage> {
+  late final OrganizationRepository _repository;
+  final _tokenController = TextEditingController();
+  LiveSessionDetail? _detail;
+  String? _participantSecret;
+  String? _receipt;
+  LiveQuestion? _visibleResults;
+  final Set<String> _selected = <String>{};
+  bool _loading = true;
+  bool _joining = false;
+  bool _voting = false;
+  bool _hasVotedOpenQuestion = false;
+  Object? _error;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = AppDI.instance.organizationRepository;
+    _restoreParticipantSession();
+    _timer = Timer.periodic(const Duration(seconds: 2), (_) {
+      if (!_loading && !_joining && !_voting) _refreshState(silent: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _tokenController.dispose();
+    super.dispose();
+  }
+
+  String get _participantStorageKey =>
+      'social_vote_session_participant_${widget.joinCode.trim().toUpperCase()}';
+
+  Future<void> _restoreParticipantSession() async {
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      final saved = preferences.getString(_participantStorageKey)?.trim();
+      if (saved != null && saved.isNotEmpty) {
+        _participantSecret = saved;
+      }
+    } catch (_) {
+      // A missing local credential is safe: the participant can join again.
+    }
+    await _refreshState();
+  }
+
+  Future<void> _persistParticipantSecret(String secret) async {
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setString(_participantStorageKey, secret);
+    } catch (_) {
+      // Persistence is convenience only. Server-side vote uniqueness remains
+      // authoritative.
+    }
+  }
+
+  Future<void> _refreshState({bool silent = false}) async {
+    if (!silent && mounted) setState(() => _loading = true);
+    try {
+      final raw = await AppDI.instance.organizationRepository.getPublicSessionState(
+        joinCode: widget.joinCode,
+        participantSecret: _participantSecret,
+      );
+      if (!mounted) return;
+      final previousOpen = _detail?.openQuestion?.id;
+      final nextOpen = raw.openQuestion?.id;
+      setState(() {
+        _detail = raw;
+        _loading = false;
+        _error = null;
+        if (previousOpen != nextOpen) {
+          _selected.clear();
+          _receipt = null;
+          _visibleResults = null;
+        }
+        _hasVotedOpenQuestion = raw.hasVotedOpenQuestion;
+      });
+      if (_participantSecret != null && nextOpen != null) {
+        await _refreshResults(raw.openQuestion!);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e;
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _join() async {
+    if (_joining) return;
+    final detail = _detail;
+    if (detail == null) return;
+    final controlled =
+        detail.session.accessMode == LiveSessionAccessMode.controlledTokenPool;
+    if (controlled && _tokenController.text.trim().isEmpty) return;
+
+    setState(() => _joining = true);
+    try {
+      final joined = await _repository.joinPublicSession(
+        joinCode: widget.joinCode,
+        token: controlled ? _tokenController.text : null,
+      );
+      if (!mounted) return;
+      setState(() {
+        _participantSecret = joined.participantSecret;
+        _detail = joined.detail;
+        _error = null;
+        _hasVotedOpenQuestion = joined.detail.hasVotedOpenQuestion;
+      });
+      await _persistParticipantSecret(joined.participantSecret);
+      final question = joined.detail.openQuestion;
+      if (question != null) await _refreshResults(question);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      if (mounted) setState(() => _joining = false);
+    }
+  }
+
+  Future<void> _vote(LiveQuestion question) async {
+    if (_participantSecret == null || _voting || _selected.isEmpty) return;
+    setState(() => _voting = true);
+    try {
+      final receipt = await _repository.submitPublicVote(
+        joinCode: widget.joinCode,
+        participantSecret: _participantSecret!,
+        questionId: question.id,
+        optionIds: _selected.toList(growable: false),
+      );
+      if (!mounted) return;
+      setState(() {
+        _receipt = receipt;
+        _hasVotedOpenQuestion = true;
+      });
+      await _refreshResults(question);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      if (mounted) setState(() => _voting = false);
+    }
+  }
+
+  Future<void> _refreshResults(LiveQuestion question) async {
+    final secret = _participantSecret;
+    if (secret == null) return;
+    try {
+      final results = await _repository.getPublicResults(
+        joinCode: widget.joinCode,
+        participantSecret: secret,
+        questionId: question.id,
+      );
+      if (!mounted) return;
+      setState(() => _visibleResults = results);
+    } catch (_) {
+      // Visibility is server-authoritative; an unavailable result is normal.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final detail = _detail;
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.sessionParticipantTitle)),
+      body: _loading && detail == null
+          ? const Center(child: CircularProgressIndicator())
+          : detail == null
+              ? Center(child: Text(_error?.toString() ?? l10n.publicProfileLoadError))
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 36),
+                  children: [
+                    _ParticipantBrandHeader(session: detail.session),
+                    const SizedBox(height: 14),
+                    Text(
+                      detail.session.title,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('${l10n.sessionJoinCode}: ${detail.session.joinCode}'),
+                    const SizedBox(height: 14),
+                    Card(
+                      margin: EdgeInsets.zero,
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(l10n.sessionPrivacyNotice),
+                            const SizedBox(height: 8),
+                            Text(l10n.sessionRetentionValue(detail.session.rawRetention)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    if (detail.session.status == 'closed')
+                      _buildClosedState(detail, l10n)
+                    else if (_participantSecret == null)
+                      _buildJoinCard(detail, l10n)
+                    else
+                      _buildVoteArea(detail, l10n),
+                    const SizedBox(height: 14),
+                    Text(
+                      l10n.sessionNonBindingNotice,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+    );
+  }
+
+  Widget _buildClosedState(
+    LiveSessionDetail detail,
+    AppLocalizations l10n,
+  ) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.sessionStatusClosed,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            if (detail.session.reportId != null) ...[
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: () => Navigator.of(context).pushNamed(
+                  AppRouter.publicVerifiedSessionPath(detail.session.reportId!),
+                ),
+                icon: const Icon(Icons.verified_outlined),
+                label: Text(l10n.verifiedResultTitle),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildJoinCard(LiveSessionDetail detail, AppLocalizations l10n) {
+    final controlled =
+        detail.session.accessMode == LiveSessionAccessMode.controlledTokenPool;
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              controlled
+                  ? l10n.sessionAccessControlled
+                  : l10n.sessionAccessOpen,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              controlled
+                  ? l10n.sessionAccessControlledHint
+                  : l10n.sessionAccessOpenHint,
+            ),
+            if (controlled) ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: _tokenController,
+                autocorrect: false,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  labelText: l10n.sessionTokenLabel,
+                  hintText: l10n.sessionTokenHint,
+                ),
+              ),
+            ],
+            const SizedBox(height: 14),
+            FilledButton.icon(
+              onPressed: _joining ? null : _join,
+              icon: _joining
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.login_rounded),
+              label: Text(l10n.sessionJoinAction),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVoteArea(LiveSessionDetail detail, AppLocalizations l10n) {
+    if (detail.session.status == 'closed') {
+      return Card(
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Text(l10n.sessionStatusClosed),
+        ),
+      );
+    }
+
+    final question = detail.openQuestion;
+    if (question == null) {
+      return Card(
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            children: [
+              const CircularProgressIndicator(strokeWidth: 2),
+              const SizedBox(width: 14),
+              Expanded(child: Text(l10n.sessionWaitingQuestion)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final alreadyVoted = _receipt != null || _hasVotedOpenQuestion;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Card(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  question.title,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                if (question.type == LiveQuestionType.multipleChoice)
+                  ...question.options.map(
+                    (option) => _multipleOptionTile(
+                      question,
+                      option,
+                      alreadyVoted,
+                      l10n,
+                    ),
+                  )
+                else
+                  RadioGroup<String>(
+                    groupValue: _selected.isEmpty ? null : _selected.first,
+                    onChanged: (value) {
+                      if (alreadyVoted || value == null) return;
+                      setState(() {
+                        _selected
+                          ..clear()
+                          ..add(value);
+                      });
+                    },
+                    child: Column(
+                      children: question.options
+                          .map(
+                            (option) => RadioListTile<String>(
+                              contentPadding: EdgeInsets.zero,
+                              value: option.id,
+                              enabled: !alreadyVoted,
+                              title: Text(_optionLabel(l10n, option)),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                const SizedBox(height: 14),
+                if (alreadyVoted)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.check_circle_rounded),
+                    title: Text(l10n.sessionVoteReceived),
+                    subtitle: _receipt == null
+                        ? null
+                        : SelectableText(_receipt!, maxLines: 2),
+                  )
+                else
+                  FilledButton.icon(
+                    onPressed: _voting ? null : () => _vote(question),
+                    icon: _voting
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.how_to_vote_rounded),
+                    label: Text(l10n.sessionVoteAction),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        if (_visibleResults == null)
+          Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Text(l10n.sessionResultsUnavailable),
+            ),
+          )
+        else
+          _ParticipantResults(question: _visibleResults!),
+      ],
+    );
+  }
+
+  Widget _multipleOptionTile(
+    LiveQuestion question,
+    LiveOption option,
+    bool disabled,
+    AppLocalizations l10n,
+  ) {
+    return CheckboxListTile(
+      contentPadding: EdgeInsets.zero,
+      value: _selected.contains(option.id),
+      onChanged: disabled
+          ? null
+          : (checked) {
+              setState(() {
+                if (checked == true) {
+                  if (_selected.length < question.maxSelections) {
+                    _selected.add(option.id);
+                  }
+                } else {
+                  _selected.remove(option.id);
+                }
+              });
+            },
+      title: Text(_optionLabel(l10n, option)),
+    );
+  }
+
+  String _optionLabel(AppLocalizations l10n, LiveOption option) {
+    return switch (option.optionKey) {
+      'yes' => l10n.sessionOptionYes,
+      'no' => l10n.sessionOptionNo,
+      _ => option.label ?? '',
+    };
+  }
+
+}
+
+class _ParticipantBrandHeader extends StatelessWidget {
+  final LiveSessionSummary session;
+
+  const _ParticipantBrandHeader({required this.session});
+
+  @override
+  Widget build(BuildContext context) {
+    final name = session.organizationName?.trim() ?? '';
+    final logo = session.organizationLogoUrl?.trim() ?? '';
+    final cover = session.organizationCoverUrl?.trim() ?? '';
+    final theme = Theme.of(context);
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (cover.isNotEmpty)
+            SizedBox(
+              height: 110,
+              child: Image.network(cover, fit: BoxFit.cover),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 26,
+                  backgroundImage: logo.isNotEmpty ? NetworkImage(logo) : null,
+                  child: logo.isEmpty ? const Icon(Icons.apartment_rounded) : null,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name.isEmpty ? 'Social Vote' : name,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Icon(Icons.verified_rounded, size: 16, color: theme.colorScheme.primary),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              AppLocalizations.of(context)!.organizationVerifiedLabel,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ParticipantResults extends StatelessWidget {
+  final LiveQuestion question;
+
+  const _ParticipantResults({required this.question});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final total = question.responseCount;
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.sessionResultsVisibility,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            ...question.options.map((option) {
+              final label = switch (option.optionKey) {
+                'yes' => l10n.sessionOptionYes,
+                'no' => l10n.sessionOptionNo,
+                _ => option.label ?? '',
+              };
+              final ratio = total == 0 ? 0.0 : option.votes / total;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: Text(label)),
+                        Text(l10n.sessionResultVotes(option.votes)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    LinearProgressIndicator(value: ratio.clamp(0.0, 1.0).toDouble()),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+}

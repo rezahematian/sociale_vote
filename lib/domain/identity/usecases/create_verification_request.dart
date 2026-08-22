@@ -15,12 +15,38 @@ class CreateVerificationRequest {
     String? officialTitle,
     String? institutionName,
     String? organizationName,
+    String? organizationLegalName,
+    String? organizationPublicName,
+    String? organizationEntityType,
+    String? organizationCountryCode,
+    String? organizationCity,
+    String? organizationWebsiteUrl,
+    String? organizationRepresentativeRole,
+    String? organizationRegistryId,
+    String? organizationAuthorityNote,
     InstitutionLevel? targetInstitutionLevel,
   }) {
     final normalizedUserId = userId.trim();
     final normalizedOfficialTitle = _normalizeNullable(officialTitle);
     final normalizedInstitutionName = _normalizeNullable(institutionName);
     final normalizedOrganizationName = _normalizeNullable(organizationName);
+    final normalizedOrganizationLegalName =
+        _normalizeNullable(organizationLegalName);
+    final normalizedOrganizationPublicName =
+        _normalizeNullable(organizationPublicName);
+    final normalizedOrganizationEntityType =
+        _normalizeNullable(organizationEntityType);
+    final normalizedOrganizationCountryCode =
+        _normalizeNullable(organizationCountryCode)?.toUpperCase();
+    final normalizedOrganizationCity = _normalizeNullable(organizationCity);
+    final normalizedOrganizationWebsiteUrl =
+        _normalizeNullable(organizationWebsiteUrl);
+    final normalizedOrganizationRepresentativeRole =
+        _normalizeNullable(organizationRepresentativeRole);
+    final normalizedOrganizationRegistryId =
+        _normalizeNullable(organizationRegistryId);
+    final normalizedOrganizationAuthorityNote =
+        _normalizeNullable(organizationAuthorityNote);
 
     if (normalizedUserId.isEmpty) {
       throw ArgumentError('User id non valido.');
@@ -75,8 +101,18 @@ class CreateVerificationRequest {
         );
 
       case VerificationRequestType.organization:
-        if (normalizedOrganizationName == null) {
-          throw ArgumentError('Organization name obbligatorio.');
+        if (normalizedOrganizationName == null ||
+            normalizedOrganizationLegalName == null ||
+            normalizedOrganizationPublicName == null ||
+            normalizedOrganizationEntityType == null ||
+            normalizedOrganizationCountryCode == null ||
+            normalizedOrganizationRepresentativeRole == null ||
+            normalizedOrganizationAuthorityNote == null) {
+          throw ArgumentError('Organization verification data incomplete.');
+        }
+        if (!RegExp(r'^[A-Z]{2}$')
+            .hasMatch(normalizedOrganizationCountryCode)) {
+          throw ArgumentError('Organization country code non valido.');
         }
 
         return _repository.createRequest(
@@ -85,6 +121,16 @@ class CreateVerificationRequest {
           targetActorType: ActorType.organization,
           targetVerificationLevel: VerificationLevel.none,
           organizationName: normalizedOrganizationName,
+          organizationLegalName: normalizedOrganizationLegalName,
+          organizationPublicName: normalizedOrganizationPublicName,
+          organizationEntityType: normalizedOrganizationEntityType,
+          organizationCountryCode: normalizedOrganizationCountryCode,
+          organizationCity: normalizedOrganizationCity,
+          organizationWebsiteUrl: normalizedOrganizationWebsiteUrl,
+          organizationRepresentativeRole:
+              normalizedOrganizationRepresentativeRole,
+          organizationRegistryId: normalizedOrganizationRegistryId,
+          organizationAuthorityNote: normalizedOrganizationAuthorityNote,
         );
     }
   }

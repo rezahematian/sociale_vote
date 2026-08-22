@@ -115,6 +115,19 @@ class VerificationRequest {
   final String? institutionName;
   final String? organizationName;
 
+  // Organization verification V2: richer evidence captured at request time.
+  // These fields belong to the verification request/audit trail; they do not
+  // grant permissions by themselves.
+  final String? organizationLegalName;
+  final String? organizationPublicName;
+  final String? organizationEntityType;
+  final String? organizationCountryCode;
+  final String? organizationCity;
+  final String? organizationWebsiteUrl;
+  final String? organizationRepresentativeRole;
+  final String? organizationRegistryId;
+  final String? organizationAuthorityNote;
+
   final VerificationRequestStatus status;
 
   final DateTime submittedAt;
@@ -136,6 +149,15 @@ class VerificationRequest {
     this.officialTitle,
     this.institutionName,
     this.organizationName,
+    this.organizationLegalName,
+    this.organizationPublicName,
+    this.organizationEntityType,
+    this.organizationCountryCode,
+    this.organizationCity,
+    this.organizationWebsiteUrl,
+    this.organizationRepresentativeRole,
+    this.organizationRegistryId,
+    this.organizationAuthorityNote,
     required this.status,
     required this.submittedAt,
     this.reviewedAt,
@@ -173,6 +195,15 @@ class VerificationRequest {
     Object? officialTitle = _unset,
     Object? institutionName = _unset,
     Object? organizationName = _unset,
+    Object? organizationLegalName = _unset,
+    Object? organizationPublicName = _unset,
+    Object? organizationEntityType = _unset,
+    Object? organizationCountryCode = _unset,
+    Object? organizationCity = _unset,
+    Object? organizationWebsiteUrl = _unset,
+    Object? organizationRepresentativeRole = _unset,
+    Object? organizationRegistryId = _unset,
+    Object? organizationAuthorityNote = _unset,
     VerificationRequestStatus? status,
     DateTime? submittedAt,
     Object? reviewedAt = _unset,
@@ -203,6 +234,34 @@ class VerificationRequest {
       organizationName: identical(organizationName, _unset)
           ? this.organizationName
           : organizationName as String?,
+      organizationLegalName: identical(organizationLegalName, _unset)
+          ? this.organizationLegalName
+          : organizationLegalName as String?,
+      organizationPublicName: identical(organizationPublicName, _unset)
+          ? this.organizationPublicName
+          : organizationPublicName as String?,
+      organizationEntityType: identical(organizationEntityType, _unset)
+          ? this.organizationEntityType
+          : organizationEntityType as String?,
+      organizationCountryCode: identical(organizationCountryCode, _unset)
+          ? this.organizationCountryCode
+          : organizationCountryCode as String?,
+      organizationCity: identical(organizationCity, _unset)
+          ? this.organizationCity
+          : organizationCity as String?,
+      organizationWebsiteUrl: identical(organizationWebsiteUrl, _unset)
+          ? this.organizationWebsiteUrl
+          : organizationWebsiteUrl as String?,
+      organizationRepresentativeRole:
+          identical(organizationRepresentativeRole, _unset)
+              ? this.organizationRepresentativeRole
+              : organizationRepresentativeRole as String?,
+      organizationRegistryId: identical(organizationRegistryId, _unset)
+          ? this.organizationRegistryId
+          : organizationRegistryId as String?,
+      organizationAuthorityNote: identical(organizationAuthorityNote, _unset)
+          ? this.organizationAuthorityNote
+          : organizationAuthorityNote as String?,
       status: status ?? this.status,
       submittedAt: submittedAt ?? this.submittedAt,
       reviewedAt: identical(reviewedAt, _unset)

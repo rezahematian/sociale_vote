@@ -1,0 +1,60 @@
+﻿-- Social Vote organization test account â€” READ ONLY
+-- Expected state before opening /organization:
+-- WORKSPACE_READY (already bootstrapped) or READY_FOR_BOOTSTRAP.
+
+with target as (
+  select
+    au.id as user_id,
+    au.email,
+    pu.display_name,
+    up.actor_type,
+    up.organization_name,
+    up.verified_at,
+    up.is_verified,
+    ac.status as account_status
+  from auth.users au
+  left join public.users pu on pu.id = au.id
+  left join public.user_profiles up on up.id = au.id
+  left join app_private.account_controls ac on ac.user_id = au.id
+  where lower(coalesce(au.email, '')) = 'socialvote@hotmail.com'
+     or lower(coalesce(pu.display_name, '')) = 'social vote'
+     or lower(coalesce(up.organization_name, '')) = 'social vote'
+), org_context as (
+  select
+    t.*,
+    om.organization_id,
+    om.membership_role,
+    om.status as membership_status,
+    oe.public_name,
+    oe.verification_status as organization_verification_status,
+    ow.status as workspace_status,
+    ow.plan_key,
+    ow.commercial_mode,
+    ow.billing_enabled
+  from target t
+  left join public.organization_memberships om
+    on om.user_id = t.user_id and om.status = 'active'
+  left join public.organization_entities oe on oe.id = om.organization_id
+  left join public.organization_workspaces ow on ow.organization_id = oe.id
+)
+select
+  *,
+  case
+    when organization_id is not null
+      and membership_status = 'active'
+      and organization_verification_status = 'verified'
+      and workspace_status = 'active'
+      and plan_key = 'pilot'
+      and commercial_mode = 'pilot_free'
+      and billing_enabled = false
+      then 'WORKSPACE_READY'
+    when account_status = 'active'
+      and actor_type = 'organization'
+      and nullif(btrim(coalesce(organization_name, '')), '') is not null
+      and verified_at is not null
+      then 'READY_FOR_BOOTSTRAP'
+    else 'NOT_READY'
+  end as social_vote_org_test_state
+from org_context
+order by email nulls last;
+

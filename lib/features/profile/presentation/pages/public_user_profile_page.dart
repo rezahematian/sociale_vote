@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
 import 'package:sociale_vote/domain/identity/entities/account_follow_state.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
+import 'package:sociale_vote/domain/organization/entities/organization_models.dart';
+import 'package:sociale_vote/features/organization/presentation/widgets/organization_cover_header.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/poll_detail_page.dart';
 import 'package:sociale_vote/features/social/presentation/pages/post_detail_page.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
@@ -26,6 +29,7 @@ class PublicUserProfilePage extends StatefulWidget {
 
 class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
   UserProfile? _profile;
+  OrganizationProfile? _organization;
   List<Poll> _polls = const [];
   List<Post> _posts = const [];
   bool _isLoading = true;
@@ -59,6 +63,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
     await Future.wait<void>([
       _loadBlockState(),
       _loadFollowState(),
+      _loadOrganization(),
     ]);
     if (!mounted) return;
 
@@ -75,6 +80,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
       if (!mounted) return;
       setState(() {
         _profile = null;
+        _organization = null;
         _polls = const [];
         _posts = const [];
         _isLoading = false;
@@ -118,6 +124,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
 
       setState(() {
         _profile = null;
+        _organization = null;
         _polls = const [];
         _posts = const [];
         _isLoading = false;
@@ -135,6 +142,23 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
         _followStateLoadError = false;
         _followActionLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadOrganization() async {
+    final profile = _profile;
+    if (profile == null || !profile.isOrganizationActor) {
+      if (mounted) setState(() => _organization = null);
+      return;
+    }
+    try {
+      final organization = await AppDI.instance.organizationRepository
+          .getPublicOrganizationByOperator(widget.userId);
+      if (!mounted) return;
+      setState(() => _organization = organization);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _organization = null);
     }
   }
 
@@ -560,16 +584,33 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
         children: [
-          _PublicProfileHeader(
-            profile: profile,
-            l10n: l10n,
-            followState: _followState,
-            followStateLoading: _followStateLoading,
-            followStateLoadError: _followStateLoadError,
-            followActionLoading: _followActionLoading,
-            onToggleFollow: () => _toggleAccountFollow(l10n),
-            onRetryFollow: _loadFollowState,
-          ),
+          if (profile.isOrganizationActor && _organization != null) ...[
+            OrganizationCoverHeader(
+              organization: _organization!,
+              verifiedLabel: l10n.organizationVerifiedLabel,
+            ),
+            const SizedBox(height: 12),
+            _OrganizationPublicActions(
+              organization: _organization!,
+              followState: _followState,
+              followStateLoading: _followStateLoading,
+              followStateLoadError: _followStateLoadError,
+              followActionLoading: _followActionLoading,
+              l10n: l10n,
+              onToggleFollow: () => _toggleAccountFollow(l10n),
+              onRetryFollow: _loadFollowState,
+            ),
+          ] else
+            _PublicProfileHeader(
+              profile: profile,
+              l10n: l10n,
+              followState: _followState,
+              followStateLoading: _followStateLoading,
+              followStateLoadError: _followStateLoadError,
+              followActionLoading: _followActionLoading,
+              onToggleFollow: () => _toggleAccountFollow(l10n),
+              onRetryFollow: _loadFollowState,
+            ),
           const SizedBox(height: 20),
           _buildPublicContentSection(
             context,
@@ -815,6 +856,98 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
             ),
           ),
       ],
+    );
+  }
+}
+
+class _OrganizationPublicActions extends StatelessWidget {
+  final OrganizationProfile organization;
+  final AccountFollowState? followState;
+  final bool followStateLoading;
+  final bool followStateLoadError;
+  final bool followActionLoading;
+  final AppLocalizations l10n;
+  final VoidCallback onToggleFollow;
+  final VoidCallback onRetryFollow;
+
+  const _OrganizationPublicActions({
+    required this.organization,
+    required this.followState,
+    required this.followStateLoading,
+    required this.followStateLoadError,
+    required this.followActionLoading,
+    required this.l10n,
+    required this.onToggleFollow,
+    required this.onRetryFollow,
+  });
+
+  String _organizationTypeLabel(
+    AppLocalizations l10n,
+    OrganizationEntityType type,
+  ) {
+    return switch (type) {
+      OrganizationEntityType.association => l10n.organizationTypeAssociation,
+      OrganizationEntityType.nonprofit => l10n.organizationTypeNonprofit,
+      OrganizationEntityType.company => l10n.organizationTypeCompany,
+      OrganizationEntityType.cooperative => l10n.organizationTypeCooperative,
+      OrganizationEntityType.sports => l10n.organizationTypeSports,
+      OrganizationEntityType.publicBody => l10n.organizationTypePublicBody,
+      OrganizationEntityType.committee => l10n.organizationTypeCommittee,
+      OrganizationEntityType.other => l10n.organizationTypeOther,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final website = organization.websiteUrl?.trim();
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Chip(
+                  avatar: const Icon(Icons.category_outlined, size: 16),
+                  label: Text(
+                      _organizationTypeLabel(l10n, organization.entityType)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            _AccountFollowSummary(
+              state: followState,
+              isLoading: followStateLoading,
+              hasError: followStateLoadError,
+              isActionLoading: followActionLoading,
+              l10n: l10n,
+              onToggle: onToggleFollow,
+              onRetry: onRetryFollow,
+            ),
+            if (website != null && website.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final normalized = website.startsWith('http://') ||
+                          website.startsWith('https://')
+                      ? website
+                      : 'https://$website';
+                  final uri = Uri.tryParse(normalized);
+                  if (uri != null) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                },
+                icon: const Icon(Icons.language_rounded),
+                label: Text(l10n.organizationOfficialWebsiteAction),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

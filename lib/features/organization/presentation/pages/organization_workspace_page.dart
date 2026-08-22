@@ -1,0 +1,295 @@
+import 'package:flutter/material.dart';
+
+import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/domain/organization/entities/live_session_models.dart';
+import 'package:sociale_vote/features/organization/application/organization_workspace_controller.dart';
+import 'package:sociale_vote/features/organization/presentation/pages/create_live_session_page.dart';
+import 'package:sociale_vote/features/organization/presentation/pages/live_session_presenter_page.dart';
+import 'package:sociale_vote/features/organization/presentation/pages/organization_profile_editor_page.dart';
+import 'package:sociale_vote/features/organization/presentation/widgets/organization_cover_header.dart';
+import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
+
+class OrganizationWorkspacePage extends StatefulWidget {
+  const OrganizationWorkspacePage({super.key});
+
+  @override
+  State<OrganizationWorkspacePage> createState() =>
+      _OrganizationWorkspacePageState();
+}
+
+class _OrganizationWorkspacePageState extends State<OrganizationWorkspacePage> {
+  late final OrganizationWorkspaceController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AppDI.instance.createOrganizationWorkspaceController();
+    _controller.addListener(_onChanged);
+    _controller.load();
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onChanged);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _editProfile() async {
+    final contextData = _controller.context;
+    if (contextData == null) return;
+    final changed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => OrganizationProfileEditorPage(
+          controller: _controller,
+        ),
+      ),
+    );
+    if (changed == true) await _controller.load(bootstrapIfNeeded: false);
+  }
+
+  Future<void> _createSession() async {
+    final id = await Navigator.of(context).push<String>(
+      MaterialPageRoute<String>(
+        builder: (_) => CreateLiveSessionPage(
+          repository: AppDI.instance.organizationRepository,
+        ),
+      ),
+    );
+    if (!mounted || id == null) return;
+    await _controller.refreshSessions();
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => LiveSessionPresenterPage(sessionId: id),
+      ),
+    );
+    await _controller.refreshSessions();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final data = _controller.context;
+
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.organizationWorkspaceTitle)),
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1080),
+          child: RefreshIndicator(
+            onRefresh: () => _controller.load(bootstrapIfNeeded: false),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+              children: [
+                if (_controller.isLoading && data == null)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 80),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (data == null)
+                  _UnavailableState(
+                    title: l10n.organizationRequiresVerificationTitle,
+                    body: l10n.organizationRequiresVerificationBody,
+                    onRetry: () => _controller.load(),
+                  )
+                else ...[
+                  OrganizationCoverHeader(
+                    organization: data.organization,
+                    verifiedLabel: l10n.organizationVerifiedLabel,
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          final userId = AppDI.instance.currentUserId?.trim();
+                          if (userId == null || userId.isEmpty) return;
+                          Navigator.of(context).push<void>(
+                            MaterialPageRoute<void>(
+                              builder: (_) =>
+                                  PublicUserProfilePage(userId: userId),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.visibility_outlined),
+                        label: Text(l10n.organizationViewPublicProfileAction),
+                      ),
+                      if (data.canManageProfile)
+                        FilledButton.icon(
+                          onPressed: _editProfile,
+                          icon: const Icon(Icons.edit_outlined),
+                          label: Text(l10n.organizationEditProfile),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    margin: EdgeInsets.zero,
+                    child: ListTile(
+                      leading: const Icon(Icons.science_outlined),
+                      title: Text(l10n.organizationPilotBannerTitle),
+                      subtitle: Text(l10n.organizationPilotBannerBody),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.organizationSessionsTitle,
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                        ),
+                      ),
+                      if (data.canOperateSessions)
+                        FilledButton.icon(
+                          onPressed: _createSession,
+                          icon: const Icon(Icons.add_rounded),
+                          label: Text(l10n.organizationCreateSession),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  if (_controller.sessions.isEmpty)
+                    Card(
+                      margin: EdgeInsets.zero,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Text(l10n.organizationNoSessions),
+                      ),
+                    )
+                  else
+                    ..._controller.sessions.map(
+                      (session) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _SessionTile(
+                          session: session,
+                          onTap: () async {
+                            await Navigator.of(context).push<void>(
+                              MaterialPageRoute<void>(
+                                builder: (_) => LiveSessionPresenterPage(
+                                  sessionId: session.id,
+                                ),
+                              ),
+                            );
+                            await _controller.refreshSessions();
+                          },
+                          onReport: session.reportId == null
+                              ? null
+                              : () => Navigator.of(context).pushNamed(
+                                    AppRouter.publicVerifiedSessionPath(
+                                      session.reportId!,
+                                    ),
+                                  ),
+                        ),
+                      ),
+                    ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SessionTile extends StatelessWidget {
+  final LiveSessionSummary session;
+  final VoidCallback onTap;
+  final VoidCallback? onReport;
+
+  const _SessionTile({
+    required this.session,
+    required this.onTap,
+    required this.onReport,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final status = switch (session.status) {
+      'open' => l10n.sessionStatusOpen,
+      'closed' => l10n.sessionStatusClosed,
+      _ => l10n.sessionStatusDraft,
+    };
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: ListTile(
+        onTap: onTap,
+        leading: Icon(
+          session.status == 'open'
+              ? Icons.sensors_rounded
+              : Icons.how_to_vote_outlined,
+        ),
+        title: Text(session.title),
+        subtitle: Text(
+          '$status · ${session.joinCode} · ${l10n.sessionResponses(session.responseCount)}',
+        ),
+        trailing: onReport == null
+            ? const Icon(Icons.chevron_right_rounded)
+            : IconButton(
+                onPressed: onReport,
+                tooltip: l10n.verifiedResultTitle,
+                icon: const Icon(Icons.verified_outlined),
+              ),
+      ),
+    );
+  }
+}
+
+class _UnavailableState extends StatelessWidget {
+  final String title;
+  final String body;
+  final VoidCallback onRetry;
+
+  const _UnavailableState({
+    required this.title,
+    required this.body,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            const Icon(Icons.apartment_rounded, size: 48),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(body, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: Text(MaterialLocalizations.of(context)
+                  .refreshIndicatorSemanticLabel),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

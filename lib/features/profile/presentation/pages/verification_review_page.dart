@@ -338,6 +338,53 @@ class _VerificationRequestCard extends StatelessWidget {
                 label: l10n.verificationReviewOrganizationLabel,
                 value: request.organizationName!.trim(),
               ),
+            if ((request.organizationLegalName ?? '').trim().isNotEmpty)
+              _InfoRow(
+                label: l10n.organizationVerificationLegalName,
+                value: request.organizationLegalName!.trim(),
+              ),
+            if ((request.organizationPublicName ?? '').trim().isNotEmpty)
+              _InfoRow(
+                label: l10n.organizationVerificationPublicName,
+                value: request.organizationPublicName!.trim(),
+              ),
+            if ((request.organizationEntityType ?? '').trim().isNotEmpty)
+              _InfoRow(
+                label: l10n.organizationVerificationType,
+                value: request.organizationEntityType!.trim(),
+              ),
+            if ((request.organizationCountryCode ?? '').trim().isNotEmpty)
+              _InfoRow(
+                label: l10n.organizationVerificationCountry,
+                value: request.organizationCountryCode!.trim(),
+              ),
+            if ((request.organizationCity ?? '').trim().isNotEmpty)
+              _InfoRow(
+                label: l10n.organizationVerificationCity,
+                value: request.organizationCity!.trim(),
+              ),
+            if ((request.organizationWebsiteUrl ?? '').trim().isNotEmpty)
+              _InfoRow(
+                label: l10n.organizationVerificationWebsite,
+                value: request.organizationWebsiteUrl!.trim(),
+              ),
+            if ((request.organizationRepresentativeRole ?? '')
+                .trim()
+                .isNotEmpty)
+              _InfoRow(
+                label: l10n.organizationVerificationRepresentativeRole,
+                value: request.organizationRepresentativeRole!.trim(),
+              ),
+            if ((request.organizationRegistryId ?? '').trim().isNotEmpty)
+              _InfoRow(
+                label: l10n.organizationVerificationRegistryId,
+                value: request.organizationRegistryId!.trim(),
+              ),
+            if ((request.organizationAuthorityNote ?? '').trim().isNotEmpty)
+              _InfoRow(
+                label: l10n.organizationVerificationAuthorityNote,
+                value: request.organizationAuthorityNote!.trim(),
+              ),
             if ((request.reviewNote ?? '').trim().isNotEmpty)
               _InfoRow(
                 label: l10n.verificationReviewNoteLabel,

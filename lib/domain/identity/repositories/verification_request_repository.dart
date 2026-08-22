@@ -24,6 +24,15 @@ abstract class VerificationRequestRepository {
     String? officialTitle,
     String? institutionName,
     String? organizationName,
+    String? organizationLegalName,
+    String? organizationPublicName,
+    String? organizationEntityType,
+    String? organizationCountryCode,
+    String? organizationCity,
+    String? organizationWebsiteUrl,
+    String? organizationRepresentativeRole,
+    String? organizationRegistryId,
+    String? organizationAuthorityNote,
   });
 
   Future<VerificationRequest> reviewRequest({

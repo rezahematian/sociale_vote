@@ -15,6 +15,7 @@ import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/identity/value_objects/institution_level.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_status.dart';
+import 'package:sociale_vote/domain/organization/entities/organization_models.dart';
 import 'package:sociale_vote/features/profile/application/profile_controller.dart';
 import 'package:sociale_vote/features/profile/application/verification_requests_controller.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/edit_profile_page.dart';
@@ -24,6 +25,8 @@ import 'package:sociale_vote/features/profile/presentation/pages/my_favorites_pa
 import 'package:sociale_vote/features/profile/presentation/pages/my_followed_scopes_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_polls_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_posts_page.dart';
+import 'package:sociale_vote/features/profile/presentation/pages/organization_verification_request_page.dart';
+import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
 import 'package:sociale_vote/shared/services/biometric_unlock_service.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 
@@ -876,47 +879,29 @@ class _MyProfileViewState extends State<_MyProfileView> {
 
   Future<void> _promptOrganizationRequest() async {
     final l10n = AppLocalizations.of(context)!;
-    var organizationName = '';
-
-    final submittedName = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(l10n.verificationOrganizationDialogTitle),
-          content: TextField(
-            textInputAction: TextInputAction.done,
-            decoration: InputDecoration(
-              labelText: l10n.identityOrganizationNameLabel,
-              hintText: l10n.verificationOrganizationNameHint,
-              border: const OutlineInputBorder(),
-            ),
-            onChanged: (value) {
-              organizationName = value;
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(l10n.commonCancelButton),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(organizationName.trim());
-              },
-              child: Text(l10n.verificationSubmitRequestAction),
-            ),
-          ],
-        );
-      },
+    final draft =
+        await Navigator.of(context).push<OrganizationVerificationRequestDraft>(
+      MaterialPageRoute<OrganizationVerificationRequestDraft>(
+        builder: (_) => const OrganizationVerificationRequestPage(),
+      ),
     );
 
-    if (!mounted || submittedName == null) return;
+    if (!mounted || draft == null) return;
 
     final controller = context.read<VerificationRequestsController>();
     final success = await controller.createRequest(
       userId: currentUserId,
       requestType: VerificationRequestType.organization,
-      organizationName: submittedName,
+      organizationName: draft.publicName,
+      organizationLegalName: draft.legalName,
+      organizationPublicName: draft.publicName,
+      organizationEntityType: draft.entityType.storageKey,
+      organizationCountryCode: draft.countryCode,
+      organizationCity: draft.city,
+      organizationWebsiteUrl: draft.websiteUrl,
+      organizationRepresentativeRole: draft.representativeRole,
+      organizationRegistryId: draft.registryId,
+      organizationAuthorityNote: draft.authorityNote,
     );
 
     if (!mounted) return;
@@ -1234,7 +1219,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                             ),
                                           ),
                                         ],
-                                        if (identityDetailLabel != null) ...[
+                                        if (identityDetailLabel != null &&
+                                            identityDetailLabel.trim() !=
+                                                displayName.trim()) ...[
                                           const SizedBox(height: 4),
                                           Text(
                                             identityDetailLabel,
@@ -1313,6 +1300,50 @@ class _MyProfileViewState extends State<_MyProfileView> {
                           ),
                   ),
                 ),
+                if (profile?.isOrganizationActor == true) ...[
+                  const SizedBox(height: 18),
+                  _SectionTitle(l10n.organizationAccountSectionTitle),
+                  FutureBuilder<OrganizationProfile?>(
+                    future: AppDI.instance.organizationRepository
+                        .getPublicOrganizationByOperator(currentUserId),
+                    builder: (context, snapshot) {
+                      final organization = snapshot.data;
+                      if (organization != null) {
+                        return _OrganizationAccountCard(
+                          organization: organization,
+                          verifiedLabel: l10n.organizationVerifiedLabel,
+                          onViewPublic: () {
+                            Navigator.of(context).push<void>(
+                              MaterialPageRoute<void>(
+                                builder: (_) => PublicUserProfilePage(
+                                  userId: currentUserId,
+                                ),
+                              ),
+                            );
+                          },
+                          onManage: () async {
+                            await Navigator.of(context).pushNamed(
+                              AppRouter.organizationWorkspace,
+                            );
+                            if (mounted) setState(() {});
+                          },
+                        );
+                      }
+                      return Card(
+                        margin: EdgeInsets.zero,
+                        child: ListTile(
+                          leading: const Icon(Icons.apartment_rounded),
+                          title: Text(l10n.organizationWorkspaceTitle),
+                          subtitle: Text(l10n.organizationPilotBannerBody),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => Navigator.of(context).pushNamed(
+                            AppRouter.organizationWorkspace,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
                 if (controller.errorMessage != null) ...[
                   const SizedBox(height: 12),
                   Card(
@@ -1857,6 +1888,141 @@ class _StatusChip extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _OrganizationAccountCard extends StatelessWidget {
+  final OrganizationProfile organization;
+  final String verifiedLabel;
+  final VoidCallback onViewPublic;
+  final VoidCallback onManage;
+
+  const _OrganizationAccountCard({
+    required this.organization,
+    required this.verifiedLabel,
+    required this.onViewPublic,
+    required this.onManage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final logo = organization.logoUrl?.trim() ?? '';
+    final location = [organization.city, organization.countryCode]
+        .whereType<String>()
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .join(' · ');
+
+    final identity = Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        CircleAvatar(
+          radius: 28,
+          backgroundColor: colors.primaryContainer,
+          backgroundImage: logo.isEmpty ? null : NetworkImage(logo),
+          child: logo.isEmpty
+              ? Icon(
+                  Icons.apartment_rounded,
+                  color: colors.onPrimaryContainer,
+                )
+              : null,
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                organization.publicName,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.verified_rounded,
+                        size: 16,
+                        color: colors.primary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        verifiedLabel,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colors.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (location.isNotEmpty)
+                    Text(location, style: theme.textTheme.bodySmall),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    final actions = [
+      OutlinedButton.icon(
+        onPressed: onViewPublic,
+        icon: const Icon(Icons.visibility_outlined),
+        label: Text(
+          AppLocalizations.of(context)!.organizationViewPublicProfileAction,
+        ),
+      ),
+      FilledButton.icon(
+        onPressed: onManage,
+        icon: const Icon(Icons.settings_outlined),
+        label: Text(AppLocalizations.of(context)!.organizationManageAction),
+      ),
+    ];
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth < 620) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  identity,
+                  const SizedBox(height: 14),
+                  ...actions.map(
+                    (action) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: SizedBox(width: double.infinity, child: action),
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(child: identity),
+                const SizedBox(width: 16),
+                Wrap(spacing: 8, runSpacing: 8, children: actions),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
