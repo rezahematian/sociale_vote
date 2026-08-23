@@ -1,0 +1,34 @@
+SOCIAL VOTE — PILOT PRIVACY / BUSINESS READINESS — 2026-08-23
+
+STATUS
+Internal operational reference. This is not a signed DPA, legal opinion, or substitute for professional legal review.
+
+CURRENT PRODUCT BOUNDARIES
+- Social Vote Community: adult users (18+), Pulse/Pulse Now, Vote, Voce, News, Civic Map, profiles/follow.
+- Organizations: separate Organization entity managed by authorised human accounts through memberships.
+- Business pilot: Organization Workspace + Sessions + Verified Result. Billing remains OFF.
+- Sessions are consultation/participation tools, not official elections, statutory votes, notarial certification, or legally binding election systems.
+
+SESSION DATA-MINIMISATION MODEL
+- Open Anonymous: no account or Access Pass; duplicate prevention is best-effort and does not guarantee one-person-one-vote.
+- Controlled Anonymous: one-time Access Pass; plaintext is shown at generation time, backend stores the hash needed for validation.
+- Participant technical credential is separate from the ballot.
+- Ballot does not contain participant identity, Access Pass, or participant credential fields linked to the choice.
+- Organizer receives aggregate results rather than identity-to-choice mappings.
+- Raw ballot retention options: 24h / 7d / 30d.
+- Verified Result is an immutable aggregate snapshot with Report ID and SHA-256 integrity information.
+- Organizer Only reports are not publicly verifiable.
+
+BEFORE THE FIRST EXTERNAL ORGANIZATION PILOT WITH REAL PARTICIPANTS
+1. Record the Organization identity, contact, authorised representative, and pilot purpose.
+2. Record the Session purpose, participant population, questions, result visibility, and chosen retention.
+3. Avoid special-category data (GDPR Art. 9), minors, employee monitoring, and high-risk/sensitive use cases in the initial pilot unless separately assessed.
+4. Confirm the participant notice is visible before participation and links to the full Privacy Policy.
+5. Assess privacy roles for the concrete use case. Do not assume every Organization Session has the same controller/processor allocation.
+6. If Social Vote processes personal data on behalf of an Organization acting as controller, determine whether an Article 28 data-processing agreement is required and execute it before the relevant processing.
+7. Keep billing/payment OFF until commercial Terms, pricing, entitlements, tax/invoicing and required notices are ready.
+8. Organization verification remains separate from payment; a verified badge is not sold.
+
+GO / NO-GO FOR PILOT
+GO only for low-risk adult consultation use cases after the concrete Organization/purpose/notice/retention/privacy-role review above.
+NO-GO by default for legally binding elections/votes, minors, employee surveillance, or intentionally sensitive-category questionnaires until separately designed and reviewed.

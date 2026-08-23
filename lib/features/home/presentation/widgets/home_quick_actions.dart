@@ -22,7 +22,7 @@ class HomeQuickActions extends StatelessWidget {
       children: [
         _QuickActionChip(
           icon: Icons.how_to_vote,
-          label: 'Polls',
+          label: 'Vote',
           onTap: onOpenPolls,
         ),
         _QuickActionChip(
@@ -32,7 +32,7 @@ class HomeQuickActions extends StatelessWidget {
         ),
         _QuickActionChip(
           icon: Icons.forum_outlined,
-          label: 'Social',
+          label: 'Voce',
           onTap: onOpenSocial,
         ),
         _QuickActionChip(

@@ -868,7 +868,9 @@ class PollCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.person_outline_rounded,
+            poll.publisherOrganizationId != null
+                ? Icons.business_rounded
+                : Icons.person_outline_rounded,
             size: _chipMetrics.iconSize,
             color: isDark ? const Color(0xFFB7C4D6) : const Color(0xFF667085),
           ),
@@ -903,7 +905,9 @@ class PollCard extends StatelessWidget {
     );
 
     final authorId = poll.createdByUserId?.trim();
-    if (authorId == null || authorId.isEmpty) {
+    if (poll.publisherOrganizationId != null ||
+        authorId == null ||
+        authorId.isEmpty) {
       return chip;
     }
 

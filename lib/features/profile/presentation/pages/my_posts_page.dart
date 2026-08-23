@@ -32,11 +32,11 @@ class MyPostsPage extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Text(
               isItalian
-                  ? 'Devi accedere per vedere i tuoi post.'
+                  ? 'Devi accedere per vedere le tue Voci.'
                   : deOrEnglish(context,
-                      english: 'You must be logged in to view your posts.',
+                      english: 'You must be logged in to view your Voce.',
                       german:
-                          'Du musst angemeldet sein, um deine Beiträge anzuzeigen.'),
+                          'Du musst angemeldet sein, um deine Voce anzuzeigen.'),
               textAlign: TextAlign.center,
             ),
           ),
@@ -94,10 +94,10 @@ class _MyPostsView extends StatelessWidget {
           children: [
             Text(
               isItalian
-                  ? 'Post creati da te'
+                  ? 'Voci create da te'
                   : deOrEnglish(context,
-                      english: 'Posts created by you',
-                      german: 'Von dir erstellte Beiträge'),
+                      english: 'Voce created by you',
+                      german: 'Von dir erstellte Voce'),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -116,10 +116,10 @@ class _MyPostsView extends StatelessWidget {
                   padding: const EdgeInsets.all(12),
                   child: Text(
                     isItalian
-                        ? 'Non hai ancora creato post.'
+                        ? 'Non hai ancora creato Voci.'
                         : deOrEnglish(context,
-                            english: 'You have not created any posts yet.',
-                            german: 'Du hast noch keine Beiträge erstellt.'),
+                            english: 'You have not created any Voce yet.',
+                            german: 'Du hast noch keine Voce erstellt.'),
                     style: theme.textTheme.bodyMedium,
                   ),
                 ),

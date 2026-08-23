@@ -65,9 +65,14 @@ class Post {
   /// Località completa del contenuto.
   final ContentLocation? contentLocation;
 
-  /// Utente che ha creato il post.
+  /// Utente che ha creato tecnicamente il post.
   /// Per i post esistenti può essere null.
   final String? createdByUserId;
+
+  /// Organization ufficiale usata come publisher, se presente.
+  ///
+  /// Il creatore tecnico resta [createdByUserId].
+  final String? publisherOrganizationId;
 
   /// Costruttore principale.
   const Post({
@@ -85,6 +90,7 @@ class Post {
     this.cityId,
     this.contentLocation,
     this.createdByUserId,
+    this.publisherOrganizationId,
   });
 
   /// True se titolo o contenuto sono stati modificati dopo la pubblicazione.
@@ -140,6 +146,7 @@ class Post {
     String? cityId,
     ContentLocation? contentLocation,
     String? createdByUserId,
+    String? publisherOrganizationId,
   }) {
     return Post(
       id: id ?? this.id,
@@ -158,6 +165,8 @@ class Post {
       cityId: cityId ?? this.cityId,
       contentLocation: contentLocation ?? this.contentLocation,
       createdByUserId: createdByUserId ?? this.createdByUserId,
+      publisherOrganizationId:
+          publisherOrganizationId ?? this.publisherOrganizationId,
     );
   }
 }

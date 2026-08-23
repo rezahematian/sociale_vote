@@ -164,7 +164,7 @@ class _LegalDocument {
   }
 
   static const _LegalDocument _termsItalian = _LegalDocument(
-    notice: 'Versione aggiornata al 16 agosto 2026. Sito ufficiale: '
+    notice: 'Versione aggiornata al 23 agosto 2026. Sito ufficiale: '
         'socialevote.com. Social Vote è destinato esclusivamente a persone '
         'di almeno 18 anni.',
     sections: [
@@ -181,12 +181,16 @@ class _LegalDocument {
       _LegalSection(
         title: '2. Il servizio',
         body: 'Social Vote è una piattaforma civica e sociale che consente di '
-            'consultare contenuti pubblici, partecipare a sondaggi, pubblicare '
-            'post e commenti, usare reazioni e preferiti, consultare News e '
-            'utilizzare funzioni geografiche e Civic Map. Alcune funzioni '
-            'richiedono autenticazione o un livello di verifica specifico. '
-            'Il servizio può essere modificato, sospeso o aggiornato per '
-            'sicurezza, conformità, manutenzione o miglioramento del prodotto.',
+            'consultare contenuti pubblici, usare Pulse e Pulse Now, '
+            'partecipare a Vote (sondaggi e consultazioni), pubblicare Voci, '
+            'commentare, reagire, salvare contenuti, consultare News e usare '
+            'funzioni geografiche e Civic Map. Il servizio include inoltre '
+            'profili Organization, Workspace per soggetti autorizzati e '
+            'Sessions per consultazioni o partecipazione live. Alcune '
+            'funzioni richiedono autenticazione, autorizzazioni o uno stato di '
+            'verifica specifico. Il servizio può essere modificato, sospeso o '
+            'aggiornato per sicurezza, conformità, manutenzione o '
+            'miglioramento del prodotto.',
       ),
       _LegalSection(
         title: '3. Età, account e credenziali',
@@ -290,11 +294,64 @@ class _LegalDocument {
             'account è possibile scrivere a support@socialevote.com. I Termini '
             'sono disponibili pubblicamente su socialevote.com/terms.',
       ),
+      _LegalSection(
+        title: '13. Organizations, membership e identità ufficiale',
+        body:
+            'Un account personale può gestire una Organization separata tramite '
+            'membership e ruoli autorizzati. Chi agisce per una Organization '
+            'dichiara di avere l’autorità necessaria per rappresentarla o '
+            'gestirne le funzioni. I dati e i contenuti pubblicati come '
+            'Organization devono essere corretti e non ingannevoli. La verifica '
+            'di una Organization è distinta dai servizi a pagamento e non può '
+            'essere acquistata. Social Vote può sospendere o rivedere accessi al '
+            'Workspace quando vengono meno autorizzazione, sicurezza o requisiti '
+            'di verifica.',
+      ),
+      _LegalSection(
+        title: '14. Sessions, Access Pass e responsabilità dell’organizzatore',
+        body: 'Le Sessions consentono consultazioni o partecipazione live in '
+            'modalità Anonima aperta o Anonima controllata. La modalità aperta '
+            'usa controlli best-effort e non garantisce una persona-un voto. La '
+            'modalità controllata usa Access Pass anonimi monouso; Social Vote '
+            'conserva gli hash necessari alla verifica del pass e separa la '
+            'credenziale tecnica dalla scheda di voto. L’organizzatore definisce '
+            'scopo operativo, domande, visibilità dei risultati e periodo di '
+            'conservazione disponibile e deve fornire informative e basi '
+            'giuridiche adeguate al proprio caso d’uso. Nel pilot le Sessions '
+            'non devono essere usate come elezioni ufficiali, votazioni '
+            'statutarie legalmente vincolanti o sostituti di procedure che '
+            'richiedono requisiti legali o tecnici ulteriori.',
+      ),
+      _LegalSection(
+        title: '15. Verified Result e integrità',
+        body:
+            'Alla chiusura di una Session può essere creato un Verified Result '
+            'con snapshot aggregato, identificativo del report e controllo di '
+            'integrità SHA-256. Quando la policy lo consente, il report può '
+            'essere verificato tramite URL o QR pubblico; con risultati Solo '
+            'organizzatore la verifica pubblica è disabilitata. Il controllo di '
+            'integrità serve a rilevare modifiche rispetto allo snapshot '
+            'sigillato: non costituisce certificazione notarile, elettorale, '
+            'statutaria o legalmente vincolante. L’anonimato tecnico non elimina '
+            'il rischio che una domanda o il contesto scelti dall’organizzatore '
+            'rendano una risposta indirettamente identificabile.',
+      ),
+      _LegalSection(
+        title: '16. Pilot Business e future funzioni a pagamento',
+        body: 'Organizations e Sessions sono attualmente disponibili nel pilot '
+            'secondo le condizioni mostrate nel prodotto, senza billing '
+            'automatico. Eventuali futuri piani Business, limiti o funzioni a '
+            'pagamento saranno presentati separatamente con prezzi, condizioni '
+            'e accettazione applicabili prima di qualsiasi addebito. Un '
+            'pagamento non conferisce né garantisce uno stato di verifica. Gli '
+            'utenti Business restano responsabili della liceità delle proprie '
+            'domande, contenuti, finalità e modalità di utilizzo del servizio.',
+      ),
     ],
   );
 
   static const _LegalDocument _termsEnglish = _LegalDocument(
-    notice: 'Version updated on 16 August 2026. Official website: '
+    notice: 'Version updated on 23 August 2026. Official website: '
         'socialevote.com. Social Vote is intended only for people aged 18 or '
         'older.',
     sections: [
@@ -311,12 +368,15 @@ class _LegalDocument {
       _LegalSection(
         title: '2. The service',
         body: 'Social Vote is a civic and social platform that allows people '
-            'to read public content, participate in polls, publish posts and '
-            'comments, use reactions and favourites, read News and use '
-            'geographic features and Civic Map. Some features require '
-            'authentication or a specific verification level. The service '
-            'may be changed, suspended or updated for security, compliance, '
-            'maintenance or product improvement.',
+            'to read public content, use Pulse and Pulse Now, participate in '
+            'Vote (polls and consultations), publish Voci, comment, react, '
+            'save content, read News and use geographic features and Civic '
+            'Map. The service also includes Organization profiles, Workspaces '
+            'for authorised managers and Sessions for live consultation or '
+            'participation. Some features require authentication, permission '
+            'or a specific verification status. The service may be changed, '
+            'suspended or updated for security, compliance, maintenance or '
+            'product improvement.',
       ),
       _LegalSection(
         title: '3. Age, accounts and credentials',
@@ -414,11 +474,60 @@ class _LegalDocument {
             'to support@socialevote.com. The Terms are publicly available at '
             'socialevote.com/terms.',
       ),
+      _LegalSection(
+        title: '13. Organizations, membership and official identity',
+        body: 'A personal account may manage a separate Organization through '
+            'membership and authorised roles. Anyone acting for an Organization '
+            'represents that they have the authority needed to represent or '
+            'manage it. Information and content published as an Organization '
+            'must be accurate and not misleading. Organization verification is '
+            'separate from paid services and cannot be purchased. Social Vote '
+            'may suspend or review Workspace access where authority, security or '
+            'verification requirements are no longer met.',
+      ),
+      _LegalSection(
+        title: '14. Sessions, Access Passes and organizer responsibilities',
+        body: 'Sessions support live consultation or participation using Open '
+            'Anonymous or Controlled Anonymous access. Open Anonymous uses '
+            'best-effort duplicate controls and does not guarantee '
+            'one-person-one-vote. Controlled Anonymous uses one-time anonymous '
+            'Access Passes; Social Vote stores the hashes needed to validate the '
+            'pass and keeps the technical credential separate from the ballot. '
+            'The organizer defines the operational purpose, questions, result '
+            'visibility and available retention period and must provide '
+            'appropriate notices and lawful grounds for its own use case. '
+            'During the pilot, Sessions must not be used as official elections, '
+            'legally binding statutory votes or substitutes for procedures that '
+            'require additional legal or technical requirements.',
+      ),
+      _LegalSection(
+        title: '15. Verified Result and integrity',
+        body: 'When a Session closes, a Verified Result may be created with an '
+            'aggregate snapshot, report identifier and SHA-256 integrity check. '
+            'Where the policy allows, the report may be verified through a '
+            'public URL or QR code; for Organizer Only results, public '
+            'verification is disabled. The integrity check is intended to '
+            'detect changes compared with the sealed snapshot; it is not '
+            'notarial, electoral, statutory or legally binding certification. '
+            'Technical anonymity does not remove the risk that questions or '
+            'context chosen by an organizer may make a response indirectly '
+            'identifiable.',
+      ),
+      _LegalSection(
+        title: '16. Business pilot and future paid features',
+        body: 'Organizations and Sessions are currently available under the '
+            'pilot conditions shown in the product, with no automatic billing. '
+            'Any future Business plans, limits or paid features will be '
+            'presented separately with applicable pricing, terms and acceptance '
+            'before any charge. Payment does not confer or guarantee verified '
+            'status. Business users remain responsible for the lawfulness of '
+            'their questions, content, purposes and use of the service.',
+      ),
     ],
   );
 
   static const _LegalDocument _privacyItalian = _LegalDocument(
-    notice: 'Informativa aggiornata al 16 agosto 2026. Sito ufficiale: '
+    notice: 'Informativa aggiornata al 23 agosto 2026. Sito ufficiale: '
         'socialevote.com. Social Vote è destinato esclusivamente a persone '
         'di almeno 18 anni.',
     sections: [
@@ -558,16 +667,81 @@ class _LegalDocument {
       ),
       _LegalSection(
         title: '13. Modifiche ed efficacia',
-        body: 'Questa informativa è aggiornata al 16 agosto 2026. Le modifiche '
+        body: 'Questa informativa è aggiornata al 23 agosto 2026. Le modifiche '
             'sostanziali saranno comunicate tramite l’app o un altro canale '
             'appropriato quando richiesto. La versione pubblica è disponibile '
             'su socialevote.com/privacy.',
+      ),
+      _LegalSection(
+        title: '14. Organizations, membership e dati del Workspace',
+        body: 'Per creare, verificare e gestire una Organization, Social Vote '
+            'può trattare denominazione legale e nome pubblico, tipo di '
+            'organizzazione, Paese e città, sito, descrizione, logo e copertina, '
+            'stato di verifica, dati ed evidenze forniti nella richiesta, ruolo '
+            'del rappresentante e dati di membership come account membro, ruolo '
+            'e stato. I dati destinati al profilo pubblico della Organization '
+            'possono essere visibili sul Web; dati interni di membership, audit '
+            'e verifica sono limitati agli accessi autorizzati secondo le '
+            'relative funzioni e policy.',
+      ),
+      _LegalSection(
+        title: '15. Sessions e dati dei partecipanti',
+        body: 'Una Session può includere titolo, configurazione, domande e '
+            'opzioni, stato, modalità di accesso, visibilità dei risultati, '
+            'numero previsto di partecipanti, contatori e periodo di '
+            'conservazione. In Controlled Anonymous gli Access Pass in chiaro '
+            'sono mostrati all’organizzatore solo quando vengono generati; il '
+            'backend conserva l’hash necessario alla validazione. Al '
+            'partecipante viene assegnata una credenziale tecnica della Session '
+            'che può essere conservata localmente nel browser per impedire '
+            'duplicazioni ordinarie e mantenere lo stato. La scheda di voto è '
+            'separata e non contiene campi che colleghino identità, Access Pass '
+            'o credenziale partecipante alla scelta. In Open Anonymous i '
+            'controlli contro duplicazioni e abuso sono best-effort e non '
+            'costituiscono garanzia una persona-un voto.',
+      ),
+      _LegalSection(
+        title: '16. Conservazione Sessions e Verified Result',
+        body: 'Per le schede grezze di una Session l’organizzatore sceglie tra '
+            'i periodi disponibili nel prodotto: 24 ore, 7 giorni o 30 giorni. '
+            'I dati tecnici strettamente necessari a sicurezza, controllo '
+            'anti-abuso o integrità possono seguire periodi diversi quando '
+            'necessario e consentito. Alla chiusura può essere conservato un '
+            'Verified Result come snapshot aggregato immutabile con Report ID, '
+            'versione/schema e hash SHA-256, per preservare integrità e storico '
+            'del risultato. Se la visibilità è Solo organizzatore, il report '
+            'non è disponibile tramite verifica pubblica; negli altri casi '
+            'previsti può essere accessibile tramite URL o QR di verifica.',
+      ),
+      _LegalSection(
+        title: '17. Ruoli privacy nelle Sessions di una Organization',
+        body: 'Quando una Organization usa Sessions per proprie finalità, la '
+            'qualificazione dei ruoli privacy dipende dal contesto concreto, '
+            'dalle finalità e dagli accordi applicabili. L’organizzatore '
+            'definisce normalmente lo scopo operativo e le domande della '
+            'Session; Social Vote tratta i dati necessari a fornire, proteggere '
+            'e documentare il servizio. Quando Social Vote tratta dati per '
+            'conto di un soggetto che agisce come titolare, può essere '
+            'necessario un accordo sul trattamento dei dati ai sensi della '
+            'normativa applicabile. Questa informativa non assegna in modo '
+            'automatico lo stesso ruolo giuridico a ogni possibile Session.',
+      ),
+      _LegalSection(
+        title: '18. Pilot Business e categorie particolari di dati',
+        body: 'Nel pilot Business Social Vote raccomanda di non usare Sessions '
+            'per raccogliere categorie particolari di dati, dati di minori, '
+            'monitoraggio dei dipendenti o altre informazioni ad alto rischio '
+            'senza una valutazione specifica. L’organizzatore deve evitare '
+            'domande non necessarie e verificare la base giuridica e le '
+            'condizioni applicabili quando le risposte possono rivelare dati '
+            'particolari. Social Vote non utilizza le scelte nelle Sessions per '
+            'pubblicità personalizzata.',
       ),
     ],
   );
 
   static const _LegalDocument _privacyEnglish = _LegalDocument(
-    notice: 'Privacy Policy updated on 16 August 2026. Official website: '
+    notice: 'Privacy Policy updated on 23 August 2026. Official website: '
         'socialevote.com. Social Vote is intended only for people aged 18 or '
         'older.',
     sections: [
@@ -701,16 +875,79 @@ class _LegalDocument {
       ),
       _LegalSection(
         title: '13. Changes and effective date',
-        body: 'This Privacy Policy is updated as of 16 August 2026. Material '
+        body: 'This Privacy Policy is updated as of 23 August 2026. Material '
             'changes will be communicated through the app or another '
             'appropriate channel where required. The public version is '
             'available at socialevote.com/privacy.',
+      ),
+      _LegalSection(
+        title: '14. Organizations, membership and Workspace data',
+        body: 'To create, verify and manage an Organization, Social Vote may '
+            'process legal and public name, organization type, country and '
+            'city, website, description, logo and cover, verification status, '
+            'data and evidence submitted with a request, representative role '
+            'and membership data such as member account, role and status. Data '
+            'intended for the public Organization profile may be visible on the '
+            'Web; internal membership, audit and verification data is limited '
+            'to authorised access under the relevant features and policies.',
+      ),
+      _LegalSection(
+        title: '15. Sessions and participant data',
+        body: 'A Session may include its title, configuration, questions and '
+            'options, status, access mode, result visibility, expected '
+            'participant count, counters and retention period. In Controlled '
+            'Anonymous, plaintext Access Passes are shown to the organizer only '
+            'when they are generated; the backend stores the hash needed for '
+            'validation. A participant receives a technical Session credential '
+            'that may be stored locally in the browser to prevent ordinary '
+            'duplicates and preserve state. The ballot is separate and does '
+            'not contain fields linking identity, Access Pass or participant '
+            'credential to the choice. In Open Anonymous, duplicate and abuse '
+            'controls are best-effort and do not constitute a '
+            'one-person-one-vote guarantee.',
+      ),
+      _LegalSection(
+        title: '16. Session retention and Verified Result',
+        body: 'For raw Session ballots, the organizer selects one of the '
+            'retention periods available in the product: 24 hours, 7 days or '
+            '30 days. Technical data strictly necessary for security, abuse '
+            'prevention or integrity may follow different periods where '
+            'necessary and permitted. When the Session closes, a Verified '
+            'Result may be retained as an immutable aggregate snapshot with '
+            'Report ID, version/schema and SHA-256 hash to preserve integrity '
+            'and the historical result. If visibility is Organizer Only, the '
+            'report is not available through public verification; in other '
+            'supported cases it may be accessible through a verification URL '
+            'or QR code.',
+      ),
+      _LegalSection(
+        title: '17. Privacy roles for Organization Sessions',
+        body:
+            'When an Organization uses Sessions for its own purposes, privacy '
+            'roles depend on the specific context, purposes and applicable '
+            'agreements. The organizer normally defines the operational '
+            'purpose and Session questions; Social Vote processes data needed '
+            'to provide, secure and document the service. Where Social Vote '
+            'processes personal data on behalf of an entity acting as '
+            'controller, a data-processing agreement may be required under '
+            'applicable law. This Privacy Policy does not automatically assign '
+            'the same legal role to every possible Session.',
+      ),
+      _LegalSection(
+        title: '18. Business pilot and special-category data',
+        body: 'During the Business pilot, Social Vote recommends not using '
+            'Sessions to collect special-category data, children’s data, '
+            'employee monitoring information or other high-risk information '
+            'without a specific assessment. Organizers should avoid unnecessary '
+            'questions and verify the applicable lawful basis and conditions '
+            'where answers may reveal special-category data. Social Vote does '
+            'not use Session choices for personalised advertising.',
       ),
     ],
   );
 
   static const _LegalDocument _termsGerman = _LegalDocument(
-    notice: 'Version aktualisiert am 16. August 2026. Offizielle Website: '
+    notice: 'Version aktualisiert am 23. August 2026. Offizielle Website: '
         'socialevote.com. Social Vote richtet sich ausschließlich an Personen '
         'ab 18 Jahren.',
     sections: [
@@ -728,13 +965,16 @@ class _LegalDocument {
       _LegalSection(
         title: '2. Der Dienst',
         body: 'Social Vote ist eine bürgerorientierte und soziale Plattform. '
-            'Sie ermöglicht das Lesen öffentlicher Inhalte, die Teilnahme an '
-            'Umfragen, das Veröffentlichen von Beiträgen und Kommentaren, '
-            'Reaktionen und Favoriten, das Lesen von Nachrichten sowie die '
-            'Nutzung geografischer Funktionen und der Civic Map. Einige '
-            'Funktionen erfordern eine Anmeldung oder einen bestimmten '
-            'Verifizierungsstand. Der Dienst kann aus Gründen der Sicherheit, '
-            'Compliance, Wartung oder Produktverbesserung geändert, '
+            'Sie ermöglicht das Lesen öffentlicher Inhalte, die Nutzung von '
+            'Pulse und Pulse Now, die Teilnahme an Vote (Umfragen und '
+            'Konsultationen), die Veröffentlichung von Voci, Kommentare, '
+            'Reaktionen und gespeicherte Inhalte, das Lesen von News sowie die '
+            'Nutzung geografischer Funktionen und der Civic Map. Der Dienst '
+            'umfasst außerdem Organization-Profile, Workspaces für autorisierte '
+            'Verwaltende und Sessions für Live-Konsultation oder Beteiligung. '
+            'Einige Funktionen erfordern Anmeldung, Berechtigung oder einen '
+            'bestimmten Verifizierungsstatus. Der Dienst kann aus Gründen der '
+            'Sicherheit, Compliance, Wartung oder Produktverbesserung geändert, '
             'vorübergehend ausgesetzt oder aktualisiert werden.',
       ),
       _LegalSection(
@@ -847,11 +1087,66 @@ class _LegalDocument {
             'Nutzungsbedingungen sind öffentlich unter '
             'socialevote.com/terms verfügbar.',
       ),
+      _LegalSection(
+        title: '13. Organizations, Mitgliedschaften und offizielle Identität',
+        body: 'Ein persönliches Konto kann eine getrennte Organization über '
+            'Mitgliedschaften und autorisierte Rollen verwalten. Wer für eine '
+            'Organization handelt, erklärt, über die erforderliche Befugnis zur '
+            'Vertretung oder Verwaltung zu verfügen. Als Organization '
+            'veröffentlichte Angaben und Inhalte müssen richtig und dürfen nicht '
+            'irreführend sein. Die Verifizierung einer Organization ist von '
+            'bezahlten Diensten getrennt und kann nicht gekauft werden. Social '
+            'Vote kann den Workspace-Zugang aussetzen oder überprüfen, wenn '
+            'Befugnis, Sicherheit oder Verifizierungsanforderungen nicht mehr '
+            'erfüllt sind.',
+      ),
+      _LegalSection(
+        title: '14. Sessions, Access Passes und Pflichten des Organisators',
+        body:
+            'Sessions ermöglichen Live-Konsultation oder Beteiligung als Open '
+            'Anonymous oder Controlled Anonymous. Open Anonymous verwendet '
+            'bestmögliche Duplikatkontrollen und garantiert nicht eine Person – '
+            'eine Stimme. Controlled Anonymous verwendet einmalige anonyme '
+            'Access Passes; Social Vote speichert die zur Prüfung erforderlichen '
+            'Hashes und hält die technischen Zugangsdaten von der Stimmabgabe '
+            'getrennt. Der Organisator legt operativen Zweck, Fragen, '
+            'Ergebnis-Sichtbarkeit und verfügbaren Aufbewahrungszeitraum fest '
+            'und muss für seinen Anwendungsfall geeignete Hinweise und '
+            'Rechtsgrundlagen sicherstellen. Im Pilot dürfen Sessions nicht als '
+            'offizielle Wahlen, rechtsverbindliche Satzungsabstimmungen oder '
+            'Ersatz für Verfahren mit zusätzlichen rechtlichen oder technischen '
+            'Anforderungen verwendet werden.',
+      ),
+      _LegalSection(
+        title: '15. Verified Result und Integrität',
+        body: 'Beim Schließen einer Session kann ein Verified Result mit '
+            'aggregiertem Snapshot, Report-ID und SHA-256-Integritätsprüfung '
+            'erstellt werden. Soweit die Policy dies erlaubt, kann der Report '
+            'über eine öffentliche URL oder einen QR-Code verifiziert werden; '
+            'bei Ergebnissen nur für den Organisator ist die öffentliche '
+            'Verifizierung deaktiviert. Die Integritätsprüfung dient dazu, '
+            'Änderungen gegenüber dem versiegelten Snapshot zu erkennen; sie ist '
+            'keine notarielle, wahlrechtliche, satzungsrechtliche oder '
+            'rechtsverbindliche Zertifizierung. Technische Anonymität schließt '
+            'nicht aus, dass Fragen oder Kontext des Organisators eine Antwort '
+            'indirekt identifizierbar machen.',
+      ),
+      _LegalSection(
+        title: '16. Business-Pilot und zukünftige kostenpflichtige Funktionen',
+        body: 'Organizations und Sessions stehen derzeit gemäß den im Produkt '
+            'angezeigten Pilotbedingungen ohne automatische Abrechnung zur '
+            'Verfügung. Zukünftige Business-Pläne, Limits oder kostenpflichtige '
+            'Funktionen werden vor einer Belastung separat mit Preisen, '
+            'Bedingungen und erforderlicher Zustimmung dargestellt. Eine '
+            'Zahlung verleiht oder garantiert keinen Verifizierungsstatus. '
+            'Business-Nutzende bleiben für die Rechtmäßigkeit ihrer Fragen, '
+            'Inhalte, Zwecke und Nutzung des Dienstes verantwortlich.',
+      ),
     ],
   );
 
   static const _LegalDocument _privacyGerman = _LegalDocument(
-    notice: 'Datenschutzerklärung aktualisiert am 16. August 2026. Offizielle '
+    notice: 'Datenschutzerklärung aktualisiert am 23. August 2026. Offizielle '
         'Website: socialevote.com. Social Vote richtet sich ausschließlich an '
         'Personen ab 18 Jahren.',
     sections: [
@@ -1002,10 +1297,80 @@ class _LegalDocument {
       ),
       _LegalSection(
         title: '13. Änderungen und Stand',
-        body: 'Diese Datenschutzerklärung hat den Stand 16. August 2026. '
+        body: 'Diese Datenschutzerklärung hat den Stand 23. August 2026. '
             'Wesentliche Änderungen werden, soweit erforderlich, über die App '
             'oder einen anderen geeigneten Kanal mitgeteilt. Die öffentliche '
             'Fassung ist unter socialevote.com/privacy verfügbar.',
+      ),
+      _LegalSection(
+        title: '14. Organizations, Mitgliedschaften und Workspace-Daten',
+        body: 'Zur Erstellung, Verifizierung und Verwaltung einer Organization '
+            'kann Social Vote rechtlichen und öffentlichen Namen, '
+            'Organisationstyp, Land und Stadt, Website, Beschreibung, Logo und '
+            'Titelbild, Verifizierungsstatus, mit einem Antrag übermittelte '
+            'Daten und Nachweise, Rolle der vertretenden Person sowie '
+            'Mitgliedschaftsdaten wie Mitgliedskonto, Rolle und Status '
+            'verarbeiten. Für das öffentliche Organization-Profil bestimmte '
+            'Daten können im Web sichtbar sein; interne Mitgliedschafts-, '
+            'Audit- und Verifizierungsdaten sind gemäß den jeweiligen '
+            'Funktionen und Policies auf autorisierte Zugriffe beschränkt.',
+      ),
+      _LegalSection(
+        title: '15. Sessions und Teilnehmerdaten',
+        body: 'Eine Session kann Titel, Konfiguration, Fragen und Optionen, '
+            'Status, Zugangsmodus, Ergebnis-Sichtbarkeit, erwartete '
+            'Teilnehmerzahl, Zähler und Aufbewahrungszeitraum umfassen. Bei '
+            'Controlled Anonymous werden Access Passes im Klartext dem '
+            'Organisator nur bei ihrer Erzeugung angezeigt; das Backend '
+            'speichert den für die Validierung erforderlichen Hash. Ein '
+            'Teilnehmer erhält technische Session-Zugangsdaten, die lokal im '
+            'Browser gespeichert werden können, um gewöhnliche Duplikate zu '
+            'verhindern und den Status zu erhalten. Die Stimmabgabe ist '
+            'getrennt und enthält keine Felder, die Identität, Access Pass oder '
+            'Teilnehmerzugang mit der Auswahl verknüpfen. Bei Open Anonymous '
+            'sind Duplikat- und Missbrauchskontrollen bestmöglich und keine '
+            'Garantie für eine Person – eine Stimme.',
+      ),
+      _LegalSection(
+        title: '16. Aufbewahrung von Sessions und Verified Result',
+        body:
+            'Für rohe Session-Stimmabgaben wählt der Organisator einen der im '
+            'Produkt verfügbaren Aufbewahrungszeiträume: 24 Stunden, 7 Tage '
+            'oder 30 Tage. Technische Daten, die für Sicherheit, '
+            'Missbrauchsschutz oder Integrität unbedingt erforderlich sind, '
+            'können, soweit erforderlich und zulässig, anderen Zeiträumen '
+            'unterliegen. Beim Schließen kann ein Verified Result als '
+            'unveränderlicher aggregierter Snapshot mit Report-ID, '
+            'Version/Schema und SHA-256-Hash aufbewahrt werden. Bei Sichtbarkeit '
+            'nur für den Organisator ist der Report nicht öffentlich '
+            'verifizierbar; in anderen unterstützten Fällen kann er über '
+            'Verifizierungs-URL oder QR-Code erreichbar sein.',
+      ),
+      _LegalSection(
+        title: '17. Datenschutzrollen bei Organization-Sessions',
+        body: 'Wenn eine Organization Sessions für eigene Zwecke verwendet, '
+            'hängen die Datenschutzrollen vom konkreten Kontext, den Zwecken '
+            'und den anwendbaren Vereinbarungen ab. Der Organisator legt '
+            'normalerweise den operativen Zweck und die Fragen der Session '
+            'fest; Social Vote verarbeitet die zur Bereitstellung, Absicherung '
+            'und Dokumentation des Dienstes erforderlichen Daten. Soweit Social '
+            'Vote personenbezogene Daten im Auftrag eines Verantwortlichen '
+            'verarbeitet, kann nach anwendbarem Recht eine Vereinbarung zur '
+            'Auftragsverarbeitung erforderlich sein. Diese '
+            'Datenschutzerklärung weist nicht automatisch jeder möglichen '
+            'Session dieselbe rechtliche Rolle zu.',
+      ),
+      _LegalSection(
+        title: '18. Business-Pilot und besondere Kategorien von Daten',
+        body: 'Im Business-Pilot empfiehlt Social Vote, Sessions nicht ohne '
+            'spezifische Bewertung zur Erhebung besonderer Kategorien '
+            'personenbezogener Daten, von Daten Minderjähriger, zur '
+            'Mitarbeiterüberwachung oder für andere risikoreiche Informationen '
+            'zu verwenden. Organisatoren sollten unnötige Fragen vermeiden und '
+            'die anwendbare Rechtsgrundlage und Voraussetzungen prüfen, wenn '
+            'Antworten besondere Kategorien von Daten offenbaren können. '
+            'Social Vote verwendet Session-Entscheidungen nicht für '
+            'personalisierte Werbung.',
       ),
     ],
   );

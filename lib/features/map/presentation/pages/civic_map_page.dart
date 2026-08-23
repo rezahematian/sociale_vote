@@ -1287,14 +1287,14 @@ class _MarkerPreviewCard extends StatelessWidget {
     switch (type) {
       case CivicMapItemType.poll:
         return Localizations.localeOf(context).languageCode == 'it'
-            ? 'Sondaggio'
-            : deOrEnglish(context, english: 'Poll', german: 'Umfrage');
+            ? 'Vote'
+            : deOrEnglish(context, english: 'Vote', german: 'Vote');
       case CivicMapItemType.post:
-        return 'Post';
+        return 'Voce';
       case CivicMapItemType.news:
         return Localizations.localeOf(context).languageCode == 'it'
-            ? 'Notizia'
-            : deOrEnglish(context, english: 'News', german: 'Nachrichten');
+            ? 'News'
+            : deOrEnglish(context, english: 'News', german: 'News');
     }
   }
 
@@ -1514,14 +1514,14 @@ class _MapTypeFilters extends StatelessWidget {
     switch (type) {
       case CivicMapItemType.poll:
         return Localizations.localeOf(context).languageCode == 'it'
-            ? 'Sondaggio'
-            : deOrEnglish(context, english: 'Poll', german: 'Umfrage');
+            ? 'Vote'
+            : deOrEnglish(context, english: 'Vote', german: 'Vote');
       case CivicMapItemType.post:
-        return 'Post';
+        return 'Voce';
       case CivicMapItemType.news:
         return Localizations.localeOf(context).languageCode == 'it'
-            ? 'Notizie'
-            : deOrEnglish(context, english: 'News', german: 'Nachrichten');
+            ? 'News'
+            : deOrEnglish(context, english: 'News', german: 'News');
     }
   }
 

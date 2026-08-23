@@ -44,7 +44,11 @@ class SessionPdfService {
     required AppLocalizations l10n,
   }) async {
     final snapshot = report.snapshot;
-    final verifyUrl = AppRouter.publicVerifiedSessionUrl(report.reportId);
+    final organizerOnly =
+        _text(snapshot['results_visibility']) == 'organizer_only';
+    final verifyUrl = organizerOnly
+        ? ''
+        : AppRouter.publicVerifiedSessionUrl(report.reportId);
     final questions = snapshot['questions'] is List
         ? snapshot['questions'] as List
         : const <dynamic>[];
@@ -440,34 +444,65 @@ class SessionPdfService {
                         report.sha256,
                         style: baseStyle.copyWith(fontSize: 7.6),
                       ),
-                      pw.SizedBox(height: 6),
-                      pw.Text(
-                        verifyUrl,
-                        style: baseStyle.copyWith(fontSize: 7.6, color: muted),
-                      ),
+                      if (!organizerOnly) ...[
+                        pw.SizedBox(height: 6),
+                        pw.Text(
+                          verifyUrl,
+                          style:
+                              baseStyle.copyWith(fontSize: 7.6, color: muted),
+                        ),
+                      ],
                     ],
                   ),
                 ),
                 pw.SizedBox(width: 16),
-                pw.Column(
-                  children: [
-                    pw.BarcodeWidget(
-                      data: verifyUrl,
-                      barcode: pw.Barcode.qrCode(),
-                      width: 98,
-                      height: 98,
-                    ),
-                    pw.SizedBox(height: 6),
-                    pw.SizedBox(
-                      width: 116,
-                      child: pw.Text(
-                        l10n.verifiedCertificateVerifyQr,
-                        textAlign: pw.TextAlign.center,
-                        style: baseStyle.copyWith(fontSize: 7.4, color: muted),
+                if (!organizerOnly)
+                  pw.Column(
+                    children: [
+                      pw.BarcodeWidget(
+                        data: verifyUrl,
+                        barcode: pw.Barcode.qrCode(),
+                        width: 98,
+                        height: 98,
                       ),
+                      pw.SizedBox(height: 6),
+                      pw.SizedBox(
+                        width: 116,
+                        child: pw.Text(
+                          l10n.verifiedCertificateVerifyQr,
+                          textAlign: pw.TextAlign.center,
+                          style:
+                              baseStyle.copyWith(fontSize: 7.4, color: muted),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  pw.Container(
+                    width: 132,
+                    padding: const pw.EdgeInsets.all(10),
+                    decoration: pw.BoxDecoration(
+                      color: panel,
+                      borderRadius: pw.BorderRadius.circular(8),
+                      border: pw.Border.all(color: line, width: 0.7),
                     ),
-                  ],
-                ),
+                    child: pw.Column(
+                      children: [
+                        pw.Text(
+                          l10n.verifiedResultPrivateVerificationTitle,
+                          textAlign: pw.TextAlign.center,
+                          style: boldStyle,
+                        ),
+                        pw.SizedBox(height: 4),
+                        pw.Text(
+                          l10n.verifiedResultPrivateVerificationBody,
+                          textAlign: pw.TextAlign.center,
+                          style:
+                              baseStyle.copyWith(fontSize: 7.4, color: muted),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),

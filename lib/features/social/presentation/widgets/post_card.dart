@@ -267,7 +267,9 @@ class PostCard extends StatelessWidget {
     final authorId = post.createdByUserId?.trim();
     final chip = _buildHeaderChip(
       theme: theme,
-      icon: Icons.person_outline_rounded,
+      icon: post.publisherOrganizationId != null
+          ? Icons.business_rounded
+          : Icons.person_outline_rounded,
       label: authorName,
       backgroundColor: theme.brightness == Brightness.dark
           ? const Color(0xFF1C2836)
@@ -292,7 +294,9 @@ class PostCard extends StatelessWidget {
           : null,
     );
 
-    if (authorId == null || authorId.isEmpty) {
+    if (post.publisherOrganizationId != null ||
+        authorId == null ||
+        authorId.isEmpty) {
       return chip;
     }
 

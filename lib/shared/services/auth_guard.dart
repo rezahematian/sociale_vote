@@ -634,8 +634,10 @@ class AuthGuard {
         return isItalian
             ? 'Questa area è disponibile solo per organizzazioni verificate.'
             : deOrEnglish(context,
-                english: 'This area is available only to verified organizations.',
-                german: 'Dieser Bereich ist nur für verifizierte Organisationen verfügbar.');
+                english:
+                    'This area is available only to verified organizations.',
+                german:
+                    'Dieser Bereich ist nur für verifizierte Organisationen verfügbar.');
       case ParticipationAction.vote:
       case ParticipationAction.createPoll:
       case ParticipationAction.react:
@@ -664,9 +666,9 @@ class AuthGuard {
             : deOrEnglish(context, english: 'vote', german: 'abzustimmen');
       case ParticipationAction.createPoll:
         return isItalian
-            ? 'creare un sondaggio'
+            ? 'creare un Vote'
             : deOrEnglish(context,
-                english: 'create a poll', german: 'eine Umfrage zu erstellen');
+                english: 'create a Vote', german: 'einen Vote zu erstellen');
       case ParticipationAction.react:
         return isItalian
             ? 'reagire con 🔥 o ❄'
@@ -680,9 +682,9 @@ class AuthGuard {
                 english: 'comment', german: 'zu kommentieren');
       case ParticipationAction.createPost:
         return isItalian
-            ? 'creare un post'
+            ? 'creare una Voce'
             : deOrEnglish(context,
-                english: 'create a post', german: 'einen Beitrag zu erstellen');
+                english: 'create a Voce', german: 'eine Voce zu erstellen');
       case ParticipationAction.followScope:
         return isItalian
             ? 'seguire quest\'area geografica'

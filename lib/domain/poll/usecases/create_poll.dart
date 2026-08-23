@@ -28,16 +28,18 @@ class CreatePoll {
 
     _validateRepresentativePublishingSnapshot(poll);
 
-    final now = DateTime.now();
-    final startOfLocalDay = DateTime(now.year, now.month, now.day);
+    if (poll.publisherOrganizationId == null) {
+      final now = DateTime.now();
+      final startOfLocalDay = DateTime(now.year, now.month, now.day);
 
-    final hasCreatedToday = await repository.hasUserCreatedPollSince(
-      userId: createdByUserId,
-      since: startOfLocalDay.toUtc(),
-    );
+      final hasCreatedToday = await repository.hasUserCreatedPollSince(
+        userId: createdByUserId,
+        since: startOfLocalDay.toUtc(),
+      );
 
-    if (hasCreatedToday) {
-      throw Exception('daily poll limit reached');
+      if (hasCreatedToday) {
+        throw Exception('daily poll limit reached');
+      }
     }
 
     return repository.createPoll(poll);

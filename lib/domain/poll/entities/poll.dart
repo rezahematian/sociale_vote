@@ -52,6 +52,11 @@ class Poll {
   /// Utente che ha creato tecnicamente il poll.
   final String? createdByUserId;
 
+  /// Organization ufficiale usata come publisher, se presente.
+  ///
+  /// Il creatore tecnico resta [createdByUserId].
+  final String? publisherOrganizationId;
+
   /// Snapshot pubblico del creatore usato dalle superfici elenco/card.
   ///
   /// Questi campi vengono valorizzati dalla repository leggendo il profilo
@@ -102,6 +107,7 @@ class Poll {
     this.cityId,
     this.contentLocation,
     this.createdByUserId,
+    this.publisherOrganizationId,
     this.authorName,
     this.authorActorType = ActorType.citizen,
     this.authorVerificationLevel = VerificationLevel.none,
@@ -209,6 +215,7 @@ class Poll {
     String? cityId,
     ContentLocation? contentLocation,
     String? createdByUserId,
+    String? publisherOrganizationId,
     String? authorName,
     ActorType? authorActorType,
     VerificationLevel? authorVerificationLevel,
@@ -233,6 +240,8 @@ class Poll {
       cityId: cityId ?? this.cityId,
       contentLocation: contentLocation ?? this.contentLocation,
       createdByUserId: createdByUserId ?? this.createdByUserId,
+      publisherOrganizationId:
+          publisherOrganizationId ?? this.publisherOrganizationId,
       authorName: authorName ?? this.authorName,
       authorActorType: authorActorType ?? this.authorActorType,
       authorVerificationLevel:

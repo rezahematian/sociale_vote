@@ -147,6 +147,7 @@ class PostRepositoryImpl implements PostRepository {
       'country_code': post.countryCode ?? post.contentLocation?.countryCode,
       'city_id': post.cityId ?? post.contentLocation?.cityId,
       'content_location': post.contentLocation?.toJson(),
+      'publisher_organization_id': post.publisherOrganizationId,
     };
 
     if (kDebugMode) {
@@ -211,6 +212,15 @@ class PostRepositoryImpl implements PostRepository {
     final authorsById = await _loadAuthorsById(authorIds);
     final authorIdentityById = await _loadAuthorIdentityById(authorIds);
 
+    final publisherOrganizationIds = normalizedRows
+        .map((row) => row['publisher_organization_id'])
+        .whereType<String>()
+        .where((id) => id.trim().isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+    final organizationIdentityById =
+        await _loadOrganizationIdentityById(publisherOrganizationIds);
+
     return normalizedRows.map((row) {
       final authorId = row['author_id'] as String?;
       final createdAtRaw = row['created_at'];
@@ -227,16 +237,26 @@ class PostRepositoryImpl implements PostRepository {
           rowCountryCode ?? contentLocation?.countryCode;
       final effectiveCityId = rowCityId ?? contentLocation?.cityId;
       final authorIdentity = authorIdentityById[authorId];
+      final publisherOrganizationId =
+          row['publisher_organization_id'] as String?;
+      final organizationIdentity =
+          organizationIdentityById[publisherOrganizationId];
 
       return Post(
         id: EntityId(row['id'] as String),
-        authorName: authorIdentity?.displayName ??
+        authorName: organizationIdentity?.publicName ??
+            authorIdentity?.displayName ??
             authorsById[authorId] ??
             'Unknown user',
-        authorActorType: authorIdentity?.actorType ?? ActorType.citizen,
-        authorVerificationLevel:
-            authorIdentity?.verificationLevel ?? VerificationLevel.none,
-        authorInstitutionLevel: authorIdentity?.institutionLevel,
+        authorActorType: organizationIdentity != null
+            ? ActorType.organization
+            : (authorIdentity?.actorType ?? ActorType.citizen),
+        authorVerificationLevel: organizationIdentity != null
+            ? VerificationLevel.none
+            : (authorIdentity?.verificationLevel ?? VerificationLevel.none),
+        authorInstitutionLevel: organizationIdentity != null
+            ? null
+            : authorIdentity?.institutionLevel,
         title: (row['title'] as String?) ?? '',
         content: (row['content'] as String?) ?? '',
         createdAt: _parseDateTime(createdAtRaw),
@@ -246,6 +266,7 @@ class PostRepositoryImpl implements PostRepository {
         cityId: effectiveCityId,
         contentLocation: contentLocation,
         createdByUserId: authorId,
+        publisherOrganizationId: publisherOrganizationId,
       );
     }).toList(growable: false);
   }
@@ -369,6 +390,42 @@ class PostRepositoryImpl implements PostRepository {
     }
 
     return result;
+  }
+
+  Future<Map<String, _PostOrganizationIdentity>> _loadOrganizationIdentityById(
+      List<String> organizationIds) async {
+    if (organizationIds.isEmpty) {
+      return const <String, _PostOrganizationIdentity>{};
+    }
+
+    try {
+      final raw = await AppSupabase.client.rpc(
+        'organization_get_public_identities',
+        params: <String, dynamic>{
+          'p_organization_ids': organizationIds,
+        },
+      );
+      final rows = raw is List ? raw : const <dynamic>[];
+      final result = <String, _PostOrganizationIdentity>{};
+
+      for (final item in rows) {
+        if (item is! Map) continue;
+        final row = Map<String, dynamic>.from(item);
+        final id = row['organization_id']?.toString().trim();
+        final publicName = row['public_name']?.toString().trim();
+        if (id == null ||
+            id.isEmpty ||
+            publicName == null ||
+            publicName.isEmpty) {
+          continue;
+        }
+        result[id] = _PostOrganizationIdentity(publicName: publicName);
+      }
+
+      return result;
+    } catch (_) {
+      return const <String, _PostOrganizationIdentity>{};
+    }
   }
 
   ActorType _parseActorType(
@@ -519,6 +576,14 @@ class PostRepositoryImpl implements PostRepository {
     }
     return null;
   }
+}
+
+class _PostOrganizationIdentity {
+  final String publicName;
+
+  const _PostOrganizationIdentity({
+    required this.publicName,
+  });
 }
 
 class _PostAuthorIdentity {

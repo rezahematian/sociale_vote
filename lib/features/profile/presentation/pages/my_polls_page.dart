@@ -28,11 +28,11 @@ class MyPollsPage extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Text(
               isItalian
-                  ? 'Devi accedere per vedere i tuoi sondaggi.'
+                  ? 'Devi accedere per vedere i tuoi Vote.'
                   : deOrEnglish(context,
-                      english: 'You must be logged in to view your polls.',
+                      english: 'You must be logged in to view your Vote.',
                       german:
-                          'Du musst angemeldet sein, um deine Umfragen anzuzeigen.'),
+                          'Du musst angemeldet sein, um deine Vote anzuzeigen.'),
               textAlign: TextAlign.center,
             ),
           ),
@@ -88,10 +88,10 @@ class _MyPollsView extends StatelessWidget {
           children: [
             Text(
               isItalian
-                  ? 'Sondaggi creati da te'
+                  ? 'Vote creati da te'
                   : deOrEnglish(context,
-                      english: 'Polls created by you',
-                      german: 'Von dir erstellte Umfragen'),
+                      english: 'Vote created by you',
+                      german: 'Von dir erstellte Vote'),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -108,10 +108,10 @@ class _MyPollsView extends StatelessWidget {
                   padding: const EdgeInsets.all(12),
                   child: Text(
                     isItalian
-                        ? 'Non hai ancora creato sondaggi.'
+                        ? 'Non hai ancora creato Vote.'
                         : deOrEnglish(context,
-                            english: 'You have not created any polls yet.',
-                            german: 'Du hast noch keine Umfragen erstellt.'),
+                            english: 'You have not created any Vote yet.',
+                            german: 'Du hast noch keine Vote erstellt.'),
                     style: theme.textTheme.bodyMedium,
                   ),
                 ),

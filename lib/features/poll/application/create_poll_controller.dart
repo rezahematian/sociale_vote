@@ -42,11 +42,11 @@ class CreatePollController extends ChangeNotifier {
     required String? createdByUserId,
     DeviceLocationRepository? deviceLocationRepository,
     GeocodingRepository? geocodingRepository,
-  }) : _createPollUseCase = createPollUseCase,
-       _geoScopeController = geoScopeController,
-       _createdByUserId = createdByUserId,
-       _deviceLocationRepository = deviceLocationRepository,
-       _geocodingRepository = geocodingRepository;
+  })  : _createPollUseCase = createPollUseCase,
+        _geoScopeController = geoScopeController,
+        _createdByUserId = createdByUserId,
+        _deviceLocationRepository = deviceLocationRepository,
+        _geocodingRepository = geocodingRepository;
 
   String _title = '';
   String _description = '';
@@ -76,6 +76,9 @@ class CreatePollController extends ChangeNotifier {
 
   bool _isSubmitting = false;
   String? _errorMessage;
+
+  String? _publisherOrganizationId;
+  String? _publisherOrganizationDisplayName;
 
   String get title => _title;
   String get description => _description;
@@ -111,6 +114,11 @@ class CreatePollController extends ChangeNotifier {
   bool get isSubmitting => _isSubmitting;
   String? get errorMessage => _errorMessage;
 
+  String? get publisherOrganizationId => _publisherOrganizationId;
+  bool get isPublishingAsOrganization =>
+      _publisherOrganizationId != null &&
+      _publisherOrganizationDisplayName != null;
+
   int get _validNonEmptyOptionsCount =>
       _options.where((o) => o.trim().isNotEmpty).length;
 
@@ -145,6 +153,23 @@ class CreatePollController extends ChangeNotifier {
     }
 
     return const ContentLocation(source: ContentLocationSource.manual);
+  }
+
+  void setPublisherOrganization({
+    String? organizationId,
+    String? displayName,
+  }) {
+    _publisherOrganizationId = _normalizeString(organizationId);
+    _publisherOrganizationDisplayName = _normalizeString(displayName);
+
+    if (_publisherOrganizationId == null ||
+        _publisherOrganizationDisplayName == null) {
+      _publisherOrganizationId = null;
+      _publisherOrganizationDisplayName = null;
+    }
+
+    _errorMessage = null;
+    notifyListeners();
   }
 
   void setTitle(String value) {
@@ -194,22 +219,19 @@ class CreatePollController extends ChangeNotifier {
         break;
       case PollType.multipleChoice:
         _minSelections = 1;
-        _maxSelections = _validNonEmptyOptionsCount > 0
-            ? _validNonEmptyOptionsCount
-            : 2;
+        _maxSelections =
+            _validNonEmptyOptionsCount > 0 ? _validNonEmptyOptionsCount : 2;
         break;
       case PollType.approval:
         _minSelections = 0;
-        _maxSelections = _validNonEmptyOptionsCount > 0
-            ? _validNonEmptyOptionsCount
-            : 2;
+        _maxSelections =
+            _validNonEmptyOptionsCount > 0 ? _validNonEmptyOptionsCount : 2;
         break;
       case PollType.ranked:
       case PollType.score:
         _minSelections = 1;
-        _maxSelections = _validNonEmptyOptionsCount > 0
-            ? _validNonEmptyOptionsCount
-            : 2;
+        _maxSelections =
+            _validNonEmptyOptionsCount > 0 ? _validNonEmptyOptionsCount : 2;
         break;
     }
 
@@ -218,9 +240,8 @@ class CreatePollController extends ChangeNotifier {
   }
 
   void _synchronizeSelectionLimits() {
-    final selectableCount = _validNonEmptyOptionsCount < 2
-        ? 2
-        : _validNonEmptyOptionsCount;
+    final selectableCount =
+        _validNonEmptyOptionsCount < 2 ? 2 : _validNonEmptyOptionsCount;
 
     switch (_type) {
       case PollType.yesNo:
@@ -395,8 +416,8 @@ class CreatePollController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final serviceEnabled = await _deviceLocationRepository
-          .isLocationServiceEnabled();
+      final serviceEnabled =
+          await _deviceLocationRepository.isLocationServiceEnabled();
 
       if (!serviceEnabled) {
         _isResolvingContentLocation = false;
@@ -417,8 +438,8 @@ class CreatePollController extends ChangeNotifier {
         return false;
       }
 
-      final location = await _deviceLocationRepository
-          .getCurrentContentLocation();
+      final location =
+          await _deviceLocationRepository.getCurrentContentLocation();
 
       if (location == null || location.isEmpty) {
         _isResolvingContentLocation = false;
@@ -497,12 +518,16 @@ class CreatePollController extends ChangeNotifier {
     try {
       final profile = await AppDI.instance.getUserProfile(userId);
 
-      final canPublishAsRepresentative = _participationPolicy
-          .canUseRepresentativeIdentityFeatures(
-            actorType: profile.actorType,
-            verificationLevel: profile.verificationLevel,
-            institutionLevel: profile.institutionLevel,
-          );
+      if (profile.actorType == ActorType.organization) {
+        return null;
+      }
+
+      final canPublishAsRepresentative =
+          _participationPolicy.canUseRepresentativeIdentityFeatures(
+        actorType: profile.actorType,
+        verificationLevel: profile.verificationLevel,
+        institutionLevel: profile.institutionLevel,
+      );
 
       if (!canPublishAsRepresentative) {
         return null;
@@ -540,10 +565,8 @@ class CreatePollController extends ChangeNotifier {
 
     final trimmedTitle = _title.trim();
     final trimmedDescription = _description.trim();
-    final nonEmptyOptions = _options
-        .map((o) => o.trim())
-        .where((o) => o.isNotEmpty)
-        .toList();
+    final nonEmptyOptions =
+        _options.map((o) => o.trim()).where((o) => o.isNotEmpty).toList();
 
     final effectiveStartAt = _effectiveStartAt;
     final effectiveEndAt = _effectiveEndAt;
@@ -612,9 +635,9 @@ class CreatePollController extends ChangeNotifier {
 
       final effectiveParticipationCountry =
           _participationScope == ParticipationScope.geoScopeOnly
-          ? (_normalizeCountryCode(_countryCodeForParticipation) ??
-                geoCountryCode)
-          : null;
+              ? (_normalizeCountryCode(_countryCodeForParticipation) ??
+                  geoCountryCode)
+              : null;
 
       if (_participationScope == ParticipationScope.geoScopeOnly &&
           effectiveParticipationCountry == null) {
@@ -665,11 +688,19 @@ class CreatePollController extends ChangeNotifier {
         status = PollStatus.open;
       }
 
-      final representativeProfile =
-          await _resolveRepresentativePublishingProfile();
-      final representativeDisplayName = representativeProfile == null
-          ? null
-          : _representativeDisplayNameFor(representativeProfile);
+      final organizationPublisherId =
+          _normalizeString(_publisherOrganizationId);
+      final organizationPublisherName =
+          _normalizeString(_publisherOrganizationDisplayName);
+
+      final representativeProfile = organizationPublisherId == null
+          ? await _resolveRepresentativePublishingProfile()
+          : null;
+      final representativeDisplayName = organizationPublisherId != null
+          ? organizationPublisherName
+          : representativeProfile == null
+              ? null
+              : _representativeDisplayNameFor(representativeProfile);
 
       final poll = Poll(
         id: temporaryId,
@@ -685,9 +716,12 @@ class CreatePollController extends ChangeNotifier {
         cityId: cityId,
         contentLocation: effectiveLocation.isEmpty ? null : effectiveLocation,
         createdByUserId: _createdByUserId,
-        publishedAsActorType: representativeProfile?.actorType,
-        publishedAsInstitutionLevel:
-            representativeProfile?.actorType == ActorType.institution
+        publisherOrganizationId: organizationPublisherId,
+        publishedAsActorType: organizationPublisherId != null
+            ? ActorType.organization
+            : representativeProfile?.actorType,
+        publishedAsInstitutionLevel: organizationPublisherId == null &&
+                representativeProfile?.actorType == ActorType.institution
             ? representativeProfile?.institutionLevel
             : null,
         publishedAsDisplayName: representativeDisplayName,

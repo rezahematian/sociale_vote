@@ -112,7 +112,7 @@ abstract class AppLocalizations {
   /// No description provided for @createPollPageTitle.
   ///
   /// In en, this message translates to:
-  /// **'Create Poll'**
+  /// **'Create Vote'**
   String get createPollPageTitle;
 
   /// No description provided for @createPollPageSubtitle.
@@ -130,7 +130,7 @@ abstract class AppLocalizations {
   /// No description provided for @createPollBasicInfoSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Define the main details of the poll.'**
+  /// **'Define the main details of the Vote.'**
   String get createPollBasicInfoSubtitle;
 
   /// No description provided for @createPollTitleFieldLabel.
@@ -166,13 +166,13 @@ abstract class AppLocalizations {
   /// No description provided for @createPollTypeFieldLabel.
   ///
   /// In en, this message translates to:
-  /// **'Poll type'**
+  /// **'Vote type'**
   String get createPollTypeFieldLabel;
 
   /// No description provided for @createPollSelectionRules.
   ///
   /// In en, this message translates to:
-  /// **'Selection rules: minimum {min}, maximum {max} selections (automatically adjusted based on poll type and options).'**
+  /// **'Selection rules: minimum {min}, maximum {max} selections (automatically adjusted based on Vote type and options).'**
   String createPollSelectionRules(int min, int max);
 
   /// No description provided for @createPollAllowVoteChangeTitle.
@@ -184,7 +184,7 @@ abstract class AppLocalizations {
   /// No description provided for @createPollAllowVoteChangeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Until the poll is closed.'**
+  /// **'Until the Vote is closed.'**
   String get createPollAllowVoteChangeSubtitle;
 
   /// No description provided for @createPollOptionsTitle.
@@ -244,19 +244,19 @@ abstract class AppLocalizations {
   /// No description provided for @createPollParticipationGeoScopeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Limit this poll to people from a specific country.'**
+  /// **'Limit this Vote to people from a specific country.'**
   String get createPollParticipationGeoScopeSubtitle;
 
   /// No description provided for @createPollCountryFieldLabel.
   ///
   /// In en, this message translates to:
-  /// **'Country for this poll'**
+  /// **'Country for this Vote'**
   String get createPollCountryFieldLabel;
 
   /// No description provided for @createPollCountryFieldHelper.
   ///
   /// In en, this message translates to:
-  /// **'This country will define who is allowed to participate in this poll (future backend integration).'**
+  /// **'This country will define who is allowed to participate in this Vote (future backend integration).'**
   String get createPollCountryFieldHelper;
 
   /// No description provided for @createPollVoteAnonymityTitle.
@@ -304,7 +304,7 @@ abstract class AppLocalizations {
   /// No description provided for @createPollQuorumSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'If set, the poll is considered valid only if at least this number of votes is reached. Leave empty for no quorum.'**
+  /// **'If set, the Vote is considered valid only if at least this number of votes is reached. Leave empty for no quorum.'**
   String get createPollQuorumSubtitle;
 
   /// No description provided for @createPollQuorumMinVotesFieldLabel.
@@ -322,7 +322,7 @@ abstract class AppLocalizations {
   /// No description provided for @createPollTimingSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Define when the poll should be open for voting.'**
+  /// **'Define when the Vote should be open for voting.'**
   String get createPollTimingSubtitle;
 
   /// No description provided for @createPollStartDateLabel.
@@ -352,7 +352,7 @@ abstract class AppLocalizations {
   /// No description provided for @createPollSuccessMessage.
   ///
   /// In en, this message translates to:
-  /// **'Poll created successfully'**
+  /// **'Vote created successfully'**
   String get createPollSuccessMessage;
 
   /// No description provided for @createPollSubmitCreatingLabel.
@@ -364,7 +364,7 @@ abstract class AppLocalizations {
   /// No description provided for @createPollSubmitLabel.
   ///
   /// In en, this message translates to:
-  /// **'Create poll'**
+  /// **'Create Vote'**
   String get createPollSubmitLabel;
 
   /// No description provided for @createPollPollTypeYesNoLabel.
@@ -430,7 +430,7 @@ abstract class AppLocalizations {
   /// No description provided for @createPollResultsVisibilityAlwaysLabel.
   ///
   /// In en, this message translates to:
-  /// **'Always visible (while poll is open)'**
+  /// **'Always visible (while Vote is open)'**
   String get createPollResultsVisibilityAlwaysLabel;
 
   /// No description provided for @createPollResultsVisibilityAfterVoteLabel.
@@ -442,7 +442,7 @@ abstract class AppLocalizations {
   /// No description provided for @createPollResultsVisibilityAfterCloseLabel.
   ///
   /// In en, this message translates to:
-  /// **'Only visible after poll is closed'**
+  /// **'Only visible after Vote is closed'**
   String get createPollResultsVisibilityAfterCloseLabel;
 
   /// No description provided for @homeLoginButton.
@@ -490,7 +490,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchInputHint.
   ///
   /// In en, this message translates to:
-  /// **'Search accounts, polls, news, posts...'**
+  /// **'Search accounts, Vote, News, Voce...'**
   String get searchInputHint;
 
   /// No description provided for @searchClearTooltip.
@@ -508,7 +508,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchTypePolls.
   ///
   /// In en, this message translates to:
-  /// **'Polls'**
+  /// **'Vote'**
   String get searchTypePolls;
 
   /// No description provided for @searchTypeNews.
@@ -520,7 +520,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchTypePosts.
   ///
   /// In en, this message translates to:
-  /// **'Posts'**
+  /// **'Voce'**
   String get searchTypePosts;
 
   /// No description provided for @searchTypeAccounts.
@@ -544,7 +544,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchPollStatusAll.
   ///
   /// In en, this message translates to:
-  /// **'All polls'**
+  /// **'All Vote'**
   String get searchPollStatusAll;
 
   /// No description provided for @searchPollStatusOpen.
@@ -592,7 +592,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchResultTypePoll.
   ///
   /// In en, this message translates to:
-  /// **'Poll'**
+  /// **'Vote'**
   String get searchResultTypePoll;
 
   /// No description provided for @searchResultTypeNews.
@@ -604,7 +604,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchResultTypePost.
   ///
   /// In en, this message translates to:
-  /// **'Post'**
+  /// **'Voce'**
   String get searchResultTypePost;
 
   /// No description provided for @searchResultTypeAccount.
@@ -718,61 +718,61 @@ abstract class AppLocalizations {
   /// No description provided for @homeTrendingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Trending now'**
+  /// **'Pulse Now'**
   String get homeTrendingTitle;
 
   /// No description provided for @homeTrendingError.
   ///
   /// In en, this message translates to:
-  /// **'Unable to load trending content for this area.'**
+  /// **'Unable to load Pulse Now for this area.'**
   String get homeTrendingError;
 
   /// No description provided for @homeTrendingEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No trending content for this scope at the moment.'**
+  /// **'No content in Pulse Now for this area at the moment.'**
   String get homeTrendingEmpty;
 
   /// No description provided for @homeForYouTitle.
   ///
   /// In en, this message translates to:
-  /// **'For You ({scope})'**
+  /// **'Pulse ({scope})'**
   String homeForYouTitle(Object scope);
 
   /// No description provided for @homeForYouError.
   ///
   /// In en, this message translates to:
-  /// **'Unable to load the \"For You\" feed for this area.'**
+  /// **'Unable to load Pulse for this area.'**
   String get homeForYouError;
 
   /// No description provided for @homeForYouEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No suggested \"For You\" content for this scope at the moment.'**
+  /// **'No suggested content in Pulse for this area at the moment.'**
   String get homeForYouEmpty;
 
   /// No description provided for @homePollsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Highlighted Polls ({scope})'**
+  /// **'Vote in focus ({scope})'**
   String homePollsTitle(Object scope);
 
   /// No description provided for @homePollsEmptyTitle.
   ///
   /// In en, this message translates to:
-  /// **'No polls for this area'**
+  /// **'No Vote for this area'**
   String get homePollsEmptyTitle;
 
   /// No description provided for @homePollsEmptySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'There are no polls for this scope.'**
+  /// **'No Vote are available for this area.'**
   String get homePollsEmptySubtitle;
 
   /// No description provided for @homePollsViewAllButton.
   ///
   /// In en, this message translates to:
-  /// **'View all polls'**
+  /// **'View Vote'**
   String get homePollsViewAllButton;
 
   /// No description provided for @homeNewsTitle.
@@ -820,55 +820,55 @@ abstract class AppLocalizations {
   /// No description provided for @homeSocialTitle.
   ///
   /// In en, this message translates to:
-  /// **'Discussions / Feed ({scope})'**
+  /// **'Voce ({scope})'**
   String homeSocialTitle(Object scope);
 
   /// No description provided for @homeSocialErrorTitle.
   ///
   /// In en, this message translates to:
-  /// **'Unable to load discussions'**
+  /// **'Unable to load Voce'**
   String get homeSocialErrorTitle;
 
   /// No description provided for @homeSocialErrorSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'There was a problem loading the social feed for this area.'**
+  /// **'There was a problem loading Voce for this area.'**
   String get homeSocialErrorSubtitle;
 
   /// No description provided for @homeSocialEmptyTitle.
   ///
   /// In en, this message translates to:
-  /// **'No discussions for this area'**
+  /// **'No Voce for this area'**
   String get homeSocialEmptyTitle;
 
   /// No description provided for @homeSocialEmptySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'There are no discussions for this scope at the moment.'**
+  /// **'There is no Voce content for this area at the moment.'**
   String get homeSocialEmptySubtitle;
 
   /// No description provided for @homeSocialViewFeedButton.
   ///
   /// In en, this message translates to:
-  /// **'View social feed'**
+  /// **'View all Voce'**
   String get homeSocialViewFeedButton;
 
   /// No description provided for @pollDetail_title.
   ///
   /// In en, this message translates to:
-  /// **'Poll detail'**
+  /// **'Vote detail'**
   String get pollDetail_title;
 
   /// No description provided for @pollDetail_removeFromFavoritesTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Remove from favorites'**
+  /// **'Remove from saved'**
   String get pollDetail_removeFromFavoritesTooltip;
 
   /// No description provided for @pollDetail_addToFavoritesTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Add to favorites'**
+  /// **'Save'**
   String get pollDetail_addToFavoritesTooltip;
 
   /// No description provided for @pollDetail_chipAnonymous.
@@ -910,13 +910,13 @@ abstract class AppLocalizations {
   /// No description provided for @pollDetail_statusClosedMessage.
   ///
   /// In en, this message translates to:
-  /// **'This poll is closed.'**
+  /// **'This Vote is closed.'**
   String get pollDetail_statusClosedMessage;
 
   /// No description provided for @pollDetail_statusScheduledMessage.
   ///
   /// In en, this message translates to:
-  /// **'This poll is not yet open.'**
+  /// **'This Vote is not yet open.'**
   String get pollDetail_statusScheduledMessage;
 
   /// No description provided for @pollDetail_statusNotAvailableMessage.
@@ -964,7 +964,7 @@ abstract class AppLocalizations {
   /// No description provided for @pollDetail_resultsWhenClosed.
   ///
   /// In en, this message translates to:
-  /// **'Results will be visible when the poll is closed.'**
+  /// **'Results will be visible when the Vote is closed.'**
   String get pollDetail_resultsWhenClosed;
 
   /// No description provided for @pollType_yesNo.
@@ -1060,7 +1060,7 @@ abstract class AppLocalizations {
   /// No description provided for @pollList_title.
   ///
   /// In en, this message translates to:
-  /// **'Polls'**
+  /// **'Vote'**
   String get pollList_title;
 
   /// No description provided for @pollList_scopeWorld.
@@ -1084,19 +1084,19 @@ abstract class AppLocalizations {
   /// No description provided for @pollList_scopeDescriptionGlobal.
   ///
   /// In en, this message translates to:
-  /// **'Showing global polls.'**
+  /// **'Showing global Vote.'**
   String get pollList_scopeDescriptionGlobal;
 
   /// No description provided for @pollList_scopeDescriptionCountry.
   ///
   /// In en, this message translates to:
-  /// **'Showing polls for this country.'**
+  /// **'Showing Vote for this country.'**
   String get pollList_scopeDescriptionCountry;
 
   /// No description provided for @pollList_scopeDescriptionCity.
   ///
   /// In en, this message translates to:
-  /// **'Showing polls for this city.'**
+  /// **'Showing Vote for this city.'**
   String get pollList_scopeDescriptionCity;
 
   /// No description provided for @pollList_filterStatus_all.
@@ -1138,25 +1138,25 @@ abstract class AppLocalizations {
   /// No description provided for @pollList_headerTitle.
   ///
   /// In en, this message translates to:
-  /// **'{scopeLabel} · {count, plural, =0 {no polls found} =1 {1 poll found} other {{count} polls found}}'**
+  /// **'{scopeLabel} · {count, plural, =0 {no Vote found} =1 {1 Vote found} other {{count} Vote found}}'**
   String pollList_headerTitle(Object scopeLabel, int count);
 
   /// No description provided for @pollList_createPollButton.
   ///
   /// In en, this message translates to:
-  /// **'Create poll'**
+  /// **'Create Vote'**
   String get pollList_createPollButton;
 
   /// No description provided for @pollList_paginationHint.
   ///
   /// In en, this message translates to:
-  /// **'Scroll to load more polls…'**
+  /// **'Scroll to load more Vote…'**
   String get pollList_paginationHint;
 
   /// No description provided for @pollList_emptyMessage.
   ///
   /// In en, this message translates to:
-  /// **'No polls matching this filter for this area.'**
+  /// **'No Vote matching this filter for this area.'**
   String get pollList_emptyMessage;
 
   /// No description provided for @pollType_ranked.
@@ -1270,7 +1270,7 @@ abstract class AppLocalizations {
   /// No description provided for @voteError_unauthorized.
   ///
   /// In en, this message translates to:
-  /// **'You are not allowed to vote in this poll.'**
+  /// **'You are not allowed to vote in this Vote.'**
   String get voteError_unauthorized;
 
   /// No description provided for @voteError_generic.
@@ -1378,13 +1378,13 @@ abstract class AppLocalizations {
   /// No description provided for @newsDetail_removeFromFavoritesTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Remove from favorites'**
+  /// **'Remove from saved'**
   String get newsDetail_removeFromFavoritesTooltip;
 
   /// No description provided for @newsDetail_addToFavoritesTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Add to favorites'**
+  /// **'Save'**
   String get newsDetail_addToFavoritesTooltip;
 
   /// No description provided for @newsDetail_bodyFallback.
@@ -1678,13 +1678,13 @@ abstract class AppLocalizations {
   /// Title of the main social feed page
   ///
   /// In en, this message translates to:
-  /// **'Social Feed'**
+  /// **'Voce'**
   String get socialFeedTitle;
 
   /// Button that opens the post creation flow
   ///
   /// In en, this message translates to:
-  /// **'Create post'**
+  /// **'Create Voce'**
   String get socialFeedCreatePostButton;
 
   /// Generic Cancel button label
@@ -1774,7 +1774,7 @@ abstract class AppLocalizations {
   /// Compact Home dashboard action that opens polls
   ///
   /// In en, this message translates to:
-  /// **'Polls'**
+  /// **'Vote'**
   String get homeHeroPollsAction;
 
   /// Compact Home dashboard action that opens news
@@ -1960,31 +1960,31 @@ abstract class AppLocalizations {
   /// Post detail page title
   ///
   /// In en, this message translates to:
-  /// **'Post detail'**
+  /// **'Voce detail'**
   String get postDetail_title;
 
   /// Favorites update error on the post detail page
   ///
   /// In en, this message translates to:
-  /// **'Unable to update favorites'**
+  /// **'Unable to update saved items'**
   String get postDetail_favoriteUpdateError;
 
   /// Text appended when sharing a post
   ///
   /// In en, this message translates to:
-  /// **'Open Social Vote to view this post.'**
+  /// **'Open Social Vote to view this Voce.'**
   String get postDetail_shareMessage;
 
   /// Post sharing error
   ///
   /// In en, this message translates to:
-  /// **'Unable to share the post'**
+  /// **'Unable to share the Voce'**
   String get postDetail_shareError;
 
   /// Edit post dialog title
   ///
   /// In en, this message translates to:
-  /// **'Edit post'**
+  /// **'Edit Voce'**
   String get postDetail_editDialogTitle;
 
   /// Title field label in the edit post dialog
@@ -2008,19 +2008,19 @@ abstract class AppLocalizations {
   /// Post update confirmation
   ///
   /// In en, this message translates to:
-  /// **'Post updated'**
+  /// **'Voce updated'**
   String get postDetail_updateSuccess;
 
   /// Post update error
   ///
   /// In en, this message translates to:
-  /// **'Unable to update the post'**
+  /// **'Unable to update the Voce'**
   String get postDetail_updateError;
 
   /// Post deletion confirmation title
   ///
   /// In en, this message translates to:
-  /// **'Delete this post?'**
+  /// **'Delete this Voce?'**
   String get postDetail_deleteDialogTitle;
 
   /// Post deletion confirmation message
@@ -2032,31 +2032,31 @@ abstract class AppLocalizations {
   /// Post deletion error
   ///
   /// In en, this message translates to:
-  /// **'Unable to delete the post'**
+  /// **'Unable to delete the Voce'**
   String get postDetail_deleteError;
 
   /// Edit post menu item
   ///
   /// In en, this message translates to:
-  /// **'Edit post'**
+  /// **'Edit Voce'**
   String get postDetail_editMenuItem;
 
   /// Delete post menu item
   ///
   /// In en, this message translates to:
-  /// **'Delete post'**
+  /// **'Delete Voce'**
   String get postDetail_deleteMenuItem;
 
   /// Generic post detail loading error
   ///
   /// In en, this message translates to:
-  /// **'An error occurred while loading the post.'**
+  /// **'An error occurred while loading the Voce.'**
   String get postDetail_loadError;
 
   /// Post not found message
   ///
   /// In en, this message translates to:
-  /// **'Post not found.'**
+  /// **'Voce not found.'**
   String get postDetail_notFound;
 
   /// Post detail error state title
@@ -2086,19 +2086,19 @@ abstract class AppLocalizations {
   /// Add to favorites tooltip on the post detail page
   ///
   /// In en, this message translates to:
-  /// **'Add to favorites'**
+  /// **'Save'**
   String get postDetail_addToFavoritesTooltip;
 
   /// Remove from favorites tooltip on the post detail page
   ///
   /// In en, this message translates to:
-  /// **'Remove from favorites'**
+  /// **'Remove from saved'**
   String get postDetail_removeFromFavoritesTooltip;
 
   /// Favorites update error on the news detail page
   ///
   /// In en, this message translates to:
-  /// **'Unable to update favorites'**
+  /// **'Unable to update saved items'**
   String get newsDetail_favoriteUpdateError;
 
   /// Text appended when sharing a news item
@@ -2518,37 +2518,37 @@ abstract class AppLocalizations {
   /// Poll detail UI: pollDetail_favoriteUpdateError
   ///
   /// In en, this message translates to:
-  /// **'Unable to update favorites'**
+  /// **'Unable to update saved items'**
   String get pollDetail_favoriteUpdateError;
 
   /// Poll detail UI: pollDetail_shareMessage
   ///
   /// In en, this message translates to:
-  /// **'Open Social Vote to view and vote in this poll.'**
+  /// **'Open Social Vote to view and vote in this Vote.'**
   String get pollDetail_shareMessage;
 
   /// Poll detail UI: pollDetail_shareError
   ///
   /// In en, this message translates to:
-  /// **'Unable to share the poll'**
+  /// **'Unable to share the Vote'**
   String get pollDetail_shareError;
 
   /// Poll detail UI: pollDetail_editPermissionError
   ///
   /// In en, this message translates to:
-  /// **'You can edit only your own polls that have no votes'**
+  /// **'You can edit only your own Vote with no recorded votes'**
   String get pollDetail_editPermissionError;
 
   /// Poll detail UI: pollDetail_editSuccessMessage
   ///
   /// In en, this message translates to:
-  /// **'Poll updated'**
+  /// **'Vote updated'**
   String get pollDetail_editSuccessMessage;
 
   /// Poll detail UI: pollDetail_editMenuItem
   ///
   /// In en, this message translates to:
-  /// **'Edit poll'**
+  /// **'Edit Vote'**
   String get pollDetail_editMenuItem;
 
   /// Poll detail UI: pollDetail_editSavingMenuItem
@@ -2560,19 +2560,19 @@ abstract class AppLocalizations {
   /// Poll detail UI: pollDetail_deletePermissionError
   ///
   /// In en, this message translates to:
-  /// **'You can delete only your own polls'**
+  /// **'You can delete only your own Vote'**
   String get pollDetail_deletePermissionError;
 
   /// Poll detail UI: pollDetail_deleteError
   ///
   /// In en, this message translates to:
-  /// **'Unable to delete the poll'**
+  /// **'Unable to delete the Vote'**
   String get pollDetail_deleteError;
 
   /// Poll detail UI: pollDetail_deleteDialogTitle
   ///
   /// In en, this message translates to:
-  /// **'Delete poll'**
+  /// **'Delete Vote'**
   String get pollDetail_deleteDialogTitle;
 
   /// Poll detail UI: pollDetail_deleteDialogMessage
@@ -2584,7 +2584,7 @@ abstract class AppLocalizations {
   /// Poll detail UI: pollDetail_deleteMenuItem
   ///
   /// In en, this message translates to:
-  /// **'Delete poll'**
+  /// **'Delete Vote'**
   String get pollDetail_deleteMenuItem;
 
   /// Poll detail UI: pollDetail_deleteDeletingMenuItem
@@ -2602,7 +2602,7 @@ abstract class AppLocalizations {
   /// Poll detail UI: pollDetail_publicVotesAvailableMessage
   ///
   /// In en, this message translates to:
-  /// **'This poll allows you to see who voted for each option.'**
+  /// **'This Vote allows you to see who voted for each option.'**
   String get pollDetail_publicVotesAvailableMessage;
 
   /// Poll detail UI: pollDetail_publicVotesAction
@@ -2632,13 +2632,13 @@ abstract class AppLocalizations {
   /// Poll detail UI: pollDetail_voteErrorClosed
   ///
   /// In en, this message translates to:
-  /// **'This poll is closed'**
+  /// **'This Vote is closed'**
   String get pollDetail_voteErrorClosed;
 
   /// Poll detail UI: pollDetail_voteErrorAlreadyVoted
   ///
   /// In en, this message translates to:
-  /// **'You have already voted in this poll'**
+  /// **'You have already voted in this Vote'**
   String get pollDetail_voteErrorAlreadyVoted;
 
   /// Poll detail UI: pollDetail_voteErrorGeneric
@@ -2656,7 +2656,7 @@ abstract class AppLocalizations {
   /// Poll detail UI: pollDetail_publicVotesSheetDescription
   ///
   /// In en, this message translates to:
-  /// **'Here you can see who voted for each option in this poll.'**
+  /// **'Here you can see who voted for each option in this Vote.'**
   String get pollDetail_publicVotesSheetDescription;
 
   /// Poll detail UI: pollDetail_publicVotesSearchHint
@@ -2704,7 +2704,7 @@ abstract class AppLocalizations {
   /// Poll detail UI: pollDetail_editDialogTitle
   ///
   /// In en, this message translates to:
-  /// **'Edit poll'**
+  /// **'Edit Vote'**
   String get pollDetail_editDialogTitle;
 
   /// Poll detail UI: pollDetail_editTitleFieldLabel
@@ -2728,19 +2728,19 @@ abstract class AppLocalizations {
   /// Poll detail UI: pollDetail_editError
   ///
   /// In en, this message translates to:
-  /// **'Unable to update the poll'**
+  /// **'Unable to update the Vote'**
   String get pollDetail_editError;
 
   /// Poll detail UI: pollDetail_loadError
   ///
   /// In en, this message translates to:
-  /// **'Unable to load the poll'**
+  /// **'Unable to load the Vote'**
   String get pollDetail_loadError;
 
   /// Poll detail UI: pollDetail_notFound
   ///
   /// In en, this message translates to:
-  /// **'Poll not found'**
+  /// **'Vote not found'**
   String get pollDetail_notFound;
 
   /// Edit profile UI: profileEditPageTitle
@@ -2914,7 +2914,7 @@ abstract class AppLocalizations {
   /// Notifications UI: notificationsPollResultTitle
   ///
   /// In en, this message translates to:
-  /// **'Poll update'**
+  /// **'Vote update'**
   String get notificationsPollResultTitle;
 
   /// Notifications UI: notificationsCommentReplySubtitle
@@ -2938,7 +2938,7 @@ abstract class AppLocalizations {
   /// Notifications UI: notificationsTargetPost
   ///
   /// In en, this message translates to:
-  /// **'a post'**
+  /// **'a Voce'**
   String get notificationsTargetPost;
 
   /// Notifications UI: notificationsTargetNews
@@ -2950,7 +2950,7 @@ abstract class AppLocalizations {
   /// Notifications UI: notificationsTargetPoll
   ///
   /// In en, this message translates to:
-  /// **'a poll'**
+  /// **'a Vote'**
   String get notificationsTargetPoll;
 
   /// Notifications UI: notificationsTargetVideo
@@ -3844,13 +3844,13 @@ abstract class AppLocalizations {
   /// No description provided for @adminCenterPolls.
   ///
   /// In en, this message translates to:
-  /// **'Polls'**
+  /// **'Vote'**
   String get adminCenterPolls;
 
   /// No description provided for @adminCenterPosts.
   ///
   /// In en, this message translates to:
-  /// **'Posts'**
+  /// **'Voce'**
   String get adminCenterPosts;
 
   /// No description provided for @adminCenterNews.
@@ -4720,13 +4720,13 @@ abstract class AppLocalizations {
   /// No description provided for @adminCenterPoll.
   ///
   /// In en, this message translates to:
-  /// **'Poll'**
+  /// **'Vote'**
   String get adminCenterPoll;
 
   /// No description provided for @adminCenterPost.
   ///
   /// In en, this message translates to:
-  /// **'Post'**
+  /// **'Voce'**
   String get adminCenterPost;
 
   /// No description provided for @adminCenterUnknown.
@@ -5278,13 +5278,13 @@ abstract class AppLocalizations {
   /// No description provided for @profileMyPollsTitle.
   ///
   /// In en, this message translates to:
-  /// **'My polls'**
+  /// **'Vote'**
   String get profileMyPollsTitle;
 
   /// No description provided for @profileMyPostsTitle.
   ///
   /// In en, this message translates to:
-  /// **'My posts'**
+  /// **'Voce'**
   String get profileMyPostsTitle;
 
   /// No description provided for @profileMyCommentsTitle.
@@ -5296,7 +5296,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileMyFavoritesTitle.
   ///
   /// In en, this message translates to:
-  /// **'My favorites'**
+  /// **'My saved'**
   String get profileMyFavoritesTitle;
 
   /// No description provided for @profileAccountConnectionsTitle.
@@ -5422,13 +5422,13 @@ abstract class AppLocalizations {
   /// No description provided for @publicProfilePollsAction.
   ///
   /// In en, this message translates to:
-  /// **'Polls'**
+  /// **'Vote'**
   String get publicProfilePollsAction;
 
   /// No description provided for @publicProfilePostsAction.
   ///
   /// In en, this message translates to:
-  /// **'Posts'**
+  /// **'Voce'**
   String get publicProfilePostsAction;
 
   /// No description provided for @publicProfileBlockUserAction.
@@ -5596,13 +5596,13 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingPollTitle.
   ///
   /// In en, this message translates to:
-  /// **'Polls'**
+  /// **'Vote'**
   String get onboardingPollTitle;
 
   /// No description provided for @onboardingPollDescription.
   ///
   /// In en, this message translates to:
-  /// **'Vote on topics you care about and create polls to collect the community\'s opinion.'**
+  /// **'Take part in a Vote on topics you care about, or create one to collect the community’s opinion.'**
   String get onboardingPollDescription;
 
   /// No description provided for @onboardingHeatIceTitle.
@@ -5626,7 +5626,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingCivicMapDescription.
   ///
   /// In en, this message translates to:
-  /// **'Explore polls, posts, and news on the map and discover what is happening across different areas.'**
+  /// **'Explore Vote, Voce, and News on the map and discover what is happening across different areas.'**
   String get onboardingCivicMapDescription;
 
   /// No description provided for @onboardingGeoScopeTitle.
@@ -5650,7 +5650,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingVerificationDescription.
   ///
   /// In en, this message translates to:
-  /// **'Some Polls may require a verification level to protect voting integrity.'**
+  /// **'Some Vote may require a verification level to protect voting integrity.'**
   String get onboardingVerificationDescription;
 
   /// No description provided for @pollDetail_voteReceiptButton.
@@ -5812,13 +5812,13 @@ abstract class AppLocalizations {
   /// No description provided for @adminCenterPollsCreatedMetric.
   ///
   /// In en, this message translates to:
-  /// **'Polls created'**
+  /// **'Vote created'**
   String get adminCenterPollsCreatedMetric;
 
   /// No description provided for @adminCenterPostsCreatedMetric.
   ///
   /// In en, this message translates to:
-  /// **'Posts created'**
+  /// **'Voce created'**
   String get adminCenterPostsCreatedMetric;
 
   /// No description provided for @adminCenterAdminActionsMetric.
@@ -5908,7 +5908,7 @@ abstract class AppLocalizations {
   /// Title of the Discovery section
   ///
   /// In en, this message translates to:
-  /// **'Discovery'**
+  /// **'Explore'**
   String get discoveryPageTitle;
 
   /// No description provided for @organizationWorkspaceTitle.
@@ -6136,7 +6136,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionAccessControlledHint.
   ///
   /// In en, this message translates to:
-  /// **'Use one-time anonymous credentials. Social Vote stores token hashes and does not link ballot choices to participant credentials.'**
+  /// **'Use one-time anonymous Access Passes. Social Vote stores only the Access Pass hash and does not link ballot choices to participant credentials.'**
   String get sessionAccessControlledHint;
 
   /// No description provided for @sessionResultsVisibility.
@@ -6238,13 +6238,13 @@ abstract class AppLocalizations {
   /// No description provided for @sessionTokensOneTimeBody.
   ///
   /// In en, this message translates to:
-  /// **'Plaintext tokens are shown only in this batch result. Social Vote stores only their hashes. Copy and distribute them securely.'**
+  /// **'Plaintext Access Passes are shown only in this batch result. Social Vote stores only their hashes. Copy and distribute them securely.'**
   String get sessionTokensOneTimeBody;
 
   /// No description provided for @sessionCopyTokens.
   ///
   /// In en, this message translates to:
-  /// **'Copy tokens'**
+  /// **'Copy all links'**
   String get sessionCopyTokens;
 
   /// No description provided for @sessionTokensSavedAction.
@@ -6418,7 +6418,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionPrivacyNotice.
   ///
   /// In en, this message translates to:
-  /// **'The organizer controls the purpose and questions. Social Vote processes the Session. Anonymous modes do not expose participant-level choices to the organizer.'**
+  /// **'The organizer defines the Session’s operational purpose and questions. Social Vote processes the technical data needed to provide and protect the service. Anonymous modes do not expose the link between a participant credential and a choice to the organizer. Privacy roles may depend on context and applicable agreements.'**
   String get sessionPrivacyNotice;
 
   /// No description provided for @sessionNonBindingNotice.
@@ -6562,14 +6562,38 @@ abstract class AppLocalizations {
   /// No description provided for @verifiedResultPrintPdf.
   ///
   /// In en, this message translates to:
-  /// **'Print / Save PDF'**
+  /// **'Download PDF'**
   String get verifiedResultPrintPdf;
 
   /// No description provided for @verifiedResultPdfError.
   ///
   /// In en, this message translates to:
-  /// **'Unable to open the PDF. Try again or check whether the browser blocked a new window.'**
+  /// **'Unable to download the PDF. Try again.'**
   String get verifiedResultPdfError;
+
+  /// No description provided for @verifiedResultRestrictedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restricted result'**
+  String get verifiedResultRestrictedTitle;
+
+  /// No description provided for @verifiedResultRestrictedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This Verified Result is not publicly available. Sign in with an authorized organization account to view it.'**
+  String get verifiedResultRestrictedBody;
+
+  /// No description provided for @verifiedResultPrivateVerificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Public verification unavailable'**
+  String get verifiedResultPrivateVerificationTitle;
+
+  /// No description provided for @verifiedResultPrivateVerificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This result is restricted to the organizer. Report ID, SHA-256, and the integrity check remain available in the authorized report.'**
+  String get verifiedResultPrivateVerificationBody;
 
   /// No description provided for @organizationAccountSectionTitle.
   ///
@@ -7068,6 +7092,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total Sessions'**
   String get organizationTotalSessions;
+
+  /// Participant Session link to the full Privacy Policy
+  ///
+  /// In en, this message translates to:
+  /// **'Read the Privacy Policy'**
+  String get sessionPrivacyPolicyAction;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

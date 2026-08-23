@@ -16,6 +16,7 @@ class CreatePost {
     String? countryCode,
     String? cityId,
     ContentLocation? contentLocation,
+    String? publisherOrganizationId,
   }) {
     final EntityId newId =
         EntityId(DateTime.now().millisecondsSinceEpoch.toString());
@@ -30,6 +31,7 @@ class CreatePost {
       cityId: cityId,
       contentLocation: contentLocation,
       createdByUserId: authorId,
+      publisherOrganizationId: publisherOrganizationId,
     );
 
     return _repository.createPost(post);

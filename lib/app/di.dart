@@ -818,6 +818,7 @@ class AppDI {
     String? countryCode,
     String? cityId,
     ContentLocation? contentLocation,
+    String? publisherOrganizationId,
   }) {
     return createPostUseCase(
       authorId: authorId,
@@ -827,6 +828,7 @@ class AppDI {
       countryCode: countryCode,
       cityId: cityId,
       contentLocation: contentLocation,
+      publisherOrganizationId: publisherOrganizationId,
     );
   }
 
@@ -1264,8 +1266,7 @@ class AppDI {
       return <_NewsMapCandidate>[];
     }
 
-    if (levelName == 'city' &&
-        (!_hasText(countryCode) || !_hasText(cityId))) {
+    if (levelName == 'city' && (!_hasText(countryCode) || !_hasText(cityId))) {
       return <_NewsMapCandidate>[];
     }
 

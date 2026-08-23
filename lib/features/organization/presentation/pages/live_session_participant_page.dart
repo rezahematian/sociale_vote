@@ -731,6 +731,16 @@ class _SessionIntroCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(l10n.sessionPrivacyNotice),
+            const SizedBox(height: 4),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                onPressed: () =>
+                    Navigator.of(context).pushNamed(AppRouter.privacy),
+                icon: const Icon(Icons.privacy_tip_outlined),
+                label: Text(l10n.sessionPrivacyPolicyAction),
+              ),
+            ),
           ],
         ),
       ),

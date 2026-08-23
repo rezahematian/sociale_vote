@@ -65,10 +65,10 @@ class _MyFavoritesPageState extends State<MyFavoritesPage> {
         _favorites = [];
         _isLoading = false;
         _errorMessage = _isItalian
-            ? 'Impossibile caricare i preferiti.'
+            ? 'Impossibile caricare i salvati.'
             : deOrEnglish(context,
-                english: 'Unable to load favorites.',
-                german: 'Favoriten konnten nicht geladen werden.');
+                english: 'Unable to load saved items.',
+                german: 'Gespeicherte Inhalte konnten nicht geladen werden.');
       });
     }
   }
@@ -100,20 +100,21 @@ class _MyFavoritesPageState extends State<MyFavoritesPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(_isItalian
-                ? 'Rimosso dai preferiti'
+                ? 'Rimosso dai salvati'
                 : deOrEnglish(context,
-                    english: 'Removed from favorites',
-                    german: 'Aus Favoriten entfernt'))),
+                    english: 'Removed from saved',
+                    german: 'Nicht mehr gespeichert'))),
       );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(_isItalian
-                ? 'Impossibile rimuovere il preferito'
+                ? 'Impossibile rimuovere dai salvati'
                 : deOrEnglish(context,
-                    english: 'Unable to remove favorite',
-                    german: 'Favorit konnte nicht entfernt werden'))),
+                    english: 'Unable to remove from saved',
+                    german:
+                        'Gespeicherter Inhalt konnte nicht entfernt werden'))),
       );
     } finally {
       if (mounted) {
@@ -182,10 +183,10 @@ class _MyFavoritesPageState extends State<MyFavoritesPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(_isItalian
-                  ? 'Tipo di preferito non supportato'
+                  ? 'Tipo di contenuto salvato non supportato'
                   : deOrEnglish(context,
-                      english: 'Unsupported favorite type',
-                      german: 'Nicht unterstützter Favoritentyp'))),
+                      english: 'Unsupported saved item type',
+                      german: 'Nicht unterstützter gespeicherter Inhalt'))),
         );
         break;
     }
@@ -201,14 +202,14 @@ class _MyFavoritesPageState extends State<MyFavoritesPage> {
     switch (target.type) {
       case TargetType.poll:
         return _isItalian
-            ? 'Sondaggio'
-            : deOrEnglish(context, english: 'Poll', german: 'Umfrage');
+            ? 'Vote'
+            : deOrEnglish(context, english: 'Vote', german: 'Vote');
       case TargetType.post:
-        return 'Post';
+        return 'Voce';
       case TargetType.news:
         return _isItalian
-            ? 'Notizia'
-            : deOrEnglish(context, english: 'News', german: 'Nachrichten');
+            ? 'News'
+            : deOrEnglish(context, english: 'News', german: 'News');
       case TargetType.video:
         return 'Video';
       default:
@@ -279,10 +280,11 @@ class _MyFavoritesPageState extends State<MyFavoritesPage> {
                           Center(
                             child: Text(
                               _isItalian
-                                  ? 'Non hai ancora preferiti.'
+                                  ? 'Non hai ancora contenuti salvati.'
                                   : deOrEnglish(context,
-                                      english: 'No favorites yet.',
-                                      german: 'Noch keine Favoriten.'),
+                                      english: 'No saved items yet.',
+                                      german:
+                                          'Noch keine gespeicherten Inhalte.'),
                             ),
                           ),
                         ],
@@ -320,10 +322,10 @@ class _MyFavoritesPageState extends State<MyFavoritesPage> {
                                     )
                                   : IconButton(
                                       tooltip: _isItalian
-                                          ? 'Rimuovi preferito'
+                                          ? 'Rimuovi dai salvati'
                                           : deOrEnglish(context,
-                                              english: 'Remove favorite',
-                                              german: 'Favorit entfernen'),
+                                              english: 'Remove from saved',
+                                              german: 'Nicht mehr speichern'),
                                       onPressed: () =>
                                           _removeFavorite(favorite),
                                       icon: const Icon(Icons.star_border),

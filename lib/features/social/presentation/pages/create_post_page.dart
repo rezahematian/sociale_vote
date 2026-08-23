@@ -5,6 +5,7 @@ import 'package:sociale_vote/core/analytics/analytics_service.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
+import 'package:sociale_vote/domain/organization/entities/organization_models.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
@@ -29,6 +30,39 @@ class _CreatePostPageState extends State<CreatePostPage> {
   String? _selectedCountryCode;
   ContentLocation? _contentLocation;
   bool _showManualLocationFields = false;
+
+  OrganizationContext? _organizationContext;
+  bool _organizationPublishingLoaded = false;
+  bool _publishAsOrganization = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOrganizationPublishing();
+  }
+
+  Future<void> _loadOrganizationPublishing() async {
+    try {
+      final contextValue =
+          await AppDI.instance.organizationRepository.getMyOrganization();
+      if (!mounted) return;
+
+      final canPublish = contextValue != null &&
+          contextValue.canManageProfile &&
+          contextValue.organization.isVerified &&
+          contextValue.workspace.status == 'active';
+
+      setState(() {
+        _organizationContext = canPublish ? contextValue : null;
+        _organizationPublishingLoaded = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _organizationPublishingLoaded = true;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -329,6 +363,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
         countryCode: countryCode,
         cityId: cityId,
         contentLocation: effectiveLocation,
+        publisherOrganizationId: _publishAsOrganization
+            ? _organizationContext?.organization.id
+            : null,
       );
 
       await _trackPostCreated(
@@ -344,23 +381,23 @@ class _CreatePostPageState extends State<CreatePostPage> {
           content: Text(
             effectiveLocation == null
                 ? (_isItalian
-                    ? 'Post globale creato con successo.'
+                    ? 'Voce globale creata con successo.'
                     : deOrEnglish(context,
-                        english: 'Global post created successfully.',
-                        german: 'Globaler Beitrag erfolgreich erstellt.'))
+                        english: 'Global Voce created successfully.',
+                        german: 'Globale Voce erfolgreich erstellt.'))
                 : effectiveLocation.hasExactPoint || effectiveLocation.hasCenter
                     ? (_isItalian
-                        ? 'Post creato con successo.'
+                        ? 'Voce creata con successo.'
                         : deOrEnglish(context,
-                            english: 'Post created successfully.',
-                            german: 'Beitrag erfolgreich erstellt.'))
+                            english: 'Voce created successfully.',
+                            german: 'Voce erfolgreich erstellt.'))
                     : (_isItalian
-                        ? 'Post creato con successo. Località salvata senza coordinate precise.'
+                        ? 'Voce creata con successo. Località salvata senza coordinate precise.'
                         : deOrEnglish(context,
                             english:
-                                'Post created successfully. Location saved without precise coordinates.',
+                                'Voce created successfully. Location saved without precise coordinates.',
                             german:
-                                'Beitrag erfolgreich erstellt. Standort ohne genaue Koordinaten gespeichert.')),
+                                'Voce erfolgreich erstellt. Standort ohne genaue Koordinaten gespeichert.')),
           ),
         ),
       );
@@ -376,9 +413,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
             : deOrEnglish(
                 context,
                 english:
-                    'Unable to publish the post. Check your connection and try again.',
+                    'Unable to publish the Voce. Check your connection and try again.',
                 german:
-                    'Der Beitrag konnte nicht veröffentlicht werden. Prüfe die Verbindung und versuche es erneut.',
+                    'Die Voce konnte nicht veröffentlicht werden. Prüfe die Verbindung und versuche es erneut.',
               );
       });
     } finally {
@@ -418,9 +455,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_isItalian
-            ? 'Crea post'
+            ? 'Crea Voce'
             : deOrEnglish(context,
-                english: 'Create post', german: 'Beitrag erstellen')),
+                english: 'Create Voce', german: 'Voce erstellen')),
       ),
       body: SafeArea(
         child: Padding(
@@ -431,9 +468,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
               children: [
                 Text(
                   _isItalian
-                      ? 'Nuovo post'
+                      ? 'Nuova Voce'
                       : deOrEnglish(context,
-                          english: 'New post', german: 'Neuer Beitrag'),
+                          english: 'New Voce', german: 'Neue Voce'),
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -451,7 +488,50 @@ class _CreatePostPageState extends State<CreatePostPage> {
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
+                if (_organizationPublishingLoaded &&
+                    _organizationContext != null) ...[
+                  Card(
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: SwitchListTile.adaptive(
+                      value: _publishAsOrganization,
+                      onChanged: _isSubmitting
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _publishAsOrganization = value;
+                              });
+                            },
+                      secondary: const Icon(Icons.business_rounded),
+                      title: Text(
+                        _isItalian
+                            ? 'Pubblica come ${_organizationContext!.organization.publicName}'
+                            : deOrEnglish(
+                                context,
+                                english:
+                                    'Publish as ${_organizationContext!.organization.publicName}',
+                                german:
+                                    'Als ${_organizationContext!.organization.publicName} veröffentlichen',
+                              ),
+                      ),
+                      subtitle: Text(
+                        _isItalian
+                            ? 'La Voce apparirà come contenuto ufficiale dell’organizzazione verificata.'
+                            : deOrEnglish(
+                                context,
+                                english:
+                                    'The Voce will appear as official content from the verified Organization.',
+                                german:
+                                    'Die Voce erscheint als offizieller Inhalt der verifizierten Organisation.',
+                              ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 TextFormField(
                   controller: _titleController,
                   decoration: InputDecoration(
@@ -491,8 +571,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
                       return _isItalian
                           ? 'Inserisci il contenuto del post'
                           : deOrEnglish(context,
-                              english: 'Enter the post content',
-                              german: 'Beitragsinhalt eingeben');
+                              english: 'Enter the Voce content',
+                              german: 'Voce-Inhalt eingeben');
                     }
                     if (value.trim().length < 10) {
                       return _isItalian
@@ -533,9 +613,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
                               ? 'Scegli se il post è globale, associato a una località oppure alla tua posizione attuale.'
                               : deOrEnglish(context,
                                   english:
-                                      'Choose whether the post is global, linked to a location, or linked to your current location.',
+                                      'Choose whether the Voce is global, linked to a location, or linked to your current location.',
                                   german:
-                                      'Wähle, ob der Beitrag global, mit einem Standort oder mit deinem aktuellen Standort verknüpft ist.'),
+                                      'Wähle, ob die Voce global, mit einem Standort oder mit deinem aktuellen Standort verknüpft ist.'),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurface
                                 .withValues(alpha: 0.75),
@@ -785,8 +865,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
                       : Text(_isItalian
                           ? 'Pubblica post'
                           : deOrEnglish(context,
-                              english: 'Publish post',
-                              german: 'Beitrag veröffentlichen')),
+                              english: 'Publish Voce',
+                              german: 'Voce veröffentlichen')),
                 ),
               ],
             ),

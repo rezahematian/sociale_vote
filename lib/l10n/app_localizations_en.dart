@@ -15,7 +15,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voteButton => 'Vote';
 
   @override
-  String get createPollPageTitle => 'Create Poll';
+  String get createPollPageTitle => 'Create Vote';
 
   @override
   String get createPollPageSubtitle => 'Define a new civic vote';
@@ -24,7 +24,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createPollBasicInfoTitle => 'Basic information';
 
   @override
-  String get createPollBasicInfoSubtitle => 'Define the main details of the poll.';
+  String get createPollBasicInfoSubtitle => 'Define the main details of the Vote.';
 
   @override
   String get createPollTitleFieldLabel => 'Title *';
@@ -42,18 +42,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createPollVotingModelSubtitle => 'Choose whether each person can select one answer or multiple answers.';
 
   @override
-  String get createPollTypeFieldLabel => 'Poll type';
+  String get createPollTypeFieldLabel => 'Vote type';
 
   @override
   String createPollSelectionRules(int min, int max) {
-    return 'Selection rules: minimum $min, maximum $max selections (automatically adjusted based on poll type and options).';
+    return 'Selection rules: minimum $min, maximum $max selections (automatically adjusted based on Vote type and options).';
   }
 
   @override
   String get createPollAllowVoteChangeTitle => 'Allow voters to change their vote';
 
   @override
-  String get createPollAllowVoteChangeSubtitle => 'Until the poll is closed.';
+  String get createPollAllowVoteChangeSubtitle => 'Until the Vote is closed.';
 
   @override
   String get createPollOptionsTitle => 'Answers';
@@ -85,13 +85,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createPollParticipationEveryoneSubtitle => 'Any registered user can participate.';
 
   @override
-  String get createPollParticipationGeoScopeSubtitle => 'Limit this poll to people from a specific country.';
+  String get createPollParticipationGeoScopeSubtitle => 'Limit this Vote to people from a specific country.';
 
   @override
-  String get createPollCountryFieldLabel => 'Country for this poll';
+  String get createPollCountryFieldLabel => 'Country for this Vote';
 
   @override
-  String get createPollCountryFieldHelper => 'This country will define who is allowed to participate in this poll (future backend integration).';
+  String get createPollCountryFieldHelper => 'This country will define who is allowed to participate in this Vote (future backend integration).';
 
   @override
   String get createPollVoteAnonymityTitle => 'Vote anonymity';
@@ -115,7 +115,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createPollQuorumTitle => 'Quorum (optional)';
 
   @override
-  String get createPollQuorumSubtitle => 'If set, the poll is considered valid only if at least this number of votes is reached. Leave empty for no quorum.';
+  String get createPollQuorumSubtitle => 'If set, the Vote is considered valid only if at least this number of votes is reached. Leave empty for no quorum.';
 
   @override
   String get createPollQuorumMinVotesFieldLabel => 'Minimum number of votes';
@@ -124,7 +124,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createPollTimingTitle => 'Timing';
 
   @override
-  String get createPollTimingSubtitle => 'Define when the poll should be open for voting.';
+  String get createPollTimingSubtitle => 'Define when the Vote should be open for voting.';
 
   @override
   String get createPollStartDateLabel => 'Start date';
@@ -139,13 +139,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createPollTimingStatusInfo => 'The initial status (open/scheduled/closed) will be determined automatically based on these dates.';
 
   @override
-  String get createPollSuccessMessage => 'Poll created successfully';
+  String get createPollSuccessMessage => 'Vote created successfully';
 
   @override
   String get createPollSubmitCreatingLabel => 'Creating...';
 
   @override
-  String get createPollSubmitLabel => 'Create poll';
+  String get createPollSubmitLabel => 'Create Vote';
 
   @override
   String get createPollPollTypeYesNoLabel => 'Yes / No';
@@ -178,13 +178,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createPollAnonymityLevelPublicLabel => 'Votes are public (advanced / restricted use)';
 
   @override
-  String get createPollResultsVisibilityAlwaysLabel => 'Always visible (while poll is open)';
+  String get createPollResultsVisibilityAlwaysLabel => 'Always visible (while Vote is open)';
 
   @override
   String get createPollResultsVisibilityAfterVoteLabel => 'Only visible after voting';
 
   @override
-  String get createPollResultsVisibilityAfterCloseLabel => 'Only visible after poll is closed';
+  String get createPollResultsVisibilityAfterCloseLabel => 'Only visible after Vote is closed';
 
   @override
   String get homeLoginButton => 'Log in';
@@ -208,7 +208,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchPageTitle => 'Search';
 
   @override
-  String get searchInputHint => 'Search accounts, polls, news, posts...';
+  String get searchInputHint => 'Search accounts, Vote, News, Voce...';
 
   @override
   String get searchClearTooltip => 'Clear search';
@@ -217,13 +217,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchTypeAll => 'All';
 
   @override
-  String get searchTypePolls => 'Polls';
+  String get searchTypePolls => 'Vote';
 
   @override
   String get searchTypeNews => 'News';
 
   @override
-  String get searchTypePosts => 'Posts';
+  String get searchTypePosts => 'Voce';
 
   @override
   String get searchTypeAccounts => 'Accounts';
@@ -235,7 +235,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchSortLatest => 'Latest';
 
   @override
-  String get searchPollStatusAll => 'All polls';
+  String get searchPollStatusAll => 'All Vote';
 
   @override
   String get searchPollStatusOpen => 'Open';
@@ -259,13 +259,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchContentUnavailable => 'Content unavailable';
 
   @override
-  String get searchResultTypePoll => 'Poll';
+  String get searchResultTypePoll => 'Vote';
 
   @override
   String get searchResultTypeNews => 'News';
 
   @override
-  String get searchResultTypePost => 'Post';
+  String get searchResultTypePost => 'Voce';
 
   @override
   String get searchResultTypeAccount => 'Account';
@@ -324,38 +324,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get followScopeButtonFollow => 'Follow this area';
 
   @override
-  String get homeTrendingTitle => 'Trending now';
+  String get homeTrendingTitle => 'Pulse Now';
 
   @override
-  String get homeTrendingError => 'Unable to load trending content for this area.';
+  String get homeTrendingError => 'Unable to load Pulse Now for this area.';
 
   @override
-  String get homeTrendingEmpty => 'No trending content for this scope at the moment.';
+  String get homeTrendingEmpty => 'No content in Pulse Now for this area at the moment.';
 
   @override
   String homeForYouTitle(Object scope) {
-    return 'For You ($scope)';
+    return 'Pulse ($scope)';
   }
 
   @override
-  String get homeForYouError => 'Unable to load the \"For You\" feed for this area.';
+  String get homeForYouError => 'Unable to load Pulse for this area.';
 
   @override
-  String get homeForYouEmpty => 'No suggested \"For You\" content for this scope at the moment.';
+  String get homeForYouEmpty => 'No suggested content in Pulse for this area at the moment.';
 
   @override
   String homePollsTitle(Object scope) {
-    return 'Highlighted Polls ($scope)';
+    return 'Vote in focus ($scope)';
   }
 
   @override
-  String get homePollsEmptyTitle => 'No polls for this area';
+  String get homePollsEmptyTitle => 'No Vote for this area';
 
   @override
-  String get homePollsEmptySubtitle => 'There are no polls for this scope.';
+  String get homePollsEmptySubtitle => 'No Vote are available for this area.';
 
   @override
-  String get homePollsViewAllButton => 'View all polls';
+  String get homePollsViewAllButton => 'View Vote';
 
   @override
   String homeNewsTitle(Object scope) {
@@ -382,32 +382,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String homeSocialTitle(Object scope) {
-    return 'Discussions / Feed ($scope)';
+    return 'Voce ($scope)';
   }
 
   @override
-  String get homeSocialErrorTitle => 'Unable to load discussions';
+  String get homeSocialErrorTitle => 'Unable to load Voce';
 
   @override
-  String get homeSocialErrorSubtitle => 'There was a problem loading the social feed for this area.';
+  String get homeSocialErrorSubtitle => 'There was a problem loading Voce for this area.';
 
   @override
-  String get homeSocialEmptyTitle => 'No discussions for this area';
+  String get homeSocialEmptyTitle => 'No Voce for this area';
 
   @override
-  String get homeSocialEmptySubtitle => 'There are no discussions for this scope at the moment.';
+  String get homeSocialEmptySubtitle => 'There is no Voce content for this area at the moment.';
 
   @override
-  String get homeSocialViewFeedButton => 'View social feed';
+  String get homeSocialViewFeedButton => 'View all Voce';
 
   @override
-  String get pollDetail_title => 'Poll detail';
+  String get pollDetail_title => 'Vote detail';
 
   @override
-  String get pollDetail_removeFromFavoritesTooltip => 'Remove from favorites';
+  String get pollDetail_removeFromFavoritesTooltip => 'Remove from saved';
 
   @override
-  String get pollDetail_addToFavoritesTooltip => 'Add to favorites';
+  String get pollDetail_addToFavoritesTooltip => 'Save';
 
   @override
   String get pollDetail_chipAnonymous => 'Anonymous vote';
@@ -432,10 +432,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollDetail_optionsTitle => 'Options';
 
   @override
-  String get pollDetail_statusClosedMessage => 'This poll is closed.';
+  String get pollDetail_statusClosedMessage => 'This Vote is closed.';
 
   @override
-  String get pollDetail_statusScheduledMessage => 'This poll is not yet open.';
+  String get pollDetail_statusScheduledMessage => 'This Vote is not yet open.';
 
   @override
   String get pollDetail_statusNotAvailableMessage => 'Voting is not available.';
@@ -461,7 +461,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollDetail_resultsAfterVote => 'Results will be visible after you vote.';
 
   @override
-  String get pollDetail_resultsWhenClosed => 'Results will be visible when the poll is closed.';
+  String get pollDetail_resultsWhenClosed => 'Results will be visible when the Vote is closed.';
 
   @override
   String get pollType_yesNo => 'Yes / No';
@@ -509,7 +509,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollOutcome_notApplicable => 'Not applicable';
 
   @override
-  String get pollList_title => 'Polls';
+  String get pollList_title => 'Vote';
 
   @override
   String get pollList_scopeWorld => 'World';
@@ -521,13 +521,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollList_scopeCityFallback => 'City';
 
   @override
-  String get pollList_scopeDescriptionGlobal => 'Showing global polls.';
+  String get pollList_scopeDescriptionGlobal => 'Showing global Vote.';
 
   @override
-  String get pollList_scopeDescriptionCountry => 'Showing polls for this country.';
+  String get pollList_scopeDescriptionCountry => 'Showing Vote for this country.';
 
   @override
-  String get pollList_scopeDescriptionCity => 'Showing polls for this city.';
+  String get pollList_scopeDescriptionCity => 'Showing Vote for this city.';
 
   @override
   String get pollList_filterStatus_all => 'All';
@@ -552,21 +552,21 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count polls found',
-      one: '1 poll found',
-      zero: 'no polls found',
+      other: '$count Vote found',
+      one: '1 Vote found',
+      zero: 'no Vote found',
     );
     return '$scopeLabel · $_temp0';
   }
 
   @override
-  String get pollList_createPollButton => 'Create poll';
+  String get pollList_createPollButton => 'Create Vote';
 
   @override
-  String get pollList_paginationHint => 'Scroll to load more polls…';
+  String get pollList_paginationHint => 'Scroll to load more Vote…';
 
   @override
-  String get pollList_emptyMessage => 'No polls matching this filter for this area.';
+  String get pollList_emptyMessage => 'No Vote matching this filter for this area.';
 
   @override
   String get pollType_ranked => 'Ranked choice';
@@ -644,7 +644,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voteError_noSelection => 'Please select at least one option.';
 
   @override
-  String get voteError_unauthorized => 'You are not allowed to vote in this poll.';
+  String get voteError_unauthorized => 'You are not allowed to vote in this Vote.';
 
   @override
   String get voteError_generic => 'Failed to submit vote. Please try again.';
@@ -700,10 +700,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsDetail_breakingBadge => 'BREAKING';
 
   @override
-  String get newsDetail_removeFromFavoritesTooltip => 'Remove from favorites';
+  String get newsDetail_removeFromFavoritesTooltip => 'Remove from saved';
 
   @override
-  String get newsDetail_addToFavoritesTooltip => 'Add to favorites';
+  String get newsDetail_addToFavoritesTooltip => 'Save';
 
   @override
   String get newsDetail_bodyFallback => 'No additional text is available for this news item.';
@@ -854,10 +854,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsDetail_openSourceUnavailable => 'Unable to open the source article';
 
   @override
-  String get socialFeedTitle => 'Social Feed';
+  String get socialFeedTitle => 'Voce';
 
   @override
-  String get socialFeedCreatePostButton => 'Create post';
+  String get socialFeedCreatePostButton => 'Create Voce';
 
   @override
   String get commonCancelButton => 'Cancel';
@@ -904,7 +904,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeHeroHeadline => 'Shape the future.\nTogether.';
 
   @override
-  String get homeHeroPollsAction => 'Polls';
+  String get homeHeroPollsAction => 'Vote';
 
   @override
   String get homeHeroNewsAction => 'News';
@@ -997,19 +997,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get contentReport_reasonOther => 'Other';
 
   @override
-  String get postDetail_title => 'Post detail';
+  String get postDetail_title => 'Voce detail';
 
   @override
-  String get postDetail_favoriteUpdateError => 'Unable to update favorites';
+  String get postDetail_favoriteUpdateError => 'Unable to update saved items';
 
   @override
-  String get postDetail_shareMessage => 'Open Social Vote to view this post.';
+  String get postDetail_shareMessage => 'Open Social Vote to view this Voce.';
 
   @override
-  String get postDetail_shareError => 'Unable to share the post';
+  String get postDetail_shareError => 'Unable to share the Voce';
 
   @override
-  String get postDetail_editDialogTitle => 'Edit post';
+  String get postDetail_editDialogTitle => 'Edit Voce';
 
   @override
   String get postDetail_editTitleFieldLabel => 'Title';
@@ -1021,31 +1021,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postDetail_editRequiredError => 'Title and content are required.';
 
   @override
-  String get postDetail_updateSuccess => 'Post updated';
+  String get postDetail_updateSuccess => 'Voce updated';
 
   @override
-  String get postDetail_updateError => 'Unable to update the post';
+  String get postDetail_updateError => 'Unable to update the Voce';
 
   @override
-  String get postDetail_deleteDialogTitle => 'Delete this post?';
+  String get postDetail_deleteDialogTitle => 'Delete this Voce?';
 
   @override
   String get postDetail_deleteDialogMessage => 'This action cannot be undone.';
 
   @override
-  String get postDetail_deleteError => 'Unable to delete the post';
+  String get postDetail_deleteError => 'Unable to delete the Voce';
 
   @override
-  String get postDetail_editMenuItem => 'Edit post';
+  String get postDetail_editMenuItem => 'Edit Voce';
 
   @override
-  String get postDetail_deleteMenuItem => 'Delete post';
+  String get postDetail_deleteMenuItem => 'Delete Voce';
 
   @override
-  String get postDetail_loadError => 'An error occurred while loading the post.';
+  String get postDetail_loadError => 'An error occurred while loading the Voce.';
 
   @override
-  String get postDetail_notFound => 'Post not found.';
+  String get postDetail_notFound => 'Voce not found.';
 
   @override
   String get postDetail_errorTitle => 'Error';
@@ -1060,13 +1060,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postDetail_saveAction => 'Save';
 
   @override
-  String get postDetail_addToFavoritesTooltip => 'Add to favorites';
+  String get postDetail_addToFavoritesTooltip => 'Save';
 
   @override
-  String get postDetail_removeFromFavoritesTooltip => 'Remove from favorites';
+  String get postDetail_removeFromFavoritesTooltip => 'Remove from saved';
 
   @override
-  String get newsDetail_favoriteUpdateError => 'Unable to update favorites';
+  String get newsDetail_favoriteUpdateError => 'Unable to update saved items';
 
   @override
   String get newsDetail_shareMessage => 'Open Social Vote to view this news item.';
@@ -1276,34 +1276,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authCloseButton => 'Close';
 
   @override
-  String get pollDetail_favoriteUpdateError => 'Unable to update favorites';
+  String get pollDetail_favoriteUpdateError => 'Unable to update saved items';
 
   @override
-  String get pollDetail_shareMessage => 'Open Social Vote to view and vote in this poll.';
+  String get pollDetail_shareMessage => 'Open Social Vote to view and vote in this Vote.';
 
   @override
-  String get pollDetail_shareError => 'Unable to share the poll';
+  String get pollDetail_shareError => 'Unable to share the Vote';
 
   @override
-  String get pollDetail_editPermissionError => 'You can edit only your own polls that have no votes';
+  String get pollDetail_editPermissionError => 'You can edit only your own Vote with no recorded votes';
 
   @override
-  String get pollDetail_editSuccessMessage => 'Poll updated';
+  String get pollDetail_editSuccessMessage => 'Vote updated';
 
   @override
-  String get pollDetail_editMenuItem => 'Edit poll';
+  String get pollDetail_editMenuItem => 'Edit Vote';
 
   @override
   String get pollDetail_editSavingMenuItem => 'Saving...';
 
   @override
-  String get pollDetail_deletePermissionError => 'You can delete only your own polls';
+  String get pollDetail_deletePermissionError => 'You can delete only your own Vote';
 
   @override
-  String get pollDetail_deleteError => 'Unable to delete the poll';
+  String get pollDetail_deleteError => 'Unable to delete the Vote';
 
   @override
-  String get pollDetail_deleteDialogTitle => 'Delete poll';
+  String get pollDetail_deleteDialogTitle => 'Delete Vote';
 
   @override
   String pollDetail_deleteDialogMessage(String title) {
@@ -1311,7 +1311,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get pollDetail_deleteMenuItem => 'Delete poll';
+  String get pollDetail_deleteMenuItem => 'Delete Vote';
 
   @override
   String get pollDetail_deleteDeletingMenuItem => 'Deleting...';
@@ -1320,7 +1320,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollDetail_publicVotesAvailableTitle => 'Public votes available';
 
   @override
-  String get pollDetail_publicVotesAvailableMessage => 'This poll allows you to see who voted for each option.';
+  String get pollDetail_publicVotesAvailableMessage => 'This Vote allows you to see who voted for each option.';
 
   @override
   String get pollDetail_publicVotesAction => 'View public votes';
@@ -1335,10 +1335,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollDetail_voteErrorAuthenticationRequired => 'You must be signed in to vote';
 
   @override
-  String get pollDetail_voteErrorClosed => 'This poll is closed';
+  String get pollDetail_voteErrorClosed => 'This Vote is closed';
 
   @override
-  String get pollDetail_voteErrorAlreadyVoted => 'You have already voted in this poll';
+  String get pollDetail_voteErrorAlreadyVoted => 'You have already voted in this Vote';
 
   @override
   String get pollDetail_voteErrorGeneric => 'Unable to submit the vote';
@@ -1347,7 +1347,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollDetail_publicVotesSheetTitle => 'Public votes';
 
   @override
-  String get pollDetail_publicVotesSheetDescription => 'Here you can see who voted for each option in this poll.';
+  String get pollDetail_publicVotesSheetDescription => 'Here you can see who voted for each option in this Vote.';
 
   @override
   String get pollDetail_publicVotesSearchHint => 'Search users';
@@ -1373,7 +1373,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollDetail_publicVotesUserFallback => 'User';
 
   @override
-  String get pollDetail_editDialogTitle => 'Edit poll';
+  String get pollDetail_editDialogTitle => 'Edit Vote';
 
   @override
   String get pollDetail_editTitleFieldLabel => 'Title';
@@ -1385,13 +1385,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollDetail_editDescriptionFieldLabel => 'Description';
 
   @override
-  String get pollDetail_editError => 'Unable to update the poll';
+  String get pollDetail_editError => 'Unable to update the Vote';
 
   @override
-  String get pollDetail_loadError => 'Unable to load the poll';
+  String get pollDetail_loadError => 'Unable to load the Vote';
 
   @override
-  String get pollDetail_notFound => 'Poll not found';
+  String get pollDetail_notFound => 'Vote not found';
 
   @override
   String get profileEditPageTitle => 'Edit profile';
@@ -1478,7 +1478,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsMentionTitle => 'You were mentioned';
 
   @override
-  String get notificationsPollResultTitle => 'Poll update';
+  String get notificationsPollResultTitle => 'Vote update';
 
   @override
   String notificationsCommentReplySubtitle(String actor, String target) {
@@ -1496,13 +1496,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get notificationsTargetPost => 'a post';
+  String get notificationsTargetPost => 'a Voce';
 
   @override
   String get notificationsTargetNews => 'a news article';
 
   @override
-  String get notificationsTargetPoll => 'a poll';
+  String get notificationsTargetPoll => 'a Vote';
 
   @override
   String get notificationsTargetVideo => 'a video';
@@ -1963,10 +1963,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminCenterAllContent => 'All content';
 
   @override
-  String get adminCenterPolls => 'Polls';
+  String get adminCenterPolls => 'Vote';
 
   @override
-  String get adminCenterPosts => 'Posts';
+  String get adminCenterPosts => 'Voce';
 
   @override
   String get adminCenterNews => 'News';
@@ -2401,10 +2401,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminCenterUserPlural => 'users';
 
   @override
-  String get adminCenterPoll => 'Poll';
+  String get adminCenterPoll => 'Vote';
 
   @override
-  String get adminCenterPost => 'Post';
+  String get adminCenterPost => 'Voce';
 
   @override
   String get adminCenterUnknown => 'Unknown';
@@ -2724,16 +2724,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileThemeDark => 'Dark';
 
   @override
-  String get profileMyPollsTitle => 'My polls';
+  String get profileMyPollsTitle => 'Vote';
 
   @override
-  String get profileMyPostsTitle => 'My posts';
+  String get profileMyPostsTitle => 'Voce';
 
   @override
   String get profileMyCommentsTitle => 'My comments';
 
   @override
-  String get profileMyFavoritesTitle => 'My favorites';
+  String get profileMyFavoritesTitle => 'My saved';
 
   @override
   String get profileAccountConnectionsTitle => 'Following and followers';
@@ -2796,10 +2796,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get publicProfileContentSectionTitle => 'Public content';
 
   @override
-  String get publicProfilePollsAction => 'Polls';
+  String get publicProfilePollsAction => 'Vote';
 
   @override
-  String get publicProfilePostsAction => 'Posts';
+  String get publicProfilePostsAction => 'Voce';
 
   @override
   String get publicProfileBlockUserAction => 'Block user';
@@ -2883,10 +2883,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingStartButton => 'Start';
 
   @override
-  String get onboardingPollTitle => 'Polls';
+  String get onboardingPollTitle => 'Vote';
 
   @override
-  String get onboardingPollDescription => 'Vote on topics you care about and create polls to collect the community\'s opinion.';
+  String get onboardingPollDescription => 'Take part in a Vote on topics you care about, or create one to collect the community’s opinion.';
 
   @override
   String get onboardingHeatIceTitle => 'Heat and Ice';
@@ -2898,7 +2898,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingCivicMapTitle => 'Civic Map';
 
   @override
-  String get onboardingCivicMapDescription => 'Explore polls, posts, and news on the map and discover what is happening across different areas.';
+  String get onboardingCivicMapDescription => 'Explore Vote, Voce, and News on the map and discover what is happening across different areas.';
 
   @override
   String get onboardingGeoScopeTitle => 'GeoScope';
@@ -2910,7 +2910,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingVerificationTitle => 'Identity verification';
 
   @override
-  String get onboardingVerificationDescription => 'Some Polls may require a verification level to protect voting integrity.';
+  String get onboardingVerificationDescription => 'Some Vote may require a verification level to protect voting integrity.';
 
   @override
   String get pollDetail_voteReceiptButton => 'Vote receipt';
@@ -2991,10 +2991,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminCenterRecentSignInsMetric => 'Recent sign-ins';
 
   @override
-  String get adminCenterPollsCreatedMetric => 'Polls created';
+  String get adminCenterPollsCreatedMetric => 'Vote created';
 
   @override
-  String get adminCenterPostsCreatedMetric => 'Posts created';
+  String get adminCenterPostsCreatedMetric => 'Voce created';
 
   @override
   String get adminCenterAdminActionsMetric => 'Admin actions';
@@ -3039,7 +3039,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileAppLanguageGerman => 'German';
 
   @override
-  String get discoveryPageTitle => 'Discovery';
+  String get discoveryPageTitle => 'Explore';
 
   @override
   String get organizationWorkspaceTitle => 'Organization workspace';
@@ -3153,7 +3153,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionAccessControlled => 'Controlled anonymous';
 
   @override
-  String get sessionAccessControlledHint => 'Use one-time anonymous credentials. Social Vote stores token hashes and does not link ballot choices to participant credentials.';
+  String get sessionAccessControlledHint => 'Use one-time anonymous Access Passes. Social Vote stores only the Access Pass hash and does not link ballot choices to participant credentials.';
 
   @override
   String get sessionResultsVisibility => 'Result visibility';
@@ -3204,10 +3204,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionTokensOneTimeTitle => 'Save these credentials now';
 
   @override
-  String get sessionTokensOneTimeBody => 'Plaintext tokens are shown only in this batch result. Social Vote stores only their hashes. Copy and distribute them securely.';
+  String get sessionTokensOneTimeBody => 'Plaintext Access Passes are shown only in this batch result. Social Vote stores only their hashes. Copy and distribute them securely.';
 
   @override
-  String get sessionCopyTokens => 'Copy tokens';
+  String get sessionCopyTokens => 'Copy all links';
 
   @override
   String get sessionTokensSavedAction => 'I saved them';
@@ -3294,7 +3294,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionResultsUnavailable => 'Results are not visible yet under this Session policy.';
 
   @override
-  String get sessionPrivacyNotice => 'The organizer controls the purpose and questions. Social Vote processes the Session. Anonymous modes do not expose participant-level choices to the organizer.';
+  String get sessionPrivacyNotice => 'The organizer defines the Session’s operational purpose and questions. Social Vote processes the technical data needed to provide and protect the service. Anonymous modes do not expose the link between a participant credential and a choice to the organizer. Privacy roles may depend on context and applicable agreements.';
 
   @override
   String get sessionNonBindingNotice => 'Pilot Sessions are for consultation and participation. They are not a legal election, statutory assembly vote or legally binding certification.';
@@ -3372,10 +3372,22 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get verifiedResultPrintPdf => 'Print / Save PDF';
+  String get verifiedResultPrintPdf => 'Download PDF';
 
   @override
-  String get verifiedResultPdfError => 'Unable to open the PDF. Try again or check whether the browser blocked a new window.';
+  String get verifiedResultPdfError => 'Unable to download the PDF. Try again.';
+
+  @override
+  String get verifiedResultRestrictedTitle => 'Restricted result';
+
+  @override
+  String get verifiedResultRestrictedBody => 'This Verified Result is not publicly available. Sign in with an authorized organization account to view it.';
+
+  @override
+  String get verifiedResultPrivateVerificationTitle => 'Public verification unavailable';
+
+  @override
+  String get verifiedResultPrivateVerificationBody => 'This result is restricted to the organizer. Report ID, SHA-256, and the integrity check remain available in the authorized report.';
 
   @override
   String get organizationAccountSectionTitle => 'Your organizations';
@@ -3625,4 +3637,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get organizationTotalSessions => 'Total Sessions';
+
+  @override
+  String get sessionPrivacyPolicyAction => 'Read the Privacy Policy';
 }

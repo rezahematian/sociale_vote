@@ -310,6 +310,7 @@ class PollRepositorySupabase implements PollRepository {
       'start_at': poll.startAt?.toUtc().toIso8601String(),
       'end_at': poll.endAt?.toUtc().toIso8601String(),
       'content_location': poll.contentLocation?.toJson(),
+      'publisher_organization_id': poll.publisherOrganizationId,
       'published_as_actor_type': poll.publishedAsActorType?.storageKey,
       'published_as_institution_level':
           poll.publishedAsInstitutionLevel?.storageKey,
@@ -396,6 +397,7 @@ class PollRepositorySupabase implements PollRepository {
       cityId: cityId,
       contentLocation: contentLocation,
       createdByUserId: row['author_id'] as String?,
+      publisherOrganizationId: row['publisher_organization_id'] as String?,
       authorName: authorIdentity?.displayName,
       authorActorType: authorIdentity?.actorType ?? ActorType.citizen,
       authorVerificationLevel:
@@ -417,9 +419,8 @@ class PollRepositorySupabase implements PollRepository {
   }
 
   Future<List<Poll>> _mapPollRowsWithAuthors(List<dynamic> rawRows) async {
-    final rows = rawRows
-        .whereType<Map<String, dynamic>>()
-        .toList(growable: false);
+    final rows =
+        rawRows.whereType<Map<String, dynamic>>().toList(growable: false);
 
     if (rows.isEmpty) {
       return const <Poll>[];

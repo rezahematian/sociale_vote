@@ -15,7 +15,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get voteButton => 'Abstimmen';
 
   @override
-  String get createPollPageTitle => 'Umfrage erstellen';
+  String get createPollPageTitle => 'Vote erstellen';
 
   @override
   String get createPollPageSubtitle => 'Eine neue Bürgerumfrage definieren';
@@ -24,7 +24,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createPollBasicInfoTitle => 'Grundinformationen';
 
   @override
-  String get createPollBasicInfoSubtitle => 'Lege die wichtigsten Angaben der Umfrage fest.';
+  String get createPollBasicInfoSubtitle => 'Lege die wichtigsten Angaben für diesen Vote fest.';
 
   @override
   String get createPollTitleFieldLabel => 'Titel *';
@@ -42,18 +42,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createPollVotingModelSubtitle => 'Wähle, ob jede Person eine oder mehrere Antworten auswählen kann.';
 
   @override
-  String get createPollTypeFieldLabel => 'Umfragetyp';
+  String get createPollTypeFieldLabel => 'Vote-Typ';
 
   @override
   String createPollSelectionRules(int min, int max) {
-    return 'Auswahlregeln: mindestens $min, höchstens $max Auswahlen (wird automatisch an Umfragetyp und Antworten angepasst).';
+    return 'Auswahlregeln: mindestens $min, höchstens $max Auswahlen (wird automatisch an Vote-Typ und Antworten angepasst).';
   }
 
   @override
   String get createPollAllowVoteChangeTitle => 'Änderung der Stimme erlauben';
 
   @override
-  String get createPollAllowVoteChangeSubtitle => 'Bis die Umfrage geschlossen wird.';
+  String get createPollAllowVoteChangeSubtitle => 'Bis der Vote geschlossen wird.';
 
   @override
   String get createPollOptionsTitle => 'Antworten';
@@ -85,13 +85,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createPollParticipationEveryoneSubtitle => 'Jeder registrierte Nutzer kann teilnehmen.';
 
   @override
-  String get createPollParticipationGeoScopeSubtitle => 'Beschränke diese Umfrage auf Personen aus einem bestimmten Land.';
+  String get createPollParticipationGeoScopeSubtitle => 'Beschränke diesen Vote auf Personen aus einem bestimmten Land.';
 
   @override
-  String get createPollCountryFieldLabel => 'Land für diese Umfrage';
+  String get createPollCountryFieldLabel => 'Land für diesen Vote';
 
   @override
-  String get createPollCountryFieldHelper => 'Dieses Land legt fest, wer an dieser Umfrage teilnehmen darf (zukünftige Backend-Integration).';
+  String get createPollCountryFieldHelper => 'Dieses Land legt fest, wer an diesem Vote teilnehmen darf (zukünftige Backend-Integration).';
 
   @override
   String get createPollVoteAnonymityTitle => 'Anonymität der Stimme';
@@ -115,7 +115,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createPollQuorumTitle => 'Quorum (optional)';
 
   @override
-  String get createPollQuorumSubtitle => 'Wenn gesetzt, gilt die Umfrage nur als gültig, wenn mindestens diese Anzahl an Stimmen erreicht wird. Leer lassen, wenn kein Quorum erforderlich ist.';
+  String get createPollQuorumSubtitle => 'Wenn gesetzt, gilt der Vote nur als gültig, wenn mindestens diese Anzahl an Stimmen erreicht wird. Leer lassen, wenn kein Quorum erforderlich ist.';
 
   @override
   String get createPollQuorumMinVotesFieldLabel => 'Mindestanzahl an Stimmen';
@@ -124,7 +124,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createPollTimingTitle => 'Zeitraum';
 
   @override
-  String get createPollTimingSubtitle => 'Lege fest, wann die Umfrage zur Abstimmung geöffnet sein soll.';
+  String get createPollTimingSubtitle => 'Lege fest, wann der Vote zur Abstimmung geöffnet sein soll.';
 
   @override
   String get createPollStartDateLabel => 'Startdatum';
@@ -139,13 +139,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createPollTimingStatusInfo => 'Der anfängliche Status (offen/geplant/geschlossen) wird anhand dieser Daten automatisch bestimmt.';
 
   @override
-  String get createPollSuccessMessage => 'Umfrage erfolgreich erstellt';
+  String get createPollSuccessMessage => 'Vote erfolgreich erstellt';
 
   @override
   String get createPollSubmitCreatingLabel => 'Wird erstellt...';
 
   @override
-  String get createPollSubmitLabel => 'Umfrage erstellen';
+  String get createPollSubmitLabel => 'Vote erstellen';
 
   @override
   String get createPollPollTypeYesNoLabel => 'Ja / Nein';
@@ -178,13 +178,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createPollAnonymityLevelPublicLabel => 'Stimmen sind öffentlich (erweiterte / eingeschränkte Nutzung)';
 
   @override
-  String get createPollResultsVisibilityAlwaysLabel => 'Immer sichtbar (solange die Umfrage offen ist)';
+  String get createPollResultsVisibilityAlwaysLabel => 'Immer sichtbar (solange der Vote offen ist)';
 
   @override
   String get createPollResultsVisibilityAfterVoteLabel => 'Erst nach der Abstimmung sichtbar';
 
   @override
-  String get createPollResultsVisibilityAfterCloseLabel => 'Erst nach Schließen der Umfrage sichtbar';
+  String get createPollResultsVisibilityAfterCloseLabel => 'Erst sichtbar, wenn der Vote geschlossen ist';
 
   @override
   String get homeLoginButton => 'Anmelden';
@@ -208,7 +208,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get searchPageTitle => 'Suche';
 
   @override
-  String get searchInputHint => 'Konten, Umfragen, Nachrichten, Beiträge suchen...';
+  String get searchInputHint => 'Konten, Vote, News, Voce suchen...';
 
   @override
   String get searchClearTooltip => 'Suche löschen';
@@ -217,13 +217,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get searchTypeAll => 'Alle';
 
   @override
-  String get searchTypePolls => 'Umfragen';
+  String get searchTypePolls => 'Vote';
 
   @override
-  String get searchTypeNews => 'Nachrichten';
+  String get searchTypeNews => 'News';
 
   @override
-  String get searchTypePosts => 'Beiträge';
+  String get searchTypePosts => 'Voce';
 
   @override
   String get searchTypeAccounts => 'Konten';
@@ -235,7 +235,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get searchSortLatest => 'Neueste';
 
   @override
-  String get searchPollStatusAll => 'Alle Umfragen';
+  String get searchPollStatusAll => 'Alle Vote';
 
   @override
   String get searchPollStatusOpen => 'Offen';
@@ -259,13 +259,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get searchContentUnavailable => 'Inhalt nicht verfügbar';
 
   @override
-  String get searchResultTypePoll => 'Umfrage';
+  String get searchResultTypePoll => 'Vote';
 
   @override
-  String get searchResultTypeNews => 'Nachricht';
+  String get searchResultTypeNews => 'News';
 
   @override
-  String get searchResultTypePost => 'Beitrag';
+  String get searchResultTypePost => 'Voce';
 
   @override
   String get searchResultTypeAccount => 'Konto';
@@ -324,42 +324,42 @@ class AppLocalizationsDe extends AppLocalizations {
   String get followScopeButtonFollow => 'Diesem Bereich folgen';
 
   @override
-  String get homeTrendingTitle => 'Jetzt im Trend';
+  String get homeTrendingTitle => 'Pulse Now';
 
   @override
-  String get homeTrendingError => 'Trendinhalte für diesen Bereich konnten nicht geladen werden.';
+  String get homeTrendingError => 'Pulse Now konnte für diesen Bereich nicht geladen werden.';
 
   @override
-  String get homeTrendingEmpty => 'Für diesen Bereich gibt es derzeit keine Trendinhalte.';
+  String get homeTrendingEmpty => 'Für diesen Bereich gibt es derzeit keine Inhalte in Pulse Now.';
 
   @override
   String homeForYouTitle(Object scope) {
-    return 'Für dich ($scope)';
+    return 'Pulse ($scope)';
   }
 
   @override
-  String get homeForYouError => 'Der „Für dich“-Feed für diesen Bereich konnte nicht geladen werden.';
+  String get homeForYouError => 'Pulse konnte für diesen Bereich nicht geladen werden.';
 
   @override
-  String get homeForYouEmpty => 'Für diesen Bereich gibt es derzeit keine empfohlenen „Für dich“-Inhalte.';
+  String get homeForYouEmpty => 'Für diesen Bereich gibt es derzeit keine empfohlenen Inhalte in Pulse.';
 
   @override
   String homePollsTitle(Object scope) {
-    return 'Hervorgehobene Umfragen ($scope)';
+    return 'Vote im Fokus ($scope)';
   }
 
   @override
-  String get homePollsEmptyTitle => 'Keine Umfragen für diesen Bereich';
+  String get homePollsEmptyTitle => 'Kein Vote für diesen Bereich';
 
   @override
-  String get homePollsEmptySubtitle => 'Für diesen Bereich gibt es keine Umfragen.';
+  String get homePollsEmptySubtitle => 'Für diesen Bereich ist kein Vote verfügbar.';
 
   @override
-  String get homePollsViewAllButton => 'Alle Umfragen anzeigen';
+  String get homePollsViewAllButton => 'Vote anzeigen';
 
   @override
   String homeNewsTitle(Object scope) {
-    return 'Top-Nachrichten ($scope)';
+    return 'Top News ($scope)';
   }
 
   @override
@@ -382,32 +382,32 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String homeSocialTitle(Object scope) {
-    return 'Diskussionen / Feed ($scope)';
+    return 'Voce ($scope)';
   }
 
   @override
-  String get homeSocialErrorTitle => 'Diskussionen konnten nicht geladen werden';
+  String get homeSocialErrorTitle => 'Voce konnte nicht geladen werden';
 
   @override
-  String get homeSocialErrorSubtitle => 'Beim Laden des Social-Feeds für diesen Bereich ist ein Problem aufgetreten.';
+  String get homeSocialErrorSubtitle => 'Beim Laden von Voce für diesen Bereich ist ein Problem aufgetreten.';
 
   @override
-  String get homeSocialEmptyTitle => 'Keine Diskussionen für diesen Bereich';
+  String get homeSocialEmptyTitle => 'Keine Voce für diesen Bereich';
 
   @override
-  String get homeSocialEmptySubtitle => 'Für diesen Bereich gibt es derzeit keine Diskussionen.';
+  String get homeSocialEmptySubtitle => 'Für diesen Bereich gibt es derzeit keine Voce-Inhalte.';
 
   @override
-  String get homeSocialViewFeedButton => 'Social-Feed anzeigen';
+  String get homeSocialViewFeedButton => 'Alle Voce anzeigen';
 
   @override
-  String get pollDetail_title => 'Umfragedetails';
+  String get pollDetail_title => 'Vote-Details';
 
   @override
-  String get pollDetail_removeFromFavoritesTooltip => 'Aus Favoriten entfernen';
+  String get pollDetail_removeFromFavoritesTooltip => 'Nicht mehr speichern';
 
   @override
-  String get pollDetail_addToFavoritesTooltip => 'Zu Favoriten hinzufügen';
+  String get pollDetail_addToFavoritesTooltip => 'Speichern';
 
   @override
   String get pollDetail_chipAnonymous => 'Anonyme Stimme';
@@ -432,10 +432,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollDetail_optionsTitle => 'Optionen';
 
   @override
-  String get pollDetail_statusClosedMessage => 'Diese Umfrage ist geschlossen.';
+  String get pollDetail_statusClosedMessage => 'Dieser Vote ist geschlossen.';
 
   @override
-  String get pollDetail_statusScheduledMessage => 'Diese Umfrage ist noch nicht geöffnet.';
+  String get pollDetail_statusScheduledMessage => 'Dieser Vote ist noch nicht geöffnet.';
 
   @override
   String get pollDetail_statusNotAvailableMessage => 'Abstimmen ist nicht verfügbar.';
@@ -461,7 +461,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollDetail_resultsAfterVote => 'Die Ergebnisse werden sichtbar, nachdem du abgestimmt hast.';
 
   @override
-  String get pollDetail_resultsWhenClosed => 'Die Ergebnisse werden sichtbar, wenn die Umfrage geschlossen ist.';
+  String get pollDetail_resultsWhenClosed => 'Die Ergebnisse werden sichtbar, wenn der Vote geschlossen ist.';
 
   @override
   String get pollType_yesNo => 'Ja / Nein';
@@ -509,7 +509,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollOutcome_notApplicable => 'Nicht zutreffend';
 
   @override
-  String get pollList_title => 'Umfragen';
+  String get pollList_title => 'Vote';
 
   @override
   String get pollList_scopeWorld => 'Welt';
@@ -521,13 +521,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollList_scopeCityFallback => 'Stadt';
 
   @override
-  String get pollList_scopeDescriptionGlobal => 'Globale Umfragen werden angezeigt.';
+  String get pollList_scopeDescriptionGlobal => 'Globale Vote werden angezeigt.';
 
   @override
-  String get pollList_scopeDescriptionCountry => 'Umfragen für dieses Land werden angezeigt.';
+  String get pollList_scopeDescriptionCountry => 'Vote für dieses Land werden angezeigt.';
 
   @override
-  String get pollList_scopeDescriptionCity => 'Umfragen für diese Stadt werden angezeigt.';
+  String get pollList_scopeDescriptionCity => 'Vote für diese Stadt werden angezeigt.';
 
   @override
   String get pollList_filterStatus_all => 'Alle';
@@ -552,21 +552,21 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count Umfragen gefunden',
-      one: '1 Umfrage gefunden',
-      zero: 'keine Umfragen gefunden',
+      other: '$count Vote gefunden',
+      one: '1 Vote gefunden',
+      zero: 'kein Vote gefunden',
     );
     return '$scopeLabel · $_temp0';
   }
 
   @override
-  String get pollList_createPollButton => 'Umfrage erstellen';
+  String get pollList_createPollButton => 'Vote erstellen';
 
   @override
-  String get pollList_paginationHint => 'Scrollen, um weitere Umfragen zu laden…';
+  String get pollList_paginationHint => 'Scrollen, um weitere Vote zu laden…';
 
   @override
-  String get pollList_emptyMessage => 'Keine Umfragen für diesen Filter und Bereich gefunden.';
+  String get pollList_emptyMessage => 'Keine Vote für diesen Filter und Bereich gefunden.';
 
   @override
   String get pollType_ranked => 'Rangwahl';
@@ -575,7 +575,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollType_score => 'Punktewahl';
 
   @override
-  String get pollVisibility_whileOpen => 'Ergebnisse während der laufenden Umfrage sichtbar';
+  String get pollVisibility_whileOpen => 'Ergebnisse sichtbar, solange der Vote offen ist';
 
   @override
   String get pollVisibility_afterVote => 'Ergebnisse nach der Abstimmung sichtbar';
@@ -644,7 +644,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get voteError_noSelection => 'Bitte wähle mindestens eine Option aus.';
 
   @override
-  String get voteError_unauthorized => 'Du darfst an dieser Umfrage nicht abstimmen.';
+  String get voteError_unauthorized => 'Du darfst an diesem Vote nicht abstimmen.';
 
   @override
   String get voteError_generic => 'Die Stimme konnte nicht abgegeben werden. Bitte versuche es erneut.';
@@ -700,10 +700,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get newsDetail_breakingBadge => 'EILMELDUNG';
 
   @override
-  String get newsDetail_removeFromFavoritesTooltip => 'Aus Favoriten entfernen';
+  String get newsDetail_removeFromFavoritesTooltip => 'Nicht mehr speichern';
 
   @override
-  String get newsDetail_addToFavoritesTooltip => 'Zu Favoriten hinzufügen';
+  String get newsDetail_addToFavoritesTooltip => 'Speichern';
 
   @override
   String get newsDetail_bodyFallback => 'Für diese Nachricht ist kein zusätzlicher Text verfügbar.';
@@ -854,10 +854,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get newsDetail_openSourceUnavailable => 'Der Originalartikel konnte nicht geöffnet werden';
 
   @override
-  String get socialFeedTitle => 'Social-Feed';
+  String get socialFeedTitle => 'Voce';
 
   @override
-  String get socialFeedCreatePostButton => 'Beitrag erstellen';
+  String get socialFeedCreatePostButton => 'Voce erstellen';
 
   @override
   String get commonCancelButton => 'Abbrechen';
@@ -904,10 +904,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homeHeroHeadline => 'Gestalte die Zukunft.\nGemeinsam.';
 
   @override
-  String get homeHeroPollsAction => 'Umfragen';
+  String get homeHeroPollsAction => 'Vote';
 
   @override
-  String get homeHeroNewsAction => 'Nachrichten';
+  String get homeHeroNewsAction => 'News';
 
   @override
   String get homeHeroCreateAction => 'Erstellen';
@@ -997,19 +997,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get contentReport_reasonOther => 'Sonstiges';
 
   @override
-  String get postDetail_title => 'Beitragsdetails';
+  String get postDetail_title => 'Voce-Details';
 
   @override
-  String get postDetail_favoriteUpdateError => 'Favoriten konnten nicht aktualisiert werden';
+  String get postDetail_favoriteUpdateError => 'Gespeicherte Inhalte konnten nicht aktualisiert werden';
 
   @override
-  String get postDetail_shareMessage => 'Öffne Social Vote, um diesen Beitrag anzusehen.';
+  String get postDetail_shareMessage => 'Öffne Social Vote, um diese Voce anzusehen.';
 
   @override
-  String get postDetail_shareError => 'Der Beitrag konnte nicht geteilt werden';
+  String get postDetail_shareError => 'Die Voce konnte nicht geteilt werden';
 
   @override
-  String get postDetail_editDialogTitle => 'Beitrag bearbeiten';
+  String get postDetail_editDialogTitle => 'Voce bearbeiten';
 
   @override
   String get postDetail_editTitleFieldLabel => 'Titel';
@@ -1021,31 +1021,31 @@ class AppLocalizationsDe extends AppLocalizations {
   String get postDetail_editRequiredError => 'Titel und Inhalt sind erforderlich.';
 
   @override
-  String get postDetail_updateSuccess => 'Beitrag aktualisiert';
+  String get postDetail_updateSuccess => 'Voce aktualisiert';
 
   @override
-  String get postDetail_updateError => 'Der Beitrag konnte nicht aktualisiert werden';
+  String get postDetail_updateError => 'Die Voce konnte nicht aktualisiert werden';
 
   @override
-  String get postDetail_deleteDialogTitle => 'Diesen Beitrag löschen?';
+  String get postDetail_deleteDialogTitle => 'Diese Voce löschen?';
 
   @override
   String get postDetail_deleteDialogMessage => 'Diese Aktion kann nicht rückgängig gemacht werden.';
 
   @override
-  String get postDetail_deleteError => 'Der Beitrag konnte nicht gelöscht werden';
+  String get postDetail_deleteError => 'Die Voce konnte nicht gelöscht werden';
 
   @override
-  String get postDetail_editMenuItem => 'Beitrag bearbeiten';
+  String get postDetail_editMenuItem => 'Voce bearbeiten';
 
   @override
-  String get postDetail_deleteMenuItem => 'Beitrag löschen';
+  String get postDetail_deleteMenuItem => 'Voce löschen';
 
   @override
-  String get postDetail_loadError => 'Beim Laden des Beitrags ist ein Fehler aufgetreten.';
+  String get postDetail_loadError => 'Beim Laden der Voce ist ein Fehler aufgetreten.';
 
   @override
-  String get postDetail_notFound => 'Beitrag nicht gefunden.';
+  String get postDetail_notFound => 'Voce nicht gefunden.';
 
   @override
   String get postDetail_errorTitle => 'Fehler';
@@ -1060,13 +1060,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get postDetail_saveAction => 'Speichern';
 
   @override
-  String get postDetail_addToFavoritesTooltip => 'Zu Favoriten hinzufügen';
+  String get postDetail_addToFavoritesTooltip => 'Speichern';
 
   @override
-  String get postDetail_removeFromFavoritesTooltip => 'Aus Favoriten entfernen';
+  String get postDetail_removeFromFavoritesTooltip => 'Nicht mehr speichern';
 
   @override
-  String get newsDetail_favoriteUpdateError => 'Favoriten konnten nicht aktualisiert werden';
+  String get newsDetail_favoriteUpdateError => 'Gespeicherte Inhalte konnten nicht aktualisiert werden';
 
   @override
   String get newsDetail_shareMessage => 'Öffne Social Vote, um diese Nachricht anzusehen.';
@@ -1276,34 +1276,34 @@ class AppLocalizationsDe extends AppLocalizations {
   String get authCloseButton => 'Schließen';
 
   @override
-  String get pollDetail_favoriteUpdateError => 'Favoriten konnten nicht aktualisiert werden';
+  String get pollDetail_favoriteUpdateError => 'Gespeicherte Inhalte konnten nicht aktualisiert werden';
 
   @override
-  String get pollDetail_shareMessage => 'Öffne Social Vote, um diese Umfrage anzusehen und daran teilzunehmen.';
+  String get pollDetail_shareMessage => 'Öffne Social Vote, um diesen Vote anzusehen und daran teilzunehmen.';
 
   @override
-  String get pollDetail_shareError => 'Die Umfrage konnte nicht geteilt werden';
+  String get pollDetail_shareError => 'Der Vote konnte nicht geteilt werden';
 
   @override
-  String get pollDetail_editPermissionError => 'Du kannst nur deine eigenen Umfragen bearbeiten, solange noch keine Stimmen abgegeben wurden';
+  String get pollDetail_editPermissionError => 'Du kannst nur eigene Vote ohne abgegebene Stimmen bearbeiten';
 
   @override
-  String get pollDetail_editSuccessMessage => 'Umfrage aktualisiert';
+  String get pollDetail_editSuccessMessage => 'Vote aktualisiert';
 
   @override
-  String get pollDetail_editMenuItem => 'Umfrage bearbeiten';
+  String get pollDetail_editMenuItem => 'Vote bearbeiten';
 
   @override
   String get pollDetail_editSavingMenuItem => 'Wird gespeichert...';
 
   @override
-  String get pollDetail_deletePermissionError => 'Du kannst nur deine eigenen Umfragen löschen';
+  String get pollDetail_deletePermissionError => 'Du kannst nur eigene Vote löschen';
 
   @override
-  String get pollDetail_deleteError => 'Die Umfrage konnte nicht gelöscht werden';
+  String get pollDetail_deleteError => 'Der Vote konnte nicht gelöscht werden';
 
   @override
-  String get pollDetail_deleteDialogTitle => 'Umfrage löschen';
+  String get pollDetail_deleteDialogTitle => 'Vote löschen';
 
   @override
   String pollDetail_deleteDialogMessage(String title) {
@@ -1311,7 +1311,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get pollDetail_deleteMenuItem => 'Umfrage löschen';
+  String get pollDetail_deleteMenuItem => 'Vote löschen';
 
   @override
   String get pollDetail_deleteDeletingMenuItem => 'Wird gelöscht...';
@@ -1320,7 +1320,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollDetail_publicVotesAvailableTitle => 'Öffentliche Stimmen verfügbar';
 
   @override
-  String get pollDetail_publicVotesAvailableMessage => 'Bei dieser Umfrage kannst du sehen, wer für welche Option abgestimmt hat.';
+  String get pollDetail_publicVotesAvailableMessage => 'Bei diesem Vote kannst du sehen, wer für welche Option abgestimmt hat.';
 
   @override
   String get pollDetail_publicVotesAction => 'Öffentliche Stimmen anzeigen';
@@ -1335,10 +1335,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollDetail_voteErrorAuthenticationRequired => 'Du musst angemeldet sein, um abzustimmen';
 
   @override
-  String get pollDetail_voteErrorClosed => 'Diese Umfrage ist geschlossen';
+  String get pollDetail_voteErrorClosed => 'Dieser Vote ist geschlossen';
 
   @override
-  String get pollDetail_voteErrorAlreadyVoted => 'Du hast bereits an dieser Umfrage abgestimmt';
+  String get pollDetail_voteErrorAlreadyVoted => 'Du hast bereits an diesem Vote abgestimmt';
 
   @override
   String get pollDetail_voteErrorGeneric => 'Die Stimme konnte nicht abgegeben werden';
@@ -1347,7 +1347,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollDetail_publicVotesSheetTitle => 'Öffentliche Stimmen';
 
   @override
-  String get pollDetail_publicVotesSheetDescription => 'Hier kannst du sehen, wer bei dieser Umfrage für welche Option abgestimmt hat.';
+  String get pollDetail_publicVotesSheetDescription => 'Hier kannst du sehen, wer bei diesem Vote für welche Option abgestimmt hat.';
 
   @override
   String get pollDetail_publicVotesSearchHint => 'Nutzer suchen';
@@ -1373,7 +1373,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollDetail_publicVotesUserFallback => 'Nutzer';
 
   @override
-  String get pollDetail_editDialogTitle => 'Umfrage bearbeiten';
+  String get pollDetail_editDialogTitle => 'Vote bearbeiten';
 
   @override
   String get pollDetail_editTitleFieldLabel => 'Titel';
@@ -1385,13 +1385,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollDetail_editDescriptionFieldLabel => 'Beschreibung';
 
   @override
-  String get pollDetail_editError => 'Die Umfrage konnte nicht aktualisiert werden';
+  String get pollDetail_editError => 'Der Vote konnte nicht aktualisiert werden';
 
   @override
-  String get pollDetail_loadError => 'Die Umfrage konnte nicht geladen werden';
+  String get pollDetail_loadError => 'Der Vote konnte nicht geladen werden';
 
   @override
-  String get pollDetail_notFound => 'Umfrage nicht gefunden';
+  String get pollDetail_notFound => 'Vote nicht gefunden';
 
   @override
   String get profileEditPageTitle => 'Profil bearbeiten';
@@ -1478,7 +1478,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get notificationsMentionTitle => 'Du wurdest erwähnt';
 
   @override
-  String get notificationsPollResultTitle => 'Umfrage-Update';
+  String get notificationsPollResultTitle => 'Vote-Update';
 
   @override
   String notificationsCommentReplySubtitle(String actor, String target) {
@@ -1496,13 +1496,13 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get notificationsTargetPost => 'einem Beitrag';
+  String get notificationsTargetPost => 'einer Voce';
 
   @override
   String get notificationsTargetNews => 'einer Nachricht';
 
   @override
-  String get notificationsTargetPoll => 'einer Umfrage';
+  String get notificationsTargetPoll => 'einem Vote';
 
   @override
   String get notificationsTargetVideo => 'einem Video';
@@ -1963,10 +1963,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterAllContent => 'Alle Inhalte';
 
   @override
-  String get adminCenterPolls => 'Umfragen';
+  String get adminCenterPolls => 'Vote';
 
   @override
-  String get adminCenterPosts => 'Beiträge';
+  String get adminCenterPosts => 'Voce';
 
   @override
   String get adminCenterNews => 'Nachrichten';
@@ -2401,10 +2401,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterUserPlural => 'Nutzer';
 
   @override
-  String get adminCenterPoll => 'Umfrage';
+  String get adminCenterPoll => 'Vote';
 
   @override
-  String get adminCenterPost => 'Beitrag';
+  String get adminCenterPost => 'Voce';
 
   @override
   String get adminCenterUnknown => 'Unbekannt';
@@ -2724,16 +2724,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profileThemeDark => 'Dunkel';
 
   @override
-  String get profileMyPollsTitle => 'Meine Umfragen';
+  String get profileMyPollsTitle => 'Vote';
 
   @override
-  String get profileMyPostsTitle => 'Meine Beiträge';
+  String get profileMyPostsTitle => 'Voce';
 
   @override
   String get profileMyCommentsTitle => 'Meine Kommentare';
 
   @override
-  String get profileMyFavoritesTitle => 'Meine Favoriten';
+  String get profileMyFavoritesTitle => 'Gespeichert';
 
   @override
   String get profileAccountConnectionsTitle => 'Gefolgte Konten und Follower';
@@ -2796,10 +2796,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get publicProfileContentSectionTitle => 'Öffentliche Inhalte';
 
   @override
-  String get publicProfilePollsAction => 'Umfragen';
+  String get publicProfilePollsAction => 'Vote';
 
   @override
-  String get publicProfilePostsAction => 'Beiträge';
+  String get publicProfilePostsAction => 'Voce';
 
   @override
   String get publicProfileBlockUserAction => 'Nutzer blockieren';
@@ -2883,10 +2883,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get onboardingStartButton => 'Starten';
 
   @override
-  String get onboardingPollTitle => 'Umfragen';
+  String get onboardingPollTitle => 'Vote';
 
   @override
-  String get onboardingPollDescription => 'Stimme über Themen ab, die dir wichtig sind, und erstelle Umfragen, um die Meinung der Community einzuholen.';
+  String get onboardingPollDescription => 'Nimm an einem Vote zu Themen teil, die dir wichtig sind, oder erstelle selbst einen, um die Meinung der Community einzuholen.';
 
   @override
   String get onboardingHeatIceTitle => 'Heat und Ice';
@@ -2898,7 +2898,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get onboardingCivicMapTitle => 'Civic Map';
 
   @override
-  String get onboardingCivicMapDescription => 'Erkunde Umfragen, Beiträge und Nachrichten auf der Karte und entdecke, was in verschiedenen Gebieten passiert.';
+  String get onboardingCivicMapDescription => 'Erkunde Vote, Voce und News auf der Karte und entdecke, was in verschiedenen Gebieten passiert.';
 
   @override
   String get onboardingGeoScopeTitle => 'GeoScope';
@@ -2910,7 +2910,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get onboardingVerificationTitle => 'Identitätsverifizierung';
 
   @override
-  String get onboardingVerificationDescription => 'Einige Umfragen können eine bestimmte Verifizierungsstufe verlangen, um die Integrität der Abstimmung zu schützen.';
+  String get onboardingVerificationDescription => 'Einige Vote können eine bestimmte Verifizierungsstufe verlangen, um die Integrität der Abstimmung zu schützen.';
 
   @override
   String get pollDetail_voteReceiptButton => 'Stimmbeleg';
@@ -2991,10 +2991,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterRecentSignInsMetric => 'Letzte Anmeldungen';
 
   @override
-  String get adminCenterPollsCreatedMetric => 'Erstellte Umfragen';
+  String get adminCenterPollsCreatedMetric => 'Erstellte Vote';
 
   @override
-  String get adminCenterPostsCreatedMetric => 'Erstellte Beiträge';
+  String get adminCenterPostsCreatedMetric => 'Erstellte Voce';
 
   @override
   String get adminCenterAdminActionsMetric => 'Admin-Aktionen';
@@ -3153,7 +3153,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionAccessControlled => 'Kontrolliert anonym';
 
   @override
-  String get sessionAccessControlledHint => 'Verwendet einmalige anonyme Zugangsdaten. Social Vote speichert Token-Hashes und verknüpft Abstimmungsentscheidungen nicht mit Teilnehmerzugängen.';
+  String get sessionAccessControlledHint => 'Verwendet einmalige anonyme Access Passes. Social Vote speichert nur den Hash des Access Pass und verknüpft Abstimmungsentscheidungen nicht mit Teilnehmerzugängen.';
 
   @override
   String get sessionResultsVisibility => 'Sichtbarkeit der Ergebnisse';
@@ -3204,10 +3204,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionTokensOneTimeTitle => 'Diese Zugangsdaten jetzt speichern';
 
   @override
-  String get sessionTokensOneTimeBody => 'Klartext-Tokens werden nur in diesem Batch-Ergebnis angezeigt. Social Vote speichert nur deren Hashes. Sicher kopieren und verteilen.';
+  String get sessionTokensOneTimeBody => 'Access Passes im Klartext werden nur in diesem Batch-Ergebnis angezeigt. Social Vote speichert nur deren Hashes. Sicher kopieren und verteilen.';
 
   @override
-  String get sessionCopyTokens => 'Tokens kopieren';
+  String get sessionCopyTokens => 'Alle Links kopieren';
 
   @override
   String get sessionTokensSavedAction => 'Ich habe sie gespeichert';
@@ -3294,7 +3294,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionResultsUnavailable => 'Die Ergebnisse sind nach der gewählten Session-Regel noch nicht sichtbar.';
 
   @override
-  String get sessionPrivacyNotice => 'Der Organisator bestimmt Zweck und Fragen. Social Vote verarbeitet die Session. Anonyme Modi zeigen dem Organisator keine individuellen Abstimmungsentscheidungen.';
+  String get sessionPrivacyNotice => 'Der Organisator legt den operativen Zweck und die Fragen der Session fest. Social Vote verarbeitet die technischen Daten, die zur Bereitstellung und zum Schutz des Dienstes erforderlich sind. Anonyme Modi zeigen dem Organisator keine Verknüpfung zwischen Teilnehmerzugang und Auswahl. Datenschutzrollen können vom Kontext und den anwendbaren Vereinbarungen abhängen.';
 
   @override
   String get sessionNonBindingNotice => 'Pilot-Sessions dienen Konsultation und Beteiligung. Sie sind keine rechtsverbindliche Wahl, Satzungsabstimmung oder rechtliche Zertifizierung.';
@@ -3372,10 +3372,22 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get verifiedResultPrintPdf => 'Drucken / Als PDF speichern';
+  String get verifiedResultPrintPdf => 'PDF herunterladen';
 
   @override
-  String get verifiedResultPdfError => 'Das PDF konnte nicht geöffnet werden. Versuche es erneut oder prüfe, ob der Browser ein neues Fenster blockiert hat.';
+  String get verifiedResultPdfError => 'Das PDF konnte nicht heruntergeladen werden. Versuche es erneut.';
+
+  @override
+  String get verifiedResultRestrictedTitle => 'Geschütztes Ergebnis';
+
+  @override
+  String get verifiedResultRestrictedBody => 'Dieses Verified Result ist nicht öffentlich verfügbar. Melde dich mit einem autorisierten Organisationskonto an, um es anzuzeigen.';
+
+  @override
+  String get verifiedResultPrivateVerificationTitle => 'Öffentliche Prüfung nicht verfügbar';
+
+  @override
+  String get verifiedResultPrivateVerificationBody => 'Dieses Ergebnis ist auf den Organisator beschränkt. Report-ID, SHA-256 und Integritätsprüfung bleiben im autorisierten Bericht verfügbar.';
 
   @override
   String get organizationAccountSectionTitle => 'Deine Organisationen';
@@ -3625,4 +3637,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get organizationTotalSessions => 'Sessions gesamt';
+
+  @override
+  String get sessionPrivacyPolicyAction => 'Datenschutzerklärung lesen';
 }

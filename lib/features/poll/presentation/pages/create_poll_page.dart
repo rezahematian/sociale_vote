@@ -5,8 +5,10 @@ import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/identity/value_objects/institution_level.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
+import 'package:sociale_vote/domain/organization/entities/organization_models.dart';
 import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
@@ -42,6 +44,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
   final TextEditingController _contentCityController = TextEditingController();
 
   UserProfile? _currentUserProfile;
+  OrganizationContext? _organizationContext;
   bool _publishingIdentityLoaded = false;
   bool _showAdvancedOptions = false;
   bool _showManualContentLocationFields = false;
@@ -63,29 +66,37 @@ class _CreatePollViewState extends State<_CreatePollView> {
 
   Future<void> _loadPublishingIdentity() async {
     final userId = AppDI.instance.currentUserId;
-    if (userId == null) {
-      if (!mounted) return;
-      setState(() {
-        _publishingIdentityLoaded = true;
-      });
-      return;
+
+    UserProfile? profile;
+    OrganizationContext? organizationContext;
+
+    if (userId != null) {
+      try {
+        profile = await AppDI.instance.getUserProfile(userId);
+      } catch (_) {
+        profile = null;
+      }
     }
 
     try {
-      final profile = await AppDI.instance.getUserProfile(userId);
-      if (!mounted) return;
-
-      setState(() {
-        _currentUserProfile = profile;
-        _publishingIdentityLoaded = true;
-      });
+      final candidate =
+          await AppDI.instance.organizationRepository.getMyOrganization();
+      final canPublish = candidate != null &&
+          candidate.canManageProfile &&
+          candidate.organization.isVerified &&
+          candidate.workspace.status == 'active';
+      organizationContext = canPublish ? candidate : null;
     } catch (_) {
-      if (!mounted) return;
-
-      setState(() {
-        _publishingIdentityLoaded = true;
-      });
+      organizationContext = null;
     }
+
+    if (!mounted) return;
+
+    setState(() {
+      _currentUserProfile = profile;
+      _organizationContext = organizationContext;
+      _publishingIdentityLoaded = true;
+    });
   }
 
   String _pollTypeLabel(PollType type) {
@@ -121,9 +132,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
             ? 'Consigliato nella maggior parte dei casi: ogni persona sceglie una sola risposta.'
             : deOrEnglish(context,
                 english:
-                    'Recommended for most polls: each person selects one answer.',
+                    'Recommended in most cases: each person selects one answer.',
                 german:
-                    'Für die meisten Umfragen empfohlen: Jede Person wählt eine Antwort.');
+                    'Für die meisten Fälle empfohlen: Jede Person wählt eine Antwort.');
       case PollType.multipleChoice:
         return _isItalian
             ? 'Usalo quando più risposte possono essere valide insieme.'
@@ -134,25 +145,25 @@ class _CreatePollViewState extends State<_CreatePollView> {
                     'Verwende dies, wenn mehrere Antworten gleichzeitig gültig sein können.');
       case PollType.approval:
         return _isItalian
-            ? 'Modalità avanzata non disponibile per nuovi sondaggi.'
+            ? 'Modalità avanzata non disponibile per nuovi Vote.'
             : deOrEnglish(context,
-                english: 'Advanced mode is not available for new polls.',
+                english: 'Advanced mode is not available for new Vote.',
                 german:
-                    'Der erweiterte Modus ist für neue Umfragen nicht verfügbar.');
+                    'Der erweiterte Modus ist für neue Vote nicht verfügbar.');
       case PollType.ranked:
         return _isItalian
-            ? 'Modalità avanzata non disponibile per nuovi sondaggi.'
+            ? 'Modalità avanzata non disponibile per nuovi Vote.'
             : deOrEnglish(context,
-                english: 'Advanced mode is not available for new polls.',
+                english: 'Advanced mode is not available for new Vote.',
                 german:
-                    'Der erweiterte Modus ist für neue Umfragen nicht verfügbar.');
+                    'Der erweiterte Modus ist für neue Vote nicht verfügbar.');
       case PollType.score:
         return _isItalian
-            ? 'Modalità avanzata non disponibile per nuovi sondaggi.'
+            ? 'Modalità avanzata non disponibile per nuovi Vote.'
             : deOrEnglish(context,
-                english: 'Advanced mode is not available for new polls.',
+                english: 'Advanced mode is not available for new Vote.',
                 german:
-                    'Der erweiterte Modus ist für neue Umfragen nicht verfügbar.');
+                    'Der erweiterte Modus ist für neue Vote nicht verfügbar.');
     }
   }
 
@@ -343,12 +354,12 @@ class _CreatePollViewState extends State<_CreatePollView> {
         'The end date must be after the start date.',
       ],
       'Poll duration cannot exceed 31 days.': [
-        'Il sondaggio non può durare più di 31 giorni.',
-        'The poll cannot last more than 31 days.',
+        'Il Vote non può durare più di 31 giorni.',
+        'The Vote cannot last more than 31 days.',
       ],
       'Please select a country for this poll.': [
-        'Seleziona un Paese per questo sondaggio.',
-        'Select a country for this poll.',
+        'Seleziona un Paese per questo Vote.',
+        'Select a country for this Vote.',
       ],
     };
 
@@ -388,9 +399,9 @@ class _CreatePollViewState extends State<_CreatePollView> {
       'End date must be after start date.' =>
         'Das Enddatum muss nach dem Startdatum liegen.',
       'Poll duration cannot exceed 31 days.' =>
-        'Die Umfrage darf höchstens 31 Tage dauern.',
+        'Der Vote darf höchstens 31 Tage dauern.',
       'Please select a country for this poll.' =>
-        'Wähle ein Land für diese Umfrage aus.',
+        'Wähle ein Land für diesen Vote aus.',
       _ => raw,
     };
   }
@@ -542,12 +553,12 @@ class _CreatePollViewState extends State<_CreatePollView> {
   String? _submitHintText(CreatePollController controller) {
     if (!controller.hasExplicitTimeWindow) {
       return _isItalian
-          ? 'Imposta data di inizio e data di fine prima di creare il sondaggio.'
+          ? 'Imposta data di inizio e data di fine prima di creare il Vote.'
           : deOrEnglish(context,
               english:
-                  'Set a start date and an end date before creating the poll.',
+                  'Set a start date and an end date before creating the Vote.',
               german:
-                  'Lege vor dem Erstellen der Umfrage ein Start- und Enddatum fest.');
+                  'Lege vor dem Erstellen eines Vote ein Start- und Enddatum fest.');
     }
 
     if (controller.endAt.isBefore(controller.startAt)) {
@@ -562,15 +573,15 @@ class _CreatePollViewState extends State<_CreatePollView> {
       return _isItalian
           ? 'La votazione non può durare più di 31 giorni.'
           : deOrEnglish(context,
-              english: 'The poll cannot last more than 31 days.',
-              german: 'Die Umfrage darf nicht länger als 31 Tage dauern.');
+              english: 'The Vote cannot last more than 31 days.',
+              german: 'Der Vote darf nicht länger als 31 Tage dauern.');
     }
 
     return null;
   }
 
   bool _canPublishAsRepresentative(UserProfile? profile) {
-    if (profile == null) {
+    if (profile == null || profile.actorType == ActorType.organization) {
       return false;
     }
 
@@ -624,6 +635,63 @@ class _CreatePollViewState extends State<_CreatePollView> {
       case null:
         return null;
     }
+  }
+
+  Widget _buildOrganizationPublishingCard(
+    BuildContext context,
+    CreatePollController controller,
+  ) {
+    final organizationContext = _organizationContext;
+    if (!_publishingIdentityLoaded || organizationContext == null) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final organization = organizationContext.organization;
+    final selected = controller.isPublishingAsOrganization;
+
+    return _buildSectionCard(
+      context,
+      child: SwitchListTile.adaptive(
+        contentPadding: EdgeInsets.zero,
+        value: selected,
+        onChanged: controller.isSubmitting
+            ? null
+            : (value) {
+                controller.setPublisherOrganization(
+                  organizationId: value ? organization.id : null,
+                  displayName: value ? organization.publicName : null,
+                );
+              },
+        secondary: Icon(
+          Icons.business_rounded,
+          color: theme.colorScheme.primary,
+        ),
+        title: Text(
+          _isItalian
+              ? 'Pubblica come ${organization.publicName}'
+              : deOrEnglish(
+                  context,
+                  english: 'Publish as ${organization.publicName}',
+                  german: 'Als ${organization.publicName} veröffentlichen',
+                ),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        subtitle: Text(
+          _isItalian
+              ? 'Il Vote apparirà come consultazione ufficiale dell’organizzazione verificata.'
+              : deOrEnglish(
+                  context,
+                  english:
+                      'The Vote will appear as an official consultation from the verified Organization.',
+                  german:
+                      'Der Vote erscheint als offizielle Konsultation der verifizierten Organisation.',
+                ),
+        ),
+      ),
+    );
   }
 
   Widget _buildRepresentativePublishingCard(BuildContext context) {
@@ -682,19 +750,19 @@ class _CreatePollViewState extends State<_CreatePollView> {
           Text(
             identityTypeLabel == null
                 ? (_isItalian
-                    ? 'Questo sondaggio verrà pubblicato con la tua identità verificata.'
+                    ? 'Questo Vote verrà pubblicato con la tua identità verificata.'
                     : deOrEnglish(context,
                         english:
-                            'This poll will be published with your verified identity.',
+                            'This Vote will be published with your verified identity.',
                         german:
-                            'Diese Umfrage wird mit deiner verifizierten Identität veröffentlicht.'))
+                            'Dieser Vote wird mit deiner verifizierten Identität veröffentlicht.'))
                 : (_isItalian
-                    ? 'Questo sondaggio verrà pubblicato come $identityTypeLabel.'
+                    ? 'Questo Vote verrà pubblicato come $identityTypeLabel.'
                     : deOrEnglish(context,
                         english:
-                            'This poll will be published as $identityTypeLabel.',
+                            'This Vote will be published as $identityTypeLabel.',
                         german:
-                            'Diese Umfrage wird als $identityTypeLabel veröffentlicht.')),
+                            'Dieser Vote wird als $identityTypeLabel veröffentlicht.')),
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,
             ),
@@ -966,12 +1034,12 @@ class _CreatePollViewState extends State<_CreatePollView> {
           const SizedBox(height: 4),
           Text(
             _isItalian
-                ? 'Scegli se il sondaggio è globale, associato a una località oppure alla tua posizione attuale. L’ambito di navigazione non modifica questa scelta.'
+                ? 'Scegli se il Vote è globale, associato a una località oppure alla tua posizione attuale. L’ambito di navigazione non modifica questa scelta.'
                 : deOrEnglish(context,
                     english:
-                        'Choose whether the poll is global, linked to a location, or linked to your current location. Navigation scope does not change this choice.',
+                        'Choose whether the Vote is global, linked to a location, or linked to your current location. Navigation scope does not change this choice.',
                     german:
-                        'Wähle, ob die Umfrage global, mit einem Standort oder mit deinem aktuellen Standort verknüpft ist. Der Navigationsbereich ändert diese Auswahl nicht.'),
+                        'Wähle, ob der Vote global, mit einem Standort oder mit deinem aktuellen Standort verknüpft ist. Der Navigationsbereich ändert diese Auswahl nicht.'),
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
             ),
@@ -1197,12 +1265,12 @@ class _CreatePollViewState extends State<_CreatePollView> {
                         english: 'Content city', german: 'Stadt des Inhalts'),
                 border: const OutlineInputBorder(),
                 helperText: _isItalian
-                    ? 'Facoltativo. Serve per posizionare meglio il sondaggio.'
+                    ? 'Facoltativo. Serve per posizionare meglio il Vote.'
                     : deOrEnglish(context,
                         english:
-                            'Optional. Helps place the poll more accurately.',
+                            'Optional. Helps place the Vote more accurately.',
                         german:
-                            'Optional. Hilft, die Umfrage genauer zu verorten.'),
+                            'Optional. Hilft, den Vote genauer zu verorten.'),
               ),
               onChanged: (_) => _applyManualContentLocation(controller),
             ),
@@ -1332,8 +1400,17 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               ],
                             ),
                           ),
-                          if (_canPublishAsRepresentative(
-                              _currentUserProfile)) ...[
+                          if (_organizationContext != null) ...[
+                            const SizedBox(height: 16),
+                            _buildOrganizationPublishingCard(
+                              context,
+                              controller,
+                            ),
+                          ],
+                          if (!controller.isPublishingAsOrganization &&
+                              _canPublishAsRepresentative(
+                                _currentUserProfile,
+                              )) ...[
                             const SizedBox(height: 16),
                             _buildRepresentativePublishingCard(context),
                           ],

@@ -681,11 +681,11 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
                   Expanded(
                     child: Text(
                       isItalian
-                          ? 'Impossibile caricare i sondaggi pubblici.'
+                          ? 'Impossibile caricare i Vote pubblici.'
                           : deOrEnglish(context,
-                              english: 'Unable to load public polls.',
+                              english: 'Unable to load public Vote.',
                               german:
-                                  'Öffentliche Umfragen konnten nicht geladen werden.'),
+                                  'Öffentliche Vote konnten nicht geladen werden.'),
                       style: theme.textTheme.bodyMedium,
                     ),
                   ),
@@ -714,10 +714,10 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
                   Expanded(
                     child: Text(
                       isItalian
-                          ? 'Nessun sondaggio pubblico.'
+                          ? 'Nessun Vote pubblico.'
                           : deOrEnglish(context,
-                              english: 'No public polls.',
-                              german: 'Keine öffentlichen Umfragen.'),
+                              english: 'No public Vote.',
+                              german: 'Keine öffentlichen Vote.'),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface.withValues(
                           alpha: 0.68,
@@ -790,11 +790,11 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
                   Expanded(
                     child: Text(
                       isItalian
-                          ? 'Impossibile caricare i post pubblici.'
+                          ? 'Impossibile caricare le Voci pubbliche.'
                           : deOrEnglish(context,
-                              english: 'Unable to load public posts.',
+                              english: 'Unable to load public Voce.',
                               german:
-                                  'Öffentliche Beiträge konnten nicht geladen werden.'),
+                                  'Öffentliche Voce konnten nicht geladen werden.'),
                       style: theme.textTheme.bodyMedium,
                     ),
                   ),
@@ -823,10 +823,10 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
                   Expanded(
                     child: Text(
                       isItalian
-                          ? 'Nessun post pubblico.'
+                          ? 'Nessuna Voce pubblica.'
                           : deOrEnglish(context,
-                              english: 'No public posts.',
-                              german: 'Keine öffentlichen Beiträge.'),
+                              english: 'No public Voce.',
+                              german: 'Keine öffentlichen Voce.'),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface.withValues(
                           alpha: 0.68,
@@ -938,7 +938,8 @@ class _OrganizationPublicActions extends StatelessWidget {
                         : 'https://$website';
                     final uri = Uri.tryParse(normalized);
                     if (uri != null) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      await launchUrl(uri,
+                          mode: LaunchMode.externalApplication);
                     }
                   },
                   icon: const Icon(Icons.language_rounded),

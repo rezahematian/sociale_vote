@@ -2,17 +2,17 @@
   "@@locale": "de",
   "appTitle": "Social Vote",
   "voteButton": "Abstimmen",
-  "createPollPageTitle": "Umfrage erstellen",
+  "createPollPageTitle": "Vote erstellen",
   "createPollPageSubtitle": "Eine neue Bürgerumfrage definieren",
   "createPollBasicInfoTitle": "Grundinformationen",
-  "createPollBasicInfoSubtitle": "Lege die wichtigsten Angaben der Umfrage fest.",
+  "createPollBasicInfoSubtitle": "Lege die wichtigsten Angaben für diesen Vote fest.",
   "createPollTitleFieldLabel": "Titel *",
   "createPollTitleFieldHelper": "Eine klare, prägnante Frage oder Aussage.",
   "createPollDescriptionFieldLabel": "Beschreibung (optional)",
   "createPollVotingModelTitle": "So wird abgestimmt",
   "createPollVotingModelSubtitle": "Wähle, ob jede Person eine oder mehrere Antworten auswählen kann.",
-  "createPollTypeFieldLabel": "Umfragetyp",
-  "createPollSelectionRules": "Auswahlregeln: mindestens {min}, höchstens {max} Auswahlen (wird automatisch an Umfragetyp und Antworten angepasst).",
+  "createPollTypeFieldLabel": "Vote-Typ",
+  "createPollSelectionRules": "Auswahlregeln: mindestens {min}, höchstens {max} Auswahlen (wird automatisch an Vote-Typ und Antworten angepasst).",
   "@createPollSelectionRules": {
     "placeholders": {
       "min": {
@@ -24,7 +24,7 @@
     }
   },
   "createPollAllowVoteChangeTitle": "Änderung der Stimme erlauben",
-  "createPollAllowVoteChangeSubtitle": "Bis die Umfrage geschlossen wird.",
+  "createPollAllowVoteChangeSubtitle": "Bis der Vote geschlossen wird.",
   "createPollOptionsTitle": "Antworten",
   "createPollOptionsSubtitle": "Gib mindestens zwei Antworten zur Auswahl ein. Mit * markierte Felder sind Pflichtfelder.",
   "createPollOptionLabel": "Option {index}{requiredMarker}",
@@ -42,9 +42,9 @@
   "createPollParticipationPrivacySubtitle": "Lege fest, wer abstimmen darf und wie vertraulich die Stimmen sind.",
   "createPollWhoCanVoteLabel": "Wer darf abstimmen?",
   "createPollParticipationEveryoneSubtitle": "Jeder registrierte Nutzer kann teilnehmen.",
-  "createPollParticipationGeoScopeSubtitle": "Beschränke diese Umfrage auf Personen aus einem bestimmten Land.",
-  "createPollCountryFieldLabel": "Land für diese Umfrage",
-  "createPollCountryFieldHelper": "Dieses Land legt fest, wer an dieser Umfrage teilnehmen darf (zukünftige Backend-Integration).",
+  "createPollParticipationGeoScopeSubtitle": "Beschränke diesen Vote auf Personen aus einem bestimmten Land.",
+  "createPollCountryFieldLabel": "Land für diesen Vote",
+  "createPollCountryFieldHelper": "Dieses Land legt fest, wer an diesem Vote teilnehmen darf (zukünftige Backend-Integration).",
   "createPollVoteAnonymityTitle": "Anonymität der Stimme",
   "createPollAnonymityAnonymousSubtitle": "Empfohlene Standardeinstellung für Bürgerbeteiligungsplattformen.",
   "createPollAnonymityPublicSubtitle": "Mit Vorsicht verwenden: Stimmen können Identitäten zugeordnet werden (zukünftige Funktion).",
@@ -52,17 +52,17 @@
   "createPollResultsValiditySubtitle": "Lege fest, wann Ergebnisse sichtbar sind, und definiere bei Bedarf ein Mindestquorum.",
   "createPollResultsVisibilityFieldLabel": "Sichtbarkeit der Ergebnisse",
   "createPollQuorumTitle": "Quorum (optional)",
-  "createPollQuorumSubtitle": "Wenn gesetzt, gilt die Umfrage nur als gültig, wenn mindestens diese Anzahl an Stimmen erreicht wird. Leer lassen, wenn kein Quorum erforderlich ist.",
+  "createPollQuorumSubtitle": "Wenn gesetzt, gilt der Vote nur als gültig, wenn mindestens diese Anzahl an Stimmen erreicht wird. Leer lassen, wenn kein Quorum erforderlich ist.",
   "createPollQuorumMinVotesFieldLabel": "Mindestanzahl an Stimmen",
   "createPollTimingTitle": "Zeitraum",
-  "createPollTimingSubtitle": "Lege fest, wann die Umfrage zur Abstimmung geöffnet sein soll.",
+  "createPollTimingSubtitle": "Lege fest, wann der Vote zur Abstimmung geöffnet sein soll.",
   "createPollStartDateLabel": "Startdatum",
   "createPollEndDateLabel": "Enddatum",
   "createPollChangeDateButtonLabel": "Ändern",
   "createPollTimingStatusInfo": "Der anfängliche Status (offen/geplant/geschlossen) wird anhand dieser Daten automatisch bestimmt.",
-  "createPollSuccessMessage": "Umfrage erfolgreich erstellt",
+  "createPollSuccessMessage": "Vote erfolgreich erstellt",
   "createPollSubmitCreatingLabel": "Wird erstellt...",
-  "createPollSubmitLabel": "Umfrage erstellen",
+  "createPollSubmitLabel": "Vote erstellen",
   "createPollPollTypeYesNoLabel": "Ja / Nein",
   "createPollPollTypeSingleChoiceLabel": "Eine Antwort",
   "createPollPollTypeMultipleChoiceLabel": "Mehrere Antworten",
@@ -73,9 +73,9 @@
   "createPollParticipationScopeGeoScopeOnlyLabel": "Nur Nutzer in einem bestimmten Land",
   "createPollAnonymityLevelAnonymousLabel": "Stimmen sind anonym",
   "createPollAnonymityLevelPublicLabel": "Stimmen sind öffentlich (erweiterte / eingeschränkte Nutzung)",
-  "createPollResultsVisibilityAlwaysLabel": "Immer sichtbar (solange die Umfrage offen ist)",
+  "createPollResultsVisibilityAlwaysLabel": "Immer sichtbar (solange der Vote offen ist)",
   "createPollResultsVisibilityAfterVoteLabel": "Erst nach der Abstimmung sichtbar",
-  "createPollResultsVisibilityAfterCloseLabel": "Erst nach Schließen der Umfrage sichtbar",
+  "createPollResultsVisibilityAfterCloseLabel": "Erst sichtbar, wenn der Vote geschlossen ist",
   "homeLoginButton": "Anmelden",
   "homeRegisterButton": "Registrieren",
   "homeProfileButton": "Profil",
@@ -83,16 +83,16 @@
   "homeLogoutMessage": "Abmeldung abgeschlossen. Du verwendest die App jetzt als Gast (nur Lesen).",
   "homeSearchHint": "Städte, Länder, Konten und Inhalte suchen...",
   "searchPageTitle": "Suche",
-  "searchInputHint": "Konten, Umfragen, Nachrichten, Beiträge suchen...",
+  "searchInputHint": "Konten, Vote, News, Voce suchen...",
   "searchClearTooltip": "Suche löschen",
   "searchTypeAll": "Alle",
-  "searchTypePolls": "Umfragen",
-  "searchTypeNews": "Nachrichten",
-  "searchTypePosts": "Beiträge",
+  "searchTypePolls": "Vote",
+  "searchTypeNews": "News",
+  "searchTypePosts": "Voce",
   "searchTypeAccounts": "Konten",
   "searchSortHottest": "Am beliebtesten",
   "searchSortLatest": "Neueste",
-  "searchPollStatusAll": "Alle Umfragen",
+  "searchPollStatusAll": "Alle Vote",
   "searchPollStatusOpen": "Offen",
   "searchPollStatusClosed": "Geschlossen",
   "searchIdleMessage": "Gib einen Begriff ein, um die Suche zu starten.",
@@ -100,9 +100,9 @@
   "searchRetryButton": "Erneut versuchen",
   "searchEmptyMessage": "Keine Ergebnisse für diese Suche gefunden.",
   "searchContentUnavailable": "Inhalt nicht verfügbar",
-  "searchResultTypePoll": "Umfrage",
-  "searchResultTypeNews": "Nachricht",
-  "searchResultTypePost": "Beitrag",
+  "searchResultTypePoll": "Vote",
+  "searchResultTypeNews": "News",
+  "searchResultTypePost": "Voce",
   "searchResultTypeAccount": "Konto",
   "searchResultTypeMixed": "Gemischt",
   "homeUserStatusLoggedIn": "Angemeldet als: {userId}",
@@ -126,27 +126,27 @@
   "homeScopeChangedTorino": "Bereich auf Turin geändert",
   "followScopeButtonFollowed": "Gefolgt",
   "followScopeButtonFollow": "Diesem Bereich folgen",
-  "homeTrendingTitle": "Jetzt im Trend",
-  "homeTrendingError": "Trendinhalte für diesen Bereich konnten nicht geladen werden.",
-  "homeTrendingEmpty": "Für diesen Bereich gibt es derzeit keine Trendinhalte.",
-  "homeForYouTitle": "Für dich ({scope})",
+  "homeTrendingTitle": "Pulse Now",
+  "homeTrendingError": "Pulse Now konnte für diesen Bereich nicht geladen werden.",
+  "homeTrendingEmpty": "Für diesen Bereich gibt es derzeit keine Inhalte in Pulse Now.",
+  "homeForYouTitle": "Pulse ({scope})",
   "@homeForYouTitle": {
     "placeholders": {
       "scope": {}
     }
   },
-  "homeForYouError": "Der „Für dich“-Feed für diesen Bereich konnte nicht geladen werden.",
-  "homeForYouEmpty": "Für diesen Bereich gibt es derzeit keine empfohlenen „Für dich“-Inhalte.",
-  "homePollsTitle": "Hervorgehobene Umfragen ({scope})",
+  "homeForYouError": "Pulse konnte für diesen Bereich nicht geladen werden.",
+  "homeForYouEmpty": "Für diesen Bereich gibt es derzeit keine empfohlenen Inhalte in Pulse.",
+  "homePollsTitle": "Vote im Fokus ({scope})",
   "@homePollsTitle": {
     "placeholders": {
       "scope": {}
     }
   },
-  "homePollsEmptyTitle": "Keine Umfragen für diesen Bereich",
-  "homePollsEmptySubtitle": "Für diesen Bereich gibt es keine Umfragen.",
-  "homePollsViewAllButton": "Alle Umfragen anzeigen",
-  "homeNewsTitle": "Top-Nachrichten ({scope})",
+  "homePollsEmptyTitle": "Kein Vote für diesen Bereich",
+  "homePollsEmptySubtitle": "Für diesen Bereich ist kein Vote verfügbar.",
+  "homePollsViewAllButton": "Vote anzeigen",
+  "homeNewsTitle": "Top News ({scope})",
   "@homeNewsTitle": {
     "placeholders": {
       "scope": {}
@@ -158,20 +158,20 @@
   "homeNewsEmptySubtitle": "Für diesen Bereich gibt es derzeit keine Nachrichten.",
   "homeNewsViewAllButton": "Alle Nachrichten anzeigen",
   "homeNewsBreakingBadge": "EILMELDUNG",
-  "homeSocialTitle": "Diskussionen / Feed ({scope})",
+  "homeSocialTitle": "Voce ({scope})",
   "@homeSocialTitle": {
     "placeholders": {
       "scope": {}
     }
   },
-  "homeSocialErrorTitle": "Diskussionen konnten nicht geladen werden",
-  "homeSocialErrorSubtitle": "Beim Laden des Social-Feeds für diesen Bereich ist ein Problem aufgetreten.",
-  "homeSocialEmptyTitle": "Keine Diskussionen für diesen Bereich",
-  "homeSocialEmptySubtitle": "Für diesen Bereich gibt es derzeit keine Diskussionen.",
-  "homeSocialViewFeedButton": "Social-Feed anzeigen",
-  "pollDetail_title": "Umfragedetails",
-  "pollDetail_removeFromFavoritesTooltip": "Aus Favoriten entfernen",
-  "pollDetail_addToFavoritesTooltip": "Zu Favoriten hinzufügen",
+  "homeSocialErrorTitle": "Voce konnte nicht geladen werden",
+  "homeSocialErrorSubtitle": "Beim Laden von Voce für diesen Bereich ist ein Problem aufgetreten.",
+  "homeSocialEmptyTitle": "Keine Voce für diesen Bereich",
+  "homeSocialEmptySubtitle": "Für diesen Bereich gibt es derzeit keine Voce-Inhalte.",
+  "homeSocialViewFeedButton": "Alle Voce anzeigen",
+  "pollDetail_title": "Vote-Details",
+  "pollDetail_removeFromFavoritesTooltip": "Nicht mehr speichern",
+  "pollDetail_addToFavoritesTooltip": "Speichern",
   "pollDetail_chipAnonymous": "Anonyme Stimme",
   "pollDetail_chipPublic": "Öffentliche Stimme",
   "pollDetail_chipRestrictedGeo": "Auf geografischen Bereich beschränkt",
@@ -198,8 +198,8 @@
     }
   },
   "pollDetail_optionsTitle": "Optionen",
-  "pollDetail_statusClosedMessage": "Diese Umfrage ist geschlossen.",
-  "pollDetail_statusScheduledMessage": "Diese Umfrage ist noch nicht geöffnet.",
+  "pollDetail_statusClosedMessage": "Dieser Vote ist geschlossen.",
+  "pollDetail_statusScheduledMessage": "Dieser Vote ist noch nicht geöffnet.",
   "pollDetail_statusNotAvailableMessage": "Abstimmen ist nicht verfügbar.",
   "pollDetail_voteSubmitted": "Stimme erfolgreich abgegeben!",
   "pollDetail_voteButton": "Abstimmen",
@@ -212,7 +212,7 @@
   },
   "pollDetail_noResults": "Noch keine Ergebnisse verfügbar.",
   "pollDetail_resultsAfterVote": "Die Ergebnisse werden sichtbar, nachdem du abgestimmt hast.",
-  "pollDetail_resultsWhenClosed": "Die Ergebnisse werden sichtbar, wenn die Umfrage geschlossen ist.",
+  "pollDetail_resultsWhenClosed": "Die Ergebnisse werden sichtbar, wenn der Vote geschlossen ist.",
   "pollType_yesNo": "Ja / Nein",
   "pollType_singleChoice": "Einfachauswahl",
   "pollType_multipleChoice": "Mehrfachauswahl",
@@ -228,20 +228,20 @@
   "pollOutcome_tie": "Unentschieden",
   "pollOutcome_noMajority": "Keine Mehrheit",
   "pollOutcome_notApplicable": "Nicht zutreffend",
-  "pollList_title": "Umfragen",
+  "pollList_title": "Vote",
   "pollList_scopeWorld": "Welt",
   "pollList_scopeCountryFallback": "Land",
   "pollList_scopeCityFallback": "Stadt",
-  "pollList_scopeDescriptionGlobal": "Globale Umfragen werden angezeigt.",
-  "pollList_scopeDescriptionCountry": "Umfragen für dieses Land werden angezeigt.",
-  "pollList_scopeDescriptionCity": "Umfragen für diese Stadt werden angezeigt.",
+  "pollList_scopeDescriptionGlobal": "Globale Vote werden angezeigt.",
+  "pollList_scopeDescriptionCountry": "Vote für dieses Land werden angezeigt.",
+  "pollList_scopeDescriptionCity": "Vote für diese Stadt werden angezeigt.",
   "pollList_filterStatus_all": "Alle",
   "pollList_filterStatus_open": "Offen",
   "pollList_filterStatus_closed": "Geschlossen",
   "pollList_sort_latest": "Neueste",
   "pollList_sort_hottest": "Am beliebtesten",
   "pollList_filterScope_currentArea": "Aktueller Bereich",
-  "pollList_headerTitle": "{scopeLabel} · {count, plural, =0 {keine Umfragen gefunden} =1 {1 Umfrage gefunden} other {{count} Umfragen gefunden}}",
+  "pollList_headerTitle": "{scopeLabel} · {count, plural, =0 {kein Vote gefunden} =1 {1 Vote gefunden} other {{count} Vote gefunden}}",
   "@pollList_headerTitle": {
     "placeholders": {
       "scopeLabel": {},
@@ -250,12 +250,12 @@
       }
     }
   },
-  "pollList_createPollButton": "Umfrage erstellen",
-  "pollList_paginationHint": "Scrollen, um weitere Umfragen zu laden…",
-  "pollList_emptyMessage": "Keine Umfragen für diesen Filter und Bereich gefunden.",
+  "pollList_createPollButton": "Vote erstellen",
+  "pollList_paginationHint": "Scrollen, um weitere Vote zu laden…",
+  "pollList_emptyMessage": "Keine Vote für diesen Filter und Bereich gefunden.",
   "pollType_ranked": "Rangwahl",
   "pollType_score": "Punktewahl",
-  "pollVisibility_whileOpen": "Ergebnisse während der laufenden Umfrage sichtbar",
+  "pollVisibility_whileOpen": "Ergebnisse sichtbar, solange der Vote offen ist",
   "pollVisibility_afterVote": "Ergebnisse nach der Abstimmung sichtbar",
   "pollVisibility_afterClose": "Ergebnisse nach dem Schließen sichtbar",
   "pollCard_countryRestricted": "Auf Land beschränkt",
@@ -316,7 +316,7 @@
     }
   },
   "voteError_noSelection": "Bitte wähle mindestens eine Option aus.",
-  "voteError_unauthorized": "Du darfst an dieser Umfrage nicht abstimmen.",
+  "voteError_unauthorized": "Du darfst an diesem Vote nicht abstimmen.",
   "voteError_generic": "Die Stimme konnte nicht abgegeben werden. Bitte versuche es erneut.",
   "commentSection_title": "Kommentare",
   "commentSection_sortLabel": "Sortieren:",
@@ -339,8 +339,8 @@
   "commentSection_youBadge": "Du",
   "newsDetail_title": "Nachrichtendetails",
   "newsDetail_breakingBadge": "EILMELDUNG",
-  "newsDetail_removeFromFavoritesTooltip": "Aus Favoriten entfernen",
-  "newsDetail_addToFavoritesTooltip": "Zu Favoriten hinzufügen",
+  "newsDetail_removeFromFavoritesTooltip": "Nicht mehr speichern",
+  "newsDetail_addToFavoritesTooltip": "Speichern",
   "newsDetail_bodyFallback": "Für diese Nachricht ist kein zusätzlicher Text verfügbar.",
   "newsDetail_footerMoreContext": "Weitere Hintergründe und Quellen folgen in Kürze.",
   "newsFeed_title": "Nachrichten",
@@ -407,11 +407,11 @@
   "@newsDetail_openSourceUnavailable": {
     "description": "Shown when the source link cannot be opened"
   },
-  "socialFeedTitle": "Social-Feed",
+  "socialFeedTitle": "Voce",
   "@socialFeedTitle": {
     "description": "Title of the main social feed page"
   },
-  "socialFeedCreatePostButton": "Beitrag erstellen",
+  "socialFeedCreatePostButton": "Voce erstellen",
   "@socialFeedCreatePostButton": {
     "description": "Button that opens the post creation flow"
   },
@@ -477,11 +477,11 @@
   "@homeHeroHeadline": {
     "description": "Main headline shown in the Home hero"
   },
-  "homeHeroPollsAction": "Umfragen",
+  "homeHeroPollsAction": "Vote",
   "@homeHeroPollsAction": {
     "description": "Compact Home dashboard action that opens polls"
   },
-  "homeHeroNewsAction": "Nachrichten",
+  "homeHeroNewsAction": "News",
   "@homeHeroNewsAction": {
     "description": "Compact Home dashboard action that opens news"
   },
@@ -601,23 +601,23 @@
   "@contentReport_reasonOther": {
     "description": "Other report reason"
   },
-  "postDetail_title": "Beitragsdetails",
+  "postDetail_title": "Voce-Details",
   "@postDetail_title": {
     "description": "Post detail page title"
   },
-  "postDetail_favoriteUpdateError": "Favoriten konnten nicht aktualisiert werden",
+  "postDetail_favoriteUpdateError": "Gespeicherte Inhalte konnten nicht aktualisiert werden",
   "@postDetail_favoriteUpdateError": {
     "description": "Favorites update error on the post detail page"
   },
-  "postDetail_shareMessage": "Öffne Social Vote, um diesen Beitrag anzusehen.",
+  "postDetail_shareMessage": "Öffne Social Vote, um diese Voce anzusehen.",
   "@postDetail_shareMessage": {
     "description": "Text appended when sharing a post"
   },
-  "postDetail_shareError": "Der Beitrag konnte nicht geteilt werden",
+  "postDetail_shareError": "Die Voce konnte nicht geteilt werden",
   "@postDetail_shareError": {
     "description": "Post sharing error"
   },
-  "postDetail_editDialogTitle": "Beitrag bearbeiten",
+  "postDetail_editDialogTitle": "Voce bearbeiten",
   "@postDetail_editDialogTitle": {
     "description": "Edit post dialog title"
   },
@@ -633,15 +633,15 @@
   "@postDetail_editRequiredError": {
     "description": "Required fields error in the edit post dialog"
   },
-  "postDetail_updateSuccess": "Beitrag aktualisiert",
+  "postDetail_updateSuccess": "Voce aktualisiert",
   "@postDetail_updateSuccess": {
     "description": "Post update confirmation"
   },
-  "postDetail_updateError": "Der Beitrag konnte nicht aktualisiert werden",
+  "postDetail_updateError": "Die Voce konnte nicht aktualisiert werden",
   "@postDetail_updateError": {
     "description": "Post update error"
   },
-  "postDetail_deleteDialogTitle": "Diesen Beitrag löschen?",
+  "postDetail_deleteDialogTitle": "Diese Voce löschen?",
   "@postDetail_deleteDialogTitle": {
     "description": "Post deletion confirmation title"
   },
@@ -649,23 +649,23 @@
   "@postDetail_deleteDialogMessage": {
     "description": "Post deletion confirmation message"
   },
-  "postDetail_deleteError": "Der Beitrag konnte nicht gelöscht werden",
+  "postDetail_deleteError": "Die Voce konnte nicht gelöscht werden",
   "@postDetail_deleteError": {
     "description": "Post deletion error"
   },
-  "postDetail_editMenuItem": "Beitrag bearbeiten",
+  "postDetail_editMenuItem": "Voce bearbeiten",
   "@postDetail_editMenuItem": {
     "description": "Edit post menu item"
   },
-  "postDetail_deleteMenuItem": "Beitrag löschen",
+  "postDetail_deleteMenuItem": "Voce löschen",
   "@postDetail_deleteMenuItem": {
     "description": "Delete post menu item"
   },
-  "postDetail_loadError": "Beim Laden des Beitrags ist ein Fehler aufgetreten.",
+  "postDetail_loadError": "Beim Laden der Voce ist ein Fehler aufgetreten.",
   "@postDetail_loadError": {
     "description": "Generic post detail loading error"
   },
-  "postDetail_notFound": "Beitrag nicht gefunden.",
+  "postDetail_notFound": "Voce nicht gefunden.",
   "@postDetail_notFound": {
     "description": "Post not found message"
   },
@@ -685,15 +685,15 @@
   "@postDetail_saveAction": {
     "description": "Save action on the post detail page"
   },
-  "postDetail_addToFavoritesTooltip": "Zu Favoriten hinzufügen",
+  "postDetail_addToFavoritesTooltip": "Speichern",
   "@postDetail_addToFavoritesTooltip": {
     "description": "Add to favorites tooltip on the post detail page"
   },
-  "postDetail_removeFromFavoritesTooltip": "Aus Favoriten entfernen",
+  "postDetail_removeFromFavoritesTooltip": "Nicht mehr speichern",
   "@postDetail_removeFromFavoritesTooltip": {
     "description": "Remove from favorites tooltip on the post detail page"
   },
-  "newsDetail_favoriteUpdateError": "Favoriten konnten nicht aktualisiert werden",
+  "newsDetail_favoriteUpdateError": "Gespeicherte Inhalte konnten nicht aktualisiert werden",
   "@newsDetail_favoriteUpdateError": {
     "description": "Favorites update error on the news detail page"
   },
@@ -973,27 +973,27 @@
   "@authCloseButton": {
     "description": "Auth UI: authCloseButton"
   },
-  "pollDetail_favoriteUpdateError": "Favoriten konnten nicht aktualisiert werden",
+  "pollDetail_favoriteUpdateError": "Gespeicherte Inhalte konnten nicht aktualisiert werden",
   "@pollDetail_favoriteUpdateError": {
     "description": "Poll detail UI: pollDetail_favoriteUpdateError"
   },
-  "pollDetail_shareMessage": "Öffne Social Vote, um diese Umfrage anzusehen und daran teilzunehmen.",
+  "pollDetail_shareMessage": "Öffne Social Vote, um diesen Vote anzusehen und daran teilzunehmen.",
   "@pollDetail_shareMessage": {
     "description": "Poll detail UI: pollDetail_shareMessage"
   },
-  "pollDetail_shareError": "Die Umfrage konnte nicht geteilt werden",
+  "pollDetail_shareError": "Der Vote konnte nicht geteilt werden",
   "@pollDetail_shareError": {
     "description": "Poll detail UI: pollDetail_shareError"
   },
-  "pollDetail_editPermissionError": "Du kannst nur deine eigenen Umfragen bearbeiten, solange noch keine Stimmen abgegeben wurden",
+  "pollDetail_editPermissionError": "Du kannst nur eigene Vote ohne abgegebene Stimmen bearbeiten",
   "@pollDetail_editPermissionError": {
     "description": "Poll detail UI: pollDetail_editPermissionError"
   },
-  "pollDetail_editSuccessMessage": "Umfrage aktualisiert",
+  "pollDetail_editSuccessMessage": "Vote aktualisiert",
   "@pollDetail_editSuccessMessage": {
     "description": "Poll detail UI: pollDetail_editSuccessMessage"
   },
-  "pollDetail_editMenuItem": "Umfrage bearbeiten",
+  "pollDetail_editMenuItem": "Vote bearbeiten",
   "@pollDetail_editMenuItem": {
     "description": "Poll detail UI: pollDetail_editMenuItem"
   },
@@ -1001,15 +1001,15 @@
   "@pollDetail_editSavingMenuItem": {
     "description": "Poll detail UI: pollDetail_editSavingMenuItem"
   },
-  "pollDetail_deletePermissionError": "Du kannst nur deine eigenen Umfragen löschen",
+  "pollDetail_deletePermissionError": "Du kannst nur eigene Vote löschen",
   "@pollDetail_deletePermissionError": {
     "description": "Poll detail UI: pollDetail_deletePermissionError"
   },
-  "pollDetail_deleteError": "Die Umfrage konnte nicht gelöscht werden",
+  "pollDetail_deleteError": "Der Vote konnte nicht gelöscht werden",
   "@pollDetail_deleteError": {
     "description": "Poll detail UI: pollDetail_deleteError"
   },
-  "pollDetail_deleteDialogTitle": "Umfrage löschen",
+  "pollDetail_deleteDialogTitle": "Vote löschen",
   "@pollDetail_deleteDialogTitle": {
     "description": "Poll detail UI: pollDetail_deleteDialogTitle"
   },
@@ -1022,7 +1022,7 @@
       }
     }
   },
-  "pollDetail_deleteMenuItem": "Umfrage löschen",
+  "pollDetail_deleteMenuItem": "Vote löschen",
   "@pollDetail_deleteMenuItem": {
     "description": "Poll detail UI: pollDetail_deleteMenuItem"
   },
@@ -1034,7 +1034,7 @@
   "@pollDetail_publicVotesAvailableTitle": {
     "description": "Poll detail UI: pollDetail_publicVotesAvailableTitle"
   },
-  "pollDetail_publicVotesAvailableMessage": "Bei dieser Umfrage kannst du sehen, wer für welche Option abgestimmt hat.",
+  "pollDetail_publicVotesAvailableMessage": "Bei diesem Vote kannst du sehen, wer für welche Option abgestimmt hat.",
   "@pollDetail_publicVotesAvailableMessage": {
     "description": "Poll detail UI: pollDetail_publicVotesAvailableMessage"
   },
@@ -1054,11 +1054,11 @@
   "@pollDetail_voteErrorAuthenticationRequired": {
     "description": "Poll detail UI: pollDetail_voteErrorAuthenticationRequired"
   },
-  "pollDetail_voteErrorClosed": "Diese Umfrage ist geschlossen",
+  "pollDetail_voteErrorClosed": "Dieser Vote ist geschlossen",
   "@pollDetail_voteErrorClosed": {
     "description": "Poll detail UI: pollDetail_voteErrorClosed"
   },
-  "pollDetail_voteErrorAlreadyVoted": "Du hast bereits an dieser Umfrage abgestimmt",
+  "pollDetail_voteErrorAlreadyVoted": "Du hast bereits an diesem Vote abgestimmt",
   "@pollDetail_voteErrorAlreadyVoted": {
     "description": "Poll detail UI: pollDetail_voteErrorAlreadyVoted"
   },
@@ -1070,7 +1070,7 @@
   "@pollDetail_publicVotesSheetTitle": {
     "description": "Poll detail UI: pollDetail_publicVotesSheetTitle"
   },
-  "pollDetail_publicVotesSheetDescription": "Hier kannst du sehen, wer bei dieser Umfrage für welche Option abgestimmt hat.",
+  "pollDetail_publicVotesSheetDescription": "Hier kannst du sehen, wer bei diesem Vote für welche Option abgestimmt hat.",
   "@pollDetail_publicVotesSheetDescription": {
     "description": "Poll detail UI: pollDetail_publicVotesSheetDescription"
   },
@@ -1107,7 +1107,7 @@
   "@pollDetail_publicVotesUserFallback": {
     "description": "Poll detail UI: pollDetail_publicVotesUserFallback"
   },
-  "pollDetail_editDialogTitle": "Umfrage bearbeiten",
+  "pollDetail_editDialogTitle": "Vote bearbeiten",
   "@pollDetail_editDialogTitle": {
     "description": "Poll detail UI: pollDetail_editDialogTitle"
   },
@@ -1123,15 +1123,15 @@
   "@pollDetail_editDescriptionFieldLabel": {
     "description": "Poll detail UI: pollDetail_editDescriptionFieldLabel"
   },
-  "pollDetail_editError": "Die Umfrage konnte nicht aktualisiert werden",
+  "pollDetail_editError": "Der Vote konnte nicht aktualisiert werden",
   "@pollDetail_editError": {
     "description": "Poll detail UI: pollDetail_editError"
   },
-  "pollDetail_loadError": "Die Umfrage konnte nicht geladen werden",
+  "pollDetail_loadError": "Der Vote konnte nicht geladen werden",
   "@pollDetail_loadError": {
     "description": "Poll detail UI: pollDetail_loadError"
   },
-  "pollDetail_notFound": "Umfrage nicht gefunden",
+  "pollDetail_notFound": "Vote nicht gefunden",
   "@pollDetail_notFound": {
     "description": "Poll detail UI: pollDetail_notFound"
   },
@@ -1247,7 +1247,7 @@
   "@notificationsMentionTitle": {
     "description": "Notifications UI: notificationsMentionTitle"
   },
-  "notificationsPollResultTitle": "Umfrage-Update",
+  "notificationsPollResultTitle": "Vote-Update",
   "@notificationsPollResultTitle": {
     "description": "Notifications UI: notificationsPollResultTitle"
   },
@@ -1284,7 +1284,7 @@
       }
     }
   },
-  "notificationsTargetPost": "einem Beitrag",
+  "notificationsTargetPost": "einer Voce",
   "@notificationsTargetPost": {
     "description": "Notifications UI: notificationsTargetPost"
   },
@@ -1292,7 +1292,7 @@
   "@notificationsTargetNews": {
     "description": "Notifications UI: notificationsTargetNews"
   },
-  "notificationsTargetPoll": "einer Umfrage",
+  "notificationsTargetPoll": "einem Vote",
   "@notificationsTargetPoll": {
     "description": "Notifications UI: notificationsTargetPoll"
   },
@@ -1809,8 +1809,8 @@
   "adminCenterNewValueLabel": "Neu",
   "adminCenterContentTypeLabel": "Inhaltstyp",
   "adminCenterAllContent": "Alle Inhalte",
-  "adminCenterPolls": "Umfragen",
-  "adminCenterPosts": "Beiträge",
+  "adminCenterPolls": "Vote",
+  "adminCenterPosts": "Voce",
   "adminCenterNews": "Nachrichten",
   "adminCenterAwaitingAdminDecision": "Wartet auf Admin-Entscheidung",
   "adminCenterStatusLabel": "Status",
@@ -1955,8 +1955,8 @@
   "adminCenterReportPlural": "Meldungen",
   "adminCenterUserSingular": "Nutzer",
   "adminCenterUserPlural": "Nutzer",
-  "adminCenterPoll": "Umfrage",
-  "adminCenterPost": "Beitrag",
+  "adminCenterPoll": "Vote",
+  "adminCenterPost": "Voce",
   "adminCenterUnknown": "Unbekannt",
   "adminCenterContentHidden": "Inhalt ausgeblendet",
   "adminCenterContentVisible": "Inhalt sichtbar",
@@ -2172,10 +2172,10 @@
   "profileThemeSystemDescription": "Folgt dem Gerätedesign",
   "profileThemeLight": "Hell",
   "profileThemeDark": "Dunkel",
-  "profileMyPollsTitle": "Meine Umfragen",
-  "profileMyPostsTitle": "Meine Beiträge",
+  "profileMyPollsTitle": "Vote",
+  "profileMyPostsTitle": "Voce",
   "profileMyCommentsTitle": "Meine Kommentare",
-  "profileMyFavoritesTitle": "Meine Favoriten",
+  "profileMyFavoritesTitle": "Gespeichert",
   "profileAccountConnectionsTitle": "Gefolgte Konten und Follower",
   "accountConnectionsFollowingTab": "Gefolgt",
   "accountConnectionsFollowersTab": "Follower",
@@ -2196,8 +2196,8 @@
   "publicProfileResidenceUnknown": "Nicht angegeben",
   "publicProfileMemberSinceLabel": "Mitglied seit",
   "publicProfileContentSectionTitle": "Öffentliche Inhalte",
-  "publicProfilePollsAction": "Umfragen",
-  "publicProfilePostsAction": "Beiträge",
+  "publicProfilePollsAction": "Vote",
+  "publicProfilePostsAction": "Voce",
   "publicProfileBlockUserAction": "Nutzer blockieren",
   "publicProfileLoadError": "Das Profil konnte nicht geladen werden.",
   "publicProfileNotFound": "Profil nicht verfügbar.",
@@ -2225,16 +2225,16 @@
   "onboardingSkipButton": "Überspringen",
   "onboardingNextButton": "Weiter",
   "onboardingStartButton": "Starten",
-  "onboardingPollTitle": "Umfragen",
-  "onboardingPollDescription": "Stimme über Themen ab, die dir wichtig sind, und erstelle Umfragen, um die Meinung der Community einzuholen.",
+  "onboardingPollTitle": "Vote",
+  "onboardingPollDescription": "Nimm an einem Vote zu Themen teil, die dir wichtig sind, oder erstelle selbst einen, um die Meinung der Community einzuholen.",
   "onboardingHeatIceTitle": "Heat und Ice",
   "onboardingHeatIceDescription": "Nutze Heat und Ice, um zu zeigen, wie stark ein Inhalt dein Interesse weckt.",
   "onboardingCivicMapTitle": "Civic Map",
-  "onboardingCivicMapDescription": "Erkunde Umfragen, Beiträge und Nachrichten auf der Karte und entdecke, was in verschiedenen Gebieten passiert.",
+  "onboardingCivicMapDescription": "Erkunde Vote, Voce und News auf der Karte und entdecke, was in verschiedenen Gebieten passiert.",
   "onboardingGeoScopeTitle": "GeoScope",
   "onboardingGeoScopeDescription": "Wähle die geografische Ebene, der du folgen möchtest: Welt, Land oder Stadt.",
   "onboardingVerificationTitle": "Identitätsverifizierung",
-  "onboardingVerificationDescription": "Einige Umfragen können eine bestimmte Verifizierungsstufe verlangen, um die Integrität der Abstimmung zu schützen.",
+  "onboardingVerificationDescription": "Einige Vote können eine bestimmte Verifizierungsstufe verlangen, um die Integrität der Abstimmung zu schützen.",
   "pollDetail_voteReceiptButton": "Stimmbeleg",
   "pollDetail_voteReceiptTitle": "Stimmbeleg",
   "pollDetail_voteReceiptIdLabel": "Beleg-ID",
@@ -2261,8 +2261,8 @@
   "adminCenterLast7DaysLabel": "7 Tage",
   "adminCenterNewUsersMetric": "Neue Registrierungen",
   "adminCenterRecentSignInsMetric": "Letzte Anmeldungen",
-  "adminCenterPollsCreatedMetric": "Erstellte Umfragen",
-  "adminCenterPostsCreatedMetric": "Erstellte Beiträge",
+  "adminCenterPollsCreatedMetric": "Erstellte Vote",
+  "adminCenterPostsCreatedMetric": "Erstellte Voce",
   "adminCenterAdminActionsMetric": "Admin-Aktionen",
   "authPublicNameHelper": "Dies ist der Name, den andere Nutzer sehen. Dein Benutzername wird automatisch erstellt.",
   "@authPublicNameHelper": {
@@ -2324,7 +2324,7 @@
   "sessionAccessOpen": "Offen anonym",
   "sessionAccessOpenHint": "Jeder mit Link/Code kann teilnehmen. Die Duplikatvermeidung ist nur bestmöglich; dieser Modus garantiert nicht eine Person – eine Stimme.",
   "sessionAccessControlled": "Kontrolliert anonym",
-  "sessionAccessControlledHint": "Verwendet einmalige anonyme Zugangsdaten. Social Vote speichert Token-Hashes und verknüpft Abstimmungsentscheidungen nicht mit Teilnehmerzugängen.",
+  "sessionAccessControlledHint": "Verwendet einmalige anonyme Access Passes. Social Vote speichert nur den Hash des Access Pass und verknüpft Abstimmungsentscheidungen nicht mit Teilnehmerzugängen.",
   "sessionResultsVisibility": "Sichtbarkeit der Ergebnisse",
   "sessionResultsLive": "Live",
   "sessionResultsAfterVote": "Nach eigener Stimmabgabe",
@@ -2341,8 +2341,8 @@
   "sessionGenerateTokens": "Access Passes erzeugen",
   "sessionGenerateTokensCount": "Anzahl Access Passes",
   "sessionTokensOneTimeTitle": "Diese Zugangsdaten jetzt speichern",
-  "sessionTokensOneTimeBody": "Klartext-Tokens werden nur in diesem Batch-Ergebnis angezeigt. Social Vote speichert nur deren Hashes. Sicher kopieren und verteilen.",
-  "sessionCopyTokens": "Tokens kopieren",
+  "sessionTokensOneTimeBody": "Access Passes im Klartext werden nur in diesem Batch-Ergebnis angezeigt. Social Vote speichert nur deren Hashes. Sicher kopieren und verteilen.",
+  "sessionCopyTokens": "Alle Links kopieren",
   "sessionTokensSavedAction": "Ich habe sie gespeichert",
   "sessionOpenAction": "Session öffnen",
   "sessionCloseAction": "Session schließen",
@@ -2371,7 +2371,7 @@
   "sessionVoteAction": "Stimme senden",
   "sessionVoteReceived": "Stimme empfangen",
   "sessionResultsUnavailable": "Die Ergebnisse sind nach der gewählten Session-Regel noch nicht sichtbar.",
-  "sessionPrivacyNotice": "Der Organisator bestimmt Zweck und Fragen. Social Vote verarbeitet die Session. Anonyme Modi zeigen dem Organisator keine individuellen Abstimmungsentscheidungen.",
+  "sessionPrivacyNotice": "Der Organisator legt den operativen Zweck und die Fragen der Session fest. Social Vote verarbeitet die technischen Daten, die zur Bereitstellung und zum Schutz des Dienstes erforderlich sind. Anonyme Modi zeigen dem Organisator keine Verknüpfung zwischen Teilnehmerzugang und Auswahl. Datenschutzrollen können vom Kontext und den anwendbaren Vereinbarungen abhängen.",
   "sessionNonBindingNotice": "Pilot-Sessions dienen Konsultation und Beteiligung. Sie sind keine rechtsverbindliche Wahl, Satzungsabstimmung oder rechtliche Zertifizierung.",
   "sessionOptionYes": "Ja",
   "sessionOptionNo": "Nein",
@@ -2416,8 +2416,12 @@
       }
     }
   },
-  "verifiedResultPrintPdf": "Drucken / Als PDF speichern",
-  "verifiedResultPdfError": "Das PDF konnte nicht geöffnet werden. Versuche es erneut oder prüfe, ob der Browser ein neues Fenster blockiert hat.",
+  "verifiedResultPrintPdf": "PDF herunterladen",
+  "verifiedResultPdfError": "Das PDF konnte nicht heruntergeladen werden. Versuche es erneut.",
+  "verifiedResultRestrictedTitle": "Geschütztes Ergebnis",
+  "verifiedResultRestrictedBody": "Dieses Verified Result ist nicht öffentlich verfügbar. Melde dich mit einem autorisierten Organisationskonto an, um es anzuzeigen.",
+  "verifiedResultPrivateVerificationTitle": "Öffentliche Prüfung nicht verfügbar",
+  "verifiedResultPrivateVerificationBody": "Dieses Ergebnis ist auf den Organisator beschränkt. Report-ID, SHA-256 und Integritätsprüfung bleiben im autorisierten Bericht verfügbar.",
   "organizationAccountSectionTitle": "Deine Organisationen",
   "organizationManageAction": "Verwalten",
   "organizationViewPublicProfileAction": "Profil ansehen",
@@ -2500,5 +2504,9 @@
   "organizationDashboardTitle": "Organisationsübersicht",
   "organizationActiveSessions": "Live-Sessions",
   "organizationVerifiedReports": "Verifizierte Berichte",
-  "organizationTotalSessions": "Sessions gesamt"
+  "organizationTotalSessions": "Sessions gesamt",
+  "sessionPrivacyPolicyAction": "Datenschutzerklärung lesen",
+  "@sessionPrivacyPolicyAction": {
+    "description": "Participant Session link to the full Privacy Policy"
+  }
 }

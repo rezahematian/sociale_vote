@@ -64,6 +64,17 @@ class _VerifiedSessionReportPageState extends State<VerifiedSessionReportPage> {
     }
   }
 
+  String _friendlyLoadError(AppLocalizations l10n, Object error) {
+    final raw = error.toString().toLowerCase();
+    if (raw.contains('42501') ||
+        raw.contains('permission denied') ||
+        raw.contains('organizer only') ||
+        raw.contains('organizer_only')) {
+      return l10n.verifiedResultRestrictedBody;
+    }
+    return l10n.publicProfileLoadError;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -84,7 +95,9 @@ class _VerifiedSessionReportPageState extends State<VerifiedSessionReportPage> {
           ? Center(
               child: _error == null
                   ? const CircularProgressIndicator()
-                  : Text(_error.toString()),
+                  : _RestrictedReportNotice(
+                      message: _friendlyLoadError(l10n, _error!),
+                    ),
             )
           : _buildReport(context, l10n, report),
     );
@@ -96,7 +109,11 @@ class _VerifiedSessionReportPageState extends State<VerifiedSessionReportPage> {
     VerifiedSessionReport report,
   ) {
     final snapshot = report.snapshot;
-    final verifyUrl = AppRouter.publicVerifiedSessionUrl(report.reportId);
+    final organizerOnly =
+        _text(snapshot['results_visibility']) == 'organizer_only';
+    final verifyUrl = organizerOnly
+        ? ''
+        : AppRouter.publicVerifiedSessionUrl(report.reportId);
     final questions = snapshot['questions'] is List
         ? snapshot['questions'] as List
         : const <dynamic>[];
@@ -299,6 +316,7 @@ class _VerifiedSessionReportPageState extends State<VerifiedSessionReportPage> {
                         sha256: report.sha256,
                         valid: report.hashValid,
                         verifyUrl: verifyUrl,
+                        publicVerification: !organizerOnly,
                         algorithm: algorithm,
                         schemaVersion: schemaVersion,
                         issuedAt: _prettyDate(snapshot['certificate_issued_at'])
@@ -364,11 +382,12 @@ class _VerifiedSessionReportPageState extends State<VerifiedSessionReportPage> {
                         spacing: 10,
                         runSpacing: 10,
                         children: [
-                          FilledButton.icon(
-                            onPressed: () => Share.share(verifyUrl),
-                            icon: const Icon(Icons.share_outlined),
-                            label: Text(l10n.verifiedResultShare),
-                          ),
+                          if (!organizerOnly)
+                            FilledButton.icon(
+                              onPressed: () => Share.share(verifyUrl),
+                              icon: const Icon(Icons.share_outlined),
+                              label: Text(l10n.verifiedResultShare),
+                            ),
                           OutlinedButton.icon(
                             onPressed: () => _printReport(report, l10n),
                             icon: const Icon(Icons.print_outlined),
@@ -768,12 +787,60 @@ class _QuestionResultBlock extends StatelessWidget {
   }
 }
 
+class _RestrictedReportNotice extends StatelessWidget {
+  final String message;
+
+  const _RestrictedReportNotice({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.lock_outline_rounded,
+                  size: 42,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  l10n.verifiedResultRestrictedTitle,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _IntegrityPanel extends StatelessWidget {
   final String reportId;
   final String certificateNumber;
   final String sha256;
   final bool valid;
   final String verifyUrl;
+  final bool publicVerification;
   final String algorithm;
   final String schemaVersion;
   final String issuedAt;
@@ -784,6 +851,7 @@ class _IntegrityPanel extends StatelessWidget {
     required this.sha256,
     required this.valid,
     required this.verifyUrl,
+    required this.publicVerification,
     required this.algorithm,
     required this.schemaVersion,
     required this.issuedAt,
@@ -799,29 +867,65 @@ class _IntegrityPanel extends StatelessWidget {
         padding: const EdgeInsets.all(18),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final qr = Column(
-              children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(9),
-                    child: QrImageView(data: verifyUrl, size: 145),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                SizedBox(
-                  width: 180,
-                  child: Text(
-                    l10n.verifiedCertificateVerifyQr,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodySmall,
-                  ),
-                ),
-              ],
-            );
+            final verificationPanel = publicVerification
+                ? Column(
+                    children: [
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(9),
+                          child: QrImageView(data: verifyUrl, size: 145),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      SizedBox(
+                        width: 180,
+                        child: Text(
+                          l10n.verifiedCertificateVerifyQr,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  )
+                : SizedBox(
+                    width: 210,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: theme.colorScheme.outlineVariant,
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.lock_outline_rounded, size: 32),
+                            const SizedBox(height: 8),
+                            Text(
+                              l10n.verifiedResultPrivateVerificationTitle,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              l10n.verifiedResultPrivateVerificationBody,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
             final data = Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -868,16 +972,28 @@ class _IntegrityPanel extends StatelessWidget {
                     height: 1.35,
                   ),
                 ),
-                const SizedBox(height: 8),
-                SelectableText(verifyUrl, style: theme.textTheme.bodySmall),
+                if (publicVerification) ...[
+                  const SizedBox(height: 8),
+                  SelectableText(verifyUrl, style: theme.textTheme.bodySmall),
+                ],
               ],
             );
             if (constraints.maxWidth < 650) {
-              return Column(children: [data, const SizedBox(height: 16), qr]);
+              return Column(
+                children: [
+                  data,
+                  const SizedBox(height: 16),
+                  verificationPanel,
+                ],
+              );
             }
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [Expanded(child: data), const SizedBox(width: 20), qr],
+              children: [
+                Expanded(child: data),
+                const SizedBox(width: 20),
+                verificationPanel,
+              ],
             );
           },
         ),

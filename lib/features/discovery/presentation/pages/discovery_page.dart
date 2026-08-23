@@ -89,8 +89,8 @@ class _DiscoveryPageState extends State<DiscoveryPage> {
 
   String _forYouTabLabel(BuildContext context) {
     return _isItalian(context)
-        ? 'Per te'
-        : deOrEnglish(context, english: 'For You', german: 'Für dich');
+        ? 'Pulse'
+        : deOrEnglish(context, english: 'Pulse', german: 'Pulse');
   }
 
   String _forYouExplanation(BuildContext context) {
