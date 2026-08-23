@@ -3192,10 +3192,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sessionShareJoin => 'Condividi link';
 
   @override
-  String get sessionGenerateTokens => 'Genera token';
+  String get sessionCopyJoinLink => 'Copia link';
 
   @override
-  String get sessionGenerateTokensCount => 'Numero di token';
+  String get sessionGenerateTokens => 'Genera Access Pass';
+
+  @override
+  String get sessionGenerateTokensCount => 'Numero di Access Pass';
 
   @override
   String get sessionTokensOneTimeTitle => 'Salva ora queste credenziali';
@@ -3372,6 +3375,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get verifiedResultPrintPdf => 'Stampa / Salva PDF';
 
   @override
+  String get verifiedResultPdfError => 'Impossibile aprire il PDF. Riprova oppure controlla se il browser ha bloccato una nuova finestra.';
+
+  @override
   String get organizationAccountSectionTitle => 'Le tue organizzazioni';
 
   @override
@@ -3465,7 +3471,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sessionAccessPassPrintWarning => 'Stampa, salva o distribuisci ora questi pass. Uscendo da questa schermata Social Vote non potrà mostrare di nuovo i pass in chiaro.';
 
   @override
-  String get sessionCopyPassLinks => 'Copia link dei pass';
+  String get sessionExistingPassesHidden => 'Per sicurezza i Pass già generati non possono essere mostrati di nuovo in chiaro. Per ottenere nuovi link o QR personali, genera nuovi Access Pass.';
+
+  @override
+  String get sessionCopyPassLinks => 'Copia tutti i link';
+
+  @override
+  String get sessionCopyPassLink => 'Copia questo link';
+
+  @override
+  String get sessionControlledNeedsAccessPass => 'Prima di aprire una Session controllata, genera almeno un Access Pass.';
 
   @override
   String get sessionJoinedParticipants => 'Credenziali entrate';

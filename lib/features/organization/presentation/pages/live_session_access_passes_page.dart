@@ -5,7 +5,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/domain/organization/entities/live_session_models.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
-import 'package:sociale_vote/shared/services/report_print.dart';
+import 'package:sociale_vote/shared/services/session_pdf_service.dart';
 
 class LiveSessionAccessPassesPage extends StatelessWidget {
   final LiveSessionSummary session;
@@ -19,7 +19,9 @@ class LiveSessionAccessPassesPage extends StatelessWidget {
 
   String _passUrl(String token) {
     final base = Uri.parse(AppRouter.publicSessionJoinUrl(session.joinCode));
-    return base.replace(fragment: 'pass=${Uri.encodeComponent(token)}').toString();
+    return base
+        .replace(fragment: 'pass=${Uri.encodeComponent(token)}')
+        .toString();
   }
 
   Future<void> _copyLinks(BuildContext context) async {
@@ -27,7 +29,8 @@ class LiveSessionAccessPassesPage extends StatelessWidget {
     await Clipboard.setData(ClipboardData(text: links));
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)!.sessionCopyPassLinks)),
+      SnackBar(
+          content: Text(AppLocalizations.of(context)!.sessionCopyPassLinks)),
     );
   }
 
@@ -45,12 +48,15 @@ class LiveSessionAccessPassesPage extends StatelessWidget {
             tooltip: l10n.sessionCopyPassLinks,
             icon: const Icon(Icons.copy_all_rounded),
           ),
-          if (canPrintReport)
-            IconButton(
-              onPressed: printReport,
-              tooltip: l10n.verifiedResultPrintPdf,
-              icon: const Icon(Icons.print_outlined),
+          IconButton(
+            onPressed: () => SessionPdfService.printAccessPasses(
+              session: session,
+              tokens: tokens,
+              l10n: l10n,
             ),
+            tooltip: l10n.verifiedResultPrintPdf,
+            icon: const Icon(Icons.print_outlined),
+          ),
         ],
       ),
       body: Align(
@@ -110,11 +116,13 @@ class LiveSessionAccessPassesPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Text('${tokens.length} ${l10n.sessionAccessPass.toLowerCase()}'),
+                  Text(
+                      '${tokens.length} ${l10n.sessionAccessPass.toLowerCase()}'),
                 ],
               ),
               const SizedBox(height: 4),
-              Text('${session.organizationName ?? 'Social Vote'} · ${session.joinCode}'),
+              Text(
+                  '${session.organizationName ?? 'Social Vote'} · ${session.joinCode}'),
               const SizedBox(height: 18),
               LayoutBuilder(
                 builder: (context, constraints) {
@@ -123,7 +131,8 @@ class LiveSessionAccessPassesPage extends StatelessWidget {
                       : constraints.maxWidth >= 620
                           ? 2
                           : 1;
-                  final width = (constraints.maxWidth - ((columns - 1) * 12)) / columns;
+                  final width =
+                      (constraints.maxWidth - ((columns - 1) * 12)) / columns;
                   return Wrap(
                     spacing: 12,
                     runSpacing: 12,
@@ -152,12 +161,15 @@ class LiveSessionAccessPassesPage extends StatelessWidget {
                     icon: const Icon(Icons.copy_all_rounded),
                     label: Text(l10n.sessionCopyPassLinks),
                   ),
-                  if (canPrintReport)
-                    OutlinedButton.icon(
-                      onPressed: printReport,
-                      icon: const Icon(Icons.print_outlined),
-                      label: Text(l10n.verifiedResultPrintPdf),
+                  OutlinedButton.icon(
+                    onPressed: () => SessionPdfService.printAccessPasses(
+                      session: session,
+                      tokens: tokens,
+                      l10n: l10n,
                     ),
+                    icon: const Icon(Icons.print_outlined),
+                    label: Text(l10n.verifiedResultPrintPdf),
+                  ),
                 ],
               ),
             ],
@@ -181,6 +193,15 @@ class _AccessPassCard extends StatelessWidget {
     required this.number,
   });
 
+  Future<void> _copySingleLink(BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: passUrl));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+          content: Text(AppLocalizations.of(context)!.sessionCopyPassLink)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -197,9 +218,10 @@ class _AccessPassCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 18,
-                  backgroundImage: (session.organizationLogoUrl ?? '').trim().isNotEmpty
-                      ? NetworkImage(session.organizationLogoUrl!.trim())
-                      : null,
+                  backgroundImage:
+                      (session.organizationLogoUrl ?? '').trim().isNotEmpty
+                          ? NetworkImage(session.organizationLogoUrl!.trim())
+                          : null,
                   child: (session.organizationLogoUrl ?? '').trim().isEmpty
                       ? const Icon(Icons.apartment_rounded, size: 18)
                       : null,
@@ -224,14 +246,16 @@ class _AccessPassCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(Icons.verified_rounded, color: theme.colorScheme.primary, size: 20),
+                Icon(Icons.verified_rounded,
+                    color: theme.colorScheme.primary, size: 20),
               ],
             ),
             const SizedBox(height: 14),
             Text(
               session.title,
               textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 12),
             Center(
@@ -250,10 +274,12 @@ class _AccessPassCard extends StatelessWidget {
             Text(
               l10n.sessionNoAccountRequired,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(fontWeight: FontWeight.w700),
             ),
             const Divider(height: 22),
-            Text(l10n.sessionAccessPassFallback, style: theme.textTheme.labelSmall),
+            Text(l10n.sessionAccessPassFallback,
+                style: theme.textTheme.labelSmall),
             const SizedBox(height: 4),
             SelectableText(
               token,
@@ -268,6 +294,12 @@ class _AccessPassCard extends StatelessWidget {
               '${l10n.sessionJoinCode}: ${session.joinCode}',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall,
+            ),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: () => _copySingleLink(context),
+              icon: const Icon(Icons.link_rounded, size: 18),
+              label: Text(l10n.sessionCopyPassLink),
             ),
           ],
         ),

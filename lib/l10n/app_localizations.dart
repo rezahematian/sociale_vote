@@ -6211,16 +6211,22 @@ abstract class AppLocalizations {
   /// **'Share join link'**
   String get sessionShareJoin;
 
+  /// No description provided for @sessionCopyJoinLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get sessionCopyJoinLink;
+
   /// No description provided for @sessionGenerateTokens.
   ///
   /// In en, this message translates to:
-  /// **'Generate tokens'**
+  /// **'Generate Access Passes'**
   String get sessionGenerateTokens;
 
   /// No description provided for @sessionGenerateTokensCount.
   ///
   /// In en, this message translates to:
-  /// **'Number of tokens'**
+  /// **'Number of Access Passes'**
   String get sessionGenerateTokensCount;
 
   /// No description provided for @sessionTokensOneTimeTitle.
@@ -6559,6 +6565,12 @@ abstract class AppLocalizations {
   /// **'Print / Save PDF'**
   String get verifiedResultPrintPdf;
 
+  /// No description provided for @verifiedResultPdfError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open the PDF. Try again or check whether the browser blocked a new window.'**
+  String get verifiedResultPdfError;
+
   /// No description provided for @organizationAccountSectionTitle.
   ///
   /// In en, this message translates to:
@@ -6745,11 +6757,29 @@ abstract class AppLocalizations {
   /// **'Print, save or distribute these passes now. Once you leave this screen, Social Vote cannot show the plaintext passes again.'**
   String get sessionAccessPassPrintWarning;
 
+  /// No description provided for @sessionExistingPassesHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'For security, previously generated passes cannot be shown again in plaintext. Generate new Access Passes to obtain new personal links or QR codes.'**
+  String get sessionExistingPassesHidden;
+
   /// No description provided for @sessionCopyPassLinks.
   ///
   /// In en, this message translates to:
-  /// **'Copy pass links'**
+  /// **'Copy all links'**
   String get sessionCopyPassLinks;
+
+  /// No description provided for @sessionCopyPassLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy this link'**
+  String get sessionCopyPassLink;
+
+  /// No description provided for @sessionControlledNeedsAccessPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Before opening a controlled Session, generate at least one Access Pass.'**
+  String get sessionControlledNeedsAccessPass;
 
   /// No description provided for @sessionJoinedParticipants.
   ///

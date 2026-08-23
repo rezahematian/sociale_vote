@@ -54,17 +54,23 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
   }
 
   Future<void> _load({bool silent = false}) async {
-    if (!silent && mounted) setState(() => _loading = true);
+    if (!silent && mounted) {
+      setState(() => _loading = true);
+    }
     try {
       final detail = await _repository.getOrganizerSession(widget.sessionId);
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _detail = detail;
         _loading = false;
         _error = null;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _error = e;
         _loading = false;
@@ -73,17 +79,66 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
   }
 
   Future<void> _run(Future<void> Function() action) async {
-    if (_busy) return;
+    if (_busy) {
+      return;
+    }
     setState(() => _busy = true);
     try {
       await action();
       await _load(silent: true);
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+  }
+
+  Future<void> _openSession() async {
+    final detail = _detail;
+    if (detail == null || _busy) {
+      return;
+    }
+    final session = detail.session;
+    final controlled =
+        session.accessMode == LiveSessionAccessMode.controlledTokenPool;
+    final l10n = AppLocalizations.of(context)!;
+
+    if (controlled && session.tokenCount < 1) {
+      setState(() => _section = 2);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.sessionControlledNeedsAccessPass)),
+      );
+      return;
+    }
+
+    setState(() => _busy = true);
+    try {
+      await _repository.openSession(widget.sessionId);
+      await _load(silent: true);
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+      final raw = e.toString().toLowerCase();
+      final message = controlled &&
+              (raw.contains('22023') ||
+                  raw.contains('participant token') ||
+                  raw.contains('access pass'))
+          ? l10n.sessionControlledNeedsAccessPass
+          : e.toString();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
     }
   }
 
@@ -92,7 +147,9 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
       context: context,
       builder: (_) => const _AddQuestionDialog(),
     );
-    if (result == null) return;
+    if (result == null) {
+      return;
+    }
     await _run(() async {
       await _repository.addQuestion(
         sessionId: widget.sessionId,
@@ -108,8 +165,10 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
   Future<void> _generatePasses() async {
     final detail = _detail!;
     final l10n = AppLocalizations.of(context)!;
-    final remaining = detail.session.expectedParticipants - detail.session.tokenCount;
-    final controller = TextEditingController(text: '${remaining > 0 ? remaining : 1}');
+    final remaining =
+        detail.session.expectedParticipants - detail.session.tokenCount;
+    final controller =
+        TextEditingController(text: '${remaining > 0 ? remaining : 1}');
     final count = await showDialog<int>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -149,7 +208,9 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
       ),
     );
     controller.dispose();
-    if (count == null || count < 1) return;
+    if (count == null || count < 1) {
+      return;
+    }
 
     setState(() => _busy = true);
     try {
@@ -158,7 +219,9 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
         count: count,
       );
       await _load(silent: true);
-      if (!mounted || tokens.isEmpty) return;
+      if (!mounted || tokens.isEmpty) {
+        return;
+      }
       final session = _detail!.session;
       await Navigator.of(context).push<void>(
         MaterialPageRoute<void>(
@@ -169,11 +232,15 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
         ),
       );
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() => _busy = false);
+      }
     }
   }
 
@@ -196,22 +263,30 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
         ],
       ),
     );
-    if (confirmed != true) return;
+    if (confirmed != true) {
+      return;
+    }
 
     setState(() => _busy = true);
     try {
       final reportId = await _repository.closeSession(widget.sessionId);
       await _load(silent: true);
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       Navigator.of(context).pushNamed(
         AppRouter.publicVerifiedSessionPath(reportId),
       );
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() => _busy = false);
+      }
     }
   }
 
@@ -251,7 +326,8 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
         actions: [
           IconButton(
             onPressed: _busy ? null : _load,
-            tooltip: MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
+            tooltip:
+                MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
             icon: const Icon(Icons.refresh_rounded),
           ),
         ],
@@ -270,9 +346,7 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
                   detail: detail,
                   busy: _busy,
                   onStage: _openStage,
-                  onOpenSession: () => _run(
-                    () => _repository.openSession(widget.sessionId),
-                  ),
+                  onOpenSession: _openSession,
                   onCloseSession: _closeSession,
                   onReport: detail.session.reportId == null
                       ? null
@@ -307,7 +381,8 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
   Widget _buildLiveSection(LiveSessionDetail detail) {
     final l10n = AppLocalizations.of(context)!;
     final current = detail.openQuestion;
-    final candidates = detail.questions.where((q) => q.status == 'draft').toList();
+    final candidates =
+        detail.questions.where((q) => q.status == 'draft').toList();
     final next = candidates.isEmpty ? null : candidates.first;
 
     return Column(
@@ -403,8 +478,10 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
                 sessionStatus: detail.session.status,
                 busy: _busy,
                 onOpen: () => _run(() => _repository.openQuestion(question.id)),
-                onClose: () => _run(() => _repository.closeQuestion(question.id)),
-                onDelete: () => _run(() => _repository.deleteQuestion(question.id)),
+                onClose: () =>
+                    _run(() => _repository.closeQuestion(question.id)),
+                onDelete: () =>
+                    _run(() => _repository.deleteQuestion(question.id)),
               ),
             ),
           ),
@@ -464,6 +541,13 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
                       ),
                     ],
                   ),
+                  if (session.tokenCount > 0) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.sessionExistingPassesHidden,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   if (session.status == 'draft' || session.status == 'open')
                     FilledButton.icon(
@@ -483,14 +567,16 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
   Widget _buildSettingsSection(LiveSessionDetail detail) {
     final l10n = AppLocalizations.of(context)!;
     final session = detail.session;
-    final access = session.accessMode == LiveSessionAccessMode.controlledTokenPool
-        ? l10n.sessionAccessControlled
-        : l10n.sessionAccessOpen;
+    final access =
+        session.accessMode == LiveSessionAccessMode.controlledTokenPool
+            ? l10n.sessionAccessControlled
+            : l10n.sessionAccessOpen;
     final visibility = switch (session.resultsVisibility) {
       LiveSessionResultsVisibility.live => l10n.sessionResultsLive,
       LiveSessionResultsVisibility.afterVote => l10n.sessionResultsAfterVote,
       LiveSessionResultsVisibility.afterClose => l10n.sessionResultsAfterClose,
-      LiveSessionResultsVisibility.organizerOnly => l10n.sessionResultsOrganizerOnly,
+      LiveSessionResultsVisibility.organizerOnly =>
+        l10n.sessionResultsOrganizerOnly,
     };
 
     return Card(
@@ -508,7 +594,8 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
             ),
             const SizedBox(height: 14),
             _SettingRow(label: l10n.sessionAccessMode, value: access),
-            _SettingRow(label: l10n.sessionResultsVisibility, value: visibility),
+            _SettingRow(
+                label: l10n.sessionResultsVisibility, value: visibility),
             _SettingRow(
               label: l10n.sessionExpectedParticipants,
               value: '${session.expectedParticipants}',
@@ -526,11 +613,7 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
               children: [
                 if (session.status == 'draft')
                   FilledButton.icon(
-                    onPressed: _busy
-                        ? null
-                        : () => _run(
-                              () => _repository.openSession(widget.sessionId),
-                            ),
+                    onPressed: _busy ? null : _openSession,
                     icon: const Icon(Icons.play_arrow_rounded),
                     label: Text(l10n.sessionOpenAction),
                   ),
@@ -599,7 +682,8 @@ class _ControlRoomHeader extends StatelessWidget {
                 CircleAvatar(
                   radius: 28,
                   backgroundImage: logo.isNotEmpty ? NetworkImage(logo) : null,
-                  child: logo.isEmpty ? const Icon(Icons.apartment_rounded) : null,
+                  child:
+                      logo.isEmpty ? const Icon(Icons.apartment_rounded) : null,
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -694,20 +778,31 @@ class _KpiGrid extends StatelessWidget {
     final closed = detail.closedQuestionCount;
     final total = detail.questions.length;
     final items = <_KpiData>[
-      _KpiData(Icons.people_alt_outlined, '${session.participantCount}', l10n.sessionJoinedParticipants),
-      _KpiData(Icons.how_to_reg_outlined, '${session.usedAccessCount}', l10n.sessionAccessesUsed),
-      _KpiData(Icons.ballot_outlined, '${session.responseCount}', l10n.sessionBallotsRecorded),
-      _KpiData(Icons.checklist_rounded, '$closed/$total', l10n.sessionQuestionsCompleted),
+      _KpiData(Icons.people_alt_outlined, '${session.participantCount}',
+          l10n.sessionJoinedParticipants),
+      _KpiData(Icons.how_to_reg_outlined, '${session.usedAccessCount}',
+          l10n.sessionAccessesUsed),
+      _KpiData(Icons.ballot_outlined, '${session.responseCount}',
+          l10n.sessionBallotsRecorded),
+      _KpiData(Icons.checklist_rounded, '$closed/$total',
+          l10n.sessionQuestionsCompleted),
     ];
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 880 ? 4 : constraints.maxWidth >= 520 ? 2 : 1;
+        final columns = constraints.maxWidth >= 880
+            ? 4
+            : constraints.maxWidth >= 520
+                ? 2
+                : 1;
         final width = (constraints.maxWidth - ((columns - 1) * 10)) / columns;
         return Wrap(
           spacing: 10,
           runSpacing: 10,
-          children: items.map((item) => SizedBox(width: width, child: _KpiCard(data: item))).toList(),
+          children: items
+              .map(
+                  (item) => SizedBox(width: width, child: _KpiCard(data: item)))
+              .toList(),
         );
       },
     );
@@ -743,7 +838,8 @@ class _KpiCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(data.value,
-                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                      style: theme.textTheme.titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w900)),
                   Text(data.label, style: theme.textTheme.bodySmall),
                 ],
               ),
@@ -776,7 +872,8 @@ class _SectionSelector extends StatelessWidget {
         children: List<Widget>.generate(entries.length, (index) {
           final entry = entries[index];
           return Padding(
-            padding: EdgeInsets.only(right: index == entries.length - 1 ? 0 : 8),
+            padding:
+                EdgeInsets.only(right: index == entries.length - 1 ? 0 : 8),
             child: ChoiceChip(
               selected: selected == index,
               onSelected: (_) => onChanged(index),
@@ -856,10 +953,12 @@ class _QuickJoinCard extends StatelessWidget {
                       icon: const Icon(Icons.share_outlined),
                       label: Text(l10n.sessionShareJoin),
                     ),
-                    IconButton.outlined(
-                      onPressed: () => Clipboard.setData(ClipboardData(text: joinUrl)),
-                      tooltip: l10n.sessionShareJoin,
+                    OutlinedButton.icon(
+                      onPressed: () => Clipboard.setData(
+                        ClipboardData(text: joinUrl),
+                      ),
                       icon: const Icon(Icons.copy_rounded),
+                      label: Text(l10n.sessionCopyJoinLink),
                     ),
                   ],
                 ),
@@ -926,7 +1025,9 @@ class _QuestionCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     question.title,
-                    style: (featured ? theme.textTheme.headlineSmall : theme.textTheme.titleMedium)
+                    style: (featured
+                            ? theme.textTheme.headlineSmall
+                            : theme.textTheme.titleMedium)
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ),
@@ -946,11 +1047,13 @@ class _QuestionCard extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(child: Text(label)),
-                        Text('${option.votes} · ${(ratio * 100).toStringAsFixed(1)}%'),
+                        Text(
+                            '${option.votes} · ${(ratio * 100).toStringAsFixed(1)}%'),
                       ],
                     ),
                     const SizedBox(height: 5),
-                    LinearProgressIndicator(value: ratio.clamp(0.0, 1.0).toDouble()),
+                    LinearProgressIndicator(
+                        value: ratio.clamp(0.0, 1.0).toDouble()),
                   ],
                 ),
               );
@@ -1025,7 +1128,8 @@ class _SettingRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 190,
-            child: Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+            child: Text(label,
+                style: const TextStyle(fontWeight: FontWeight.w700)),
           ),
           Expanded(child: Text(value)),
         ],
@@ -1087,12 +1191,14 @@ class _AddQuestionDialogState extends State<_AddQuestionDialog> {
             children: [
               TextField(
                 controller: _title,
-                decoration: InputDecoration(labelText: l10n.sessionQuestionTitle),
+                decoration:
+                    InputDecoration(labelText: l10n.sessionQuestionTitle),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<LiveQuestionType>(
                 initialValue: _type,
-                decoration: InputDecoration(labelText: l10n.sessionQuestionType),
+                decoration:
+                    InputDecoration(labelText: l10n.sessionQuestionType),
                 items: [
                   DropdownMenuItem(
                     value: LiveQuestionType.yesNo,
@@ -1129,7 +1235,8 @@ class _AddQuestionDialogState extends State<_AddQuestionDialog> {
                       child: TextField(
                         controller: _min,
                         keyboardType: TextInputType.number,
-                        decoration: InputDecoration(labelText: l10n.sessionMinSelections),
+                        decoration: InputDecoration(
+                            labelText: l10n.sessionMinSelections),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -1137,7 +1244,8 @@ class _AddQuestionDialogState extends State<_AddQuestionDialog> {
                       child: TextField(
                         controller: _max,
                         keyboardType: TextInputType.number,
-                        decoration: InputDecoration(labelText: l10n.sessionMaxSelections),
+                        decoration: InputDecoration(
+                            labelText: l10n.sessionMaxSelections),
                       ),
                     ),
                   ],
@@ -1160,14 +1268,18 @@ class _AddQuestionDialogState extends State<_AddQuestionDialog> {
                 .map((e) => e.trim())
                 .where((e) => e.isNotEmpty)
                 .toList();
-            if (title.isEmpty || (choices && options.length < 2)) return;
+            if (title.isEmpty || (choices && options.length < 2)) {
+              return;
+            }
             final min = _type == LiveQuestionType.multipleChoice
                 ? int.tryParse(_min.text) ?? 1
                 : 1;
             final max = _type == LiveQuestionType.multipleChoice
                 ? int.tryParse(_max.text) ?? 1
                 : 1;
-            if (min < 1 || max < min || (choices && max > options.length)) return;
+            if (min < 1 || max < min || (choices && max > options.length)) {
+              return;
+            }
             Navigator.of(context).pop(
               _QuestionDraft(
                 title: title,

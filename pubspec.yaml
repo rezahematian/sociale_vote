@@ -86,6 +86,8 @@ dependencies:
   # LOCAL QR (SESSIONS / VERIFIED RESULT)
   # =========================
   qr_flutter: ^4.1.0
+  pdf: ^3.11.3
+  printing: ^5.14.2
 
   # =========================
   # SUPABASE

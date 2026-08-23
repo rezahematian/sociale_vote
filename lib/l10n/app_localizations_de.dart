@@ -3192,10 +3192,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionShareJoin => 'Teilnahmelink teilen';
 
   @override
-  String get sessionGenerateTokens => 'Tokens erzeugen';
+  String get sessionCopyJoinLink => 'Link kopieren';
 
   @override
-  String get sessionGenerateTokensCount => 'Anzahl Tokens';
+  String get sessionGenerateTokens => 'Access Passes erzeugen';
+
+  @override
+  String get sessionGenerateTokensCount => 'Anzahl Access Passes';
 
   @override
   String get sessionTokensOneTimeTitle => 'Diese Zugangsdaten jetzt speichern';
@@ -3372,6 +3375,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get verifiedResultPrintPdf => 'Drucken / Als PDF speichern';
 
   @override
+  String get verifiedResultPdfError => 'Das PDF konnte nicht geöffnet werden. Versuche es erneut oder prüfe, ob der Browser ein neues Fenster blockiert hat.';
+
+  @override
   String get organizationAccountSectionTitle => 'Deine Organisationen';
 
   @override
@@ -3465,7 +3471,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionAccessPassPrintWarning => 'Drucke, speichere oder verteile diese Pässe jetzt. Nach Verlassen dieser Ansicht kann Social Vote die Klartext-Pässe nicht erneut anzeigen.';
 
   @override
-  String get sessionCopyPassLinks => 'Pass-Links kopieren';
+  String get sessionExistingPassesHidden => 'Aus Sicherheitsgründen können bereits erzeugte Pässe nicht erneut im Klartext angezeigt werden. Erzeuge neue Access Passes, um neue persönliche Links oder QR-Codes zu erhalten.';
+
+  @override
+  String get sessionCopyPassLinks => 'Alle Links kopieren';
+
+  @override
+  String get sessionCopyPassLink => 'Diesen Link kopieren';
+
+  @override
+  String get sessionControlledNeedsAccessPass => 'Erstelle vor dem Öffnen einer kontrollierten Session mindestens einen Zugangspass.';
 
   @override
   String get sessionJoinedParticipants => 'Beigetretene Zugangsdaten';

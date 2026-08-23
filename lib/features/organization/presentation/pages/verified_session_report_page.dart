@@ -6,7 +6,8 @@ import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/domain/organization/entities/live_session_models.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
-import 'package:sociale_vote/shared/services/report_print.dart';
+import 'package:sociale_vote/shared/data/countries.dart';
+import 'package:sociale_vote/shared/services/session_pdf_service.dart';
 
 class VerifiedSessionReportPage extends StatefulWidget {
   final String reportId;
@@ -21,8 +22,7 @@ class VerifiedSessionReportPage extends StatefulWidget {
       _VerifiedSessionReportPageState();
 }
 
-class _VerifiedSessionReportPageState
-    extends State<VerifiedSessionReportPage> {
+class _VerifiedSessionReportPageState extends State<VerifiedSessionReportPage> {
   VerifiedSessionReport? _report;
   Object? _error;
 
@@ -47,6 +47,23 @@ class _VerifiedSessionReportPageState
     }
   }
 
+  Future<void> _printReport(
+    VerifiedSessionReport report,
+    AppLocalizations l10n,
+  ) async {
+    try {
+      await SessionPdfService.printVerifiedReport(
+        report: report,
+        l10n: l10n,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.verifiedResultPdfError)),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -55,9 +72,9 @@ class _VerifiedSessionReportPageState
       appBar: AppBar(
         title: Text(l10n.verifiedResultTitle),
         actions: [
-          if (report != null && canPrintReport)
+          if (report != null)
             IconButton(
-              onPressed: printReport,
+              onPressed: () => _printReport(report, l10n),
               tooltip: l10n.verifiedResultPrintPdf,
               icon: const Icon(Icons.print_outlined),
             ),
@@ -85,12 +102,21 @@ class _VerifiedSessionReportPageState
         : const <dynamic>[];
     final orgName = _text(snapshot['organization_name']);
     final legalName = _text(snapshot['organization_legal_name']);
-    final orgType = _organizationTypeLabel(l10n, _text(snapshot['organization_entity_type']));
-    final country = _text(snapshot['organization_country_code']);
+    final orgType = _organizationTypeLabel(
+        l10n, _text(snapshot['organization_entity_type']));
+    final countryCode = _text(snapshot['organization_country_code']);
+    final country = Countries.nameForCode(
+      countryCode,
+      languageCode: l10n.localeName,
+      fallback: countryCode,
+    );
     final city = _text(snapshot['organization_city']);
     final website = _text(snapshot['organization_website_url']);
     final logo = _text(snapshot['organization_logo_url']);
-    final verification = _text(snapshot['organization_verification_status']);
+    final verification = _verificationLabel(
+      l10n,
+      _text(snapshot['organization_verification_status']),
+    );
     final sessionTitle = _text(snapshot['session_title']);
     final openedAt = _prettyDate(snapshot['opened_at']);
     final closedAt = _prettyDate(snapshot['closed_at']);
@@ -104,8 +130,7 @@ class _VerifiedSessionReportPageState
         ? _int(snapshot['ballots_total'])
         : questions.fold<int>(
             0,
-            (sum, raw) => sum +
-                _int(raw is Map ? raw['response_count'] : null),
+            (sum, raw) => sum + _int(raw is Map ? raw['response_count'] : null),
           );
     final questionCount = snapshot.containsKey('question_count')
         ? _int(snapshot['question_count'])
@@ -117,7 +142,8 @@ class _VerifiedSessionReportPageState
     final algorithm = _text(snapshot['integrity_algorithm']).isNotEmpty
         ? _text(snapshot['integrity_algorithm'])
         : 'SHA-256';
-    final location = [city, country].where((value) => value.isNotEmpty).join(' · ');
+    final location =
+        [city, country].where((value) => value.isNotEmpty).join(' · ');
 
     return SelectionArea(
       child: ListView(
@@ -161,12 +187,19 @@ class _VerifiedSessionReportPageState
                       _FieldGrid(
                         fields: [
                           _FieldData(l10n.organizationPublicName, orgName),
-                          _FieldData(l10n.verifiedCertificateLegalName, legalName),
-                          _FieldData(l10n.verifiedCertificateOrganizationType, orgType),
-                          _FieldData(l10n.verifiedCertificateLocation, location),
+                          _FieldData(
+                              l10n.verifiedCertificateLegalName, legalName),
+                          _FieldData(l10n.verifiedCertificateOrganizationType,
+                              orgType),
+                          _FieldData(
+                              l10n.verifiedCertificateLocation, location),
                           _FieldData(l10n.verifiedCertificateWebsite, website),
-                          _FieldData(l10n.verifiedCertificateVerification,
-                              verification.isEmpty ? l10n.organizationVerifiedLabel : verification),
+                          _FieldData(
+                            l10n.verifiedCertificateVerification,
+                            verification.isEmpty
+                                ? l10n.organizationVerifiedLabel
+                                : verification,
+                          ),
                         ],
                       ),
                       const SizedBox(height: 22),
@@ -178,7 +211,8 @@ class _VerifiedSessionReportPageState
                       _FieldGrid(
                         fields: [
                           _FieldData(l10n.sessionTitleLabel, sessionTitle),
-                          _FieldData(l10n.sessionJoinCode, _text(snapshot['join_code'])),
+                          _FieldData(l10n.sessionJoinCode,
+                              _text(snapshot['join_code'])),
                           _FieldData(
                             l10n.sessionAccessMode,
                             accessMode == 'controlled_token_pool'
@@ -187,7 +221,8 @@ class _VerifiedSessionReportPageState
                           ),
                           _FieldData(
                             l10n.sessionResultsVisibility,
-                            _visibilityLabel(l10n, _text(snapshot['results_visibility'])),
+                            _visibilityLabel(
+                                l10n, _text(snapshot['results_visibility'])),
                           ),
                           _FieldData(l10n.verifiedResultOpenedAt, openedAt),
                           _FieldData(l10n.sessionCloseAction, closedAt),
@@ -247,7 +282,8 @@ class _VerifiedSessionReportPageState
                               (entry) => _QuestionResultBlock(
                                 number: entry.key + 1,
                                 question: entry.value is Map
-                                    ? Map<String, dynamic>.from(entry.value as Map)
+                                    ? Map<String, dynamic>.from(
+                                        entry.value as Map)
                                     : const <String, dynamic>{},
                               ),
                             ),
@@ -265,7 +301,8 @@ class _VerifiedSessionReportPageState
                         verifyUrl: verifyUrl,
                         algorithm: algorithm,
                         schemaVersion: schemaVersion,
-                        issuedAt: _prettyDate(snapshot['certificate_issued_at']).isNotEmpty
+                        issuedAt: _prettyDate(snapshot['certificate_issued_at'])
+                                .isNotEmpty
                             ? _prettyDate(snapshot['certificate_issued_at'])
                             : _prettyDate(report.createdAt),
                       ),
@@ -285,7 +322,8 @@ class _VerifiedSessionReportPageState
                                   children: [
                                     Text(
                                       l10n.verifiedCertificatePrivacyModel,
-                                      style: const TextStyle(fontWeight: FontWeight.w800),
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w800),
                                     ),
                                     const SizedBox(height: 5),
                                     Text(l10n.verifiedCertificatePrivacyText),
@@ -297,7 +335,8 @@ class _VerifiedSessionReportPageState
                         ),
                       ),
                       const SizedBox(height: 18),
-                      Divider(color: Theme.of(context).colorScheme.outlineVariant),
+                      Divider(
+                          color: Theme.of(context).colorScheme.outlineVariant),
                       const SizedBox(height: 10),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,7 +349,8 @@ class _VerifiedSessionReportPageState
                               children: [
                                 Text(
                                   l10n.verifiedResultGeneratedBy,
-                                  style: const TextStyle(fontWeight: FontWeight.w900),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w900),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(l10n.verifiedResultNotLegalCertificate),
@@ -329,12 +369,11 @@ class _VerifiedSessionReportPageState
                             icon: const Icon(Icons.share_outlined),
                             label: Text(l10n.verifiedResultShare),
                           ),
-                          if (canPrintReport)
-                            OutlinedButton.icon(
-                              onPressed: printReport,
-                              icon: const Icon(Icons.print_outlined),
-                              label: Text(l10n.verifiedResultPrintPdf),
-                            ),
+                          OutlinedButton.icon(
+                            onPressed: () => _printReport(report, l10n),
+                            icon: const Icon(Icons.print_outlined),
+                            label: Text(l10n.verifiedResultPrintPdf),
+                          ),
                         ],
                       ),
                     ],
@@ -357,7 +396,16 @@ class _VerifiedSessionReportPageState
       'sports' => l10n.organizationTypeSports,
       'public_body' => l10n.organizationTypePublicBody,
       'committee' => l10n.organizationTypeCommittee,
-      _ => type.isEmpty ? l10n.organizationTypeOther : type,
+      'other' => l10n.organizationTypeOther,
+      '' => l10n.organizationTypeOther,
+      _ => type,
+    };
+  }
+
+  String _verificationLabel(AppLocalizations l10n, String value) {
+    return switch (value.toLowerCase()) {
+      'verified' => l10n.organizationVerifiedLabel,
+      _ => value,
     };
   }
 
@@ -433,7 +481,8 @@ class _CertificateHeader extends StatelessWidget {
                 : theme.colorScheme.errorContainer,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: valid ? theme.colorScheme.primary : theme.colorScheme.error,
+              color:
+                  valid ? theme.colorScheme.primary : theme.colorScheme.error,
             ),
           ),
           child: Padding(
@@ -445,8 +494,12 @@ class _CertificateHeader extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      valid ? Icons.verified_rounded : Icons.error_outline_rounded,
-                      color: valid ? theme.colorScheme.primary : theme.colorScheme.error,
+                      valid
+                          ? Icons.verified_rounded
+                          : Icons.error_outline_rounded,
+                      color: valid
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.error,
                     ),
                     const SizedBox(width: 7),
                     Text(
@@ -455,7 +508,9 @@ class _CertificateHeader extends StatelessWidget {
                           : l10n.verifiedCertificateIntegrityFailed,
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
-                        color: valid ? theme.colorScheme.primary : theme.colorScheme.error,
+                        color: valid
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.error,
                       ),
                     ),
                   ],
@@ -475,7 +530,11 @@ class _CertificateHeader extends StatelessWidget {
         }
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [Expanded(child: identity), const SizedBox(width: 18), seal],
+          children: [
+            Expanded(child: identity),
+            const SizedBox(width: 18),
+            seal
+          ],
         );
       },
     );
@@ -523,7 +582,8 @@ class _FieldGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final visible = fields.where((field) => field.value.trim().isNotEmpty).toList();
+    final visible =
+        fields.where((field) => field.value.trim().isNotEmpty).toList();
     return LayoutBuilder(
       builder: (context, constraints) {
         final columns = constraints.maxWidth >= 680 ? 2 : 1;
@@ -538,13 +598,14 @@ class _FieldGrid extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(field.label, style: Theme.of(context).textTheme.labelMedium),
+                      Text(field.label,
+                          style: Theme.of(context).textTheme.labelMedium),
                       const SizedBox(height: 2),
                       SelectableText(
                         field.value,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
                     ],
                   ),
@@ -574,7 +635,11 @@ class _MetricGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 720 ? 3 : constraints.maxWidth >= 460 ? 2 : 1;
+        final columns = constraints.maxWidth >= 720
+            ? 3
+            : constraints.maxWidth >= 460
+                ? 2
+                : 1;
         final width = (constraints.maxWidth - ((columns - 1) * 10)) / columns;
         return Wrap(
           spacing: 10,
@@ -589,7 +654,8 @@ class _MetricGrid extends StatelessWidget {
                       padding: const EdgeInsets.all(14),
                       child: Row(
                         children: [
-                          Icon(item.icon, color: Theme.of(context).colorScheme.primary),
+                          Icon(item.icon,
+                              color: Theme.of(context).colorScheme.primary),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Column(
@@ -597,11 +663,16 @@ class _MetricGrid extends StatelessWidget {
                               children: [
                                 Text(
                                   item.value,
-                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.w900,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w900,
+                                      ),
                                 ),
-                                Text(item.label, style: Theme.of(context).textTheme.bodySmall),
+                                Text(item.label,
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall),
                               ],
                             ),
                           ),
@@ -649,7 +720,8 @@ class _QuestionResultBlock extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ),
                 Text(l10n.sessionResponses(responses)),
@@ -683,7 +755,8 @@ class _QuestionResultBlock extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 5),
-                    LinearProgressIndicator(value: ratio.clamp(0.0, 1.0).toDouble()),
+                    LinearProgressIndicator(
+                        value: ratio.clamp(0.0, 1.0).toDouble()),
                   ],
                 ),
               );
@@ -755,8 +828,12 @@ class _IntegrityPanel extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      valid ? Icons.verified_rounded : Icons.error_outline_rounded,
-                      color: valid ? theme.colorScheme.primary : theme.colorScheme.error,
+                      valid
+                          ? Icons.verified_rounded
+                          : Icons.error_outline_rounded,
+                      color: valid
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.error,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -772,7 +849,8 @@ class _IntegrityPanel extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                _IntegrityLine(l10n.verifiedCertificateNumber, certificateNumber),
+                _IntegrityLine(
+                    l10n.verifiedCertificateNumber, certificateNumber),
                 _IntegrityLine(l10n.verifiedResultReportId, reportId),
                 _IntegrityLine(l10n.verifiedCertificateIssuedAt, issuedAt),
                 _IntegrityLine(l10n.verifiedCertificateAlgorithm, algorithm),
@@ -780,7 +858,8 @@ class _IntegrityPanel extends StatelessWidget {
                   _IntegrityLine(l10n.verifiedCertificateSchema, schemaVersion),
                 const SizedBox(height: 8),
                 Text(l10n.verifiedResultHash,
-                    style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w800)),
+                    style: theme.textTheme.labelMedium
+                        ?.copyWith(fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
                 SelectableText(
                   sha256,
@@ -822,7 +901,8 @@ class _IntegrityLine extends StatelessWidget {
         children: [
           SizedBox(
             width: 150,
-            child: Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+            child: Text(label,
+                style: const TextStyle(fontWeight: FontWeight.w700)),
           ),
           Expanded(child: SelectableText(value)),
         ],
