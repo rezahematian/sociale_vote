@@ -12,7 +12,7 @@ import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
-import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 
 class PollDetailHeader extends StatelessWidget {
   final Poll poll;
@@ -211,12 +211,6 @@ class PollDetailHeader extends StatelessWidget {
         final useCompactActionIcons = constraints.maxWidth < 960;
 
         final heroChips = <Widget>[
-          if (representativeLabel != null)
-            _buildRepresentativeChip(
-              theme,
-              representativeLabel,
-              _mobileHeroChipMetrics,
-            ),
           _buildStatusChip(
             theme,
             statusLabel,
@@ -245,8 +239,6 @@ class PollDetailHeader extends StatelessWidget {
         ];
 
         final desktopChips = <Widget>[
-          if (representativeLabel != null)
-            _buildRepresentativeChip(theme, representativeLabel, _chipMetrics),
           _buildStatusChip(theme, statusLabel, poll.status, _chipMetrics),
           _buildLocationChip(theme, locationLabel, _chipMetrics),
           if (timeWindowLabel != null)
@@ -331,19 +323,15 @@ class PollDetailHeader extends StatelessWidget {
             if (_hasRepresentativePublisher && representativeLabel != null) ...[
               const SizedBox(height: 14),
               _buildPublishedIdentityRow(
-                theme,
-                l10n,
                 actorLabel: representativeLabel,
                 displayName: representativeDisplayName,
               ),
             ],
-            if (authorProfile != null) ...[
+            if (authorProfile != null && !_hasRepresentativePublisher) ...[
               const SizedBox(height: 10),
               _buildCreatorRow(
-                theme,
                 l10n,
                 authorProfile!,
-                secondary: _hasRepresentativePublisher,
               ),
             ],
             if (createdAt != null) ...[
@@ -551,39 +539,6 @@ class PollDetailHeader extends StatelessWidget {
     );
   }
 
-  _PollChipTone _representativeTone(ThemeData theme, ActorType actorType) {
-    switch (actorType) {
-      case ActorType.publicOfficial:
-        if (theme.brightness == Brightness.dark) {
-          return const _PollChipTone(
-            backgroundColor: Color(0xFF392126),
-            foregroundColor: Color(0xFFF2AEA3),
-            borderColor: Color(0xFF614047),
-          );
-        }
-        return const _PollChipTone(
-          backgroundColor: Color(0xFFFFF1EF),
-          foregroundColor: Color(0xFFBF5B49),
-          borderColor: Color(0xFFF4D8D2),
-        );
-      case ActorType.institution:
-        if (theme.brightness == Brightness.dark) {
-          return const _PollChipTone(
-            backgroundColor: Color(0xFF16253A),
-            foregroundColor: Color(0xFFAEC9F8),
-            borderColor: Color(0xFF334A66),
-          );
-        }
-        return const _PollChipTone(
-          backgroundColor: Color(0xFFF1F6FF),
-          foregroundColor: Color(0xFF4F6FCB),
-          borderColor: Color(0xFFD8E5FF),
-        );
-      default:
-        return _locationTone(theme);
-    }
-  }
-
   _PollChipTone _statusTone(ThemeData theme, PollStatus status) {
     switch (status) {
       case PollStatus.open:
@@ -723,30 +678,6 @@ class PollDetailHeader extends StatelessWidget {
       backgroundColor: _softRoseBg,
       foregroundColor: _softRoseFg,
       borderColor: _softRoseBorder,
-    );
-  }
-
-  Widget _buildRepresentativeChip(
-    ThemeData theme,
-    String label,
-    _PollChipMetrics metrics,
-  ) {
-    final actorType = poll.publishedAsActorType;
-    if (actorType == null) {
-      return const SizedBox.shrink();
-    }
-
-    final tone = _representativeTone(theme, actorType);
-
-    return _buildMetaPill(
-      theme: theme,
-      metrics: metrics,
-      icon: _representativeIcon(),
-      label: label,
-      backgroundColor: tone.backgroundColor,
-      foregroundColor: tone.foregroundColor,
-      borderColor: tone.borderColor,
-      bold: true,
     );
   }
 
@@ -1178,67 +1109,28 @@ class PollDetailHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildPublishedIdentityRow(
-    ThemeData theme,
-    AppLocalizations l10n, {
+  Widget _buildPublishedIdentityRow({
     required String actorLabel,
     required String? displayName,
   }) {
-    final tone = _representativeTone(
-      theme,
-      poll.publishedAsActorType!,
-    );
     final primaryLabel = displayName ?? actorLabel;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: Icon(
-            _representativeIcon(),
-            size: 19,
-            color: tone.foregroundColor,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                primaryLabel,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  height: 1.25,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                _localizedText(
-                  l10n,
-                  it: 'Pubblicato come $actorLabel',
-                  en: 'Published as $actorLabel',
-                  de: 'Veröffentlicht als $actorLabel',
-                ),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return PublisherSignature(
+      displayName: primaryLabel,
+      imageUrl: poll.authorAvatarUrl,
+      actorType: poll.publishedAsActorType!,
+      verificationLevel: VerificationLevel.none,
+      institutionLevel: poll.publishedAsInstitutionLevel,
+      density: PublisherSignatureDensity.regular,
+      maxWidth: 440,
+      onTap: onAuthorTap,
     );
   }
 
   Widget _buildCreatorRow(
-    ThemeData theme,
     AppLocalizations l10n,
-    UserProfile profile, {
-    required bool secondary,
-  }) {
+    UserProfile profile,
+  ) {
     final displayName = _normalizeString(profile.displayName);
     final username = _normalizeString(profile.username);
     final primaryLabel = displayName ??
@@ -1253,87 +1145,16 @@ class PollDetailHeader extends StatelessWidget {
     final usernameLabel =
         displayName != null && username != null ? '@$username' : null;
     final canOpen = onAuthorTap != null;
-    final mutedColor =
-        theme.colorScheme.onSurface.withValues(alpha: secondary ? 0.62 : 0.72);
-
-    final identity = Wrap(
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 5,
-      runSpacing: 3,
-      children: [
-        if (secondary)
-          Text(
-            _localizedText(
-              l10n,
-              it: 'Creato da',
-              en: 'Created by',
-              de: 'Erstellt von',
-            ),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: mutedColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        Text(
-          primaryLabel,
-          style: (secondary
-                  ? theme.textTheme.bodyMedium
-                  : theme.textTheme.titleSmall)
-              ?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        if (UserIdentityMark.shouldShowForProfile(profile))
-          UserIdentityMark.fromProfile(
-            profile,
-            size: secondary ? 14 : 16,
-          ),
-        if (usernameLabel != null)
-          Text(
-            '· $usernameLabel',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: mutedColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-      ],
-    );
-
-    final content = Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Icon(
-          Icons.person_outline_rounded,
-          size: secondary ? 16 : 18,
-          color: mutedColor,
-        ),
-        const SizedBox(width: 8),
-        Expanded(child: identity),
-        if (canOpen) ...[
-          const SizedBox(width: 6),
-          Icon(
-            Icons.chevron_right_rounded,
-            size: 18,
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.42),
-          ),
-        ],
-      ],
-    );
-
-    if (!canOpen) {
-      return content;
-    }
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(10),
-      onTap: onAuthorTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 2,
-          vertical: 4,
-        ),
-        child: content,
-      ),
+    return PublisherSignature(
+      displayName: primaryLabel,
+      username: usernameLabel,
+      imageUrl: profile.avatarUrl,
+      actorType: profile.actorType,
+      verificationLevel: profile.verificationLevel,
+      institutionLevel: profile.institutionLevel,
+      density: PublisherSignatureDensity.regular,
+      maxWidth: 440,
+      onTap: canOpen ? onAuthorTap : null,
     );
   }
 
@@ -1441,19 +1262,6 @@ class PollDetailHeader extends StatelessWidget {
           en: 'Representative',
           de: 'Vertreter',
         );
-    }
-  }
-
-  IconData _representativeIcon() {
-    switch (poll.publishedAsActorType) {
-      case ActorType.publicOfficial:
-        return Icons.workspace_premium_outlined;
-      case ActorType.institution:
-        return Icons.account_balance_outlined;
-      case ActorType.organization:
-        return Icons.groups_outlined;
-      default:
-        return Icons.verified_user_outlined;
     }
   }
 

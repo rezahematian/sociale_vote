@@ -46,6 +46,86 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
   }
 
   @override
+  Future<OrganizationFollowState> getOrganizationFollowState(
+    String organizationId,
+  ) async {
+    final normalized = organizationId.trim();
+    if (normalized.isEmpty) {
+      return const OrganizationFollowState(
+        isFollowing: false,
+        followerCount: 0,
+        canFollow: false,
+      );
+    }
+
+    if (_client.auth.currentUser == null) {
+      final raw = await _client.rpc(
+        'organization_get_public_identities',
+        params: <String, dynamic>{
+          'p_organization_ids': <String>[normalized],
+        },
+      );
+      final rows = raw is List ? raw : const <dynamic>[];
+      var followerCount = 0;
+      for (final item in rows) {
+        final row = _map(item);
+        if (row['organization_id']?.toString().trim() == normalized) {
+          followerCount = _toInt(row['follower_count']);
+          break;
+        }
+      }
+      return OrganizationFollowState(
+        isFollowing: false,
+        followerCount: followerCount,
+        canFollow: false,
+      );
+    }
+
+    final raw = await _client.rpc(
+      'organization_get_follow_state',
+      params: <String, dynamic>{'p_organization_id': normalized},
+    );
+    return OrganizationFollowState.fromJson(_requiredMap(raw));
+  }
+
+  @override
+  Future<OrganizationFollowState> toggleOrganizationFollow(
+    String organizationId,
+  ) async {
+    final normalized = organizationId.trim();
+    if (normalized.isEmpty) {
+      throw ArgumentError('Organization id is required.');
+    }
+
+    final raw = await _client.rpc(
+      'organization_toggle_follow',
+      params: <String, dynamic>{'p_organization_id': normalized},
+    );
+    return OrganizationFollowState.fromJson(_requiredMap(raw));
+  }
+
+  @override
+  Future<Set<String>> getMyFollowedOrganizationIds() async {
+    if (_client.auth.currentUser == null) {
+      return const <String>{};
+    }
+
+    final raw = await _client.rpc('organization_get_my_followed_ids');
+    final rows = raw is List ? raw : const <dynamic>[];
+    final result = <String>{};
+
+    for (final item in rows) {
+      final row = _map(item);
+      final organizationId = row['organization_id']?.toString().trim();
+      if (organizationId != null && organizationId.isNotEmpty) {
+        result.add(organizationId);
+      }
+    }
+
+    return result;
+  }
+
+  @override
   Future<OrganizationContext> updateOrganizationProfile({
     required OrganizationEntityType entityType,
     required String legalName,
@@ -339,6 +419,12 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
       return Map<String, dynamic>.from(raw.first as Map);
     }
     return <String, dynamic>{};
+  }
+
+  int _toInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 
   String? _nullable(String? value) {

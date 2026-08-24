@@ -10,6 +10,7 @@ import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart'
 import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 
 class NewsCard extends StatelessWidget {
   final NewsItem news;
@@ -260,26 +261,8 @@ class NewsCard extends StatelessWidget {
   }
 
   Widget _buildNewsIconChip() {
-    const backgroundColor = Color(0xFFFFF2F2);
-    const foregroundColor = Color(0xFFE14D4D);
-    const borderColor = Color(0xFFFFD7D7);
-
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: borderColor,
-          width: 1,
-        ),
-      ),
-      child: const Icon(
-        Icons.newspaper_outlined,
-        size: 16,
-        color: foregroundColor,
-      ),
+    return const ContentTypeMark(
+      kind: SocialVoteContentKind.news,
     );
   }
 

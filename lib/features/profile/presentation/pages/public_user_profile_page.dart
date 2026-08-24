@@ -11,6 +11,7 @@ import 'package:sociale_vote/features/organization/presentation/widgets/organiza
 import 'package:sociale_vote/features/poll/presentation/pages/poll_detail_page.dart';
 import 'package:sociale_vote/features/social/presentation/pages/post_detail_page.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/ui/avatar.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
@@ -46,6 +47,10 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
   bool _followStateLoading = false;
   bool _followStateLoadError = false;
   bool _followActionLoading = false;
+  OrganizationFollowState? _organizationFollowState;
+  bool _organizationFollowStateLoading = false;
+  bool _organizationFollowStateLoadError = false;
+  bool _organizationFollowActionLoading = false;
 
   @override
   void initState() {
@@ -60,11 +65,16 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
       return;
     }
 
-    await Future.wait<void>([
+    final profile = _profile!;
+    final profileTasks = <Future<void>>[
       _loadBlockState(),
-      _loadFollowState(),
       _loadOrganization(),
-    ]);
+    ];
+    if (!profile.isOrganizationActor) {
+      profileTasks.add(_loadFollowState());
+    }
+
+    await Future.wait<void>(profileTasks);
     if (!mounted) return;
 
     await _loadPolls();
@@ -97,6 +107,10 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
         _followStateLoading = false;
         _followStateLoadError = false;
         _followActionLoading = false;
+        _organizationFollowState = null;
+        _organizationFollowStateLoading = false;
+        _organizationFollowStateLoadError = false;
+        _organizationFollowActionLoading = false;
       });
       return;
     }
@@ -141,6 +155,10 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
         _followStateLoading = false;
         _followStateLoadError = false;
         _followActionLoading = false;
+        _organizationFollowState = null;
+        _organizationFollowStateLoading = false;
+        _organizationFollowStateLoadError = false;
+        _organizationFollowActionLoading = false;
       });
     }
   }
@@ -148,17 +166,127 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
   Future<void> _loadOrganization() async {
     final profile = _profile;
     if (profile == null || !profile.isOrganizationActor) {
-      if (mounted) setState(() => _organization = null);
+      if (mounted) {
+        setState(() {
+          _organization = null;
+          _organizationFollowState = null;
+          _organizationFollowStateLoading = false;
+          _organizationFollowStateLoadError = false;
+          _organizationFollowActionLoading = false;
+        });
+      }
       return;
     }
+
     try {
       final organization = await AppDI.instance.organizationRepository
           .getPublicOrganizationByOperator(widget.userId);
       if (!mounted) return;
+
       setState(() => _organization = organization);
+
+      if (organization != null) {
+        await _loadOrganizationFollowState(organization);
+      }
     } catch (_) {
       if (!mounted) return;
-      setState(() => _organization = null);
+      setState(() {
+        _organization = null;
+        _organizationFollowState = null;
+        _organizationFollowStateLoading = false;
+        _organizationFollowStateLoadError = true;
+        _organizationFollowActionLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadOrganizationFollowState(
+    OrganizationProfile organization,
+  ) async {
+    if (!mounted) return;
+
+    setState(() {
+      _organizationFollowStateLoading = true;
+      _organizationFollowStateLoadError = false;
+    });
+
+    try {
+      final state = await AppDI.instance.organizationRepository
+          .getOrganizationFollowState(organization.id);
+      if (!mounted || _organization?.id != organization.id) return;
+
+      setState(() {
+        _organizationFollowState = state;
+        _organizationFollowStateLoading = false;
+        _organizationFollowStateLoadError = false;
+      });
+    } catch (_) {
+      if (!mounted || _organization?.id != organization.id) return;
+      setState(() {
+        _organizationFollowStateLoading = false;
+        _organizationFollowStateLoadError = true;
+      });
+    }
+  }
+
+  Future<void> _toggleOrganizationFollow(AppLocalizations l10n) async {
+    if (_organizationFollowActionLoading) {
+      return;
+    }
+
+    final organization = _organization;
+    if (organization == null || organization.id.trim().isEmpty) {
+      return;
+    }
+
+    final currentUserId = AppDI.instance.currentUserId?.trim();
+    final operatorUserId = widget.userId.trim();
+    if (currentUserId != null &&
+        currentUserId.isNotEmpty &&
+        currentUserId == operatorUserId) {
+      return;
+    }
+
+    final authenticated = await AuthGuard.ensureAuthenticated(
+      context,
+      actionLabel: l10n.publicProfileFollowAction,
+    );
+    if (!mounted || !authenticated) {
+      return;
+    }
+
+    setState(() {
+      _organizationFollowActionLoading = true;
+    });
+
+    try {
+      final updated = await AppDI.instance.organizationRepository
+          .toggleOrganizationFollow(organization.id);
+      if (!mounted || _organization?.id != organization.id) return;
+
+      setState(() {
+        _organizationFollowState = updated;
+        _organizationFollowActionLoading = false;
+        _organizationFollowStateLoadError = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            updated.isFollowing
+                ? l10n.publicProfileFollowSuccess
+                : l10n.publicProfileUnfollowSuccess,
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _organizationFollowActionLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.publicProfileFollowError)),
+      );
     }
   }
 
@@ -593,13 +721,15 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
             const SizedBox(height: 12),
             _OrganizationPublicActions(
               organization: _organization!,
-              followState: _followState,
-              followStateLoading: _followStateLoading,
-              followStateLoadError: _followStateLoadError,
-              followActionLoading: _followActionLoading,
+              followState: _organizationFollowState,
+              followStateLoading: _organizationFollowStateLoading,
+              followStateLoadError: _organizationFollowStateLoadError,
+              followActionLoading: _organizationFollowActionLoading,
+              showFollowAction:
+                  AppDI.instance.currentUserId?.trim() != widget.userId.trim(),
               l10n: l10n,
-              onToggleFollow: () => _toggleAccountFollow(l10n),
-              onRetryFollow: _loadFollowState,
+              onToggleFollow: () => _toggleOrganizationFollow(l10n),
+              onRetryFollow: () => _loadOrganizationFollowState(_organization!),
             ),
           ] else
             _PublicProfileHeader(
@@ -863,10 +993,11 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
 
 class _OrganizationPublicActions extends StatelessWidget {
   final OrganizationProfile organization;
-  final AccountFollowState? followState;
+  final OrganizationFollowState? followState;
   final bool followStateLoading;
   final bool followStateLoadError;
   final bool followActionLoading;
+  final bool showFollowAction;
   final AppLocalizations l10n;
   final VoidCallback onToggleFollow;
   final VoidCallback onRetryFollow;
@@ -877,6 +1008,7 @@ class _OrganizationPublicActions extends StatelessWidget {
     required this.followStateLoading,
     required this.followStateLoadError,
     required this.followActionLoading,
+    required this.showFollowAction,
     required this.l10n,
     required this.onToggleFollow,
     required this.onRetryFollow,
@@ -916,11 +1048,12 @@ class _OrganizationPublicActions extends StatelessWidget {
                 avatar: const Icon(Icons.category_outlined, size: 16),
                 label: Text(typeLabel),
               ),
-              _AccountFollowSummary(
+              _OrganizationFollowSummary(
                 state: followState,
                 isLoading: followStateLoading,
                 hasError: followStateLoadError,
                 isActionLoading: followActionLoading,
+                showAction: showFollowAction,
                 l10n: l10n,
                 onToggle: onToggleFollow,
                 onRetry: onRetryFollow,
@@ -971,6 +1104,98 @@ class _OrganizationPublicActions extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class _OrganizationFollowSummary extends StatelessWidget {
+  final OrganizationFollowState? state;
+  final bool isLoading;
+  final bool hasError;
+  final bool isActionLoading;
+  final bool showAction;
+  final AppLocalizations l10n;
+  final VoidCallback onToggle;
+  final VoidCallback onRetry;
+
+  const _OrganizationFollowSummary({
+    required this.state,
+    required this.isLoading,
+    required this.hasError,
+    required this.isActionLoading,
+    required this.showAction,
+    required this.l10n,
+    required this.onToggle,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (isLoading && state == null) {
+      return const SizedBox(
+        height: 40,
+        child: Center(
+          child: SizedBox.square(
+            dimension: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
+    if (hasError && state == null) {
+      return TextButton.icon(
+        onPressed: onRetry,
+        icon: const Icon(Icons.refresh_rounded),
+        label: Text(l10n.publicProfileFollowRetry),
+      );
+    }
+
+    final currentState = state;
+    if (currentState == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 10,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        _FollowCount(
+          value: currentState.followerCount,
+          label: l10n.publicProfileFollowersLabel,
+        ),
+        if (showAction)
+          FilledButton.tonalIcon(
+            onPressed: isActionLoading ? null : onToggle,
+            icon: isActionLoading
+                ? const SizedBox.square(
+                    dimension: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(
+                    currentState.isFollowing
+                        ? Icons.notifications_active_outlined
+                        : Icons.add_circle_outline_rounded,
+                  ),
+            label: Text(
+              currentState.isFollowing
+                  ? l10n.publicProfileUnfollowAction
+                  : l10n.publicProfileFollowAction,
+            ),
+          ),
+        if (hasError && state != null)
+          IconButton(
+            onPressed: onRetry,
+            tooltip: l10n.publicProfileFollowRetry,
+            icon: Icon(
+              Icons.refresh_rounded,
+              color: theme.colorScheme.error,
+            ),
+          ),
+      ],
     );
   }
 }

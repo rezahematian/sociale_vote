@@ -20,6 +20,7 @@ class HomeTopBar extends StatelessWidget {
   final VoidCallback onProfilePressed;
   final VoidCallback onLogoutPressed;
   final VoidCallback? onDiscoveryPressed;
+  final VoidCallback? onHowItWorksPressed;
   final VoidCallback? onNotificationsPressed;
   final AppAppearanceMode? currentAppearanceMode;
   final ValueChanged<AppAppearanceMode>? onAppearanceModeChanged;
@@ -34,6 +35,7 @@ class HomeTopBar extends StatelessWidget {
     required this.onProfilePressed,
     required this.onLogoutPressed,
     this.onDiscoveryPressed,
+    this.onHowItWorksPressed,
     this.onNotificationsPressed,
     this.currentAppearanceMode,
     this.onAppearanceModeChanged,
@@ -44,15 +46,19 @@ class HomeTopBar extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     if (!isLoggedIn) {
-      final guestActions = Row(
-        mainAxisSize: MainAxisSize.min,
+      final guestActions = Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        alignment: WrapAlignment.end,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: <Widget>[
+          if (onHowItWorksPressed != null)
+            _HowItWorksIconButton(onPressed: onHowItWorksPressed!),
           if (onDiscoveryPressed != null) ...[
             _DiscoverIconButton(
               scopeShortLabel: scopeShortLabel,
               onPressed: onDiscoveryPressed!,
             ),
-            const SizedBox(width: 6),
           ],
           OutlinedButton(
             onPressed: onLoginPressed,
@@ -61,7 +67,6 @@ class HomeTopBar extends StatelessWidget {
             ),
             child: Text(l10n.homeLoginButton),
           ),
-          const SizedBox(width: 6),
           FilledButton(
             onPressed: onRegisterPressed,
             style: FilledButton.styleFrom(
@@ -107,6 +112,10 @@ class HomeTopBar extends StatelessWidget {
           child: _ColorfulBrand(),
         ),
         const SizedBox(width: 8),
+        if (onHowItWorksPressed != null) ...[
+          _HowItWorksIconButton(onPressed: onHowItWorksPressed!),
+          const SizedBox(width: 4),
+        ],
         _NotificationsButton(
           unreadCount: unreadNotificationsCount,
           onPressed: onNotificationsPressed,
@@ -180,6 +189,31 @@ class _ColorfulBrand extends StatelessWidget {
           height: 1.0,
         ),
         children: spans,
+      ),
+    );
+  }
+}
+
+class _HowItWorksIconButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _HowItWorksIconButton({required this.onPressed});
+
+  String _label(BuildContext context) {
+    final language = Localizations.localeOf(context).languageCode.toLowerCase();
+    if (language == 'it') return 'Come funziona Social Vote';
+    if (language == 'de') return 'So funktioniert Social Vote';
+    return 'How Social Vote works';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: _label(context),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(999),
+        child: const _TopBarQuestionShell(),
       ),
     );
   }
@@ -349,6 +383,34 @@ class _TopBarIconShell extends StatelessWidget {
         icon,
         size: 18,
         color: Colors.white.withValues(alpha: 0.92),
+      ),
+    );
+  }
+}
+
+class _TopBarQuestionShell extends StatelessWidget {
+  const _TopBarQuestionShell();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.14),
+        ),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        '?',
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Colors.white.withValues(alpha: 0.96),
+              fontWeight: FontWeight.w900,
+              height: 1,
+            ),
       ),
     );
   }

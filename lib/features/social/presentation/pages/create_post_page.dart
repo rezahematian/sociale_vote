@@ -11,7 +11,12 @@ import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class CreatePostPage extends StatefulWidget {
-  const CreatePostPage({super.key});
+  final bool preferOrganizationPublisher;
+
+  const CreatePostPage({
+    super.key,
+    this.preferOrganizationPublisher = false,
+  });
 
   @override
   State<CreatePostPage> createState() => _CreatePostPageState();
@@ -54,6 +59,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
       setState(() {
         _organizationContext = canPublish ? contextValue : null;
+        _publishAsOrganization =
+            widget.preferOrganizationPublisher && canPublish;
         _organizationPublishingLoaded = true;
       });
     } catch (_) {
@@ -409,7 +416,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
           Localizations.localeOf(context).languageCode.toLowerCase();
       setState(() {
         _submitError = languageCode == 'it'
-            ? 'Impossibile pubblicare il post. Controlla la connessione e riprova.'
+            ? 'Impossibile pubblicare la Voce. Controlla la connessione e riprova.'
             : deOrEnglish(
                 context,
                 english:
@@ -569,7 +576,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return _isItalian
-                          ? 'Inserisci il contenuto del post'
+                          ? 'Inserisci il contenuto della Voce'
                           : deOrEnglish(context,
                               english: 'Enter the Voce content',
                               german: 'Voce-Inhalt eingeben');
@@ -610,7 +617,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                         const SizedBox(height: 6),
                         Text(
                           _isItalian
-                              ? 'Scegli se il post è globale, associato a una località oppure alla tua posizione attuale.'
+                              ? 'Scegli se la Voce è globale, associata a una località oppure alla tua posizione attuale.'
                               : deOrEnglish(context,
                                   english:
                                       'Choose whether the Voce is global, linked to a location, or linked to your current location.',
@@ -863,7 +870,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : Text(_isItalian
-                          ? 'Pubblica post'
+                          ? 'Pubblica Voce'
                           : deOrEnglish(context,
                               english: 'Publish Voce',
                               german: 'Voce veröffentlichen')),

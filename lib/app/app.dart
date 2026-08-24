@@ -162,6 +162,29 @@ class AppLocaleController {
 
   static bool _isLoaded = false;
 
+  /// Mantiene IT/EN/DE e usa esplicitamente EN per qualunque altra lingua.
+  ///
+  /// L'ordine dei file generati non deve decidere il fallback di prodotto.
+  static Locale resolveSystemLocale(
+    List<Locale>? platformLocales,
+    Iterable<Locale> supportedLocales,
+  ) {
+    final supportedByLanguage = <String, Locale>{
+      for (final locale in supportedLocales)
+        locale.languageCode.toLowerCase(): locale,
+    };
+
+    for (final platformLocale in platformLocales ?? const <Locale>[]) {
+      final match =
+          supportedByLanguage[platformLocale.languageCode.toLowerCase()];
+      if (match != null) {
+        return match;
+      }
+    }
+
+    return supportedByLanguage['en'] ?? const Locale('en');
+  }
+
   static Future<void> load() async {
     if (_isLoaded) {
       return;
@@ -410,6 +433,8 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
                 GlobalCupertinoLocalizations.delegate,
               ],
               supportedLocales: AppLocalizations.supportedLocales,
+              localeListResolutionCallback:
+                  AppLocaleController.resolveSystemLocale,
               builder: (context, child) {
                 return BiometricSessionGate(
                   skipLock: _hasRecoverySignal(Uri.base),

@@ -1300,6 +1300,30 @@ class _MyProfileViewState extends State<_MyProfileView> {
                           ),
                   ),
                 ),
+                const SizedBox(height: 14),
+                Card(
+                  margin: EdgeInsets.zero,
+                  child: ListTile(
+                    leading: const Icon(Icons.help_outline_rounded),
+                    title: Text(
+                      Localizations.localeOf(context).languageCode == 'it'
+                          ? 'Come funziona Social Vote'
+                          : Localizations.localeOf(context).languageCode == 'de'
+                              ? 'So funktioniert Social Vote'
+                              : 'How Social Vote works',
+                    ),
+                    subtitle: Text(
+                      Localizations.localeOf(context).languageCode == 'it'
+                          ? 'Persone, Organization, Voce, Vote, Sessions e verifica.'
+                          : Localizations.localeOf(context).languageCode == 'de'
+                              ? 'Personen, Organisationen, Voce, Vote, Sessions und Verifizierung.'
+                              : 'People, Organizations, Voce, Vote, Sessions and verification.',
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(AppRouter.howItWorks),
+                  ),
+                ),
                 if (profile?.isOrganizationActor == true) ...[
                   const SizedBox(height: 18),
                   _SectionTitle(l10n.organizationAccountSectionTitle),

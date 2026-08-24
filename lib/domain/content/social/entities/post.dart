@@ -35,6 +35,12 @@ class Post {
   /// Livello istituzionale dell'autore, se applicabile.
   final InstitutionLevel? authorInstitutionLevel;
 
+  /// Avatar pubblico dell'autore personale, se disponibile.
+  ///
+  /// Per contenuti pubblicati come Organization viene mostrato il simbolo
+  /// Organization e non l'avatar dell'operatore tecnico.
+  final String? authorAvatarUrl;
+
   /// Titolo breve del post, mostrato nel feed.
   final String title;
 
@@ -81,6 +87,7 @@ class Post {
     this.authorActorType = ActorType.citizen,
     this.authorVerificationLevel = VerificationLevel.none,
     this.authorInstitutionLevel,
+    this.authorAvatarUrl,
     required this.title,
     required this.content,
     required this.createdAt,
@@ -137,6 +144,7 @@ class Post {
     ActorType? authorActorType,
     VerificationLevel? authorVerificationLevel,
     InstitutionLevel? authorInstitutionLevel,
+    String? authorAvatarUrl,
     String? title,
     String? content,
     DateTime? createdAt,
@@ -156,6 +164,7 @@ class Post {
           authorVerificationLevel ?? this.authorVerificationLevel,
       authorInstitutionLevel:
           authorInstitutionLevel ?? this.authorInstitutionLevel,
+      authorAvatarUrl: authorAvatarUrl ?? this.authorAvatarUrl,
       title: title ?? this.title,
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,

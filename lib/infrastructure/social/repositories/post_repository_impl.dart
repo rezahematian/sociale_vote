@@ -71,6 +71,31 @@ class PostRepositoryImpl implements PostRepository {
     return _mapPosts(rows);
   }
 
+  @override
+  Future<List<Post>> getPostsByPublisherOrganizations({
+    required Set<String> organizationIds,
+    int limit = 20,
+  }) async {
+    final normalizedIds = organizationIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    if (normalizedIds.isEmpty || limit <= 0) {
+      return const <Post>[];
+    }
+
+    final rows = await AppSupabase.client
+        .from(_postsTable)
+        .select()
+        .inFilter('publisher_organization_id', normalizedIds)
+        .order('created_at', ascending: false)
+        .limit(limit) as List<dynamic>;
+
+    return _mapPosts(rows);
+  }
+
   String? _prepareDbFilterValue(String? value) {
     if (value == null) {
       return null;
@@ -239,6 +264,8 @@ class PostRepositoryImpl implements PostRepository {
       final authorIdentity = authorIdentityById[authorId];
       final publisherOrganizationId =
           row['publisher_organization_id'] as String?;
+      final isOrganizationPublisher =
+          publisherOrganizationId?.trim().isNotEmpty == true;
       final organizationIdentity =
           organizationIdentityById[publisherOrganizationId];
 
@@ -248,15 +275,17 @@ class PostRepositoryImpl implements PostRepository {
             authorIdentity?.displayName ??
             authorsById[authorId] ??
             'Unknown user',
-        authorActorType: organizationIdentity != null
+        authorActorType: isOrganizationPublisher
             ? ActorType.organization
             : (authorIdentity?.actorType ?? ActorType.citizen),
-        authorVerificationLevel: organizationIdentity != null
+        authorVerificationLevel: isOrganizationPublisher
             ? VerificationLevel.none
             : (authorIdentity?.verificationLevel ?? VerificationLevel.none),
-        authorInstitutionLevel: organizationIdentity != null
-            ? null
-            : authorIdentity?.institutionLevel,
+        authorInstitutionLevel:
+            isOrganizationPublisher ? null : authorIdentity?.institutionLevel,
+        authorAvatarUrl: isOrganizationPublisher
+            ? organizationIdentity?.logoUrl
+            : authorIdentity?.avatarUrl,
         title: (row['title'] as String?) ?? '',
         content: (row['content'] as String?) ?? '',
         createdAt: _parseDateTime(createdAtRaw),
@@ -357,7 +386,7 @@ class PostRepositoryImpl implements PostRepository {
     final rows = await AppSupabase.client
         .from(_userProfilesTable)
         .select(
-          'id, display_name, actor_type, account_type, verification_level, '
+          'id, display_name, avatar_url, actor_type, account_type, verification_level, '
           'is_verified, institution_level, institution_name, organization_name',
         )
         .inFilter('id', authorIds);
@@ -386,6 +415,7 @@ class PostRepositoryImpl implements PostRepository {
           legacyIsVerified: row['is_verified'],
         ),
         institutionLevel: _parseInstitutionLevel(row['institution_level']),
+        avatarUrl: (row['avatar_url'] as String?)?.trim(),
       );
     }
 
@@ -413,13 +443,19 @@ class PostRepositoryImpl implements PostRepository {
         final row = Map<String, dynamic>.from(item);
         final id = row['organization_id']?.toString().trim();
         final publicName = row['public_name']?.toString().trim();
+        final rawLogoUrl = row['logo_url']?.toString().trim();
+        final logoUrl =
+            rawLogoUrl == null || rawLogoUrl.isEmpty ? null : rawLogoUrl;
         if (id == null ||
             id.isEmpty ||
             publicName == null ||
             publicName.isEmpty) {
           continue;
         }
-        result[id] = _PostOrganizationIdentity(publicName: publicName);
+        result[id] = _PostOrganizationIdentity(
+          publicName: publicName,
+          logoUrl: logoUrl,
+        );
       }
 
       return result;
@@ -580,20 +616,24 @@ class PostRepositoryImpl implements PostRepository {
 
 class _PostOrganizationIdentity {
   final String publicName;
+  final String? logoUrl;
 
   const _PostOrganizationIdentity({
     required this.publicName,
+    required this.logoUrl,
   });
 }
 
 class _PostAuthorIdentity {
   final String? displayName;
+  final String? avatarUrl;
   final ActorType actorType;
   final VerificationLevel verificationLevel;
   final InstitutionLevel? institutionLevel;
 
   const _PostAuthorIdentity({
     required this.displayName,
+    required this.avatarUrl,
     required this.actorType,
     required this.verificationLevel,
     required this.institutionLevel,

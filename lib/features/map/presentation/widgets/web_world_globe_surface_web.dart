@@ -10,6 +10,15 @@ import 'package:web/web.dart' as web;
 
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
+
+SocialVoteContentKind _contentKindForWebMapType(CivicMapItemType type) {
+  return switch (type) {
+    CivicMapItemType.poll => SocialVoteContentKind.vote,
+    CivicMapItemType.post => SocialVoteContentKind.voce,
+    CivicMapItemType.news => SocialVoteContentKind.news,
+  };
+}
 
 class WebGlobeFocus {
   final double latitude;
@@ -83,6 +92,8 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
   String? _lastFocusJson;
 
   final Map<String, CivicMapItem> _markerLookup = <String, CivicMapItem>{};
+  final Map<String, List<CivicMapItem>> _markerGroupLookup =
+      <String, List<CivicMapItem>>{};
 
   @override
   void initState() {
@@ -190,6 +201,8 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
   void _handleElementCreated(Object created) {
     final element = created as web.HTMLElement;
     _element = element;
+    _failed = false;
+    _ready = element.getAttribute('data-runtime-ready') == 'true';
 
     element.style
       ..display = 'block'
@@ -219,8 +232,13 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       }
 
       final item = _markerLookup[markerId];
+      final group = _markerGroupLookup[markerId];
       if (item != null) {
-        widget.onMarkerTap(item);
+        if (group != null && group.length > 1) {
+          _showMarkerGroupPicker(group);
+        } else {
+          widget.onMarkerTap(item);
+        }
       }
     }).toJS;
 
@@ -341,6 +359,10 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     _applyFocusIfPossible(force: true);
 
     _readyTimeout?.cancel();
+    if (_ready || element.getAttribute('data-runtime-ready') == 'true') {
+      _ready = true;
+      return;
+    }
     _readyTimeout = Timer(const Duration(seconds: 30), () {
       if (!mounted || _ready) {
         return;
@@ -488,6 +510,7 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
 
   List<Map<String, Object?>> _buildMarkers() {
     _markerLookup.clear();
+    _markerGroupLookup.clear();
 
     final clusterDegrees = widget.homeProfile ? 18.0 : 7.0;
     final markerLimit = widget.homeProfile ? 6 : 36;
@@ -504,17 +527,16 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     final limited = CivicMapMarkerSelectionRules.select(
       items: validCandidates,
       totalLimit: markerLimit,
-      newsLimit: widget.homeProfile ? 2 : 12,
+      newsLimit: widget.homeProfile ? 1 : 4,
     );
     final grouped = <String, List<CivicMapItem>>{};
 
     for (final item in limited) {
       final latCell = (item.latitude / clusterDegrees).floor();
       final lngCell = (item.longitude / clusterDegrees).floor();
-      // Keep civic content visible when the asynchronous News load completes.
-      // A News item in the same geographic cell must not replace the existing
-      // Poll/Post marker by becoming the cluster representative.
-      final key = '${item.type.name}|$latCell|$lngCell';
+      // One geographic cell becomes one marker cluster regardless of content
+      // type, preventing Vote/Voce/News overlap at the same city centre.
+      final key = '$latCell|$lngCell';
 
       grouped.putIfAbsent(key, () => <CivicMapItem>[]).add(item);
     }
@@ -527,7 +549,7 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
         continue;
       }
 
-      final representative = group.first;
+      final representative = _preferredMarkerRepresentative(group);
 
       var latitudeTotal = 0.0;
       var longitudeTotal = 0.0;
@@ -542,12 +564,15 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       groupIndex += 1;
 
       _markerLookup[markerId] = representative;
+      _markerGroupLookup[markerId] = List<CivicMapItem>.unmodifiable(group);
 
       result.add(<String, Object?>{
         'id': markerId,
         'latitude': latitudeTotal / group.length,
         'longitude': longitudeTotal / group.length,
-        'color': _markerColor(representative.type),
+        'color':
+            group.length > 1 ? '#805AD5' : _markerColor(representative.type),
+        'kind': _contentKindForWebMapType(representative.type).name,
         'count': group.length,
         'size': widget.homeProfile
             ? math.min(1.28, 1.0 + (group.length - 1) * 0.08)
@@ -558,14 +583,126 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     return result;
   }
 
-  String _markerColor(CivicMapItemType type) {
+  CivicMapItem _preferredMarkerRepresentative(List<CivicMapItem> items) {
+    final ordered = List<CivicMapItem>.from(items)
+      ..sort((a, b) {
+        final aNews = a.type == CivicMapItemType.news ? 1 : 0;
+        final bNews = b.type == CivicMapItemType.news ? 1 : 0;
+        if (aNews != bNews) {
+          return aNews.compareTo(bNews);
+        }
+        return b.mapImportanceScore.compareTo(a.mapImportanceScore);
+      });
+    return ordered.first;
+  }
+
+  String _markerGroupTitle() {
+    final languageCode = Localizations.localeOf(context).languageCode;
+    if (languageCode == 'it') {
+      return 'Contenuti in questo punto';
+    }
+    return deOrEnglish(
+      context,
+      english: 'Content at this location',
+      german: 'Inhalte an diesem Ort',
+    );
+  }
+
+  String _markerTypeLabel(CivicMapItemType type) {
     switch (type) {
       case CivicMapItemType.poll:
-        return widget.homeProfile ? '#72F2A1' : '#5DE08A';
+        return 'Vote';
       case CivicMapItemType.post:
-        return widget.homeProfile ? '#6CCBFF' : '#55B8FF';
+        return 'Voce';
       case CivicMapItemType.news:
-        return widget.homeProfile ? '#FF8A80' : '#FF756B';
+        return 'News';
     }
+  }
+
+  Future<void> _showMarkerGroupPicker(List<CivicMapItem> items) async {
+    if (!mounted || items.isEmpty) {
+      return;
+    }
+
+    final ordered = List<CivicMapItem>.from(items)
+      ..sort((a, b) {
+        final aNews = a.type == CivicMapItemType.news ? 1 : 0;
+        final bNews = b.type == CivicMapItemType.news ? 1 : 0;
+        if (aNews != bNews) {
+          return aNews.compareTo(bNews);
+        }
+        return b.mapImportanceScore.compareTo(a.mapImportanceScore);
+      });
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 460),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                  child: Text(
+                    _markerGroupTitle(),
+                    style:
+                        Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                  ),
+                ),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: ordered.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (itemContext, index) {
+                      final item = ordered[index];
+                      final subtitle = item.subtitle?.trim();
+
+                      return ListTile(
+                        leading: Icon(
+                          SocialVoteSymbols.contentIcon(
+                            _contentKindForWebMapType(item.type),
+                          ),
+                          color: SocialVoteSymbols.contentColor(
+                            _contentKindForWebMapType(item.type),
+                          ),
+                        ),
+                        title: Text(
+                          item.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          subtitle == null || subtitle.isEmpty
+                              ? _markerTypeLabel(item.type)
+                              : '${_markerTypeLabel(item.type)} · $subtitle',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: const Icon(Icons.chevron_right_rounded),
+                        onTap: () {
+                          Navigator.of(sheetContext).pop();
+                          widget.onMarkerTap(item);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _markerColor(CivicMapItemType type) {
+    return SocialVoteSymbols.contentHex(_contentKindForWebMapType(type));
   }
 }

@@ -8,10 +8,11 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
-import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 /// Card visuale per un singolo post social.
@@ -142,8 +143,8 @@ class PostCard extends StatelessWidget {
                     runSpacing: 8,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      _buildDiscussionIconChip(theme),
-                      _buildAuthorChip(context, theme, authorName),
+                      _buildDiscussionIconChip(),
+                      _buildAuthorSignature(context, authorName),
                       _buildLocationChip(
                         theme,
                         languageCode: languageCode,
@@ -230,88 +231,42 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDiscussionIconChip(ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
-
-    final backgroundColor =
-        isDark ? const Color(0xFF1A2D4A) : const Color(0xFFEFF4FF);
-    final foregroundColor =
-        isDark ? const Color(0xFF9FC0FF) : const Color(0xFF316BFF);
-    final borderColor =
-        isDark ? const Color(0xFF314C72) : const Color(0xFFDCE7FF);
-
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: borderColor,
-          width: 1,
-        ),
-      ),
-      child: Icon(
-        Icons.mode_comment_outlined,
-        size: 16,
-        color: foregroundColor,
-      ),
+  Widget _buildDiscussionIconChip() {
+    return const ContentTypeMark(
+      kind: SocialVoteContentKind.voce,
     );
   }
 
-  Widget _buildAuthorChip(
+  Widget _buildAuthorSignature(
     BuildContext context,
-    ThemeData theme,
     String authorName,
   ) {
     final authorId = post.createdByUserId?.trim();
-    final chip = _buildHeaderChip(
-      theme: theme,
-      icon: post.publisherOrganizationId != null
-          ? Icons.business_rounded
-          : Icons.person_outline_rounded,
-      label: authorName,
-      backgroundColor: theme.brightness == Brightness.dark
-          ? const Color(0xFF1C2836)
-          : const Color(0xFFEFF4FB),
-      foregroundColor: theme.brightness == Brightness.dark
-          ? const Color(0xFFB7C4D6)
-          : const Color(0xFF667085),
-      borderColor: theme.brightness == Brightness.dark
-          ? const Color(0xFF314255)
-          : const Color(0xFFD9E3EF),
-      identityMark: UserIdentityMark.shouldShow(
-        actorType: post.authorActorType,
-        verificationLevel: post.authorVerificationLevel,
-        institutionLevel: post.authorInstitutionLevel,
-      )
-          ? UserIdentityMark(
-              actorType: post.authorActorType,
-              verificationLevel: post.authorVerificationLevel,
-              institutionLevel: post.authorInstitutionLevel,
-              size: 14,
-            )
-          : null,
-    );
-
-    if (post.publisherOrganizationId != null ||
-        authorId == null ||
-        authorId.isEmpty) {
-      return chip;
-    }
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(999),
-      onTap: () {
+    final publisherActorType =
+        post.publisherOrganizationId?.trim().isNotEmpty == true
+            ? ActorType.organization
+            : post.authorActorType;
+    final VoidCallback? onOpenProfile;
+    if (authorId == null || authorId.isEmpty) {
+      onOpenProfile = null;
+    } else {
+      onOpenProfile = () {
         Navigator.of(context).push(
           MaterialPageRoute<void>(
-            builder: (_) => PublicUserProfilePage(
-              userId: authorId,
-            ),
+            builder: (_) => PublicUserProfilePage(userId: authorId),
           ),
         );
-      },
-      child: chip,
+      };
+    }
+
+    return PublisherSignature(
+      displayName: authorName,
+      imageUrl: post.authorAvatarUrl,
+      actorType: publisherActorType,
+      verificationLevel: post.authorVerificationLevel,
+      institutionLevel: post.authorInstitutionLevel,
+      density: PublisherSignatureDensity.compact,
+      onTap: onOpenProfile,
     );
   }
 
@@ -363,13 +318,16 @@ class PostCard extends StatelessWidget {
 
   Widget _buildHeaderChip({
     required ThemeData theme,
-    required IconData icon,
+    IconData? icon,
+    Widget? leading,
     required String label,
     required Color backgroundColor,
     required Color foregroundColor,
     required Color borderColor,
     Widget? identityMark,
   }) {
+    assert(icon != null || leading != null);
+    assert(icon == null || leading == null);
     return Container(
       constraints: const BoxConstraints(maxWidth: 280),
       height: 32,
@@ -385,11 +343,12 @@ class PostCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 14,
-            color: foregroundColor,
-          ),
+          leading ??
+              Icon(
+                icon,
+                size: 14,
+                color: foregroundColor,
+              ),
           const SizedBox(width: 4),
           Flexible(
             child: Text(

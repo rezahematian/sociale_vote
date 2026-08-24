@@ -87,6 +87,32 @@ class PollRepositorySupabase implements PollRepository {
   }
 
   @override
+  Future<List<Poll>> getPollsByPublisherOrganizations({
+    required Set<String> organizationIds,
+    int limit = 20,
+  }) async {
+    final normalizedIds = organizationIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    if (normalizedIds.isEmpty || limit <= 0) {
+      return const <Poll>[];
+    }
+
+    final rawRows = await AppSupabase.client
+        .from(_pollsTable)
+        .select()
+        .inFilter('publisher_organization_id', normalizedIds)
+        .order('vote_count', ascending: false)
+        .order('created_at', ascending: false)
+        .limit(limit) as List<dynamic>;
+
+    return _mapPollRowsWithAuthors(rawRows);
+  }
+
+  @override
   Future<Poll?> getPollDetail(PollId pollId) async {
     final rawRows = await AppSupabase.client
         .from(_pollsTable)
@@ -322,6 +348,7 @@ class PollRepositorySupabase implements PollRepository {
   Poll _mapPoll(
     Map<String, dynamic> row, {
     _PollAuthorIdentity? authorIdentity,
+    _PollOrganizationIdentity? organizationIdentity,
   }) {
     final optionsRaw = row['options'];
     final optionsList = optionsRaw is List ? optionsRaw : const [];
@@ -355,6 +382,10 @@ class PollRepositorySupabase implements PollRepository {
     final publishedAsInstitutionLevelValue = _normalizeNullableText(
       row['published_as_institution_level'] as String?,
     );
+    final publisherOrganizationId =
+        _normalizeNullableText(row['publisher_organization_id'] as String?);
+    final isOrganizationPublisher = publisherOrganizationId != null ||
+        publishedAsActorTypeValue == ActorType.organization.storageKey;
 
     return Poll(
       id: PollId((row['id'] as String?) ?? ''),
@@ -397,12 +428,15 @@ class PollRepositorySupabase implements PollRepository {
       cityId: cityId,
       contentLocation: contentLocation,
       createdByUserId: row['author_id'] as String?,
-      publisherOrganizationId: row['publisher_organization_id'] as String?,
+      publisherOrganizationId: publisherOrganizationId,
       authorName: authorIdentity?.displayName,
       authorActorType: authorIdentity?.actorType ?? ActorType.citizen,
       authorVerificationLevel:
           authorIdentity?.verificationLevel ?? VerificationLevel.none,
       authorInstitutionLevel: authorIdentity?.institutionLevel,
+      authorAvatarUrl: isOrganizationPublisher
+          ? organizationIdentity?.logoUrl
+          : authorIdentity?.avatarUrl,
       publishedAsActorType: publishedAsActorTypeValue == null
           ? null
           : ActorTypeX.fromStorageKey(publishedAsActorTypeValue),
@@ -436,14 +470,60 @@ class PollRepositorySupabase implements PollRepository {
 
     final authorsById = await _loadAuthorIdentityById(authorIds);
 
+    final publisherOrganizationIds = rows
+        .map((row) => row['publisher_organization_id'])
+        .whereType<String>()
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+    final organizationsById =
+        await _loadOrganizationIdentityById(publisherOrganizationIds);
+
     return rows
         .map(
           (row) => _mapPoll(
             row,
             authorIdentity: authorsById[(row['author_id'] as String?)?.trim()],
+            organizationIdentity: organizationsById[
+                (row['publisher_organization_id'] as String?)?.trim()],
           ),
         )
         .toList(growable: false);
+  }
+
+  Future<Map<String, _PollOrganizationIdentity>> _loadOrganizationIdentityById(
+      List<String> organizationIds) async {
+    if (organizationIds.isEmpty) {
+      return const <String, _PollOrganizationIdentity>{};
+    }
+
+    try {
+      final raw = await AppSupabase.client.rpc(
+        'organization_get_public_identities',
+        params: <String, dynamic>{
+          'p_organization_ids': organizationIds,
+        },
+      );
+      final rows = raw is List ? raw : const <dynamic>[];
+      final result = <String, _PollOrganizationIdentity>{};
+
+      for (final item in rows) {
+        if (item is! Map) continue;
+        final row = Map<String, dynamic>.from(item);
+        final id = row['organization_id']?.toString().trim();
+        if (id == null || id.isEmpty) continue;
+
+        final rawLogoUrl = row['logo_url']?.toString().trim();
+        result[id] = _PollOrganizationIdentity(
+          logoUrl: rawLogoUrl == null || rawLogoUrl.isEmpty ? null : rawLogoUrl,
+        );
+      }
+
+      return result;
+    } catch (_) {
+      return const <String, _PollOrganizationIdentity>{};
+    }
   }
 
   Future<Map<String, _PollAuthorIdentity>> _loadAuthorIdentityById(
@@ -456,7 +536,7 @@ class PollRepositorySupabase implements PollRepository {
     final rows = await AppSupabase.client
         .from(_userProfilesTable)
         .select(
-          'id, display_name, actor_type, account_type, verification_level, '
+          'id, display_name, avatar_url, actor_type, account_type, verification_level, '
           'is_verified, institution_level, institution_name, organization_name',
         )
         .inFilter('id', authorIds);
@@ -489,6 +569,7 @@ class PollRepositorySupabase implements PollRepository {
         actorType: actorType,
         verificationLevel: verificationLevel,
         institutionLevel: institutionLevel,
+        avatarUrl: _normalizeNullableText(row['avatar_url'] as String?),
       );
     }
 
@@ -799,14 +880,24 @@ typedef PollRepositoryInMemory = PollRepositorySupabase;
 
 class _PollAuthorIdentity {
   final String? displayName;
+  final String? avatarUrl;
   final ActorType actorType;
   final VerificationLevel verificationLevel;
   final InstitutionLevel? institutionLevel;
 
   const _PollAuthorIdentity({
     required this.displayName,
+    required this.avatarUrl,
     required this.actorType,
     required this.verificationLevel,
     required this.institutionLevel,
+  });
+}
+
+class _PollOrganizationIdentity {
+  final String? logoUrl;
+
+  const _PollOrganizationIdentity({
+    required this.logoUrl,
   });
 }

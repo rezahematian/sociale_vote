@@ -227,20 +227,46 @@ class CivicMapMarkerSelectionRules {
       math.max(0, newsLimit),
     );
 
+    // Civic content remains the visual backbone of the map. News can occupy
+    // only an explicit share of the available marker budget and never crowd
+    // out every Vote/Voce marker. If one category has too few items, the
+    // unused slots are filled from the global ranking below.
+    final selectedOther = sorted
+        .where((item) => item.type != CivicMapItemType.news)
+        .take(math.max(0, totalLimit - effectiveNewsLimit))
+        .toList(growable: true);
     final selectedNews = sorted
         .where((item) => item.type == CivicMapItemType.news)
         .take(effectiveNewsLimit)
-        .toList(growable: false);
-    final remainingSlots = totalLimit - selectedNews.length;
-    final selectedOther = sorted
-        .where((item) => item.type != CivicMapItemType.news)
-        .take(remainingSlots)
-        .toList(growable: false);
+        .toList(growable: true);
 
     final selectedKeys = <String>{
-      for (final item in selectedNews) '${item.type.name}:${item.id}',
       for (final item in selectedOther) '${item.type.name}:${item.id}',
+      for (final item in selectedNews) '${item.type.name}:${item.id}',
     };
+
+    if (selectedKeys.length < totalLimit) {
+      for (final item in sorted) {
+        final key = '${item.type.name}:${item.id}';
+        if (selectedKeys.add(key)) {
+          if (item.type == CivicMapItemType.news &&
+              selectedNews.length >= effectiveNewsLimit) {
+            selectedKeys.remove(key);
+            continue;
+          }
+
+          if (item.type == CivicMapItemType.news) {
+            selectedNews.add(item);
+          } else {
+            selectedOther.add(item);
+          }
+        }
+
+        if (selectedKeys.length >= totalLimit) {
+          break;
+        }
+      }
+    }
 
     return sorted
         .where(

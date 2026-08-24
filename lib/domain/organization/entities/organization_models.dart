@@ -89,6 +89,26 @@ class OrganizationProfile {
   bool get isVerified => verificationStatus == 'verified';
 }
 
+class OrganizationFollowState {
+  final bool isFollowing;
+  final int followerCount;
+  final bool canFollow;
+
+  const OrganizationFollowState({
+    required this.isFollowing,
+    required this.followerCount,
+    required this.canFollow,
+  });
+
+  factory OrganizationFollowState.fromJson(Map<String, dynamic> json) {
+    return OrganizationFollowState(
+      isFollowing: json['is_following'] == true,
+      followerCount: _int(json['follower_count']),
+      canFollow: json['can_follow'] == true,
+    );
+  }
+}
+
 class OrganizationWorkspace {
   final String id;
   final String organizationId;
@@ -143,13 +163,20 @@ class OrganizationContext {
 
   bool get canManageProfile =>
       membershipRole == 'owner' || membershipRole == 'manager';
-  bool get canOperateSessions => canManageProfile || membershipRole == 'operator';
+  bool get canOperateSessions =>
+      canManageProfile || membershipRole == 'operator';
 }
 
 String? _string(dynamic value) {
   if (value is! String) return null;
   final normalized = value.trim();
   return normalized.isEmpty ? null : normalized;
+}
+
+int _int(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '') ?? 0;
 }
 
 DateTime? _date(dynamic value) {

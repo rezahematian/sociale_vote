@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/features/home/presentation/pages/public_home_screen.dart';
-import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class FirstTimeOnboardingGate extends StatefulWidget {
   const FirstTimeOnboardingGate({super.key});
@@ -31,13 +30,11 @@ class _FirstTimeOnboardingGateState extends State<FirstTimeOnboardingGate> {
       completed =
           await AppDI.instance.storageService.readBool(_completedKey) ?? false;
     } catch (_) {
-      // Lo storage locale non deve mai impedire l'accesso all'app.
+      // Local storage must never block access to the app.
       completed = true;
     }
 
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
 
     setState(() {
       _completed = completed;
@@ -47,18 +44,12 @@ class _FirstTimeOnboardingGateState extends State<FirstTimeOnboardingGate> {
 
   Future<void> _completeOnboarding() async {
     try {
-      await AppDI.instance.storageService.writeBool(
-        _completedKey,
-        true,
-      );
+      await AppDI.instance.storageService.writeBool(_completedKey, true);
     } catch (_) {
-      // Anche se la persistenza locale fallisce, la sessione corrente
-      // deve poter proseguire normalmente.
+      // Even if persistence fails, the current session must continue.
     }
 
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
 
     setState(() {
       _completed = true;
@@ -69,9 +60,7 @@ class _FirstTimeOnboardingGateState extends State<FirstTimeOnboardingGate> {
   Widget build(BuildContext context) {
     if (_loading) {
       return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -79,18 +68,14 @@ class _FirstTimeOnboardingGateState extends State<FirstTimeOnboardingGate> {
       return const PublicHomeScreen();
     }
 
-    return _FirstTimeOnboardingPage(
-      onComplete: _completeOnboarding,
-    );
+    return _FirstTimeOnboardingPage(onComplete: _completeOnboarding);
   }
 }
 
 class _FirstTimeOnboardingPage extends StatefulWidget {
   final Future<void> Function() onComplete;
 
-  const _FirstTimeOnboardingPage({
-    required this.onComplete,
-  });
+  const _FirstTimeOnboardingPage({required this.onComplete});
 
   @override
   State<_FirstTimeOnboardingPage> createState() =>
@@ -103,7 +88,7 @@ class _FirstTimeOnboardingPageState extends State<_FirstTimeOnboardingPage> {
   int _currentPage = 0;
   bool _finishing = false;
 
-  static const int _pageCount = 5;
+  static const int _pageCount = 3;
 
   @override
   void dispose() {
@@ -111,10 +96,19 @@ class _FirstTimeOnboardingPageState extends State<_FirstTimeOnboardingPage> {
     super.dispose();
   }
 
+  String _text({
+    required String it,
+    required String en,
+    required String de,
+  }) {
+    final language = Localizations.localeOf(context).languageCode.toLowerCase();
+    if (language == 'it') return it;
+    if (language == 'de') return de;
+    return en;
+  }
+
   Future<void> _finish() async {
-    if (_finishing) {
-      return;
-    }
+    if (_finishing) return;
 
     setState(() {
       _finishing = true;
@@ -135,55 +129,84 @@ class _FirstTimeOnboardingPageState extends State<_FirstTimeOnboardingPage> {
     );
   }
 
-  List<_OnboardingStep> _steps(AppLocalizations l10n) {
+  List<_OnboardingStep> _steps() {
     return [
       _OnboardingStep(
-        icon: Icons.poll_outlined,
-        title: l10n.onboardingPollTitle,
-        description: l10n.onboardingPollDescription,
+        icon: Icons.travel_explore_rounded,
+        title: _text(
+          it: 'Scopri cosa conta',
+          en: 'Discover what matters',
+          de: 'Entdecke, was zählt',
+        ),
+        description: _text(
+          it: 'Pulse ti aiuta a scoprire contenuti rilevanti, Pulse Now mostra ciò che si muove adesso e Civic Map collega Voce, Vote e notizie ai luoghi.',
+          en: 'Pulse helps you discover relevant content, Pulse Now shows what is moving now, and Civic Map connects Voce, Vote and news to places.',
+          de: 'Pulse hilft dir, relevante Inhalte zu entdecken, Pulse Now zeigt, was gerade Aufmerksamkeit erhält, und Civic Map verbindet Voce, Vote und Nachrichten mit Orten.',
+        ),
+        badge: _text(it: 'ESPLORA', en: 'EXPLORE', de: 'ENTDECKEN'),
       ),
       _OnboardingStep(
-        icon: Icons.local_fire_department_outlined,
-        title: l10n.onboardingHeatIceTitle,
-        description: l10n.onboardingHeatIceDescription,
+        icon: Icons.how_to_vote_outlined,
+        title: _text(
+          it: 'Esprimi la tua Voce. Partecipa ai Vote.',
+          en: 'Share your Voce. Take part in Vote.',
+          de: 'Teile deine Voce. Nimm an Vote teil.',
+        ),
+        description: _text(
+          it: 'Per le persone Social Vote resta gratuito: pubblica una Voce, crea o partecipa a un Vote, commenta e segui persone, luoghi e organizzazioni. Nessuna pubblicità e nessuna visibilità acquistabile.',
+          en: 'For people, Social Vote stays free: publish a Voce, create or join a Vote, comment and follow people, places and organizations. No advertising and no visibility that can be bought.',
+          de: 'Für Menschen bleibt Social Vote kostenlos: Veröffentliche eine Voce, erstelle oder nutze Vote, kommentiere und folge Menschen, Orten und Organisationen. Keine Werbung und keine käufliche Sichtbarkeit.',
+        ),
+        badge: _text(
+            it: 'PER TE · GRATUITO',
+            en: 'FOR YOU · FREE',
+            de: 'FÜR DICH · KOSTENLOS'),
       ),
       _OnboardingStep(
-        icon: Icons.map_outlined,
-        title: l10n.onboardingCivicMapTitle,
-        description: l10n.onboardingCivicMapDescription,
-      ),
-      _OnboardingStep(
-        icon: Icons.travel_explore_outlined,
-        title: l10n.onboardingGeoScopeTitle,
-        description: l10n.onboardingGeoScopeDescription,
-      ),
-      _OnboardingStep(
-        icon: Icons.verified_user_outlined,
-        title: l10n.onboardingVerificationTitle,
-        description: l10n.onboardingVerificationDescription,
+        icon: Icons.apartment_rounded,
+        title: _text(
+          it: 'Persone e organizzazioni, ruoli diversi',
+          en: 'People and organizations, different roles',
+          de: 'Menschen und Organisationen, unterschiedliche Rollen',
+        ),
+        description: _text(
+          it: 'Il tuo account personale può gestire un’organizzazione separata. Dal Business Workspace un’organizzazione può pubblicare Voce e Vote ufficiali e gestire Sessions con QR, Stage e Verified Result. La verifica serve a ridurre duplicazioni e abusi, non a vendere dati o rendere un voto automaticamente legale.',
+          en: 'Your personal account can manage a separate organization. From the Business Workspace an organization can publish official Voce and Vote and run Sessions with QR, Stage and Verified Result. Verification helps reduce duplication and abuse; it is not for selling data or making a vote automatically legally binding.',
+          de: 'Dein persönliches Konto kann eine separate Organisation verwalten. Im Business Workspace kann eine Organisation offizielle Voce und Vote veröffentlichen und Sessions mit QR, Stage und Verified Result durchführen. Verifizierung reduziert Duplikate und Missbrauch; sie dient nicht dem Datenverkauf und macht eine Abstimmung nicht automatisch rechtsverbindlich.',
+        ),
+        badge: 'BUSINESS · TRUST',
       ),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final steps = _steps(l10n);
+    final steps = _steps();
     final isLastPage = _currentPage == steps.length - 1;
 
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                child: TextButton(
-                  onPressed: _finishing ? null : _finish,
-                  child: Text(l10n.onboardingSkipButton),
-                ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+              child: Row(
+                children: [
+                  Text(
+                    'Social Vote',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: _finishing ? null : _finish,
+                    child: Text(
+                      _text(it: 'Salta', en: 'Skip', de: 'Überspringen'),
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -198,54 +221,77 @@ class _FirstTimeOnboardingPageState extends State<_FirstTimeOnboardingPage> {
                 itemBuilder: (context, index) {
                   final step = steps[index];
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 24,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 104,
-                          height: 104,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primaryContainer,
-                            shape: BoxShape.circle,
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 28,
+                          vertical: 18,
+                        ),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight - 36,
                           ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            step.icon,
-                            size: 52,
-                            color: theme.colorScheme.onPrimaryContainer,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 104,
+                                height: 104,
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primaryContainer,
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  step.icon,
+                                  size: 52,
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                ),
+                              ),
+                              const SizedBox(height: 26),
+                              Chip(
+                                visualDensity: VisualDensity.compact,
+                                label: Text(
+                                  step.badge,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                step.title,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  height: 1.08,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              ConstrainedBox(
+                                constraints:
+                                    const BoxConstraints(maxWidth: 680),
+                                child: Text(
+                                  step.description,
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    height: 1.48,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 32),
-                        Text(
-                          step.title,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        Text(
-                          step.description,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            height: 1.45,
-                            color: theme.textTheme.bodyLarge?.color
-                                ?.withValues(alpha: 0.8),
-                          ),
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   );
                 },
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+              padding: const EdgeInsets.fromLTRB(24, 10, 24, 24),
               child: Column(
                 children: [
                   Row(
@@ -254,7 +300,6 @@ class _FirstTimeOnboardingPageState extends State<_FirstTimeOnboardingPage> {
                       steps.length,
                       (index) {
                         final selected = index == _currentPage;
-
                         return AnimatedContainer(
                           duration: const Duration(milliseconds: 180),
                           margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -270,7 +315,7 @@ class _FirstTimeOnboardingPageState extends State<_FirstTimeOnboardingPage> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 18),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
@@ -281,14 +326,21 @@ class _FirstTimeOnboardingPageState extends State<_FirstTimeOnboardingPage> {
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                               )
                             : Text(
                                 isLastPage
-                                    ? l10n.onboardingStartButton
-                                    : l10n.onboardingNextButton,
+                                    ? _text(
+                                        it: 'Entra in Social Vote',
+                                        en: 'Enter Social Vote',
+                                        de: 'Social Vote öffnen',
+                                      )
+                                    : _text(
+                                        it: 'Avanti',
+                                        en: 'Next',
+                                        de: 'Weiter',
+                                      ),
                               ),
                       ),
                     ),
@@ -307,10 +359,12 @@ class _OnboardingStep {
   final IconData icon;
   final String title;
   final String description;
+  final String badge;
 
   const _OnboardingStep({
     required this.icon,
     required this.title,
     required this.description,
+    required this.badge,
   });
 }

@@ -24,7 +24,7 @@ import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
-import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 
 class PollCard extends StatelessWidget {
   final Poll poll;
@@ -359,7 +359,7 @@ class PollCard extends StatelessWidget {
         theme: theme,
         icon: Icons.how_to_vote_rounded,
         label: null,
-        child: _buildPollIconChip(theme),
+        child: _buildPollIconChip(),
       ),
     ];
 
@@ -374,7 +374,6 @@ class PollCard extends StatelessWidget {
           bold: true,
           child: _buildAuthorChip(
             context,
-            theme,
             publisherDisplayName,
           ),
         ),
@@ -684,22 +683,6 @@ class PollCard extends StatelessWidget {
     return _formatChipDate(context, end!, compact: compact);
   }
 
-  _PollChipTone _pollChipTone(ThemeData theme) {
-    if (theme.brightness == Brightness.dark) {
-      return const _PollChipTone(
-        backgroundColor: Color(0xFF163126),
-        foregroundColor: Color(0xFF54D497),
-        borderColor: Color(0xFF2A5942),
-      );
-    }
-
-    return const _PollChipTone(
-      backgroundColor: Color(0xFFEAF7EF),
-      foregroundColor: Color(0xFF179C5C),
-      borderColor: Color(0xFFCFEBD9),
-    );
-  }
-
   _PollChipTone _neutralBlueTone(ThemeData theme) {
     if (theme.brightness == Brightness.dark) {
       return const _PollChipTone(
@@ -844,97 +827,40 @@ class PollCard extends StatelessWidget {
 
   Widget _buildAuthorChip(
     BuildContext context,
-    ThemeData theme,
     String displayName,
   ) {
     final actorType = _publisherActorType;
     final verificationLevel = _publisherVerificationLevel;
     final institutionLevel = _publisherInstitutionLevel;
-    final isDark = theme.brightness == Brightness.dark;
-
-    final chip = Container(
-      constraints: const BoxConstraints(maxWidth: 280),
-      height: _chipMetrics.height,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1C2836) : const Color(0xFFEFF4FB),
-        borderRadius: AppRadius.pillRadius,
-        border: Border.all(
-          color: isDark ? const Color(0xFF314255) : const Color(0xFFD9E3EF),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            poll.publisherOrganizationId != null
-                ? Icons.business_rounded
-                : Icons.person_outline_rounded,
-            size: _chipMetrics.iconSize,
-            color: isDark ? const Color(0xFFB7C4D6) : const Color(0xFF667085),
-          ),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              displayName,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontSize: _chipMetrics.fontSize,
-                height: 1,
-                fontWeight: FontWeight.w700,
-                color:
-                    isDark ? const Color(0xFFB7C4D6) : const Color(0xFF667085),
-              ),
-            ),
-          ),
-          if (UserIdentityMark.shouldShow(
-            actorType: actorType,
-            verificationLevel: verificationLevel,
-            institutionLevel: institutionLevel,
-          ))
-            UserIdentityMark(
-              actorType: actorType,
-              verificationLevel: verificationLevel,
-              institutionLevel: institutionLevel,
-              size: 14,
-            ),
-        ],
-      ),
-    );
 
     final authorId = poll.createdByUserId?.trim();
-    if (poll.publisherOrganizationId != null ||
-        authorId == null ||
-        authorId.isEmpty) {
-      return chip;
-    }
-
-    return InkWell(
-      borderRadius: AppRadius.pillRadius,
-      onTap: () {
+    final VoidCallback? onOpenProfile;
+    if (authorId == null || authorId.isEmpty) {
+      onOpenProfile = null;
+    } else {
+      onOpenProfile = () {
         Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => PublicUserProfilePage(userId: authorId),
           ),
         );
-      },
-      child: chip,
+      };
+    }
+
+    return PublisherSignature(
+      displayName: displayName,
+      imageUrl: poll.authorAvatarUrl,
+      actorType: actorType,
+      verificationLevel: verificationLevel,
+      institutionLevel: institutionLevel,
+      density: PublisherSignatureDensity.compact,
+      onTap: onOpenProfile,
     );
   }
 
-  Widget _buildPollIconChip(ThemeData theme) {
-    final tone = _pollChipTone(theme);
-
-    return _buildMetaPill(
-      theme: theme,
-      metrics: _chipMetrics,
-      icon: Icons.how_to_vote_rounded,
-      label: null,
-      backgroundColor: tone.backgroundColor,
-      foregroundColor: tone.foregroundColor,
-      borderColor: tone.borderColor,
+  Widget _buildPollIconChip() {
+    return const ContentTypeMark(
+      kind: SocialVoteContentKind.vote,
     );
   }
 

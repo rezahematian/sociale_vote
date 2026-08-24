@@ -15,6 +15,7 @@ import 'package:sociale_vote/features/discussion/application/discussion_controll
 import 'package:sociale_vote/features/discussion/presentation/widgets/comment_section.dart';
 import 'package:sociale_vote/features/news/application/news_controller.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
 /// Pagina di dettaglio per una singola news.
@@ -433,10 +434,21 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
       child: Scaffold(
         backgroundColor: pageBackground,
         appBar: AppBar(
-          title: Text(
-            l10n.newsDetail_title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          title: Row(
+            children: [
+              const ContentTypeMark(
+                kind: SocialVoteContentKind.news,
+                size: 28,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  l10n.newsDetail_title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
           actions: [
             PopupMenuButton<String>(
@@ -682,7 +694,7 @@ class _NewsDetailHeroCard extends StatelessWidget {
                         if (sourceLabel != null &&
                             sourceLabel!.trim().isNotEmpty)
                           _NewsMetaChip(
-                            icon: Icons.newspaper_outlined,
+                            icon: Icons.language_outlined,
                             label: sourceLabel!.trim(),
                           ),
                         _NewsMetaChip(

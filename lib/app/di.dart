@@ -892,6 +892,7 @@ class AppDI {
         getReactionSummary: getReactionSummary,
         followScopeRepository: followScopeRepository,
         accountFollowRepository: accountFollowRepository,
+        organizationRepository: organizationRepository,
       );
 
   SearchContent get searchContent => SearchContent(searchRepository);

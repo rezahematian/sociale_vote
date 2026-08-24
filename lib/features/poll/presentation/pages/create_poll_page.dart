@@ -22,19 +22,30 @@ import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class CreatePollPage extends StatelessWidget {
-  const CreatePollPage({super.key});
+  final bool preferOrganizationPublisher;
+
+  const CreatePollPage({
+    super.key,
+    this.preferOrganizationPublisher = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => AppDI.instance.createCreatePollController(),
-      child: const _CreatePollView(),
+      child: _CreatePollView(
+        preferOrganizationPublisher: preferOrganizationPublisher,
+      ),
     );
   }
 }
 
 class _CreatePollView extends StatefulWidget {
-  const _CreatePollView();
+  final bool preferOrganizationPublisher;
+
+  const _CreatePollView({
+    required this.preferOrganizationPublisher,
+  });
 
   @override
   State<_CreatePollView> createState() => _CreatePollViewState();
@@ -97,6 +108,14 @@ class _CreatePollViewState extends State<_CreatePollView> {
       _organizationContext = organizationContext;
       _publishingIdentityLoaded = true;
     });
+
+    if (widget.preferOrganizationPublisher && organizationContext != null) {
+      final controller = context.read<CreatePollController>();
+      controller.setPublisherOrganization(
+        organizationId: organizationContext.organization.id,
+        displayName: organizationContext.organization.publicName,
+      );
+    }
   }
 
   String _pollTypeLabel(PollType type) {

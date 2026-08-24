@@ -26,6 +26,17 @@ class HomeHeroSection extends StatelessWidget {
     this.desktopCompact = false,
   });
 
+  String _purposeText(BuildContext context) {
+    final language = Localizations.localeOf(context).languageCode.toLowerCase();
+    if (language == 'it') {
+      return 'Scopri cosa conta, esprimi la tua Voce e partecipa ai Vote.';
+    }
+    if (language == 'de') {
+      return 'Entdecke, was zählt, teile deine Voce und nimm an Vote teil.';
+    }
+    return 'Discover what matters, share your Voce and take part in Vote.';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -215,6 +226,17 @@ class HomeHeroSection extends StatelessWidget {
                           height: 1.0,
                           letterSpacing: -0.45,
                           color: titleColor,
+                        ),
+                      ),
+                      SizedBox(height: desktopCompact ? 6 : 8),
+                      Text(
+                        _purposeText(context),
+                        maxLines: desktopCompact ? 2 : 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: titleColor.withValues(alpha: 0.78),
+                          height: 1.32,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       SizedBox(height: desktopCompact ? 10 : 16),

@@ -32,6 +32,15 @@ abstract class PostRepository {
     int offset = 0,
   });
 
+  /// Restituisce le Voce pubblicate ufficialmente dalle Organization indicate.
+  ///
+  /// Serve a Pulse per includere contenuti delle Organization seguite anche
+  /// quando sono fuori dal GeoScope corrente.
+  Future<List<Post>> getPostsByPublisherOrganizations({
+    required Set<String> organizationIds,
+    int limit = 20,
+  });
+
   /// Restituisce il dettaglio di un singolo post.
   ///
   /// Ritorna `null` se il post non esiste.

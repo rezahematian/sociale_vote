@@ -9,6 +9,7 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/moderation/entities/report.dart';
 import 'package:sociale_vote/domain/moderation/repositories/moderation_repository.dart';
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
@@ -17,7 +18,7 @@ import 'package:sociale_vote/features/profile/presentation/pages/public_user_pro
 import 'package:sociale_vote/features/social/application/post_detail_controller.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
-import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 /// Pagina di dettaglio per un singolo post del social feed.
@@ -551,14 +552,6 @@ class _PostDetailViewState extends State<_PostDetailView> {
     });
   }
 
-  bool _shouldShowIdentityMark(Post post) {
-    return UserIdentityMark.shouldShow(
-      actorType: post.authorActorType,
-      verificationLevel: post.authorVerificationLevel,
-      institutionLevel: post.authorInstitutionLevel,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -587,7 +580,16 @@ class _PostDetailViewState extends State<_PostDetailView> {
             );
           },
         ),
-        title: Text(l10n.postDetail_title),
+        title: Row(
+          children: [
+            const ContentTypeMark(
+              kind: SocialVoteContentKind.voce,
+              size: 28,
+            ),
+            const SizedBox(width: 8),
+            Flexible(child: Text(l10n.postDetail_title)),
+          ],
+        ),
         actions: [
           Consumer<PostDetailController>(
             builder: (context, controller, _) {
@@ -697,7 +699,6 @@ class _PostDetailViewState extends State<_PostDetailView> {
                         fireCount: fireCount,
                         iceCount: iceCount,
                         userReaction: userReaction,
-                        showIdentityMark: _shouldShowIdentityMark(post),
                         onSharePressed: () => _onSharePressed(post),
                         onFavoritePressed: _favoriteLoading
                             ? null
@@ -757,7 +758,6 @@ class _PostDetailHeroCard extends StatelessWidget {
   final int fireCount;
   final int iceCount;
   final dynamic userReaction;
-  final bool showIdentityMark;
   final VoidCallback onSharePressed;
   final VoidCallback? onFavoritePressed;
   final Future<void> Function() onFireTap;
@@ -771,7 +771,6 @@ class _PostDetailHeroCard extends StatelessWidget {
     required this.fireCount,
     required this.iceCount,
     required this.userReaction,
-    required this.showIdentityMark,
     required this.onSharePressed,
     required this.onFavoritePressed,
     required this.onFireTap,
@@ -797,12 +796,23 @@ class _PostDetailHeroCard extends StatelessWidget {
         ? post.authorName.trim()
         : l10n.postDetail_authorFallback;
     final authorUserId = post.createdByUserId?.trim();
-    final canOpenAuthorProfile =
-        authorUserId != null && authorUserId.isNotEmpty;
+    final VoidCallback? onOpenAuthorProfile;
+    if (authorUserId == null || authorUserId.isEmpty) {
+      onOpenAuthorProfile = null;
+    } else {
+      onOpenAuthorProfile = () {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => PublicUserProfilePage(userId: authorUserId),
+          ),
+        );
+      };
+    }
+    final publisherActorType =
+        post.publisherOrganizationId?.trim().isNotEmpty == true
+            ? ActorType.organization
+            : post.authorActorType;
 
-    final authorTextColor = theme.colorScheme.onSurface.withValues(
-      alpha: isDark ? 0.90 : 0.84,
-    );
     final metaTextColor = theme.colorScheme.onSurface.withValues(
       alpha: isDark ? 0.62 : 0.58,
     );
@@ -861,78 +871,18 @@ class _PostDetailHeroCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              InkWell(
-                                borderRadius: BorderRadius.circular(999),
-                                onTap: canOpenAuthorProfile
-                                    ? () {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute<void>(
-                                            builder: (_) =>
-                                                PublicUserProfilePage(
-                                              userId: authorUserId,
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    : null,
-                                child: _AuthorAvatar(
-                                  name: authorName,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(8),
-                                  onTap: canOpenAuthorProfile
-                                      ? () {
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute<void>(
-                                              builder: (_) =>
-                                                  PublicUserProfilePage(
-                                                userId: authorUserId,
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      : null,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 2,
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Flexible(
-                                          child: Text(
-                                            authorName,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: theme.textTheme.titleSmall
-                                                ?.copyWith(
-                                              fontWeight: FontWeight.w700,
-                                              color: authorTextColor,
-                                            ),
-                                          ),
-                                        ),
-                                        if (showIdentityMark)
-                                          UserIdentityMark(
-                                            actorType: post.authorActorType,
-                                            verificationLevel:
-                                                post.authorVerificationLevel,
-                                            institutionLevel:
-                                                post.authorInstitutionLevel,
-                                            size: 16,
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                          child: Align(
+                            alignment: AlignmentDirectional.centerStart,
+                            child: PublisherSignature(
+                              displayName: authorName,
+                              imageUrl: post.authorAvatarUrl,
+                              actorType: publisherActorType,
+                              verificationLevel: post.authorVerificationLevel,
+                              institutionLevel: post.authorInstitutionLevel,
+                              density: PublisherSignatureDensity.regular,
+                              maxWidth: 440,
+                              onTap: onOpenAuthorProfile,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 18),
@@ -1099,41 +1049,6 @@ class _PostDetailHeroCard extends StatelessWidget {
     final hour = local.hour.toString().padLeft(2, '0');
     final minute = local.minute.toString().padLeft(2, '0');
     return '$day/$month/$year • $hour:$minute';
-  }
-}
-
-class _AuthorAvatar extends StatelessWidget {
-  final String name;
-
-  const _AuthorAvatar({
-    required this.name,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final initial =
-        name.trim().isEmpty ? '?' : name.trim().characters.first.toUpperCase();
-
-    return Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: theme.colorScheme.surface,
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.14),
-          width: 1,
-        ),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        initial,
-        style: theme.textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
   }
 }
 

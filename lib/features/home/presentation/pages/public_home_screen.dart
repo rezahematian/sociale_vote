@@ -497,6 +497,10 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     );
   }
 
+  Future<void> _onHowItWorksPressed() async {
+    await Navigator.of(context).pushNamed(AppRouter.howItWorks);
+  }
+
   void _onProfilePressed() {
     Navigator.pushNamed(context, AppRouter.account);
   }
@@ -758,6 +762,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
               onProfilePressed: _onProfilePressed,
               onLogoutPressed: _onLogoutPressed,
               onDiscoveryPressed: _onDiscoveryPressed,
+              onHowItWorksPressed: _onHowItWorksPressed,
               onNotificationsPressed:
                   isLoggedIn ? _onNotificationsPressed : null,
               currentAppearanceMode: isLoggedIn ? currentAppearanceMode : null,

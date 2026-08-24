@@ -9,6 +9,7 @@ import 'package:latlong2/latlong.dart' as lat_lng;
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 
 class CivicMapGlobeHandoff {
   final double latitude;
@@ -437,25 +438,19 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
   }
 
   IconData _iconForType(CivicMapItemType type) {
-    switch (type) {
-      case CivicMapItemType.poll:
-        return Icons.poll_outlined;
-      case CivicMapItemType.post:
-        return Icons.forum_outlined;
-      case CivicMapItemType.news:
-        return Icons.newspaper_outlined;
-    }
+    return SocialVoteSymbols.contentIcon(_contentKindForType(type));
   }
 
   Color _colorForType(CivicMapItemType type) {
-    switch (type) {
-      case CivicMapItemType.poll:
-        return Colors.green;
-      case CivicMapItemType.post:
-        return Colors.blue;
-      case CivicMapItemType.news:
-        return Colors.red;
-    }
+    return SocialVoteSymbols.contentColor(_contentKindForType(type));
+  }
+
+  SocialVoteContentKind _contentKindForType(CivicMapItemType type) {
+    return switch (type) {
+      CivicMapItemType.poll => SocialVoteContentKind.vote,
+      CivicMapItemType.post => SocialVoteContentKind.voce,
+      CivicMapItemType.news => SocialVoteContentKind.news,
+    };
   }
 
   double _markerDiameter({
@@ -491,13 +486,23 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     return 500;
   }
 
+  int _maxNewsMarkersForZoom(double zoom) {
+    if (zoom < 4.0) return 3;
+    if (zoom < 9.0) return 4;
+    return 6;
+  }
+
   double _clusterCellDegrees(double zoom) {
     if (zoom < 4.0) return 4.0;
     if (zoom < 6.5) return 1.5;
     if (zoom < 9.0) return 0.45;
     if (zoom < 12.0) return 0.10;
     if (zoom < 15.0) return 0.025;
-    return 0.0;
+
+    // Never fully disable clustering. City-level Voce/Vote without an exact
+    // point legitimately share the same city centre and would otherwise be
+    // painted on top of one another forever.
+    return 0.0015;
   }
 
   List<_CivicMarkerGroup> _markerGroups() {
@@ -511,7 +516,11 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
 
     final maxMarkers = _maxMarkersForZoom(_currentZoom);
     final candidates = <CivicMapItem>[
-      ...sorted.take(maxMarkers),
+      ...CivicMapMarkerSelectionRules.select(
+        items: sorted,
+        totalLimit: maxMarkers,
+        newsLimit: _maxNewsMarkersForZoom(_currentZoom),
+      ),
     ];
 
     if (selected != null && !candidates.any((item) => item.id == selected.id)) {
@@ -565,6 +574,124 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     return output;
   }
 
+  bool _clusterUsesSameCoordinates(List<CivicMapItem> items) {
+    if (items.length < 2) {
+      return false;
+    }
+
+    final first = _pointForItem(items.first);
+    for (final item in items.skip(1)) {
+      final point = _pointForItem(item);
+      if ((point.latitude - first.latitude).abs() > 0.00002 ||
+          (point.longitude - first.longitude).abs() > 0.00002) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  String _clusterPickerTitle() {
+    final languageCode = Localizations.localeOf(context).languageCode;
+    if (languageCode == 'it') {
+      return 'Contenuti in questo punto';
+    }
+    if (languageCode == 'de') {
+      return 'Inhalte an diesem Ort';
+    }
+    return 'Content at this location';
+  }
+
+  String _clusterTypeLabel(CivicMapItemType type) {
+    switch (type) {
+      case CivicMapItemType.poll:
+        return 'Vote';
+      case CivicMapItemType.post:
+        return 'Voce';
+      case CivicMapItemType.news:
+        return 'News';
+    }
+  }
+
+  Future<void> _showClusterPicker(List<CivicMapItem> items) async {
+    if (!mounted || items.isEmpty) {
+      return;
+    }
+
+    final ordered = List<CivicMapItem>.from(items)
+      ..sort((a, b) {
+        final aNews = a.type == CivicMapItemType.news ? 1 : 0;
+        final bNews = b.type == CivicMapItemType.news ? 1 : 0;
+        if (aNews != bNews) {
+          return aNews.compareTo(bNews);
+        }
+        return b.mapImportanceScore.compareTo(a.mapImportanceScore);
+      });
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 460),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                  child: Text(
+                    _clusterPickerTitle(),
+                    style:
+                        Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                  ),
+                ),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: ordered.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (itemContext, index) {
+                      final item = ordered[index];
+                      final subtitle = item.subtitle?.trim();
+
+                      return ListTile(
+                        leading: Icon(
+                          _iconForType(item.type),
+                          color: _colorForType(item.type),
+                        ),
+                        title: Text(
+                          item.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          subtitle == null || subtitle.isEmpty
+                              ? _clusterTypeLabel(item.type)
+                              : '${_clusterTypeLabel(item.type)} · $subtitle',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: const Icon(Icons.chevron_right_rounded),
+                        onTap: () {
+                          Navigator.of(sheetContext).pop();
+                          _handleMarkerTap(item);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   List<Marker> _buildMarkers() {
     final controller = widget.controller;
     if (controller == null) return const <Marker>[];
@@ -602,6 +729,14 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
             }
 
             if (isCluster) {
+              final cannotSeparate = _clusterUsesSameCoordinates(group.items) ||
+                  _currentZoom >= 17.5;
+
+              if (cannotSeparate) {
+                _showClusterPicker(group.items);
+                return;
+              }
+
               final nextZoom = math.min(18.0, _currentZoom + 2.2);
               try {
                 _mapController.move(point, nextZoom);
@@ -640,8 +775,7 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
           child: FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter:
-                  _mapReady ? _currentCenter : _initialMapCenter(),
+              initialCenter: _mapReady ? _currentCenter : _initialMapCenter(),
               initialZoom: _mapReady ? _currentZoom : _initialMapZoom(),
               backgroundColor:
                   Theme.of(context).colorScheme.surfaceContainerLowest,

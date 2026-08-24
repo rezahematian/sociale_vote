@@ -34,6 +34,15 @@ abstract class PollRepository {
     int offset = 0,
   });
 
+  /// Restituisce i Vote pubblicati ufficialmente dalle Organization indicate.
+  ///
+  /// Serve a Pulse per includere contenuti delle Organization seguite anche
+  /// quando sono fuori dal GeoScope corrente.
+  Future<List<Poll>> getPollsByPublisherOrganizations({
+    required Set<String> organizationIds,
+    int limit = 20,
+  });
+
   /// Verifica se un utente ha già creato almeno una votazione
   /// a partire da un certo istante.
   ///

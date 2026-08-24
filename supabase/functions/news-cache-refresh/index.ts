@@ -190,7 +190,9 @@ function extractBearerToken(authHeader: string | null): string | null {
 function isAuthorized(req: Request): boolean {
   const configuredSecret = Deno.env.get("NEWS_CACHE_REFRESH_SECRET")?.trim();
   if (!configuredSecret) {
-    return true;
+    // Fail closed: this function uses the service role internally. A missing
+    // deployment secret must disable refresh instead of making it public.
+    return false;
   }
 
   const bearer = extractBearerToken(req.headers.get("authorization"));

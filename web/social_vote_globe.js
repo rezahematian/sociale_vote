@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-G3K-20260818-SPACE-ORIENTATION1';
+const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-G3L-20260824-IDENTITY-RETURN1';
 
 const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
@@ -166,7 +166,70 @@ function configAutoRotateState(config) {
   return true;
 }
 
-function createMarkerTexture(color, count) {
+function drawMarkerGlyph(ctx, kind, center) {
+  ctx.save();
+  ctx.strokeStyle = '#F7FAFF';
+  ctx.fillStyle = '#F7FAFF';
+  ctx.lineWidth = 6;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  if (kind === 'vote') {
+    ctx.strokeRect(center - 14, center - 10, 28, 24);
+    ctx.beginPath();
+    ctx.moveTo(center - 10, center - 13);
+    ctx.lineTo(center - 2, center - 5);
+    ctx.lineTo(center + 12, center - 20);
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+
+  if (kind === 'voce') {
+    ctx.beginPath();
+    ctx.moveTo(center - 15, center - 12);
+    ctx.lineTo(center + 15, center - 12);
+    ctx.quadraticCurveTo(center + 19, center - 12, center + 19, center - 8);
+    ctx.lineTo(center + 19, center + 8);
+    ctx.quadraticCurveTo(center + 19, center + 12, center + 15, center + 12);
+    ctx.lineTo(center - 2, center + 12);
+    ctx.lineTo(center - 12, center + 20);
+    ctx.lineTo(center - 10, center + 12);
+    ctx.lineTo(center - 15, center + 12);
+    ctx.quadraticCurveTo(center - 19, center + 12, center - 19, center + 8);
+    ctx.lineTo(center - 8);
+    ctx.quadraticCurveTo(center - 19, center - 12, center - 15, center - 12);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+
+  if (kind === 'news') {
+    ctx.strokeRect(center - 16, center - 18, 32, 36);
+    ctx.fillRect(center - 10, center - 11, 9, 10);
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(center + 4, center - 10);
+    ctx.lineTo(center + 11, center - 10);
+    ctx.moveTo(center + 4, center - 2);
+    ctx.lineTo(center + 11, center - 2);
+    ctx.moveTo(center - 10, center + 7);
+    ctx.lineTo(center + 11, center + 7);
+    ctx.moveTo(center - 10, center + 14);
+    ctx.lineTo(center + 11, center + 14);
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+
+  ctx.beginPath();
+  ctx.arc(center, center, 9, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function createMarkerTexture(color, count, kind) {
   const size = 128;
   const canvas = document.createElement('canvas');
   canvas.width = size;
@@ -200,11 +263,6 @@ function createMarkerTexture(color, count) {
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = '#F7FAFF';
-  ctx.beginPath();
-  ctx.arc(center, center, 9, 0, Math.PI * 2);
-  ctx.fill();
-
   if (count > 1) {
     ctx.font = '700 28px system-ui, sans-serif';
     ctx.textAlign = 'center';
@@ -214,8 +272,10 @@ function createMarkerTexture(color, count) {
     ctx.lineWidth = 8;
 
     const label = count > 99 ? '99+' : String(count);
-    ctx.strokeText(label, center, 18);
-    ctx.fillText(label, center, 18);
+    ctx.strokeText(label, center, center);
+    ctx.fillText(label, center, center);
+  } else {
+    drawMarkerGlyph(ctx, kind, center);
   }
 
   const texture = new THREE.CanvasTexture(canvas);
@@ -348,6 +408,7 @@ class SocialVoteGlobeElement extends HTMLElement {
 
   _initialize() {
     this._readConfig();
+    this.removeAttribute('data-runtime-ready');
 
     try {
       this._disposed = false;
@@ -444,6 +505,7 @@ class SocialVoteGlobeElement extends HTMLElement {
       this._resizeObserver.observe(this);
 
       this._initialized = true;
+      this.setAttribute('data-runtime-ready', 'true');
       this._resize();
 
       this._loadEarthTexture();
@@ -462,6 +524,7 @@ class SocialVoteGlobeElement extends HTMLElement {
         }
       }, 0);
     } catch (error) {
+      this.removeAttribute('data-runtime-ready');
       console.error('[SocialVoteWebGlobe] init failed', error);
       dispatch(this, 'socialvote-globe-error', {
         message: String(error),
@@ -1171,6 +1234,11 @@ class SocialVoteGlobeElement extends HTMLElement {
         Math.round(Number(marker.count) || 1),
       );
 
+      const kind =
+          typeof marker.kind === 'string'
+            ? marker.kind
+            : '';
+
       const sizeFactor = clamp(
         Number(marker.size) || 1,
         0.75,
@@ -1180,6 +1248,7 @@ class SocialVoteGlobeElement extends HTMLElement {
       const texture = createMarkerTexture(
         color,
         count,
+        kind,
       );
 
       const material = new THREE.SpriteMaterial({
@@ -1729,6 +1798,7 @@ class SocialVoteGlobeElement extends HTMLElement {
     }
 
     this._disposed = true;
+    this.removeAttribute('data-runtime-ready');
 
     if (this._disposeTimer != null) {
       clearTimeout(this._disposeTimer);
@@ -1811,6 +1881,7 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._autoRotateButton?.remove?.();
     this._autoRotateButton = null;
 
+    this._renderer?.forceContextLoss?.();
     this._renderer?.dispose();
 
     this.replaceChildren();

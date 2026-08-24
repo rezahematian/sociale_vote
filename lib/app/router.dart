@@ -21,6 +21,7 @@ import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.d
 import 'package:sociale_vote/features/news/presentation/pages/news_feed_page.dart';
 import 'package:sociale_vote/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:sociale_vote/features/onboarding/presentation/first_time_onboarding_gate.dart';
+import 'package:sociale_vote/features/onboarding/presentation/how_social_vote_works_page.dart';
 import 'package:sociale_vote/features/organization/presentation/pages/live_session_participant_page.dart';
 import 'package:sociale_vote/features/organization/presentation/pages/organization_workspace_page.dart';
 import 'package:sociale_vote/features/organization/presentation/pages/verified_session_report_page.dart';
@@ -57,6 +58,7 @@ class AppRouter {
   static const String resetPassword = '/reset-password';
   static const String terms = '/terms';
   static const String privacy = '/privacy';
+  static const String howItWorks = '/how-it-works';
 
   static const String publicHost = 'socialevote.com';
 
@@ -114,6 +116,10 @@ class AppRouter {
     return 'https://$publicHost${publicCityPath(countryCode: countryCode, cityName: cityName)}';
   }
 
+  static String publicHowItWorksUrl() {
+    return 'https://$publicHost$howItWorks';
+  }
+
   static RouteSettings _pollRouteSettingsForPlatform(
     RouteSettings original,
     PollId pollId,
@@ -143,12 +149,27 @@ class AppRouter {
   }
 
   static String get initialRoute {
-    if (!kIsWeb) {
-      return home;
-    }
+    return resolveStartupRoute(
+      isWeb: kIsWeb,
+      webLocation: Uri.base.toString(),
+      nativeDefaultRouteName:
+          WidgetsBinding.instance.platformDispatcher.defaultRouteName,
+    );
+  }
 
-    final path = _normalizePath(Uri.base.path);
-    return _isSupportedWebStartupPath(path) ? path : home;
+  /// Risolve in modo deterministico il primo percorso sia Web sia nativo.
+  ///
+  /// Android consegna gli App Link a freddo tramite [nativeDefaultRouteName].
+  /// Il resolver accetta sia un path sia un URL completo e ricade sempre su
+  /// Home per destinazioni non pubbliche/non supportate.
+  static String resolveStartupRoute({
+    required bool isWeb,
+    required String webLocation,
+    required String nativeDefaultRouteName,
+  }) {
+    final rawRoute = isWeb ? webLocation : nativeDefaultRouteName;
+    final path = _normalizePath(rawRoute);
+    return _isSupportedStartupPath(path) ? path : home;
   }
 
   /// Public content links must open the requested destination immediately,
@@ -208,7 +229,8 @@ class AppRouter {
     final publicVerifiedReportId = _publicVerifiedSessionId(routeName);
     if (publicVerifiedReportId != null) {
       return MaterialPageRoute<void>(
-        builder: (_) => VerifiedSessionReportPage(reportId: publicVerifiedReportId),
+        builder: (_) =>
+            VerifiedSessionReportPage(reportId: publicVerifiedReportId),
         settings: settings,
       );
     }
@@ -395,6 +417,12 @@ class AppRouter {
           ),
           settings: settings,
         );
+
+      case howItWorks:
+        return MaterialPageRoute<void>(
+          builder: (_) => const HowSocialVoteWorksPage(),
+          settings: settings,
+        );
     }
 
     return MaterialPageRoute<void>(
@@ -422,7 +450,7 @@ class AppRouter {
     return path;
   }
 
-  static bool _isSupportedWebStartupPath(String path) {
+  static bool _isSupportedStartupPath(String path) {
     switch (path) {
       case home:
       case polls:
@@ -433,6 +461,7 @@ class AppRouter {
       case organizationWorkspace:
       case terms:
       case privacy:
+      case howItWorks:
       case login:
       case register:
         return true;

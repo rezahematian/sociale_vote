@@ -11,6 +11,7 @@ import 'package:sociale_vote/app/theme/spacing.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
@@ -623,12 +624,23 @@ class _PollDetailPageState extends State<PollDetailPage> {
         elevation: 0,
         scrolledUnderElevation: 0,
         titleSpacing: 8,
-        title: Text(
-          l10n.pollDetail_title,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.2,
-          ),
+        title: Row(
+          children: [
+            const ContentTypeMark(
+              kind: SocialVoteContentKind.vote,
+              size: 28,
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                l10n.pollDetail_title,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ),
+          ],
         ),
         actions: [
           AnimatedBuilder(

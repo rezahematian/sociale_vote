@@ -753,6 +753,18 @@
   "@authRegisterHeadline": {
     "description": "Auth UI: authRegisterHeadline"
   },
+  "authPersonalAccountOwnershipTitle": "Der Zugang gehört immer einer Person",
+  "@authPersonalAccountOwnershipTitle": {
+    "description": "Explains that authentication belongs to a person even when representing an organization"
+  },
+  "authPersonalAccountOwnershipBody": "Wenn du eine Organisation vertrittst, erstelle dein persönliches Konto. Nach der Anmeldung kannst du eine verifizierte Organisation beantragen und im Workspace verwalten.",
+  "@authPersonalAccountOwnershipBody": {
+    "description": "Explains the person-to-organization registration path"
+  },
+  "authOrganizationPathAction": "So funktioniert es für Organisationen",
+  "@authOrganizationPathAction": {
+    "description": "Opens the guide for the organization account path"
+  },
   "authDisplayNameLabel": "Öffentlicher Name",
   "@authDisplayNameLabel": {
     "description": "Auth UI: authDisplayNameLabel"

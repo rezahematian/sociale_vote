@@ -66,6 +66,7 @@ class Poll {
   final ActorType authorActorType;
   final VerificationLevel authorVerificationLevel;
   final InstitutionLevel? authorInstitutionLevel;
+  final String? authorAvatarUrl;
 
   /// Snapshot dell'identità rappresentativa usata in pubblicazione.
   ///
@@ -112,6 +113,7 @@ class Poll {
     this.authorActorType = ActorType.citizen,
     this.authorVerificationLevel = VerificationLevel.none,
     this.authorInstitutionLevel,
+    this.authorAvatarUrl,
     this.publishedAsActorType,
     this.publishedAsInstitutionLevel,
     this.publishedAsDisplayName,
@@ -220,6 +222,7 @@ class Poll {
     ActorType? authorActorType,
     VerificationLevel? authorVerificationLevel,
     InstitutionLevel? authorInstitutionLevel,
+    String? authorAvatarUrl,
     ActorType? publishedAsActorType,
     InstitutionLevel? publishedAsInstitutionLevel,
     String? publishedAsDisplayName,
@@ -248,6 +251,7 @@ class Poll {
           authorVerificationLevel ?? this.authorVerificationLevel,
       authorInstitutionLevel:
           authorInstitutionLevel ?? this.authorInstitutionLevel,
+      authorAvatarUrl: authorAvatarUrl ?? this.authorAvatarUrl,
       publishedAsActorType: publishedAsActorType ?? this.publishedAsActorType,
       publishedAsInstitutionLevel:
           publishedAsInstitutionLevel ?? this.publishedAsInstitutionLevel,

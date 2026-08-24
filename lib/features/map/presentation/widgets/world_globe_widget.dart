@@ -15,6 +15,7 @@ import 'package:sociale_vote/domain/geo/value_objects/content_location_source.da
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 
@@ -31,6 +32,14 @@ enum _HomeGestureIntent {
   undecided,
   globe,
   page,
+}
+
+SocialVoteContentKind _contentKindForMapType(CivicMapItemType type) {
+  return switch (type) {
+    CivicMapItemType.poll => SocialVoteContentKind.vote,
+    CivicMapItemType.post => SocialVoteContentKind.voce,
+    CivicMapItemType.news => SocialVoteContentKind.news,
+  };
 }
 
 class WorldGlobeMapHandoff {
@@ -146,36 +155,42 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
             Center(
               child: SizedBox.square(
                 dimension: squareSize,
-                child: WebWorldGlobeSurface(
-                  items: widget.items,
-                  homeProfile: _isHomeProfile,
-                  isAuthenticated: isAuthenticated,
-                  autoRotateEnabled: _autoRotateEnabled,
-                  onMarkerTap: _handleMarkerTap,
-                  onSurfaceTap: _handleSurfaceTap,
-                  onOrientationChanged: widget.onOrientationChanged,
-                  onDeepZoom: _isHomeProfile ? null : _handleDeepZoom,
-                  focusListenable: _focusNotifier,
-                  initialFocusLatitude: widget.initialFocusLatitude,
-                  initialFocusLongitude: widget.initialFocusLongitude,
-                  initialFocusZoom: widget.initialFocusZoom,
-                  onUnavailable: widget.onUseClassicMap,
+                child: Stack(
+                  fit: StackFit.expand,
+                  clipBehavior: Clip.none,
+                  children: [
+                    WebWorldGlobeSurface(
+                      items: widget.items,
+                      homeProfile: _isHomeProfile,
+                      isAuthenticated: isAuthenticated,
+                      autoRotateEnabled: _autoRotateEnabled,
+                      onMarkerTap: _handleMarkerTap,
+                      onSurfaceTap: _handleSurfaceTap,
+                      onOrientationChanged: widget.onOrientationChanged,
+                      onDeepZoom: _isHomeProfile ? null : _handleDeepZoom,
+                      focusListenable: _focusNotifier,
+                      initialFocusLatitude: widget.initialFocusLatitude,
+                      initialFocusLongitude: widget.initialFocusLongitude,
+                      initialFocusZoom: widget.initialFocusZoom,
+                      onUnavailable: widget.onUseClassicMap,
+                    ),
+                    if (isAuthenticated)
+                      Positioned(
+                        right: 24,
+                        bottom: 24,
+                        child: _GlobeRotationButton(
+                          isRotating: _autoRotateEnabled,
+                          onPressed: () {
+                            setState(() {
+                              _autoRotateEnabled = !_autoRotateEnabled;
+                            });
+                          },
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
-            if (isAuthenticated)
-              Positioned(
-                right: 12,
-                bottom: 12,
-                child: _GlobeRotationButton(
-                  isRotating: _autoRotateEnabled,
-                  onPressed: () {
-                    setState(() {
-                      _autoRotateEnabled = !_autoRotateEnabled;
-                    });
-                  },
-                ),
-              ),
             if (!_isHomeProfile &&
                 (_isSelectingCountry || _selectedCountryLabel != null))
               Positioned(
@@ -496,7 +511,10 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
   // G5C: once the 3D view is close enough that curvature is no longer the
   // useful part of the experience, hand the exact geographic center to the
   // existing 2D Civic Map. GeoScope is intentionally NOT changed.
-  static const double _globeToMapHandoffZoom = 1.02;
+  // Transition only when the globe is effectively at its visual maximum.
+  // The last part of the same zoom gesture is then continued by Civic Map
+  // through the animated camera handoff, avoiding an early renderer snap.
+  static const double _globeToMapHandoffZoom = 1.12;
   static const double _handoffMapZoomMin = 3.7;
   static const double _handoffMapZoomMax = 4.35;
 
@@ -540,6 +558,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
 
   final Map<String, CivicMapItem> _globeMarkerItemsByPointId =
       <String, CivicMapItem>{};
+  final Map<String, List<CivicMapItem>> _globeMarkerGroupsByPointId =
+      <String, List<CivicMapItem>>{};
   int _lastMarkerZoomBucket = -1;
   bool _globeToMapHandoffTriggered = false;
   bool _initialFocusApplied = false;
@@ -1154,9 +1174,14 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
         globeState.pointIdAtLocalPosition(rendererLocalPosition);
     if (markerPointId != null) {
       final markerItem = _globeMarkerItemsByPointId[markerPointId];
+      final markerGroup = _globeMarkerGroupsByPointId[markerPointId];
       if (markerItem != null) {
         debugPrint('[WorldGlobe] G5 marker hit: $markerPointId');
-        _handleGlobeMarkerTap(markerItem);
+        if (markerGroup != null && markerGroup.length > 1) {
+          _showGlobeMarkerGroupPicker(markerGroup);
+        } else {
+          _handleGlobeMarkerTap(markerItem);
+        }
         return;
       }
     }
@@ -1278,6 +1303,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
 
     final points = <Point>[];
     _globeMarkerItemsByPointId.clear();
+    _globeMarkerGroupsByPointId.clear();
 
     for (final group in groups) {
       final item = group.representative;
@@ -1301,9 +1327,12 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
             _isHomeProfile ? 7.6 : 6.2,
           )
           .toDouble();
+      final markerVisualSize = (_isHomeProfile ? 30.0 : 27.0) +
+          (isCluster ? math.min(5.0, group.items.length.toDouble()) : 0.0);
 
       final pointId = 'social-vote:${item.type.name}:${item.id}';
       _globeMarkerItemsByPointId[pointId] = item;
+      _globeMarkerGroupsByPointId[pointId] = group.items;
 
       points.add(
         Point(
@@ -1315,8 +1344,18 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
           label: isCluster
               ? (group.items.length > 99 ? '99+' : '${group.items.length}')
               : null,
-          isLabelVisible: isCluster,
-          labelOffset: Offset(0, _isHomeProfile ? -11 : -9),
+          labelBuilder: (_, __, ___, isVisible) {
+            if (!isVisible) return null;
+            return GlobeContentMarker(
+              kind: _contentKindForMapType(item.type),
+              size: markerVisualSize,
+              clusterCount: group.items.length,
+            );
+          },
+          isLabelVisible: true,
+          // labelBuilder is positioned above the mathematical point. A
+          // negative half-height places the visual marker exactly on it.
+          labelOffset: Offset(0, -markerVisualSize / 2),
           labelTextStyle: TextStyle(
             color: const Color(0xFFF7FAFF),
             fontSize: _isHomeProfile ? 10.5 : 9,
@@ -1334,10 +1373,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
                 ? (_isHomeProfile
                     ? const Color(0xFFC8B3FF)
                     : const Color(0xFFB89CFF))
-                : _markerColorForType(
-                    item.type,
-                    homeProfile: _isHomeProfile,
-                  ),
+                : _markerColorForType(item.type),
             altitude: _isHomeProfile ? 0.024 : 0.018,
             transitionDuration: 180,
           ),
@@ -1371,7 +1407,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
         (item) => _isValidLatLng(item.latitude, item.longitude),
       ),
       totalLimit: markerLimit,
-      newsLimit: _isHomeProfile ? 2 : 12,
+      newsLimit: _isHomeProfile ? 1 : 4,
     );
 
     final grouped = <String, List<CivicMapItem>>{};
@@ -1379,10 +1415,10 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     for (final item in candidates) {
       final latCell = (item.latitude / clusterDegrees).floor();
       final lngCell = (item.longitude / clusterDegrees).floor();
-      // Keep civic content visible when the asynchronous News load completes.
-      // A News item in the same geographic cell must not replace the existing
-      // Poll/Post marker by becoming the cluster representative.
-      final key = '${item.type.name}|$latCell|$lngCell';
+      // One geographic cell becomes one marker cluster regardless of content
+      // type. This prevents Vote, Voce and News from being painted on top of
+      // one another at the same city centre.
+      final key = '$latCell|$lngCell';
 
       grouped.putIfAbsent(key, () => <CivicMapItem>[]).add(item);
     }
@@ -1390,7 +1426,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     final output = <_WorldGlobeMarkerGroup>[];
 
     for (final groupItems in grouped.values) {
-      final representative = groupItems.first;
+      final representative = _preferredGlobeMarkerRepresentative(groupItems);
 
       var latitudeTotal = 0.0;
       var longitudeTotal = 0.0;
@@ -1418,29 +1454,131 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     return output;
   }
 
-  Color _markerColorForType(
-    CivicMapItemType type, {
-    required bool homeProfile,
-  }) {
-    if (homeProfile) {
-      switch (type) {
-        case CivicMapItemType.poll:
-          return const Color(0xFF72F2A1);
-        case CivicMapItemType.post:
-          return const Color(0xFF6CCBFF);
-        case CivicMapItemType.news:
-          return const Color(0xFFFF8A80);
-      }
-    }
+  CivicMapItem _preferredGlobeMarkerRepresentative(
+    List<CivicMapItem> items,
+  ) {
+    final ordered = List<CivicMapItem>.from(items)
+      ..sort((a, b) {
+        final aNews = a.type == CivicMapItemType.news ? 1 : 0;
+        final bNews = b.type == CivicMapItemType.news ? 1 : 0;
+        if (aNews != bNews) {
+          return aNews.compareTo(bNews);
+        }
+        return b.mapImportanceScore.compareTo(a.mapImportanceScore);
+      });
+    return ordered.first;
+  }
 
+  String _globeMarkerGroupTitle() {
+    final languageCode = Localizations.localeOf(context).languageCode;
+    if (languageCode == 'it') {
+      return 'Contenuti in questo punto';
+    }
+    return deOrEnglish(
+      context,
+      english: 'Content at this location',
+      german: 'Inhalte an diesem Ort',
+    );
+  }
+
+  String _globeMarkerTypeLabel(CivicMapItemType type) {
     switch (type) {
       case CivicMapItemType.poll:
-        return const Color(0xFF5DE08A);
+        return 'Vote';
       case CivicMapItemType.post:
-        return const Color(0xFF55B8FF);
+        return 'Voce';
       case CivicMapItemType.news:
-        return const Color(0xFFFF756B);
+        return 'News';
     }
+  }
+
+  Future<void> _showGlobeMarkerGroupPicker(
+    List<CivicMapItem> items,
+  ) async {
+    if (!mounted || items.isEmpty) {
+      return;
+    }
+
+    final ordered = List<CivicMapItem>.from(items)
+      ..sort((a, b) {
+        final aNews = a.type == CivicMapItemType.news ? 1 : 0;
+        final bNews = b.type == CivicMapItemType.news ? 1 : 0;
+        if (aNews != bNews) {
+          return aNews.compareTo(bNews);
+        }
+        return b.mapImportanceScore.compareTo(a.mapImportanceScore);
+      });
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 460),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                  child: Text(
+                    _globeMarkerGroupTitle(),
+                    style:
+                        Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                  ),
+                ),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: ordered.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (itemContext, index) {
+                      final item = ordered[index];
+                      final subtitle = item.subtitle?.trim();
+
+                      return ListTile(
+                        leading: Icon(
+                          SocialVoteSymbols.contentIcon(
+                            _contentKindForMapType(item.type),
+                          ),
+                          color: SocialVoteSymbols.contentColor(
+                            _contentKindForMapType(item.type),
+                          ),
+                        ),
+                        title: Text(
+                          item.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          subtitle == null || subtitle.isEmpty
+                              ? _globeMarkerTypeLabel(item.type)
+                              : '${_globeMarkerTypeLabel(item.type)} · $subtitle',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: const Icon(Icons.chevron_right_rounded),
+                        onTap: () {
+                          Navigator.of(sheetContext).pop();
+                          _handleGlobeMarkerTap(item);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Color _markerColorForType(CivicMapItemType type) {
+    return SocialVoteSymbols.contentColor(_contentKindForMapType(type));
   }
 
   void _handleGlobeMarkerTap(CivicMapItem item) {
@@ -1897,9 +2035,13 @@ class _GlobeRotationButton extends StatelessWidget {
             : deOrEnglish(context,
                 english: 'Start rotation', german: 'Drehung starten'));
 
-    final backgroundColor =
-        isRotating ? colors.primary : colors.surface.withValues(alpha: 0.94);
-    final foregroundColor = isRotating ? colors.onPrimary : colors.primary;
+    // Keep the control visibly an arrow in every appearance mode. A filled
+    // primary circle looked like a plain blue dot on the globe.
+    final backgroundColor = colors.surface.withValues(alpha: 0.96);
+    final foregroundColor =
+        isRotating ? colors.primary : colors.onSurfaceVariant;
+    final borderColor =
+        isRotating ? colors.primary : colors.outline.withValues(alpha: 0.55);
 
     return Semantics(
       button: true,
@@ -1922,10 +2064,8 @@ class _GlobeRotationButton extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: backgroundColor,
                 border: Border.all(
-                  width: isRotating ? 1.5 : 1.0,
-                  color: isRotating
-                      ? colors.primaryContainer
-                      : colors.outlineVariant,
+                  width: isRotating ? 2.0 : 1.2,
+                  color: borderColor,
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -1938,16 +2078,72 @@ class _GlobeRotationButton extends StatelessWidget {
                 ],
               ),
               alignment: Alignment.center,
-              child: Icon(
-                Icons.rotate_right_rounded,
-                size: 21,
-                color: foregroundColor,
+              child: CustomPaint(
+                size: const Size.square(24),
+                painter: _CircularArrowPainter(
+                  color: foregroundColor,
+                ),
               ),
             ),
           ),
         ),
       ),
     );
+  }
+}
+
+class _CircularArrowPainter extends CustomPainter {
+  final Color color;
+
+  const _CircularArrowPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.shortestSide * 0.31;
+    const startAngle = -math.pi * 0.72;
+    const sweepAngle = math.pi * 1.48;
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.25
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      sweepAngle,
+      false,
+      paint,
+    );
+
+    const endAngle = startAngle + sweepAngle;
+    final arrowPoint = center +
+        Offset(
+          math.cos(endAngle) * radius,
+          math.sin(endAngle) * radius,
+        );
+
+    canvas.save();
+    canvas.translate(arrowPoint.dx, arrowPoint.dy);
+    canvas.rotate(endAngle + math.pi / 2);
+    final arrow = Path()
+      ..moveTo(4.2, 0)
+      ..lineTo(-2.8, -3.3)
+      ..lineTo(-2.8, 3.3)
+      ..close();
+    canvas.drawPath(
+      arrow,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.fill,
+    );
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _CircularArrowPainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }
 

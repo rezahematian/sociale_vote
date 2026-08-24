@@ -7,6 +7,13 @@ abstract class OrganizationRepository {
   Future<OrganizationContext?> getMyOrganization();
   Future<OrganizationContext> bootstrapFromVerifiedProfile();
   Future<OrganizationProfile?> getPublicOrganizationByOperator(String userId);
+  Future<OrganizationFollowState> getOrganizationFollowState(
+    String organizationId,
+  );
+  Future<OrganizationFollowState> toggleOrganizationFollow(
+    String organizationId,
+  );
+  Future<Set<String>> getMyFollowedOrganizationIds();
   Future<OrganizationContext> updateOrganizationProfile({
     required OrganizationEntityType entityType,
     required String legalName,

@@ -13,6 +13,7 @@ import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart'
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/civic_map_widget.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/world_globe_widget.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 import 'package:sociale_vote/features/news/domain/news_language.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
@@ -157,35 +158,68 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                   fit: StackFit.expand,
                   clipBehavior: Clip.none,
                   children: [
-                    showWorldGlobe
-                        ? WorldGlobeWidget(
-                            key: const ValueKey<String>(
-                              'civic-map-world-3d',
-                            ),
-                            items: controller.visibleItems,
-                            onItemTap: controller.selectItem,
-                            onUseClassicMap: () => _setWorldGlobeEnabled(false),
-                            onZoomIntoClassicMap:
-                                _handleGlobeZoomIntoClassicMap,
-                            initialFocusLatitude: worldGlobeHandoff?.latitude,
-                            initialFocusLongitude: worldGlobeHandoff?.longitude,
-                            initialFocusZoom: worldGlobeHandoff?.globeZoom,
-                          )
-                        : CivicMapWidget(
-                            key: const ValueKey<String>(
-                              'civic-map-classic-2d',
-                            ),
-                            controller: controller,
-                            handoffLatitude: worldMapHandoff?.latitude,
-                            handoffLongitude: worldMapHandoff?.longitude,
-                            handoffZoom: worldMapHandoff?.mapZoom,
-                            onZoomOutToGlobe: isWorldScope
-                                ? _handleClassicMapZoomOutToGlobe
-                                : null,
-                            onBeyondActiveScopeChanged: isWorldScope
-                                ? null
-                                : _handleBeyondActiveScopeChanged,
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 520),
+                      reverseDuration: const Duration(milliseconds: 460),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      layoutBuilder: (currentChild, previousChildren) {
+                        return Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            ...previousChildren,
+                            if (currentChild != null) currentChild,
+                          ],
+                        );
+                      },
+                      transitionBuilder: (child, animation) {
+                        final curved = CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOutCubic,
+                        );
+                        return FadeTransition(
+                          opacity: curved,
+                          child: ScaleTransition(
+                            scale: Tween<double>(
+                              begin: 0.992,
+                              end: 1,
+                            ).animate(curved),
+                            child: RepaintBoundary(child: child),
                           ),
+                        );
+                      },
+                      child: showWorldGlobe
+                          ? WorldGlobeWidget(
+                              key: const ValueKey<String>(
+                                'civic-map-world-3d',
+                              ),
+                              items: controller.visibleItems,
+                              onItemTap: controller.selectItem,
+                              onUseClassicMap: () =>
+                                  _setWorldGlobeEnabled(false),
+                              onZoomIntoClassicMap:
+                                  _handleGlobeZoomIntoClassicMap,
+                              initialFocusLatitude: worldGlobeHandoff?.latitude,
+                              initialFocusLongitude:
+                                  worldGlobeHandoff?.longitude,
+                              initialFocusZoom: worldGlobeHandoff?.globeZoom,
+                            )
+                          : CivicMapWidget(
+                              key: const ValueKey<String>(
+                                'civic-map-classic-2d',
+                              ),
+                              controller: controller,
+                              handoffLatitude: worldMapHandoff?.latitude,
+                              handoffLongitude: worldMapHandoff?.longitude,
+                              handoffZoom: worldMapHandoff?.mapZoom,
+                              onZoomOutToGlobe: isWorldScope
+                                  ? _handleClassicMapZoomOutToGlobe
+                                  : null,
+                              onBeyondActiveScopeChanged: isWorldScope
+                                  ? null
+                                  : _handleBeyondActiveScopeChanged,
+                            ),
+                    ),
                     if (_showBroaderScopePrompt &&
                         activeScope != null &&
                         !isWorldScope)
@@ -1262,25 +1296,19 @@ class _MarkerPreviewCard extends StatelessWidget {
   }
 
   Color _typeColor(CivicMapItemType type) {
-    switch (type) {
-      case CivicMapItemType.poll:
-        return Colors.green;
-      case CivicMapItemType.post:
-        return Colors.blue;
-      case CivicMapItemType.news:
-        return Colors.red;
-    }
+    return SocialVoteSymbols.contentColor(_contentKindForType(type));
   }
 
   IconData _typeIcon(CivicMapItemType type) {
-    switch (type) {
-      case CivicMapItemType.poll:
-        return Icons.poll_outlined;
-      case CivicMapItemType.post:
-        return Icons.forum_outlined;
-      case CivicMapItemType.news:
-        return Icons.newspaper_outlined;
-    }
+    return SocialVoteSymbols.contentIcon(_contentKindForType(type));
+  }
+
+  SocialVoteContentKind _contentKindForType(CivicMapItemType type) {
+    return switch (type) {
+      CivicMapItemType.poll => SocialVoteContentKind.vote,
+      CivicMapItemType.post => SocialVoteContentKind.voce,
+      CivicMapItemType.news => SocialVoteContentKind.news,
+    };
   }
 
   String _typeLabel(BuildContext context, CivicMapItemType type) {
@@ -1489,25 +1517,19 @@ class _MapTypeFilters extends StatelessWidget {
   });
 
   Color _chipColor(CivicMapItemType type) {
-    switch (type) {
-      case CivicMapItemType.poll:
-        return Colors.green;
-      case CivicMapItemType.post:
-        return Colors.blue;
-      case CivicMapItemType.news:
-        return Colors.red;
-    }
+    return SocialVoteSymbols.contentColor(_contentKindForType(type));
   }
 
   IconData _chipIcon(CivicMapItemType type) {
-    switch (type) {
-      case CivicMapItemType.poll:
-        return Icons.poll_outlined;
-      case CivicMapItemType.post:
-        return Icons.forum_outlined;
-      case CivicMapItemType.news:
-        return Icons.newspaper_outlined;
-    }
+    return SocialVoteSymbols.contentIcon(_contentKindForType(type));
+  }
+
+  SocialVoteContentKind _contentKindForType(CivicMapItemType type) {
+    return switch (type) {
+      CivicMapItemType.poll => SocialVoteContentKind.vote,
+      CivicMapItemType.post => SocialVoteContentKind.voce,
+      CivicMapItemType.news => SocialVoteContentKind.news,
+    };
   }
 
   String _chipLabel(BuildContext context, CivicMapItemType type) {

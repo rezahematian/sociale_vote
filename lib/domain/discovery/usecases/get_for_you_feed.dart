@@ -12,6 +12,7 @@ import 'package:sociale_vote/domain/engagement/usecases/get_reaction_summary.dar
 import 'package:sociale_vote/domain/geo/repositories/follow_scope_repository.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/identity/repositories/account_follow_repository.dart';
+import 'package:sociale_vote/domain/organization/repositories/organization_repository.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/repositories/poll_repository.dart';
 import 'package:sociale_vote/features/home/application/feed_item.dart';
@@ -29,6 +30,7 @@ class GetForYouFeed {
   final GetReactionSummary _getReactionSummary;
   final FollowScopeRepository _followScopeRepository;
   final AccountFollowRepository _accountFollowRepository;
+  final OrganizationRepository _organizationRepository;
 
   GetForYouFeed({
     required PostRepository postRepository,
@@ -38,13 +40,15 @@ class GetForYouFeed {
     required GetReactionSummary getReactionSummary,
     required FollowScopeRepository followScopeRepository,
     required AccountFollowRepository accountFollowRepository,
+    required OrganizationRepository organizationRepository,
   })  : _postRepository = postRepository,
         _newsRepository = newsRepository,
         _pollRepository = pollRepository,
         _commentRepository = commentRepository,
         _getReactionSummary = getReactionSummary,
         _followScopeRepository = followScopeRepository,
-        _accountFollowRepository = accountFollowRepository;
+        _accountFollowRepository = accountFollowRepository,
+        _organizationRepository = organizationRepository;
 
   Future<List<FeedItem>> call({
     required String? userId,
@@ -56,6 +60,8 @@ class GetForYouFeed {
 
     final followedScopes = await _loadFollowedScopesOrEmpty(userId);
     final followedAccountIds = await _loadFollowedAccountIdsOrEmpty(userId);
+    final followedOrganizationIds =
+        await _loadFollowedOrganizationIdsOrEmpty(userId);
     final candidateScopes = _resolveCandidateScopes(
       currentScope: currentScope,
       followedScopes: followedScopes,
@@ -68,12 +74,17 @@ class GetForYouFeed {
 
     _debugPrintLine(
       'ForYou call -> scope=$currentScope limit=$limit user=${userId ?? 'guest'} '
-      'candidateScopes=${candidateScopes.length} candidateLimitPerScope=$candidateLimitPerScope',
+      'candidateScopes=${candidateScopes.length} '
+      'followedOrganizations=${followedOrganizationIds.length} '
+      'candidateLimitPerScope=$candidateLimitPerScope',
     );
 
     final candidates = await _loadCandidates(
       candidateScopes: candidateScopes,
       candidateLimitPerScope: candidateLimitPerScope,
+      followedOrganizationIds: followedOrganizationIds,
+      followedOrganizationCandidateLimit:
+          _resolveFollowedOrganizationCandidateLimit(limit),
     );
 
     if (candidates.isEmpty) {
@@ -136,6 +147,7 @@ class GetForYouFeed {
         currentScope: currentScope,
         followedScopes: followedScopes,
         followedAccountIds: followedAccountIds,
+        followedOrganizationIds: followedOrganizationIds,
         now: now,
         totalHeat: totalHeat,
         recentHeat: recentHeat,
@@ -173,6 +185,7 @@ class GetForYouFeed {
       currentScope: currentScope,
       followedScopes: followedScopes,
       followedAccountIds: followedAccountIds,
+      followedOrganizationIds: followedOrganizationIds,
       totalReactionByTargetKey: totalReactionByTargetKey,
       recentReactionByTargetKey: recentReactionByTargetKey,
       commentCountByTargetKey: commentCountByTargetKey,
@@ -211,6 +224,20 @@ class GetForYouFeed {
     }
   }
 
+  Future<Set<String>> _loadFollowedOrganizationIdsOrEmpty(
+    String? userId,
+  ) async {
+    if (userId == null || userId.trim().isEmpty) {
+      return const <String>{};
+    }
+
+    try {
+      return await _organizationRepository.getMyFollowedOrganizationIds();
+    } catch (_) {
+      return const <String>{};
+    }
+  }
+
   List<GeoScope> _resolveCandidateScopes({
     required GeoScope currentScope,
     required List<GeoScope> followedScopes,
@@ -239,6 +266,8 @@ class GetForYouFeed {
   Future<List<FeedItem>> _loadCandidates({
     required List<GeoScope> candidateScopes,
     required int candidateLimitPerScope,
+    required Set<String> followedOrganizationIds,
+    required int followedOrganizationCandidateLimit,
   }) async {
     final seenByTargetKey = <String, FeedItem>{};
 
@@ -279,6 +308,42 @@ class GetForYouFeed {
           targetRef: TargetRef.news(news.id.value),
           createdAt: news.publishedAt,
           news: news,
+        );
+        seenByTargetKey.putIfAbsent(item.targetRef.key, () => item);
+      }
+    }
+
+    if (followedOrganizationIds.isNotEmpty) {
+      final organizationBatches = await Future.wait<dynamic>([
+        _postRepository.getPostsByPublisherOrganizations(
+          organizationIds: followedOrganizationIds,
+          limit: followedOrganizationCandidateLimit,
+        ),
+        _pollRepository.getPollsByPublisherOrganizations(
+          organizationIds: followedOrganizationIds,
+          limit: followedOrganizationCandidateLimit,
+        ),
+      ]);
+
+      for (final post
+          in (organizationBatches[0] as List<dynamic>).cast<Post>()) {
+        final item = FeedItem.post(
+          id: post.id.value,
+          targetRef: TargetRef.post(post.id.value),
+          createdAt: post.createdAt,
+          post: post,
+        );
+        seenByTargetKey.putIfAbsent(item.targetRef.key, () => item);
+      }
+
+      for (final poll
+          in (organizationBatches[1] as List<dynamic>).cast<Poll>()) {
+        final item = FeedItem.poll(
+          id: poll.id.value,
+          targetRef: TargetRef.poll(poll.id.value),
+          createdAt: poll.rankingDate,
+          poll: poll,
+          voteCount: poll.voteCount,
         );
         seenByTargetKey.putIfAbsent(item.targetRef.key, () => item);
       }
@@ -349,6 +414,17 @@ class GetForYouFeed {
     return warmed;
   }
 
+  int _resolveFollowedOrganizationCandidateLimit(int requestedLimit) {
+    final warmed = requestedLimit * 2;
+    if (warmed < 12) {
+      return 12;
+    }
+    if (warmed > 24) {
+      return 24;
+    }
+    return warmed;
+  }
+
   Map<String, int> _normalizeBatchCommentCounts({
     required List<TargetRef> targets,
     required Map<String, int> rawCounts,
@@ -383,6 +459,7 @@ class GetForYouFeed {
     required GeoScope currentScope,
     required List<GeoScope> followedScopes,
     required Set<String> followedAccountIds,
+    required Set<String> followedOrganizationIds,
     required DateTime now,
     required num totalHeat,
     required num recentHeat,
@@ -404,6 +481,11 @@ class GetForYouFeed {
         authorId != null && followedAccountIds.contains(authorId);
     final followedAuthorBoost = isFollowedAuthor ? 1.35 : 0.0;
 
+    final publisherOrganizationId = _itemPublisherOrganizationId(item);
+    final isFollowedOrganization = publisherOrganizationId != null &&
+        followedOrganizationIds.contains(publisherOrganizationId);
+    final followedOrganizationBoost = isFollowedOrganization ? 2.40 : 0.0;
+
     final qualityScore = (_positiveValue(totalHeat) * 0.75) +
         (_scaleCount(commentCount) * 2.0) +
         (_scaleCount(voteCount) * 1.4) +
@@ -422,7 +504,8 @@ class GetForYouFeed {
 
     final personalSignal = (currentAffinity * 1.15) +
         (followedAffinity * 0.95) +
-        followedAuthorBoost;
+        followedAuthorBoost +
+        followedOrganizationBoost;
 
     final geoMultiplier =
         0.85 + (currentAffinity * 0.35) + (followedAffinity * 0.25);
@@ -442,6 +525,7 @@ class GetForYouFeed {
       currentAffinity: currentAffinity,
       followedAffinity: followedAffinity,
       isFollowedAuthor: isFollowedAuthor,
+      isFollowedOrganization: isFollowedOrganization,
     );
 
     final baseScore =
@@ -475,6 +559,7 @@ class GetForYouFeed {
     required double currentAffinity,
     required double followedAffinity,
     required bool isFollowedAuthor,
+    required bool isFollowedOrganization,
   }) {
     final localAffinity = math.max(currentAffinity, followedAffinity);
     final hasPositiveSignal =
@@ -485,6 +570,9 @@ class GetForYouFeed {
     }
 
     if (!hasPositiveSignal) {
+      if (isFollowedOrganization && ageHours <= 48) {
+        return 0.65;
+      }
       if (isFollowedAuthor && ageHours <= 12) {
         return 0.45;
       }
@@ -517,6 +605,16 @@ class GetForYouFeed {
 
   String? _itemAuthorId(FeedItem item) {
     final raw = item.post?.createdByUserId ?? item.poll?.createdByUserId;
+    final normalized = raw?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
+  }
+
+  String? _itemPublisherOrganizationId(FeedItem item) {
+    final raw = item.post?.publisherOrganizationId ??
+        item.poll?.publisherOrganizationId;
     final normalized = raw?.trim();
     if (normalized == null || normalized.isEmpty) {
       return null;
@@ -772,6 +870,7 @@ class GetForYouFeed {
     required GeoScope currentScope,
     required List<GeoScope> followedScopes,
     required Set<String> followedAccountIds,
+    required Set<String> followedOrganizationIds,
     required Map<String, ReactionSummary> totalReactionByTargetKey,
     required Map<String, ReactionSummary> recentReactionByTargetKey,
     required Map<String, int> commentCountByTargetKey,
@@ -798,6 +897,7 @@ class GetForYouFeed {
           currentScope: currentScope,
           followedScopes: followedScopes,
           followedAccountIds: followedAccountIds,
+          followedOrganizationIds: followedOrganizationIds,
           now: now,
           totalHeat: totalReaction?.heat.value ?? 0,
           recentHeat: recentReaction?.heat.value ?? 0,

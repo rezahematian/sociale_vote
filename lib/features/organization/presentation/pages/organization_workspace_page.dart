@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/di.dart';
@@ -8,6 +10,8 @@ import 'package:sociale_vote/features/organization/presentation/pages/create_liv
 import 'package:sociale_vote/features/organization/presentation/pages/live_session_presenter_page.dart';
 import 'package:sociale_vote/features/organization/presentation/pages/organization_profile_editor_page.dart';
 import 'package:sociale_vote/features/organization/presentation/widgets/organization_cover_header.dart';
+import 'package:sociale_vote/features/poll/presentation/pages/create_poll_page.dart';
+import 'package:sociale_vote/features/social/presentation/pages/create_post_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
@@ -71,13 +75,47 @@ class _OrganizationWorkspacePageState extends State<OrganizationWorkspacePage> {
     await _controller.refreshSessions();
   }
 
+  Future<void> _createVoice() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const CreatePostPage(
+          preferOrganizationPublisher: true,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _createVote() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const CreatePollPage(
+          preferOrganizationPublisher: true,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final data = _controller.context;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.organizationWorkspaceTitle)),
+      appBar: AppBar(
+        title: Text(l10n.organizationWorkspaceTitle),
+        actions: [
+          IconButton(
+            tooltip: Localizations.localeOf(context).languageCode == 'it'
+                ? 'Come funziona Social Vote'
+                : Localizations.localeOf(context).languageCode == 'de'
+                    ? 'So funktioniert Social Vote'
+                    : 'How Social Vote works',
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRouter.howItWorks),
+            icon: const Icon(Icons.help_outline_rounded),
+          ),
+        ],
+      ),
       body: Align(
         alignment: Alignment.topCenter,
         child: ConstrainedBox(
@@ -116,7 +154,8 @@ class _OrganizationWorkspacePageState extends State<OrganizationWorkspacePage> {
                           if (userId == null || userId.isEmpty) return;
                           Navigator.of(context).push<void>(
                             MaterialPageRoute<void>(
-                              builder: (_) => PublicUserProfilePage(userId: userId),
+                              builder: (_) =>
+                                  PublicUserProfilePage(userId: userId),
                             ),
                           );
                         },
@@ -130,6 +169,15 @@ class _OrganizationWorkspacePageState extends State<OrganizationWorkspacePage> {
                           label: Text(l10n.organizationEditProfile),
                         ),
                     ],
+                  ),
+                  const SizedBox(height: 18),
+                  _BusinessWorkspaceExperience(
+                    organizationName: data.organization.publicName,
+                    canPublish: data.canManageProfile,
+                    canCreateSession: data.canOperateSessions,
+                    onCreateVoice: _createVoice,
+                    onCreateVote: _createVote,
+                    onCreateSession: _createSession,
                   ),
                   const SizedBox(height: 18),
                   _OrganizationDashboard(sessions: _controller.sessions),
@@ -148,17 +196,12 @@ class _OrganizationWorkspacePageState extends State<OrganizationWorkspacePage> {
                       Expanded(
                         child: Text(
                           l10n.organizationSessionsTitle,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w900,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w900,
+                                  ),
                         ),
                       ),
-                      if (data.canOperateSessions)
-                        FilledButton.icon(
-                          onPressed: _createSession,
-                          icon: const Icon(Icons.add_rounded),
-                          label: Text(l10n.organizationCreateSession),
-                        ),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -215,6 +258,397 @@ class _OrganizationWorkspacePageState extends State<OrganizationWorkspacePage> {
   }
 }
 
+class _BusinessWorkspaceExperience extends StatelessWidget {
+  final String organizationName;
+  final bool canPublish;
+  final bool canCreateSession;
+  final VoidCallback onCreateVoice;
+  final VoidCallback onCreateVote;
+  final VoidCallback onCreateSession;
+
+  const _BusinessWorkspaceExperience({
+    required this.organizationName,
+    required this.canPublish,
+    required this.canCreateSession,
+    required this.onCreateVoice,
+    required this.onCreateVote,
+    required this.onCreateSession,
+  });
+
+  String _text(
+    BuildContext context, {
+    required String it,
+    required String en,
+    required String de,
+  }) {
+    final language = Localizations.localeOf(context).languageCode.toLowerCase();
+    if (language == 'it') return it;
+    if (language == 'de') return de;
+    return en;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colors.primaryContainer.withValues(alpha: 0.72),
+            colors.surfaceContainerHighest.withValues(alpha: 0.72),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.22)),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Icon(Icons.auto_awesome_rounded, color: colors.primary),
+              Text(
+                'Social Vote Business',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              Chip(
+                avatar: const Icon(Icons.verified_rounded, size: 17),
+                label: Text(organizationName),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _text(
+              context,
+              it: 'Dalla domanda al risultato verificabile: scegli lo strumento giusto per coinvolgere la tua comunità.',
+              en: 'From a question to a verifiable result: choose the right tool to involve your community.',
+              de: 'Von der Frage zum überprüfbaren Ergebnis: Wähle das passende Werkzeug für deine Community.',
+            ),
+            style: theme.textTheme.bodyLarge,
+          ),
+          const SizedBox(height: 18),
+          const _BusinessFlowStrip(),
+          const SizedBox(height: 20),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = constraints.maxWidth >= 900
+                  ? 3
+                  : constraints.maxWidth >= 580
+                      ? 2
+                      : 1;
+              const spacing = 12.0;
+              final width =
+                  (constraints.maxWidth - ((columns - 1) * spacing)) / columns;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: [
+                  SizedBox(
+                    width: width,
+                    child: _BusinessActionCard(
+                      icon: Icons.forum_outlined,
+                      title: 'Voce',
+                      body: _text(
+                        context,
+                        it: 'Pubblica un aggiornamento, una proposta o una domanda come Organization.',
+                        en: 'Publish an update, proposal or question as the Organization.',
+                        de: 'Veröffentliche ein Update, einen Vorschlag oder eine Frage als Organisation.',
+                      ),
+                      actionLabel: _text(
+                        context,
+                        it: 'Crea Voce',
+                        en: 'Create Voce',
+                        de: 'Voce erstellen',
+                      ),
+                      enabled: canPublish,
+                      onPressed: onCreateVoice,
+                    ),
+                  ),
+                  SizedBox(
+                    width: width,
+                    child: _BusinessActionCard(
+                      icon: Icons.how_to_vote_outlined,
+                      title: 'Vote',
+                      body: _text(
+                        context,
+                        it: 'Raccogli opinioni dalla community in modo asincrono e pubblico.',
+                        en: 'Collect community opinions asynchronously and publicly.',
+                        de: 'Sammle Meinungen der Community asynchron und öffentlich.',
+                      ),
+                      actionLabel: _text(
+                        context,
+                        it: 'Crea Vote',
+                        en: 'Create Vote',
+                        de: 'Vote erstellen',
+                      ),
+                      enabled: canPublish,
+                      onPressed: onCreateVote,
+                    ),
+                  ),
+                  SizedBox(
+                    width: width,
+                    child: _BusinessActionCard(
+                      icon: Icons.groups_2_outlined,
+                      title: 'Session',
+                      body: _text(
+                        context,
+                        it: 'Conduci una consultazione live con QR, Stage e Verified Result.',
+                        en: 'Run a live consultation with QR, Stage and Verified Result.',
+                        de: 'Führe eine Live-Konsultation mit QR, Stage und Verified Result durch.',
+                      ),
+                      actionLabel: _text(
+                        context,
+                        it: 'Crea Session',
+                        en: 'Create Session',
+                        de: 'Session erstellen',
+                      ),
+                      enabled: canCreateSession,
+                      onPressed: onCreateSession,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          if (!canPublish || !canCreateSession) ...[
+            const SizedBox(height: 12),
+            Text(
+              _text(
+                context,
+                it: 'Alcune azioni dipendono dal ruolo attivo nell’Organization.',
+                en: 'Some actions depend on your active role in the Organization.',
+                de: 'Einige Aktionen hängen von deiner aktiven Rolle in der Organisation ab.',
+              ),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _BusinessActionCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String body;
+  final String actionLabel;
+  final bool enabled;
+  final VoidCallback onPressed;
+
+  const _BusinessActionCard({
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.actionLabel,
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      color: colors.surface.withValues(alpha: 0.88),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              backgroundColor: colors.primaryContainer,
+              foregroundColor: colors.onPrimaryContainer,
+              child: Icon(icon),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(body),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: enabled ? onPressed : null,
+                icon: const Icon(Icons.arrow_forward_rounded),
+                label: Text(actionLabel),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BusinessFlowStrip extends StatefulWidget {
+  const _BusinessFlowStrip();
+
+  @override
+  State<_BusinessFlowStrip> createState() => _BusinessFlowStripState();
+}
+
+class _BusinessFlowStripState extends State<_BusinessFlowStrip> {
+  Timer? _timer;
+  int _activeIndex = 0;
+
+  static const _icons = <IconData>[
+    Icons.apartment_rounded,
+    Icons.help_outline_rounded,
+    Icons.qr_code_2_rounded,
+    Icons.touch_app_rounded,
+    Icons.bar_chart_rounded,
+    Icons.verified_rounded,
+  ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _timer?.cancel();
+    final disableAnimations =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (!disableAnimations) {
+      _timer = Timer.periodic(const Duration(milliseconds: 1500), (_) {
+        if (!mounted) return;
+        setState(() {
+          _activeIndex = (_activeIndex + 1) % _icons.length;
+        });
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String _label(BuildContext context, int index) {
+    final language = Localizations.localeOf(context).languageCode.toLowerCase();
+    const it = [
+      'Organization',
+      'Domanda',
+      'QR',
+      'Partecipa',
+      'Risultati',
+      'Verified'
+    ];
+    const en = [
+      'Organization',
+      'Question',
+      'QR',
+      'Participate',
+      'Results',
+      'Verified'
+    ];
+    const de = [
+      'Organisation',
+      'Frage',
+      'QR',
+      'Teilnahme',
+      'Ergebnisse',
+      'Verified'
+    ];
+    if (language == 'it') return it[index];
+    if (language == 'de') return de[index];
+    return en[index];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 650;
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: List.generate(_icons.length, (index) {
+              final active = index == _activeIndex;
+              return Row(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeOut,
+                    width: compact ? 88 : 112,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: active
+                          ? colors.primaryContainer
+                          : colors.surface.withValues(alpha: 0.78),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: active
+                            ? colors.primary.withValues(alpha: 0.65)
+                            : colors.outlineVariant,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          _icons[index],
+                          color:
+                              active ? colors.primary : colors.onSurfaceVariant,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          _label(context, index),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelMedium
+                              ?.copyWith(
+                                fontWeight:
+                                    active ? FontWeight.w800 : FontWeight.w600,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (index != _icons.length - 1)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      child: Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 18,
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                ],
+              );
+            }),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _OrganizationDashboard extends StatelessWidget {
   final List<LiveSessionSummary> sessions;
 
@@ -224,9 +658,14 @@ class _OrganizationDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final live = sessions.where((session) => session.status == 'open').length;
-    final reports = sessions.where((session) => session.reportId != null).length;
+    final reports =
+        sessions.where((session) => session.reportId != null).length;
     final items = [
-      (Icons.dashboard_outlined, '${sessions.length}', l10n.organizationTotalSessions),
+      (
+        Icons.dashboard_outlined,
+        '${sessions.length}',
+        l10n.organizationTotalSessions
+      ),
       (Icons.sensors_rounded, '$live', l10n.organizationActiveSessions),
       (Icons.verified_outlined, '$reports', l10n.organizationVerifiedReports),
     ];
@@ -244,7 +683,8 @@ class _OrganizationDashboard extends StatelessWidget {
         LayoutBuilder(
           builder: (context, constraints) {
             final columns = constraints.maxWidth >= 720 ? 3 : 1;
-            final width = (constraints.maxWidth - ((columns - 1) * 10)) / columns;
+            final width =
+                (constraints.maxWidth - ((columns - 1) * 10)) / columns;
             return Wrap(
               spacing: 10,
               runSpacing: 10,
@@ -342,9 +782,15 @@ class _SessionTile extends StatelessWidget {
                       runSpacing: 6,
                       children: [
                         Chip(label: Text(status)),
-                        Chip(label: Text('${l10n.sessionJoinCode}: ${session.joinCode}')),
-                        Chip(label: Text('${session.participantCount} · ${l10n.sessionJoinedParticipants}')),
-                        Chip(label: Text('${session.responseCount} · ${l10n.sessionBallotsRecorded}')),
+                        Chip(
+                            label: Text(
+                                '${l10n.sessionJoinCode}: ${session.joinCode}')),
+                        Chip(
+                            label: Text(
+                                '${session.participantCount} · ${l10n.sessionJoinedParticipants}')),
+                        Chip(
+                            label: Text(
+                                '${session.responseCount} · ${l10n.sessionBallotsRecorded}')),
                       ],
                     ),
                   ],
