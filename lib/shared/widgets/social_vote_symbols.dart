@@ -90,22 +90,30 @@ abstract final class SocialVoteSymbols {
           ? 'Organizzazione'
           : language == 'de'
               ? 'Organisation'
-              : 'Organization',
+              : language == 'fa'
+                  ? 'سازمان'
+                  : 'Organization',
       ActorType.institution => language == 'it'
           ? 'Istituzione pubblica'
           : language == 'de'
               ? 'Öffentliche Institution'
-              : 'Public institution',
+              : language == 'fa'
+                  ? 'نهاد عمومی'
+                  : 'Public institution',
       ActorType.publicOfficial => language == 'it'
           ? 'Funzionario pubblico'
           : language == 'de'
               ? 'Amtsperson'
-              : 'Public official',
+              : language == 'fa'
+                  ? 'مقام عمومی'
+                  : 'Public official',
       ActorType.citizen => language == 'it'
           ? 'Cittadino'
           : language == 'de'
               ? 'Bürgerkonto'
-              : 'Citizen',
+              : language == 'fa'
+                  ? 'شهروند'
+                  : 'Citizen',
     };
   }
 
@@ -132,6 +140,7 @@ abstract final class SocialVoteSymbols {
     final language = Localizations.localeOf(context).languageCode.toLowerCase();
     if (language == 'it') return 'Apri profilo';
     if (language == 'de') return 'Profil öffnen';
+    if (language == 'fa') return 'باز کردن پروفایل';
     return 'Open profile';
   }
 }
@@ -285,6 +294,8 @@ class PublisherAvatar extends StatelessWidget {
       actorType != ActorType.citizen ||
       verificationLevel != VerificationLevel.none;
 
+  bool get _usesOrganizationLogo => actorType != ActorType.citizen;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -296,14 +307,35 @@ class PublisherAvatar extends StatelessWidget {
         ? '?'
         : displayName.trim().characters.first.toUpperCase();
 
+    final image = canShowImage
+        ? Image.network(
+            normalizedImageUrl,
+            width: size,
+            height: size,
+            fit: _usesOrganizationLogo ? BoxFit.contain : BoxFit.cover,
+            errorBuilder: (_, __, ___) => _fallback(
+              context,
+              color: color,
+              initial: initial,
+            ),
+          )
+        : _fallback(
+            context,
+            color: color,
+            initial: initial,
+          );
+
     final avatar = Container(
       width: size,
       height: size,
+      padding: _usesOrganizationLogo ? const EdgeInsets.all(2.5) : null,
       decoration: BoxDecoration(
         color: color.withValues(
           alpha: theme.brightness == Brightness.dark ? 0.20 : 0.11,
         ),
-        shape: BoxShape.circle,
+        shape: _usesOrganizationLogo ? BoxShape.rectangle : BoxShape.circle,
+        borderRadius:
+            _usesOrganizationLogo ? BorderRadius.circular(size * 0.26) : null,
         border: Border.all(
           color: color.withValues(alpha: _isVerified ? 0.88 : 0.52),
           width: _isVerified ? 2 : 1.25,
@@ -320,30 +352,14 @@ class PublisherAvatar extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       alignment: Alignment.center,
-      child: canShowImage
-          ? Image.network(
-              normalizedImageUrl,
-              width: size,
-              height: size,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _fallback(
-                context,
-                color: color,
-                initial: initial,
-              ),
-            )
-          : _fallback(
-              context,
-              color: color,
-              initial: initial,
-            ),
+      child: image,
     );
 
     final sealPalette = _sealPalette(context);
     final sealSize = (size * 0.52).clamp(14.0, 19.0).toDouble();
     final child = SizedBox(
-      width: size + (_isVerified ? 3 : 0),
-      height: size + (_isVerified ? 3 : 0),
+      width: size + 3,
+      height: size + 3,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -530,8 +546,6 @@ class PublisherSignature extends StatelessWidget {
     this.maxWidth = 300,
   });
 
-  bool get _isCompact => density == PublisherSignatureDensity.compact;
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -546,65 +560,42 @@ class PublisherSignature extends StatelessWidget {
         : (normalizedUsername.startsWith('@')
             ? normalizedUsername
             : '@$normalizedUsername');
-    final avatarSize = _isCompact ? 24.0 : 27.0;
+    // `density` resta nell'API per compatibilità, ma la firma pubblica deve
+    // avere una sola metrica in ogni superficie dell'app.
+    const avatarSize = 32.0;
     final foreground = theme.colorScheme.onSurface.withValues(
       alpha: isDark ? 0.92 : 0.86,
     );
     final content = ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
-      child: Ink(
-        decoration: BoxDecoration(
-          color: accent.withValues(alpha: isDark ? 0.10 : 0.055),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: accent.withValues(alpha: isDark ? 0.38 : 0.24),
-          ),
-        ),
-        child: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(
-            6,
-            4,
-            onTap == null ? 10 : 7,
-            4,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              PublisherAvatar(
-                displayName: normalizedName,
-                imageUrl: imageUrl,
-                actorType: actorType,
-                verificationLevel: verificationLevel,
-                institutionLevel: institutionLevel,
-                size: avatarSize,
-                showTooltip: false,
-              ),
-              const SizedBox(width: 7),
-              Flexible(
-                child: Text(
-                  normalizedName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: (_isCompact
-                          ? theme.textTheme.labelMedium
-                          : theme.textTheme.labelLarge)
-                      ?.copyWith(
-                    color: foreground,
-                    fontWeight: FontWeight.w700,
-                    height: 1.1,
-                  ),
+      child: Padding(
+        padding: const EdgeInsets.all(2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PublisherAvatar(
+              displayName: normalizedName,
+              imageUrl: imageUrl,
+              actorType: actorType,
+              verificationLevel: verificationLevel,
+              institutionLevel: institutionLevel,
+              size: avatarSize,
+              showTooltip: false,
+            ),
+            const SizedBox(width: 9),
+            Flexible(
+              child: Text(
+                normalizedName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: foreground,
+                  fontWeight: FontWeight.w700,
+                  height: 1.1,
                 ),
               ),
-              if (onTap != null) ...[
-                SizedBox(width: _isCompact ? 3 : 6),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  size: _isCompact ? 15 : 18,
-                  color: accent.withValues(alpha: 0.84),
-                ),
-              ],
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -626,9 +617,12 @@ class PublisherSignature extends StatelessWidget {
     if (onTap != null) {
       result = Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(10),
         child: InkWell(
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(10),
+          hoverColor: accent.withValues(alpha: isDark ? 0.10 : 0.06),
+          focusColor: accent.withValues(alpha: isDark ? 0.12 : 0.08),
+          splashColor: accent.withValues(alpha: 0.14),
           mouseCursor: SystemMouseCursors.click,
           excludeFromSemantics: true,
           onTap: onTap,

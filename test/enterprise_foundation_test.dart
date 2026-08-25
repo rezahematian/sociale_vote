@@ -66,10 +66,11 @@ void main() {
     const supported = <Locale>[
       Locale('de'),
       Locale('en'),
+      Locale('fa'),
       Locale('it'),
     ];
 
-    test('preserves IT EN and DE', () {
+    test('preserves IT EN DE and FA', () {
       expect(
         AppLocaleController.resolveSystemLocale(
           const <Locale>[Locale('it', 'IT')],
@@ -90,6 +91,13 @@ void main() {
           supported,
         ).languageCode,
         'en',
+      );
+      expect(
+        AppLocaleController.resolveSystemLocale(
+          const <Locale>[Locale('fa', 'IR')],
+          supported,
+        ).languageCode,
+        'fa',
       );
     });
 

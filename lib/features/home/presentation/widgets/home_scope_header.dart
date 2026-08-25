@@ -71,7 +71,7 @@ class HomeScopeHeader extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Align(
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,

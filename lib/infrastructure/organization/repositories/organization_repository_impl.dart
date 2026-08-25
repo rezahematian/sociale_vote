@@ -46,6 +46,61 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
   }
 
   @override
+  Future<OrganizationProfile?> getPublicOrganizationById(
+    String organizationId,
+  ) async {
+    final normalized = organizationId.trim();
+    if (normalized.isEmpty) return null;
+
+    try {
+      final raw = await _client.rpc(
+        'organization_public_get_by_id',
+        params: <String, dynamic>{'p_organization_id': normalized},
+      );
+      if (raw != null) {
+        final json = _map(raw);
+        if (json.isNotEmpty) {
+          return OrganizationProfile.fromJson(json);
+        }
+      }
+    } catch (_) {
+      // Compatibilità con backend non ancora migrato: l'RPC identità pubblica
+      // esistente permette comunque di aprire la Organization corretta.
+    }
+
+    final raw = await _client.rpc(
+      'organization_get_public_identities',
+      params: <String, dynamic>{
+        'p_organization_ids': <String>[normalized],
+      },
+    );
+    final rows = raw is List ? raw : const <dynamic>[];
+    for (final item in rows) {
+      final row = _map(item);
+      final rowId = row['organization_id']?.toString().trim();
+      if (rowId != normalized) continue;
+
+      return OrganizationProfile.fromJson(<String, dynamic>{
+        'id': rowId,
+        'legal_name': row['public_name'],
+        'public_name': row['public_name'],
+        'slug': row['slug'],
+        'entity_type': row['entity_type'],
+        'country_code': row['country_code'],
+        'city': row['city'],
+        'website_url': row['website_url'],
+        'description': row['description'],
+        'logo_url': row['logo_url'],
+        'cover_url': row['cover_url'],
+        'verification_status': row['verification_status'] ?? 'verified',
+        'verified_at': row['verified_at'],
+      });
+    }
+
+    return null;
+  }
+
+  @override
   Future<OrganizationFollowState> getOrganizationFollowState(
     String organizationId,
   ) async {

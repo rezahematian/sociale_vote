@@ -297,7 +297,7 @@ class _WebPulseRow extends StatelessWidget {
                 Expanded(
                   child: loading
                       ? const Align(
-                          alignment: Alignment.centerLeft,
+                          alignment: AlignmentDirectional.centerStart,
                           child: SizedBox.square(
                             dimension: 18,
                             child: CircularProgressIndicator(

@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:sociale_vote/core/supabase/supabase_client.dart';
 import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
+import 'package:sociale_vote/domain/content/news/entities/world_brief.dart';
 import 'package:sociale_vote/domain/content/news/repositories/news_repository.dart';
+import 'package:sociale_vote/domain/content/news/repositories/world_brief_repository.dart';
 import 'package:sociale_vote/domain/geo/repositories/geocoding_repository.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
@@ -90,6 +92,7 @@ class NewsRepositoryImpl implements NewsRepository {
   final NewsAggregator _aggregator;
   final NewsMapper _mapper;
   final GeocodingRepository _geocodingRepository;
+  final WorldBriefRepository _worldBriefRepository;
   late final ContentVisibilityFilter _contentVisibilityFilter =
       ContentVisibilityFilter(AppSupabase.client);
 
@@ -104,6 +107,7 @@ class NewsRepositoryImpl implements NewsRepository {
     this._aggregator,
     this._mapper,
     this._geocodingRepository,
+    this._worldBriefRepository,
   );
 
   Future<int> refreshNewsFeedCache({
@@ -153,14 +157,23 @@ class NewsRepositoryImpl implements NewsRepository {
       allowFallbackCache: allowFallbackCache,
     );
 
-    if (cache == null || cache.items.isEmpty) {
-      return const <NewsItem>[];
-    }
+    final providerNews = cache == null || cache.items.isEmpty
+        ? const <NewsItem>[]
+        : await _mapFilterAndPaginate(
+            jsonList: cache.items,
+            countryCode: cache.countryCode ?? candidate.countryCode,
+            cityId: cache.cityId ?? candidate.cityId,
+          );
+    final worldBriefs = await _loadVisibleWorldBriefs(
+      languageCode: candidate.language,
+      countryCode: candidate.countryCode,
+      cityId: candidate.cityId,
+      limit: limit == null ? 50 : (limit * 2).clamp(10, 100).toInt(),
+    );
 
-    return _mapFilterAndPaginate(
-      jsonList: cache.items,
-      countryCode: cache.countryCode ?? candidate.countryCode,
-      cityId: cache.cityId ?? candidate.cityId,
+    return _mergeAndPaginate(
+      worldBriefs,
+      providerNews,
       limit: limit,
       offset: offset,
     );
@@ -187,32 +200,40 @@ class NewsRepositoryImpl implements NewsRepository {
       allowProviderRefresh: false,
     );
 
-    if (cache == null || cache.items.isEmpty) {
-      return const <NewsItem>[];
-    }
-
-    final availableJson = await _filterAvailableNewsJson(
-      cache.items,
-      countryCode: cache.countryCode ?? candidate.countryCode,
-      cityId: cache.cityId ?? candidate.cityId,
-    );
-    final available = _mapJsonToDomainList(
-      availableJson,
-      countryCode: cache.countryCode ?? candidate.countryCode,
-      cityId: cache.cityId ?? candidate.cityId,
-      sortByPublishedAt: true,
+    final providerNews = cache == null || cache.items.isEmpty
+        ? const <NewsItem>[]
+        : await _mapFilterAndPaginate(
+            jsonList: cache.items,
+            countryCode: cache.countryCode ?? candidate.countryCode,
+            cityId: cache.cityId ?? candidate.cityId,
+          );
+    final worldBriefs = await _loadVisibleWorldBriefs(
+      languageCode: candidate.language,
+      countryCode: candidate.countryCode,
+      cityId: candidate.cityId,
+      limit: limit == null ? 30 : (limit * 2).clamp(10, 100).toInt(),
     );
 
-    if (limit == null || limit <= 0 || available.length <= limit) {
-      return available;
-    }
-
-    return List<NewsItem>.unmodifiable(available.take(limit).toList());
+    return _mergeAndPaginate(
+      worldBriefs,
+      providerNews,
+      limit: limit,
+      offset: 0,
+    );
   }
 
   @override
   Future<NewsItem> getNewsDetail(EntityId id) async {
     final requestedId = id.value.trim();
+    final worldBrief =
+        await _worldBriefRepository.getPublishedById(requestedId);
+    if (worldBrief != null) {
+      if (!await _isNewsAvailable(requestedId)) {
+        throw StateError('News content has been permanently removed.');
+      }
+      return _worldBriefToNewsItem(worldBrief);
+    }
+
     if (!await _isNewsAvailable(requestedId)) {
       throw StateError('News content has been permanently removed.');
     }
@@ -223,6 +244,128 @@ class NewsRepositoryImpl implements NewsRepository {
     }
 
     throw StateError('News content is not available in the shared cache.');
+  }
+
+  Future<List<NewsItem>> _loadVisibleWorldBriefs({
+    required String? languageCode,
+    required String? countryCode,
+    required String? cityId,
+    required int limit,
+  }) async {
+    final briefs = await _worldBriefRepository.listPublished(
+      languageCode: languageCode,
+      countryCode: countryCode,
+      cityId: cityId,
+      limit: limit,
+    );
+    if (briefs.isEmpty) return const <NewsItem>[];
+
+    final items = briefs.map(_worldBriefToNewsItem).toList(growable: false);
+    final visibleIds = await _contentVisibilityFilter.filterVisibleIds(
+      targetType: 'news',
+      targetIds: items.map((item) => item.id.value),
+    );
+    return items
+        .where((item) => visibleIds.contains(item.id.value))
+        .toList(growable: false);
+  }
+
+  List<NewsItem> _mergeAndPaginate(
+    List<NewsItem> worldBriefs,
+    List<NewsItem> providerNews, {
+    required int? limit,
+    required int? offset,
+  }) {
+    final byId = <String, NewsItem>{};
+    for (final item in <NewsItem>[...worldBriefs, ...providerNews]) {
+      byId.putIfAbsent(item.id.value, () => item);
+    }
+
+    final merged = byId.values.toList(growable: false)
+      ..sort((a, b) {
+        if (a.editorialFeatured != b.editorialFeatured) {
+          return b.editorialFeatured ? 1 : -1;
+        }
+        final priority = b.editorialPriority.compareTo(a.editorialPriority);
+        if (priority != 0) return priority;
+        return b.publishedAt.compareTo(a.publishedAt);
+      });
+
+    final safeOffset = (offset ?? 0).clamp(0, merged.length).toInt();
+    final safeLimit = limit == null || limit <= 0 ? merged.length : limit;
+    final end =
+        (safeOffset + safeLimit).clamp(safeOffset, merged.length).toInt();
+    return List<NewsItem>.unmodifiable(merged.sublist(safeOffset, end));
+  }
+
+  NewsItem _worldBriefToNewsItem(WorldBrief brief) {
+    final labels = switch (brief.languageCode) {
+      'it' => const <String>[
+          'Che cosa è successo',
+          'Perché conta',
+          'Che cosa non è ancora certo',
+          'Fonti',
+        ],
+      'de' => const <String>[
+          'Was passiert ist',
+          'Warum es wichtig ist',
+          'Was noch unklar ist',
+          'Quellen',
+        ],
+      'fa' => const <String>[
+          'چه اتفاقی افتاده است',
+          'چرا اهمیت دارد',
+          'چه چیزی هنوز قطعی نیست',
+          'منابع',
+        ],
+      _ => const <String>[
+          'What happened',
+          'Why it matters',
+          'What is still uncertain',
+          'Sources',
+        ],
+    };
+    final sections = <String>[
+      '${labels[0]}\n${brief.whatHappened}',
+      '${labels[1]}\n${brief.whyItMatters}',
+      if (brief.whatIsUncertain?.trim().isNotEmpty == true)
+        '${labels[2]}\n${brief.whatIsUncertain!.trim()}',
+      '${labels[3]}\n${brief.sourceUrls.join('\n')}',
+    ];
+    final hasPoint = brief.latitude != null &&
+        brief.longitude != null &&
+        brief.latitude!.isFinite &&
+        brief.longitude!.isFinite;
+
+    return NewsItem(
+      id: EntityId(brief.id),
+      title: brief.title,
+      content: sections.join('\n\n'),
+      summary: brief.whatHappened,
+      countryCode: brief.countryCode,
+      cityId: brief.cityId,
+      contentLocation: hasPoint
+          ? ContentLocation(
+              source: ContentLocationSource.manual,
+              countryCode: brief.countryCode,
+              cityId: brief.cityId,
+              cityName: brief.locationLabel,
+              latitude: brief.latitude!,
+              longitude: brief.longitude!,
+            )
+          : null,
+      authorId: 'Social Vote',
+      sourceId: 'social-vote-editorial',
+      sourceName: 'Social Vote',
+      sourceUrl: 'https://socialevote.com',
+      language: brief.languageCode,
+      publishedAt: brief.publishedAt ?? brief.updatedAt,
+      isBreaking: brief.breaking,
+      isSocialVoteBrief: true,
+      editorialMapVisible: brief.mapVisible,
+      editorialFeatured: brief.featured,
+      editorialPriority: brief.priority,
+    );
   }
 
   Future<_CachedNewsFeed?> _resolveBestAvailableCache(

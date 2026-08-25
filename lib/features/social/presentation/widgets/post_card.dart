@@ -253,7 +253,10 @@ class PostCard extends StatelessWidget {
       onOpenProfile = () {
         Navigator.of(context).push(
           MaterialPageRoute<void>(
-            builder: (_) => PublicUserProfilePage(userId: authorId),
+            builder: (_) => PublicUserProfilePage(
+              userId: authorId,
+              organizationId: post.publisherOrganizationId,
+            ),
           ),
         );
       };

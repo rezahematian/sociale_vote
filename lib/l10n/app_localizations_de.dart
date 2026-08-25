@@ -24,15 +24,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createPollBasicInfoTitle => 'Grundinformationen';
 
   @override
-  String get createPollBasicInfoSubtitle =>
-      'Lege die wichtigsten Angaben für diesen Vote fest.';
+  String get createPollBasicInfoSubtitle => 'Lege die wichtigsten Angaben für diesen Vote fest.';
 
   @override
   String get createPollTitleFieldLabel => 'Titel *';
 
   @override
-  String get createPollTitleFieldHelper =>
-      'Eine klare, prägnante Frage oder Aussage.';
+  String get createPollTitleFieldHelper => 'Eine klare, prägnante Frage oder Aussage.';
 
   @override
   String get createPollDescriptionFieldLabel => 'Beschreibung (optional)';
@@ -41,8 +39,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createPollVotingModelTitle => 'So wird abgestimmt';
 
   @override
-  String get createPollVotingModelSubtitle =>
-      'Wähle, ob jede Person eine oder mehrere Antworten auswählen kann.';
+  String get createPollVotingModelSubtitle => 'Wähle, ob jede Person eine oder mehrere Antworten auswählen kann.';
 
   @override
   String get createPollTypeFieldLabel => 'Vote-Typ';
@@ -56,15 +53,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createPollAllowVoteChangeTitle => 'Änderung der Stimme erlauben';
 
   @override
-  String get createPollAllowVoteChangeSubtitle =>
-      'Bis der Vote geschlossen wird.';
+  String get createPollAllowVoteChangeSubtitle => 'Bis der Vote geschlossen wird.';
 
   @override
   String get createPollOptionsTitle => 'Antworten';
 
   @override
-  String get createPollOptionsSubtitle =>
-      'Gib mindestens zwei Antworten zur Auswahl ein. Mit * markierte Felder sind Pflichtfelder.';
+  String get createPollOptionsSubtitle => 'Gib mindestens zwei Antworten zur Auswahl ein. Mit * markierte Felder sind Pflichtfelder.';
 
   @override
   String createPollOptionLabel(int index, Object requiredMarker) {
@@ -81,55 +76,46 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createPollParticipationPrivacyTitle => 'Teilnahme & Datenschutz';
 
   @override
-  String get createPollParticipationPrivacySubtitle =>
-      'Lege fest, wer abstimmen darf und wie vertraulich die Stimmen sind.';
+  String get createPollParticipationPrivacySubtitle => 'Lege fest, wer abstimmen darf und wie vertraulich die Stimmen sind.';
 
   @override
   String get createPollWhoCanVoteLabel => 'Wer darf abstimmen?';
 
   @override
-  String get createPollParticipationEveryoneSubtitle =>
-      'Jeder registrierte Nutzer kann teilnehmen.';
+  String get createPollParticipationEveryoneSubtitle => 'Jeder registrierte Nutzer kann teilnehmen.';
 
   @override
-  String get createPollParticipationGeoScopeSubtitle =>
-      'Beschränke diesen Vote auf Personen aus einem bestimmten Land.';
+  String get createPollParticipationGeoScopeSubtitle => 'Beschränke diesen Vote auf Personen aus einem bestimmten Land.';
 
   @override
   String get createPollCountryFieldLabel => 'Land für diesen Vote';
 
   @override
-  String get createPollCountryFieldHelper =>
-      'Dieses Land legt fest, wer an diesem Vote teilnehmen darf (zukünftige Backend-Integration).';
+  String get createPollCountryFieldHelper => 'Dieses Land legt fest, wer an diesem Vote teilnehmen darf (zukünftige Backend-Integration).';
 
   @override
   String get createPollVoteAnonymityTitle => 'Anonymität der Stimme';
 
   @override
-  String get createPollAnonymityAnonymousSubtitle =>
-      'Empfohlene Standardeinstellung für Bürgerbeteiligungsplattformen.';
+  String get createPollAnonymityAnonymousSubtitle => 'Empfohlene Standardeinstellung für Bürgerbeteiligungsplattformen.';
 
   @override
-  String get createPollAnonymityPublicSubtitle =>
-      'Mit Vorsicht verwenden: Stimmen können Identitäten zugeordnet werden (zukünftige Funktion).';
+  String get createPollAnonymityPublicSubtitle => 'Mit Vorsicht verwenden: Stimmen können Identitäten zugeordnet werden (zukünftige Funktion).';
 
   @override
   String get createPollResultsValidityTitle => 'Ergebnisse & Gültigkeit';
 
   @override
-  String get createPollResultsValiditySubtitle =>
-      'Lege fest, wann Ergebnisse sichtbar sind, und definiere bei Bedarf ein Mindestquorum.';
+  String get createPollResultsValiditySubtitle => 'Lege fest, wann Ergebnisse sichtbar sind, und definiere bei Bedarf ein Mindestquorum.';
 
   @override
-  String get createPollResultsVisibilityFieldLabel =>
-      'Sichtbarkeit der Ergebnisse';
+  String get createPollResultsVisibilityFieldLabel => 'Sichtbarkeit der Ergebnisse';
 
   @override
   String get createPollQuorumTitle => 'Quorum (optional)';
 
   @override
-  String get createPollQuorumSubtitle =>
-      'Wenn gesetzt, gilt der Vote nur als gültig, wenn mindestens diese Anzahl an Stimmen erreicht wird. Leer lassen, wenn kein Quorum erforderlich ist.';
+  String get createPollQuorumSubtitle => 'Wenn gesetzt, gilt der Vote nur als gültig, wenn mindestens diese Anzahl an Stimmen erreicht wird. Leer lassen, wenn kein Quorum erforderlich ist.';
 
   @override
   String get createPollQuorumMinVotesFieldLabel => 'Mindestanzahl an Stimmen';
@@ -138,8 +124,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createPollTimingTitle => 'Zeitraum';
 
   @override
-  String get createPollTimingSubtitle =>
-      'Lege fest, wann der Vote zur Abstimmung geöffnet sein soll.';
+  String get createPollTimingSubtitle => 'Lege fest, wann der Vote zur Abstimmung geöffnet sein soll.';
 
   @override
   String get createPollStartDateLabel => 'Startdatum';
@@ -151,8 +136,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createPollChangeDateButtonLabel => 'Ändern';
 
   @override
-  String get createPollTimingStatusInfo =>
-      'Der anfängliche Status (offen/geplant/geschlossen) wird anhand dieser Daten automatisch bestimmt.';
+  String get createPollTimingStatusInfo => 'Der anfängliche Status (offen/geplant/geschlossen) wird anhand dieser Daten automatisch bestimmt.';
 
   @override
   String get createPollSuccessMessage => 'Vote erfolgreich erstellt';
@@ -182,31 +166,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createPollPollTypeScoreLabel => 'Punkte / Bewertung';
 
   @override
-  String get createPollParticipationScopeEveryoneLabel =>
-      'Alle können abstimmen';
+  String get createPollParticipationScopeEveryoneLabel => 'Alle können abstimmen';
 
   @override
-  String get createPollParticipationScopeGeoScopeOnlyLabel =>
-      'Nur Nutzer in einem bestimmten Land';
+  String get createPollParticipationScopeGeoScopeOnlyLabel => 'Nur Nutzer in einem bestimmten Land';
 
   @override
   String get createPollAnonymityLevelAnonymousLabel => 'Stimmen sind anonym';
 
   @override
-  String get createPollAnonymityLevelPublicLabel =>
-      'Stimmen sind öffentlich (erweiterte / eingeschränkte Nutzung)';
+  String get createPollAnonymityLevelPublicLabel => 'Stimmen sind öffentlich (erweiterte / eingeschränkte Nutzung)';
 
   @override
-  String get createPollResultsVisibilityAlwaysLabel =>
-      'Immer sichtbar (solange der Vote offen ist)';
+  String get createPollResultsVisibilityAlwaysLabel => 'Immer sichtbar (solange der Vote offen ist)';
 
   @override
-  String get createPollResultsVisibilityAfterVoteLabel =>
-      'Erst nach der Abstimmung sichtbar';
+  String get createPollResultsVisibilityAfterVoteLabel => 'Erst nach der Abstimmung sichtbar';
 
   @override
-  String get createPollResultsVisibilityAfterCloseLabel =>
-      'Erst sichtbar, wenn der Vote geschlossen ist';
+  String get createPollResultsVisibilityAfterCloseLabel => 'Erst sichtbar, wenn der Vote geschlossen ist';
 
   @override
   String get homeLoginButton => 'Anmelden';
@@ -221,8 +199,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homeLogoutButton => 'Abmelden';
 
   @override
-  String get homeLogoutMessage =>
-      'Abmeldung abgeschlossen. Du verwendest die App jetzt als Gast (nur Lesen).';
+  String get homeLogoutMessage => 'Abmeldung abgeschlossen. Du verwendest die App jetzt als Gast (nur Lesen).';
 
   @override
   String get homeSearchHint => 'Städte, Länder, Konten und Inhalte suchen...';
@@ -267,8 +244,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get searchPollStatusClosed => 'Geschlossen';
 
   @override
-  String get searchIdleMessage =>
-      'Gib einen Begriff ein, um die Suche zu starten.';
+  String get searchIdleMessage => 'Gib einen Begriff ein, um die Suche zu starten.';
 
   @override
   String get searchErrorMessage => 'Bei der Suche ist ein Fehler aufgetreten.';
@@ -303,20 +279,16 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get homeUserStatusGuest =>
-      'Gastmodus: Du kannst nur lesen. Melde dich an oder registriere dich, um abzustimmen, zu kommentieren und zu reagieren.';
+  String get homeUserStatusGuest => 'Gastmodus: Du kannst nur lesen. Melde dich an oder registriere dich, um abzustimmen, zu kommentieren und zu reagieren.';
 
   @override
-  String get homeScopeLabelWorld =>
-      'Welt – Globale Abstimmungen und Nachrichten';
+  String get homeScopeLabelWorld => 'Welt – Globale Abstimmungen und Nachrichten';
 
   @override
-  String get homeScopeLabelCountry =>
-      'Land – Nationale Abstimmungen und Nachrichten';
+  String get homeScopeLabelCountry => 'Land – Nationale Abstimmungen und Nachrichten';
 
   @override
-  String get homeScopeLabelCity =>
-      'Stadt – Lokale Abstimmungen und Nachrichten';
+  String get homeScopeLabelCity => 'Stadt – Lokale Abstimmungen und Nachrichten';
 
   @override
   String get homeScopeShortWorld => 'Welt';
@@ -355,12 +327,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homeTrendingTitle => 'Pulse Now';
 
   @override
-  String get homeTrendingError =>
-      'Pulse Now konnte für diesen Bereich nicht geladen werden.';
+  String get homeTrendingError => 'Pulse Now konnte für diesen Bereich nicht geladen werden.';
 
   @override
-  String get homeTrendingEmpty =>
-      'Für diesen Bereich gibt es derzeit keine Inhalte in Pulse Now.';
+  String get homeTrendingEmpty => 'Für diesen Bereich gibt es derzeit keine Inhalte in Pulse Now.';
 
   @override
   String homeForYouTitle(Object scope) {
@@ -368,12 +338,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get homeForYouError =>
-      'Pulse konnte für diesen Bereich nicht geladen werden.';
+  String get homeForYouError => 'Pulse konnte für diesen Bereich nicht geladen werden.';
 
   @override
-  String get homeForYouEmpty =>
-      'Für diesen Bereich gibt es derzeit keine empfohlenen Inhalte in Pulse.';
+  String get homeForYouEmpty => 'Für diesen Bereich gibt es derzeit keine empfohlenen Inhalte in Pulse.';
 
   @override
   String homePollsTitle(Object scope) {
@@ -384,8 +352,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homePollsEmptyTitle => 'Kein Vote für diesen Bereich';
 
   @override
-  String get homePollsEmptySubtitle =>
-      'Für diesen Bereich ist kein Vote verfügbar.';
+  String get homePollsEmptySubtitle => 'Für diesen Bereich ist kein Vote verfügbar.';
 
   @override
   String get homePollsViewAllButton => 'Vote anzeigen';
@@ -399,15 +366,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homeNewsErrorTitle => 'Nachrichten konnten nicht geladen werden';
 
   @override
-  String get homeNewsErrorSubtitle =>
-      'Beim Laden der Nachrichten für diesen Bereich ist ein Problem aufgetreten.';
+  String get homeNewsErrorSubtitle => 'Beim Laden der Nachrichten für diesen Bereich ist ein Problem aufgetreten.';
 
   @override
   String get homeNewsEmptyTitle => 'Keine Nachrichten für diesen Bereich';
 
   @override
-  String get homeNewsEmptySubtitle =>
-      'Für diesen Bereich gibt es derzeit keine Nachrichten.';
+  String get homeNewsEmptySubtitle => 'Für diesen Bereich gibt es derzeit keine Nachrichten.';
 
   @override
   String get homeNewsViewAllButton => 'Alle Nachrichten anzeigen';
@@ -424,15 +389,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homeSocialErrorTitle => 'Voce konnte nicht geladen werden';
 
   @override
-  String get homeSocialErrorSubtitle =>
-      'Beim Laden von Voce für diesen Bereich ist ein Problem aufgetreten.';
+  String get homeSocialErrorSubtitle => 'Beim Laden von Voce für diesen Bereich ist ein Problem aufgetreten.';
 
   @override
   String get homeSocialEmptyTitle => 'Keine Voce für diesen Bereich';
 
   @override
-  String get homeSocialEmptySubtitle =>
-      'Für diesen Bereich gibt es derzeit keine Voce-Inhalte.';
+  String get homeSocialEmptySubtitle => 'Für diesen Bereich gibt es derzeit keine Voce-Inhalte.';
 
   @override
   String get homeSocialViewFeedButton => 'Alle Voce anzeigen';
@@ -453,8 +416,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollDetail_chipPublic => 'Öffentliche Stimme';
 
   @override
-  String get pollDetail_chipRestrictedGeo =>
-      'Auf geografischen Bereich beschränkt';
+  String get pollDetail_chipRestrictedGeo => 'Auf geografischen Bereich beschränkt';
 
   @override
   String pollDetail_quorumReached(int currentVotes, int requiredVotes) {
@@ -473,12 +435,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollDetail_statusClosedMessage => 'Dieser Vote ist geschlossen.';
 
   @override
-  String get pollDetail_statusScheduledMessage =>
-      'Dieser Vote ist noch nicht geöffnet.';
+  String get pollDetail_statusScheduledMessage => 'Dieser Vote ist noch nicht geöffnet.';
 
   @override
-  String get pollDetail_statusNotAvailableMessage =>
-      'Abstimmen ist nicht verfügbar.';
+  String get pollDetail_statusNotAvailableMessage => 'Abstimmen ist nicht verfügbar.';
 
   @override
   String get pollDetail_voteSubmitted => 'Stimme erfolgreich abgegeben!';
@@ -498,12 +458,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollDetail_noResults => 'Noch keine Ergebnisse verfügbar.';
 
   @override
-  String get pollDetail_resultsAfterVote =>
-      'Die Ergebnisse werden sichtbar, nachdem du abgestimmt hast.';
+  String get pollDetail_resultsAfterVote => 'Die Ergebnisse werden sichtbar, nachdem du abgestimmt hast.';
 
   @override
-  String get pollDetail_resultsWhenClosed =>
-      'Die Ergebnisse werden sichtbar, wenn der Vote geschlossen ist.';
+  String get pollDetail_resultsWhenClosed => 'Die Ergebnisse werden sichtbar, wenn der Vote geschlossen ist.';
 
   @override
   String get pollType_yesNo => 'Ja / Nein';
@@ -563,16 +521,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollList_scopeCityFallback => 'Stadt';
 
   @override
-  String get pollList_scopeDescriptionGlobal =>
-      'Globale Vote werden angezeigt.';
+  String get pollList_scopeDescriptionGlobal => 'Globale Vote werden angezeigt.';
 
   @override
-  String get pollList_scopeDescriptionCountry =>
-      'Vote für dieses Land werden angezeigt.';
+  String get pollList_scopeDescriptionCountry => 'Vote für dieses Land werden angezeigt.';
 
   @override
-  String get pollList_scopeDescriptionCity =>
-      'Vote für diese Stadt werden angezeigt.';
+  String get pollList_scopeDescriptionCity => 'Vote für diese Stadt werden angezeigt.';
 
   @override
   String get pollList_filterStatus_all => 'Alle';
@@ -611,8 +566,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollList_paginationHint => 'Scrollen, um weitere Vote zu laden…';
 
   @override
-  String get pollList_emptyMessage =>
-      'Keine Vote für diesen Filter und Bereich gefunden.';
+  String get pollList_emptyMessage => 'Keine Vote für diesen Filter und Bereich gefunden.';
 
   @override
   String get pollType_ranked => 'Rangwahl';
@@ -621,16 +575,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollType_score => 'Punktewahl';
 
   @override
-  String get pollVisibility_whileOpen =>
-      'Ergebnisse sichtbar, solange der Vote offen ist';
+  String get pollVisibility_whileOpen => 'Ergebnisse sichtbar, solange der Vote offen ist';
 
   @override
-  String get pollVisibility_afterVote =>
-      'Ergebnisse nach der Abstimmung sichtbar';
+  String get pollVisibility_afterVote => 'Ergebnisse nach der Abstimmung sichtbar';
 
   @override
-  String get pollVisibility_afterClose =>
-      'Ergebnisse nach dem Schließen sichtbar';
+  String get pollVisibility_afterClose => 'Ergebnisse nach dem Schließen sichtbar';
 
   @override
   String get pollCard_countryRestricted => 'Auf Land beschränkt';
@@ -693,12 +644,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get voteError_noSelection => 'Bitte wähle mindestens eine Option aus.';
 
   @override
-  String get voteError_unauthorized =>
-      'Du darfst an diesem Vote nicht abstimmen.';
+  String get voteError_unauthorized => 'Du darfst an diesem Vote nicht abstimmen.';
 
   @override
-  String get voteError_generic =>
-      'Die Stimme konnte nicht abgegeben werden. Bitte versuche es erneut.';
+  String get voteError_generic => 'Die Stimme konnte nicht abgegeben werden. Bitte versuche es erneut.';
 
   @override
   String get commentSection_title => 'Kommentare';
@@ -713,12 +662,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get commentSection_sortNewest => 'Neueste';
 
   @override
-  String get commentSection_errorGeneric =>
-      'Beim Laden der Kommentare ist ein Fehler aufgetreten.';
+  String get commentSection_errorGeneric => 'Beim Laden der Kommentare ist ein Fehler aufgetreten.';
 
   @override
-  String get commentSection_empty =>
-      'Noch keine Kommentare. Schreibe den ersten Kommentar.';
+  String get commentSection_empty => 'Noch keine Kommentare. Schreibe den ersten Kommentar.';
 
   @override
   String get commentSection_loadMore => 'Weitere Kommentare laden';
@@ -759,12 +706,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get newsDetail_addToFavoritesTooltip => 'Speichern';
 
   @override
-  String get newsDetail_bodyFallback =>
-      'Für diese Nachricht ist kein zusätzlicher Text verfügbar.';
+  String get newsDetail_bodyFallback => 'Für diese Nachricht ist kein zusätzlicher Text verfügbar.';
 
   @override
-  String get newsDetail_footerMoreContext =>
-      'Weitere Hintergründe und Quellen folgen in Kürze.';
+  String get newsDetail_footerMoreContext => 'Weitere Hintergründe und Quellen folgen in Kürze.';
 
   @override
   String get newsFeed_title => 'Nachrichten';
@@ -784,24 +729,19 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get newsFeed_scopeGlobalDescription =>
-      'Globale Nachrichten werden angezeigt.';
+  String get newsFeed_scopeGlobalDescription => 'Globale Nachrichten werden angezeigt.';
 
   @override
-  String get newsFeed_scopeCountryDescription =>
-      'Nachrichten für dieses Land werden angezeigt.';
+  String get newsFeed_scopeCountryDescription => 'Nachrichten für dieses Land werden angezeigt.';
 
   @override
-  String get newsFeed_scopeCityDescription =>
-      'Nachrichten für diese Stadt werden angezeigt.';
+  String get newsFeed_scopeCityDescription => 'Nachrichten für diese Stadt werden angezeigt.';
 
   @override
-  String get newsFeed_emptyTitle =>
-      'Für diesen Bereich sind keine Nachrichten verfügbar.';
+  String get newsFeed_emptyTitle => 'Für diesen Bereich sind keine Nachrichten verfügbar.';
 
   @override
-  String get newsFeed_emptySubtitle =>
-      'Zum Aktualisieren ziehen oder später erneut versuchen.';
+  String get newsFeed_emptySubtitle => 'Zum Aktualisieren ziehen oder später erneut versuchen.';
 
   @override
   String newsFeed_itemsFound(int count) {
@@ -809,15 +749,13 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get newsFeed_loadingMoreHint =>
-      'Scrollen, um weitere Nachrichten zu laden…';
+  String get newsFeed_loadingMoreHint => 'Scrollen, um weitere Nachrichten zu laden…';
 
   @override
   String get newsFeed_errorTitle => 'Nachrichten konnten nicht geladen werden';
 
   @override
-  String get newsFeed_errorGeneric =>
-      'Beim Laden der Nachrichten ist ein unerwarteter Fehler aufgetreten.';
+  String get newsFeed_errorGeneric => 'Beim Laden der Nachrichten ist ein unerwarteter Fehler aufgetreten.';
 
   @override
   String get newsFeed_retryButton => 'Erneut versuchen';
@@ -826,24 +764,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get newsCard_headerTitle => 'Nachrichten';
 
   @override
-  String get newsFeed_errorUnauthorized =>
-      'Die Nachrichtenkonfiguration ist ungültig (API-Schlüssel).';
+  String get newsFeed_errorUnauthorized => 'Die Nachrichtenkonfiguration ist ungültig (API-Schlüssel).';
 
   @override
-  String get newsFeed_errorRateLimited =>
-      'Zu viele Anfragen. Bitte versuche es in Kürze erneut.';
+  String get newsFeed_errorRateLimited => 'Zu viele Anfragen. Bitte versuche es in Kürze erneut.';
 
   @override
-  String get newsFeed_errorServerUnavailable =>
-      'Der Nachrichtendienst ist vorübergehend nicht verfügbar. Bitte versuche es später erneut.';
+  String get newsFeed_errorServerUnavailable => 'Der Nachrichtendienst ist vorübergehend nicht verfügbar. Bitte versuche es später erneut.';
 
   @override
-  String get newsFeed_errorTimeout =>
-      'Die Anfrage dauert zu lange. Bitte versuche es erneut.';
+  String get newsFeed_errorTimeout => 'Die Anfrage dauert zu lange. Bitte versuche es erneut.';
 
   @override
-  String get newsFeed_errorNetwork =>
-      'Keine Verbindung. Prüfe deine Internetverbindung und versuche es erneut.';
+  String get newsFeed_errorNetwork => 'Keine Verbindung. Prüfe deine Internetverbindung und versuche es erneut.';
 
   @override
   String get newsFeed_moreTooltip => 'Mehr';
@@ -885,8 +818,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get newsFeed_languageFa => 'FA';
 
   @override
-  String get newsFeed_languageLimitedHint =>
-      'In dieser Sprache sind nur wenige Quellen verfügbar. Versuche AUTO.';
+  String get newsFeed_languageLimitedHint => 'In dieser Sprache sind nur wenige Quellen verfügbar. Versuche AUTO.';
 
   @override
   String get newsTopic_all => 'Alle';
@@ -919,8 +851,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get newsDetail_openSource => 'Originalartikel öffnen';
 
   @override
-  String get newsDetail_openSourceUnavailable =>
-      'Der Originalartikel konnte nicht geöffnet werden';
+  String get newsDetail_openSourceUnavailable => 'Der Originalartikel konnte nicht geöffnet werden';
 
   @override
   String get socialFeedTitle => 'Voce';
@@ -958,12 +889,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homeScopeCityRequiredError => 'Gib eine Stadt ein.';
 
   @override
-  String get homeScopeCityNotFoundError =>
-      'Die Stadt wurde im ausgewählten Land nicht gefunden.';
+  String get homeScopeCityNotFoundError => 'Die Stadt wurde im ausgewählten Land nicht gefunden.';
 
   @override
-  String get homeScopeCityVerificationError =>
-      'Die Stadt konnte nicht überprüft werden. Bitte versuche es erneut.';
+  String get homeScopeCityVerificationError => 'Die Stadt konnte nicht überprüft werden. Bitte versuche es erneut.';
 
   @override
   String get homeScopeVerifyingButton => 'Wird geprüft...';
@@ -1005,8 +934,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profileAppLanguageSystem => 'System';
 
   @override
-  String get profileAppLanguageSystemDescription =>
-      'Verwendet die Sprache deines Geräts';
+  String get profileAppLanguageSystemDescription => 'Verwendet die Sprache deines Geräts';
 
   @override
   String get profileAppLanguageItalian => 'Italienisch';
@@ -1036,19 +964,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get contentReport_dialogTitle => 'Inhalt melden';
 
   @override
-  String get contentReport_authenticationRequired =>
-      'Du musst angemeldet sein, um Inhalte zu melden';
+  String get contentReport_authenticationRequired => 'Du musst angemeldet sein, um Inhalte zu melden';
 
   @override
   String get contentReport_submittedMessage => 'Meldung gesendet';
 
   @override
-  String get contentReport_alreadySubmittedMessage =>
-      'Du hast diesen Inhalt bereits gemeldet';
+  String get contentReport_alreadySubmittedMessage => 'Du hast diesen Inhalt bereits gemeldet';
 
   @override
-  String get contentReport_submitError =>
-      'Die Meldung konnte nicht gesendet werden';
+  String get contentReport_submitError => 'Die Meldung konnte nicht gesendet werden';
 
   @override
   String get contentReport_sendButton => 'Senden';
@@ -1075,12 +1000,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get postDetail_title => 'Voce-Details';
 
   @override
-  String get postDetail_favoriteUpdateError =>
-      'Gespeicherte Inhalte konnten nicht aktualisiert werden';
+  String get postDetail_favoriteUpdateError => 'Gespeicherte Inhalte konnten nicht aktualisiert werden';
 
   @override
-  String get postDetail_shareMessage =>
-      'Öffne Social Vote, um diese Voce anzusehen.';
+  String get postDetail_shareMessage => 'Öffne Social Vote, um diese Voce anzusehen.';
 
   @override
   String get postDetail_shareError => 'Die Voce konnte nicht geteilt werden';
@@ -1095,22 +1018,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get postDetail_editContentFieldLabel => 'Inhalt';
 
   @override
-  String get postDetail_editRequiredError =>
-      'Titel und Inhalt sind erforderlich.';
+  String get postDetail_editRequiredError => 'Titel und Inhalt sind erforderlich.';
 
   @override
   String get postDetail_updateSuccess => 'Voce aktualisiert';
 
   @override
-  String get postDetail_updateError =>
-      'Die Voce konnte nicht aktualisiert werden';
+  String get postDetail_updateError => 'Die Voce konnte nicht aktualisiert werden';
 
   @override
   String get postDetail_deleteDialogTitle => 'Diese Voce löschen?';
 
   @override
-  String get postDetail_deleteDialogMessage =>
-      'Diese Aktion kann nicht rückgängig gemacht werden.';
+  String get postDetail_deleteDialogMessage => 'Diese Aktion kann nicht rückgängig gemacht werden.';
 
   @override
   String get postDetail_deleteError => 'Die Voce konnte nicht gelöscht werden';
@@ -1122,8 +1042,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get postDetail_deleteMenuItem => 'Voce löschen';
 
   @override
-  String get postDetail_loadError =>
-      'Beim Laden der Voce ist ein Fehler aufgetreten.';
+  String get postDetail_loadError => 'Beim Laden der Voce ist ein Fehler aufgetreten.';
 
   @override
   String get postDetail_notFound => 'Voce nicht gefunden.';
@@ -1147,16 +1066,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get postDetail_removeFromFavoritesTooltip => 'Nicht mehr speichern';
 
   @override
-  String get newsDetail_favoriteUpdateError =>
-      'Gespeicherte Inhalte konnten nicht aktualisiert werden';
+  String get newsDetail_favoriteUpdateError => 'Gespeicherte Inhalte konnten nicht aktualisiert werden';
 
   @override
-  String get newsDetail_shareMessage =>
-      'Öffne Social Vote, um diese Nachricht anzusehen.';
+  String get newsDetail_shareMessage => 'Öffne Social Vote, um diese Nachricht anzusehen.';
 
   @override
-  String get newsDetail_shareError =>
-      'Die Nachricht konnte nicht geteilt werden';
+  String get newsDetail_shareError => 'Die Nachricht konnte nicht geteilt werden';
 
   @override
   String get newsDetail_shareTooltip => 'Teilen';
@@ -1195,16 +1111,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get authRegisterHeadline => 'Konto erstellen';
 
   @override
-  String get authPersonalAccountOwnershipTitle =>
-      'Der Zugang gehört immer einer Person';
+  String get authPersonalAccountOwnershipTitle => 'Der Zugang gehört immer einer Person';
 
   @override
-  String get authPersonalAccountOwnershipBody =>
-      'Wenn du eine Organisation vertrittst, erstelle dein persönliches Konto. Nach der Anmeldung kannst du eine verifizierte Organisation beantragen und im Workspace verwalten.';
+  String get authPersonalAccountOwnershipBody => 'Wenn du eine Organisation vertrittst, erstelle dein persönliches Konto. Nach der Anmeldung kannst du eine verifizierte Organisation beantragen und im Workspace verwalten.';
 
   @override
-  String get authOrganizationPathAction =>
-      'So funktioniert es für Organisationen';
+  String get authOrganizationPathAction => 'So funktioniert es für Organisationen';
 
   @override
   String get authDisplayNameLabel => 'Öffentlicher Name';
@@ -1222,8 +1135,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get authConfirmPasswordLabel => 'Passwort bestätigen';
 
   @override
-  String get authLegalConsentPrefix =>
-      'Ich bestätige, dass ich mindestens 18 Jahre alt bin. Ich akzeptiere die Nutzungsbedingungen und bestätige, dass ich die Datenschutzerklärung gelesen habe.';
+  String get authLegalConsentPrefix => 'Ich bestätige, dass ich mindestens 18 Jahre alt bin. Ich akzeptiere die Nutzungsbedingungen und bestätige, dass ich die Datenschutzerklärung gelesen habe.';
 
   @override
   String get authTermsOfServiceAction => 'die Nutzungsbedingungen';
@@ -1244,15 +1156,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get authForgotPasswordDialogTitle => 'Passwort zurücksetzen';
 
   @override
-  String get authForgotPasswordDialogBody =>
-      'Gib die E-Mail-Adresse ein, die mit deinem Konto verknüpft ist. Wir senden dir einen Link, mit dem du ein neues Passwort wählen kannst.';
+  String get authForgotPasswordDialogBody => 'Gib die E-Mail-Adresse ein, die mit deinem Konto verknüpft ist. Wir senden dir einen Link, mit dem du ein neues Passwort wählen kannst.';
 
   @override
   String get authForgotPasswordSendButton => 'Link senden';
 
   @override
-  String get authPasswordResetEmailSent =>
-      'E-Mail zum Zurücksetzen des Passworts gesendet. Prüfe deinen Posteingang.';
+  String get authPasswordResetEmailSent => 'E-Mail zum Zurücksetzen des Passworts gesendet. Prüfe deinen Posteingang.';
 
   @override
   String get authResetPasswordPageTitle => 'Passwort zurücksetzen';
@@ -1276,12 +1186,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get authEmailConfirmationTitle => 'Prüfe deine E-Mails';
 
   @override
-  String get authEmailConfirmationIntro =>
-      'Wir haben einen Bestätigungslink gesendet an:';
+  String get authEmailConfirmationIntro => 'Wir haben einen Bestätigungslink gesendet an:';
 
   @override
-  String get authEmailConfirmationInstructions =>
-      'Öffne den Link in der Nachricht, um deine Adresse zu bestätigen. Kehre danach zur App zurück und melde dich an.';
+  String get authEmailConfirmationInstructions => 'Öffne den Link in der Nachricht, um deine Adresse zu bestätigen. Kehre danach zur App zurück und melde dich an.';
 
   @override
   String get authBackToLoginButton => 'Zurück zur Anmeldung';
@@ -1299,27 +1207,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get authPasswordRequiredError => 'Gib dein Passwort ein.';
 
   @override
-  String get authPasswordTooShortError =>
-      'Das Passwort muss mindestens 8 Zeichen lang sein.';
+  String get authPasswordTooShortError => 'Das Passwort muss mindestens 8 Zeichen lang sein.';
 
   @override
-  String get authDisplayNameRequiredError =>
-      'Gib deinen öffentlichen Namen ein.';
+  String get authDisplayNameRequiredError => 'Gib deinen öffentlichen Namen ein.';
 
   @override
-  String get authDisplayNameTooShortError =>
-      'Der öffentliche Name ist zu kurz.';
+  String get authDisplayNameTooShortError => 'Der öffentliche Name ist zu kurz.';
 
   @override
   String get authUsernameRequiredError => 'Gib einen Benutzernamen ein.';
 
   @override
-  String get authUsernameInvalidError =>
-      'Verwende 3 bis 20 Zeichen: Kleinbuchstaben, Zahlen und Unterstriche.';
+  String get authUsernameInvalidError => 'Verwende 3 bis 20 Zeichen: Kleinbuchstaben, Zahlen und Unterstriche.';
 
   @override
-  String get authUsernameAlreadyTakenError =>
-      'Der Benutzername wird bereits verwendet.';
+  String get authUsernameAlreadyTakenError => 'Der Benutzername wird bereits verwendet.';
 
   @override
   String get authCountryRequiredError => 'Wähle dein Wohnsitzland aus.';
@@ -1331,52 +1234,40 @@ class AppLocalizationsDe extends AppLocalizations {
   String get authConfirmPasswordRequiredError => 'Bestätige dein Passwort.';
 
   @override
-  String get authPasswordsDoNotMatchError =>
-      'Die Passwörter stimmen nicht überein.';
+  String get authPasswordsDoNotMatchError => 'Die Passwörter stimmen nicht überein.';
 
   @override
-  String get authLegalConsentRequiredError =>
-      'Um dich zu registrieren, bestätige, dass du mindestens 18 Jahre alt bist, akzeptiere die Nutzungsbedingungen und bestätige, dass du die Datenschutzerklärung gelesen hast.';
+  String get authLegalConsentRequiredError => 'Um dich zu registrieren, bestätige, dass du mindestens 18 Jahre alt bist, akzeptiere die Nutzungsbedingungen und bestätige, dass du die Datenschutzerklärung gelesen hast.';
 
   @override
-  String get authForgotPasswordEmailRequiredError =>
-      'Gib die E-Mail-Adresse des Kontos ein, das du wiederherstellen möchtest.';
+  String get authForgotPasswordEmailRequiredError => 'Gib die E-Mail-Adresse des Kontos ein, das du wiederherstellen möchtest.';
 
   @override
-  String get authInvalidCredentialsError =>
-      'E-Mail-Adresse oder Passwort ist ungültig.';
+  String get authInvalidCredentialsError => 'E-Mail-Adresse oder Passwort ist ungültig.';
 
   @override
-  String get authEmailAlreadyRegisteredError =>
-      'Diese E-Mail-Adresse ist bereits registriert.';
+  String get authEmailAlreadyRegisteredError => 'Diese E-Mail-Adresse ist bereits registriert.';
 
   @override
-  String get authEmailNotConfirmedError =>
-      'E-Mail-Adresse nicht bestätigt. Prüfe deinen Posteingang, bevor du dich anmeldest.';
+  String get authEmailNotConfirmedError => 'E-Mail-Adresse nicht bestätigt. Prüfe deinen Posteingang, bevor du dich anmeldest.';
 
   @override
-  String get authTooManyAttemptsError =>
-      'Zu viele Versuche. Warte einige Minuten und versuche es erneut.';
+  String get authTooManyAttemptsError => 'Zu viele Versuche. Warte einige Minuten und versuche es erneut.';
 
   @override
-  String get authNetworkError =>
-      'Netzwerkfehler. Prüfe deine Verbindung und versuche es erneut.';
+  String get authNetworkError => 'Netzwerkfehler. Prüfe deine Verbindung und versuche es erneut.';
 
   @override
-  String get authLoginGenericError =>
-      'Anmeldung fehlgeschlagen. Bitte versuche es erneut.';
+  String get authLoginGenericError => 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.';
 
   @override
-  String get authRegisterGenericError =>
-      'Registrierung fehlgeschlagen. Bitte versuche es erneut.';
+  String get authRegisterGenericError => 'Registrierung fehlgeschlagen. Bitte versuche es erneut.';
 
   @override
-  String get authPasswordResetGenericError =>
-      'Der Link zum Zurücksetzen konnte nicht gesendet werden. Bitte versuche es erneut.';
+  String get authPasswordResetGenericError => 'Der Link zum Zurücksetzen konnte nicht gesendet werden. Bitte versuche es erneut.';
 
   @override
-  String get authPasswordUpdateGenericError =>
-      'Das Passwort konnte nicht aktualisiert werden. Bitte versuche es erneut.';
+  String get authPasswordUpdateGenericError => 'Das Passwort konnte nicht aktualisiert werden. Bitte versuche es erneut.';
 
   @override
   String get authShowPasswordTooltip => 'Passwort anzeigen';
@@ -1394,19 +1285,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get authCloseButton => 'Schließen';
 
   @override
-  String get pollDetail_favoriteUpdateError =>
-      'Gespeicherte Inhalte konnten nicht aktualisiert werden';
+  String get pollDetail_favoriteUpdateError => 'Gespeicherte Inhalte konnten nicht aktualisiert werden';
 
   @override
-  String get pollDetail_shareMessage =>
-      'Öffne Social Vote, um diesen Vote anzusehen und daran teilzunehmen.';
+  String get pollDetail_shareMessage => 'Öffne Social Vote, um diesen Vote anzusehen und daran teilzunehmen.';
 
   @override
   String get pollDetail_shareError => 'Der Vote konnte nicht geteilt werden';
 
   @override
-  String get pollDetail_editPermissionError =>
-      'Du kannst nur eigene Vote ohne abgegebene Stimmen bearbeiten';
+  String get pollDetail_editPermissionError => 'Du kannst nur eigene Vote ohne abgegebene Stimmen bearbeiten';
 
   @override
   String get pollDetail_editSuccessMessage => 'Vote aktualisiert';
@@ -1418,8 +1306,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollDetail_editSavingMenuItem => 'Wird gespeichert...';
 
   @override
-  String get pollDetail_deletePermissionError =>
-      'Du kannst nur eigene Vote löschen';
+  String get pollDetail_deletePermissionError => 'Du kannst nur eigene Vote löschen';
 
   @override
   String get pollDetail_deleteError => 'Der Vote konnte nicht gelöscht werden';
@@ -1439,12 +1326,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollDetail_deleteDeletingMenuItem => 'Wird gelöscht...';
 
   @override
-  String get pollDetail_publicVotesAvailableTitle =>
-      'Öffentliche Stimmen verfügbar';
+  String get pollDetail_publicVotesAvailableTitle => 'Öffentliche Stimmen verfügbar';
 
   @override
-  String get pollDetail_publicVotesAvailableMessage =>
-      'Bei diesem Vote kannst du sehen, wer für welche Option abgestimmt hat.';
+  String get pollDetail_publicVotesAvailableMessage => 'Bei diesem Vote kannst du sehen, wer für welche Option abgestimmt hat.';
 
   @override
   String get pollDetail_publicVotesAction => 'Öffentliche Stimmen anzeigen';
@@ -1456,41 +1341,34 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollDetail_voteErrorNoOption => 'Wähle mindestens eine Option aus';
 
   @override
-  String get pollDetail_voteErrorAuthenticationRequired =>
-      'Du musst angemeldet sein, um abzustimmen';
+  String get pollDetail_voteErrorAuthenticationRequired => 'Du musst angemeldet sein, um abzustimmen';
 
   @override
   String get pollDetail_voteErrorClosed => 'Dieser Vote ist geschlossen';
 
   @override
-  String get pollDetail_voteErrorAlreadyVoted =>
-      'Du hast bereits an diesem Vote abgestimmt';
+  String get pollDetail_voteErrorAlreadyVoted => 'Du hast bereits an diesem Vote abgestimmt';
 
   @override
-  String get pollDetail_voteErrorGeneric =>
-      'Die Stimme konnte nicht abgegeben werden';
+  String get pollDetail_voteErrorGeneric => 'Die Stimme konnte nicht abgegeben werden';
 
   @override
   String get pollDetail_publicVotesSheetTitle => 'Öffentliche Stimmen';
 
   @override
-  String get pollDetail_publicVotesSheetDescription =>
-      'Hier kannst du sehen, wer bei diesem Vote für welche Option abgestimmt hat.';
+  String get pollDetail_publicVotesSheetDescription => 'Hier kannst du sehen, wer bei diesem Vote für welche Option abgestimmt hat.';
 
   @override
   String get pollDetail_publicVotesSearchHint => 'Nutzer suchen';
 
   @override
-  String get pollDetail_publicVotesLoadError =>
-      'Öffentliche Stimmen konnten nicht geladen werden';
+  String get pollDetail_publicVotesLoadError => 'Öffentliche Stimmen konnten nicht geladen werden';
 
   @override
-  String get pollDetail_publicVotesEmpty =>
-      'Keine öffentlichen Stimmen verfügbar';
+  String get pollDetail_publicVotesEmpty => 'Keine öffentlichen Stimmen verfügbar';
 
   @override
-  String get pollDetail_publicVotesSearchEmpty =>
-      'Keine Nutzer für diese Suche gefunden';
+  String get pollDetail_publicVotesSearchEmpty => 'Keine Nutzer für diese Suche gefunden';
 
   @override
   String pollDetail_publicVotesResultsCount(int count) {
@@ -1516,8 +1394,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollDetail_editDescriptionFieldLabel => 'Beschreibung';
 
   @override
-  String get pollDetail_editError =>
-      'Der Vote konnte nicht aktualisiert werden';
+  String get pollDetail_editError => 'Der Vote konnte nicht aktualisiert werden';
 
   @override
   String get pollDetail_loadError => 'Der Vote konnte nicht geladen werden';
@@ -1529,8 +1406,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profileEditPageTitle => 'Profil bearbeiten';
 
   @override
-  String get profileLoginRequiredMessage =>
-      'Du musst angemeldet sein, um dein Profil zu bearbeiten.';
+  String get profileLoginRequiredMessage => 'Du musst angemeldet sein, um dein Profil zu bearbeiten.';
 
   @override
   String get profileAvatarUploading => 'Wird hochgeladen...';
@@ -1548,8 +1424,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profileUsernameHint => 'z. B. mario_roma';
 
   @override
-  String get profileUsernameHelper =>
-      '3–20 Zeichen: Kleinbuchstaben, Zahlen und Unterstriche';
+  String get profileUsernameHelper => '3–20 Zeichen: Kleinbuchstaben, Zahlen und Unterstriche';
 
   @override
   String get profileAvatarUrlLabel => 'Avatar-URL';
@@ -1561,34 +1436,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profileClearCountryButton => 'Land entfernen';
 
   @override
-  String get profileCityResidenceHelper =>
-      'Der Wohnort wird vor dem Speichern mit dem ausgewählten Land abgeglichen.';
+  String get profileCityResidenceHelper => 'Der Wohnort wird vor dem Speichern mit dem ausgewählten Land abgeglichen.';
 
   @override
-  String get profileCityNotFoundError =>
-      'Die Stadt wurde im ausgewählten Land nicht gefunden.';
+  String get profileCityNotFoundError => 'Die Stadt wurde im ausgewählten Land nicht gefunden.';
 
   @override
-  String get profileCityVerificationError =>
-      'Die Stadt kann derzeit nicht überprüft werden.';
+  String get profileCityVerificationError => 'Die Stadt kann derzeit nicht überprüft werden.';
 
   @override
-  String get profileAvatarUploadError =>
-      'Der Avatar konnte nicht hochgeladen werden.';
+  String get profileAvatarUploadError => 'Der Avatar konnte nicht hochgeladen werden.';
 
   @override
   String get profileAccountSectionTitle => 'Konto';
 
   @override
-  String get profileAccountEmailHelper =>
-      'Die E-Mail-Adresse des Kontos kann auf dieser Seite nicht geändert werden.';
+  String get profileAccountEmailHelper => 'Die E-Mail-Adresse des Kontos kann auf dieser Seite nicht geändert werden.';
 
   @override
   String get profileChangePasswordAction => 'Passwort ändern';
 
   @override
-  String get profileChangePasswordDescription =>
-      'Lege ein neues Passwort für dieses Konto fest.';
+  String get profileChangePasswordDescription => 'Lege ein neues Passwort für dieses Konto fest.';
 
   @override
   String get notificationsPageTitle => 'Benachrichtigungen';
@@ -1597,16 +1466,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get notificationsMarkAllReadAction => 'Alle als gelesen markieren';
 
   @override
-  String get notificationsNoTargetMessage =>
-      'Für diese Benachrichtigung ist kein Ziel verfügbar.';
+  String get notificationsNoTargetMessage => 'Für diese Benachrichtigung ist kein Ziel verfügbar.';
 
   @override
-  String get notificationsTargetUnavailableMessage =>
-      'Der mit dieser Benachrichtigung verknüpfte Inhalt ist nicht verfügbar.';
+  String get notificationsTargetUnavailableMessage => 'Der mit dieser Benachrichtigung verknüpfte Inhalt ist nicht verfügbar.';
 
   @override
-  String get notificationsLoadError =>
-      'Benachrichtigungen konnten nicht geladen werden.';
+  String get notificationsLoadError => 'Benachrichtigungen konnten nicht geladen werden.';
 
   @override
   String get notificationsRetryButton => 'Erneut versuchen';
@@ -1615,8 +1481,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get notificationsEmptyMessage => 'Keine Benachrichtigungen verfügbar.';
 
   @override
-  String get notificationsCommentReplyTitle =>
-      'Neue Antwort auf deinen Kommentar';
+  String get notificationsCommentReplyTitle => 'Neue Antwort auf deinen Kommentar';
 
   @override
   String get notificationsMentionTitle => 'Du wurdest erwähnt';
@@ -1661,15 +1526,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profileDeleteAccountAction => 'Konto löschen';
 
   @override
-  String get profileDeleteAccountDescription =>
-      'Konto und Zugriff dauerhaft löschen';
+  String get profileDeleteAccountDescription => 'Konto und Zugriff dauerhaft löschen';
 
   @override
   String get profileDeleteAccountDialogTitle => 'Konto löschen';
 
   @override
-  String get profileDeleteAccountDialogMessage =>
-      'Diese Aktion ist endgültig. Das Konto kann nicht wiederhergestellt werden. Gib DELETE ein, um zu bestätigen.';
+  String get profileDeleteAccountDialogMessage => 'Diese Aktion ist endgültig. Das Konto kann nicht wiederhergestellt werden. Gib DELETE ein, um zu bestätigen.';
 
   @override
   String get profileDeleteAccountConfirmationLabel => 'Löschbestätigung';
@@ -1678,8 +1541,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profileDeleteAccountConfirmationHint => 'DELETE eingeben';
 
   @override
-  String get profileDeleteAccountConfirmationError =>
-      'Gib DELETE ein, um fortzufahren.';
+  String get profileDeleteAccountConfirmationError => 'Gib DELETE ein, um fortzufahren.';
 
   @override
   String get profileDeleteAccountCancelButton => 'Abbrechen';
@@ -1688,8 +1550,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profileDeleteAccountConfirmButton => 'Dauerhaft löschen';
 
   @override
-  String get profileDeleteAccountFailureMessage =>
-      'Das Konto konnte nicht gelöscht werden. Bitte versuche es erneut.';
+  String get profileDeleteAccountFailureMessage => 'Das Konto konnte nicht gelöscht werden. Bitte versuche es erneut.';
 
   @override
   String get identityActorTypePerson => 'Person';
@@ -1701,8 +1562,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get identityActorTypePublicInstitution => 'Öffentliche Institution';
 
   @override
-  String get identityActorTypeVerifiedOrganization =>
-      'Verifizierte Organisation';
+  String get identityActorTypeVerifiedOrganization => 'Verifizierte Organisation';
 
   @override
   String get identityVerificationNotVerified => 'Nicht verifiziert';
@@ -1732,8 +1592,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get identityOrganizationNameLabel => 'Name der Organisation';
 
   @override
-  String get identityOrganizationNameRequired =>
-      'Gib den Namen der Organisation ein.';
+  String get identityOrganizationNameRequired => 'Gib den Namen der Organisation ein.';
 
   @override
   String get identityInstitutionLevelMunicipality => 'Kommunal';
@@ -1754,28 +1613,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get identityInstitutionLevelPublicAgency => 'Öffentliche Behörde';
 
   @override
-  String get identityInstitutionLevelOtherPublicBody =>
-      'Andere öffentliche Stelle';
+  String get identityInstitutionLevelOtherPublicBody => 'Andere öffentliche Stelle';
 
   @override
-  String get verificationRequestPersonLevel1 =>
-      'Personenverifizierung — Stufe 1';
+  String get verificationRequestPersonLevel1 => 'Personenverifizierung — Stufe 1';
 
   @override
-  String get verificationRequestPersonLevel2 =>
-      'Personenverifizierung — Stufe 2';
+  String get verificationRequestPersonLevel2 => 'Personenverifizierung — Stufe 2';
 
   @override
-  String get verificationRequestPublicOfficial =>
-      'Verifizierung als Amtsträger';
+  String get verificationRequestPublicOfficial => 'Verifizierung als Amtsträger';
 
   @override
-  String get verificationRequestPublicInstitution =>
-      'Verifizierung einer öffentlichen Institution';
+  String get verificationRequestPublicInstitution => 'Verifizierung einer öffentlichen Institution';
 
   @override
-  String get verificationRequestVerifiedOrganization =>
-      'Organisationsverifizierung';
+  String get verificationRequestVerifiedOrganization => 'Organisationsverifizierung';
 
   @override
   String get verificationCenterTitle => 'Verifizierung und Kontotyp';
@@ -1817,104 +1670,82 @@ class AppLocalizationsDe extends AppLocalizations {
   String get verificationActiveRequestSection => 'Aktiver Antrag';
 
   @override
-  String get verificationProfileUnchangedUntilApproval =>
-      'Dein aktuelles Profil ändert sich erst, wenn der Antrag genehmigt wurde.';
+  String get verificationProfileUnchangedUntilApproval => 'Dein aktuelles Profil ändert sich erst, wenn der Antrag genehmigt wurde.';
 
   @override
-  String get verificationCancelPendingAction =>
-      'Ausstehenden Antrag zurückziehen';
+  String get verificationCancelPendingAction => 'Ausstehenden Antrag zurückziehen';
 
   @override
-  String get verificationPendingBlocksNewRequests =>
-      'Du kannst keinen neuen Antrag stellen, solange ein anderer Antrag aussteht.';
+  String get verificationPendingBlocksNewRequests => 'Du kannst keinen neuen Antrag stellen, solange ein anderer Antrag aussteht.';
 
   @override
   String get verificationNoActiveRequestSection => 'Kein aktiver Antrag';
 
   @override
-  String get verificationNoActiveRequestDescription =>
-      'Derzeit befindet sich kein Antrag von dir in Prüfung.';
+  String get verificationNoActiveRequestDescription => 'Derzeit befindet sich kein Antrag von dir in Prüfung.';
 
   @override
   String get verificationLastRejectedSection => 'Letzter abgelehnter Antrag';
 
   @override
-  String get verificationLastRejectedDescription =>
-      'Dein letzter Antrag wurde abgelehnt.';
+  String get verificationLastRejectedDescription => 'Dein letzter Antrag wurde abgelehnt.';
 
   @override
-  String get verificationRejectedCanResubmit =>
-      'Dein aktuelles Profil wurde nicht geändert. Du kannst die Angaben korrigieren und einen neuen Antrag stellen.';
+  String get verificationRejectedCanResubmit => 'Dein aktuelles Profil wurde nicht geändert. Du kannst die Angaben korrigieren und einen neuen Antrag stellen.';
 
   @override
   String get verificationAvailableRequestsSection => 'Verfügbare Anträge';
 
   @override
-  String get verificationRequestLevel1Title =>
-      'Personenverifizierung — Stufe 1 beantragen';
+  String get verificationRequestLevel1Title => 'Personenverifizierung — Stufe 1 beantragen';
 
   @override
-  String get verificationRequestLevel1Subtitle =>
-      'Grundlegende persönliche Identitätsprüfung';
+  String get verificationRequestLevel1Subtitle => 'Grundlegende persönliche Identitätsprüfung';
 
   @override
-  String get verificationRequestLevel2Title =>
-      'Personenverifizierung — Stufe 2 beantragen';
+  String get verificationRequestLevel2Title => 'Personenverifizierung — Stufe 2 beantragen';
 
   @override
-  String get verificationRequestLevel2Subtitle =>
-      'Erweiterte persönliche Identitätsprüfung';
+  String get verificationRequestLevel2Subtitle => 'Erweiterte persönliche Identitätsprüfung';
 
   @override
-  String get verificationRequestPublicOfficialTitle =>
-      'Konto als Amtsträger beantragen';
+  String get verificationRequestPublicOfficialTitle => 'Konto als Amtsträger beantragen';
 
   @override
-  String get verificationRequestPublicOfficialSubtitle =>
-      'Erfordert eine amtliche Funktion und eine Prüfung';
+  String get verificationRequestPublicOfficialSubtitle => 'Erfordert eine amtliche Funktion und eine Prüfung';
 
   @override
-  String get verificationRequestPublicInstitutionTitle =>
-      'Konto für eine öffentliche Institution beantragen';
+  String get verificationRequestPublicInstitutionTitle => 'Konto für eine öffentliche Institution beantragen';
 
   @override
-  String get verificationRequestPublicInstitutionSubtitle =>
-      'Erfordert Institutionsname, Institutionsebene und Prüfung';
+  String get verificationRequestPublicInstitutionSubtitle => 'Erfordert Institutionsname, Institutionsebene und Prüfung';
 
   @override
-  String get verificationRequestOrganizationTitle =>
-      'Konto als verifizierte Organisation beantragen';
+  String get verificationRequestOrganizationTitle => 'Konto als verifizierte Organisation beantragen';
 
   @override
-  String get verificationRequestOrganizationSubtitle =>
-      'Erfordert Organisationsdaten, Vertretungsrolle und Admin-Prüfung';
+  String get verificationRequestOrganizationSubtitle => 'Erfordert Organisationsdaten, Vertretungsrolle und Admin-Prüfung';
 
   @override
-  String get verificationNoSelfServiceUpgrade =>
-      'Für deinen aktuellen Kontostatus sind keine Verifizierungsoptionen verfügbar.';
+  String get verificationNoSelfServiceUpgrade => 'Für deinen aktuellen Kontostatus sind keine Verifizierungsoptionen verfügbar.';
 
   @override
-  String get verificationRequestSubmitSuccess =>
-      'Antrag erfolgreich eingereicht.';
+  String get verificationRequestSubmitSuccess => 'Antrag erfolgreich eingereicht.';
 
   @override
-  String get verificationRequestSubmitFailure =>
-      'Der Antrag konnte nicht eingereicht werden.';
+  String get verificationRequestSubmitFailure => 'Der Antrag konnte nicht eingereicht werden.';
 
   @override
-  String get verificationOfficialTitleDialogTitle =>
-      'Verifizierung als Amtsträger';
+  String get verificationOfficialTitleDialogTitle => 'Verifizierung als Amtsträger';
 
   @override
   String get verificationOfficialTitleLabel => 'Amtliche Funktion';
 
   @override
-  String get verificationOfficialTitleHint =>
-      'z. B. Bürgermeister, Gemeinderat, Minister';
+  String get verificationOfficialTitleHint => 'z. B. Bürgermeister, Gemeinderat, Minister';
 
   @override
-  String get verificationInstitutionDialogTitle =>
-      'Verifizierung einer öffentlichen Institution';
+  String get verificationInstitutionDialogTitle => 'Verifizierung einer öffentlichen Institution';
 
   @override
   String get verificationInstitutionNameLabel => 'Name der Institution';
@@ -1926,8 +1757,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get verificationInstitutionLevelLabel => 'Institutionsebene';
 
   @override
-  String get verificationOrganizationDialogTitle =>
-      'Organisationsverifizierung';
+  String get verificationOrganizationDialogTitle => 'Organisationsverifizierung';
 
   @override
   String get verificationOrganizationNameHint => 'z. B. Umweltverein Italien';
@@ -1939,15 +1769,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get verificationCancelDialogTitle => 'Antrag zurückziehen';
 
   @override
-  String get verificationCancelDialogBody =>
-      'Möchtest du den ausstehenden Verifizierungsantrag wirklich zurückziehen?';
+  String get verificationCancelDialogBody => 'Möchtest du den ausstehenden Verifizierungsantrag wirklich zurückziehen?';
 
   @override
   String get verificationCancelSuccess => 'Antrag zurückgezogen.';
 
   @override
-  String get verificationCancelFailure =>
-      'Der Antrag konnte nicht zurückgezogen werden.';
+  String get verificationCancelFailure => 'Der Antrag konnte nicht zurückgezogen werden.';
 
   @override
   String get verificationStatusPendingSuffix => 'Antrag wird geprüft';
@@ -1959,8 +1787,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get verificationReviewPageTitle => 'Verifizierungsprüfung';
 
   @override
-  String get verificationReviewLoginRequired =>
-      'Du musst angemeldet sein, um Verifizierungsanträge zu prüfen.';
+  String get verificationReviewLoginRequired => 'Du musst angemeldet sein, um Verifizierungsanträge zu prüfen.';
 
   @override
   String verificationReviewPendingCount(int count) {
@@ -1968,8 +1795,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get verificationReviewNoPendingRequests =>
-      'Es gibt keine ausstehenden Verifizierungsanträge.';
+  String get verificationReviewNoPendingRequests => 'Es gibt keine ausstehenden Verifizierungsanträge.';
 
   @override
   String get verificationReviewUserIdLabel => 'Nutzer-ID';
@@ -2002,12 +1828,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get verificationReviewRejectDialogTitle => 'Antrag ablehnen';
 
   @override
-  String get verificationReviewApproveConfirmation =>
-      'Genehmigung dieses Antrags bestätigen?';
+  String get verificationReviewApproveConfirmation => 'Genehmigung dieses Antrags bestätigen?';
 
   @override
-  String get verificationReviewRejectConfirmation =>
-      'Ablehnung dieses Antrags bestätigen?';
+  String get verificationReviewRejectConfirmation => 'Ablehnung dieses Antrags bestätigen?';
 
   @override
   String get verificationReviewOptionalNoteLabel => 'Optionale Prüfnotiz';
@@ -2022,8 +1846,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get verificationReviewRequiredHelper => 'Bei Ablehnung erforderlich';
 
   @override
-  String get verificationReviewRequiredNoteError =>
-      'Gib den Grund für die Ablehnung ein.';
+  String get verificationReviewRequiredNoteError => 'Gib den Grund für die Ablehnung ein.';
 
   @override
   String get verificationReviewApprovedSuccess => 'Antrag genehmigt.';
@@ -2110,15 +1933,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterAuditUnavailableTitle => 'Audit nicht verfügbar';
 
   @override
-  String get adminCenterAuditUnavailableMessage =>
-      'Prüfe Verbindung und Berechtigungen und versuche es erneut.';
+  String get adminCenterAuditUnavailableMessage => 'Prüfe Verbindung und Berechtigungen und versuche es erneut.';
 
   @override
   String get adminCenterNoAuditEntriesTitle => 'Keine Audit-Einträge';
 
   @override
-  String get adminCenterNoAuditEntriesMessage =>
-      'Für die ausgewählten Filter gibt es keine Einträge.';
+  String get adminCenterNoAuditEntriesMessage => 'Für die ausgewählten Filter gibt es keine Einträge.';
 
   @override
   String get adminCenterAuditIdLabel => 'Audit-ID';
@@ -2160,8 +1981,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterNews => 'Nachrichten';
 
   @override
-  String get adminCenterAwaitingAdminDecision =>
-      'Wartet auf Admin-Entscheidung';
+  String get adminCenterAwaitingAdminDecision => 'Wartet auf Admin-Entscheidung';
 
   @override
   String get adminCenterStatusLabel => 'Status';
@@ -2182,34 +2002,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterStatusDismissed => 'Verworfen';
 
   @override
-  String get adminCenterAdminQueueUnavailableTitle =>
-      'Admin-Eskalationswarteschlange nicht verfügbar';
+  String get adminCenterAdminQueueUnavailableTitle => 'Admin-Eskalationswarteschlange nicht verfügbar';
 
   @override
   String get adminCenterReportsUnavailableTitle => 'Meldungen nicht verfügbar';
 
   @override
-  String get adminCenterConnectionTryAgainMessage =>
-      'Prüfe deine Verbindung und versuche es erneut.';
+  String get adminCenterConnectionTryAgainMessage => 'Prüfe deine Verbindung und versuche es erneut.';
 
   @override
-  String get adminCenterNoAdminReportsTitle =>
-      'Keine Meldungen warten auf Admin-Entscheidung';
+  String get adminCenterNoAdminReportsTitle => 'Keine Meldungen warten auf Admin-Entscheidung';
 
   @override
   String get adminCenterNoReportsTitle => 'Keine Meldungen';
 
   @override
-  String get adminCenterNoAdminReportsMessage =>
-      'Es gibt keine eskalierten Meldungen, die eine Admin-Prüfung erfordern.';
+  String get adminCenterNoAdminReportsMessage => 'Es gibt keine eskalierten Meldungen, die eine Admin-Prüfung erfordern.';
 
   @override
-  String get adminCenterNoReportsMessage =>
-      'Für die ausgewählten Filter gibt es keine Meldungen.';
+  String get adminCenterNoReportsMessage => 'Für die ausgewählten Filter gibt es keine Meldungen.';
 
   @override
-  String get adminCenterSearchUsersHint =>
-      'Nach Name, Benutzername, E-Mail oder ID suchen';
+  String get adminCenterSearchUsersHint => 'Nach Name, Benutzername, E-Mail oder ID suchen';
 
   @override
   String get adminCenterClearSearchTooltip => 'Suche löschen';
@@ -2224,8 +2038,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterNoUsersTitle => 'Keine Nutzer';
 
   @override
-  String get adminCenterNoUsersFoundMessage =>
-      'Versuche es mit einem anderen Namen, Benutzernamen, einer anderen E-Mail oder ID.';
+  String get adminCenterNoUsersFoundMessage => 'Versuche es mit einem anderen Namen, Benutzernamen, einer anderen E-Mail oder ID.';
 
   @override
   String get adminCenterNoUsersMessage => 'Es gibt keine Konten zum Anzeigen.';
@@ -2321,20 +2134,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterLoadingDashboardTitle => 'Übersicht wird geladen';
 
   @override
-  String get adminCenterLoadingDashboardMessage =>
-      'Die neuesten Kennzahlen werden abgerufen.';
+  String get adminCenterLoadingDashboardMessage => 'Die neuesten Kennzahlen werden abgerufen.';
 
   @override
-  String get adminCenterDashboardUnavailableTitle =>
-      'Übersicht nicht verfügbar';
+  String get adminCenterDashboardUnavailableTitle => 'Übersicht nicht verfügbar';
 
   @override
-  String get adminCenterIndicatorsUnavailableMessage =>
-      'Die Kennzahlen konnten nicht geladen werden.';
+  String get adminCenterIndicatorsUnavailableMessage => 'Die Kennzahlen konnten nicht geladen werden.';
 
   @override
-  String get adminCenterVerificationPendingIndicator =>
-      'Ausstehende Verifizierungen';
+  String get adminCenterVerificationPendingIndicator => 'Ausstehende Verifizierungen';
 
   @override
   String get adminCenterOpenReportsIndicator => 'Offene Meldungen';
@@ -2349,16 +2158,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterNoPendingWorkTitle => 'Keine offenen Aufgaben';
 
   @override
-  String get adminCenterNoPendingWorkMessage =>
-      'Verifizierungen, Meldungen und gesperrte Konten sind abgearbeitet.';
+  String get adminCenterNoPendingWorkMessage => 'Verifizierungen, Meldungen und gesperrte Konten sind abgearbeitet.';
 
   @override
-  String get adminCenterCouldNotUpdateUsers =>
-      'Die Nutzerliste konnte nicht aktualisiert werden.';
+  String get adminCenterCouldNotUpdateUsers => 'Die Nutzerliste konnte nicht aktualisiert werden.';
 
   @override
-  String get adminCenterCouldNotUpdateReports =>
-      'Die Meldungswarteschlange konnte nicht aktualisiert werden.';
+  String get adminCenterCouldNotUpdateReports => 'Die Meldungswarteschlange konnte nicht aktualisiert werden.';
 
   @override
   String get adminCenterUnnamedUser => 'Unbenannter Nutzer';
@@ -2367,16 +2173,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterTemporarySuspensionTitle => 'Vorübergehende Sperre';
 
   @override
-  String get adminCenterReactivateDescription =>
-      'Sperre sofort aufheben und eine neue Anmeldung ermöglichen.';
+  String get adminCenterReactivateDescription => 'Sperre sofort aufheben und eine neue Anmeldung ermöglichen.';
 
   @override
-  String get adminCenterSuspendDescription =>
-      'Zugriff für begrenzte Zeit sperren und alle aktuellen Sitzungen beenden.';
+  String get adminCenterSuspendDescription => 'Zugriff für begrenzte Zeit sperren und alle aktuellen Sitzungen beenden.';
 
   @override
-  String get adminCenterSuspensionUnavailableDescription =>
-      'Eine Sperre erfordert ein synchronisiertes Konto, das kein Admin-Konto ist.';
+  String get adminCenterSuspensionUnavailableDescription => 'Eine Sperre erfordert ein synchronisiertes Konto, das kein Admin-Konto ist.';
 
   @override
   String get adminCenterReactivateAccountAction => 'Konto reaktivieren';
@@ -2388,31 +2191,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterForceLogoutAction => 'Abmeldung erzwingen';
 
   @override
-  String get adminCenterSuspendedForceLogoutDescription =>
-      'Die Sperre hat die aktuellen Sitzungen bereits beendet. Reaktiviere das Konto, bevor du eine separate Abmeldung testest.';
+  String get adminCenterSuspendedForceLogoutDescription => 'Die Sperre hat die aktuellen Sitzungen bereits beendet. Reaktiviere das Konto, bevor du eine separate Abmeldung testest.';
 
   @override
-  String get adminCenterForceLogoutDescription =>
-      'Alle aktuellen Sitzungen beenden, ohne das Konto zu sperren.';
+  String get adminCenterForceLogoutDescription => 'Alle aktuellen Sitzungen beenden, ohne das Konto zu sperren.';
 
   @override
-  String get adminCenterForceLogoutUnavailableDescription =>
-      'Erzwungene Abmeldung erfordert ein synchronisiertes Konto, das kein Admin-Konto ist.';
+  String get adminCenterForceLogoutUnavailableDescription => 'Erzwungene Abmeldung erfordert ein synchronisiertes Konto, das kein Admin-Konto ist.';
 
   @override
   String get adminCenterPermanentDeletionTitle => 'Dauerhafte Kontolöschung';
 
   @override
-  String get adminCenterPermanentDeletionDescription =>
-      'Authentifizierungsdaten löschen, alle Sitzungen beenden und den verbleibenden öffentlichen Datensatz anonymisieren.';
+  String get adminCenterPermanentDeletionDescription => 'Authentifizierungsdaten löschen, alle Sitzungen beenden und den verbleibenden öffentlichen Datensatz anonymisieren.';
 
   @override
-  String get adminCenterDeletionUnavailableDescription =>
-      'Die Löschung erfordert ein synchronisiertes Konto, das kein Admin-Konto ist.';
+  String get adminCenterDeletionUnavailableDescription => 'Die Löschung erfordert ein synchronisiertes Konto, das kein Admin-Konto ist.';
 
   @override
-  String get adminCenterDeleteAccountPermanentlyAction =>
-      'Konto dauerhaft löschen';
+  String get adminCenterDeleteAccountPermanentlyAction => 'Konto dauerhaft löschen';
 
   @override
   String get adminCenterDurationOneHour => '1 Stunde';
@@ -2427,59 +2224,46 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterDurationThirtyDays => '30 Tage';
 
   @override
-  String get adminCenterSuspendImmediateEffect =>
-      'Das Konto verliert sofort den Zugriff und alle aktuellen Sitzungen werden beendet.';
+  String get adminCenterSuspendImmediateEffect => 'Das Konto verliert sofort den Zugriff und alle aktuellen Sitzungen werden beendet.';
 
   @override
   String get adminCenterDurationLabel => 'Dauer';
 
   @override
-  String get adminCenterSuspendReasonHint =>
-      'Begründe, warum dieses Konto gesperrt werden muss';
+  String get adminCenterSuspendReasonHint => 'Begründe, warum dieses Konto gesperrt werden muss';
 
   @override
-  String get adminCenterReactivateReasonHint =>
-      'Begründe, warum dieses Konto reaktiviert werden kann';
+  String get adminCenterReactivateReasonHint => 'Begründe, warum dieses Konto reaktiviert werden kann';
 
   @override
-  String get adminCenterReactivateConfirmation =>
-      'Ich bestätige, dass dieses Konto wieder Zugriff erhalten kann.';
+  String get adminCenterReactivateConfirmation => 'Ich bestätige, dass dieses Konto wieder Zugriff erhalten kann.';
 
   @override
-  String get adminCenterReactivateFailure =>
-      'Das Konto konnte nicht reaktiviert werden. Prüfe Rolle und Status und versuche es erneut.';
+  String get adminCenterReactivateFailure => 'Das Konto konnte nicht reaktiviert werden. Prüfe Rolle und Status und versuche es erneut.';
 
   @override
-  String get adminCenterReactivateSuccess =>
-      'Konto reaktiviert. Eine neue Anmeldung ist jetzt möglich.';
+  String get adminCenterReactivateSuccess => 'Konto reaktiviert. Eine neue Anmeldung ist jetzt möglich.';
 
   @override
-  String get adminCenterForceLogoutFullDescription =>
-      'Alle aktuellen Sitzungen dieses Kontos beenden. Das Konto bleibt aktiv und kann sich erneut anmelden.';
+  String get adminCenterForceLogoutFullDescription => 'Alle aktuellen Sitzungen dieses Kontos beenden. Das Konto bleibt aktiv und kann sich erneut anmelden.';
 
   @override
-  String get adminCenterForceLogoutReasonHint =>
-      'Begründe, warum die aktuellen Sitzungen beendet werden müssen';
+  String get adminCenterForceLogoutReasonHint => 'Begründe, warum die aktuellen Sitzungen beendet werden müssen';
 
   @override
-  String get adminCenterForceLogoutConfirmation =>
-      'Ich bestätige die sofortige Beendigung aller aktuellen Sitzungen dieses Kontos.';
+  String get adminCenterForceLogoutConfirmation => 'Ich bestätige die sofortige Beendigung aller aktuellen Sitzungen dieses Kontos.';
 
   @override
-  String get adminCenterForceLogoutFailure =>
-      'Das Konto konnte nicht abgemeldet werden. Prüfe Rolle und Status und versuche es erneut.';
+  String get adminCenterForceLogoutFailure => 'Das Konto konnte nicht abgemeldet werden. Prüfe Rolle und Status und versuche es erneut.';
 
   @override
-  String get adminCenterForceLogoutSuccess =>
-      'Aktuelle Sitzungen beendet. Das Konto kann sich erneut anmelden.';
+  String get adminCenterForceLogoutSuccess => 'Aktuelle Sitzungen beendet. Das Konto kann sich erneut anmelden.';
 
   @override
-  String get adminCenterSuspendFailure =>
-      'Das Konto konnte nicht gesperrt werden. Prüfe Rolle und Status und versuche es erneut.';
+  String get adminCenterSuspendFailure => 'Das Konto konnte nicht gesperrt werden. Prüfe Rolle und Status und versuche es erneut.';
 
   @override
-  String get adminCenterDeleteReasonHint =>
-      'Begründe, warum dieses Konto gelöscht werden muss';
+  String get adminCenterDeleteReasonHint => 'Begründe, warum dieses Konto gelöscht werden muss';
 
   @override
   String get adminCenterTypeDeleteLabel => 'DELETE eingeben';
@@ -2491,60 +2275,49 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterDeletePermanentlyAction => 'Dauerhaft löschen';
 
   @override
-  String get adminCenterDeleteIrreversibleWarning =>
-      'Diese Aktion ist unwiderruflich. Authentifizierungsdaten und aktuelle Sitzungen werden entfernt, der Avatar wird gelöscht und der verbleibende öffentliche Datensatz anonymisiert. Der Audit-Eintrag bleibt erhalten.';
+  String get adminCenterDeleteIrreversibleWarning => 'Diese Aktion ist unwiderruflich. Authentifizierungsdaten und aktuelle Sitzungen werden entfernt, der Avatar wird gelöscht und der verbleibende öffentliche Datensatz anonymisiert. Der Audit-Eintrag bleibt erhalten.';
 
   @override
-  String get adminCenterDeleteFailure =>
-      'Das Konto konnte nicht gelöscht werden. Prüfe Rolle, Status und Bestätigungswerte und versuche es erneut.';
+  String get adminCenterDeleteFailure => 'Das Konto konnte nicht gelöscht werden. Prüfe Rolle, Status und Bestätigungswerte und versuche es erneut.';
 
   @override
-  String get adminCenterDeleteSuccess =>
-      'Konto dauerhaft gelöscht und personenbezogene Daten anonymisiert.';
+  String get adminCenterDeleteSuccess => 'Konto dauerhaft gelöscht und personenbezogene Daten anonymisiert.';
 
   @override
   String get adminCenterChangeTechnicalRoleTitle => 'Technische Rolle ändern';
 
   @override
-  String get adminCenterChangeRoleDescription =>
-      'Prüfe aktuelle und gewünschte Rolle vor der Bestätigung.';
+  String get adminCenterChangeRoleDescription => 'Prüfe aktuelle und gewünschte Rolle vor der Bestätigung.';
 
   @override
-  String get adminCenterChangeRoleUnavailableDescription =>
-      'Rollenänderungen erfordern ein synchronisiertes, nicht gelöschtes Konto.';
+  String get adminCenterChangeRoleUnavailableDescription => 'Rollenänderungen erfordern ein synchronisiertes, nicht gelöschtes Konto.';
 
   @override
   String get adminCenterChangeRoleAction => 'Rolle ändern';
 
   @override
-  String get adminCenterChangePublicIdentityTitle =>
-      'Öffentliche Identität ändern';
+  String get adminCenterChangePublicIdentityTitle => 'Öffentliche Identität ändern';
 
   @override
-  String get adminCenterChangeIdentityDescription =>
-      'Öffentlichen Kontotyp und Verifizierungsstufe aktualisieren.';
+  String get adminCenterChangeIdentityDescription => 'Öffentlichen Kontotyp und Verifizierungsstufe aktualisieren.';
 
   @override
-  String get adminCenterChangeIdentityUnavailableDescription =>
-      'Identitätsänderungen erfordern ein synchronisiertes Konto, das kein Admin-Konto ist.';
+  String get adminCenterChangeIdentityUnavailableDescription => 'Identitätsänderungen erfordern ein synchronisiertes Konto, das kein Admin-Konto ist.';
 
   @override
   String get adminCenterChangeIdentityAction => 'Identität ändern';
 
   @override
-  String get adminCenterChoosePublicIdentityMessage =>
-      'Wähle den öffentlichen Kontotyp und dessen Verifizierungsstatus.';
+  String get adminCenterChoosePublicIdentityMessage => 'Wähle den öffentlichen Kontotyp und dessen Verifizierungsstatus.';
 
   @override
   String get adminCenterPublicAccountTypeLabel => 'Öffentlicher Kontotyp';
 
   @override
-  String get adminCenterPersonVerificationHelper =>
-      'Stufe 1 und Stufe 2 sind nur für Personen verfügbar.';
+  String get adminCenterPersonVerificationHelper => 'Stufe 1 und Stufe 2 sind nur für Personen verfügbar.';
 
   @override
-  String get adminCenterNonPersonVerificationHelper =>
-      'Konten, die keine Person darstellen, verwenden weder Stufe 1 noch Stufe 2.';
+  String get adminCenterNonPersonVerificationHelper => 'Konten, die keine Person darstellen, verwenden weder Stufe 1 noch Stufe 2.';
 
   @override
   String get adminCenterBeforeLabel => 'Vorher';
@@ -2553,20 +2326,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterAfterLabel => 'Nachher';
 
   @override
-  String get adminCenterIdentityReasonHint =>
-      'Begründe, warum die öffentliche Identität geändert werden muss';
+  String get adminCenterIdentityReasonHint => 'Begründe, warum die öffentliche Identität geändert werden muss';
 
   @override
-  String get adminCenterIdentityConfirmation =>
-      'Ich bestätige die oben angezeigte öffentliche Identität und Verifizierungsstufe.';
+  String get adminCenterIdentityConfirmation => 'Ich bestätige die oben angezeigte öffentliche Identität und Verifizierungsstufe.';
 
   @override
-  String get adminCenterIdentityChangeFailure =>
-      'Die öffentliche Identität konnte nicht geändert werden. Prüfe den Kontostatus und versuche es erneut.';
+  String get adminCenterIdentityChangeFailure => 'Die öffentliche Identität konnte nicht geändert werden. Prüfe den Kontostatus und versuche es erneut.';
 
   @override
-  String get adminCenterChooseTechnicalRoleMessage =>
-      'Wähle die neue technische Rolle und dokumentiere, warum diese Änderung erforderlich ist.';
+  String get adminCenterChooseTechnicalRoleMessage => 'Wähle die neue technische Rolle und dokumentiere, warum diese Änderung erforderlich ist.';
 
   @override
   String get adminCenterNewTechnicalRoleLabel => 'Neue technische Rolle';
@@ -2575,20 +2344,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterSelectRole => 'Rolle auswählen';
 
   @override
-  String get adminCenterRoleSessionWarning =>
-      'Diese Änderung beendet die aktive Sitzung des betroffenen Nutzers. Er muss sich erneut anmelden, bevor er das Konto weiter verwenden kann.';
+  String get adminCenterRoleSessionWarning => 'Diese Änderung beendet die aktive Sitzung des betroffenen Nutzers. Er muss sich erneut anmelden, bevor er das Konto weiter verwenden kann.';
 
   @override
-  String get adminCenterRoleReasonHint =>
-      'Begründe, warum die technische Rolle geändert werden muss';
+  String get adminCenterRoleReasonHint => 'Begründe, warum die technische Rolle geändert werden muss';
 
   @override
-  String get adminCenterRoleConfirmation =>
-      'Ich bestätige die oben angezeigte Rolle und weiß, dass sich der betroffene Nutzer erneut anmelden muss.';
+  String get adminCenterRoleConfirmation => 'Ich bestätige die oben angezeigte Rolle und weiß, dass sich der betroffene Nutzer erneut anmelden muss.';
 
   @override
-  String get adminCenterRoleChangeFailure =>
-      'Die Rollenänderung konnte nicht abgeschlossen werden. Prüfe den Kontostatus und versuche es erneut.';
+  String get adminCenterRoleChangeFailure => 'Die Rollenänderung konnte nicht abgeschlossen werden. Prüfe den Kontostatus und versuche es erneut.';
 
   @override
   String get adminCenterChangingRole => 'Rolle wird geändert';
@@ -2708,24 +2473,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterReviewerLabel => 'Prüfer';
 
   @override
-  String get adminCenterDecisionDescriptionNoViolation =>
-      'Verwirft die Meldung, weil der Inhalt nicht gegen die aktuellen Regeln verstößt.';
+  String get adminCenterDecisionDescriptionNoViolation => 'Verwirft die Meldung, weil der Inhalt nicht gegen die aktuellen Regeln verstößt.';
 
   @override
-  String get adminCenterDecisionDescriptionViolation =>
-      'Bestätigt einen Verstoß und lässt den Fall für die in AC8.5 behandelte Inhaltsmaßnahme in Prüfung.';
+  String get adminCenterDecisionDescriptionViolation => 'Bestätigt einen Verstoß und lässt den Fall für die in AC8.5 behandelte Inhaltsmaßnahme in Prüfung.';
 
   @override
-  String get adminCenterDecisionDescriptionEscalation =>
-      'Eskaliert den Fall für eine Prüfung auf Kontoebene durch einen Administrator.';
+  String get adminCenterDecisionDescriptionEscalation => 'Eskaliert den Fall für eine Prüfung auf Kontoebene durch einen Administrator.';
 
   @override
-  String get adminCenterChooseModerationOutcome =>
-      'Wähle das Moderationsergebnis für diese Meldung.';
+  String get adminCenterChooseModerationOutcome => 'Wähle das Moderationsergebnis für diese Meldung.';
 
   @override
-  String get adminCenterDecisionAlreadyRecordedFailure =>
-      'Die Entscheidung konnte nicht gespeichert werden. Die Meldung wurde möglicherweise bereits geprüft. Aktualisiere die Warteschlange und versuche es erneut.';
+  String get adminCenterDecisionAlreadyRecordedFailure => 'Die Entscheidung konnte nicht gespeichert werden. Die Meldung wurde möglicherweise bereits geprüft. Aktualisiere die Warteschlange und versuche es erneut.';
 
   @override
   String get adminCenterDecisionLabel => 'Entscheidung';
@@ -2737,8 +2497,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterReviewNoteLabel => 'Prüfnotiz';
 
   @override
-  String get adminCenterReviewNoteHint =>
-      'Beschreibe die Belege und die Moderationsentscheidung';
+  String get adminCenterReviewNoteHint => 'Beschreibe die Belege und die Moderationsentscheidung';
 
   @override
   String get adminCenterRecordingDecision => 'Entscheidung wird gespeichert';
@@ -2747,36 +2506,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterConfirmDecision => 'Entscheidung bestätigen';
 
   @override
-  String get adminCenterAdministratorDecisionTitle =>
-      'Administratorentscheidung';
+  String get adminCenterAdministratorDecisionTitle => 'Administratorentscheidung';
 
   @override
-  String get adminCenterResolutionDescriptionNoAction =>
-      'Schließt die eskalierte Meldung, ohne das Konto zu ändern.';
+  String get adminCenterResolutionDescriptionNoAction => 'Schließt die eskalierte Meldung, ohne das Konto zu ändern.';
 
   @override
-  String get adminCenterResolutionDescriptionSuspended =>
-      'Schließt die Meldung, nachdem eine erfolgreiche Kontosperre bereits im Audit-Protokoll erfasst wurde.';
+  String get adminCenterResolutionDescriptionSuspended => 'Schließt die Meldung, nachdem eine erfolgreiche Kontosperre bereits im Audit-Protokoll erfasst wurde.';
 
   @override
-  String get adminCenterResolutionDescriptionLogout =>
-      'Schließt die Meldung, nachdem eine erfolgreiche erzwungene Abmeldung bereits im Audit-Protokoll erfasst wurde.';
+  String get adminCenterResolutionDescriptionLogout => 'Schließt die Meldung, nachdem eine erfolgreiche erzwungene Abmeldung bereits im Audit-Protokoll erfasst wurde.';
 
   @override
-  String get adminCenterResolutionDescriptionDeleted =>
-      'Schließt die Meldung, nachdem eine erfolgreiche Kontolöschung bereits im Audit-Protokoll erfasst wurde.';
+  String get adminCenterResolutionDescriptionDeleted => 'Schließt die Meldung, nachdem eine erfolgreiche Kontolöschung bereits im Audit-Protokoll erfasst wurde.';
 
   @override
-  String get adminCenterChooseFinalOutcome =>
-      'Wähle das endgültige Administratorergebnis für diese Eskalation.';
+  String get adminCenterChooseFinalOutcome => 'Wähle das endgültige Administratorergebnis für diese Eskalation.';
 
   @override
-  String get adminCenterAdminResolutionFailure =>
-      'Die Administratorentscheidung konnte nicht gespeichert werden. Aktualisiere die Warteschlange und versuche es erneut.';
+  String get adminCenterAdminResolutionFailure => 'Die Administratorentscheidung konnte nicht gespeichert werden. Aktualisiere die Warteschlange und versuche es erneut.';
 
   @override
-  String get adminCenterAdminResolutionRequiresAction =>
-      'Führe zuerst die passende Kontoaktion aus. Kehre dann zu dieser Meldung zurück und speichere die endgültige Administratorentscheidung.';
+  String get adminCenterAdminResolutionRequiresAction => 'Führe zuerst die passende Kontoaktion aus. Kehre dann zu dieser Meldung zurück und speichere die endgültige Administratorentscheidung.';
 
   @override
   String get adminCenterEscalationNoteLabel => 'Eskalationsnotiz';
@@ -2788,35 +2539,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterAdministratorNoteLabel => 'Administratornotiz';
 
   @override
-  String get adminCenterAdministratorNoteHint =>
-      'Begründe die endgültige Entscheidung auf Kontoebene';
+  String get adminCenterAdministratorNoteHint => 'Begründe die endgültige Entscheidung auf Kontoebene';
 
   @override
-  String get adminCenterHideContentFailure =>
-      'Der Inhalt konnte nicht ausgeblendet werden. Aktualisiere die Meldungswarteschlange und versuche es erneut.';
+  String get adminCenterHideContentFailure => 'Der Inhalt konnte nicht ausgeblendet werden. Aktualisiere die Meldungswarteschlange und versuche es erneut.';
 
   @override
-  String get adminCenterRestoreContentFailure =>
-      'Der Inhalt konnte nicht wiederhergestellt werden. Aktualisiere die Meldungswarteschlange und versuche es erneut.';
+  String get adminCenterRestoreContentFailure => 'Der Inhalt konnte nicht wiederhergestellt werden. Aktualisiere die Meldungswarteschlange und versuche es erneut.';
 
   @override
-  String get adminCenterHideContentWarning =>
-      'Dadurch wird der gemeldete Inhalt aus dem öffentlichen Zugriff entfernt. Die Aktion kann später über den Filter „Erledigt“ rückgängig gemacht werden.';
+  String get adminCenterHideContentWarning => 'Dadurch wird der gemeldete Inhalt aus dem öffentlichen Zugriff entfernt. Die Aktion kann später über den Filter „Erledigt“ rückgängig gemacht werden.';
 
   @override
-  String get adminCenterRestoreContentWarning =>
-      'Dadurch wird der gemeldete Inhalt wieder öffentlich verfügbar.';
+  String get adminCenterRestoreContentWarning => 'Dadurch wird der gemeldete Inhalt wieder öffentlich verfügbar.';
 
   @override
   String get adminCenterActionReasonLabel => 'Grund der Aktion';
 
   @override
-  String get adminCenterHideContentReasonHint =>
-      'Begründe, warum der Inhalt ausgeblendet werden muss';
+  String get adminCenterHideContentReasonHint => 'Begründe, warum der Inhalt ausgeblendet werden muss';
 
   @override
-  String get adminCenterRestoreContentReasonHint =>
-      'Begründe, warum der Inhalt wiederhergestellt werden kann';
+  String get adminCenterRestoreContentReasonHint => 'Begründe, warum der Inhalt wiederhergestellt werden kann';
 
   @override
   String get adminCenterHidingContent => 'Inhalt wird ausgeblendet';
@@ -2828,52 +2572,40 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterReportedProfileTitle => 'Gemeldetes Profil';
 
   @override
-  String get adminCenterReportedProfileNotice =>
-      'Dieser Profilkontext stammt aus der geschützten Meldungswarteschlange. Administrative Kontoaktionen bleiben davon getrennt.';
+  String get adminCenterReportedProfileNotice => 'Dieser Profilkontext stammt aus der geschützten Meldungswarteschlange. Administrative Kontoaktionen bleiben davon getrennt.';
 
   @override
-  String get adminCenterCouldNotRefreshIndicators =>
-      'Die Kennzahlen konnten nicht aktualisiert werden.';
+  String get adminCenterCouldNotRefreshIndicators => 'Die Kennzahlen konnten nicht aktualisiert werden.';
 
   @override
-  String get adminCenterCouldNotRefreshAccount =>
-      'Die Kontodetails konnten nicht aktualisiert werden.';
+  String get adminCenterCouldNotRefreshAccount => 'Die Kontodetails konnten nicht aktualisiert werden.';
 
   @override
-  String get adminCenterReportAlreadyReviewed =>
-      'Diese Meldung wurde bereits geprüft oder ist nicht mehr ausstehend.';
+  String get adminCenterReportAlreadyReviewed => 'Diese Meldung wurde bereits geprüft oder ist nicht mehr ausstehend.';
 
   @override
-  String get adminCenterReportNotAwaitingAdmin =>
-      'Diese Meldung wartet nicht auf eine Administratorentscheidung.';
+  String get adminCenterReportNotAwaitingAdmin => 'Diese Meldung wartet nicht auf eine Administratorentscheidung.';
 
   @override
-  String get adminCenterConfirmedViolationRequired =>
-      'Ein bestätigter Verstoß ist erforderlich, bevor die Sichtbarkeit eines Inhalts geändert werden kann.';
+  String get adminCenterConfirmedViolationRequired => 'Ein bestätigter Verstoß ist erforderlich, bevor die Sichtbarkeit eines Inhalts geändert werden kann.';
 
   @override
-  String get adminCenterContentHiddenSuccess =>
-      'Der gemeldete Inhalt wurde ausgeblendet.';
+  String get adminCenterContentHiddenSuccess => 'Der gemeldete Inhalt wurde ausgeblendet.';
 
   @override
-  String get adminCenterContentRestoredSuccess =>
-      'Der gemeldete Inhalt wurde wiederhergestellt.';
+  String get adminCenterContentRestoredSuccess => 'Der gemeldete Inhalt wurde wiederhergestellt.';
 
   @override
-  String get adminCenterMissingContentId =>
-      'Die ursprüngliche Inhalts-ID fehlt.';
+  String get adminCenterMissingContentId => 'Die ursprüngliche Inhalts-ID fehlt.';
 
   @override
-  String get adminCenterUnsupportedTargetType =>
-      'Diese Meldung hat einen nicht unterstützten Zieltyp.';
+  String get adminCenterUnsupportedTargetType => 'Diese Meldung hat einen nicht unterstützten Zieltyp.';
 
   @override
-  String get adminCenterOriginalContentUnavailable =>
-      'Der ursprüngliche Inhalt ist nicht mehr verfügbar.';
+  String get adminCenterOriginalContentUnavailable => 'Der ursprüngliche Inhalt ist nicht mehr verfügbar.';
 
   @override
-  String get adminCenterNoReportedProfile =>
-      'Mit diesem Inhalt ist kein gemeldetes Profil verknüpft.';
+  String get adminCenterNoReportedProfile => 'Mit diesem Inhalt ist kein gemeldetes Profil verknüpft.';
 
   @override
   String adminCenterRoleChangedSuccess(String previousRole, String newRole) {
@@ -2881,8 +2613,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String adminCenterIdentityChangedSuccess(
-      String actorType, String verificationLevel) {
+  String adminCenterIdentityChangedSuccess(String actorType, String verificationLevel) {
     return 'Öffentliche Identität auf $actorType mit $verificationLevel geändert.';
   }
 
@@ -2972,8 +2703,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profilePublicProfileSectionTitle => 'Öffentliches Profil';
 
   @override
-  String get profileIdentityVerificationSectionTitle =>
-      'Identität und Verifizierung';
+  String get profileIdentityVerificationSectionTitle => 'Identität und Verifizierung';
 
   @override
   String get profilePreferencesSectionTitle => 'Einstellungen';
@@ -3024,15 +2754,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get accountConnectionsFollowersTab => 'Follower';
 
   @override
-  String get accountConnectionsEmptyFollowing =>
-      'Du folgst noch keinen Konten.';
+  String get accountConnectionsEmptyFollowing => 'Du folgst noch keinen Konten.';
 
   @override
   String get accountConnectionsEmptyFollowers => 'Du hast noch keine Follower.';
 
   @override
-  String get accountConnectionsLoadError =>
-      'Konten konnten nicht geladen werden. Bitte versuche es erneut.';
+  String get accountConnectionsLoadError => 'Konten konnten nicht geladen werden. Bitte versuche es erneut.';
 
   @override
   String get profileMyFollowedScopesTitle => 'Meine gefolgten Bereiche';
@@ -3047,8 +2775,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profileLogoutDialogTitle => 'Abmelden';
 
   @override
-  String get profileLogoutDialogMessage =>
-      'Möchtest du dich wirklich von deinem Konto abmelden?';
+  String get profileLogoutDialogMessage => 'Möchtest du dich wirklich von deinem Konto abmelden?';
 
   @override
   String get profileLogoutCancelButton => 'Abbrechen';
@@ -3087,8 +2814,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get publicProfileBlockUserAction => 'Nutzer blockieren';
 
   @override
-  String get publicProfileLoadError =>
-      'Das Profil konnte nicht geladen werden.';
+  String get publicProfileLoadError => 'Das Profil konnte nicht geladen werden.';
 
   @override
   String get publicProfileNotFound => 'Profil nicht verfügbar.';
@@ -3100,15 +2826,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get publicProfileBlockDialogTitle => 'Diesen Nutzer blockieren?';
 
   @override
-  String get publicProfileBlockDialogMessage =>
-      'Du kannst die Blockierung später im öffentlichen Profil wieder aufheben.';
+  String get publicProfileBlockDialogMessage => 'Du kannst die Blockierung später im öffentlichen Profil wieder aufheben.';
 
   @override
   String get publicProfileUnblockDialogTitle => 'Diesen Nutzer entsperren?';
 
   @override
-  String get publicProfileUnblockDialogMessage =>
-      'Der Nutzer wird aus deiner Blockierliste entfernt.';
+  String get publicProfileUnblockDialogMessage => 'Der Nutzer wird aus deiner Blockierliste entfernt.';
 
   @override
   String get publicProfileBlockSuccess => 'Nutzer blockiert.';
@@ -3117,8 +2841,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get publicProfileUnblockSuccess => 'Nutzer entsperrt.';
 
   @override
-  String get publicProfileBlockError =>
-      'Die Blockierung konnte nicht aktualisiert werden. Bitte versuche es erneut.';
+  String get publicProfileBlockError => 'Die Blockierung konnte nicht aktualisiert werden. Bitte versuche es erneut.';
 
   @override
   String get publicProfileFollowersLabel => 'Follower';
@@ -3139,8 +2862,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get publicProfileUnfollowSuccess => 'Konto wird nicht mehr gefolgt.';
 
   @override
-  String get publicProfileFollowError =>
-      'Der Follow-Status konnte nicht aktualisiert werden. Bitte versuche es erneut.';
+  String get publicProfileFollowError => 'Der Follow-Status konnte nicht aktualisiert werden. Bitte versuche es erneut.';
 
   @override
   String get publicProfileFollowRetry => 'Follow-Informationen neu laden';
@@ -3149,8 +2871,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get contentLanguageFieldLabel => 'Sprache des Inhalts';
 
   @override
-  String get contentLanguageFieldHelper =>
-      'Wähle die Sprache aus, in der du den Inhalt geschrieben hast.';
+  String get contentLanguageFieldHelper => 'Wähle die Sprache aus, in der du den Inhalt geschrieben hast.';
 
   @override
   String get contentLanguageUndetermined => 'Nicht angegeben';
@@ -3159,8 +2880,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createPollAdvancedOptionsTitle => 'Erweiterte Optionen';
 
   @override
-  String get createPollAdvancedOptionsSubtitle =>
-      'Anonymität, Sichtbarkeit der Ergebnisse, Stimmänderungen und Quorum.';
+  String get createPollAdvancedOptionsSubtitle => 'Anonymität, Sichtbarkeit der Ergebnisse, Stimmänderungen und Quorum.';
 
   @override
   String get onboardingSkipButton => 'Überspringen';
@@ -3175,36 +2895,31 @@ class AppLocalizationsDe extends AppLocalizations {
   String get onboardingPollTitle => 'Vote';
 
   @override
-  String get onboardingPollDescription =>
-      'Nimm an einem Vote zu Themen teil, die dir wichtig sind, oder erstelle selbst einen, um die Meinung der Community einzuholen.';
+  String get onboardingPollDescription => 'Nimm an einem Vote zu Themen teil, die dir wichtig sind, oder erstelle selbst einen, um die Meinung der Community einzuholen.';
 
   @override
   String get onboardingHeatIceTitle => 'Heat und Ice';
 
   @override
-  String get onboardingHeatIceDescription =>
-      'Nutze Heat und Ice, um zu zeigen, wie stark ein Inhalt dein Interesse weckt.';
+  String get onboardingHeatIceDescription => 'Nutze Heat und Ice, um zu zeigen, wie stark ein Inhalt dein Interesse weckt.';
 
   @override
   String get onboardingCivicMapTitle => 'Civic Map';
 
   @override
-  String get onboardingCivicMapDescription =>
-      'Erkunde Vote, Voce und News auf der Karte und entdecke, was in verschiedenen Gebieten passiert.';
+  String get onboardingCivicMapDescription => 'Erkunde Vote, Voce und News auf der Karte und entdecke, was in verschiedenen Gebieten passiert.';
 
   @override
   String get onboardingGeoScopeTitle => 'GeoScope';
 
   @override
-  String get onboardingGeoScopeDescription =>
-      'Wähle die geografische Ebene, der du folgen möchtest: Welt, Land oder Stadt.';
+  String get onboardingGeoScopeDescription => 'Wähle die geografische Ebene, der du folgen möchtest: Welt, Land oder Stadt.';
 
   @override
   String get onboardingVerificationTitle => 'Identitätsverifizierung';
 
   @override
-  String get onboardingVerificationDescription =>
-      'Einige Vote können eine bestimmte Verifizierungsstufe verlangen, um die Integrität der Abstimmung zu schützen.';
+  String get onboardingVerificationDescription => 'Einige Vote können eine bestimmte Verifizierungsstufe verlangen, um die Integrität der Abstimmung zu schützen.';
 
   @override
   String get pollDetail_voteReceiptButton => 'Stimmbeleg';
@@ -3219,8 +2934,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pollDetail_voteReceiptDateLabel => 'Erfasst';
 
   @override
-  String get pollDetail_voteReceiptPrivacy =>
-      'Dieser Beleg bestätigt, dass deine Stimme erfasst wurde, ohne deine getroffene Auswahl anzuzeigen.';
+  String get pollDetail_voteReceiptPrivacy => 'Dieser Beleg bestätigt, dass deine Stimme erfasst wurde, ohne deine getroffene Auswahl anzuzeigen.';
 
   @override
   String get pollDetail_voteReceiptCloseButton => 'Schließen';
@@ -3229,39 +2943,31 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profileBiometricUnlockTitle => 'Biometrische Entsperrung';
 
   @override
-  String get profileBiometricUnlockDescription =>
-      'Schützt deine gespeicherte Sitzung mit Fingerabdruck oder biometrischer Erkennung des Geräts.';
+  String get profileBiometricUnlockDescription => 'Schützt deine gespeicherte Sitzung mit Fingerabdruck oder biometrischer Erkennung des Geräts.';
 
   @override
-  String get profileBiometricRequiresRememberMe =>
-      'Dafür muss „Angemeldet bleiben“ aktiviert sein.';
+  String get profileBiometricRequiresRememberMe => 'Dafür muss „Angemeldet bleiben“ aktiviert sein.';
 
   @override
-  String get profileBiometricUnavailable =>
-      'Biometrie ist auf diesem Gerät nicht verfügbar oder nicht eingerichtet.';
+  String get profileBiometricUnavailable => 'Biometrie ist auf diesem Gerät nicht verfügbar oder nicht eingerichtet.';
 
   @override
-  String get profileBiometricEnableReason =>
-      'Bestätige deine biometrischen Daten, um die Entsperrung von Social Vote zu aktivieren.';
+  String get profileBiometricEnableReason => 'Bestätige deine biometrischen Daten, um die Entsperrung von Social Vote zu aktivieren.';
 
   @override
-  String get profileBiometricEnabledMessage =>
-      'Biometrische Entsperrung aktiviert.';
+  String get profileBiometricEnabledMessage => 'Biometrische Entsperrung aktiviert.';
 
   @override
-  String get profileBiometricDisabledMessage =>
-      'Biometrische Entsperrung deaktiviert.';
+  String get profileBiometricDisabledMessage => 'Biometrische Entsperrung deaktiviert.';
 
   @override
-  String get profileBiometricAuthFailedMessage =>
-      'Die biometrische Authentifizierung wurde nicht abgeschlossen.';
+  String get profileBiometricAuthFailedMessage => 'Die biometrische Authentifizierung wurde nicht abgeschlossen.';
 
   @override
   String get biometricLockTitle => 'Social Vote ist gesperrt';
 
   @override
-  String get biometricLockMessage =>
-      'Verwende die Biometrie deines Geräts, um die gespeicherte Sitzung zu entsperren.';
+  String get biometricLockMessage => 'Verwende die Biometrie deines Geräts, um die gespeicherte Sitzung zu entsperren.';
 
   @override
   String get biometricUnlockButton => 'Entsperren';
@@ -3273,15 +2979,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get biometricUnlockReason => 'Entsperre deine Social-Vote-Sitzung.';
 
   @override
-  String get biometricUnlockFailedMessage =>
-      'Entsperren fehlgeschlagen. Versuche es erneut oder verwende dein Passwort.';
+  String get biometricUnlockFailedMessage => 'Entsperren fehlgeschlagen. Versuche es erneut oder verwende dein Passwort.';
 
   @override
   String get adminCenterOperationalActivityTitle => 'Operative Aktivität';
 
   @override
-  String get adminCenterOperationalActivitySubtitle =>
-      'Aggregierte Kennzahlen. Keine Echtzeit-Erfassung der Online-Präsenz.';
+  String get adminCenterOperationalActivitySubtitle => 'Aggregierte Kennzahlen. Keine Echtzeit-Erfassung der Online-Präsenz.';
 
   @override
   String get adminCenterLast24HoursLabel => '24 Stunden';
@@ -3305,8 +3009,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterAdminActionsMetric => 'Admin-Aktionen';
 
   @override
-  String get authPublicNameHelper =>
-      'Dies ist der Name, den andere Nutzer sehen. Dein Benutzername wird automatisch erstellt.';
+  String get authPublicNameHelper => 'Dies ist der Name, den andere Nutzer sehen. Dein Benutzername wird automatisch erstellt.';
 
   @override
   String get adminCenterRefreshMarkersTooltip => 'Globus-Marker aktualisieren';
@@ -3315,8 +3018,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterQuickActionsTitle => 'Schnelle Kontoaktionen';
 
   @override
-  String get adminCenterModerationSnapshotTitle =>
-      'Moderations- und Aktivitätsübersicht';
+  String get adminCenterModerationSnapshotTitle => 'Moderations- und Aktivitätsübersicht';
 
   @override
   String get adminCenterReportsReceivedMetric => 'Erhaltene Meldungen';
@@ -3334,18 +3036,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminCenterCommentsCreatedMetric => 'Erstellte Kommentare';
 
   @override
-  String get adminCenterAdminActionsOnAccountMetric =>
-      'Admin-Aktionen am Konto';
+  String get adminCenterAdminActionsOnAccountMetric => 'Admin-Aktionen am Konto';
 
   @override
   String get adminCenterLastReportReceivedLabel => 'Letzte erhaltene Meldung';
 
   @override
-  String get adminCenterOpenFullAccountAction =>
-      'Vollständige Kontosteuerung öffnen';
+  String get adminCenterOpenFullAccountAction => 'Vollständige Kontosteuerung öffnen';
 
   @override
   String get profileAppLanguageGerman => 'Deutsch';
+
+  @override
+  String get profileAppLanguagePersian => 'Persisch';
 
   @override
   String get discoveryPageTitle => 'Entdecken';
@@ -3357,8 +3060,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get organizationPilotBannerTitle => 'Kostenloser Pilot';
 
   @override
-  String get organizationPilotBannerBody =>
-      'Während des Piloten sind Sessions kostenlos. Einige professionelle Funktionen können künftig kostenpflichtig werden; die Abrechnung ist derzeit nicht aktiv.';
+  String get organizationPilotBannerBody => 'Während des Piloten sind Sessions kostenlos. Einige professionelle Funktionen können künftig kostenpflichtig werden; die Abrechnung ist derzeit nicht aktiv.';
 
   @override
   String get organizationVerifiedLabel => 'Verifizierte Organisation';
@@ -3370,19 +3072,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get organizationCreateSession => 'Neue Session';
 
   @override
-  String get organizationNoSessions =>
-      'Noch keine Sessions. Erstelle die erste für ein Meeting, einen Workshop oder eine Veranstaltung.';
+  String get organizationNoSessions => 'Noch keine Sessions. Erstelle die erste für ein Meeting, einen Workshop oder eine Veranstaltung.';
 
   @override
   String get organizationSessionsTitle => 'Live-Sessions';
 
   @override
-  String get organizationRequiresVerificationTitle =>
-      'Verifizierte Organisation erforderlich';
+  String get organizationRequiresVerificationTitle => 'Verifizierte Organisation erforderlich';
 
   @override
-  String get organizationRequiresVerificationBody =>
-      'Dieser Bereich ist nur für Konten verfügbar, die von Social Vote als verifizierte Organisation bestätigt wurden.';
+  String get organizationRequiresVerificationBody => 'Dieser Bereich ist nur für Konten verfügbar, die von Social Vote als verifizierte Organisation bestätigt wurden.';
 
   @override
   String get organizationProfileEditorTitle => 'Organisationsprofil';
@@ -3418,8 +3117,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get organizationMediaUpdated => 'Organisationsbild aktualisiert.';
 
   @override
-  String get organizationNamesRequired =>
-      'Rechtlicher und öffentlicher Name sind erforderlich.';
+  String get organizationNamesRequired => 'Rechtlicher und öffentlicher Name sind erforderlich.';
 
   @override
   String get organizationTypeAssociation => 'Verein';
@@ -3461,15 +3159,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionAccessOpen => 'Offen anonym';
 
   @override
-  String get sessionAccessOpenHint =>
-      'Jeder mit Link/Code kann teilnehmen. Die Duplikatvermeidung ist nur bestmöglich; dieser Modus garantiert nicht eine Person – eine Stimme.';
+  String get sessionAccessOpenHint => 'Jeder mit Link/Code kann teilnehmen. Die Duplikatvermeidung ist nur bestmöglich; dieser Modus garantiert nicht eine Person – eine Stimme.';
 
   @override
   String get sessionAccessControlled => 'Kontrolliert anonym';
 
   @override
-  String get sessionAccessControlledHint =>
-      'Verwendet einmalige anonyme Access Passes. Social Vote speichert nur den Hash des Access Pass und verknüpft Abstimmungsentscheidungen nicht mit Teilnehmerzugängen.';
+  String get sessionAccessControlledHint => 'Verwendet einmalige anonyme Access Passes. Social Vote speichert nur den Hash des Access Pass und verknüpft Abstimmungsentscheidungen nicht mit Teilnehmerzugängen.';
 
   @override
   String get sessionResultsVisibility => 'Sichtbarkeit der Ergebnisse';
@@ -3490,8 +3186,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionCreateAction => 'Session erstellen';
 
   @override
-  String get sessionPilotLimit =>
-      'Pilotlimit: 1 bis 250 Teilnehmende pro Session.';
+  String get sessionPilotLimit => 'Pilotlimit: 1 bis 250 Teilnehmende pro Session.';
 
   @override
   String get sessionStatusDraft => 'Entwurf';
@@ -3521,8 +3216,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionTokensOneTimeTitle => 'Diese Zugangsdaten jetzt speichern';
 
   @override
-  String get sessionTokensOneTimeBody =>
-      'Access Passes im Klartext werden nur in diesem Batch-Ergebnis angezeigt. Social Vote speichert nur deren Hashes. Sicher kopieren und verteilen.';
+  String get sessionTokensOneTimeBody => 'Access Passes im Klartext werden nur in diesem Batch-Ergebnis angezeigt. Social Vote speichert nur deren Hashes. Sicher kopieren und verteilen.';
 
   @override
   String get sessionCopyTokens => 'Alle Links kopieren';
@@ -3537,8 +3231,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionCloseAction => 'Session schließen';
 
   @override
-  String get sessionCloseConfirm =>
-      'Abstimmung schließen und den unveränderlichen Verified-Result-Snapshot erzeugen?';
+  String get sessionCloseConfirm => 'Abstimmung schließen und den unveränderlichen Verified-Result-Snapshot erzeugen?';
 
   @override
   String get sessionQuestionsTitle => 'Fragen';
@@ -3601,8 +3294,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionTokenHint => 'SV-…';
 
   @override
-  String get sessionWaitingQuestion =>
-      'Warten, bis der Organisator eine Frage öffnet…';
+  String get sessionWaitingQuestion => 'Warten, bis der Organisator eine Frage öffnet…';
 
   @override
   String get sessionVoteAction => 'Stimme senden';
@@ -3611,16 +3303,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionVoteReceived => 'Stimme empfangen';
 
   @override
-  String get sessionResultsUnavailable =>
-      'Die Ergebnisse sind nach der gewählten Session-Regel noch nicht sichtbar.';
+  String get sessionResultsUnavailable => 'Die Ergebnisse sind nach der gewählten Session-Regel noch nicht sichtbar.';
 
   @override
-  String get sessionPrivacyNotice =>
-      'Der Organisator legt den operativen Zweck und die Fragen der Session fest. Social Vote verarbeitet die technischen Daten, die zur Bereitstellung und zum Schutz des Dienstes erforderlich sind. Anonyme Modi zeigen dem Organisator keine Verknüpfung zwischen Teilnehmerzugang und Auswahl. Datenschutzrollen können vom Kontext und den anwendbaren Vereinbarungen abhängen.';
+  String get sessionPrivacyNotice => 'Der Organisator legt den operativen Zweck und die Fragen der Session fest. Social Vote verarbeitet die technischen Daten, die zur Bereitstellung und zum Schutz des Dienstes erforderlich sind. Anonyme Modi zeigen dem Organisator keine Verknüpfung zwischen Teilnehmerzugang und Auswahl. Datenschutzrollen können vom Kontext und den anwendbaren Vereinbarungen abhängen.';
 
   @override
-  String get sessionNonBindingNotice =>
-      'Pilot-Sessions dienen Konsultation und Beteiligung. Sie sind keine rechtsverbindliche Wahl, Satzungsabstimmung oder rechtliche Zertifizierung.';
+  String get sessionNonBindingNotice => 'Pilot-Sessions dienen Konsultation und Beteiligung. Sie sind keine rechtsverbindliche Wahl, Satzungsabstimmung oder rechtliche Zertifizierung.';
 
   @override
   String get sessionOptionYes => 'Ja';
@@ -3644,12 +3333,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get verifiedResultHash => 'SHA-256-Ergebnis-Hash';
 
   @override
-  String get verifiedResultGeneratedBy =>
-      'Von Social Vote erzeugt und integritätsgesiegelt';
+  String get verifiedResultGeneratedBy => 'Von Social Vote erzeugt und integritätsgesiegelt';
 
   @override
-  String get verifiedResultNotLegalCertificate =>
-      'Dies ist ein überprüfbarer aggregierter Ergebnisbericht, kein Rechtszertifikat und keine Zertifizierung einer rechtsverbindlichen Wahl.';
+  String get verifiedResultNotLegalCertificate => 'Dies ist ein überprüfbarer aggregierter Ergebnisbericht, kein Rechtszertifikat und keine Zertifizierung einer rechtsverbindlichen Wahl.';
 
   @override
   String get verifiedResultShare => 'Prüflink teilen';
@@ -3665,8 +3352,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get organizationVerifiedIdentityLocked =>
-      'Name und Land gehören zur verifizierten Identität der Organisation. Änderungen erfordern eine neue Verifizierung. Titelbild, Logo, Typ, Stadt, Website und Beschreibung können frei geändert werden.';
+  String get organizationVerifiedIdentityLocked => 'Name und Land gehören zur verifizierten Identität der Organisation. Änderungen erfordern eine neue Verifizierung. Titelbild, Logo, Typ, Stadt, Website und Beschreibung können frei geändert werden.';
 
   @override
   String get verifiedResultOpenedAt => 'Session eröffnet';
@@ -3678,8 +3364,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get verifiedResultIntegritySeal => 'Social Vote Integritätssiegel';
 
   @override
-  String get organizationVerifiedNameLocked =>
-      'Verifizierter Name und Land sind gesperrt. Eine Änderung erfordert eine neue Verifizierungsprüfung.';
+  String get organizationVerifiedNameLocked => 'Verifizierter Name und Land sind gesperrt. Eine Änderung erfordert eine neue Verifizierungsprüfung.';
 
   @override
   String get sessionRetentionLabel => 'Aufbewahrung der Rohstimmzettel';
@@ -3702,23 +3387,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get verifiedResultPrintPdf => 'PDF herunterladen';
 
   @override
-  String get verifiedResultPdfError =>
-      'Das PDF konnte nicht heruntergeladen werden. Versuche es erneut.';
+  String get verifiedResultPdfError => 'Das PDF konnte nicht heruntergeladen werden. Versuche es erneut.';
 
   @override
   String get verifiedResultRestrictedTitle => 'Geschütztes Ergebnis';
 
   @override
-  String get verifiedResultRestrictedBody =>
-      'Dieses Verified Result ist nicht öffentlich verfügbar. Melde dich mit einem autorisierten Organisationskonto an, um es anzuzeigen.';
+  String get verifiedResultRestrictedBody => 'Dieses Verified Result ist nicht öffentlich verfügbar. Melde dich mit einem autorisierten Organisationskonto an, um es anzuzeigen.';
 
   @override
-  String get verifiedResultPrivateVerificationTitle =>
-      'Öffentliche Prüfung nicht verfügbar';
+  String get verifiedResultPrivateVerificationTitle => 'Öffentliche Prüfung nicht verfügbar';
 
   @override
-  String get verifiedResultPrivateVerificationBody =>
-      'Dieses Ergebnis ist auf den Organisator beschränkt. Report-ID, SHA-256 und Integritätsprüfung bleiben im autorisierten Bericht verfügbar.';
+  String get verifiedResultPrivateVerificationBody => 'Dieses Ergebnis ist auf den Organisator beschränkt. Report-ID, SHA-256 und Integritätsprüfung bleiben im autorisierten Bericht verfügbar.';
 
   @override
   String get organizationAccountSectionTitle => 'Deine Organisationen';
@@ -3733,8 +3414,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get organizationOfficialWebsiteAction => 'Offizielle Website';
 
   @override
-  String get organizationVerificationIntro =>
-      'Die Verifizierung betrifft sowohl die Existenz der Organisation als auch deine Berechtigung, sie zu vertreten. Social Vote prüft die Angaben vor der Freigabe.';
+  String get organizationVerificationIntro => 'Die Verifizierung betrifft sowohl die Existenz der Organisation als auch deine Berechtigung, sie zu vertreten. Social Vote prüft die Angaben vor der Freigabe.';
 
   @override
   String get organizationVerificationLegalName => 'Rechtlicher Name';
@@ -3749,8 +3429,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get organizationVerificationCountry => 'Land';
 
   @override
-  String get organizationVerificationCountryRequired =>
-      'Wähle das Land der Organisation aus.';
+  String get organizationVerificationCountryRequired => 'Wähle das Land der Organisation aus.';
 
   @override
   String get organizationVerificationCity => 'Stadt';
@@ -3759,20 +3438,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get organizationVerificationWebsite => 'Offizielle Website';
 
   @override
-  String get organizationVerificationRepresentativeRole =>
-      'Deine Rolle in der Organisation';
+  String get organizationVerificationRepresentativeRole => 'Deine Rolle in der Organisation';
 
   @override
-  String get organizationVerificationRegistryId =>
-      'Register / Steuer- / Organisationskennung';
+  String get organizationVerificationRegistryId => 'Register / Steuer- / Organisationskennung';
 
   @override
-  String get organizationVerificationAuthorityNote =>
-      'Wie können wir deine Vertretungsberechtigung prüfen?';
+  String get organizationVerificationAuthorityNote => 'Wie können wir deine Vertretungsberechtigung prüfen?';
 
   @override
-  String get organizationVerificationAuthorityHelper =>
-      'Beschreibe kurz deine Rolle oder einen Nachweis, den ein Admin während des Piloten prüfen kann.';
+  String get organizationVerificationAuthorityHelper => 'Beschreibe kurz deine Rolle oder einen Nachweis, den ein Admin während des Piloten prüfen kann.';
 
   @override
   String get organizationVerificationRequired => 'Pflichtfeld.';
@@ -3799,8 +3474,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionAccessPassesTitle => 'Teilnehmer-Zugangspässe';
 
   @override
-  String get sessionAccessPassesSubtitle =>
-      'Jeder Pass öffnet diese kontrolliert anonyme Session, ohne dass der Teilnehmer die lange Zugangsdatenfolge eingeben muss. Social Vote speichert den Pass nicht im Klartext.';
+  String get sessionAccessPassesSubtitle => 'Jeder Pass öffnet diese kontrolliert anonyme Session, ohne dass der Teilnehmer die lange Zugangsdatenfolge eingeben muss. Social Vote speichert den Pass nicht im Klartext.';
 
   @override
   String get sessionAccessPass => 'Zugangspass';
@@ -3809,23 +3483,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionAccessPassDetected => 'Zugangspass erkannt';
 
   @override
-  String get sessionAccessPassAutomatic =>
-      'Dein persönlicher Pass ist bereit. Fahre fort, um anonym an der Session teilzunehmen.';
+  String get sessionAccessPassAutomatic => 'Dein persönlicher Pass ist bereit. Fahre fort, um anonym an der Session teilzunehmen.';
 
   @override
   String get sessionAccessPassFallback => 'Pass manuell eingeben';
 
   @override
-  String get sessionAccessPassInvalid =>
-      'Dieser Zugangspass ist ungültig, nicht mehr verfügbar oder die Session ist nicht geöffnet.';
+  String get sessionAccessPassInvalid => 'Dieser Zugangspass ist ungültig, nicht mehr verfügbar oder die Session ist nicht geöffnet.';
 
   @override
-  String get sessionAccessPassPrintWarning =>
-      'Drucke, speichere oder verteile diese Pässe jetzt. Nach Verlassen dieser Ansicht kann Social Vote die Klartext-Pässe nicht erneut anzeigen.';
+  String get sessionAccessPassPrintWarning => 'Drucke, speichere oder verteile diese Pässe jetzt. Nach Verlassen dieser Ansicht kann Social Vote die Klartext-Pässe nicht erneut anzeigen.';
 
   @override
-  String get sessionExistingPassesHidden =>
-      'Aus Sicherheitsgründen können bereits erzeugte Pässe nicht erneut im Klartext angezeigt werden. Erzeuge neue Access Passes, um neue persönliche Links oder QR-Codes zu erhalten.';
+  String get sessionExistingPassesHidden => 'Aus Sicherheitsgründen können bereits erzeugte Pässe nicht erneut im Klartext angezeigt werden. Erzeuge neue Access Passes, um neue persönliche Links oder QR-Codes zu erhalten.';
 
   @override
   String get sessionCopyPassLinks => 'Alle Links kopieren';
@@ -3834,8 +3504,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionCopyPassLink => 'Diesen Link kopieren';
 
   @override
-  String get sessionControlledNeedsAccessPass =>
-      'Erstelle vor dem Öffnen einer kontrollierten Session mindestens einen Zugangspass.';
+  String get sessionControlledNeedsAccessPass => 'Erstelle vor dem Öffnen einer kontrollierten Session mindestens einen Zugangspass.';
 
   @override
   String get sessionJoinedParticipants => 'Beigetretene Zugangsdaten';
@@ -3856,15 +3525,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionNoOpenQuestionTitle => 'Keine Frage ist geöffnet';
 
   @override
-  String get sessionNoOpenQuestionBody =>
-      'Die Teilnehmenden sind verbunden und warten. Öffne die nächste Frage, wenn du bereit bist.';
+  String get sessionNoOpenQuestionBody => 'Die Teilnehmenden sind verbunden und warten. Öffne die nächste Frage, wenn du bereit bist.';
 
   @override
   String get sessionNotStartedTitle => 'Session noch nicht gestartet';
 
   @override
-  String get sessionNotStartedBody =>
-      'Diese Session existiert, ist aber noch nicht geöffnet. Lass diese Seite offen und warte, bis der Organisator sie startet.';
+  String get sessionNotStartedBody => 'Diese Session existiert, ist aber noch nicht geöffnet. Lass diese Seite offen und warte, bis der Organisator sie startet.';
 
   @override
   String get sessionNoAccountRequired => 'Kein Social-Vote-Konto erforderlich';
@@ -3873,16 +3540,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionReceiptDetails => 'Belegdetails';
 
   @override
-  String get sessionOpenAccessInstructions =>
-      'Zeige oder teile diesen QR-Code. Jeder mit dem Link kann beitreten, solange die Session geöffnet ist.';
+  String get sessionOpenAccessInstructions => 'Zeige oder teile diesen QR-Code. Jeder mit dem Link kann beitreten, solange die Session geöffnet ist.';
 
   @override
-  String get sessionControlledAccessInstructions =>
-      'Erstelle persönliche Zugangspässe und gib jedem Teilnehmer einen. Der QR-Code jedes Passes enthält die Zugangsdaten automatisch.';
+  String get sessionControlledAccessInstructions => 'Erstelle persönliche Zugangspässe und gib jedem Teilnehmer einen. Der QR-Code jedes Passes enthält die Zugangsdaten automatisch.';
 
   @override
-  String get sessionControlRoomHint =>
-      'Verwalte Zugänge, Fragen, die projizierte Stage und das finale Verified Result an einem Ort.';
+  String get sessionControlRoomHint => 'Verwalte Zugänge, Fragen, die projizierte Stage und das finale Verified Result an einem Ort.';
 
   @override
   String get sessionPresenterScreenTitle => 'Live-Stage';
@@ -3903,8 +3567,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sessionCreateIntroTitle => 'Meeting einrichten';
 
   @override
-  String get sessionCreateIntroBody =>
-      'Lege fest, wie Teilnehmende eintreten, wann Ergebnisse sichtbar werden und wie lange Rohstimmzettel aufbewahrt werden. Diese Regeln werden im Backend durchgesetzt.';
+  String get sessionCreateIntroBody => 'Lege fest, wie Teilnehmende eintreten, wann Ergebnisse sichtbar werden und wie lange Rohstimmzettel aufbewahrt werden. Diese Regeln werden im Backend durchgesetzt.';
 
   @override
   String get verifiedCertificateNumber => 'Zertifikatsnummer';
@@ -3916,8 +3579,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get verifiedCertificateIntegrityVerified => 'INTEGRITÄT VERIFIZIERT';
 
   @override
-  String get verifiedCertificateIntegrityFailed =>
-      'INTEGRITÄTSPRÜFUNG FEHLGESCHLAGEN';
+  String get verifiedCertificateIntegrityFailed => 'INTEGRITÄTSPRÜFUNG FEHLGESCHLAGEN';
 
   @override
   String get verifiedCertificateOrganizationSection => 'Organisation';
@@ -3959,8 +3621,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get verifiedCertificateSchema => 'Berichtsschema';
 
   @override
-  String get verifiedCertificateJoinedCredentials =>
-      'Beigetretene Zugangsdaten';
+  String get verifiedCertificateJoinedCredentials => 'Beigetretene Zugangsdaten';
 
   @override
   String get verifiedCertificateBallotsTotal => 'Erfasste Stimmzettel';
@@ -3972,12 +3633,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get verifiedCertificatePrivacyModel => 'Anonymes Ergebnismodell';
 
   @override
-  String get verifiedCertificatePrivacyText =>
-      'Der unveränderliche Snapshot enthält nur aggregierte Ergebnisse. Er enthält keine Teilnehmeridentität, keinen Klartext-Zugangspass, kein Teilnehmergeheimnis und keine Zuordnung zwischen Zugangsdaten und Stimmabgabe.';
+  String get verifiedCertificatePrivacyText => 'Der unveränderliche Snapshot enthält nur aggregierte Ergebnisse. Er enthält keine Teilnehmeridentität, keinen Klartext-Zugangspass, kein Teilnehmergeheimnis und keine Zuordnung zwischen Zugangsdaten und Stimmabgabe.';
 
   @override
-  String get verifiedCertificateVerifyQr =>
-      'Scanne diesen QR-Code, um den Bericht online zu prüfen.';
+  String get verifiedCertificateVerifyQr => 'Scanne diesen QR-Code, um den Bericht online zu prüfen.';
 
   @override
   String get organizationDashboardTitle => 'Organisationsübersicht';
@@ -3993,4 +3652,189 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sessionPrivacyPolicyAction => 'Datenschutzerklärung lesen';
+
+  @override
+  String get radioMondoTitle => 'Weltradio';
+
+  @override
+  String get radioMondoDescription => 'Drei originale Klangwelten zum Erkunden von Social Vote. Die Wiedergabe startet nur, wenn du einen Titel auswählst.';
+
+  @override
+  String get radioMondoTrackClassical => 'Klassische Umlaufbahn';
+
+  @override
+  String get radioMondoTrackRain => 'Regen über der Welt';
+
+  @override
+  String get radioMondoTrackYoung => 'Junger Pulse';
+
+  @override
+  String get radioMondoPlaying => 'Wird wiedergegeben';
+
+  @override
+  String get radioMondoStopped => 'Weltradio beendet';
+
+  @override
+  String get radioMondoStopAction => 'Stoppen';
+
+  @override
+  String get radioMondoPlaybackError => 'Die Audiodatei konnte nicht wiedergegeben werden';
+
+  @override
+  String get radioMondoForegroundOnly => 'Die Wiedergabe endet, wenn Social Vote geschlossen, in den Hintergrund verschoben oder der Browser-Tab ausgeblendet wird.';
+
+  @override
+  String get adminCenterEditorialNavigation => 'World Briefs';
+
+  @override
+  String get worldBriefEditorTitle => 'Social Vote World Briefs';
+
+  @override
+  String get worldBriefEditorDescription => 'Erstelle belegte Kurzberichte, mache Unsicherheit sichtbar und entscheide, was in den Nachrichten und auf dem Globus erscheint.';
+
+  @override
+  String get worldBriefAllStatuses => 'Alle Status';
+
+  @override
+  String get worldBriefCreateAction => 'Brief erstellen';
+
+  @override
+  String get worldBriefDraftSaved => 'Entwurf gespeichert';
+
+  @override
+  String get worldBriefPublished => 'Brief veröffentlicht';
+
+  @override
+  String get worldBriefWithdrawn => 'Brief zurückgezogen';
+
+  @override
+  String get worldBriefSaveError => 'Der Brief konnte nicht gespeichert werden';
+
+  @override
+  String get worldBriefPublishError => 'Der Brief konnte nicht veröffentlicht werden';
+
+  @override
+  String get worldBriefDraftDeleted => 'Entwurf gelöscht';
+
+  @override
+  String get worldBriefDeleteDraft => 'Entwurf löschen';
+
+  @override
+  String get worldBriefDeleteDraftConfirm => 'Diesen unveröffentlichten Entwurf dauerhaft löschen?';
+
+  @override
+  String get worldBriefRetry => 'Erneut versuchen';
+
+  @override
+  String get worldBriefStatusDraft => 'Entwurf';
+
+  @override
+  String get worldBriefStatusPublished => 'Veröffentlicht';
+
+  @override
+  String get worldBriefStatusWithdrawn => 'Zurückgezogen';
+
+  @override
+  String get worldBriefSetupRequired => 'Redaktionelles Backend nicht bereit';
+
+  @override
+  String get worldBriefSetupRequiredBody => 'Wende vor der Nutzung dieses Bereichs die enthaltene World-Brief-Datenbankmigration an.';
+
+  @override
+  String get worldBriefEmptyTitle => 'Noch keine World Briefs';
+
+  @override
+  String get worldBriefEmptyBody => 'Erstelle einen Entwurf, dokumentiere mindestens zwei Quellen und veröffentliche erst nach redaktioneller Prüfung.';
+
+  @override
+  String get worldBriefFeatured => 'Hervorgehoben';
+
+  @override
+  String get worldBriefOnGlobe => 'Auf dem Globus zeigen';
+
+  @override
+  String get worldBriefPriority => 'Priorität';
+
+  @override
+  String get worldBriefEditAction => 'Bearbeiten';
+
+  @override
+  String get worldBriefPublishAction => 'Veröffentlichen';
+
+  @override
+  String get worldBriefWithdrawAction => 'Zurückziehen';
+
+  @override
+  String get worldBriefSaveDraftAction => 'Entwurf speichern';
+
+  @override
+  String get worldBriefLanguage => 'Sprache des Briefs';
+
+  @override
+  String get worldBriefTitleField => 'Überschrift';
+
+  @override
+  String get worldBriefWhatHappened => 'Was passiert ist';
+
+  @override
+  String get worldBriefWhyItMatters => 'Warum es wichtig ist';
+
+  @override
+  String get worldBriefWhatIsUncertain => 'Was noch unklar ist';
+
+  @override
+  String get worldBriefSources => 'Quellen-URLs';
+
+  @override
+  String get worldBriefSourcesHint => 'Eine HTTPS-URL pro Zeile; mindestens zwei unabhängige Quellen.';
+
+  @override
+  String get worldBriefTwoSourcesRequired => 'Füge mindestens zwei Quellen hinzu.';
+
+  @override
+  String get worldBriefHttpsSourcesRequired => 'Jede Quelle muss HTTPS verwenden.';
+
+  @override
+  String get worldBriefGlobeSection => 'Platzierung auf dem Globus';
+
+  @override
+  String get worldBriefGlobeRequiresPoint => 'Die Anzeige auf dem Globus erfordert gültige Breiten- und Längengrade.';
+
+  @override
+  String get worldBriefCountryCode => 'Ländercode';
+
+  @override
+  String get worldBriefCityId => 'Stadt-ID';
+
+  @override
+  String get worldBriefLocationLabel => 'Ortsbezeichnung';
+
+  @override
+  String get worldBriefLatitude => 'Breitengrad';
+
+  @override
+  String get worldBriefLongitude => 'Längengrad';
+
+  @override
+  String get worldBriefBreaking => 'Eilmeldung';
+
+  @override
+  String get worldBriefExpiry => 'Prüf- oder Ablaufzeitraum';
+
+  @override
+  String worldBriefExpiryDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days Tage',
+      one: '1 Tag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get worldBriefRequiredField => 'Dieses Feld ist erforderlich.';
+
+  @override
+  String get worldBriefCoordinatesRequired => 'Gib eine gültige Koordinate ein.';
 }

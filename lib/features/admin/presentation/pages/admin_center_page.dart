@@ -28,8 +28,16 @@ import 'package:sociale_vote/domain/identity/value_objects/verification_status.d
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/world_globe_widget.dart';
+import 'package:sociale_vote/features/admin/presentation/pages/world_brief_editor_page.dart';
 
-enum AdminCenterSection { dashboard, users, verification, reports, audit }
+enum AdminCenterSection {
+  dashboard,
+  editorial,
+  users,
+  verification,
+  reports,
+  audit,
+}
 
 AppLocalizations _adminL10n(BuildContext context) =>
     AppLocalizations.of(context)!;
@@ -119,6 +127,13 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         selectedIcon: Icons.dashboard,
         label: _adminL10n(context).adminCenterDashboardNavigation,
       ),
+      if (widget.currentRole == Role.admin)
+        _AdminDestination(
+          section: AdminCenterSection.editorial,
+          icon: Icons.newspaper_outlined,
+          selectedIcon: Icons.newspaper_rounded,
+          label: _adminL10n(context).adminCenterEditorialNavigation,
+        ),
       if (widget.currentRole == Role.admin)
         _AdminDestination(
           section: AdminCenterSection.users,
@@ -225,6 +240,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       'it' => const Locale('it'),
       'en' => const Locale('en'),
       'de' => const Locale('de'),
+      'fa' => const Locale('fa'),
       _ => null,
     };
 
@@ -280,6 +296,16 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               Icon(Icons.language),
               SizedBox(width: 12),
               Text('Deutsch'),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'fa',
+          child: Row(
+            children: [
+              Icon(Icons.language),
+              SizedBox(width: 12),
+              Text('فارسی'),
             ],
           ),
         ),
@@ -1562,6 +1588,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   Widget _buildSelectedContent(BuildContext context) {
     if (_selectedSection == AdminCenterSection.dashboard) {
       return _buildDesktopDashboard(context);
+    }
+
+    if (_selectedSection == AdminCenterSection.editorial) {
+      return const WorldBriefEditorPage();
     }
 
     if (_selectedSection == AdminCenterSection.users) {

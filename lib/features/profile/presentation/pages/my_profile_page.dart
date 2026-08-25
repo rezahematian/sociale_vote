@@ -361,6 +361,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 'it' => const Locale('it'),
                 'en' => const Locale('en'),
                 'de' => const Locale('de'),
+                'fa' => const Locale('fa'),
                 _ => null,
               };
 
@@ -388,6 +389,10 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 RadioListTile<String>(
                   value: 'de',
                   title: Text(l10n.profileAppLanguageGerman),
+                ),
+                RadioListTile<String>(
+                  value: 'fa',
+                  title: Text(l10n.profileAppLanguagePersian),
                 ),
                 const SizedBox(height: 8),
               ],
@@ -1819,6 +1824,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
         return l10n.profileAppLanguageEnglish;
       case 'de':
         return l10n.profileAppLanguageGerman;
+      case 'fa':
+        return l10n.profileAppLanguagePersian;
       default:
         return l10n.profileAppLanguageSystem;
     }

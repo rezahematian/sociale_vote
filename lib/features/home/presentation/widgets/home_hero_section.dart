@@ -34,6 +34,9 @@ class HomeHeroSection extends StatelessWidget {
     if (language == 'de') {
       return 'Entdecke, was zählt, teile deine Voce und nimm an Vote teil.';
     }
+    if (language == 'fa') {
+      return 'آنچه اهمیت دارد را کشف کنید، دیدگاه خود را بیان کنید و در رأی‌گیری‌ها شرکت کنید.';
+    }
     return 'Discover what matters, share your Voce and take part in Vote.';
   }
 
@@ -188,7 +191,7 @@ class HomeHeroSection extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Align(
-                              alignment: Alignment.centerLeft,
+                              alignment: AlignmentDirectional.centerStart,
                               child: _buildTopChip(
                                 theme: theme,
                                 icon: Icons.public_outlined,

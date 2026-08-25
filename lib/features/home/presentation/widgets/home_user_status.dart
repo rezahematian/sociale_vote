@@ -18,7 +18,7 @@ class HomeUserStatus extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Align(
-      alignment: Alignment.centerLeft,
+      alignment: AlignmentDirectional.centerStart,
       child: Row(
         children: [
           Icon(

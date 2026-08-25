@@ -12,6 +12,9 @@ import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 import 'package:sociale_vote/features/auth/presentation/widgets/biometric_session_gate.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/navigation_service.dart';
+import 'package:sociale_vote/shared/services/radio_mondo_service.dart';
+import 'package:sociale_vote/shared/services/social_vote_hud_service.dart';
+import 'package:sociale_vote/shared/widgets/radio_mondo_dock.dart';
 
 enum AppAppearanceMode {
   light,
@@ -162,7 +165,7 @@ class AppLocaleController {
 
   static bool _isLoaded = false;
 
-  /// Mantiene IT/EN/DE e usa esplicitamente EN per qualunque altra lingua.
+  /// Mantiene IT/EN/DE/FA e usa esplicitamente EN per qualunque altra lingua.
   ///
   /// L'ordine dei file generati non deve decidere il fallback di prodotto.
   static Locale resolveSystemLocale(
@@ -200,6 +203,7 @@ class AppLocaleController {
         'it' => 'it',
         'en' => 'en',
         'de' => 'de',
+        'fa' => 'fa',
         _ => null,
       };
 
@@ -252,6 +256,7 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
   void initState() {
     super.initState();
     unawaited(AppLocaleController.load());
+    unawaited(RadioMondoService.instance.initialize());
 
     _appearanceUserSubscription =
         AppDI.instance.sessionRepository.watchCurrentUserId().listen(
@@ -404,6 +409,8 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
     _authStateSubscription = null;
     _appearanceUserSubscription?.cancel();
     _appearanceUserSubscription = null;
+    unawaited(RadioMondoService.instance.shutdown());
+    SocialVoteHud.dismiss();
     super.dispose();
   }
 
@@ -438,7 +445,14 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
               builder: (context, child) {
                 return BiometricSessionGate(
                   skipLock: _hasRecoverySignal(Uri.base),
-                  child: child ?? const SizedBox.shrink(),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      child ?? const SizedBox.shrink(),
+                      const RadioMondoDock(),
+                      const SocialVoteHudOverlay(),
+                    ],
+                  ),
                 );
               },
               navigatorObservers: const <NavigatorObserver>[],

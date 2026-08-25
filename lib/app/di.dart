@@ -13,6 +13,7 @@ import 'package:sociale_vote/domain/admin/repositories/admin_repository.dart';
 
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/content/news/repositories/news_repository.dart';
+import 'package:sociale_vote/domain/content/news/repositories/world_brief_repository.dart';
 import 'package:sociale_vote/domain/content/news/usecases/get_news_detail.dart';
 import 'package:sociale_vote/domain/content/news/usecases/get_news_feed.dart';
 
@@ -145,6 +146,7 @@ import 'package:sociale_vote/infrastructure/news/aggregator/news_provider.dart';
 import 'package:sociale_vote/infrastructure/news/aggregator/web_news_proxy_provider.dart';
 import 'package:sociale_vote/infrastructure/news/mappers/news_mapper.dart';
 import 'package:sociale_vote/infrastructure/news/repositories/news_repository_impl.dart';
+import 'package:sociale_vote/infrastructure/news/repositories/world_brief_repository_supabase.dart';
 import 'package:sociale_vote/infrastructure/notifications/repositories/notification_repository_impl.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/auth_api.dart';
 import 'package:sociale_vote/infrastructure/persistence/remote/rest/guardian_api.dart';
@@ -258,9 +260,9 @@ class _NewsMapCandidate {
       editorial?.contentLocation ?? news.contentLocation;
   DateTime get publishedAt => news.publishedAt;
   bool get isBreaking => news.isBreaking;
-  bool get mapVisible => editorial?.mapVisible ?? true;
-  bool get mapFeatured => editorial?.featured ?? false;
-  int get mapPriority => editorial?.priority ?? 0;
+  bool get mapVisible => editorial?.mapVisible ?? news.editorialMapVisible;
+  bool get mapFeatured => editorial?.featured ?? news.editorialFeatured;
+  int get mapPriority => editorial?.priority ?? news.editorialPriority;
 }
 
 class AppDI {
@@ -368,13 +370,19 @@ class AppDI {
       const DeviceLocationRepositoryImpl();
   late final GeocodingRepository _geocodingRepository =
       const GeocodingRepositoryImpl();
+  late final WorldBriefRepository _worldBriefRepository =
+      WorldBriefRepositorySupabase();
   late final FollowScopeRepository _followScopeRepository =
       FollowScopeRepositoryInMemory();
   late final PollRepository _pollRepository = PollRepositorySupabase();
   late final VoteRepository _voteRepository =
       VoteRepositoryImpl(Supabase.instance.client);
-  late final NewsRepositoryImpl _newsRepositoryImpl =
-      NewsRepositoryImpl(_newsAggregator, _newsMapper, _geocodingRepository);
+  late final NewsRepositoryImpl _newsRepositoryImpl = NewsRepositoryImpl(
+    _newsAggregator,
+    _newsMapper,
+    _geocodingRepository,
+    _worldBriefRepository,
+  );
   late final NewsRepository _newsRepository = _newsRepositoryImpl;
   final PostRepository _postRepository = PostRepositoryImpl();
   final FavoriteRepository _favoriteRepository = FavoriteRepositorySupabase();
@@ -416,6 +424,7 @@ class AppDI {
   PollRepository get pollRepository => _pollRepository;
   VoteRepository get voteRepository => _voteRepository;
   NewsRepository get newsRepository => _newsRepository;
+  WorldBriefRepository get worldBriefRepository => _worldBriefRepository;
   PostRepository get postRepository => _postRepository;
   FavoriteRepository get favoriteRepository => _favoriteRepository;
   ReactionRepository get reactionRepository => _reactionRepository;

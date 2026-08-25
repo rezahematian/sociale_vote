@@ -86,7 +86,7 @@ class HomeTopBar extends StatelessWidget {
                 const _ColorfulBrand(),
                 const SizedBox(height: 8),
                 Align(
-                  alignment: Alignment.centerRight,
+                  alignment: AlignmentDirectional.centerEnd,
                   child: guestActions,
                 ),
               ],

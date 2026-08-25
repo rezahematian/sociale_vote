@@ -11,7 +11,7 @@ class NewsItem {
   /// Scope del feed / contesto da cui è stata caricata la news.
   /// Serve ancora per filtri e fallback.
   final String? countryCode;
-  final String? cityId; 
+  final String? cityId;
 
   /// Località reale di cui parla l'articolo.
   /// Questa è quella che la mappa deve usare per il marker.
@@ -34,6 +34,10 @@ class NewsItem {
 
   final DateTime publishedAt;
   final bool isBreaking;
+  final bool isSocialVoteBrief;
+  final bool editorialMapVisible;
+  final bool editorialFeatured;
+  final int editorialPriority;
 
   const NewsItem({
     required this.id,
@@ -52,6 +56,10 @@ class NewsItem {
     this.sourceUrl,
     this.language,
     this.isBreaking = false,
+    this.isSocialVoteBrief = false,
+    this.editorialMapVisible = true,
+    this.editorialFeatured = false,
+    this.editorialPriority = 0,
   });
 
   bool get isGlobal => countryCode == null && cityId == null;

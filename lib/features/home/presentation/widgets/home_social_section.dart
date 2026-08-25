@@ -162,7 +162,7 @@ class HomeSocialSection extends StatelessWidget {
         content,
         const SizedBox(height: 6),
         Align(
-          alignment: Alignment.centerLeft,
+          alignment: AlignmentDirectional.centerStart,
           child: TextButton.icon(
             onPressed: () async {
               await Navigator.pushNamed(

@@ -1,0 +1,17 @@
+SOCIAL VOTE - RADIO MONDO AUDIO ASSETS
+Version: 2026-08-25
+
+The following loops were generated specifically for the Social Vote project
+from original procedural synthesis. They do not contain samples, performances
+or recordings taken from third parties:
+
+- orbita_classica.ogg
+- pioggia_sul_mondo.ogg
+- pulse_giovane.ogg
+
+The Social Vote project owner may use, modify, distribute and publish these
+three files as part of Social Vote, including commercial releases.
+
+No claim is made that these files reproduce Mozart, Beethoven or any other
+existing composition or recording. Replace or add future tracks only when a
+written licence and attribution record are stored with the asset.

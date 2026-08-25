@@ -83,6 +83,11 @@ dependencies:
   share_plus: ^7.2.2
 
   # =========================
+  # RADIO MONDO (FOREGROUND ONLY)
+  # =========================
+  audioplayers: ^6.8.1
+
+  # =========================
   # LOCAL QR (SESSIONS / VERIFIED RESULT)
   # =========================
   qr_flutter: ^4.1.0
@@ -121,6 +126,10 @@ flutter:
     - assets/globe/earth_day_nasa_bmng_august_4096.jpg
     - assets/globe/earth_night_nasa_black_marble_2016_3600.jpg
     - assets/globe/gaia_edr3_sky_equirectangular_2160.png
+    - assets/audio/orbita_classica.ogg
+    - assets/audio/pioggia_sul_mondo.ogg
+    - assets/audio/pulse_giovane.ogg
+    - assets/audio/AUDIO_LICENSES.txt
   shaders:
     - shaders/scientific_sky.frag
 

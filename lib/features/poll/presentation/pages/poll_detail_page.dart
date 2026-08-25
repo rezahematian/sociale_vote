@@ -160,7 +160,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
     }
   }
 
-  void _openPollAuthorProfile(String userId) {
+  void _openPollAuthorProfile(String userId, {String? organizationId}) {
     final normalizedUserId = userId.trim();
     if (normalizedUserId.isEmpty) {
       return;
@@ -170,6 +170,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
       MaterialPageRoute<void>(
         builder: (_) => PublicUserProfilePage(
           userId: normalizedUserId,
+          organizationId: organizationId,
         ),
       ),
     );
@@ -946,7 +947,10 @@ class _PollDetailPageState extends State<PollDetailPage> {
                       ? _pollAuthorProfile
                       : null,
                   onAuthorTap: hasAuthorUserId
-                      ? () => _openPollAuthorProfile(authorUserId)
+                      ? () => _openPollAuthorProfile(
+                            authorUserId,
+                            organizationId: poll.publisherOrganizationId,
+                          )
                       : null,
                 ),
               ),

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_fa.dart';
 import 'app_localizations_it.dart';
 
 // ignore_for_file: type=lint
@@ -63,8 +64,7 @@ import 'app_localizations_it.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -72,8 +72,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -85,8 +84,7 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
@@ -97,6 +95,7 @@ abstract class AppLocalizations {
   static const List<Locale> supportedLocales = <Locale>[
     Locale('de'),
     Locale('en'),
+    Locale('fa'),
     Locale('it')
   ];
 
@@ -5144,8 +5143,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Public identity changed to {actorType} with {verificationLevel}.'**
-  String adminCenterIdentityChangedSuccess(
-      String actorType, String verificationLevel);
+  String adminCenterIdentityChangedSuccess(String actorType, String verificationLevel);
 
   /// No description provided for @adminCenterAccountSuspendedSuccess.
   ///
@@ -5926,6 +5924,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'German'**
   String get profileAppLanguageGerman;
+
+  /// No description provided for @profileAppLanguagePersian.
+  ///
+  /// In en, this message translates to:
+  /// **'Persian'**
+  String get profileAppLanguagePersian;
 
   /// Title of the Discovery section
   ///
@@ -7120,10 +7124,363 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Read the Privacy Policy'**
   String get sessionPrivacyPolicyAction;
+
+  /// No description provided for @radioMondoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'World Radio'**
+  String get radioMondoTitle;
+
+  /// No description provided for @radioMondoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Three original soundscapes for exploring Social Vote. Playback starts only when you choose a track.'**
+  String get radioMondoDescription;
+
+  /// No description provided for @radioMondoTrackClassical.
+  ///
+  /// In en, this message translates to:
+  /// **'Classical Orbit'**
+  String get radioMondoTrackClassical;
+
+  /// No description provided for @radioMondoTrackRain.
+  ///
+  /// In en, this message translates to:
+  /// **'Rain over the World'**
+  String get radioMondoTrackRain;
+
+  /// No description provided for @radioMondoTrackYoung.
+  ///
+  /// In en, this message translates to:
+  /// **'Young Pulse'**
+  String get radioMondoTrackYoung;
+
+  /// No description provided for @radioMondoPlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Now playing'**
+  String get radioMondoPlaying;
+
+  /// No description provided for @radioMondoStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'World Radio stopped'**
+  String get radioMondoStopped;
+
+  /// No description provided for @radioMondoStopAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get radioMondoStopAction;
+
+  /// No description provided for @radioMondoPlaybackError.
+  ///
+  /// In en, this message translates to:
+  /// **'The audio could not be played'**
+  String get radioMondoPlaybackError;
+
+  /// No description provided for @radioMondoForegroundOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback stops when Social Vote is closed, sent to the background or the browser tab is hidden.'**
+  String get radioMondoForegroundOnly;
+
+  /// No description provided for @adminCenterEditorialNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'World Briefs'**
+  String get adminCenterEditorialNavigation;
+
+  /// No description provided for @worldBriefEditorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Vote World Briefs'**
+  String get worldBriefEditorTitle;
+
+  /// No description provided for @worldBriefEditorDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare evidence-based briefs, keep uncertainty visible and decide what appears in News and on the Globe.'**
+  String get worldBriefEditorDescription;
+
+  /// No description provided for @worldBriefAllStatuses.
+  ///
+  /// In en, this message translates to:
+  /// **'All statuses'**
+  String get worldBriefAllStatuses;
+
+  /// No description provided for @worldBriefCreateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create brief'**
+  String get worldBriefCreateAction;
+
+  /// No description provided for @worldBriefDraftSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft saved'**
+  String get worldBriefDraftSaved;
+
+  /// No description provided for @worldBriefPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Brief published'**
+  String get worldBriefPublished;
+
+  /// No description provided for @worldBriefWithdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Brief withdrawn'**
+  String get worldBriefWithdrawn;
+
+  /// No description provided for @worldBriefSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'The brief could not be saved'**
+  String get worldBriefSaveError;
+
+  /// No description provided for @worldBriefPublishError.
+  ///
+  /// In en, this message translates to:
+  /// **'The brief could not be published'**
+  String get worldBriefPublishError;
+
+  /// No description provided for @worldBriefDraftDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft deleted'**
+  String get worldBriefDraftDeleted;
+
+  /// No description provided for @worldBriefDeleteDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete draft'**
+  String get worldBriefDeleteDraft;
+
+  /// No description provided for @worldBriefDeleteDraftConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete this unpublished draft?'**
+  String get worldBriefDeleteDraftConfirm;
+
+  /// No description provided for @worldBriefRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get worldBriefRetry;
+
+  /// No description provided for @worldBriefStatusDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get worldBriefStatusDraft;
+
+  /// No description provided for @worldBriefStatusPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Published'**
+  String get worldBriefStatusPublished;
+
+  /// No description provided for @worldBriefStatusWithdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get worldBriefStatusWithdrawn;
+
+  /// No description provided for @worldBriefSetupRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Editorial backend not ready'**
+  String get worldBriefSetupRequired;
+
+  /// No description provided for @worldBriefSetupRequiredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply the included World Brief database migration before using this section.'**
+  String get worldBriefSetupRequiredBody;
+
+  /// No description provided for @worldBriefEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No World Briefs yet'**
+  String get worldBriefEmptyTitle;
+
+  /// No description provided for @worldBriefEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a draft, document at least two sources and publish only after editorial review.'**
+  String get worldBriefEmptyBody;
+
+  /// No description provided for @worldBriefFeatured.
+  ///
+  /// In en, this message translates to:
+  /// **'Featured'**
+  String get worldBriefFeatured;
+
+  /// No description provided for @worldBriefOnGlobe.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on Globe'**
+  String get worldBriefOnGlobe;
+
+  /// No description provided for @worldBriefPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority'**
+  String get worldBriefPriority;
+
+  /// No description provided for @worldBriefEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get worldBriefEditAction;
+
+  /// No description provided for @worldBriefPublishAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish'**
+  String get worldBriefPublishAction;
+
+  /// No description provided for @worldBriefWithdrawAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw'**
+  String get worldBriefWithdrawAction;
+
+  /// No description provided for @worldBriefSaveDraftAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save draft'**
+  String get worldBriefSaveDraftAction;
+
+  /// No description provided for @worldBriefLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Brief language'**
+  String get worldBriefLanguage;
+
+  /// No description provided for @worldBriefTitleField.
+  ///
+  /// In en, this message translates to:
+  /// **'Headline'**
+  String get worldBriefTitleField;
+
+  /// No description provided for @worldBriefWhatHappened.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened'**
+  String get worldBriefWhatHappened;
+
+  /// No description provided for @worldBriefWhyItMatters.
+  ///
+  /// In en, this message translates to:
+  /// **'Why it matters'**
+  String get worldBriefWhyItMatters;
+
+  /// No description provided for @worldBriefWhatIsUncertain.
+  ///
+  /// In en, this message translates to:
+  /// **'What is still uncertain'**
+  String get worldBriefWhatIsUncertain;
+
+  /// No description provided for @worldBriefSources.
+  ///
+  /// In en, this message translates to:
+  /// **'Source URLs'**
+  String get worldBriefSources;
+
+  /// No description provided for @worldBriefSourcesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One HTTPS URL per line; at least two independent sources.'**
+  String get worldBriefSourcesHint;
+
+  /// No description provided for @worldBriefTwoSourcesRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least two sources.'**
+  String get worldBriefTwoSourcesRequired;
+
+  /// No description provided for @worldBriefHttpsSourcesRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Every source must use HTTPS.'**
+  String get worldBriefHttpsSourcesRequired;
+
+  /// No description provided for @worldBriefGlobeSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Globe placement'**
+  String get worldBriefGlobeSection;
+
+  /// No description provided for @worldBriefGlobeRequiresPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Globe visibility requires valid latitude and longitude.'**
+  String get worldBriefGlobeRequiresPoint;
+
+  /// No description provided for @worldBriefCountryCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Country code'**
+  String get worldBriefCountryCode;
+
+  /// No description provided for @worldBriefCityId.
+  ///
+  /// In en, this message translates to:
+  /// **'City ID'**
+  String get worldBriefCityId;
+
+  /// No description provided for @worldBriefLocationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Location label'**
+  String get worldBriefLocationLabel;
+
+  /// No description provided for @worldBriefLatitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude'**
+  String get worldBriefLatitude;
+
+  /// No description provided for @worldBriefLongitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Longitude'**
+  String get worldBriefLongitude;
+
+  /// No description provided for @worldBriefBreaking.
+  ///
+  /// In en, this message translates to:
+  /// **'Breaking update'**
+  String get worldBriefBreaking;
+
+  /// No description provided for @worldBriefExpiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Review or expiry window'**
+  String get worldBriefExpiry;
+
+  /// No description provided for @worldBriefExpiryDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day} other{{days} days}}'**
+  String worldBriefExpiryDays(int days);
+
+  /// No description provided for @worldBriefRequiredField.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required.'**
+  String get worldBriefRequiredField;
+
+  /// No description provided for @worldBriefCoordinatesRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid coordinate.'**
+  String get worldBriefCoordinatesRequired;
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -7132,27 +7489,27 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['de', 'en', 'it'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['de', 'en', 'fa', 'it'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'de':
-      return AppLocalizationsDe();
-    case 'en':
-      return AppLocalizationsEn();
-    case 'it':
-      return AppLocalizationsIt();
+    case 'de': return AppLocalizationsDe();
+    case 'en': return AppLocalizationsEn();
+    case 'fa': return AppLocalizationsFa();
+    case 'it': return AppLocalizationsIt();
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.'
+  );
 }

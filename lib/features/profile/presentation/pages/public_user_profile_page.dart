@@ -18,10 +18,12 @@ import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class PublicUserProfilePage extends StatefulWidget {
   final String userId;
+  final String? organizationId;
 
   const PublicUserProfilePage({
     super.key,
     required this.userId,
+    this.organizationId,
   });
 
   @override
@@ -52,6 +54,11 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
   bool _organizationFollowStateLoadError = false;
   bool _organizationFollowActionLoading = false;
 
+  String? get _explicitOrganizationId {
+    final normalized = widget.organizationId?.trim();
+    return normalized == null || normalized.isEmpty ? null : normalized;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -70,7 +77,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
       _loadBlockState(),
       _loadOrganization(),
     ];
-    if (!profile.isOrganizationActor) {
+    if (_explicitOrganizationId == null && !profile.isOrganizationActor) {
       profileTasks.add(_loadFollowState());
     }
 
@@ -165,7 +172,9 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
 
   Future<void> _loadOrganization() async {
     final profile = _profile;
-    if (profile == null || !profile.isOrganizationActor) {
+    final organizationId = _explicitOrganizationId;
+    if (profile == null ||
+        (organizationId == null && !profile.isOrganizationActor)) {
       if (mounted) {
         setState(() {
           _organization = null;
@@ -179,8 +188,11 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
     }
 
     try {
-      final organization = await AppDI.instance.organizationRepository
-          .getPublicOrganizationByOperator(widget.userId);
+      final organization = organizationId == null
+          ? await AppDI.instance.organizationRepository
+              .getPublicOrganizationByOperator(widget.userId)
+          : await AppDI.instance.organizationRepository
+              .getPublicOrganizationById(organizationId);
       if (!mounted) return;
 
       setState(() => _organization = organization);
@@ -524,6 +536,10 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
   }
 
   List<Widget> _buildAppBarActions(AppLocalizations l10n) {
+    if (_explicitOrganizationId != null) {
+      return const <Widget>[];
+    }
+
     final currentUserId = AppDI.instance.currentUserId?.trim();
     final targetUserId = widget.userId.trim();
 
@@ -604,11 +620,20 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
     }
 
     try {
-      final polls = await AppDI.instance.pollRepository.getPollsByAuthor(
+      final loadedPolls = await AppDI.instance.pollRepository.getPollsByAuthor(
         authorUserId: normalizedUserId,
         limit: 20,
         offset: 0,
       );
+      final organizationId = _explicitOrganizationId;
+      final polls = organizationId == null
+          ? loadedPolls
+          : loadedPolls
+              .where(
+                (poll) =>
+                    poll.publisherOrganizationId?.trim() == organizationId,
+              )
+              .toList(growable: false);
 
       if (!mounted) return;
 
@@ -642,11 +667,20 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
     }
 
     try {
-      final posts = await AppDI.instance.postRepository.getPostsByAuthor(
+      final loadedPosts = await AppDI.instance.postRepository.getPostsByAuthor(
         authorUserId: normalizedUserId,
         limit: 20,
         offset: 0,
       );
+      final organizationId = _explicitOrganizationId;
+      final posts = organizationId == null
+          ? loadedPosts
+          : loadedPosts
+              .where(
+                (post) =>
+                    post.publisherOrganizationId?.trim() == organizationId,
+              )
+              .toList(growable: false);
 
       if (!mounted) return;
 
@@ -712,7 +746,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
         children: [
-          if (profile.isOrganizationActor && _organization != null) ...[
+          if (_organization != null) ...[
             OrganizationCoverHeader(
               organization: _organization!,
               verifiedLabel: l10n.organizationVerifiedLabel,

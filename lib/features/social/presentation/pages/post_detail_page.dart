@@ -803,7 +803,10 @@ class _PostDetailHeroCard extends StatelessWidget {
       onOpenAuthorProfile = () {
         Navigator.of(context).push(
           MaterialPageRoute<void>(
-            builder: (_) => PublicUserProfilePage(userId: authorUserId),
+            builder: (_) => PublicUserProfilePage(
+              userId: authorUserId,
+              organizationId: post.publisherOrganizationId,
+            ),
           ),
         );
       };
