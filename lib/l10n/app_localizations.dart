@@ -7478,6 +7478,336 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a valid coordinate.'**
   String get worldBriefCoordinatesRequired;
+
+  /// No description provided for @profileHowItWorksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How Social Vote works'**
+  String get profileHowItWorksTitle;
+
+  /// No description provided for @profileHowItWorksSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'People, Organizations, Voce, Vote, Sessions and verification.'**
+  String get profileHowItWorksSubtitle;
+
+  /// No description provided for @profileMyPostsLoginRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'You must be logged in to view your Voce.'**
+  String get profileMyPostsLoginRequired;
+
+  /// No description provided for @profileMyPostsCreatedByYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Voce created by you'**
+  String get profileMyPostsCreatedByYou;
+
+  /// No description provided for @profileMyPostsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not created any Voce yet.'**
+  String get profileMyPostsEmpty;
+
+  /// No description provided for @profileMyPollsLoginRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'You must be logged in to view your Vote.'**
+  String get profileMyPollsLoginRequired;
+
+  /// No description provided for @profileMyPollsCreatedByYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote created by you'**
+  String get profileMyPollsCreatedByYou;
+
+  /// No description provided for @profileMyPollsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not created any Vote yet.'**
+  String get profileMyPollsEmpty;
+
+  /// No description provided for @profileMyCommentsLoginRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'You must be logged in to view your comments.'**
+  String get profileMyCommentsLoginRequired;
+
+  /// No description provided for @profileMyCommentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not written any comments yet.'**
+  String get profileMyCommentsEmpty;
+
+  /// No description provided for @profileFollowedScopesLoginRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'You must be logged in.'**
+  String get profileFollowedScopesLoginRequired;
+
+  /// No description provided for @profileFollowedScopesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not following any areas yet.'**
+  String get profileFollowedScopesEmpty;
+
+  /// No description provided for @profileFollowedScopeWorld.
+  ///
+  /// In en, this message translates to:
+  /// **'World'**
+  String get profileFollowedScopeWorld;
+
+  /// No description provided for @profileFollowedScopeCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Country: {code}'**
+  String profileFollowedScopeCountry(String code);
+
+  /// No description provided for @profileFollowedScopeCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City: {city}'**
+  String profileFollowedScopeCity(String city);
+
+  /// No description provided for @profileFollowedScopeArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Area ({radius} km)'**
+  String profileFollowedScopeArea(double radius);
+
+  /// No description provided for @publicProfilePollsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load public Vote.'**
+  String get publicProfilePollsLoadError;
+
+  /// No description provided for @publicProfilePollsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No public Vote.'**
+  String get publicProfilePollsEmpty;
+
+  /// No description provided for @publicProfilePostsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load public Voce.'**
+  String get publicProfilePostsLoadError;
+
+  /// No description provided for @publicProfilePostsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No public Voce.'**
+  String get publicProfilePostsEmpty;
+
+  /// No description provided for @worldBriefSocialVoteView.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Vote view'**
+  String get worldBriefSocialVoteView;
+
+  /// No description provided for @worldBriefSocialVoteViewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Vote editorial analysis or viewpoint. Keep it separate from reported facts and uncertainty.'**
+  String get worldBriefSocialVoteViewHint;
+
+  /// No description provided for @worldBriefSocialVoteViewPublicNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Vote editorial analysis, clearly separate from the reported facts above.'**
+  String get worldBriefSocialVoteViewPublicNote;
+
+  /// No description provided for @worldBriefIndependentSourcesRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Publishing requires at least two HTTPS sources from different domains.'**
+  String get worldBriefIndependentSourcesRequired;
+
+  /// No description provided for @worldBriefPublishConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Final check before publishing'**
+  String get worldBriefPublishConfirmTitle;
+
+  /// No description provided for @worldBriefPublishConfirmSources.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 source entered} other{{count} sources entered}}'**
+  String worldBriefPublishConfirmSources(int count);
+
+  /// No description provided for @worldBriefEnterpriseEditorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional editorial editor'**
+  String get worldBriefEnterpriseEditorTitle;
+
+  /// No description provided for @worldBriefEnterpriseEditorHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Build the brief by section. Social Vote handles technical Globe placement automatically: choose a country and city, not coordinates.'**
+  String get worldBriefEnterpriseEditorHelp;
+
+  /// No description provided for @worldBriefEditorialContentSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Editorial content'**
+  String get worldBriefEditorialContentSection;
+
+  /// No description provided for @worldBriefEditorialContentHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep facts, significance, uncertainty and the Social Vote view separate. This makes the brief easier to verify and read.'**
+  String get worldBriefEditorialContentHelp;
+
+  /// No description provided for @worldBriefSourcesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources and verification'**
+  String get worldBriefSourcesSection;
+
+  /// No description provided for @worldBriefSourcesSectionHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Add verifiable HTTPS sources. Publishing requires at least two independent domains.'**
+  String get worldBriefSourcesSectionHelp;
+
+  /// No description provided for @worldBriefDistributionSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Distribution'**
+  String get worldBriefDistributionSection;
+
+  /// No description provided for @worldBriefDistributionHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose where the brief appears. Publishing makes it available in News; Globe placement is optional.'**
+  String get worldBriefDistributionHelp;
+
+  /// No description provided for @worldBriefNewsDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish in Social Vote News'**
+  String get worldBriefNewsDestination;
+
+  /// No description provided for @worldBriefNewsDestinationHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the main destination of a World Brief once it is published.'**
+  String get worldBriefNewsDestinationHelp;
+
+  /// No description provided for @worldBriefGlobeAutomaticHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds a marker to the Globe. Choose the place and Social Vote resolves the position automatically.'**
+  String get worldBriefGlobeAutomaticHelp;
+
+  /// No description provided for @worldBriefPlacementMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Marker placement'**
+  String get worldBriefPlacementMode;
+
+  /// No description provided for @worldBriefPlacementCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City / place'**
+  String get worldBriefPlacementCity;
+
+  /// No description provided for @worldBriefPlacementCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Country center'**
+  String get worldBriefPlacementCountry;
+
+  /// No description provided for @worldBriefCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get worldBriefCountry;
+
+  /// No description provided for @worldBriefCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City or place'**
+  String get worldBriefCity;
+
+  /// No description provided for @worldBriefCityHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: Tehran. Do not enter latitude or longitude.'**
+  String get worldBriefCityHelp;
+
+  /// No description provided for @worldBriefResolveLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolve location'**
+  String get worldBriefResolveLocation;
+
+  /// No description provided for @worldBriefCoordinatesAutomatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinates are handled automatically and should not be entered manually.'**
+  String get worldBriefCoordinatesAutomatic;
+
+  /// No description provided for @worldBriefLocationResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Location ready: {location}'**
+  String worldBriefLocationResolved(String location);
+
+  /// No description provided for @worldBriefChooseCountryFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a country first.'**
+  String get worldBriefChooseCountryFirst;
+
+  /// No description provided for @worldBriefChooseCityFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a city or place first.'**
+  String get worldBriefChooseCityFirst;
+
+  /// No description provided for @worldBriefLocationNotResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'A reliable location could not be resolved. Check the country and city and try again.'**
+  String get worldBriefLocationNotResolved;
+
+  /// No description provided for @worldBriefVisibilitySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility and priority'**
+  String get worldBriefVisibilitySection;
+
+  /// No description provided for @worldBriefVisibilityHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Control editorial prominence, urgency, ordering and lifespan without changing the reported facts.'**
+  String get worldBriefVisibilityHelp;
+
+  /// No description provided for @worldBriefFeaturedHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Give the brief more prominence on editorial surfaces.'**
+  String get worldBriefFeaturedHelp;
+
+  /// No description provided for @worldBriefBreakingHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Use only for genuinely urgent or rapidly developing events.'**
+  String get worldBriefBreakingHelp;
+
+  /// No description provided for @worldBriefPriorityHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'0 = normal/low priority; 100 = highest editorial priority. It does not change the truth status of the content.'**
+  String get worldBriefPriorityHelp;
+
+  /// No description provided for @worldBriefExpiryHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'After this window the brief should not remain active without another editorial review.'**
+  String get worldBriefExpiryHelp;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

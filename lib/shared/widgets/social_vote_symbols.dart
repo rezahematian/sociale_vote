@@ -294,7 +294,11 @@ class PublisherAvatar extends StatelessWidget {
       actorType != ActorType.citizen ||
       verificationLevel != VerificationLevel.none;
 
-  bool get _usesOrganizationLogo => actorType != ActorType.citizen;
+  bool get _isTriangle =>
+      actorType == ActorType.institution ||
+      actorType == ActorType.publicOfficial;
+
+  bool get _isSquare => actorType == ActorType.organization;
 
   @override
   Widget build(BuildContext context) {
@@ -306,53 +310,39 @@ class PublisherAvatar extends StatelessWidget {
     final initial = displayName.trim().isEmpty
         ? '?'
         : displayName.trim().characters.first.toUpperCase();
+    final borderWidth = _isVerified ? 2.0 : 1.25;
+    final backgroundColor = color.withValues(
+      alpha: theme.brightness == Brightness.dark ? 0.20 : 0.11,
+    );
+    final borderColor = color.withValues(alpha: _isVerified ? 0.88 : 0.52);
 
-    final image = canShowImage
-        ? Image.network(
-            normalizedImageUrl,
-            width: size,
-            height: size,
-            fit: _usesOrganizationLogo ? BoxFit.contain : BoxFit.cover,
-            errorBuilder: (_, __, ___) => _fallback(
-              context,
-              color: color,
-              initial: initial,
-            ),
-          )
-        : _fallback(
-            context,
-            color: color,
-            initial: initial,
-          );
-
-    final avatar = Container(
-      width: size,
-      height: size,
-      padding: _usesOrganizationLogo ? const EdgeInsets.all(2.5) : null,
-      decoration: BoxDecoration(
-        color: color.withValues(
-          alpha: theme.brightness == Brightness.dark ? 0.20 : 0.11,
-        ),
-        shape: _usesOrganizationLogo ? BoxShape.rectangle : BoxShape.circle,
-        borderRadius:
-            _usesOrganizationLogo ? BorderRadius.circular(size * 0.26) : null,
-        border: Border.all(
-          color: color.withValues(alpha: _isVerified ? 0.88 : 0.52),
-          width: _isVerified ? 2 : 1.25,
-        ),
-        boxShadow: _isVerified
-            ? [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.22),
-                  blurRadius: size * 0.22,
-                  spreadRadius: 0.5,
+    final imageChild = SizedBox.expand(
+      child: canShowImage
+          ? Image.network(
+              normalizedImageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Center(
+                child: _fallback(
+                  context,
+                  color: color,
+                  initial: initial,
                 ),
-              ]
-            : null,
-      ),
-      clipBehavior: Clip.antiAlias,
-      alignment: Alignment.center,
-      child: image,
+              ),
+            )
+          : Center(
+              child: _fallback(
+                context,
+                color: color,
+                initial: initial,
+              ),
+            ),
+    );
+
+    final avatar = _buildAvatarContainer(
+      child: imageChild,
+      backgroundColor: backgroundColor,
+      borderColor: borderColor,
+      borderWidth: borderWidth,
     );
 
     final sealPalette = _sealPalette(context);
@@ -410,6 +400,73 @@ class PublisherAvatar extends StatelessWidget {
     return Tooltip(
       message: _tooltip(context),
       child: semanticAvatar,
+    );
+  }
+
+  Widget _buildAvatarContainer({
+    required Widget child,
+    required Color backgroundColor,
+    required Color borderColor,
+    required double borderWidth,
+  }) {
+    if (_isTriangle) {
+      return SizedBox(
+        width: size,
+        height: size,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _TriangleFramePainter(
+                  fillColor: backgroundColor,
+                  borderColor: borderColor,
+                  borderWidth: borderWidth,
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: Padding(
+                padding: EdgeInsets.all(borderWidth + 0.2),
+                child: ClipPath(
+                  clipper: const _TriangleClipper(),
+                  child: ColoredBox(
+                    color: backgroundColor,
+                    child: child,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        shape: _isSquare ? BoxShape.rectangle : BoxShape.circle,
+        borderRadius: _isSquare ? BorderRadius.circular(size * 0.24) : null,
+        border: Border.all(
+          color: borderColor,
+          width: borderWidth,
+        ),
+        boxShadow: _isVerified
+            ? [
+                BoxShadow(
+                  color: borderColor.withValues(alpha: 0.18),
+                  blurRadius: size * 0.22,
+                  spreadRadius: 0.4,
+                ),
+              ]
+            : null,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: ColoredBox(
+        color: backgroundColor,
+        child: child,
+      ),
     );
   }
 
@@ -491,7 +548,7 @@ class PublisherAvatar extends StatelessWidget {
     if (actorType != ActorType.citizen) {
       return Icon(
         SocialVoteSymbols.publisherIcon(actorType),
-        size: size * 0.52,
+        size: size * 0.50,
         color: color,
       );
     }
@@ -566,12 +623,16 @@ class PublisherSignature extends StatelessWidget {
     final foreground = theme.colorScheme.onSurface.withValues(
       alpha: isDark ? 0.92 : 0.86,
     );
+    final secondaryForeground = theme.colorScheme.onSurface.withValues(
+      alpha: isDark ? 0.68 : 0.56,
+    );
     final content = ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
       child: Padding(
         padding: const EdgeInsets.all(2),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             PublisherAvatar(
               displayName: normalizedName,
@@ -584,15 +645,35 @@ class PublisherSignature extends StatelessWidget {
             ),
             const SizedBox(width: 9),
             Flexible(
-              child: Text(
-                normalizedName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: foreground,
-                  fontWeight: FontWeight.w700,
-                  height: 1.1,
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    normalizedName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: foreground,
+                      fontWeight: FontWeight.w700,
+                      height: 1.05,
+                    ),
+                  ),
+                  if (handle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      handle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: secondaryForeground,
+                        fontWeight: FontWeight.w600,
+                        height: 1,
+                        fontSize: 11.5,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ],
@@ -644,6 +725,73 @@ class PublisherSignature extends StatelessWidget {
           : '$profileAction · $identityDescription',
       child: result,
     );
+  }
+}
+
+class _TriangleClipper extends CustomClipper<Path> {
+  const _TriangleClipper();
+
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(covariant _TriangleClipper oldClipper) => false;
+}
+
+class _TriangleFramePainter extends CustomPainter {
+  final Color fillColor;
+  final Color borderColor;
+  final double borderWidth;
+
+  const _TriangleFramePainter({
+    required this.fillColor,
+    required this.borderColor,
+    required this.borderWidth,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(size.width / 2, 1)
+      ..lineTo(size.width - 1, size.height - 1)
+      ..lineTo(1, size.height - 1)
+      ..close();
+
+    canvas.drawShadow(
+      path,
+      borderColor.withValues(alpha: 0.16),
+      2,
+      false,
+    );
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = fillColor
+        ..style = PaintingStyle.fill,
+    );
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = borderColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = borderWidth
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _TriangleFramePainter oldDelegate) {
+    return oldDelegate.fillColor != fillColor ||
+        oldDelegate.borderColor != borderColor ||
+        oldDelegate.borderWidth != borderWidth;
   }
 }
 

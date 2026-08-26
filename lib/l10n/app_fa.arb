@@ -232,9 +232,9 @@
   "pollList_scopeWorld": "جهان",
   "pollList_scopeCountryFallback": "کشور",
   "pollList_scopeCityFallback": "شهر",
-  "pollList_scopeDescriptionGlobal": "نمایش Vote‌های جهانی.",
-  "pollList_scopeDescriptionCountry": "نمایش Vote‌های این کشور.",
-  "pollList_scopeDescriptionCity": "نمایش Vote‌های این شهر.",
+  "pollList_scopeDescriptionGlobal": "نمایش موارد Vote در سطح جهان.",
+  "pollList_scopeDescriptionCountry": "نمایش موارد Vote در این کشور.",
+  "pollList_scopeDescriptionCity": "نمایش موارد Vote در این شهر.",
   "pollList_filterStatus_all": "همه",
   "pollList_filterStatus_open": "باز",
   "pollList_filterStatus_closed": "بسته",
@@ -251,7 +251,7 @@
     }
   },
   "pollList_createPollButton": "ایجاد Vote",
-  "pollList_paginationHint": "برای بارگذاری Vote‌های بیشتر پیمایش کنید…",
+  "pollList_paginationHint": "برای بارگذاری موارد بیشتر در بخش Vote پیمایش کنید…",
   "pollList_emptyMessage": "در این منطقه Vote‌ای مطابق این فیلتر نیست.",
   "pollType_ranked": "انتخاب رتبه‌بندی‌شده",
   "pollType_score": "رأی‌گیری امتیازی",
@@ -757,7 +757,7 @@
   "@authPersonalAccountOwnershipTitle": {
     "description": "Explains that authentication belongs to a person even when representing an organization"
   },
-  "authPersonalAccountOwnershipBody": "اگر نماینده یک سازمان هستید، ابتدا حساب شخصی خود را بسازید. پس از ورود، می‌توانید درخواست سازمان تأییدشده بدهید و آن را از Workspace مدیریت کنید.",
+  "authPersonalAccountOwnershipBody": "اگر نماینده یک سازمان هستید، ابتدا حساب شخصی خود را بسازید. پس از ورود، می‌توانید درخواست سازمان تأییدشده بدهید و آن را از فضای کاری سازمان مدیریت کنید.",
   "@authPersonalAccountOwnershipBody": {
     "description": "Explains the person-to-organization registration path"
   },
@@ -2238,7 +2238,7 @@
   "onboardingNextButton": "بعدی",
   "onboardingStartButton": "شروع",
   "onboardingPollTitle": "Vote",
-  "onboardingPollDescription": "در Vote‌های موضوعات مهم برای شما شرکت کنید، یا برای جمع‌آوری نظر جامعه یکی بسازید.",
+  "onboardingPollDescription": "در بخش Vote درباره موضوعات مهم برای شما شرکت کنید، یا برای جمع‌آوری نظر جامعه یک مورد جدید بسازید.",
   "onboardingHeatIceTitle": "Heat و Ice",
   "onboardingHeatIceDescription": "از Heat و Ice برای نشان‌دادن شدت توجه شما به یک محتوا استفاده کنید.",
   "onboardingCivicMapTitle": "نقشه مدنی",
@@ -2273,8 +2273,8 @@
   "adminCenterLast7DaysLabel": "۷ روز",
   "adminCenterNewUsersMetric": "ثبت‌نام‌های جدید",
   "adminCenterRecentSignInsMetric": "ورودهای اخیر",
-  "adminCenterPollsCreatedMetric": "Vote‌های ایجادشده",
-  "adminCenterPostsCreatedMetric": "Voce‌های ایجادشده",
+  "adminCenterPollsCreatedMetric": "موارد ایجادشده در Vote",
+  "adminCenterPostsCreatedMetric": "موارد ایجادشده در Voce",
   "adminCenterAdminActionsMetric": "اقدامات Admin",
   "authPublicNameHelper": "این نامی است که کاربران دیگر می‌بینند. نام کاربری شما به‌طور خودکار ساخته می‌شود.",
   "@authPublicNameHelper": {
@@ -2300,7 +2300,7 @@
   "@discoveryPageTitle": {
     "description": "Title of the Discovery section"
   },
-  "organizationWorkspaceTitle": "Workspace سازمان",
+  "organizationWorkspaceTitle": "فضای کاری سازمان",
   "organizationPilotBannerTitle": "دوره آزمایشی رایگان",
   "organizationPilotBannerBody": "Sessions در دوره آزمایشی رایگان هستند. ممکن است برخی قابلیت‌های حرفه‌ای در آینده پولی شوند؛ اکنون صورت‌حساب فعال نیست.",
   "organizationVerifiedLabel": "سازمان تأییدشده",
@@ -2309,7 +2309,7 @@
   "organizationNoSessions": "هنوز Session‌ای نیست. اولین Session را برای جلسه، کارگاه یا رویداد ایجاد کنید.",
   "organizationSessionsTitle": "Sessions زنده",
   "organizationRequiresVerificationTitle": "سازمان تأییدشده لازم است",
-  "organizationRequiresVerificationBody": "این Workspace فقط برای حساب‌هایی در دسترس است که Social Vote آن‌ها را به‌عنوان سازمان تأییدشده پذیرفته باشد.",
+  "organizationRequiresVerificationBody": "این فضای کاری فقط برای حساب‌هایی در دسترس است که Social Vote آن‌ها را به‌عنوان سازمان تأییدشده پذیرفته باشد.",
   "organizationProfileEditorTitle": "پروفایل سازمان",
   "organizationLegalName": "نام قانونی",
   "organizationPublicName": "نام عمومی",
@@ -2579,7 +2579,103 @@
   "worldBriefBreaking": "خبر فوری",
   "worldBriefExpiry": "بازه بازبینی یا انقضا",
   "worldBriefExpiryDays": "{days} روز",
-  "@worldBriefExpiryDays": {"placeholders": {"days": {"type": "int"}}},
+  "@worldBriefExpiryDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "worldBriefRequiredField": "این فیلد الزامی است.",
-  "worldBriefCoordinatesRequired": "یک مختصات معتبر وارد کنید."
+  "worldBriefCoordinatesRequired": "یک مختصات معتبر وارد کنید.",
+  "profileHowItWorksTitle": "راهنمای برنامه",
+  "profileHowItWorksSubtitle": "افراد، سازمان‌ها، Voce، Vote، Sessions و تأیید هویت.",
+  "profileMyPostsLoginRequired": "برای دیدن بخش Voce خود باید وارد شوید.",
+  "profileMyPostsCreatedByYou": "مواردی که در Voce ساخته‌اید",
+  "profileMyPostsEmpty": "هنوز موردی در Voce نساخته‌اید.",
+  "profileMyPollsLoginRequired": "برای دیدن بخش Vote خود باید وارد شوید.",
+  "profileMyPollsCreatedByYou": "مواردی که در Vote ساخته‌اید",
+  "profileMyPollsEmpty": "هنوز موردی در Vote نساخته‌اید.",
+  "profileMyCommentsLoginRequired": "برای دیدن دیدگاه‌های خود باید وارد شوید.",
+  "profileMyCommentsEmpty": "هنوز دیدگاهی ننوشته‌اید.",
+  "profileFollowedScopesLoginRequired": "برای دیدن مناطق دنبال‌شده باید وارد شوید.",
+  "profileFollowedScopesEmpty": "هنوز هیچ منطقه‌ای را دنبال نمی‌کنید.",
+  "profileFollowedScopeWorld": "جهان",
+  "profileFollowedScopeCountry": "کشور: {code}",
+  "@profileFollowedScopeCountry": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeCity": "شهر: {city}",
+  "@profileFollowedScopeCity": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeArea": "محدوده ({radius} km)",
+  "@profileFollowedScopeArea": {
+    "placeholders": {
+      "radius": {
+        "type": "double"
+      }
+    }
+  },
+  "publicProfilePollsLoadError": "بارگذاری موارد عمومی در بخش Vote ممکن نیست.",
+  "publicProfilePollsEmpty": "هنوز مورد عمومی در بخش Vote وجود ندارد.",
+  "publicProfilePostsLoadError": "بارگذاری موارد عمومی در بخش Voce ممکن نیست.",
+  "publicProfilePostsEmpty": "هنوز مورد عمومی در بخش Voce وجود ندارد.",
+  "worldBriefSocialVoteView": "دیدگاه تحلیلی Social Vote",
+  "worldBriefSocialVoteViewHint": "تحلیل یا دیدگاه سردبیری Social Vote. این بخش باید از واقعیت‌های گزارش‌شده و موارد نامطمئن جدا بماند.",
+  "worldBriefSocialVoteViewPublicNote": "تحلیل سردبیری Social Vote که به‌طور روشن از واقعیت‌های گزارش‌شده در بالا جدا شده است.",
+  "worldBriefIndependentSourcesRequired": "برای انتشار، دست‌کم دو منبع HTTPS از دامنه‌های متفاوت لازم است.",
+  "worldBriefPublishConfirmTitle": "بررسی نهایی پیش از انتشار",
+  "worldBriefPublishConfirmSources": "{count, plural, =1{۱ منبع وارد شده} other{{count} منبع وارد شده}}",
+  "@worldBriefPublishConfirmSources": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldBriefEnterpriseEditorTitle": "ویرایشگر حرفه‌ای تحریریه",
+  "worldBriefEnterpriseEditorHelp": "گزارش را بخش‌به‌بخش بسازید. Social Vote جایگاه فنی روی کره را خودکار مدیریت می‌کند: کشور و شهر را انتخاب کنید، نه مختصات را.",
+  "worldBriefEditorialContentSection": "محتوای تحریریه",
+  "worldBriefEditorialContentHelp": "واقعیت‌ها، اهمیت، موارد نامطمئن و دیدگاه Social Vote را جدا نگه دارید تا گزارش قابل بررسی و خوانا باشد.",
+  "worldBriefSourcesSection": "منابع و بررسی",
+  "worldBriefSourcesSectionHelp": "منابع HTTPS قابل بررسی را وارد کنید. برای انتشار دست‌کم دو دامنه مستقل لازم است.",
+  "worldBriefDistributionSection": "توزیع",
+  "worldBriefDistributionHelp": "مشخص کنید گزارش کجا دیده شود. پس از انتشار در News در دسترس است و نمایش روی کره اختیاری است.",
+  "worldBriefNewsDestination": "انتشار در News Social Vote",
+  "worldBriefNewsDestinationHelp": "پس از انتشار، مقصد اصلی World Brief بخش News است.",
+  "worldBriefGlobeAutomaticHelp": "یک نشانگر روی کره اضافه می‌کند. مکان را انتخاب کنید و Social Vote موقعیت را خودکار پیدا می‌کند.",
+  "worldBriefPlacementMode": "محل نشانگر",
+  "worldBriefPlacementCity": "شهر / مکان",
+  "worldBriefPlacementCountry": "مرکز کشور",
+  "worldBriefCountry": "کشور",
+  "worldBriefCity": "شهر یا مکان",
+  "worldBriefCityHelp": "مثال: Tehran. عرض و طول جغرافیایی وارد نکنید.",
+  "worldBriefResolveLocation": "پیدا کردن موقعیت",
+  "worldBriefCoordinatesAutomatic": "مختصات به‌صورت خودکار مدیریت می‌شود و نیازی به ورود دستی ندارد.",
+  "worldBriefLocationResolved": "موقعیت آماده است: {location}",
+  "worldBriefChooseCountryFirst": "ابتدا یک کشور انتخاب کنید.",
+  "worldBriefChooseCityFirst": "ابتدا شهر یا مکان را وارد کنید.",
+  "worldBriefLocationNotResolved": "موقعیت قابل اعتماد پیدا نشد. کشور و شهر را بررسی کرده و دوباره تلاش کنید.",
+  "worldBriefVisibilitySection": "نمایش و اولویت",
+  "worldBriefVisibilityHelp": "میزان برجستگی، فوریت، ترتیب و طول عمر گزارش را بدون تغییر واقعیت‌ها کنترل کنید.",
+  "worldBriefFeaturedHelp": "گزارش را در بخش‌های تحریریه برجسته‌تر نمایش می‌دهد.",
+  "worldBriefBreakingHelp": "فقط برای رویدادهای واقعاً فوری یا در حال تحول سریع استفاده شود.",
+  "worldBriefPriorityHelp": "۰ = اولویت عادی/کم؛ ۱۰۰ = بالاترین اولویت تحریریه. این مقدار وضعیت حقیقت محتوا را تغییر نمی‌دهد.",
+  "worldBriefExpiryHelp": "پس از این بازه، گزارش بدون بازبینی تحریریه جدید نباید فعال بماند.",
+  "@worldBriefLocationResolved": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  }
 }

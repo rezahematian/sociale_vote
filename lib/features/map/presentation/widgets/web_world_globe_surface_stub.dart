@@ -20,6 +20,8 @@ class WebWorldGlobeSurface extends StatelessWidget {
   final bool homeProfile;
   final bool isAuthenticated;
   final bool autoRotateEnabled;
+  final String visualStyle;
+  final bool markerDataSettled;
   final ValueChanged<CivicMapItem> onMarkerTap;
   final void Function(double latitude, double longitude) onSurfaceTap;
   final ValueChanged<Offset>? onOrientationChanged;
@@ -36,6 +38,8 @@ class WebWorldGlobeSurface extends StatelessWidget {
     required this.homeProfile,
     required this.isAuthenticated,
     required this.autoRotateEnabled,
+    this.visualStyle = 'classic',
+    this.markerDataSettled = true,
     required this.onMarkerTap,
     required this.onSurfaceTap,
     required this.onUnavailable,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,6 +15,7 @@ import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart'
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/civic_map_widget.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/world_globe_widget.dart';
+import 'package:sociale_vote/shared/services/world_appearance_service.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 import 'package:sociale_vote/features/news/domain/news_language.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
@@ -70,6 +73,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
   @override
   void initState() {
     super.initState();
+    unawaited(WorldAppearanceService.instance.ensureLoaded());
     _restoreSavedLanguagePreference();
     _restoreWorldMapModePreference();
   }
@@ -189,20 +193,33 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                         );
                       },
                       child: showWorldGlobe
-                          ? WorldGlobeWidget(
+                          ? AnimatedBuilder(
                               key: const ValueKey<String>(
                                 'civic-map-world-3d',
                               ),
-                              items: controller.visibleItems,
-                              onItemTap: controller.selectItem,
-                              onUseClassicMap: () =>
-                                  _setWorldGlobeEnabled(false),
-                              onZoomIntoClassicMap:
-                                  _handleGlobeZoomIntoClassicMap,
-                              initialFocusLatitude: worldGlobeHandoff?.latitude,
-                              initialFocusLongitude:
-                                  worldGlobeHandoff?.longitude,
-                              initialFocusZoom: worldGlobeHandoff?.globeZoom,
+                              animation: WorldAppearanceService.instance,
+                              builder: (context, _) {
+                                final appearance =
+                                    WorldAppearanceService.instance;
+                                return WorldGlobeWidget(
+                                  items: controller.visibleItems,
+                                  onItemTap: controller.selectItem,
+                                  onUseClassicMap: () =>
+                                      _setWorldGlobeEnabled(false),
+                                  onZoomIntoClassicMap:
+                                      _handleGlobeZoomIntoClassicMap,
+                                  initialFocusLatitude:
+                                      worldGlobeHandoff?.latitude,
+                                  initialFocusLongitude:
+                                      worldGlobeHandoff?.longitude,
+                                  initialFocusZoom:
+                                      worldGlobeHandoff?.globeZoom,
+                                  visualStyle: appearance.globeStyle,
+                                  rotationVisualStyle: appearance.rotationStyle,
+                                  markerDataSettled: !controller.isLoading &&
+                                      !controller.isRefreshing,
+                                );
+                              },
                             )
                           : CivicMapWidget(
                               key: const ValueKey<String>(

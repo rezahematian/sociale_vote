@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-G3L-20260824-IDENTITY-RETURN1';
+const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-G3M-20260825-APPEARANCE-MARKER-STABLE1';
 
 const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
@@ -286,7 +286,7 @@ function createMarkerTexture(color, count, kind) {
 
 class SocialVoteGlobeElement extends HTMLElement {
   static get observedAttributes() {
-    return ['data-config', 'data-focus'];
+    return ['data-config', 'data-appearance', 'data-focus'];
   }
 
   constructor() {
@@ -296,6 +296,7 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._disposed = false;
 
     this._config = {};
+    this._appearance = {};
     this._renderer = null;
     this._scene = null;
     this._camera = null;
@@ -321,6 +322,8 @@ class SocialVoteGlobeElement extends HTMLElement {
 
     this._markerSprites = [];
     this._markerResources = [];
+    this._lastMarkersSignature = null;
+    this._lastEarthTextureUrl = null;
 
     this._raycaster = new THREE.Raycaster();
     this._pointer = new THREE.Vector2();
@@ -391,6 +394,13 @@ class SocialVoteGlobeElement extends HTMLElement {
       }
     }
 
+    if (name === 'data-appearance') {
+      this._readAppearance();
+      if (this._initialized) {
+        this._applyAppearance();
+      }
+    }
+
     if (name === 'data-focus' && this._initialized) {
       this._applyFocusAttribute();
     }
@@ -406,8 +416,19 @@ class SocialVoteGlobeElement extends HTMLElement {
     }
   }
 
+  _readAppearance() {
+    try {
+      const raw = this.getAttribute('data-appearance');
+      this._appearance = raw ? JSON.parse(raw) : {};
+    } catch (error) {
+      console.error('[SocialVoteWebGlobe] invalid appearance', error);
+      this._appearance = {};
+    }
+  }
+
   _initialize() {
     this._readConfig();
+    this._readAppearance();
     this.removeAttribute('data-runtime-ready');
 
     try {
@@ -970,12 +991,12 @@ class SocialVoteGlobeElement extends HTMLElement {
   }
 
   _loadEarthTexture() {
-    const configuredDay = this._config.textureUrl;
+    const configuredDay = this._appearance.textureUrl;
     const dayRelativeUrl =
         configuredDay ||
         'assets/assets/globe/earth_day_nasa_blue_marble_2048.png';
 
-    const configuredNight = this._config.nightTextureUrl;
+    const configuredNight = this._appearance.nightTextureUrl;
     const nightRelativeUrl =
         configuredNight ||
         'assets/assets/globe/earth_night_nasa_black_marble_2016_3600.jpg';
@@ -989,6 +1010,13 @@ class SocialVoteGlobeElement extends HTMLElement {
       nightRelativeUrl,
       document.baseURI,
     ).href;
+
+    const textureSignature = `${dayUrl}|${nightUrl}`;
+    if (this._lastEarthTextureUrl === textureSignature && this._earthTexture) {
+      this._applyAppearanceMaterial();
+      return;
+    }
+    this._lastEarthTextureUrl = textureSignature;
 
     const loader = new THREE.TextureLoader();
 
@@ -1012,6 +1040,7 @@ class SocialVoteGlobeElement extends HTMLElement {
         this._earth.material.emissive.setHex(0xffffff);
         this._earth.material.emissiveIntensity = 0.34;
         this._earth.material.needsUpdate = true;
+        this._applyAppearanceMaterial();
 
         dispatch(
           this,
@@ -1059,6 +1088,7 @@ class SocialVoteGlobeElement extends HTMLElement {
         this._nightTexture?.dispose();
         this._nightTexture = texture;
         this._createNightLights(texture);
+        this._applyAppearanceMaterial();
         this._updateSun(true);
       },
       undefined,
@@ -1084,6 +1114,96 @@ class SocialVoteGlobeElement extends HTMLElement {
     texture.magFilter = THREE.LinearFilter;
     texture.generateMipmaps = true;
     texture.needsUpdate = true;
+  }
+
+  _applyAppearance() {
+    if (!this._earth) {
+      return;
+    }
+
+    this._loadEarthTexture();
+    this._applyAppearanceMaterial();
+  }
+
+  _applyAppearanceMaterial() {
+    if (!this._earth?.material) {
+      return;
+    }
+
+    const style = typeof this._appearance.visualStyle === 'string'
+      ? this._appearance.visualStyle
+      : 'classic';
+
+    const material = this._earth.material;
+    const atmosphereUniforms = this._atmosphere?.material?.uniforms;
+
+    let color = 0xffffff;
+    let emissive = 0xffffff;
+    let emissiveIntensity = 0.34;
+    let shininess = 1.0;
+    let specular = 0x020408;
+    let atmosphereColor = 0x5e9dff;
+    let atmosphereStrength = 0.16;
+    let showNightLights = true;
+
+    if (style === 'realistic') {
+      emissiveIntensity = 0.24;
+      shininess = 1.8;
+      atmosphereColor = 0x6faeff;
+      atmosphereStrength = 0.13;
+    } else if (style === 'bright') {
+      color = 0xffffff;
+      emissiveIntensity = 0.48;
+      shininess = 0.6;
+      atmosphereColor = 0x55c8ff;
+      atmosphereStrength = 0.24;
+    } else if (style === 'nightLights') {
+      color = 0xd6e2ff;
+      emissive = 0xffffff;
+      emissiveIntensity = 0.72;
+      shininess = 0.0;
+      specular = 0x000000;
+      atmosphereColor = 0x4d7ec8;
+      atmosphereStrength = 0.12;
+      showNightLights = false;
+    } else if (style === 'techNeon') {
+      color = 0xaab4ff;
+      emissive = 0x362060;
+      emissiveIntensity = 0.38;
+      shininess = 2.0;
+      specular = 0x714cff;
+      atmosphereColor = 0xb34dff;
+      atmosphereStrength = 0.34;
+    } else if (style === 'minimalDay') {
+      color = 0xf2f5e8;
+      emissive = 0xffffff;
+      emissiveIntensity = 0.56;
+      shininess = 0.0;
+      specular = 0x000000;
+      atmosphereColor = 0x8fd0e5;
+      atmosphereStrength = 0.04;
+      showNightLights = false;
+    }
+
+    material.color.setHex(color);
+    material.emissive.setHex(emissive);
+    material.emissiveIntensity = emissiveIntensity;
+    material.shininess = shininess;
+    material.specular.setHex(specular);
+    material.needsUpdate = true;
+
+    if (atmosphereUniforms?.glowColor) {
+      atmosphereUniforms.glowColor.value.setHex(atmosphereColor);
+    }
+    if (atmosphereUniforms?.glowStrength) {
+      atmosphereUniforms.glowStrength.value = atmosphereStrength;
+    }
+    if (this._atmosphere) {
+      this._atmosphere.visible = atmosphereStrength > 0.001;
+    }
+    if (this._nightLights) {
+      this._nightLights.visible = showNightLights;
+    }
   }
 
   _applyConfig() {
@@ -1124,11 +1244,13 @@ class SocialVoteGlobeElement extends HTMLElement {
       this._controls.dampingFactor = 0.11;
     }
 
-    this._rebuildMarkers(
-      Array.isArray(this._config.markers)
-        ? this._config.markers
-        : [],
-    );
+    if (Array.isArray(this._config.markers)) {
+      const markerSignature = JSON.stringify(this._config.markers);
+      if (markerSignature !== this._lastMarkersSignature) {
+        this._lastMarkersSignature = markerSignature;
+        this._rebuildMarkers(this._config.markers);
+      }
+    }
 
     const rawInitialLat =
         this._config.initialFocusLatitude;
@@ -1865,6 +1987,8 @@ class SocialVoteGlobeElement extends HTMLElement {
 
     this._markerSprites = [];
     this._markerResources = [];
+    this._lastMarkersSignature = null;
+    this._lastEarthTextureUrl = null;
 
     this._earth?.geometry?.dispose?.();
     this._earth?.material?.dispose?.();

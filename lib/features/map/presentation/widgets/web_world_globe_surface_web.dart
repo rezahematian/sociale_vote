@@ -37,6 +37,8 @@ class WebWorldGlobeSurface extends StatefulWidget {
   final bool homeProfile;
   final bool isAuthenticated;
   final bool autoRotateEnabled;
+  final String visualStyle;
+  final bool markerDataSettled;
   final ValueChanged<CivicMapItem> onMarkerTap;
   final void Function(double latitude, double longitude) onSurfaceTap;
   final ValueChanged<Offset>? onOrientationChanged;
@@ -53,6 +55,8 @@ class WebWorldGlobeSurface extends StatefulWidget {
     required this.homeProfile,
     required this.isAuthenticated,
     required this.autoRotateEnabled,
+    this.visualStyle = 'classic',
+    this.markerDataSettled = true,
     required this.onMarkerTap,
     required this.onSurfaceTap,
     required this.onUnavailable,
@@ -89,6 +93,7 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
   bool _failed = false;
   bool _ready = false;
   String? _lastConfigJson;
+  String? _lastAppearanceJson;
   String? _lastFocusJson;
 
   final Map<String, CivicMapItem> _markerLookup = <String, CivicMapItem>{};
@@ -111,6 +116,7 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     }
 
     _applyConfigIfPossible();
+    _applyAppearanceIfPossible();
     _applyFocusIfPossible();
   }
 
@@ -356,6 +362,7 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     );
 
     _applyConfigIfPossible(force: true);
+    _applyAppearanceIfPossible(force: true);
     _applyFocusIfPossible(force: true);
 
     _readyTimeout?.cancel();
@@ -469,6 +476,35 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     element.setAttribute('data-config', configJson);
   }
 
+  void _applyAppearanceIfPossible({bool force = false}) {
+    final element = _element;
+    if (element == null) {
+      return;
+    }
+
+    final appearanceJson = jsonEncode(_buildAppearance());
+    if (!force && appearanceJson == _lastAppearanceJson) {
+      return;
+    }
+
+    _lastAppearanceJson = appearanceJson;
+    element.setAttribute('data-appearance', appearanceJson);
+  }
+
+  Map<String, Object?> _buildAppearance() {
+    final textureUrl = switch (widget.visualStyle) {
+      'realistic' => 'assets/assets/globe/earth_day_nasa_bmng_august_4096.jpg',
+      'nightLights' => _nightTextureUrl,
+      _ => _earthTextureUrl,
+    };
+
+    return <String, Object?>{
+      'visualStyle': widget.visualStyle,
+      'textureUrl': textureUrl,
+      'nightTextureUrl': _nightTextureUrl,
+    };
+  }
+
   void _applyFocusIfPossible({bool force = false}) {
     final element = _element;
     final focus = widget.focusListenable?.value;
@@ -492,15 +528,16 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
   }
 
   Map<String, Object?> _buildConfig() {
-    final markers = _buildMarkers();
+    final shouldPublishMarkers =
+        widget.items.isNotEmpty || widget.markerDataSettled;
+    final markers = shouldPublishMarkers ? _buildMarkers() : null;
 
     return <String, Object?>{
       'profile': widget.homeProfile ? 'home' : 'explore',
       'isAuthenticated': widget.isAuthenticated,
       'autoRotateEnabled': widget.autoRotateEnabled,
-      'textureUrl': _earthTextureUrl,
-      'nightTextureUrl': _nightTextureUrl,
-      'markers': markers,
+      if (markers != null) 'markers': markers,
+      'markerDataSettled': widget.markerDataSettled,
       'maxTiltDegrees': widget.homeProfile ? 22.0 : 55.0,
       'initialFocusLatitude': widget.initialFocusLatitude,
       'initialFocusLongitude': widget.initialFocusLongitude,

@@ -10,7 +10,6 @@ import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart'
 import 'package:sociale_vote/features/social/application/feed_controller.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
-import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class MyPostsPage extends StatelessWidget {
   const MyPostsPage({super.key});
@@ -19,7 +18,6 @@ class MyPostsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final String? currentUserId = AppDI.instance.currentUserId;
     final l10n = AppLocalizations.of(context)!;
-    final isItalian = Localizations.localeOf(context).languageCode == 'it';
 
     // Blocco guest: per vedere i propri post devi essere loggato
     if (currentUserId == null) {
@@ -31,12 +29,7 @@ class MyPostsPage extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              isItalian
-                  ? 'Devi accedere per vedere le tue Voci.'
-                  : deOrEnglish(context,
-                      english: 'You must be logged in to view your Voce.',
-                      german:
-                          'Du musst angemeldet sein, um deine Voce anzuzeigen.'),
+              l10n.profileMyPostsLoginRequired,
               textAlign: TextAlign.center,
             ),
           ),
@@ -64,7 +57,6 @@ class _MyPostsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final isItalian = Localizations.localeOf(context).languageCode == 'it';
     final controller = context.watch<FeedController>();
 
     final String? currentUserId = AppDI.instance.currentUserId;
@@ -93,11 +85,7 @@ class _MyPostsView extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              isItalian
-                  ? 'Voci create da te'
-                  : deOrEnglish(context,
-                      english: 'Voce created by you',
-                      german: 'Von dir erstellte Voce'),
+              l10n.profileMyPostsCreatedByYou,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -115,11 +103,7 @@ class _MyPostsView extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Text(
-                    isItalian
-                        ? 'Non hai ancora creato Voci.'
-                        : deOrEnglish(context,
-                            english: 'You have not created any Voce yet.',
-                            german: 'Du hast noch keine Voce erstellt.'),
+                    l10n.profileMyPostsEmpty,
                     style: theme.textTheme.bodyMedium,
                   ),
                 ),

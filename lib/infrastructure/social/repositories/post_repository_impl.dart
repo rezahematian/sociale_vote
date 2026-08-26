@@ -275,6 +275,7 @@ class PostRepositoryImpl implements PostRepository {
             authorIdentity?.displayName ??
             authorsById[authorId] ??
             'Unknown user',
+        authorUsername: authorIdentity?.username,
         authorActorType: isOrganizationPublisher
             ? ActorType.organization
             : (authorIdentity?.actorType ?? ActorType.citizen),
@@ -386,7 +387,7 @@ class PostRepositoryImpl implements PostRepository {
     final rows = await AppSupabase.client
         .from(_userProfilesTable)
         .select(
-          'id, display_name, avatar_url, actor_type, account_type, verification_level, '
+          'id, display_name, username, avatar_url, actor_type, account_type, verification_level, '
           'is_verified, institution_level, institution_name, organization_name',
         )
         .inFilter('id', authorIds);
@@ -415,6 +416,7 @@ class PostRepositoryImpl implements PostRepository {
           legacyIsVerified: row['is_verified'],
         ),
         institutionLevel: _parseInstitutionLevel(row['institution_level']),
+        username: (row['username'] as String?)?.trim(),
         avatarUrl: (row['avatar_url'] as String?)?.trim(),
       );
     }
@@ -627,6 +629,7 @@ class _PostOrganizationIdentity {
 class _PostAuthorIdentity {
   final String? displayName;
   final String? avatarUrl;
+  final String? username;
   final ActorType actorType;
   final VerificationLevel verificationLevel;
   final InstitutionLevel? institutionLevel;
@@ -634,6 +637,7 @@ class _PostAuthorIdentity {
   const _PostAuthorIdentity({
     required this.displayName,
     required this.avatarUrl,
+    required this.username,
     required this.actorType,
     required this.verificationLevel,
     required this.institutionLevel,

@@ -9,6 +9,7 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
+import 'package:sociale_vote/domain/content/news/entities/world_brief.dart';
 import 'package:sociale_vote/domain/moderation/entities/report.dart';
 import 'package:sociale_vote/domain/moderation/repositories/moderation_repository.dart';
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
@@ -321,22 +322,23 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
   }
 
   Future<void> _openOriginalArticle() async {
-    final rawUrl = widget.news.articleUrl?.trim();
+    await _openExternalSource(widget.news.articleUrl);
+  }
 
-    if (rawUrl == null || rawUrl.isEmpty) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)!.newsDetail_openSourceUnavailable,
-          ),
-        ),
-      );
-      return;
-    }
+  Future<void> _openWorldBriefSource(String? rawUrl) async {
+    await _openExternalSource(rawUrl, requireHttps: true);
+  }
 
-    final uri = Uri.tryParse(rawUrl);
-    if (uri == null || !uri.hasScheme || uri.host.trim().isEmpty) {
+  Future<void> _openExternalSource(
+    String? rawUrl, {
+    bool requireHttps = false,
+  }) async {
+    final normalized = rawUrl?.trim();
+    final uri = normalized == null ? null : Uri.tryParse(normalized);
+    if (uri == null ||
+        !uri.hasScheme ||
+        (requireHttps && uri.scheme != 'https') ||
+        uri.host.trim().isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -493,6 +495,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                       onOpenSourcePressed: news.hasOriginalArticleUrl
                           ? _openOriginalArticle
                           : null,
+                      onOpenWorldBriefSource: _openWorldBriefSource,
                       onFireTap: newsController == null
                           ? null
                           : () async {
@@ -585,6 +588,7 @@ class _NewsDetailHeroCard extends StatelessWidget {
   final VoidCallback onSharePressed;
   final VoidCallback? onFavoritePressed;
   final VoidCallback? onOpenSourcePressed;
+  final Future<void> Function(String? url) onOpenWorldBriefSource;
   final Future<void> Function()? onFireTap;
   final Future<void> Function()? onIceTap;
 
@@ -603,6 +607,7 @@ class _NewsDetailHeroCard extends StatelessWidget {
     required this.onSharePressed,
     required this.onFavoritePressed,
     required this.onOpenSourcePressed,
+    required this.onOpenWorldBriefSource,
     required this.onFireTap,
     required this.onIceTap,
   });
@@ -691,6 +696,11 @@ class _NewsDetailHeroCard extends StatelessWidget {
                               ),
                             ),
                           ),
+                        if (news.isSocialVoteBrief)
+                          const _NewsMetaChip(
+                            icon: Icons.auto_awesome_outlined,
+                            label: 'World Brief',
+                          ),
                         if (sourceLabel != null &&
                             sourceLabel!.trim().isNotEmpty)
                           _NewsMetaChip(
@@ -712,33 +722,39 @@ class _NewsDetailHeroCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 18),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 18,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface.withValues(
-                          alpha: isDark ? 0.30 : 0.68,
+                    if (news.worldBrief != null)
+                      _WorldBriefBody(
+                        brief: news.worldBrief!,
+                        onOpenSource: onOpenWorldBriefSource,
+                      )
+                    else
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 18,
                         ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: theme.colorScheme.outline.withValues(
-                            alpha: isDark ? 0.18 : 0.12,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface.withValues(
+                            alpha: isDark ? 0.30 : 0.68,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: theme.colorScheme.outline.withValues(
+                              alpha: isDark ? 0.18 : 0.12,
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          bodyText,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            height: 1.48,
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: isDark ? 0.88 : 0.86,
+                            ),
                           ),
                         ),
                       ),
-                      child: Text(
-                        bodyText,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          height: 1.48,
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: isDark ? 0.88 : 0.86,
-                          ),
-                        ),
-                      ),
-                    ),
                     if (onOpenSourcePressed != null) ...[
                       const SizedBox(height: 14),
                       OutlinedButton.icon(
@@ -838,6 +854,191 @@ class _NewsDetailHeroCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _WorldBriefBody extends StatelessWidget {
+  final WorldBrief brief;
+  final Future<void> Function(String? url) onOpenSource;
+
+  const _WorldBriefBody({
+    required this.brief,
+    required this.onOpenSource,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final sectionColor = theme.colorScheme.surface.withValues(
+      alpha: isDark ? 0.30 : 0.68,
+    );
+    final borderColor = theme.colorScheme.outline.withValues(
+      alpha: isDark ? 0.18 : 0.12,
+    );
+
+    Widget section(String title, String text, {required IconData icon}) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: sectionColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: borderColor),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 18, color: theme.colorScheme.primary),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              text,
+              style: theme.textTheme.bodyLarge?.copyWith(height: 1.48),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final uncertain = brief.whatIsUncertain?.trim();
+    final socialVoteView = brief.socialVoteView?.trim();
+    final sources = brief.sourceUrls
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        section(
+          l10n.worldBriefWhatHappened,
+          brief.whatHappened,
+          icon: Icons.fact_check_outlined,
+        ),
+        const SizedBox(height: 12),
+        section(
+          l10n.worldBriefWhyItMatters,
+          brief.whyItMatters,
+          icon: Icons.insights_outlined,
+        ),
+        if (uncertain != null && uncertain.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          section(
+            l10n.worldBriefWhatIsUncertain,
+            uncertain,
+            icon: Icons.help_outline_rounded,
+          ),
+        ],
+        if (socialVoteView != null && socialVoteView.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer.withValues(
+                alpha: isDark ? 0.20 : 0.42,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: theme.colorScheme.primary.withValues(alpha: 0.26),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.psychology_alt_outlined,
+                      size: 19,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 7),
+                    Expanded(
+                      child: Text(
+                        l10n.worldBriefSocialVoteView,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.worldBriefSocialVoteViewPublicNote,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  socialVoteView,
+                  style: theme.textTheme.bodyLarge?.copyWith(height: 1.48),
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: sectionColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.worldBriefSources,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              for (var index = 0; index < sources.length; index++)
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton.icon(
+                    onPressed: () => onOpenSource(sources[index]),
+                    icon: const Icon(Icons.open_in_new_rounded, size: 17),
+                    label: Text(
+                      _sourceLabel(sources[index], index + 1),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  static String _sourceLabel(String rawUrl, int number) {
+    final uri = Uri.tryParse(rawUrl);
+    final host = uri?.host.trim();
+    if (host == null || host.isEmpty) return 'Source $number';
+    return '$number · $host';
   }
 }
 

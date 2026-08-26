@@ -878,6 +878,7 @@ class _PostDetailHeroCard extends StatelessWidget {
                             alignment: AlignmentDirectional.centerStart,
                             child: PublisherSignature(
                               displayName: authorName,
+                              username: post.authorUsername,
                               imageUrl: post.authorAvatarUrl,
                               actorType: publisherActorType,
                               verificationLevel: post.authorVerificationLevel,

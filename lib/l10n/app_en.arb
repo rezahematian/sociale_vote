@@ -2579,7 +2579,103 @@
   "worldBriefBreaking": "Breaking update",
   "worldBriefExpiry": "Review or expiry window",
   "worldBriefExpiryDays": "{days, plural, =1{1 day} other{{days} days}}",
-  "@worldBriefExpiryDays": {"placeholders": {"days": {"type": "int"}}},
+  "@worldBriefExpiryDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "worldBriefRequiredField": "This field is required.",
-  "worldBriefCoordinatesRequired": "Enter a valid coordinate."
+  "worldBriefCoordinatesRequired": "Enter a valid coordinate.",
+  "profileHowItWorksTitle": "How Social Vote works",
+  "profileHowItWorksSubtitle": "People, Organizations, Voce, Vote, Sessions and verification.",
+  "profileMyPostsLoginRequired": "You must be logged in to view your Voce.",
+  "profileMyPostsCreatedByYou": "Voce created by you",
+  "profileMyPostsEmpty": "You have not created any Voce yet.",
+  "profileMyPollsLoginRequired": "You must be logged in to view your Vote.",
+  "profileMyPollsCreatedByYou": "Vote created by you",
+  "profileMyPollsEmpty": "You have not created any Vote yet.",
+  "profileMyCommentsLoginRequired": "You must be logged in to view your comments.",
+  "profileMyCommentsEmpty": "You have not written any comments yet.",
+  "profileFollowedScopesLoginRequired": "You must be logged in.",
+  "profileFollowedScopesEmpty": "You are not following any areas yet.",
+  "profileFollowedScopeWorld": "World",
+  "profileFollowedScopeCountry": "Country: {code}",
+  "@profileFollowedScopeCountry": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeCity": "City: {city}",
+  "@profileFollowedScopeCity": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeArea": "Area ({radius} km)",
+  "@profileFollowedScopeArea": {
+    "placeholders": {
+      "radius": {
+        "type": "double"
+      }
+    }
+  },
+  "publicProfilePollsLoadError": "Unable to load public Vote.",
+  "publicProfilePollsEmpty": "No public Vote.",
+  "publicProfilePostsLoadError": "Unable to load public Voce.",
+  "publicProfilePostsEmpty": "No public Voce.",
+  "worldBriefSocialVoteView": "Social Vote view",
+  "worldBriefSocialVoteViewHint": "Social Vote editorial analysis or viewpoint. Keep it separate from reported facts and uncertainty.",
+  "worldBriefSocialVoteViewPublicNote": "Social Vote editorial analysis, clearly separate from the reported facts above.",
+  "worldBriefIndependentSourcesRequired": "Publishing requires at least two HTTPS sources from different domains.",
+  "worldBriefPublishConfirmTitle": "Final check before publishing",
+  "worldBriefPublishConfirmSources": "{count, plural, =1{1 source entered} other{{count} sources entered}}",
+  "@worldBriefPublishConfirmSources": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldBriefEnterpriseEditorTitle": "Professional editorial editor",
+  "worldBriefEnterpriseEditorHelp": "Build the brief by section. Social Vote handles technical Globe placement automatically: choose a country and city, not coordinates.",
+  "worldBriefEditorialContentSection": "Editorial content",
+  "worldBriefEditorialContentHelp": "Keep facts, significance, uncertainty and the Social Vote view separate. This makes the brief easier to verify and read.",
+  "worldBriefSourcesSection": "Sources and verification",
+  "worldBriefSourcesSectionHelp": "Add verifiable HTTPS sources. Publishing requires at least two independent domains.",
+  "worldBriefDistributionSection": "Distribution",
+  "worldBriefDistributionHelp": "Choose where the brief appears. Publishing makes it available in News; Globe placement is optional.",
+  "worldBriefNewsDestination": "Publish in Social Vote News",
+  "worldBriefNewsDestinationHelp": "This is the main destination of a World Brief once it is published.",
+  "worldBriefGlobeAutomaticHelp": "Adds a marker to the Globe. Choose the place and Social Vote resolves the position automatically.",
+  "worldBriefPlacementMode": "Marker placement",
+  "worldBriefPlacementCity": "City / place",
+  "worldBriefPlacementCountry": "Country center",
+  "worldBriefCountry": "Country",
+  "worldBriefCity": "City or place",
+  "worldBriefCityHelp": "Example: Tehran. Do not enter latitude or longitude.",
+  "worldBriefResolveLocation": "Resolve location",
+  "worldBriefCoordinatesAutomatic": "Coordinates are handled automatically and should not be entered manually.",
+  "worldBriefLocationResolved": "Location ready: {location}",
+  "worldBriefChooseCountryFirst": "Choose a country first.",
+  "worldBriefChooseCityFirst": "Enter a city or place first.",
+  "worldBriefLocationNotResolved": "A reliable location could not be resolved. Check the country and city and try again.",
+  "worldBriefVisibilitySection": "Visibility and priority",
+  "worldBriefVisibilityHelp": "Control editorial prominence, urgency, ordering and lifespan without changing the reported facts.",
+  "worldBriefFeaturedHelp": "Give the brief more prominence on editorial surfaces.",
+  "worldBriefBreakingHelp": "Use only for genuinely urgent or rapidly developing events.",
+  "worldBriefPriorityHelp": "0 = normal/low priority; 100 = highest editorial priority. It does not change the truth status of the content.",
+  "worldBriefExpiryHelp": "After this window the brief should not remain active without another editorial review.",
+  "@worldBriefLocationResolved": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  }
 }

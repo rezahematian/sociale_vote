@@ -6,9 +6,11 @@ import 'package:provider/provider.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
-import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 
 import 'package:sociale_vote/domain/discussion/entities/comment.dart';
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
@@ -1199,6 +1201,24 @@ class _CommentTile extends StatelessWidget {
         ? colorScheme.primary.withValues(alpha: isDark ? 0.26 : 0.18)
         : colorScheme.outline.withValues(alpha: isDark ? 0.18 : 0.10);
 
+    final displayName = authorProfile?.displayName?.trim();
+    final username = authorProfile?.username?.trim();
+    final signatureDisplayName = displayName != null && displayName.isNotEmpty
+        ? displayName
+        : username != null && username.isNotEmpty
+            ? '@$username'
+            : authorLabel;
+    final signatureUsername = displayName != null &&
+            displayName.isNotEmpty &&
+            username != null &&
+            username.isNotEmpty
+        ? '@$username'
+        : null;
+    final signatureActorType = authorProfile?.actorType;
+    final signatureVerificationLevel = authorProfile?.verificationLevel;
+    final signatureInstitutionLevel = authorProfile?.institutionLevel;
+    final signatureAvatarUrl = authorProfile?.avatarUrl;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.all(12),
@@ -1211,96 +1231,81 @@ class _CommentTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              InkWell(
-                borderRadius: BorderRadius.circular(999),
-                onTap: onAuthorTap,
-                child: _AuthorAvatar(
-                  label: authorLabel,
-                  isReply: isReply,
-                  isCurrentUser: isCurrentUser,
-                ),
-              ),
-              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 6,
-                      runSpacing: 4,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        InkWell(
-                          borderRadius: BorderRadius.circular(6),
-                          onTap: onAuthorTap,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 2,
-                            ),
-                            child: Text(
-                              authorLabel,
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                        Expanded(
+                          child: PublisherSignature(
+                            displayName: signatureDisplayName,
+                            username: signatureUsername,
+                            imageUrl: signatureAvatarUrl,
+                            actorType: signatureActorType ?? ActorType.citizen,
+                            verificationLevel: signatureVerificationLevel ??
+                                VerificationLevel.none,
+                            institutionLevel: signatureInstitutionLevel,
+                            density: PublisherSignatureDensity.compact,
+                            maxWidth: 320,
+                            onTap: onAuthorTap,
                           ),
                         ),
-                        if (authorProfile != null &&
-                            UserIdentityMark.shouldShowForProfile(
-                              authorProfile!,
-                            ))
-                          UserIdentityMark.fromProfile(
-                            authorProfile!,
-                            size: 14,
-                          ),
                         if (isCurrentUser)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  colorScheme.primary.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              l10n.commentSection_youBadge,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.w700,
+                          Padding(
+                            padding: const EdgeInsetsDirectional.only(start: 8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    colorScheme.primary.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                l10n.commentSection_youBadge,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
                           ),
                         if (isReply)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  colorScheme.primary.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              _localizedText(
-                                l10n,
-                                it: 'Risposta',
-                                en: 'Reply',
-                                de: 'Antwort',
+                          Padding(
+                            padding: const EdgeInsetsDirectional.only(start: 8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
                               ),
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.w600,
+                              decoration: BoxDecoration(
+                                color:
+                                    colorScheme.primary.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                _localizedText(
+                                  l10n,
+                                  it: 'Risposta',
+                                  en: 'Reply',
+                                  de: 'Antwort',
+                                ),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
                       ],
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Wrap(
                       spacing: 6,
                       runSpacing: 2,
@@ -1442,67 +1447,5 @@ class _CommentTile extends StatelessWidget {
     if (locale.startsWith('it')) return it;
     if (locale.startsWith('de')) return de;
     return en;
-  }
-}
-
-class _AuthorAvatar extends StatelessWidget {
-  final String label;
-  final bool isReply;
-  final bool isCurrentUser;
-
-  const _AuthorAvatar({
-    required this.label,
-    required this.isReply,
-    required this.isCurrentUser,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-
-    final bgColor = isCurrentUser
-        ? colorScheme.primary.withValues(alpha: isDark ? 0.18 : 0.14)
-        : isReply
-            ? colorScheme.primary.withValues(alpha: isDark ? 0.12 : 0.08)
-            : colorScheme.surfaceContainerHighest
-                .withValues(alpha: isDark ? 0.28 : 0.55);
-
-    final borderColor = isCurrentUser
-        ? colorScheme.primary.withValues(alpha: isDark ? 0.36 : 0.25)
-        : colorScheme.outline.withValues(alpha: isDark ? 0.22 : 0.12);
-
-    return Container(
-      width: 32,
-      height: 32,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: bgColor,
-        shape: BoxShape.circle,
-        border: Border.all(color: borderColor),
-      ),
-      child: Text(
-        _initial(label),
-        style: theme.textTheme.labelMedium?.copyWith(
-          fontWeight: FontWeight.w700,
-          color: colorScheme.onSurface,
-        ),
-      ),
-    );
-  }
-
-  static String _initial(String label) {
-    final trimmed = label.trim();
-    if (trimmed.isEmpty) {
-      return 'U';
-    }
-
-    final cleaned = trimmed.startsWith('@') ? trimmed.substring(1) : trimmed;
-    if (cleaned.isEmpty) {
-      return 'U';
-    }
-
-    return cleaned.characters.first.toUpperCase();
   }
 }

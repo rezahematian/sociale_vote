@@ -14,7 +14,6 @@ import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/navigation_service.dart';
 import 'package:sociale_vote/shared/services/radio_mondo_service.dart';
 import 'package:sociale_vote/shared/services/social_vote_hud_service.dart';
-import 'package:sociale_vote/shared/widgets/radio_mondo_dock.dart';
 
 enum AppAppearanceMode {
   light,
@@ -449,7 +448,6 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
                     fit: StackFit.expand,
                     children: [
                       child ?? const SizedBox.shrink(),
-                      const RadioMondoDock(),
                       const SocialVoteHudOverlay(),
                     ],
                   ),

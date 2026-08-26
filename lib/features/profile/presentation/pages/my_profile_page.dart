@@ -27,8 +27,27 @@ import 'package:sociale_vote/features/profile/presentation/pages/my_polls_page.d
 import 'package:sociale_vote/features/profile/presentation/pages/my_posts_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/organization_verification_request_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
+import 'package:sociale_vote/features/profile/presentation/pages/world_appearance_settings_page.dart';
 import 'package:sociale_vote/shared/services/biometric_unlock_service.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
+
+String _worldAppearanceSettingsTitle(BuildContext context) {
+  return switch (Localizations.localeOf(context).languageCode) {
+    'it' => 'Aspetto del mondo',
+    'de' => 'Welt-Darstellung',
+    'fa' => 'ظاهر جهان',
+    _ => 'World appearance',
+  };
+}
+
+String _worldAppearanceSettingsSubtitle(BuildContext context) {
+  return switch (Localizations.localeOf(context).languageCode) {
+    'it' => 'Globe, Radio Mondo e controllo rotazione',
+    'de' => 'Globe, Radio Mondo und Rotationssteuerung',
+    'fa' => 'Globe، Radio Mondo و کنترل چرخش',
+    _ => 'Globe, Radio Mondo and rotation control',
+  };
+}
 
 void _goBackFromAccount(BuildContext context) {
   final navigator = Navigator.of(context);
@@ -46,6 +65,28 @@ Widget _buildAccountBackButton(BuildContext context) {
     icon: const Icon(Icons.arrow_back),
     onPressed: () => _goBackFromAccount(context),
   );
+}
+
+TextDirection _contentTextDirection(
+  BuildContext context,
+  String value,
+) {
+  for (final rune in value.runes) {
+    final isRtl = (rune >= 0x0590 && rune <= 0x08FF) ||
+        (rune >= 0xFB1D && rune <= 0xFDFF) ||
+        (rune >= 0xFE70 && rune <= 0xFEFF);
+    if (isRtl) {
+      return TextDirection.rtl;
+    }
+
+    final isLatin = (rune >= 0x0041 && rune <= 0x005A) ||
+        (rune >= 0x0061 && rune <= 0x007A);
+    if (isLatin) {
+      return TextDirection.ltr;
+    }
+  }
+
+  return Directionality.of(context);
 }
 
 class MyProfilePage extends StatelessWidget {
@@ -1198,6 +1239,14 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                                   ? displayName
                                                   : l10n
                                                       .notificationsUserFallback,
+                                              textDirection:
+                                                  _contentTextDirection(
+                                                context,
+                                                displayName.isNotEmpty
+                                                    ? displayName
+                                                    : l10n
+                                                        .notificationsUserFallback,
+                                              ),
                                               style: theme.textTheme.titleMedium
                                                   ?.copyWith(
                                                 fontWeight: FontWeight.w700,
@@ -1217,6 +1266,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                           const SizedBox(height: 4),
                                           Text(
                                             '@$username',
+                                            textDirection: TextDirection.ltr,
                                             style: theme.textTheme.bodyMedium
                                                 ?.copyWith(
                                               color: theme.colorScheme.primary,
@@ -1230,6 +1280,11 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                           const SizedBox(height: 4),
                                           Text(
                                             identityDetailLabel,
+                                            textDirection:
+                                                _contentTextDirection(
+                                              context,
+                                              identityDetailLabel,
+                                            ),
                                             style: theme.textTheme.bodyMedium
                                                 ?.copyWith(
                                               fontWeight: FontWeight.w600,
@@ -1276,6 +1331,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                 const SizedBox(height: 12),
                                 Text(
                                   bio,
+                                  textDirection:
+                                      _contentTextDirection(context, bio),
+                                  textAlign: TextAlign.start,
                                   style: theme.textTheme.bodyMedium,
                                 ),
                               ],
@@ -1310,20 +1368,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
                   margin: EdgeInsets.zero,
                   child: ListTile(
                     leading: const Icon(Icons.help_outline_rounded),
-                    title: Text(
-                      Localizations.localeOf(context).languageCode == 'it'
-                          ? 'Come funziona Social Vote'
-                          : Localizations.localeOf(context).languageCode == 'de'
-                              ? 'So funktioniert Social Vote'
-                              : 'How Social Vote works',
-                    ),
-                    subtitle: Text(
-                      Localizations.localeOf(context).languageCode == 'it'
-                          ? 'Persone, Organization, Voce, Vote, Sessions e verifica.'
-                          : Localizations.localeOf(context).languageCode == 'de'
-                              ? 'Personen, Organisationen, Voce, Vote, Sessions und Verifizierung.'
-                              : 'People, Organizations, Voce, Vote, Sessions and verification.',
-                    ),
+                    title: Text(l10n.profileHowItWorksTitle),
+                    subtitle: Text(l10n.profileHowItWorksSubtitle),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () =>
                         Navigator.of(context).pushNamed(AppRouter.howItWorks),
@@ -1513,6 +1559,20 @@ class _MyProfileViewState extends State<_MyProfileView> {
                           subtitle: _appearanceModeLabel(l10n, mode),
                           icon: Icons.palette_outlined,
                           onTap: _showAppearanceModeSheet,
+                        ),
+                        const Divider(height: 1),
+                        _SettingsTile(
+                          title: _worldAppearanceSettingsTitle(context),
+                          subtitle: _worldAppearanceSettingsSubtitle(context),
+                          icon: Icons.public_rounded,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const WorldAppearanceSettingsPage(),
+                              ),
+                            );
+                          },
                         ),
                         const Divider(height: 1),
                         ValueListenableBuilder<Locale?>(
@@ -1866,7 +1926,7 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      padding: const EdgeInsetsDirectional.only(start: 4, bottom: 8),
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -1913,6 +1973,7 @@ class _StatusChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
+            textDirection: _contentTextDirection(context, label),
             style: theme.textTheme.labelMedium?.copyWith(
               color: theme.colorScheme.primary,
               fontWeight: FontWeight.w600,
@@ -1969,6 +2030,8 @@ class _OrganizationAccountCard extends StatelessWidget {
             children: [
               Text(
                 organization.publicName,
+                textDirection:
+                    _contentTextDirection(context, organization.publicName),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w800,
                 ),
@@ -1998,7 +2061,11 @@ class _OrganizationAccountCard extends StatelessWidget {
                     ],
                   ),
                   if (location.isNotEmpty)
-                    Text(location, style: theme.textTheme.bodySmall),
+                    Text(
+                      location,
+                      textDirection: TextDirection.ltr,
+                      style: theme.textTheme.bodySmall,
+                    ),
                 ],
               ),
             ],
@@ -2092,6 +2159,7 @@ class _IdentityBadgeChip extends StatelessWidget {
       ),
       child: Text(
         label,
+        textDirection: _contentTextDirection(context, label),
         style: theme.textTheme.labelMedium?.copyWith(
           color: textColor,
           fontWeight: FontWeight.w700,
@@ -2183,6 +2251,7 @@ class _SettingsTile extends StatelessWidget {
       ),
       title: Text(
         title,
+        textDirection: _contentTextDirection(context, title),
         style: textColor != null
             ? theme.textTheme.bodyLarge?.copyWith(
                 color: textColor,
@@ -2193,6 +2262,7 @@ class _SettingsTile extends StatelessWidget {
       subtitle: subtitle != null
           ? Text(
               subtitle!,
+              textDirection: _contentTextDirection(context, subtitle!),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             )

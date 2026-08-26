@@ -40,6 +40,50 @@ void main() {
           WorldBriefStatus.withdrawn);
     });
 
+    test('World Brief keeps editorial analysis separate from facts', () {
+      final brief = WorldBrief(
+        id: 'brief-1',
+        status: WorldBriefStatus.published,
+        languageCode: 'it',
+        title: 'Titolo',
+        whatHappened: 'Fatti',
+        whyItMatters: 'Contesto',
+        whatIsUncertain: 'Incertezza',
+        socialVoteView: 'Lettura editoriale',
+        sourceUrls: const <String>[
+          'https://example.com/a',
+          'https://example.org/b',
+        ],
+        countryCode: null,
+        cityId: null,
+        locationLabel: null,
+        latitude: null,
+        longitude: null,
+        mapVisible: false,
+        featured: false,
+        breaking: false,
+        priority: 50,
+        publishedAt: DateTime.utc(2026, 8, 26),
+        expiresAt: DateTime.utc(2026, 9, 2),
+        createdAt: DateTime.utc(2026, 8, 26),
+        updatedAt: DateTime.utc(2026, 8, 26),
+      );
+      final item = NewsItem(
+        id: const EntityId('brief-1'),
+        title: brief.title,
+        content: brief.whatHappened,
+        authorId: 'Social Vote',
+        publishedAt: DateTime.utc(2026, 8, 26),
+        isSocialVoteBrief: true,
+        worldBrief: brief,
+      );
+
+      expect(item.worldBrief?.whatHappened, 'Fatti');
+      expect(item.worldBrief?.whyItMatters, 'Contesto');
+      expect(item.worldBrief?.socialVoteView, 'Lettura editoriale');
+      expect(item.worldBrief?.sourceUrls, hasLength(2));
+    });
+
     test('public profile route can carry explicit Organization identity', () {
       const page = PublicUserProfilePage(
         userId: 'operator-user-id',

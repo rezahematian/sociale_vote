@@ -1,5 +1,6 @@
 import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
+import 'package:sociale_vote/domain/content/news/entities/world_brief.dart';
 
 class NewsItem {
   final EntityId id;
@@ -39,6 +40,8 @@ class NewsItem {
   final bool editorialFeatured;
   final int editorialPriority;
 
+  final WorldBrief? worldBrief;
+
   const NewsItem({
     required this.id,
     required this.title,
@@ -60,6 +63,7 @@ class NewsItem {
     this.editorialMapVisible = true,
     this.editorialFeatured = false,
     this.editorialPriority = 0,
+    this.worldBrief,
   });
 
   bool get isGlobal => countryCode == null && cityId == null;

@@ -26,6 +26,9 @@ class Post {
   /// In futuro potrà essere derivata da UserProfile.
   final String authorName;
 
+  /// Username pubblico dell'autore, se disponibile.
+  final String? authorUsername;
+
   /// Tipo attore identity dell'autore.
   final ActorType authorActorType;
 
@@ -84,6 +87,7 @@ class Post {
   const Post({
     required this.id,
     required this.authorName,
+    this.authorUsername,
     this.authorActorType = ActorType.citizen,
     this.authorVerificationLevel = VerificationLevel.none,
     this.authorInstitutionLevel,
@@ -141,6 +145,7 @@ class Post {
   Post copyWith({
     EntityId? id,
     String? authorName,
+    String? authorUsername,
     ActorType? authorActorType,
     VerificationLevel? authorVerificationLevel,
     InstitutionLevel? authorInstitutionLevel,
@@ -159,6 +164,7 @@ class Post {
     return Post(
       id: id ?? this.id,
       authorName: authorName ?? this.authorName,
+      authorUsername: authorUsername ?? this.authorUsername,
       authorActorType: authorActorType ?? this.authorActorType,
       authorVerificationLevel:
           authorVerificationLevel ?? this.authorVerificationLevel,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/domain/discussion/entities/comment.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
-import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class MyCommentsPage extends StatefulWidget {
   const MyCommentsPage({super.key});
@@ -42,7 +41,6 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
   Widget build(BuildContext context) {
     final String? currentUserId = AppDI.instance.currentUserId;
     final l10n = AppLocalizations.of(context)!;
-    final isItalian = Localizations.localeOf(context).languageCode == 'it';
 
     if (currentUserId == null) {
       return Scaffold(
@@ -53,12 +51,7 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              isItalian
-                  ? 'Devi accedere per vedere i tuoi commenti.'
-                  : deOrEnglish(context,
-                      english: 'You must be logged in to view your comments.',
-                      german:
-                          'Du musst angemeldet sein, um deine Kommentare anzuzeigen.'),
+              l10n.profileMyCommentsLoginRequired,
               textAlign: TextAlign.center,
             ),
           ),
@@ -79,13 +72,7 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Text(
-                        isItalian
-                            ? 'Non hai ancora scritto commenti.'
-                            : deOrEnglish(context,
-                                english:
-                                    'You have not written any comments yet.',
-                                german:
-                                    'Du hast noch keine Kommentare geschrieben.'),
+                        l10n.profileMyCommentsEmpty,
                         textAlign: TextAlign.center,
                       ),
                     ),

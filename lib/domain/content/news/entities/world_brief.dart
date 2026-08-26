@@ -24,6 +24,7 @@ class WorldBrief {
   final String whatHappened;
   final String whyItMatters;
   final String? whatIsUncertain;
+  final String? socialVoteView;
   final List<String> sourceUrls;
   final String? countryCode;
   final String? cityId;
@@ -47,6 +48,7 @@ class WorldBrief {
     required this.whatHappened,
     required this.whyItMatters,
     required this.whatIsUncertain,
+    required this.socialVoteView,
     required this.sourceUrls,
     required this.countryCode,
     required this.cityId,
@@ -73,6 +75,7 @@ class WorldBriefDraft {
   final String whatHappened;
   final String whyItMatters;
   final String? whatIsUncertain;
+  final String? socialVoteView;
   final List<String> sourceUrls;
   final String? countryCode;
   final String? cityId;
@@ -92,6 +95,7 @@ class WorldBriefDraft {
     required this.whatHappened,
     required this.whyItMatters,
     required this.whatIsUncertain,
+    required this.socialVoteView,
     required this.sourceUrls,
     required this.countryCode,
     required this.cityId,

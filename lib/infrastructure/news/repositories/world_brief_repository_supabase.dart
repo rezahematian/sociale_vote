@@ -11,7 +11,7 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
 
   static const String _columns =
       'id, status, language_code, title, what_happened, why_it_matters, '
-      'what_is_uncertain, source_urls, country_code, city_id, location_label, '
+      'what_is_uncertain, social_vote_view, source_urls, country_code, city_id, location_label, '
       'latitude, longitude, map_visible, featured, breaking, priority, '
       'published_at, expires_at, created_at, updated_at';
 
@@ -23,16 +23,18 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
     int limit = 50,
   }) async {
     try {
-      final rows = await _client
-          .from(_table)
-          .select(_columns)
-          .eq('status', 'published')
+      final requestedLanguage = _language(languageCode);
+      dynamic query =
+          _client.from(_table).select(_columns).eq('status', 'published');
+      if (requestedLanguage != null) {
+        query = query.eq('language_code', requestedLanguage);
+      }
+      final rows = await query
           .order('featured', ascending: false)
           .order('priority', ascending: false)
           .order('published_at', ascending: false)
           .limit(limit.clamp(1, 100).toInt());
 
-      final requestedLanguage = _language(languageCode);
       final requestedCountry = _country(countryCode);
       final requestedCity = _text(cityId)?.toLowerCase();
 
@@ -109,6 +111,7 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
       'what_happened': draft.whatHappened.trim(),
       'why_it_matters': draft.whyItMatters.trim(),
       'what_is_uncertain': _text(draft.whatIsUncertain),
+      'social_vote_view': _text(draft.socialVoteView),
       'source_urls': draft.sourceUrls
           .map((item) => item.trim())
           .where((item) => item.isNotEmpty)
@@ -127,12 +130,11 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
       'updated_by': currentUserId,
     };
 
-    final row = await _client
-        .from(_table)
-        .upsert(payload, onConflict: 'id')
-        .select(_columns)
-        .single();
-    return _fromRow(row);
+    final data = await _client.rpc(
+      'admin_world_brief_save',
+      params: <String, dynamic>{'p_payload': payload},
+    );
+    return _fromRow(_rpcRow(data));
   }
 
   @override
@@ -149,11 +151,10 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
   Future<void> deleteDraft(String id) async {
     final normalized = _text(id);
     if (normalized == null) return;
-    await _client
-        .from(_table)
-        .delete()
-        .eq('id', normalized)
-        .eq('status', 'draft');
+    await _client.rpc(
+      'admin_world_brief_delete_draft',
+      params: <String, dynamic>{'p_id': normalized},
+    );
   }
 
   Future<WorldBrief> _setStatus(
@@ -166,18 +167,20 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
       throw StateError('Authenticated admin and brief id required.');
     }
 
-    final row = await _client
-        .from(_table)
-        .update(<String, dynamic>{
-          'status': status.storageKey,
-          'updated_by': currentUserId,
-          if (status == WorldBriefStatus.published)
-            'published_at': DateTime.now().toUtc().toIso8601String(),
-        })
-        .eq('id', normalized)
-        .select(_columns)
-        .single();
-    return _fromRow(row);
+    final data = await _client.rpc(
+      'admin_world_brief_set_status',
+      params: <String, dynamic>{
+        'p_id': normalized,
+        'p_status': status.storageKey,
+      },
+    );
+    return _fromRow(_rpcRow(data));
+  }
+
+  Map<String, dynamic> _rpcRow(dynamic data) {
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) return Map<String, dynamic>.from(data);
+    throw StateError('Invalid World Brief backend response.');
   }
 
   bool _matchesScope(
@@ -212,6 +215,7 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
       whatHappened: _text(row['what_happened']) ?? '',
       whyItMatters: _text(row['why_it_matters']) ?? '',
       whatIsUncertain: _text(row['what_is_uncertain']),
+      socialVoteView: _text(row['social_vote_view']),
       sourceUrls: sourceUrls is List
           ? sourceUrls
               .map((item) => item.toString().trim())

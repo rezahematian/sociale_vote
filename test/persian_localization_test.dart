@@ -106,9 +106,16 @@ void main() {
     expect(l10n.homeNewsTitle('جهان'), 'مهم‌ترین خبرها (جهان)');
     expect(l10n.homeSocialTitle('جهان'), 'Voce · جهان');
     expect(l10n.homeTrendingTitle, 'Pulse · اکنون');
+    expect(l10n.profileHowItWorksTitle, 'راهنمای برنامه');
+    expect(l10n.organizationWorkspaceTitle, 'فضای کاری سازمان');
+    expect(l10n.pollList_scopeDescriptionCountry.contains('Vote‌های'), isFalse);
+    expect(l10n.adminCenterPollsCreatedMetric.contains('Vote‌های'), isFalse);
+    expect(l10n.adminCenterPostsCreatedMetric.contains('Voce‌های'), isFalse);
   });
 
-  testWidgets('Radio Mondo dock is labelled on wide layouts', (tester) async {
+  testWidgets(
+      'Radio Mondo control exposes Persian label without visible chrome',
+      (tester) async {
     await tester.binding.setSurfaceSize(const Size(1200, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -132,8 +139,51 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(
-        find.byKey(const ValueKey<String>('radio-mondo-open')), findsOneWidget);
-    expect(find.text('رادیوی جهان'), findsOneWidget);
+    final openControl = find.byKey(const ValueKey<String>('radio-mondo-open'));
+    expect(openControl, findsOneWidget);
+
+    final tooltipFinder = find.ancestor(
+      of: openControl,
+      matching: find.byType(Tooltip),
+    );
+    expect(tooltipFinder, findsOneWidget);
+    final tooltip = tester.widget<Tooltip>(tooltipFinder);
+    expect(tooltip.message, contains('رادیوی جهان'));
+
+    // The visual treatment is intentionally icon/gramophone-only.
+    expect(find.text('رادیوی جهان'), findsNothing);
+  });
+  testWidgets(
+      'Persian localized strings contain no bidi isolate control characters',
+      (tester) async {
+    late AppLocalizations l10n;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('fa'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) {
+            l10n = AppLocalizations.of(context)!;
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    for (final value in <String>[
+      l10n.homePollsTitle('جهان'),
+      l10n.homeNewsTitle('جهان'),
+      l10n.homeSocialTitle('جهان'),
+      l10n.profileHowItWorksTitle,
+    ]) {
+      expect(value.contains('\u2066'), isFalse);
+      expect(value.contains('\u2069'), isFalse);
+    }
   });
 }

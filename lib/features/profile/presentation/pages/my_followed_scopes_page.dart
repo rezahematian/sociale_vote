@@ -3,7 +3,6 @@ import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/domain/geo/entities/follow_scope.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
-import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class MyFollowedScopesPage extends StatefulWidget {
   const MyFollowedScopesPage({super.key});
@@ -42,7 +41,6 @@ class _MyFollowedScopesPageState extends State<MyFollowedScopesPage> {
   Widget build(BuildContext context) {
     final userId = AppDI.instance.currentUserId;
     final l10n = AppLocalizations.of(context)!;
-    final isItalian = Localizations.localeOf(context).languageCode == 'it';
 
     if (userId == null) {
       return Scaffold(
@@ -50,11 +48,7 @@ class _MyFollowedScopesPageState extends State<MyFollowedScopesPage> {
           title: Text(l10n.profileMyFollowedScopesTitle),
         ),
         body: Center(
-          child: Text(isItalian
-              ? 'Devi accedere.'
-              : deOrEnglish(context,
-                  english: 'You must be logged in.',
-                  german: 'Du musst angemeldet sein.')),
+          child: Text(l10n.profileFollowedScopesLoginRequired),
         ),
       );
     }
@@ -68,11 +62,7 @@ class _MyFollowedScopesPageState extends State<MyFollowedScopesPage> {
           : _scopes.isEmpty
               ? Center(
                   child: Text(
-                    isItalian
-                        ? 'Non stai ancora seguendo nessuna area.'
-                        : deOrEnglish(context,
-                            english: 'You are not following any areas yet.',
-                            german: 'Du folgst noch keinen Bereichen.'),
+                    l10n.profileFollowedScopesEmpty,
                   ),
                 )
               : ListView.builder(
@@ -93,22 +83,16 @@ class _MyFollowedScopesPageState extends State<MyFollowedScopesPage> {
   }
 
   String _buildScopeLabel(BuildContext context, GeoScope scope) {
-    final isItalian = Localizations.localeOf(context).languageCode == 'it';
+    final l10n = AppLocalizations.of(context)!;
     switch (scope.level.name) {
       case 'world':
-        return isItalian
-            ? 'Mondo'
-            : deOrEnglish(context, english: 'World', german: 'Welt');
-
+        return l10n.profileFollowedScopeWorld;
       case 'country':
-        return '${isItalian ? 'Paese' : deOrEnglish(context, english: 'Country', german: 'Land')}: ${scope.countryCode}';
-
+        return l10n.profileFollowedScopeCountry(scope.countryCode ?? '');
       case 'city':
-        return '${isItalian ? 'Città' : deOrEnglish(context, english: 'City', german: 'Stadt')}: ${scope.cityId}';
-
+        return l10n.profileFollowedScopeCity(scope.cityId ?? '');
       case 'area':
-        return '${isItalian ? 'Area' : deOrEnglish(context, english: 'Area', german: 'Gebiet')} (${scope.radiusKm} km)';
-
+        return l10n.profileFollowedScopeArea(scope.radiusKm ?? 0);
       default:
         return scope.level.name;
     }

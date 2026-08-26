@@ -2579,7 +2579,103 @@
   "worldBriefBreaking": "Eilmeldung",
   "worldBriefExpiry": "Prüf- oder Ablaufzeitraum",
   "worldBriefExpiryDays": "{days, plural, =1{1 Tag} other{{days} Tage}}",
-  "@worldBriefExpiryDays": {"placeholders": {"days": {"type": "int"}}},
+  "@worldBriefExpiryDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "worldBriefRequiredField": "Dieses Feld ist erforderlich.",
-  "worldBriefCoordinatesRequired": "Gib eine gültige Koordinate ein."
+  "worldBriefCoordinatesRequired": "Gib eine gültige Koordinate ein.",
+  "profileHowItWorksTitle": "So funktioniert Social Vote",
+  "profileHowItWorksSubtitle": "Personen, Organisationen, Voce, Vote, Sessions und Verifizierung.",
+  "profileMyPostsLoginRequired": "Du musst angemeldet sein, um deine Voce anzuzeigen.",
+  "profileMyPostsCreatedByYou": "Von dir erstellte Voce",
+  "profileMyPostsEmpty": "Du hast noch keine Voce erstellt.",
+  "profileMyPollsLoginRequired": "Du musst angemeldet sein, um deine Vote anzuzeigen.",
+  "profileMyPollsCreatedByYou": "Von dir erstellte Vote",
+  "profileMyPollsEmpty": "Du hast noch keine Vote erstellt.",
+  "profileMyCommentsLoginRequired": "Du musst angemeldet sein, um deine Kommentare anzuzeigen.",
+  "profileMyCommentsEmpty": "Du hast noch keine Kommentare geschrieben.",
+  "profileFollowedScopesLoginRequired": "Du musst angemeldet sein.",
+  "profileFollowedScopesEmpty": "Du folgst noch keinen Bereichen.",
+  "profileFollowedScopeWorld": "Welt",
+  "profileFollowedScopeCountry": "Land: {code}",
+  "@profileFollowedScopeCountry": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeCity": "Stadt: {city}",
+  "@profileFollowedScopeCity": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeArea": "Gebiet ({radius} km)",
+  "@profileFollowedScopeArea": {
+    "placeholders": {
+      "radius": {
+        "type": "double"
+      }
+    }
+  },
+  "publicProfilePollsLoadError": "Öffentliche Vote konnten nicht geladen werden.",
+  "publicProfilePollsEmpty": "Keine öffentlichen Vote.",
+  "publicProfilePostsLoadError": "Öffentliche Voce konnten nicht geladen werden.",
+  "publicProfilePostsEmpty": "Keine öffentlichen Voce.",
+  "worldBriefSocialVoteView": "Social Vote Einordnung",
+  "worldBriefSocialVoteViewHint": "Redaktionelle Analyse oder Einordnung von Social Vote. Sie bleibt klar von Fakten und Unsicherheiten getrennt.",
+  "worldBriefSocialVoteViewPublicNote": "Redaktionelle Einordnung von Social Vote, klar getrennt von den oben dargestellten Fakten.",
+  "worldBriefIndependentSourcesRequired": "Für die Veröffentlichung sind mindestens zwei HTTPS-Quellen aus unterschiedlichen Domains erforderlich.",
+  "worldBriefPublishConfirmTitle": "Letzte Prüfung vor der Veröffentlichung",
+  "worldBriefPublishConfirmSources": "{count, plural, =1{1 Quelle eingetragen} other{{count} Quellen eingetragen}}",
+  "@worldBriefPublishConfirmSources": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldBriefEnterpriseEditorTitle": "Professioneller Redaktionseditor",
+  "worldBriefEnterpriseEditorHelp": "Erstelle den Brief abschnittsweise. Social Vote übernimmt die technische Globe-Position automatisch: Land und Stadt auswählen, keine Koordinaten.",
+  "worldBriefEditorialContentSection": "Redaktioneller Inhalt",
+  "worldBriefEditorialContentHelp": "Trenne Fakten, Bedeutung, Unsicherheit und die Social-Vote-Einordnung. So bleibt der Brief nachvollziehbar und lesbar.",
+  "worldBriefSourcesSection": "Quellen und Prüfung",
+  "worldBriefSourcesSectionHelp": "Füge überprüfbare HTTPS-Quellen hinzu. Für die Veröffentlichung sind mindestens zwei unabhängige Domains erforderlich.",
+  "worldBriefDistributionSection": "Verteilung",
+  "worldBriefDistributionHelp": "Lege fest, wo der Brief erscheint. Nach Veröffentlichung ist er in News verfügbar; der Globe ist optional.",
+  "worldBriefNewsDestination": "In Social Vote News veröffentlichen",
+  "worldBriefNewsDestinationHelp": "Dies ist nach der Veröffentlichung das Hauptziel eines World Briefs.",
+  "worldBriefGlobeAutomaticHelp": "Fügt einen Marker auf dem Globe hinzu. Ort auswählen; Social Vote ermittelt die Position automatisch.",
+  "worldBriefPlacementMode": "Marker-Positionierung",
+  "worldBriefPlacementCity": "Stadt / Ort",
+  "worldBriefPlacementCountry": "Landeszentrum",
+  "worldBriefCountry": "Land",
+  "worldBriefCity": "Stadt oder Ort",
+  "worldBriefCityHelp": "Beispiel: Tehran. Keine Breiten- oder Längengrade eingeben.",
+  "worldBriefResolveLocation": "Position ermitteln",
+  "worldBriefCoordinatesAutomatic": "Koordinaten werden automatisch verwaltet und nicht manuell eingegeben.",
+  "worldBriefLocationResolved": "Position bereit: {location}",
+  "worldBriefChooseCountryFirst": "Wähle zuerst ein Land.",
+  "worldBriefChooseCityFirst": "Gib zuerst eine Stadt oder einen Ort ein.",
+  "worldBriefLocationNotResolved": "Es konnte keine verlässliche Position gefunden werden. Prüfe Land und Stadt und versuche es erneut.",
+  "worldBriefVisibilitySection": "Sichtbarkeit und Priorität",
+  "worldBriefVisibilityHelp": "Steuere redaktionelle Hervorhebung, Dringlichkeit, Reihenfolge und Laufzeit, ohne die Fakten zu verändern.",
+  "worldBriefFeaturedHelp": "Hebt den Brief auf redaktionellen Flächen stärker hervor.",
+  "worldBriefBreakingHelp": "Nur für tatsächlich dringende oder sich schnell entwickelnde Ereignisse verwenden.",
+  "worldBriefPriorityHelp": "0 = normal/niedrig; 100 = höchste redaktionelle Priorität. Dies verändert nicht den Wahrheitsstatus des Inhalts.",
+  "worldBriefExpiryHelp": "Nach diesem Zeitraum sollte der Brief ohne erneute redaktionelle Prüfung nicht aktiv bleiben.",
+  "@worldBriefLocationResolved": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  }
 }

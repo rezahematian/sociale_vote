@@ -521,13 +521,13 @@ class AppLocalizationsFa extends AppLocalizations {
   String get pollList_scopeCityFallback => 'شهر';
 
   @override
-  String get pollList_scopeDescriptionGlobal => 'نمایش Vote‌های جهانی.';
+  String get pollList_scopeDescriptionGlobal => 'نمایش موارد Vote در سطح جهان.';
 
   @override
-  String get pollList_scopeDescriptionCountry => 'نمایش Vote‌های این کشور.';
+  String get pollList_scopeDescriptionCountry => 'نمایش موارد Vote در این کشور.';
 
   @override
-  String get pollList_scopeDescriptionCity => 'نمایش Vote‌های این شهر.';
+  String get pollList_scopeDescriptionCity => 'نمایش موارد Vote در این شهر.';
 
   @override
   String get pollList_filterStatus_all => 'همه';
@@ -563,7 +563,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get pollList_createPollButton => 'ایجاد Vote';
 
   @override
-  String get pollList_paginationHint => 'برای بارگذاری Vote‌های بیشتر پیمایش کنید…';
+  String get pollList_paginationHint => 'برای بارگذاری موارد بیشتر در بخش Vote پیمایش کنید…';
 
   @override
   String get pollList_emptyMessage => 'در این منطقه Vote‌ای مطابق این فیلتر نیست.';
@@ -1114,7 +1114,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get authPersonalAccountOwnershipTitle => 'ورود همیشه متعلق به یک شخص است';
 
   @override
-  String get authPersonalAccountOwnershipBody => 'اگر نماینده یک سازمان هستید، ابتدا حساب شخصی خود را بسازید. پس از ورود، می‌توانید درخواست سازمان تأییدشده بدهید و آن را از Workspace مدیریت کنید.';
+  String get authPersonalAccountOwnershipBody => 'اگر نماینده یک سازمان هستید، ابتدا حساب شخصی خود را بسازید. پس از ورود، می‌توانید درخواست سازمان تأییدشده بدهید و آن را از فضای کاری سازمان مدیریت کنید.';
 
   @override
   String get authOrganizationPathAction => 'روش کار برای سازمان‌ها';
@@ -2895,7 +2895,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get onboardingPollTitle => 'Vote';
 
   @override
-  String get onboardingPollDescription => 'در Vote‌های موضوعات مهم برای شما شرکت کنید، یا برای جمع‌آوری نظر جامعه یکی بسازید.';
+  String get onboardingPollDescription => 'در بخش Vote درباره موضوعات مهم برای شما شرکت کنید، یا برای جمع‌آوری نظر جامعه یک مورد جدید بسازید.';
 
   @override
   String get onboardingHeatIceTitle => 'Heat و Ice';
@@ -3000,10 +3000,10 @@ class AppLocalizationsFa extends AppLocalizations {
   String get adminCenterRecentSignInsMetric => 'ورودهای اخیر';
 
   @override
-  String get adminCenterPollsCreatedMetric => 'Vote‌های ایجادشده';
+  String get adminCenterPollsCreatedMetric => 'موارد ایجادشده در Vote';
 
   @override
-  String get adminCenterPostsCreatedMetric => 'Voce‌های ایجادشده';
+  String get adminCenterPostsCreatedMetric => 'موارد ایجادشده در Voce';
 
   @override
   String get adminCenterAdminActionsMetric => 'اقدامات Admin';
@@ -3054,7 +3054,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get discoveryPageTitle => 'کاوش';
 
   @override
-  String get organizationWorkspaceTitle => 'Workspace سازمان';
+  String get organizationWorkspaceTitle => 'فضای کاری سازمان';
 
   @override
   String get organizationPilotBannerTitle => 'دوره آزمایشی رایگان';
@@ -3081,7 +3081,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get organizationRequiresVerificationTitle => 'سازمان تأییدشده لازم است';
 
   @override
-  String get organizationRequiresVerificationBody => 'این Workspace فقط برای حساب‌هایی در دسترس است که Social Vote آن‌ها را به‌عنوان سازمان تأییدشده پذیرفته باشد.';
+  String get organizationRequiresVerificationBody => 'این فضای کاری فقط برای حساب‌هایی در دسترس است که Social Vote آن‌ها را به‌عنوان سازمان تأییدشده پذیرفته باشد.';
 
   @override
   String get organizationProfileEditorTitle => 'پروفایل سازمان';
@@ -3831,4 +3831,185 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get worldBriefCoordinatesRequired => 'یک مختصات معتبر وارد کنید.';
+
+  @override
+  String get profileHowItWorksTitle => 'راهنمای برنامه';
+
+  @override
+  String get profileHowItWorksSubtitle => 'افراد، سازمان‌ها، Voce، Vote، Sessions و تأیید هویت.';
+
+  @override
+  String get profileMyPostsLoginRequired => 'برای دیدن بخش Voce خود باید وارد شوید.';
+
+  @override
+  String get profileMyPostsCreatedByYou => 'مواردی که در Voce ساخته‌اید';
+
+  @override
+  String get profileMyPostsEmpty => 'هنوز موردی در Voce نساخته‌اید.';
+
+  @override
+  String get profileMyPollsLoginRequired => 'برای دیدن بخش Vote خود باید وارد شوید.';
+
+  @override
+  String get profileMyPollsCreatedByYou => 'مواردی که در Vote ساخته‌اید';
+
+  @override
+  String get profileMyPollsEmpty => 'هنوز موردی در Vote نساخته‌اید.';
+
+  @override
+  String get profileMyCommentsLoginRequired => 'برای دیدن دیدگاه‌های خود باید وارد شوید.';
+
+  @override
+  String get profileMyCommentsEmpty => 'هنوز دیدگاهی ننوشته‌اید.';
+
+  @override
+  String get profileFollowedScopesLoginRequired => 'برای دیدن مناطق دنبال‌شده باید وارد شوید.';
+
+  @override
+  String get profileFollowedScopesEmpty => 'هنوز هیچ منطقه‌ای را دنبال نمی‌کنید.';
+
+  @override
+  String get profileFollowedScopeWorld => 'جهان';
+
+  @override
+  String profileFollowedScopeCountry(String code) {
+    return 'کشور: $code';
+  }
+
+  @override
+  String profileFollowedScopeCity(String city) {
+    return 'شهر: $city';
+  }
+
+  @override
+  String profileFollowedScopeArea(double radius) {
+    return 'محدوده ($radius km)';
+  }
+
+  @override
+  String get publicProfilePollsLoadError => 'بارگذاری موارد عمومی در بخش Vote ممکن نیست.';
+
+  @override
+  String get publicProfilePollsEmpty => 'هنوز مورد عمومی در بخش Vote وجود ندارد.';
+
+  @override
+  String get publicProfilePostsLoadError => 'بارگذاری موارد عمومی در بخش Voce ممکن نیست.';
+
+  @override
+  String get publicProfilePostsEmpty => 'هنوز مورد عمومی در بخش Voce وجود ندارد.';
+
+  @override
+  String get worldBriefSocialVoteView => 'دیدگاه تحلیلی Social Vote';
+
+  @override
+  String get worldBriefSocialVoteViewHint => 'تحلیل یا دیدگاه سردبیری Social Vote. این بخش باید از واقعیت‌های گزارش‌شده و موارد نامطمئن جدا بماند.';
+
+  @override
+  String get worldBriefSocialVoteViewPublicNote => 'تحلیل سردبیری Social Vote که به‌طور روشن از واقعیت‌های گزارش‌شده در بالا جدا شده است.';
+
+  @override
+  String get worldBriefIndependentSourcesRequired => 'برای انتشار، دست‌کم دو منبع HTTPS از دامنه‌های متفاوت لازم است.';
+
+  @override
+  String get worldBriefPublishConfirmTitle => 'بررسی نهایی پیش از انتشار';
+
+  @override
+  String worldBriefPublishConfirmSources(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منبع وارد شده',
+      one: '۱ منبع وارد شده',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get worldBriefEnterpriseEditorTitle => 'ویرایشگر حرفه‌ای تحریریه';
+
+  @override
+  String get worldBriefEnterpriseEditorHelp => 'گزارش را بخش‌به‌بخش بسازید. Social Vote جایگاه فنی روی کره را خودکار مدیریت می‌کند: کشور و شهر را انتخاب کنید، نه مختصات را.';
+
+  @override
+  String get worldBriefEditorialContentSection => 'محتوای تحریریه';
+
+  @override
+  String get worldBriefEditorialContentHelp => 'واقعیت‌ها، اهمیت، موارد نامطمئن و دیدگاه Social Vote را جدا نگه دارید تا گزارش قابل بررسی و خوانا باشد.';
+
+  @override
+  String get worldBriefSourcesSection => 'منابع و بررسی';
+
+  @override
+  String get worldBriefSourcesSectionHelp => 'منابع HTTPS قابل بررسی را وارد کنید. برای انتشار دست‌کم دو دامنه مستقل لازم است.';
+
+  @override
+  String get worldBriefDistributionSection => 'توزیع';
+
+  @override
+  String get worldBriefDistributionHelp => 'مشخص کنید گزارش کجا دیده شود. پس از انتشار در News در دسترس است و نمایش روی کره اختیاری است.';
+
+  @override
+  String get worldBriefNewsDestination => 'انتشار در News Social Vote';
+
+  @override
+  String get worldBriefNewsDestinationHelp => 'پس از انتشار، مقصد اصلی World Brief بخش News است.';
+
+  @override
+  String get worldBriefGlobeAutomaticHelp => 'یک نشانگر روی کره اضافه می‌کند. مکان را انتخاب کنید و Social Vote موقعیت را خودکار پیدا می‌کند.';
+
+  @override
+  String get worldBriefPlacementMode => 'محل نشانگر';
+
+  @override
+  String get worldBriefPlacementCity => 'شهر / مکان';
+
+  @override
+  String get worldBriefPlacementCountry => 'مرکز کشور';
+
+  @override
+  String get worldBriefCountry => 'کشور';
+
+  @override
+  String get worldBriefCity => 'شهر یا مکان';
+
+  @override
+  String get worldBriefCityHelp => 'مثال: Tehran. عرض و طول جغرافیایی وارد نکنید.';
+
+  @override
+  String get worldBriefResolveLocation => 'پیدا کردن موقعیت';
+
+  @override
+  String get worldBriefCoordinatesAutomatic => 'مختصات به‌صورت خودکار مدیریت می‌شود و نیازی به ورود دستی ندارد.';
+
+  @override
+  String worldBriefLocationResolved(String location) {
+    return 'موقعیت آماده است: $location';
+  }
+
+  @override
+  String get worldBriefChooseCountryFirst => 'ابتدا یک کشور انتخاب کنید.';
+
+  @override
+  String get worldBriefChooseCityFirst => 'ابتدا شهر یا مکان را وارد کنید.';
+
+  @override
+  String get worldBriefLocationNotResolved => 'موقعیت قابل اعتماد پیدا نشد. کشور و شهر را بررسی کرده و دوباره تلاش کنید.';
+
+  @override
+  String get worldBriefVisibilitySection => 'نمایش و اولویت';
+
+  @override
+  String get worldBriefVisibilityHelp => 'میزان برجستگی، فوریت، ترتیب و طول عمر گزارش را بدون تغییر واقعیت‌ها کنترل کنید.';
+
+  @override
+  String get worldBriefFeaturedHelp => 'گزارش را در بخش‌های تحریریه برجسته‌تر نمایش می‌دهد.';
+
+  @override
+  String get worldBriefBreakingHelp => 'فقط برای رویدادهای واقعاً فوری یا در حال تحول سریع استفاده شود.';
+
+  @override
+  String get worldBriefPriorityHelp => '۰ = اولویت عادی/کم؛ ۱۰۰ = بالاترین اولویت تحریریه. این مقدار وضعیت حقیقت محتوا را تغییر نمی‌دهد.';
+
+  @override
+  String get worldBriefExpiryHelp => 'پس از این بازه، گزارش بدون بازبینی تحریریه جدید نباید فعال بماند.';
 }

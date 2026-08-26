@@ -430,6 +430,7 @@ class PollRepositorySupabase implements PollRepository {
       createdByUserId: row['author_id'] as String?,
       publisherOrganizationId: publisherOrganizationId,
       authorName: authorIdentity?.displayName,
+      authorUsername: authorIdentity?.username,
       authorActorType: authorIdentity?.actorType ?? ActorType.citizen,
       authorVerificationLevel:
           authorIdentity?.verificationLevel ?? VerificationLevel.none,
@@ -536,7 +537,7 @@ class PollRepositorySupabase implements PollRepository {
     final rows = await AppSupabase.client
         .from(_userProfilesTable)
         .select(
-          'id, display_name, avatar_url, actor_type, account_type, verification_level, '
+          'id, display_name, username, avatar_url, actor_type, account_type, verification_level, '
           'is_verified, institution_level, institution_name, organization_name',
         )
         .inFilter('id', authorIds);
@@ -569,6 +570,7 @@ class PollRepositorySupabase implements PollRepository {
         actorType: actorType,
         verificationLevel: verificationLevel,
         institutionLevel: institutionLevel,
+        username: _normalizeNullableText(row['username'] as String?),
         avatarUrl: _normalizeNullableText(row['avatar_url'] as String?),
       );
     }
@@ -881,6 +883,7 @@ typedef PollRepositoryInMemory = PollRepositorySupabase;
 class _PollAuthorIdentity {
   final String? displayName;
   final String? avatarUrl;
+  final String? username;
   final ActorType actorType;
   final VerificationLevel verificationLevel;
   final InstitutionLevel? institutionLevel;
@@ -888,6 +891,7 @@ class _PollAuthorIdentity {
   const _PollAuthorIdentity({
     required this.displayName,
     required this.avatarUrl,
+    required this.username,
     required this.actorType,
     required this.verificationLevel,
     required this.institutionLevel,

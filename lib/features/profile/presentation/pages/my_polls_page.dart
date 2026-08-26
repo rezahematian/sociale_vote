@@ -7,7 +7,6 @@ import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/features/poll/application/poll_list_controller.dart';
 import 'package:sociale_vote/features/poll/presentation/widgets/poll_card.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
-import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class MyPollsPage extends StatelessWidget {
   const MyPollsPage({super.key});
@@ -16,7 +15,6 @@ class MyPollsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final String? currentUserId = AppDI.instance.currentUserId;
     final l10n = AppLocalizations.of(context)!;
-    final isItalian = Localizations.localeOf(context).languageCode == 'it';
 
     if (currentUserId == null) {
       return Scaffold(
@@ -27,12 +25,7 @@ class MyPollsPage extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              isItalian
-                  ? 'Devi accedere per vedere i tuoi Vote.'
-                  : deOrEnglish(context,
-                      english: 'You must be logged in to view your Vote.',
-                      german:
-                          'Du musst angemeldet sein, um deine Vote anzuzeigen.'),
+              l10n.profileMyPollsLoginRequired,
               textAlign: TextAlign.center,
             ),
           ),
@@ -58,7 +51,6 @@ class _MyPollsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final isItalian = Localizations.localeOf(context).languageCode == 'it';
     final controller = context.watch<PollListController>();
 
     final String? currentUserId = AppDI.instance.currentUserId;
@@ -87,11 +79,7 @@ class _MyPollsView extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              isItalian
-                  ? 'Vote creati da te'
-                  : deOrEnglish(context,
-                      english: 'Vote created by you',
-                      german: 'Von dir erstellte Vote'),
+              l10n.profileMyPollsCreatedByYou,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -107,11 +95,7 @@ class _MyPollsView extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Text(
-                    isItalian
-                        ? 'Non hai ancora creato Vote.'
-                        : deOrEnglish(context,
-                            english: 'You have not created any Vote yet.',
-                            german: 'Du hast noch keine Vote erstellt.'),
+                    l10n.profileMyPollsEmpty,
                     style: theme.textTheme.bodyMedium,
                   ),
                 ),

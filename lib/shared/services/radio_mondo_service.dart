@@ -29,11 +29,13 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
   bool _isLoading = false;
   bool _isPlaying = false;
   double _volume = 0.34;
+  RadioMondoTrack _selectedTrack = RadioMondoTrack.classicalOrbit;
   RadioMondoTrack? _currentTrack;
 
   bool get isLoading => _isLoading;
   bool get isPlaying => _isPlaying;
   double get volume => _volume;
+  RadioMondoTrack get selectedTrack => _selectedTrack;
   RadioMondoTrack? get currentTrack => _currentTrack;
 
   Future<void> initialize() async {
@@ -52,6 +54,7 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
 
     try {
+      _selectedTrack = track;
       await _player.stop();
       await _player.setReleaseMode(ReleaseMode.loop);
       await _player.setVolume(_volume);

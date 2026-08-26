@@ -2579,7 +2579,103 @@
   "worldBriefBreaking": "Aggiornamento urgente",
   "worldBriefExpiry": "Finestra di revisione o scadenza",
   "worldBriefExpiryDays": "{days, plural, =1{1 giorno} other{{days} giorni}}",
-  "@worldBriefExpiryDays": {"placeholders": {"days": {"type": "int"}}},
+  "@worldBriefExpiryDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "worldBriefRequiredField": "Questo campo è obbligatorio.",
-  "worldBriefCoordinatesRequired": "Inserisci una coordinata valida."
+  "worldBriefCoordinatesRequired": "Inserisci una coordinata valida.",
+  "profileHowItWorksTitle": "Come funziona Social Vote",
+  "profileHowItWorksSubtitle": "Persone, Organization, Voce, Vote, Sessions e verifica.",
+  "profileMyPostsLoginRequired": "Devi accedere per vedere le tue Voci.",
+  "profileMyPostsCreatedByYou": "Voci create da te",
+  "profileMyPostsEmpty": "Non hai ancora creato Voci.",
+  "profileMyPollsLoginRequired": "Devi accedere per vedere i tuoi Vote.",
+  "profileMyPollsCreatedByYou": "Vote creati da te",
+  "profileMyPollsEmpty": "Non hai ancora creato Vote.",
+  "profileMyCommentsLoginRequired": "Devi accedere per vedere i tuoi commenti.",
+  "profileMyCommentsEmpty": "Non hai ancora scritto commenti.",
+  "profileFollowedScopesLoginRequired": "Devi accedere.",
+  "profileFollowedScopesEmpty": "Non stai ancora seguendo nessuna area.",
+  "profileFollowedScopeWorld": "Mondo",
+  "profileFollowedScopeCountry": "Paese: {code}",
+  "@profileFollowedScopeCountry": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeCity": "Città: {city}",
+  "@profileFollowedScopeCity": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeArea": "Area ({radius} km)",
+  "@profileFollowedScopeArea": {
+    "placeholders": {
+      "radius": {
+        "type": "double"
+      }
+    }
+  },
+  "publicProfilePollsLoadError": "Impossibile caricare i Vote pubblici.",
+  "publicProfilePollsEmpty": "Nessun Vote pubblico.",
+  "publicProfilePostsLoadError": "Impossibile caricare le Voci pubbliche.",
+  "publicProfilePostsEmpty": "Nessuna Voce pubblica.",
+  "worldBriefSocialVoteView": "Lettura Social Vote",
+  "worldBriefSocialVoteViewHint": "Analisi o punto di vista editoriale di Social Vote. Deve restare separato dai fatti e dalle incertezze.",
+  "worldBriefSocialVoteViewPublicNote": "Analisi editoriale di Social Vote, distinta dai fatti riportati sopra.",
+  "worldBriefIndependentSourcesRequired": "Per pubblicare servono almeno due fonti HTTPS da domini diversi.",
+  "worldBriefPublishConfirmTitle": "Controllo finale prima della pubblicazione",
+  "worldBriefPublishConfirmSources": "{count, plural, =1{1 fonte inserita} other{{count} fonti inserite}}",
+  "@worldBriefPublishConfirmSources": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldBriefEnterpriseEditorTitle": "Editor editoriale professionale",
+  "worldBriefEnterpriseEditorHelp": "Costruisci il brief per sezioni. Social Vote gestisce automaticamente la posizione tecnica sul Globe: scegli paese e città, non coordinate.",
+  "worldBriefEditorialContentSection": "Contenuto editoriale",
+  "worldBriefEditorialContentHelp": "Separa fatti, significato, incertezze e lettura Social Vote. Questa struttura rende il brief verificabile e leggibile.",
+  "worldBriefSourcesSection": "Fonti e verifica",
+  "worldBriefSourcesSectionHelp": "Inserisci fonti HTTPS verificabili. Per pubblicare servono almeno due domini indipendenti.",
+  "worldBriefDistributionSection": "Distribuzione",
+  "worldBriefDistributionHelp": "Decidi dove deve apparire il brief. La pubblicazione lo rende disponibile nelle News; il Globe è opzionale.",
+  "worldBriefNewsDestination": "Pubblica nelle News Social Vote",
+  "worldBriefNewsDestinationHelp": "È la destinazione principale del World Brief quando viene pubblicato.",
+  "worldBriefGlobeAutomaticHelp": "Aggiunge un marker sul Globe. Scegli il luogo e Social Vote calcola automaticamente la posizione.",
+  "worldBriefPlacementMode": "Posizionamento del marker",
+  "worldBriefPlacementCity": "Città / luogo",
+  "worldBriefPlacementCountry": "Centro del paese",
+  "worldBriefCountry": "Paese",
+  "worldBriefCity": "Città o luogo",
+  "worldBriefCityHelp": "Esempio: Tehran. Non inserire latitudine o longitudine.",
+  "worldBriefResolveLocation": "Trova posizione",
+  "worldBriefCoordinatesAutomatic": "Le coordinate sono gestite automaticamente e non devono essere inserite manualmente.",
+  "worldBriefLocationResolved": "Posizione pronta: {location}",
+  "worldBriefChooseCountryFirst": "Scegli prima un paese.",
+  "worldBriefChooseCityFirst": "Inserisci prima una città o un luogo.",
+  "worldBriefLocationNotResolved": "Non sono riuscito a trovare una posizione affidabile. Controlla paese e città e riprova.",
+  "worldBriefVisibilitySection": "Visibilità e priorità",
+  "worldBriefVisibilityHelp": "Controlla evidenza editoriale, urgenza, ordine e durata del brief senza cambiare i fatti.",
+  "worldBriefFeaturedHelp": "Metti il brief più in evidenza nelle superfici editoriali.",
+  "worldBriefBreakingHelp": "Usalo solo per aggiornamenti realmente urgenti o in rapido sviluppo.",
+  "worldBriefPriorityHelp": "0 = normale/bassa priorità; 100 = massima priorità editoriale. Non modifica la veridicità del contenuto.",
+  "worldBriefExpiryHelp": "Dopo questa finestra il brief non deve restare attivo senza una nuova revisione.",
+  "@worldBriefLocationResolved": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -13,6 +13,7 @@ import 'package:sociale_vote/features/profile/presentation/pages/public_user_pro
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 /// Card visuale per un singolo post social.
@@ -91,144 +92,150 @@ class PostCard extends StatelessWidget {
       };
     }
 
-    return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: isNarrowLayout ? 0 : 16,
-        vertical: isNarrowLayout ? 6 : 8,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(cardRadius),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.07),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+    return Directionality(
+        textDirection: TextDirection.ltr,
+        child: Container(
+          margin: EdgeInsets.symmetric(
+            horizontal: isNarrowLayout ? 0 : 16,
+            vertical: isNarrowLayout ? 6 : 8,
           ),
-          BoxShadow(
-            color: const Color(0xFF94A3B8).withValues(alpha: 0.10),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(cardRadius),
-        child: Ink(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(cardRadius),
-            border: Border.all(
-              color: cardBorderColor,
-              width: 1.2,
-            ),
-            gradient: LinearGradient(
-              colors: [
-                cardTopColor,
-                cardBottomColor,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0F172A).withValues(alpha: 0.07),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+              BoxShadow(
+                color: const Color(0xFF94A3B8).withValues(alpha: 0.10),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
           ),
-          child: InkWell(
+          child: Material(
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(cardRadius),
-            onTap: onCommentTap,
-            child: Padding(
-              padding: EdgeInsets.all(isNarrowLayout ? 14 : 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    crossAxisAlignment: WrapCrossAlignment.center,
+            child: Ink(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(cardRadius),
+                border: Border.all(
+                  color: cardBorderColor,
+                  width: 1.2,
+                ),
+                gradient: LinearGradient(
+                  colors: [
+                    cardTopColor,
+                    cardBottomColor,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(cardRadius),
+                onTap: onCommentTap,
+                child: Padding(
+                  padding: EdgeInsets.all(isNarrowLayout ? 14 : 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildDiscussionIconChip(),
-                      _buildAuthorSignature(context, authorName),
-                      _buildLocationChip(
-                        theme,
-                        languageCode: languageCode,
-                        globalLabel: l10n.postCard_globalLocation,
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          _buildDiscussionIconChip(),
+                          _buildAuthorSignature(context, authorName),
+                          _buildLocationChip(
+                            theme,
+                            languageCode: languageCode,
+                            globalLabel: l10n.postCard_globalLocation,
+                          ),
+                        ],
+                      ),
+                      if (hasTitle || hasContent) const SizedBox(height: 12),
+                      if (hasTitle) ...[
+                        Text(
+                          title,
+                          style: (isNarrowLayout
+                                  ? theme.textTheme.titleMedium
+                                  : theme.textTheme.titleLarge)
+                              ?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            height: 1.16,
+                            letterSpacing: -0.2,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textDirection: socialVoteContentDirection(title),
+                          textAlign: socialVoteContentTextAlign(title),
+                        ),
+                        if (hasContent) const SizedBox(height: 9),
+                      ],
+                      if (hasContent)
+                        Text(
+                          content,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.78,
+                            ),
+                            height: 1.46,
+                          ),
+                          maxLines: hasTitle ? 3 : 4,
+                          overflow: TextOverflow.ellipsis,
+                          textDirection: socialVoteContentDirection(content),
+                          textAlign: socialVoteContentTextAlign(content),
+                        ),
+                      if (hasTitle || hasContent) const SizedBox(height: 14),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isCompactFooter = constraints.maxWidth < 420;
+                          final engagement = _PostEngagementRow(
+                            post: post,
+                            commentCount: commentCount,
+                            fireCount: fireCount,
+                            iceCount: iceCount,
+                            userReaction: userReaction,
+                            onFireTap: wrapReactCallback(onFireTap),
+                            onIceTap: wrapReactCallback(onIceTap),
+                            onCommentTap: onCommentTap,
+                          );
+
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              if (isCompactFooter)
+                                SizedBox(
+                                  width: 132,
+                                  child: engagement,
+                                )
+                              else
+                                Expanded(child: engagement),
+                              SizedBox(width: isCompactFooter ? 8 : 12),
+                              if (isCompactFooter)
+                                Expanded(
+                                  child: _buildDateRow(
+                                    context,
+                                    theme,
+                                    compact: true,
+                                  ),
+                                )
+                              else
+                                _buildDateRow(context, theme),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),
-                  if (hasTitle || hasContent) const SizedBox(height: 12),
-                  if (hasTitle) ...[
-                    Text(
-                      title,
-                      style: (isNarrowLayout
-                              ? theme.textTheme.titleMedium
-                              : theme.textTheme.titleLarge)
-                          ?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        height: 1.16,
-                        letterSpacing: -0.2,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (hasContent) const SizedBox(height: 9),
-                  ],
-                  if (hasContent)
-                    Text(
-                      content,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.78,
-                        ),
-                        height: 1.46,
-                      ),
-                      maxLines: hasTitle ? 3 : 4,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  if (hasTitle || hasContent) const SizedBox(height: 14),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isCompactFooter = constraints.maxWidth < 420;
-                      final engagement = _PostEngagementRow(
-                        post: post,
-                        commentCount: commentCount,
-                        fireCount: fireCount,
-                        iceCount: iceCount,
-                        userReaction: userReaction,
-                        onFireTap: wrapReactCallback(onFireTap),
-                        onIceTap: wrapReactCallback(onIceTap),
-                        onCommentTap: onCommentTap,
-                      );
-
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          if (isCompactFooter)
-                            SizedBox(
-                              width: 132,
-                              child: engagement,
-                            )
-                          else
-                            Expanded(child: engagement),
-                          SizedBox(width: isCompactFooter ? 8 : 12),
-                          if (isCompactFooter)
-                            Expanded(
-                              child: _buildDateRow(
-                                context,
-                                theme,
-                                compact: true,
-                              ),
-                            )
-                          else
-                            _buildDateRow(context, theme),
-                        ],
-                      );
-                    },
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   Widget _buildDiscussionIconChip() {
@@ -264,6 +271,7 @@ class PostCard extends StatelessWidget {
 
     return PublisherSignature(
       displayName: authorName,
+      username: post.authorUsername,
       imageUrl: post.authorAvatarUrl,
       actorType: publisherActorType,
       verificationLevel: post.authorVerificationLevel,

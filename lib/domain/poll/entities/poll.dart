@@ -63,6 +63,7 @@ class Poll {
   /// pubblico corrente dell'autore. Non cambiano l'autore tecnico
   /// [createdByUserId] e non sostituiscono la pubblicazione rappresentativa.
   final String? authorName;
+  final String? authorUsername;
   final ActorType authorActorType;
   final VerificationLevel authorVerificationLevel;
   final InstitutionLevel? authorInstitutionLevel;
@@ -110,6 +111,7 @@ class Poll {
     this.createdByUserId,
     this.publisherOrganizationId,
     this.authorName,
+    this.authorUsername,
     this.authorActorType = ActorType.citizen,
     this.authorVerificationLevel = VerificationLevel.none,
     this.authorInstitutionLevel,
@@ -219,6 +221,7 @@ class Poll {
     String? createdByUserId,
     String? publisherOrganizationId,
     String? authorName,
+    String? authorUsername,
     ActorType? authorActorType,
     VerificationLevel? authorVerificationLevel,
     InstitutionLevel? authorInstitutionLevel,
@@ -246,6 +249,7 @@ class Poll {
       publisherOrganizationId:
           publisherOrganizationId ?? this.publisherOrganizationId,
       authorName: authorName ?? this.authorName,
+      authorUsername: authorUsername ?? this.authorUsername,
       authorActorType: authorActorType ?? this.authorActorType,
       authorVerificationLevel:
           authorVerificationLevel ?? this.authorVerificationLevel,

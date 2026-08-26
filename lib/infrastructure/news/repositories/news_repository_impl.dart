@@ -150,26 +150,36 @@ class NewsRepositoryImpl implements NewsRepository {
       language: _normalizeLanguageCode(language),
     );
 
-    final cache = await _resolveBestAvailableCache(
-      candidate,
-      providerLimit: _defaultRefreshFetchLimit,
-      allowProviderRefresh: allowProviderRefresh,
-      allowFallbackCache: allowFallbackCache,
-    );
-
-    final providerNews = cache == null || cache.items.isEmpty
-        ? const <NewsItem>[]
-        : await _mapFilterAndPaginate(
-            jsonList: cache.items,
-            countryCode: cache.countryCode ?? candidate.countryCode,
-            cityId: cache.cityId ?? candidate.cityId,
-          );
     final worldBriefs = await _loadVisibleWorldBriefs(
       languageCode: candidate.language,
       countryCode: candidate.countryCode,
       cityId: candidate.cityId,
       limit: limit == null ? 50 : (limit * 2).clamp(10, 100).toInt(),
     );
+
+    List<NewsItem> providerNews = const <NewsItem>[];
+    try {
+      final cache = await _resolveBestAvailableCache(
+        candidate,
+        providerLimit: _defaultRefreshFetchLimit,
+        allowProviderRefresh: allowProviderRefresh,
+        allowFallbackCache: allowFallbackCache,
+      );
+      if (cache != null && cache.items.isNotEmpty) {
+        providerNews = await _mapFilterAndPaginate(
+          jsonList: cache.items,
+          countryCode: cache.countryCode ?? candidate.countryCode,
+          cityId: cache.cityId ?? candidate.cityId,
+        );
+      }
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint(
+          'Provider news unavailable; World Briefs remain usable: $error',
+        );
+        debugPrint('$stackTrace');
+      }
+    }
 
     return _mergeAndPaginate(
       worldBriefs,
@@ -194,25 +204,35 @@ class NewsRepositoryImpl implements NewsRepository {
       language: _normalizeLanguageCode(language),
     );
 
-    final cache = await _resolveBestAvailableCache(
-      candidate,
-      providerLimit: _defaultRefreshFetchLimit,
-      allowProviderRefresh: false,
-    );
-
-    final providerNews = cache == null || cache.items.isEmpty
-        ? const <NewsItem>[]
-        : await _mapFilterAndPaginate(
-            jsonList: cache.items,
-            countryCode: cache.countryCode ?? candidate.countryCode,
-            cityId: cache.cityId ?? candidate.cityId,
-          );
     final worldBriefs = await _loadVisibleWorldBriefs(
       languageCode: candidate.language,
       countryCode: candidate.countryCode,
       cityId: candidate.cityId,
       limit: limit == null ? 30 : (limit * 2).clamp(10, 100).toInt(),
     );
+
+    List<NewsItem> providerNews = const <NewsItem>[];
+    try {
+      final cache = await _resolveBestAvailableCache(
+        candidate,
+        providerLimit: _defaultRefreshFetchLimit,
+        allowProviderRefresh: false,
+      );
+      if (cache != null && cache.items.isNotEmpty) {
+        providerNews = await _mapFilterAndPaginate(
+          jsonList: cache.items,
+          countryCode: cache.countryCode ?? candidate.countryCode,
+          cityId: cache.cityId ?? candidate.cityId,
+        );
+      }
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint(
+          'Provider trending unavailable; World Briefs remain usable: $error',
+        );
+        debugPrint('$stackTrace');
+      }
+    }
 
     return _mergeAndPaginate(
       worldBriefs,
@@ -304,24 +324,28 @@ class NewsRepositoryImpl implements NewsRepository {
           'Che cosa è successo',
           'Perché conta',
           'Che cosa non è ancora certo',
+          'Lettura Social Vote',
           'Fonti',
         ],
       'de' => const <String>[
           'Was passiert ist',
           'Warum es wichtig ist',
           'Was noch unklar ist',
+          'Social Vote Einordnung',
           'Quellen',
         ],
       'fa' => const <String>[
           'چه اتفاقی افتاده است',
           'چرا اهمیت دارد',
           'چه چیزی هنوز قطعی نیست',
+          'دیدگاه تحلیلی Social Vote',
           'منابع',
         ],
       _ => const <String>[
           'What happened',
           'Why it matters',
           'What is still uncertain',
+          'Social Vote view',
           'Sources',
         ],
     };
@@ -330,7 +354,9 @@ class NewsRepositoryImpl implements NewsRepository {
       '${labels[1]}\n${brief.whyItMatters}',
       if (brief.whatIsUncertain?.trim().isNotEmpty == true)
         '${labels[2]}\n${brief.whatIsUncertain!.trim()}',
-      '${labels[3]}\n${brief.sourceUrls.join('\n')}',
+      if (brief.socialVoteView?.trim().isNotEmpty == true)
+        '${labels[3]}\n${brief.socialVoteView!.trim()}',
+      '${labels[4]}\n${brief.sourceUrls.join('\n')}',
     ];
     final hasPoint = brief.latitude != null &&
         brief.longitude != null &&
@@ -365,6 +391,7 @@ class NewsRepositoryImpl implements NewsRepository {
       editorialMapVisible: brief.mapVisible,
       editorialFeatured: brief.featured,
       editorialPriority: brief.priority,
+      worldBrief: brief,
     );
   }
 

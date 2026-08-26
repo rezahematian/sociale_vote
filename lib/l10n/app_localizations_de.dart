@@ -3837,4 +3837,185 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get worldBriefCoordinatesRequired => 'Gib eine gültige Koordinate ein.';
+
+  @override
+  String get profileHowItWorksTitle => 'So funktioniert Social Vote';
+
+  @override
+  String get profileHowItWorksSubtitle => 'Personen, Organisationen, Voce, Vote, Sessions und Verifizierung.';
+
+  @override
+  String get profileMyPostsLoginRequired => 'Du musst angemeldet sein, um deine Voce anzuzeigen.';
+
+  @override
+  String get profileMyPostsCreatedByYou => 'Von dir erstellte Voce';
+
+  @override
+  String get profileMyPostsEmpty => 'Du hast noch keine Voce erstellt.';
+
+  @override
+  String get profileMyPollsLoginRequired => 'Du musst angemeldet sein, um deine Vote anzuzeigen.';
+
+  @override
+  String get profileMyPollsCreatedByYou => 'Von dir erstellte Vote';
+
+  @override
+  String get profileMyPollsEmpty => 'Du hast noch keine Vote erstellt.';
+
+  @override
+  String get profileMyCommentsLoginRequired => 'Du musst angemeldet sein, um deine Kommentare anzuzeigen.';
+
+  @override
+  String get profileMyCommentsEmpty => 'Du hast noch keine Kommentare geschrieben.';
+
+  @override
+  String get profileFollowedScopesLoginRequired => 'Du musst angemeldet sein.';
+
+  @override
+  String get profileFollowedScopesEmpty => 'Du folgst noch keinen Bereichen.';
+
+  @override
+  String get profileFollowedScopeWorld => 'Welt';
+
+  @override
+  String profileFollowedScopeCountry(String code) {
+    return 'Land: $code';
+  }
+
+  @override
+  String profileFollowedScopeCity(String city) {
+    return 'Stadt: $city';
+  }
+
+  @override
+  String profileFollowedScopeArea(double radius) {
+    return 'Gebiet ($radius km)';
+  }
+
+  @override
+  String get publicProfilePollsLoadError => 'Öffentliche Vote konnten nicht geladen werden.';
+
+  @override
+  String get publicProfilePollsEmpty => 'Keine öffentlichen Vote.';
+
+  @override
+  String get publicProfilePostsLoadError => 'Öffentliche Voce konnten nicht geladen werden.';
+
+  @override
+  String get publicProfilePostsEmpty => 'Keine öffentlichen Voce.';
+
+  @override
+  String get worldBriefSocialVoteView => 'Social Vote Einordnung';
+
+  @override
+  String get worldBriefSocialVoteViewHint => 'Redaktionelle Analyse oder Einordnung von Social Vote. Sie bleibt klar von Fakten und Unsicherheiten getrennt.';
+
+  @override
+  String get worldBriefSocialVoteViewPublicNote => 'Redaktionelle Einordnung von Social Vote, klar getrennt von den oben dargestellten Fakten.';
+
+  @override
+  String get worldBriefIndependentSourcesRequired => 'Für die Veröffentlichung sind mindestens zwei HTTPS-Quellen aus unterschiedlichen Domains erforderlich.';
+
+  @override
+  String get worldBriefPublishConfirmTitle => 'Letzte Prüfung vor der Veröffentlichung';
+
+  @override
+  String worldBriefPublishConfirmSources(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Quellen eingetragen',
+      one: '1 Quelle eingetragen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get worldBriefEnterpriseEditorTitle => 'Professioneller Redaktionseditor';
+
+  @override
+  String get worldBriefEnterpriseEditorHelp => 'Erstelle den Brief abschnittsweise. Social Vote übernimmt die technische Globe-Position automatisch: Land und Stadt auswählen, keine Koordinaten.';
+
+  @override
+  String get worldBriefEditorialContentSection => 'Redaktioneller Inhalt';
+
+  @override
+  String get worldBriefEditorialContentHelp => 'Trenne Fakten, Bedeutung, Unsicherheit und die Social-Vote-Einordnung. So bleibt der Brief nachvollziehbar und lesbar.';
+
+  @override
+  String get worldBriefSourcesSection => 'Quellen und Prüfung';
+
+  @override
+  String get worldBriefSourcesSectionHelp => 'Füge überprüfbare HTTPS-Quellen hinzu. Für die Veröffentlichung sind mindestens zwei unabhängige Domains erforderlich.';
+
+  @override
+  String get worldBriefDistributionSection => 'Verteilung';
+
+  @override
+  String get worldBriefDistributionHelp => 'Lege fest, wo der Brief erscheint. Nach Veröffentlichung ist er in News verfügbar; der Globe ist optional.';
+
+  @override
+  String get worldBriefNewsDestination => 'In Social Vote News veröffentlichen';
+
+  @override
+  String get worldBriefNewsDestinationHelp => 'Dies ist nach der Veröffentlichung das Hauptziel eines World Briefs.';
+
+  @override
+  String get worldBriefGlobeAutomaticHelp => 'Fügt einen Marker auf dem Globe hinzu. Ort auswählen; Social Vote ermittelt die Position automatisch.';
+
+  @override
+  String get worldBriefPlacementMode => 'Marker-Positionierung';
+
+  @override
+  String get worldBriefPlacementCity => 'Stadt / Ort';
+
+  @override
+  String get worldBriefPlacementCountry => 'Landeszentrum';
+
+  @override
+  String get worldBriefCountry => 'Land';
+
+  @override
+  String get worldBriefCity => 'Stadt oder Ort';
+
+  @override
+  String get worldBriefCityHelp => 'Beispiel: Tehran. Keine Breiten- oder Längengrade eingeben.';
+
+  @override
+  String get worldBriefResolveLocation => 'Position ermitteln';
+
+  @override
+  String get worldBriefCoordinatesAutomatic => 'Koordinaten werden automatisch verwaltet und nicht manuell eingegeben.';
+
+  @override
+  String worldBriefLocationResolved(String location) {
+    return 'Position bereit: $location';
+  }
+
+  @override
+  String get worldBriefChooseCountryFirst => 'Wähle zuerst ein Land.';
+
+  @override
+  String get worldBriefChooseCityFirst => 'Gib zuerst eine Stadt oder einen Ort ein.';
+
+  @override
+  String get worldBriefLocationNotResolved => 'Es konnte keine verlässliche Position gefunden werden. Prüfe Land und Stadt und versuche es erneut.';
+
+  @override
+  String get worldBriefVisibilitySection => 'Sichtbarkeit und Priorität';
+
+  @override
+  String get worldBriefVisibilityHelp => 'Steuere redaktionelle Hervorhebung, Dringlichkeit, Reihenfolge und Laufzeit, ohne die Fakten zu verändern.';
+
+  @override
+  String get worldBriefFeaturedHelp => 'Hebt den Brief auf redaktionellen Flächen stärker hervor.';
+
+  @override
+  String get worldBriefBreakingHelp => 'Nur für tatsächlich dringende oder sich schnell entwickelnde Ereignisse verwenden.';
+
+  @override
+  String get worldBriefPriorityHelp => '0 = normal/niedrig; 100 = höchste redaktionelle Priorität. Dies verändert nicht den Wahrheitsstatus des Inhalts.';
+
+  @override
+  String get worldBriefExpiryHelp => 'Nach diesem Zeitraum sollte der Brief ohne erneute redaktionelle Prüfung nicht aktiv bleiben.';
 }

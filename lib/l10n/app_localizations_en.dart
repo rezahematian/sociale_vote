@@ -3837,4 +3837,185 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldBriefCoordinatesRequired => 'Enter a valid coordinate.';
+
+  @override
+  String get profileHowItWorksTitle => 'How Social Vote works';
+
+  @override
+  String get profileHowItWorksSubtitle => 'People, Organizations, Voce, Vote, Sessions and verification.';
+
+  @override
+  String get profileMyPostsLoginRequired => 'You must be logged in to view your Voce.';
+
+  @override
+  String get profileMyPostsCreatedByYou => 'Voce created by you';
+
+  @override
+  String get profileMyPostsEmpty => 'You have not created any Voce yet.';
+
+  @override
+  String get profileMyPollsLoginRequired => 'You must be logged in to view your Vote.';
+
+  @override
+  String get profileMyPollsCreatedByYou => 'Vote created by you';
+
+  @override
+  String get profileMyPollsEmpty => 'You have not created any Vote yet.';
+
+  @override
+  String get profileMyCommentsLoginRequired => 'You must be logged in to view your comments.';
+
+  @override
+  String get profileMyCommentsEmpty => 'You have not written any comments yet.';
+
+  @override
+  String get profileFollowedScopesLoginRequired => 'You must be logged in.';
+
+  @override
+  String get profileFollowedScopesEmpty => 'You are not following any areas yet.';
+
+  @override
+  String get profileFollowedScopeWorld => 'World';
+
+  @override
+  String profileFollowedScopeCountry(String code) {
+    return 'Country: $code';
+  }
+
+  @override
+  String profileFollowedScopeCity(String city) {
+    return 'City: $city';
+  }
+
+  @override
+  String profileFollowedScopeArea(double radius) {
+    return 'Area ($radius km)';
+  }
+
+  @override
+  String get publicProfilePollsLoadError => 'Unable to load public Vote.';
+
+  @override
+  String get publicProfilePollsEmpty => 'No public Vote.';
+
+  @override
+  String get publicProfilePostsLoadError => 'Unable to load public Voce.';
+
+  @override
+  String get publicProfilePostsEmpty => 'No public Voce.';
+
+  @override
+  String get worldBriefSocialVoteView => 'Social Vote view';
+
+  @override
+  String get worldBriefSocialVoteViewHint => 'Social Vote editorial analysis or viewpoint. Keep it separate from reported facts and uncertainty.';
+
+  @override
+  String get worldBriefSocialVoteViewPublicNote => 'Social Vote editorial analysis, clearly separate from the reported facts above.';
+
+  @override
+  String get worldBriefIndependentSourcesRequired => 'Publishing requires at least two HTTPS sources from different domains.';
+
+  @override
+  String get worldBriefPublishConfirmTitle => 'Final check before publishing';
+
+  @override
+  String worldBriefPublishConfirmSources(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sources entered',
+      one: '1 source entered',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get worldBriefEnterpriseEditorTitle => 'Professional editorial editor';
+
+  @override
+  String get worldBriefEnterpriseEditorHelp => 'Build the brief by section. Social Vote handles technical Globe placement automatically: choose a country and city, not coordinates.';
+
+  @override
+  String get worldBriefEditorialContentSection => 'Editorial content';
+
+  @override
+  String get worldBriefEditorialContentHelp => 'Keep facts, significance, uncertainty and the Social Vote view separate. This makes the brief easier to verify and read.';
+
+  @override
+  String get worldBriefSourcesSection => 'Sources and verification';
+
+  @override
+  String get worldBriefSourcesSectionHelp => 'Add verifiable HTTPS sources. Publishing requires at least two independent domains.';
+
+  @override
+  String get worldBriefDistributionSection => 'Distribution';
+
+  @override
+  String get worldBriefDistributionHelp => 'Choose where the brief appears. Publishing makes it available in News; Globe placement is optional.';
+
+  @override
+  String get worldBriefNewsDestination => 'Publish in Social Vote News';
+
+  @override
+  String get worldBriefNewsDestinationHelp => 'This is the main destination of a World Brief once it is published.';
+
+  @override
+  String get worldBriefGlobeAutomaticHelp => 'Adds a marker to the Globe. Choose the place and Social Vote resolves the position automatically.';
+
+  @override
+  String get worldBriefPlacementMode => 'Marker placement';
+
+  @override
+  String get worldBriefPlacementCity => 'City / place';
+
+  @override
+  String get worldBriefPlacementCountry => 'Country center';
+
+  @override
+  String get worldBriefCountry => 'Country';
+
+  @override
+  String get worldBriefCity => 'City or place';
+
+  @override
+  String get worldBriefCityHelp => 'Example: Tehran. Do not enter latitude or longitude.';
+
+  @override
+  String get worldBriefResolveLocation => 'Resolve location';
+
+  @override
+  String get worldBriefCoordinatesAutomatic => 'Coordinates are handled automatically and should not be entered manually.';
+
+  @override
+  String worldBriefLocationResolved(String location) {
+    return 'Location ready: $location';
+  }
+
+  @override
+  String get worldBriefChooseCountryFirst => 'Choose a country first.';
+
+  @override
+  String get worldBriefChooseCityFirst => 'Enter a city or place first.';
+
+  @override
+  String get worldBriefLocationNotResolved => 'A reliable location could not be resolved. Check the country and city and try again.';
+
+  @override
+  String get worldBriefVisibilitySection => 'Visibility and priority';
+
+  @override
+  String get worldBriefVisibilityHelp => 'Control editorial prominence, urgency, ordering and lifespan without changing the reported facts.';
+
+  @override
+  String get worldBriefFeaturedHelp => 'Give the brief more prominence on editorial surfaces.';
+
+  @override
+  String get worldBriefBreakingHelp => 'Use only for genuinely urgent or rapidly developing events.';
+
+  @override
+  String get worldBriefPriorityHelp => '0 = normal/low priority; 100 = highest editorial priority. It does not change the truth status of the content.';
+
+  @override
+  String get worldBriefExpiryHelp => 'After this window the brief should not remain active without another editorial review.';
 }

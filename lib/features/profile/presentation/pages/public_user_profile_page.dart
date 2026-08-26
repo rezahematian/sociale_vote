@@ -14,7 +14,6 @@ import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/ui/avatar.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
-import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class PublicUserProfilePage extends StatefulWidget {
   final String userId;
@@ -791,9 +790,6 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
     AppLocalizations l10n,
   ) {
     final theme = Theme.of(context);
-    final locale = Localizations.localeOf(context).languageCode;
-    final isItalian = locale.toLowerCase().startsWith('it');
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -844,12 +840,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      isItalian
-                          ? 'Impossibile caricare i Vote pubblici.'
-                          : deOrEnglish(context,
-                              english: 'Unable to load public Vote.',
-                              german:
-                                  'Öffentliche Vote konnten nicht geladen werden.'),
+                      l10n.publicProfilePollsLoadError,
                       style: theme.textTheme.bodyMedium,
                     ),
                   ),
@@ -877,11 +868,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      isItalian
-                          ? 'Nessun Vote pubblico.'
-                          : deOrEnglish(context,
-                              english: 'No public Vote.',
-                              german: 'Keine öffentlichen Vote.'),
+                      l10n.publicProfilePollsEmpty,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface.withValues(
                           alpha: 0.68,
@@ -953,12 +940,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      isItalian
-                          ? 'Impossibile caricare le Voci pubbliche.'
-                          : deOrEnglish(context,
-                              english: 'Unable to load public Voce.',
-                              german:
-                                  'Öffentliche Voce konnten nicht geladen werden.'),
+                      l10n.publicProfilePostsLoadError,
                       style: theme.textTheme.bodyMedium,
                     ),
                   ),
@@ -986,11 +968,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      isItalian
-                          ? 'Nessuna Voce pubblica.'
-                          : deOrEnglish(context,
-                              english: 'No public Voce.',
-                              german: 'Keine öffentlichen Voce.'),
+                      l10n.publicProfilePostsEmpty,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface.withValues(
                           alpha: 0.68,

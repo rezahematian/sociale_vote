@@ -807,14 +807,22 @@ class CivicMapController extends ChangeNotifier {
         return;
       }
 
+      upsertError(result);
+
+      // A manual refresh is committed atomically after every source has
+      // completed. Keeping the previous stable snapshot here prevents live
+      // Globe markers from disappearing while Poll/Post/News refresh at
+      // slightly different speeds.
+      if (sameScope && explicitRefresh) {
+        return;
+      }
+
       final storeChanged = _applySourceResult(
         store: store,
         result: result,
         preservePreviousOnError: sameScope,
-        preservePreviousOnEmpty: sameScope && !explicitRefresh,
+        preservePreviousOnEmpty: sameScope,
       );
-
-      upsertError(result);
 
       if (!storeChanged) {
         return;
@@ -883,6 +891,40 @@ class CivicMapController extends ChangeNotifier {
     if (!_isLatestRequest(requestId, scope)) {
       totalStopwatch.stop();
       return;
+    }
+
+    // Final source results are committed together. Empty successful results
+    // are authoritative only here, after loading has settled. Errors on the
+    // same scope remain fail-soft for presentation and preserve the last good
+    // marker snapshot.
+    // A settled manual refresh is authoritative: if a source really returns
+    // empty, its old markers must disappear. Automatic same-scope background
+    // reloads are different: a transient empty response must not wipe a valid
+    // live snapshot a few seconds after the map opens.
+    final preserveSettledEmptySnapshot = isBackgroundRefresh;
+
+    final finalPollChanged = _applySourceResult(
+      store: _pollItems,
+      result: pollResult,
+      preservePreviousOnError: sameScope,
+      preservePreviousOnEmpty: preserveSettledEmptySnapshot,
+    );
+    final finalPostChanged = _applySourceResult(
+      store: _postItems,
+      result: postResult,
+      preservePreviousOnError: sameScope,
+      preservePreviousOnEmpty: preserveSettledEmptySnapshot,
+    );
+    final finalNewsChanged = _applySourceResult(
+      store: _newsItems,
+      result: newsResult,
+      preservePreviousOnError: sameScope,
+      preservePreviousOnEmpty: preserveSettledEmptySnapshot,
+    );
+
+    if (finalPollChanged || finalPostChanged || finalNewsChanged) {
+      _rebuildMergedItems();
+      _reconcileSelectionAfterReload();
     }
 
     const rebuildMs = 0;

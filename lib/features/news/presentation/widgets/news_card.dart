@@ -11,6 +11,7 @@ import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.d
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 
 class NewsCard extends StatelessWidget {
   final NewsItem news;
@@ -110,159 +111,201 @@ class NewsCard extends StatelessWidget {
         ? const Color(0xFF2C3948)
         : const Color(0xFFD7DFEA);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.07),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: const Color(0xFF94A3B8).withValues(alpha: 0.10),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        child: Ink(
+    return Directionality(
+        textDirection: TextDirection.ltr,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: cardBorderColor,
-              width: 1.2,
-            ),
-            gradient: LinearGradient(
-              colors: [
-                cardTopColor,
-                cardBottomColor,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0F172A).withValues(alpha: 0.07),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+              BoxShadow(
+                color: const Color(0xFF94A3B8).withValues(alpha: 0.10),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
           ),
-          child: InkWell(
+          child: Material(
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(20),
-            onTap: openDetail,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final bool narrow = constraints.maxWidth < 560;
+            child: Ink(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: cardBorderColor,
+                  width: 1.2,
+                ),
+                gradient: LinearGradient(
+                  colors: [
+                    cardTopColor,
+                    cardBottomColor,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: openDetail,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final bool narrow = constraints.maxWidth < 560;
 
-                  final double imageWidth = compact ? 96 : (narrow ? 132 : 188);
-                  final double imageHeight =
-                      compact ? 104 : (narrow ? 112 : 164);
+                      final double imageWidth =
+                          compact ? 96 : (narrow ? 132 : 188);
+                      final double imageHeight =
+                          compact ? 104 : (narrow ? 112 : 164);
 
-                  final int titleMaxLines = compact ? 2 : 2;
-                  final int summaryMaxLines = compact ? 2 : 2;
+                      final int titleMaxLines = compact ? 2 : 2;
+                      final int summaryMaxLines = compact ? 2 : 2;
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        crossAxisAlignment: WrapCrossAlignment.center,
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildNewsIconChip(),
-                          _buildSourceChip(theme, sourceName),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      if (imageUrl != null) ...[
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: SizedBox(
-                                height: imageHeight,
-                                child: _NewsTextBlock(
-                                  title: title,
-                                  summary: summary,
-                                  compact: compact,
-                                  titleMaxLines: titleMaxLines,
-                                  summaryMaxLines: summaryMaxLines,
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              _buildNewsIconChip(),
+                              if (news.isSocialVoteBrief)
+                                _buildWorldBriefChip(theme),
+                              _buildSourceChip(theme, sourceName),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          if (imageUrl != null) ...[
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: SizedBox(
+                                    height: imageHeight,
+                                    child: _NewsTextBlock(
+                                      title: title,
+                                      summary: summary,
+                                      compact: compact,
+                                      titleMaxLines: titleMaxLines,
+                                      summaryMaxLines: summaryMaxLines,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                SizedBox(width: compact ? 10 : 12),
+                                _NewsThumbnail(
+                                  imageUrl: imageUrl,
+                                  width: imageWidth,
+                                  height: imageHeight,
+                                ),
+                              ],
                             ),
-                            SizedBox(width: compact ? 10 : 12),
-                            _NewsThumbnail(
-                              imageUrl: imageUrl,
-                              width: imageWidth,
-                              height: imageHeight,
+                          ] else ...[
+                            _NewsTextBlock(
+                              title: title,
+                              summary: summary,
+                              compact: compact,
+                              titleMaxLines: compact ? 3 : 2,
+                              summaryMaxLines: compact ? 3 : 2,
                             ),
                           ],
-                        ),
-                      ] else ...[
-                        _NewsTextBlock(
-                          title: title,
-                          summary: summary,
-                          compact: compact,
-                          titleMaxLines: compact ? 3 : 2,
-                          summaryMaxLines: compact ? 3 : 2,
-                        ),
-                      ],
-                      const SizedBox(height: 14),
-                      LayoutBuilder(
-                        builder: (context, footerConstraints) {
-                          final isCompactFooter =
-                              compact || footerConstraints.maxWidth < 420;
-                          final engagement = _NewsEngagementBar(
-                            news: news,
-                            compact: isCompactFooter,
-                            commentCount: commentCount,
-                            fireCount: fireCount,
-                            iceCount: iceCount,
-                            userReaction: userReaction,
-                            onFireTap: wrapReactCallback(onFireTap),
-                            onIceTap: wrapReactCallback(onIceTap),
-                            onCommentTap: openCommentsOrDetail,
-                          );
+                          const SizedBox(height: 14),
+                          LayoutBuilder(
+                            builder: (context, footerConstraints) {
+                              final isCompactFooter =
+                                  compact || footerConstraints.maxWidth < 420;
+                              final engagement = _NewsEngagementBar(
+                                news: news,
+                                compact: isCompactFooter,
+                                commentCount: commentCount,
+                                fireCount: fireCount,
+                                iceCount: iceCount,
+                                userReaction: userReaction,
+                                onFireTap: wrapReactCallback(onFireTap),
+                                onIceTap: wrapReactCallback(onIceTap),
+                                onCommentTap: openCommentsOrDetail,
+                              );
 
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              if (isCompactFooter)
-                                engagement
-                              else
-                                Expanded(child: engagement),
-                              SizedBox(
-                                width: isCompactFooter ? 8 : 12,
-                              ),
-                              if (isCompactFooter)
-                                Expanded(
-                                  child: _buildDateRow(
-                                    context,
-                                    theme,
-                                    compact: true,
+                              return Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  if (isCompactFooter)
+                                    engagement
+                                  else
+                                    Expanded(child: engagement),
+                                  SizedBox(
+                                    width: isCompactFooter ? 8 : 12,
                                   ),
-                                )
-                              else
-                                _buildDateRow(context, theme),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
-                  );
-                },
+                                  if (isCompactFooter)
+                                    Expanded(
+                                      child: _buildDateRow(
+                                        context,
+                                        theme,
+                                        compact: true,
+                                      ),
+                                    )
+                                  else
+                                    _buildDateRow(context, theme),
+                                ],
+                              );
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   Widget _buildNewsIconChip() {
     return const ContentTypeMark(
       kind: SocialVoteContentKind.news,
+    );
+  }
+
+  Widget _buildWorldBriefChip(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color:
+            theme.colorScheme.primary.withValues(alpha: isDark ? 0.16 : 0.08),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color:
+              theme.colorScheme.primary.withValues(alpha: isDark ? 0.38 : 0.22),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.auto_awesome_outlined,
+            size: 14,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            'World Brief',
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontSize: 12,
+              height: 1,
+              fontWeight: FontWeight.w800,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -296,6 +339,8 @@ class NewsCard extends StatelessWidget {
             child: Text(
               sourceName,
               overflow: TextOverflow.ellipsis,
+              textDirection: socialVoteContentDirection(sourceName),
+              textAlign: socialVoteContentTextAlign(sourceName),
               style: theme.textTheme.labelMedium?.copyWith(
                 fontSize: 12,
                 height: 1,
@@ -411,6 +456,8 @@ class _NewsTextBlock extends StatelessWidget {
           ),
           maxLines: titleMaxLines,
           overflow: TextOverflow.ellipsis,
+          textDirection: socialVoteContentDirection(title),
+          textAlign: socialVoteContentTextAlign(title),
         ),
         if (summary != null) ...[
           const SizedBox(height: 6),
@@ -422,6 +469,8 @@ class _NewsTextBlock extends StatelessWidget {
             ),
             maxLines: summaryMaxLines,
             overflow: TextOverflow.ellipsis,
+            textDirection: socialVoteContentDirection(summary!),
+            textAlign: socialVoteContentTextAlign(summary!),
           ),
         ],
       ],

@@ -2704,6 +2704,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         child: WorldGlobeWidget(
           items: _adminGlobeController.visibleItems,
           interactionProfile: WorldGlobeInteractionProfile.home,
+          markerDataSettled: !_adminGlobeController.isLoading &&
+              !_adminGlobeController.isRefreshing,
           onItemTap: (item) {
             unawaited(_openAdminGlobeItem(item));
           },
