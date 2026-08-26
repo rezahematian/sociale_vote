@@ -6,6 +6,9 @@ import 'package:provider/provider.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
+import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
+import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
@@ -202,12 +205,8 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
                           Positioned.fill(
                             child: WorldGlobeWidget(
                               items: controller.visibleItems,
-                              onItemTap: (_) async {
-                                await _openFullMap(
-                                  context,
-                                  controller: controller,
-                                  scope: activeScope,
-                                );
+                              onItemTap: (item) async {
+                                await _openTarget(context, item);
                               },
                               onUseClassicMap: () async {
                                 await _openFullMap(
@@ -303,6 +302,53 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
         );
       },
     );
+  }
+
+  Future<void> _openTarget(
+    BuildContext context,
+    CivicMapItem item,
+  ) async {
+    final targetRef = item.targetRef;
+    final targetId = targetRef.id.trim();
+    if (targetId.isEmpty) return;
+
+    switch (targetRef.type) {
+      case TargetType.poll:
+        await Navigator.of(context).pushNamed(
+          AppRouter.pollDetail,
+          arguments: PollId(targetId),
+        );
+        return;
+      case TargetType.post:
+        await Navigator.of(context).pushNamed(
+          AppRouter.socialDetail,
+          arguments: targetId,
+        );
+        return;
+      case TargetType.news:
+        var newsItem = item.newsItem;
+        if (newsItem == null) {
+          try {
+            newsItem = await AppDI.instance.getNewsDetail(EntityId(targetId));
+          } catch (_) {
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Impossibile aprire il dettaglio della notizia'),
+              ),
+            );
+            return;
+          }
+        }
+        if (!context.mounted) return;
+        await Navigator.of(context).pushNamed(
+          AppRouter.newsDetail,
+          arguments: newsItem,
+        );
+        return;
+      default:
+        return;
+    }
   }
 
   Future<void> _openFullMap(

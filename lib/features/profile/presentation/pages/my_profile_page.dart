@@ -29,6 +29,7 @@ import 'package:sociale_vote/features/profile/presentation/pages/organization_ve
 import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/world_appearance_settings_page.dart';
 import 'package:sociale_vote/shared/services/biometric_unlock_service.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 
 String _worldAppearanceSettingsTitle(BuildContext context) {
@@ -1213,14 +1214,20 @@ class _MyProfileViewState extends State<_MyProfileView> {
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  CircleAvatar(
-                                    radius: 32,
-                                    backgroundImage: avatarUrl.isNotEmpty
-                                        ? NetworkImage(avatarUrl)
-                                        : null,
-                                    child: avatarUrl.isEmpty
-                                        ? const Icon(Icons.person, size: 32)
-                                        : null,
+                                  PublisherAvatar(
+                                    displayName: displayName.isNotEmpty
+                                        ? displayName
+                                        : l10n.notificationsUserFallback,
+                                    imageUrl:
+                                        avatarUrl.isEmpty ? null : avatarUrl,
+                                    actorType:
+                                        profile?.actorType ?? ActorType.citizen,
+                                    verificationLevel:
+                                        profile?.verificationLevel ??
+                                            VerificationLevel.none,
+                                    institutionLevel: profile?.institutionLevel,
+                                    size: 64,
+                                    showTooltip: false,
                                   ),
                                   const SizedBox(width: 16),
                                   Expanded(
@@ -2012,16 +2019,12 @@ class _OrganizationAccountCard extends StatelessWidget {
     final identity = Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        CircleAvatar(
-          radius: 28,
-          backgroundColor: colors.primaryContainer,
-          backgroundImage: logo.isEmpty ? null : NetworkImage(logo),
-          child: logo.isEmpty
-              ? Icon(
-                  Icons.apartment_rounded,
-                  color: colors.onPrimaryContainer,
-                )
-              : null,
+        PublisherAvatar(
+          displayName: organization.publicName,
+          imageUrl: logo.isEmpty ? null : logo,
+          actorType: ActorType.organization,
+          size: 56,
+          showTooltip: false,
         ),
         const SizedBox(width: 14),
         Expanded(

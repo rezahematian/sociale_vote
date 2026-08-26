@@ -310,22 +310,47 @@ class PublisherAvatar extends StatelessWidget {
     final initial = displayName.trim().isEmpty
         ? '?'
         : displayName.trim().characters.first.toUpperCase();
-    final borderWidth = _isVerified ? 2.0 : 1.25;
-    final backgroundColor = color.withValues(
+    final actorBackgroundColor = color.withValues(
       alpha: theme.brightness == Brightness.dark ? 0.20 : 0.11,
     );
-    final borderColor = color.withValues(alpha: _isVerified ? 0.88 : 0.52);
+    final actorBorderColor = color.withValues(alpha: _isVerified ? 0.88 : 0.52);
+
+    // Una foto/logo reale deve essere la superficie dell'avatar, non stare
+    // dentro una cornice colorata che lascia bande laterali visibili. Tipo e
+    // verifica sono già comunicati dalla forma e dal sigillo sovrapposto.
+    final backgroundColor =
+        canShowImage ? theme.colorScheme.surface : actorBackgroundColor;
+    final borderColor = canShowImage
+        ? theme.colorScheme.outlineVariant.withValues(
+            alpha: theme.brightness == Brightness.dark ? 0.72 : 0.56,
+          )
+        : actorBorderColor;
+    final borderWidth = canShowImage ? 1.0 : (_isVerified ? 2.0 : 1.25);
+    final imageScale = switch (actorType) {
+      ActorType.organization => 1.14,
+      ActorType.institution => 1.10,
+      ActorType.publicOfficial => 1.06,
+      ActorType.citizen => 1.04,
+    };
 
     final imageChild = SizedBox.expand(
       child: canShowImage
-          ? Image.network(
-              normalizedImageUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Center(
-                child: _fallback(
-                  context,
-                  color: color,
-                  initial: initial,
+          ? Transform.scale(
+              scale: imageScale,
+              child: Image.network(
+                normalizedImageUrl,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                alignment: Alignment.center,
+                filterQuality: FilterQuality.high,
+                gaplessPlayback: true,
+                errorBuilder: (_, __, ___) => Center(
+                  child: _fallback(
+                    context,
+                    color: color,
+                    initial: initial,
+                  ),
                 ),
               ),
             )

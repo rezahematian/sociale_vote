@@ -27,6 +27,12 @@ enum CivicMapHeatTier {
   hot,
 }
 
+enum CivicMapMarkerSizeTier {
+  small,
+  medium,
+  large,
+}
+
 /// Regole uniche di heat per tutta la Civic Map.
 ///
 /// Nota importante:
@@ -184,6 +190,16 @@ class CivicMapImportanceRules {
     return remainingRatio * maxScore;
   }
 
+  static CivicMapMarkerSizeTier resolveMarkerSizeTier(double score) {
+    if (score >= 58.0) {
+      return CivicMapMarkerSizeTier.large;
+    }
+    if (score >= 28.0) {
+      return CivicMapMarkerSizeTier.medium;
+    }
+    return CivicMapMarkerSizeTier.small;
+  }
+
   static double _typeBoost(CivicMapItemType type) {
     switch (type) {
       case CivicMapItemType.poll:
@@ -222,58 +238,64 @@ class CivicMapMarkerSelectionRules {
       return const <CivicMapItem>[];
     }
 
-    final effectiveNewsLimit = math.min(
-      totalLimit,
-      math.max(0, newsLimit),
-    );
-
-    // Civic content remains the visual backbone of the map. News can occupy
-    // only an explicit share of the available marker budget and never crowd
-    // out every Vote/Voce marker. If one category has too few items, the
-    // unused slots are filled from the global ranking below.
-    final selectedOther = sorted
-        .where((item) => item.type != CivicMapItemType.news)
-        .take(math.max(0, totalLimit - effectiveNewsLimit))
-        .toList(growable: true);
-    final selectedNews = sorted
-        .where((item) => item.type == CivicMapItemType.news)
-        .take(effectiveNewsLimit)
-        .toList(growable: true);
-
-    final selectedKeys = <String>{
-      for (final item in selectedOther) '${item.type.name}:${item.id}',
-      for (final item in selectedNews) '${item.type.name}:${item.id}',
+    final byType = <CivicMapItemType, List<CivicMapItem>>{
+      for (final type in CivicMapItemType.values)
+        type: sorted.where((item) => item.type == type).toList(growable: false),
     };
+    final nonEmptyTypes = byType.entries
+        .where((entry) => entry.value.isNotEmpty)
+        .map((entry) => entry.key)
+        .toList(growable: false);
 
-    if (selectedKeys.length < totalLimit) {
-      for (final item in sorted) {
+    // A single active Civic Map filter must be able to use the whole marker
+    // budget. The News cap only applies to mixed-content views.
+    if (nonEmptyTypes.length == 1) {
+      return byType[nonEmptyTypes.single]!
+          .take(totalLimit)
+          .toList(growable: false);
+    }
+
+    final effectiveNewsLimit = math.min(totalLimit, math.max(0, newsLimit));
+    final remainingAfterNews = math.max(0, totalLimit - effectiveNewsLimit);
+    final civicBaseLimit = remainingAfterNews ~/ 2;
+
+    final selected = <CivicMapItem>[];
+    final selectedKeys = <String>{};
+
+    void takeType(CivicMapItemType type, int limit) {
+      for (final item in byType[type]!.take(limit)) {
         final key = '${item.type.name}:${item.id}';
         if (selectedKeys.add(key)) {
-          if (item.type == CivicMapItemType.news &&
-              selectedNews.length >= effectiveNewsLimit) {
-            selectedKeys.remove(key);
-            continue;
-          }
-
-          if (item.type == CivicMapItemType.news) {
-            selectedNews.add(item);
-          } else {
-            selectedOther.add(item);
-          }
-        }
-
-        if (selectedKeys.length >= totalLimit) {
-          break;
+          selected.add(item);
         }
       }
     }
 
-    return sorted
-        .where(
-          (item) => selectedKeys.contains('${item.type.name}:${item.id}'),
-        )
-        .take(totalLimit)
-        .toList(growable: false);
+    takeType(CivicMapItemType.news, effectiveNewsLimit);
+    takeType(CivicMapItemType.poll, civicBaseLimit);
+    takeType(CivicMapItemType.post, civicBaseLimit);
+
+    // Fill unused slots from the global ranking. News remains capped while
+    // Vote/Voce can use spare capacity if the other civic type is scarce.
+    for (final item in sorted) {
+      if (selected.length >= totalLimit) break;
+      final key = '${item.type.name}:${item.id}';
+      if (selectedKeys.contains(key)) continue;
+      if (item.type == CivicMapItemType.news &&
+          selected
+                  .where((entry) => entry.type == CivicMapItemType.news)
+                  .length >=
+              effectiveNewsLimit) {
+        continue;
+      }
+      selectedKeys.add(key);
+      selected.add(item);
+    }
+
+    selected.sort(
+      (a, b) => b.mapImportanceScore.compareTo(a.mapImportanceScore),
+    );
+    return selected.take(totalLimit).toList(growable: false);
   }
 }
 
@@ -354,6 +376,10 @@ class CivicMapItem {
 
   CivicMapHeatTier get heatTier {
     return CivicMapHeatRules.resolveTierFromScore(mapHeatScore);
+  }
+
+  CivicMapMarkerSizeTier get markerSizeTier {
+    return CivicMapImportanceRules.resolveMarkerSizeTier(mapImportanceScore);
   }
 
   bool get isHot => heatTier == CivicMapHeatTier.hot;

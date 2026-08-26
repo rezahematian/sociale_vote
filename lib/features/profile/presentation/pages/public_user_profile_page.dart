@@ -12,7 +12,7 @@ import 'package:sociale_vote/features/poll/presentation/pages/poll_detail_page.d
 import 'package:sociale_vote/features/social/presentation/pages/post_detail_page.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
-import 'package:sociale_vote/shared/ui/avatar.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 
 class PublicUserProfilePage extends StatefulWidget {
@@ -1255,10 +1255,14 @@ class _PublicProfileHeader extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Avatar(
-                  name: nameLabel,
+                PublisherAvatar(
+                  displayName: nameLabel,
                   imageUrl: _normalize(profile.avatarUrl),
+                  actorType: profile.actorType,
+                  verificationLevel: profile.verificationLevel,
+                  institutionLevel: profile.institutionLevel,
                   size: 72,
+                  showTooltip: false,
                 ),
                 const SizedBox(width: 16),
                 Expanded(

@@ -1533,14 +1533,6 @@ class _MapTypeFilters extends StatelessWidget {
     required this.controller,
   });
 
-  Color _chipColor(CivicMapItemType type) {
-    return SocialVoteSymbols.contentColor(_contentKindForType(type));
-  }
-
-  IconData _chipIcon(CivicMapItemType type) {
-    return SocialVoteSymbols.contentIcon(_contentKindForType(type));
-  }
-
   SocialVoteContentKind _contentKindForType(CivicMapItemType type) {
     return switch (type) {
       CivicMapItemType.poll => SocialVoteContentKind.vote,
@@ -1549,48 +1541,69 @@ class _MapTypeFilters extends StatelessWidget {
     };
   }
 
-  String _chipLabel(BuildContext context, CivicMapItemType type) {
-    switch (type) {
-      case CivicMapItemType.poll:
-        return Localizations.localeOf(context).languageCode == 'it'
-            ? 'Vote'
-            : deOrEnglish(context, english: 'Vote', german: 'Vote');
-      case CivicMapItemType.post:
-        return 'Voce';
-      case CivicMapItemType.news:
-        return Localizations.localeOf(context).languageCode == 'it'
-            ? 'News'
-            : deOrEnglish(context, english: 'News', german: 'News');
+  String _label(BuildContext context, CivicMapItemType? type) {
+    final language = Localizations.localeOf(context).languageCode;
+    if (type == null) {
+      if (language == 'it') return 'Tutti';
+      if (language == 'de') return 'Alle';
+      if (language == 'fa') return 'همه';
+      return 'All';
     }
+    return switch (type) {
+      CivicMapItemType.poll => 'Vote',
+      CivicMapItemType.post => 'Voce',
+      CivicMapItemType.news => 'News',
+    };
   }
 
-  Widget _buildChip(BuildContext context, CivicMapItemType type) {
-    final active = controller.isTypeVisible(type);
-    final color = _chipColor(type);
-    final count = controller.allItems.where((item) => item.type == type).length;
+  bool _isAllSelected() =>
+      controller.visibleTypes.length == CivicMapItemType.values.length;
 
+  Widget _buildAllChip(BuildContext context) {
+    final selected = _isAllSelected();
     return FilterChip(
-      label: Text('${_chipLabel(context, type)} $count'),
-      selected: active,
-      onSelected: (_) => controller.toggleType(type),
+      label: Text(_label(context, null)),
+      avatar: Icon(
+        Icons.public_rounded,
+        size: 18,
+        color: selected ? Theme.of(context).colorScheme.primary : null,
+      ),
+      selected: selected,
+      onSelected: (_) =>
+          controller.setVisibleTypes(CivicMapItemType.values.toSet()),
       showCheckmark: false,
       visualDensity: VisualDensity.compact,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
+
+  Widget _buildTypeChip(BuildContext context, CivicMapItemType type) {
+    final selected =
+        controller.visibleTypes.length == 1 && controller.isTypeVisible(type);
+    final kind = _contentKindForType(type);
+    final color = SocialVoteSymbols.contentColor(kind);
+
+    return FilterChip(
+      label: Text(_label(context, type)),
       avatar: Icon(
-        _chipIcon(type),
+        SocialVoteSymbols.contentIcon(kind),
         size: 18,
-        color: active ? color : null,
+        color: selected ? color : null,
       ),
+      selected: selected,
+      onSelected: (_) => controller.setVisibleTypes(<CivicMapItemType>{type}),
+      showCheckmark: false,
+      visualDensity: VisualDensity.compact,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       selectedColor: color.withValues(alpha: 0.15),
-      checkmarkColor: color,
       side: BorderSide(
-        color: active
+        color: selected
             ? color.withValues(alpha: 0.45)
             : Colors.grey.withValues(alpha: 0.25),
       ),
       labelStyle: TextStyle(
-        color: active ? color : null,
-        fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+        color: selected ? color : null,
+        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
       ),
     );
   }
@@ -1600,10 +1613,12 @@ class _MapTypeFilters extends StatelessWidget {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
+      alignment: WrapAlignment.center,
       children: [
-        _buildChip(context, CivicMapItemType.poll),
-        _buildChip(context, CivicMapItemType.post),
-        _buildChip(context, CivicMapItemType.news),
+        _buildAllChip(context),
+        _buildTypeChip(context, CivicMapItemType.news),
+        _buildTypeChip(context, CivicMapItemType.poll),
+        _buildTypeChip(context, CivicMapItemType.post),
       ],
     );
   }

@@ -173,23 +173,18 @@ class _OrganizationWorkspacePageState extends State<OrganizationWorkspacePage> {
                   const SizedBox(height: 18),
                   _BusinessWorkspaceExperience(
                     organizationName: data.organization.publicName,
-                    canPublish: data.canManageProfile,
+                    verified: data.organization.isVerified,
+                    workspaceActive: data.isWorkspaceActive,
+                    isFreePilot: data.isFreePilot,
+                    canPublish: data.canPublishOfficial,
                     canCreateSession: data.canOperateSessions,
+                    membershipRole: data.membershipRole,
                     onCreateVoice: _createVoice,
                     onCreateVote: _createVote,
                     onCreateSession: _createSession,
                   ),
                   const SizedBox(height: 18),
                   _OrganizationDashboard(sessions: _controller.sessions),
-                  const SizedBox(height: 14),
-                  Card(
-                    margin: EdgeInsets.zero,
-                    child: ListTile(
-                      leading: const Icon(Icons.science_outlined),
-                      title: Text(l10n.organizationPilotBannerTitle),
-                      subtitle: Text(l10n.organizationPilotBannerBody),
-                    ),
-                  ),
                   const SizedBox(height: 22),
                   Row(
                     children: [
@@ -260,16 +255,24 @@ class _OrganizationWorkspacePageState extends State<OrganizationWorkspacePage> {
 
 class _BusinessWorkspaceExperience extends StatelessWidget {
   final String organizationName;
+  final bool verified;
+  final bool workspaceActive;
+  final bool isFreePilot;
   final bool canPublish;
   final bool canCreateSession;
+  final String membershipRole;
   final VoidCallback onCreateVoice;
   final VoidCallback onCreateVote;
   final VoidCallback onCreateSession;
 
   const _BusinessWorkspaceExperience({
     required this.organizationName,
+    required this.verified,
+    required this.workspaceActive,
+    required this.isFreePilot,
     required this.canPublish,
     required this.canCreateSession,
+    required this.membershipRole,
     required this.onCreateVoice,
     required this.onCreateVote,
     required this.onCreateSession,
@@ -322,8 +325,41 @@ class _BusinessWorkspaceExperience extends StatelessWidget {
                 ),
               ),
               Chip(
-                avatar: const Icon(Icons.verified_rounded, size: 17),
+                avatar: Icon(
+                  verified ? Icons.verified_rounded : Icons.gpp_bad_outlined,
+                  size: 17,
+                ),
                 label: Text(organizationName),
+              ),
+              Chip(
+                avatar: Icon(
+                  workspaceActive
+                      ? Icons.check_circle_outline_rounded
+                      : Icons.pause_circle_outline_rounded,
+                  size: 17,
+                ),
+                label: Text(
+                  workspaceActive
+                      ? _text(context,
+                          it: 'Workspace attivo',
+                          en: 'Workspace active',
+                          de: 'Workspace aktiv')
+                      : _text(context,
+                          it: 'Workspace non attivo',
+                          en: 'Workspace inactive',
+                          de: 'Workspace inaktiv'),
+                ),
+              ),
+              Chip(
+                avatar: const Icon(Icons.workspace_premium_outlined, size: 17),
+                label: Text(
+                  isFreePilot
+                      ? _text(context,
+                          it: 'Business Pilot · gratuito',
+                          en: 'Business Pilot · free',
+                          de: 'Business Pilot · kostenlos')
+                      : 'Business',
+                ),
               ),
             ],
           ),
@@ -336,6 +372,79 @@ class _BusinessWorkspaceExperience extends StatelessWidget {
               de: 'Von der Frage zum überprüfbaren Ergebnis: Wähle das passende Werkzeug für deine Community.',
             ),
             style: theme.textTheme.bodyLarge,
+          ),
+          const SizedBox(height: 18),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    verified && workspaceActive
+                        ? Icons.verified_user_rounded
+                        : Icons.lock_outline_rounded,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      verified && workspaceActive
+                          ? _text(
+                              context,
+                              it: 'Servizi Business abilitati: l’Organization è verificata e il Workspace è attivo. Il backend resta l’autorità finale.',
+                              en: 'Business services enabled: the Organization is verified and the Workspace is active. The backend remains the final authority.',
+                              de: 'Business-Dienste aktiviert: Die Organisation ist verifiziert und der Workspace aktiv. Das Backend bleibt maßgeblich.',
+                            )
+                          : _text(
+                              context,
+                              it: 'I servizi Business restano bloccati finché l’Organization non è verificata e il Workspace non è attivo.',
+                              en: 'Business services stay locked until the Organization is verified and the Workspace is active.',
+                              de: 'Business-Dienste bleiben gesperrt, bis die Organisation verifiziert und der Workspace aktiv ist.',
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.shield_outlined),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _text(context,
+                              it: 'Uso corretto e limiti tecnici',
+                              en: 'Fair use and technical limits',
+                              de: 'Faire Nutzung und technische Limits'),
+                          style: theme.textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _text(
+                            context,
+                            it: 'Per sicurezza, stabilità e qualità Social Vote può applicare limiti ragionevoli a creazione account, pubblicazioni, Sessions, partecipazione e richieste simultanee. Durante il pilot i limiti possono essere adeguati; flood, automazione abusiva e tentativi di aggiramento non sono consentiti.',
+                            en: 'For security, stability and quality, Social Vote may apply reasonable limits to account creation, publishing, Sessions, participation and concurrent requests. Limits may be adjusted during the pilot; flooding, abusive automation and bypass attempts are not allowed.',
+                            de: 'Für Sicherheit, Stabilität und Qualität kann Social Vote angemessene Limits für Kontoerstellung, Veröffentlichungen, Sessions, Teilnahme und gleichzeitige Anfragen anwenden. Im Pilot können Limits angepasst werden; Flooding, missbräuchliche Automatisierung und Umgehungsversuche sind nicht erlaubt.',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: 18),
           const _BusinessFlowStrip(),
@@ -426,9 +535,9 @@ class _BusinessWorkspaceExperience extends StatelessWidget {
             Text(
               _text(
                 context,
-                it: 'Alcune azioni dipendono dal ruolo attivo nell’Organization.',
-                en: 'Some actions depend on your active role in the Organization.',
-                de: 'Einige Aktionen hängen von deiner aktiven Rolle in der Organisation ab.',
+                it: 'Azioni disponibili in base a verifica, stato Workspace e ruolo ($membershipRole).',
+                en: 'Actions are available according to verification, Workspace status and role ($membershipRole).',
+                de: 'Aktionen sind je nach Verifizierung, Workspace-Status und Rolle ($membershipRole) verfügbar.',
               ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colors.onSurfaceVariant,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/organization/entities/organization_models.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 
 class OrganizationCoverHeader extends StatefulWidget {
   final OrganizationProfile organization;
@@ -123,47 +125,12 @@ class _OrganizationCoverHeaderState extends State<OrganizationCoverHeader> {
               children: [
                 Transform.translate(
                   offset: const Offset(0, -24),
-                  child: Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: colors.surface,
-                      boxShadow: const [
-                        BoxShadow(
-                          blurRadius: 12,
-                          offset: Offset(0, 3),
-                          color: Color(0x24000000),
-                        ),
-                      ],
-                    ),
-                    child: SizedBox.square(
-                      dimension: logoRadius * 2,
-                      child: ClipOval(
-                        child: logo.isNotEmpty
-                            ? Image.network(
-                                _freshUrl(logo),
-                                fit: BoxFit.cover,
-                                filterQuality: FilterQuality.medium,
-                                gaplessPlayback: true,
-                                errorBuilder: (_, __, ___) => ColoredBox(
-                                  color: colors.primaryContainer,
-                                  child: Icon(
-                                    Icons.apartment_rounded,
-                                    size: widget.compact ? 30 : 34,
-                                    color: colors.onPrimaryContainer,
-                                  ),
-                                ),
-                              )
-                            : ColoredBox(
-                                color: colors.primaryContainer,
-                                child: Icon(
-                                  Icons.apartment_rounded,
-                                  size: widget.compact ? 30 : 34,
-                                  color: colors.onPrimaryContainer,
-                                ),
-                              ),
-                      ),
-                    ),
+                  child: PublisherAvatar(
+                    displayName: organization.publicName,
+                    imageUrl: logo.isEmpty ? null : _freshUrl(logo),
+                    actorType: ActorType.organization,
+                    size: logoRadius * 2,
+                    showTooltip: false,
                   ),
                 ),
                 const SizedBox(width: 12),

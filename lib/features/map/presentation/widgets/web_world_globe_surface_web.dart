@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
-import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -550,7 +549,7 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     _markerGroupLookup.clear();
 
     final clusterDegrees = widget.homeProfile ? 18.0 : 7.0;
-    final markerLimit = widget.homeProfile ? 6 : 36;
+    final markerLimit = widget.homeProfile ? 9 : 36;
 
     final validCandidates = widget.items.where(
       (item) =>
@@ -564,56 +563,69 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     final limited = CivicMapMarkerSelectionRules.select(
       items: validCandidates,
       totalLimit: markerLimit,
-      newsLimit: widget.homeProfile ? 1 : 4,
+      newsLimit: widget.homeProfile ? 3 : 4,
     );
     final grouped = <String, List<CivicMapItem>>{};
+    final typesByCell = <String, Set<CivicMapItemType>>{};
 
     for (final item in limited) {
       final latCell = (item.latitude / clusterDegrees).floor();
       final lngCell = (item.longitude / clusterDegrees).floor();
-      // One geographic cell becomes one marker cluster regardless of content
-      // type, preventing Vote/Voce/News overlap at the same city centre.
-      final key = '$latCell|$lngCell';
-
+      final baseKey = '$latCell|$lngCell';
+      final key = '$baseKey|${item.type.name}';
       grouped.putIfAbsent(key, () => <CivicMapItem>[]).add(item);
+      typesByCell
+          .putIfAbsent(baseKey, () => <CivicMapItemType>{})
+          .add(item.type);
     }
 
     final result = <Map<String, Object?>>[];
     var groupIndex = 0;
 
-    for (final group in grouped.values) {
-      if (group.isEmpty) {
-        continue;
-      }
-
+    for (final entry in grouped.entries) {
+      final group = entry.value;
+      if (group.isEmpty) continue;
       final representative = _preferredMarkerRepresentative(group);
 
-      var latitudeTotal = 0.0;
-      var longitudeTotal = 0.0;
-
-      for (final item in group) {
-        latitudeTotal += item.latitude;
-        longitudeTotal += item.longitude;
+      var latitude =
+          group.map((e) => e.latitude).reduce((a, b) => a + b) / group.length;
+      var longitude =
+          group.map((e) => e.longitude).reduce((a, b) => a + b) / group.length;
+      final keyParts = entry.key.split('|');
+      final baseKey = '${keyParts[0]}|${keyParts[1]}';
+      if ((typesByCell[baseKey]?.length ?? 0) > 1) {
+        final offset = widget.homeProfile ? 0.18 : 0.06;
+        if (representative.type == CivicMapItemType.poll) {
+          longitude -= offset;
+        } else if (representative.type == CivicMapItemType.post) {
+          longitude += offset;
+        } else {
+          latitude += offset * 0.72;
+        }
       }
 
       final markerId =
           'web:${representative.type.name}:${representative.id}:$groupIndex';
       groupIndex += 1;
-
       _markerLookup[markerId] = representative;
       _markerGroupLookup[markerId] = List<CivicMapItem>.unmodifiable(group);
 
+      final size = switch (representative.markerSizeTier) {
+        CivicMapMarkerSizeTier.small => widget.homeProfile ? 0.92 : 0.88,
+        CivicMapMarkerSizeTier.medium => widget.homeProfile ? 1.08 : 1.00,
+        CivicMapMarkerSizeTier.large => widget.homeProfile ? 1.24 : 1.12,
+      };
+
       result.add(<String, Object?>{
         'id': markerId,
-        'latitude': latitudeTotal / group.length,
-        'longitude': longitudeTotal / group.length,
-        'color':
-            group.length > 1 ? '#805AD5' : _markerColor(representative.type),
+        'latitude': latitude.clamp(-89.999, 89.999),
+        'longitude': longitude.clamp(-179.999, 179.999),
+        'color': _markerColor(representative.type),
         'kind': _contentKindForWebMapType(representative.type).name,
-        'count': group.length,
-        'size': widget.homeProfile
-            ? math.min(1.28, 1.0 + (group.length - 1) * 0.08)
-            : math.min(1.20, 0.92 + (group.length - 1) * 0.06),
+        // Globe markers always remain content icons. The actual group is kept
+        // in _markerGroupLookup and opens a picker on tap when needed.
+        'count': 1,
+        'size': size,
       });
     }
 

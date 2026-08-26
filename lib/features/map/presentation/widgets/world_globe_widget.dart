@@ -35,6 +35,109 @@ SocialVoteContentKind _contentKindForMapType(CivicMapItemType type) {
   };
 }
 
+String _homeGlobeMarkerTypeLabel(CivicMapItemType type) {
+  return switch (type) {
+    CivicMapItemType.poll => 'Vote',
+    CivicMapItemType.post => 'Voce',
+    CivicMapItemType.news => 'News',
+  };
+}
+
+Future<void> _showHomeGlobeMarkerPreview({
+  required BuildContext context,
+  required CivicMapItem item,
+  required ValueChanged<CivicMapItem> onOpen,
+}) async {
+  final kind = _contentKindForMapType(item.type);
+  final typeColor = SocialVoteSymbols.contentColor(kind);
+  final subtitle = item.subtitle?.trim();
+  final languageCode = Localizations.localeOf(context).languageCode;
+  final openLabel = switch (languageCode) {
+    'it' => 'Apri dettaglio',
+    'de' => 'Details öffnen',
+    'fa' => 'باز کردن جزئیات',
+    _ => 'Open details',
+  };
+
+  await showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    builder: (sheetContext) {
+      final theme = Theme.of(sheetContext);
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ContentTypeMark(
+                    kind: kind,
+                    size: 38,
+                    showTooltip: false,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _homeGlobeMarkerTypeLabel(item.type),
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: typeColor,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          item.title,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            height: 1.22,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (subtitle != null && subtitle.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  subtitle.replaceAll(RegExp(r'\s+'), ' '),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                    height: 1.35,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop();
+                    onOpen(item);
+                  },
+                  icon: const Icon(Icons.open_in_new_rounded),
+                  label: Text(openLabel),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
 class WorldGlobeMapHandoff {
   final double latitude;
   final double longitude;
@@ -301,6 +404,17 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
       });
     }
 
+    if (_isHomeProfile) {
+      unawaited(
+        _showHomeGlobeMarkerPreview(
+          context: context,
+          item: item,
+          onOpen: widget.onItemTap,
+        ),
+      );
+      return;
+    }
+
     widget.onItemTap(item);
   }
 
@@ -524,7 +638,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
 
   // Home shows only a small set of high-value beacons. Larger clustering
   // keeps dense regions readable at the fixed Home globe scale.
-  static const int _homeFeaturedMarkerLimit = 6;
+  static const int _homeFeaturedMarkerLimit = 9;
   static const double _homeMarkerClusterDegrees = 18.0;
 
   static const int _exploreMarkerLimitFar = 36;
@@ -1448,25 +1562,16 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
 
     for (final group in groups) {
       final item = group.representative;
-      final isCluster = group.items.length > 1;
-      final importance =
-          (item.mapImportanceScore / 70.0).clamp(0.0, 1.0).toDouble();
-
-      // Home beacons are intentionally more visible than Explore markers,
-      // but fewer in number. Explore keeps the denser functional marker scale.
-      final baseSize = _isHomeProfile
-          ? 4.25 + (importance * 1.95)
-          : 2.8 + (importance * 1.8);
-      final clusterBoost = isCluster
-          ? (_isHomeProfile
-              ? math.min(2.1, math.log(group.items.length + 1) * 0.90)
-              : math.min(1.8, math.log(group.items.length + 1) * 0.72))
-          : 0.0;
-      final markerSize = (baseSize + clusterBoost)
-          .clamp(_isHomeProfile ? 4.25 : 2.8, _isHomeProfile ? 7.6 : 6.2)
-          .toDouble();
-      final markerVisualSize = (_isHomeProfile ? 30.0 : 27.0) +
-          (isCluster ? math.min(5.0, group.items.length.toDouble()) : 0.0);
+      final markerSize = switch (item.markerSizeTier) {
+        CivicMapMarkerSizeTier.small => _isHomeProfile ? 4.2 : 2.8,
+        CivicMapMarkerSizeTier.medium => _isHomeProfile ? 5.4 : 3.8,
+        CivicMapMarkerSizeTier.large => _isHomeProfile ? 6.6 : 4.9,
+      };
+      final markerVisualSize = switch (item.markerSizeTier) {
+        CivicMapMarkerSizeTier.small => _isHomeProfile ? 24.0 : 22.0,
+        CivicMapMarkerSizeTier.medium => _isHomeProfile ? 29.0 : 26.0,
+        CivicMapMarkerSizeTier.large => _isHomeProfile ? 34.0 : 30.0,
+      };
 
       final pointId = 'social-vote:${item.type.name}:${item.id}';
       _globeMarkerItemsByPointId[pointId] = item;
@@ -1476,15 +1581,13 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
         Point(
           id: pointId,
           coordinates: GlobeCoordinates(group.latitude, group.longitude),
-          label: isCluster
-              ? (group.items.length > 99 ? '99+' : '${group.items.length}')
-              : null,
+          label: null,
           labelBuilder: (_, __, ___, isVisible) {
             if (!isVisible) return null;
             return GlobeContentMarker(
               kind: _contentKindForMapType(item.type),
               size: markerVisualSize,
-              clusterCount: group.items.length,
+              clusterCount: 1,
             );
           },
           isLabelVisible: true,
@@ -1501,11 +1604,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
           ),
           style: PointStyle(
             size: markerSize,
-            color: isCluster
-                ? (_isHomeProfile
-                    ? const Color(0xFFC8B3FF)
-                    : const Color(0xFFB89CFF))
-                : _markerColorForType(item.type),
+            color: _markerColorForType(item.type),
             altitude: _isHomeProfile ? 0.024 : 0.018,
             transitionDuration: 180,
           ),
@@ -1539,25 +1638,27 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
         (item) => _isValidLatLng(item.latitude, item.longitude),
       ),
       totalLimit: markerLimit,
-      newsLimit: _isHomeProfile ? 1 : 4,
+      newsLimit: _isHomeProfile ? 3 : 4,
     );
 
     final grouped = <String, List<CivicMapItem>>{};
+    final typesByCell = <String, Set<CivicMapItemType>>{};
 
     for (final item in candidates) {
       final latCell = (item.latitude / clusterDegrees).floor();
       final lngCell = (item.longitude / clusterDegrees).floor();
-      // One geographic cell becomes one marker cluster regardless of content
-      // type. This prevents Vote, Voce and News from being painted on top of
-      // one another at the same city centre.
-      final key = '$latCell|$lngCell';
-
+      final baseKey = '$latCell|$lngCell';
+      final key = '$baseKey|${item.type.name}';
       grouped.putIfAbsent(key, () => <CivicMapItem>[]).add(item);
+      typesByCell
+          .putIfAbsent(baseKey, () => <CivicMapItemType>{})
+          .add(item.type);
     }
 
     final output = <_WorldGlobeMarkerGroup>[];
 
-    for (final groupItems in grouped.values) {
+    for (final entry in grouped.entries) {
+      final groupItems = entry.value;
       final representative = _preferredGlobeMarkerRepresentative(groupItems);
 
       var latitudeTotal = 0.0;
@@ -1566,13 +1667,34 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
         latitudeTotal += item.latitude;
         longitudeTotal += item.longitude;
       }
+      var latitude = latitudeTotal / groupItems.length;
+      var longitude = longitudeTotal / groupItems.length;
+      final keyParts = entry.key.split('|');
+      final baseKey = '${keyParts[0]}|${keyParts[1]}';
+      if ((typesByCell[baseKey]?.length ?? 0) > 1) {
+        final offset = _isHomeProfile
+            ? 0.18
+            : switch (_markerZoomBucket(_globeController.zoom)) {
+                0 => 0.08,
+                1 => 0.04,
+                2 => 0.015,
+                _ => 0.004,
+              };
+        if (representative.type == CivicMapItemType.poll) {
+          longitude -= offset;
+        } else if (representative.type == CivicMapItemType.post) {
+          longitude += offset;
+        } else {
+          latitude += offset * 0.72;
+        }
+      }
 
       output.add(
         _WorldGlobeMarkerGroup(
           representative: representative,
           items: List<CivicMapItem>.unmodifiable(groupItems),
-          latitude: latitudeTotal / groupItems.length,
-          longitude: longitudeTotal / groupItems.length,
+          latitude: latitude.clamp(-89.999, 89.999).toDouble(),
+          longitude: longitude.clamp(-179.999, 179.999).toDouble(),
         ),
       );
     }
@@ -1725,6 +1847,18 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     }
 
     debugPrint('[WorldGlobe] G5 marker tap: ${item.type.name} ${item.id}');
+
+    if (_isHomeProfile) {
+      unawaited(
+        _showHomeGlobeMarkerPreview(
+          context: context,
+          item: item,
+          onOpen: widget.onItemTap,
+        ),
+      );
+      return;
+    }
+
     widget.onItemTap(item);
   }
 
@@ -2015,16 +2149,46 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     }
   }
 
+  bool _tryHandleHomeMarkerTap(Offset globalPosition) {
+    final globeContext = _globeController.globeKey.currentContext;
+    final globeState = _globeController.globeKey.currentState;
+    final renderObject = globeContext?.findRenderObject();
+
+    if (globeState == null || renderObject is! RenderBox) {
+      return false;
+    }
+
+    final localPosition = renderObject.globalToLocal(globalPosition);
+    final pointId = globeState.pointIdAtLocalPosition(localPosition);
+    if (pointId == null) {
+      return false;
+    }
+
+    final item = _globeMarkerItemsByPointId[pointId];
+    final group = _globeMarkerGroupsByPointId[pointId];
+    if (item == null) {
+      return false;
+    }
+
+    if (group != null && group.length > 1) {
+      unawaited(_showGlobeMarkerGroupPicker(group));
+    } else {
+      _handleGlobeMarkerTap(item);
+    }
+    return true;
+  }
+
   void _handleHomePointerUp(PointerUpEvent event) {
     final start = _primaryStartPosition;
     final wasGlobeGesture = _homeGestureIntent == _HomeGestureIntent.globe;
     final wasSinglePointer = _activePointers.length == 1;
-    final shouldOpenCivicMap = wasSinglePointer &&
+    final shouldHandleHomeTap = wasSinglePointer &&
         event.pointer == _primaryPointer &&
         _primaryStartedOnSphere &&
         _homeGestureIntent == _HomeGestureIntent.undecided &&
         start != null &&
         (event.localPosition - start).distance < _gestureIntentThreshold;
+    final tapGlobalPosition = event.position;
 
     _activePointers.remove(event.pointer);
 
@@ -2035,11 +2199,13 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
         _scheduleNativeNaturalTiltRecovery();
       }
 
-      if (shouldOpenCivicMap) {
-        // Open after the pointer sequence is fully released. A drag, pinch or
-        // vertical page gesture can never reach this branch.
+      if (shouldHandleHomeTap) {
+        // Marker hit-testing has priority on Home too. Tapping a content marker
+        // opens its preview; tapping the Earth outside a marker opens Civic Map.
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
+          if (!mounted) return;
+          final markerHandled = _tryHandleHomeMarkerTap(tapGlobalPosition);
+          if (!markerHandled) {
             widget.onUseClassicMap();
           }
         });

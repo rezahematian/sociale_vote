@@ -163,8 +163,17 @@ class OrganizationContext {
 
   bool get canManageProfile =>
       membershipRole == 'owner' || membershipRole == 'manager';
+  bool get isWorkspaceActive =>
+      workspace.status.trim().toLowerCase() == 'active';
+  bool get canUseBusinessServices =>
+      organization.isVerified && isWorkspaceActive;
+  bool get canPublishOfficial => canUseBusinessServices && canManageProfile;
   bool get canOperateSessions =>
-      canManageProfile || membershipRole == 'operator';
+      canUseBusinessServices &&
+      (canManageProfile || membershipRole == 'operator');
+  bool get isFreePilot =>
+      workspace.planKey.trim().toLowerCase() == 'pilot' ||
+      workspace.commercialMode.trim().toLowerCase() == 'pilot_free';
 }
 
 String? _string(dynamic value) {

@@ -152,6 +152,90 @@ void main() {
       });
     });
   });
+  group('marker selection grammar', () {
+    test('mixed Home budget keeps News Vote and Voce represented', () {
+      final items = <CivicMapItem>[
+        for (var i = 0; i < 8; i++)
+          _item(
+            id: 'poll-$i',
+            type: CivicMapItemType.poll,
+            latitude: 40 + i.toDouble(),
+            longitude: 10,
+          ),
+        for (var i = 0; i < 8; i++)
+          _item(
+            id: 'post-$i',
+            type: CivicMapItemType.post,
+            latitude: 30 + i.toDouble(),
+            longitude: 20,
+          ),
+        for (var i = 0; i < 8; i++)
+          _item(
+            id: 'news-$i',
+            type: CivicMapItemType.news,
+            latitude: 20 + i.toDouble(),
+            longitude: 30,
+          ),
+      ];
+
+      final selected = CivicMapMarkerSelectionRules.select(
+        items: items,
+        totalLimit: 9,
+        newsLimit: 3,
+      );
+
+      expect(selected, hasLength(9));
+      expect(
+        selected.where((item) => item.type == CivicMapItemType.news),
+        hasLength(3),
+      );
+      expect(
+        selected.where((item) => item.type == CivicMapItemType.poll),
+        isNotEmpty,
+      );
+      expect(
+        selected.where((item) => item.type == CivicMapItemType.post),
+        isNotEmpty,
+      );
+    });
+
+    test('single Civic Map filter can use the whole marker budget', () {
+      final news = <CivicMapItem>[
+        for (var i = 0; i < 12; i++)
+          _item(
+            id: 'news-$i',
+            type: CivicMapItemType.news,
+            latitude: i.toDouble(),
+            longitude: i.toDouble(),
+          ),
+      ];
+
+      final selected = CivicMapMarkerSelectionRules.select(
+        items: news,
+        totalLimit: 9,
+        newsLimit: 3,
+      );
+
+      expect(selected, hasLength(9));
+      expect(
+          selected.every((item) => item.type == CivicMapItemType.news), isTrue);
+    });
+
+    test('importance resolves to only three visual size tiers', () {
+      expect(
+        CivicMapImportanceRules.resolveMarkerSizeTier(0),
+        CivicMapMarkerSizeTier.small,
+      );
+      expect(
+        CivicMapImportanceRules.resolveMarkerSizeTier(28),
+        CivicMapMarkerSizeTier.medium,
+      );
+      expect(
+        CivicMapImportanceRules.resolveMarkerSizeTier(58),
+        CivicMapMarkerSizeTier.large,
+      );
+    });
+  });
 }
 
 CivicMapItem _item({

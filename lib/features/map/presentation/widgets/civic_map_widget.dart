@@ -458,24 +458,19 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     required bool selected,
     int clusterSize = 1,
   }) {
-    // Scala continua basata sul ranking civico:
-    // 34px minimo, 64px massimo prima dell'evidenza di selezione/cluster.
-    final normalized =
-        (item.mapImportanceScore / 70.0).clamp(0.0, 1.0).toDouble();
-    var size = 34.0 + (normalized * 30.0);
+    // Tre livelli leggibili e stabili: l'importanza cambia la presenza del
+    // marker senza trasformare la Civic Map in una nuvola di dimensioni.
+    var size = switch (item.markerSizeTier) {
+      CivicMapMarkerSizeTier.small => 36.0,
+      CivicMapMarkerSizeTier.medium => 46.0,
+      CivicMapMarkerSizeTier.large => 56.0,
+    };
 
     if (clusterSize > 1) {
-      size += math.min(
-        8.0,
-        math.log(clusterSize + 1) * 2.5,
-      );
+      size += math.min(6.0, math.log(clusterSize + 1) * 2.0);
     }
-
-    if (selected) {
-      size += 8.0;
-    }
-
-    return size.clamp(34.0, 72.0).toDouble();
+    if (selected) size += 8.0;
+    return size.clamp(36.0, 70.0).toDouble();
   }
 
   int _maxMarkersForZoom(double zoom) {
@@ -534,33 +529,45 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
             (item) => _CivicMarkerGroup(
               representative: item,
               items: [item],
+              displayPoint: _pointForItem(item),
             ),
           )
           .toList(growable: false);
     }
 
     final groups = <String, List<CivicMapItem>>{};
+    final typesByCell = <String, Set<CivicMapItemType>>{};
 
     for (final item in candidates) {
       final point = _pointForItem(item);
       final latCell = (point.latitude / cellSize).floor();
       final lngCell = (point.longitude / cellSize).floor();
-      final key = '$latCell|$lngCell';
+      final baseKey = '$latCell|$lngCell';
+      final key = '$baseKey|${item.type.name}';
 
       groups.putIfAbsent(key, () => <CivicMapItem>[]).add(item);
+      typesByCell
+          .putIfAbsent(baseKey, () => <CivicMapItemType>{})
+          .add(item.type);
     }
 
     final output = <_CivicMarkerGroup>[];
 
-    for (final items in groups.values) {
-      // visibleItems è già ordinato per importanza; il rappresentante
-      // mantiene quindi il contenuto più importante del cluster.
+    for (final entry in groups.entries) {
+      final items = entry.value;
       final representative = items.first;
+      final keyParts = entry.key.split('|');
+      final baseKey = '${keyParts[0]}|${keyParts[1]}';
+      final hasMixedTypes = (typesByCell[baseKey]?.length ?? 0) > 1;
+      final actualPoint = _pointForItem(representative);
 
       output.add(
         _CivicMarkerGroup(
           representative: representative,
           items: List<CivicMapItem>.unmodifiable(items),
+          displayPoint: hasMixedTypes
+              ? _offsetPointForType(actualPoint, representative.type, cellSize)
+              : actualPoint,
         ),
       );
     }
@@ -572,6 +579,22 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     );
 
     return output;
+  }
+
+  lat_lng.LatLng _offsetPointForType(
+    lat_lng.LatLng point,
+    CivicMapItemType type,
+    double cellSize,
+  ) {
+    final offset = math.min(0.06, math.max(0.00025, cellSize * 0.08));
+    return switch (type) {
+      CivicMapItemType.poll =>
+        lat_lng.LatLng(point.latitude, point.longitude - offset),
+      CivicMapItemType.post =>
+        lat_lng.LatLng(point.latitude, point.longitude + offset),
+      CivicMapItemType.news =>
+        lat_lng.LatLng(point.latitude + (offset * 0.72), point.longitude),
+    };
   }
 
   bool _clusterUsesSameCoordinates(List<CivicMapItem> items) {
@@ -700,9 +723,9 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
       final item = group.representative;
       final isCluster = group.items.length > 1;
       final selected = !isCluster && controller.selectedItemId == item.id;
-      final point = _pointForItem(item);
+      final point = group.displayPoint;
 
-      final color = isCluster ? Colors.deepPurple : _colorForType(item.type);
+      final color = _colorForType(item.type);
 
       final markerSize = _markerDiameter(
         item: item,
@@ -749,7 +772,7 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
           child: _MapMarkerVisual(
             size: markerSize,
             color: color,
-            icon: isCluster ? Icons.layers_outlined : _iconForType(item.type),
+            icon: _iconForType(item.type),
             selected: selected,
             tier: item.heatTier,
             badgeText: badgeText,
@@ -845,10 +868,12 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
 class _CivicMarkerGroup {
   final CivicMapItem representative;
   final List<CivicMapItem> items;
+  final lat_lng.LatLng displayPoint;
 
   const _CivicMarkerGroup({
     required this.representative,
     required this.items,
+    required this.displayPoint,
   });
 }
 

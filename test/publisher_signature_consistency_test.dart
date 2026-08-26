@@ -94,6 +94,18 @@ void main() {
               actorType: ActorType.organization,
               size: 32,
             ),
+            PublisherAvatar(
+              key: ValueKey('institution-avatar'),
+              displayName: 'Institution',
+              actorType: ActorType.institution,
+              size: 32,
+            ),
+            PublisherAvatar(
+              key: ValueKey('official-avatar'),
+              displayName: 'Official',
+              actorType: ActorType.publicOfficial,
+              size: 32,
+            ),
           ],
         ),
       ),
@@ -106,10 +118,18 @@ void main() {
         tester.getSize(find.byKey(const ValueKey('verified-avatar')));
     final organizationSize =
         tester.getSize(find.byKey(const ValueKey('organization-avatar')));
+    final institutionSize =
+        tester.getSize(find.byKey(const ValueKey('institution-avatar')));
+    final officialSize =
+        tester.getSize(find.byKey(const ValueKey('official-avatar')));
 
     expect(citizenSize, verifiedSize);
     expect(verifiedSize, organizationSize);
+    expect(organizationSize, institutionSize);
+    expect(institutionSize, officialSize);
     expect(find.byIcon(Icons.verified_rounded), findsOneWidget);
     expect(find.byIcon(Icons.groups_rounded), findsAtLeastNWidgets(1));
+    expect(find.byIcon(Icons.account_balance_rounded), findsAtLeastNWidgets(1));
+    expect(find.byIcon(Icons.badge_rounded), findsAtLeastNWidgets(1));
   });
 }
