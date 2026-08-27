@@ -227,7 +227,6 @@ class _SocialVoteHudCard extends StatelessWidget {
                 const SizedBox(width: 4),
                 IconButton(
                   visualDensity: VisualDensity.compact,
-                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                   onPressed: SocialVoteHud.dismiss,
                   icon: Icon(
                     Icons.close_rounded,

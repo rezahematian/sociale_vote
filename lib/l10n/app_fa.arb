@@ -2281,6 +2281,20 @@
     "description": "Auth UI: explains public name and automatic username generation"
   },
   "adminCenterRefreshMarkersTooltip": "نوسازی نشانگرهای کره زمین",
+  "adminCenterMarkerDensityTitle": "تراکم نشانگرهای World",
+  "adminCenterMarkerDensitySubtitle": "بودجهٔ بصری نشانگرهای کرهٔ Home را بدون تغییر مختصات واقعی یا رتبه‌بندی محتوا تنظیم می‌کند.",
+  "adminCenterMarkerDensityEmpty": "خالی",
+  "adminCenterMarkerDensityFull": "پُر",
+  "adminCenterMarkerDensityBudget": "بودجهٔ Home: {count} نشانگر",
+  "@adminCenterMarkerDensityBudget": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterMarkerDensitySaveError": "ذخیرهٔ تراکم نشانگرهای World ممکن نشد.",
+  "adminCenterMarkerDensityBackendUnavailable": "تنظیمات backend نشانگرهای World هنوز در دسترس نیست.",
   "adminCenterQuickActionsTitle": "اقدامات سریع حساب",
   "adminCenterModerationSnapshotTitle": "خلاصه نظارت و فعالیت",
   "adminCenterReportsReceivedMetric": "گزارش‌های دریافت‌شده",

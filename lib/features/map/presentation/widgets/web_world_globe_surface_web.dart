@@ -38,6 +38,7 @@ class WebWorldGlobeSurface extends StatefulWidget {
   final bool autoRotateEnabled;
   final String visualStyle;
   final bool markerDataSettled;
+  final int homeMarkerLimit;
   final ValueChanged<CivicMapItem> onMarkerTap;
   final void Function(double latitude, double longitude) onSurfaceTap;
   final ValueChanged<Offset>? onOrientationChanged;
@@ -56,6 +57,7 @@ class WebWorldGlobeSurface extends StatefulWidget {
     required this.autoRotateEnabled,
     this.visualStyle = 'classic',
     this.markerDataSettled = true,
+    this.homeMarkerLimit = 9,
     required this.onMarkerTap,
     required this.onSurfaceTap,
     required this.onUnavailable,
@@ -72,6 +74,9 @@ class WebWorldGlobeSurface extends StatefulWidget {
 }
 
 class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
+  static const int _maxAutomaticRendererRetries = 2;
+  static const Duration _rendererReadyTimeout = Duration(seconds: 10);
+
   static const String _earthTextureUrl =
       'assets/assets/globe/earth_day_nasa_bmng_august_4096.jpg';
   static const String _nightTextureUrl =
@@ -91,6 +96,8 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
 
   bool _failed = false;
   bool _ready = false;
+  int _surfaceGeneration = 0;
+  int _automaticRendererRetries = 0;
   String? _lastConfigJson;
   String? _lastAppearanceJson;
   String? _lastFocusJson;
@@ -132,6 +139,7 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
   Widget build(BuildContext context) {
     if (_failed) {
       final theme = Theme.of(context);
+      final languageCode = Localizations.localeOf(context).languageCode;
 
       return Center(
         child: ConstrainedBox(
@@ -156,36 +164,64 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    Localizations.localeOf(context).languageCode == 'it'
-                        ? '3D Web non disponibile'
-                        : deOrEnglish(context,
-                            english: '3D Web unavailable',
-                            german: '3D im Web nicht verfügbar'),
+                    languageCode == 'it'
+                        ? '3D Web temporaneamente non disponibile'
+                        : deOrEnglish(
+                            context,
+                            english: '3D Web temporarily unavailable',
+                            german: '3D im Web vorübergehend nicht verfügbar',
+                          ),
+                    textAlign: TextAlign.center,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    Localizations.localeOf(context).languageCode == 'it'
-                        ? 'Puoi continuare con la Civic Map 2D.'
-                        : deOrEnglish(context,
-                            english: 'You can continue with the 2D Civic Map.',
+                    languageCode == 'it'
+                        ? 'Riprova il renderer 3D oppure continua con la Civic Map 2D.'
+                        : deOrEnglish(
+                            context,
+                            english:
+                                'Retry the 3D renderer or continue with the 2D Civic Map.',
                             german:
-                                'Du kannst mit der 2D Civic Map fortfahren.'),
+                                'Versuche den 3D-Renderer erneut oder fahre mit der 2D Civic Map fort.',
+                          ),
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodySmall,
                   ),
                   const SizedBox(height: 12),
-                  FilledButton.tonal(
-                    onPressed: widget.onUnavailable,
-                    child: Text(
-                      Localizations.localeOf(context).languageCode == 'it'
-                          ? 'Apri mappa 2D'
-                          : deOrEnglish(context,
-                              english: 'Open 2D map',
-                              german: '2D-Karte öffnen'),
-                    ),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      FilledButton.icon(
+                        onPressed: _retry3d,
+                        icon: const Icon(Icons.refresh_rounded),
+                        label: Text(
+                          languageCode == 'it'
+                              ? 'Riprova 3D'
+                              : deOrEnglish(
+                                  context,
+                                  english: 'Retry 3D',
+                                  german: '3D erneut versuchen',
+                                ),
+                        ),
+                      ),
+                      FilledButton.tonal(
+                        onPressed: widget.onUnavailable,
+                        child: Text(
+                          languageCode == 'it'
+                              ? 'Apri mappa 2D'
+                              : deOrEnglish(
+                                  context,
+                                  english: 'Open 2D map',
+                                  german: '2D-Karte öffnen',
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -195,11 +231,14 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       );
     }
 
-    return HtmlElementView.fromTagName(
-      tagName: 'social-vote-globe',
-      isVisible: true,
-      hitTestBehavior: PlatformViewHitTestBehavior.opaque,
-      onElementCreated: _handleElementCreated,
+    return KeyedSubtree(
+      key: ValueKey<String>('social-vote-globe-$_surfaceGeneration'),
+      child: HtmlElementView.fromTagName(
+        tagName: 'social-vote-globe',
+        isVisible: true,
+        hitTestBehavior: PlatformViewHitTestBehavior.opaque,
+        onElementCreated: _handleElementCreated,
+      ),
     );
   }
 
@@ -213,8 +252,11 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       ..display = 'block'
       ..width = '100%'
       ..height = '100%'
-      ..overflow = 'visible'
+      ..overflow = 'hidden'
+      ..borderRadius = '50%'
       ..background = 'transparent';
+    element.style.setProperty('clip-path', 'circle(50%)');
+    element.style.setProperty('isolation', 'isolate');
 
     _readyListener = ((web.Event event) {
       _readyTimeout?.cancel();
@@ -223,10 +265,20 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
         return;
       }
 
+      _automaticRendererRetries = 0;
       setState(() {
         _ready = true;
         _failed = false;
       });
+
+      // Re-publish the current snapshot after the custom element proves that
+      // its renderer is alive. This closes lifecycle races without recreating
+      // the Globe or changing its camera/GeoScope.
+      _lastConfigJson = null;
+      _lastAppearanceJson = null;
+      _applyConfigIfPossible(force: true);
+      _applyAppearanceIfPossible(force: true);
+      _applyFocusIfPossible(force: true);
     }).toJS;
 
     _markerTapListener = ((web.Event event) {
@@ -299,9 +351,16 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
         return;
       }
 
-      // If diagnostics arrive, the custom element + WebGL renderer are alive.
-      // Do not replace a working globe just because the texture took longer.
+      // Diagnostics prove that the custom element + WebGL renderer are alive.
+      // Texture/network issues are progressive-degradation events and must not
+      // replace a functioning renderer with the 2D fallback.
       _readyTimeout?.cancel();
+      if (!_ready || _failed) {
+        setState(() {
+          _ready = true;
+          _failed = false;
+        });
+      }
 
       debugPrint(
         '[WEB-G3D DOM] '
@@ -314,21 +373,29 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
         'fov=${detail['cameraFov']} '
         'distance=${detail['cameraDistance']} '
         'pixelRatio=${detail['pixelRatio']} '
+        'markers=${detail['visibleMarkerCount']}/'
+        '${detail['renderedMarkerCount']}/'
+        '${detail['configuredMarkerCount']} '
         'hostOverflow=${detail['hostOverflow']}',
       );
     }).toJS;
 
     _errorListener = ((web.Event event) {
-      _readyTimeout?.cancel();
+      final detail = _detailAsMap(event);
+      final fatal = detail?['fatal'] == true;
+      final stage = detail?['stage']?.toString() ?? 'unknown';
+      final runtimeReady =
+          _element?.getAttribute('data-runtime-ready') == 'true';
 
-      if (!mounted || _failed) {
+      // Resource/texture warnings are always fail-soft. A renderer-init
+      // failure can be transient when Flutter is moving/resizing platform
+      // views, so retry the platform view before exposing the 2D fallback.
+      if (!fatal || runtimeReady || _ready) {
+        debugPrint('[WEB-G3D] non-fatal error ignored: stage=$stage');
         return;
       }
 
-      setState(() {
-        _failed = true;
-        _ready = false;
-      });
+      _handleRendererUnavailable('event:$stage');
     }).toJS;
 
     element.addEventListener(
@@ -369,14 +436,77 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       _ready = true;
       return;
     }
-    _readyTimeout = Timer(const Duration(seconds: 30), () {
+    _readyTimeout = Timer(_rendererReadyTimeout, () {
       if (!mounted || _ready) {
         return;
       }
 
-      setState(() {
-        _failed = true;
-      });
+      if (_element?.getAttribute('data-runtime-ready') == 'true') {
+        _automaticRendererRetries = 0;
+        setState(() {
+          _ready = true;
+          _failed = false;
+        });
+        _lastConfigJson = null;
+        _applyConfigIfPossible(force: true);
+        return;
+      }
+
+      _handleRendererUnavailable('ready-timeout');
+    });
+  }
+
+  void _handleRendererUnavailable(String reason) {
+    _readyTimeout?.cancel();
+    if (!mounted || _ready) {
+      return;
+    }
+
+    if (_automaticRendererRetries < _maxAutomaticRendererRetries) {
+      _automaticRendererRetries += 1;
+      final retryNumber = _automaticRendererRetries;
+      debugPrint(
+        '[WEB-G3D] automatic renderer retry '
+        '$retryNumber/$_maxAutomaticRendererRetries reason=$reason',
+      );
+
+      _readyTimeout = Timer(
+        Duration(milliseconds: 350 + (retryNumber * 350)),
+        () => _restartSurface(resetAutomaticRetries: false),
+      );
+      return;
+    }
+
+    setState(() {
+      _failed = true;
+      _ready = false;
+    });
+  }
+
+  void _retry3d() {
+    _restartSurface(resetAutomaticRetries: true);
+  }
+
+  void _restartSurface({required bool resetAutomaticRetries}) {
+    _readyTimeout?.cancel();
+    _detachListeners();
+    _element = null;
+    _lastConfigJson = null;
+    _lastAppearanceJson = null;
+    _lastFocusJson = null;
+
+    if (!mounted) {
+      return;
+    }
+
+    if (resetAutomaticRetries) {
+      _automaticRendererRetries = 0;
+    }
+
+    setState(() {
+      _failed = false;
+      _ready = false;
+      _surfaceGeneration += 1;
     });
   }
 
@@ -549,7 +679,8 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     _markerGroupLookup.clear();
 
     final clusterDegrees = widget.homeProfile ? 18.0 : 7.0;
-    final markerLimit = widget.homeProfile ? 9 : 36;
+    final markerLimit =
+        widget.homeProfile ? widget.homeMarkerLimit.clamp(0, 30).toInt() : 36;
 
     final validCandidates = widget.items.where(
       (item) =>
@@ -566,7 +697,6 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       newsLimit: widget.homeProfile ? 3 : 4,
     );
     final grouped = <String, List<CivicMapItem>>{};
-    final typesByCell = <String, Set<CivicMapItemType>>{};
 
     for (final item in limited) {
       final latCell = (item.latitude / clusterDegrees).floor();
@@ -574,9 +704,6 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       final baseKey = '$latCell|$lngCell';
       final key = '$baseKey|${item.type.name}';
       grouped.putIfAbsent(key, () => <CivicMapItem>[]).add(item);
-      typesByCell
-          .putIfAbsent(baseKey, () => <CivicMapItemType>{})
-          .add(item.type);
     }
 
     final result = <Map<String, Object?>>[];
@@ -587,22 +714,11 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       if (group.isEmpty) continue;
       final representative = _preferredMarkerRepresentative(group);
 
-      var latitude =
-          group.map((e) => e.latitude).reduce((a, b) => a + b) / group.length;
-      var longitude =
-          group.map((e) => e.longitude).reduce((a, b) => a + b) / group.length;
-      final keyParts = entry.key.split('|');
-      final baseKey = '${keyParts[0]}|${keyParts[1]}';
-      if ((typesByCell[baseKey]?.length ?? 0) > 1) {
-        final offset = widget.homeProfile ? 0.18 : 0.06;
-        if (representative.type == CivicMapItemType.poll) {
-          longitude -= offset;
-        } else if (representative.type == CivicMapItemType.post) {
-          longitude += offset;
-        } else {
-          latitude += offset * 0.72;
-        }
-      }
+      // A cluster is only a visual grouping of same-type content. Its marker
+      // stays anchored to one real content coordinate; averaging coordinates
+      // would create a synthetic geographic point that belongs to no item.
+      final latitude = representative.latitude;
+      final longitude = representative.longitude;
 
       final markerId =
           'web:${representative.type.name}:${representative.id}:$groupIndex';

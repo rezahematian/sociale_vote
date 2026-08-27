@@ -151,6 +151,79 @@ void main() {
         news.id,
       });
     });
+
+    test(
+        'background partial reload keeps missing Poll/Voce until explicit refresh',
+        () async {
+      final world = GeoScope.world();
+      var backgroundPartial = false;
+
+      final pollA = _item(
+        id: 'poll-a',
+        type: CivicMapItemType.poll,
+        latitude: 46.67,
+        longitude: 11.16,
+      );
+      final pollB = _item(
+        id: 'poll-b',
+        type: CivicMapItemType.poll,
+        latitude: 45.46,
+        longitude: 9.19,
+      );
+      final postA = _item(
+        id: 'post-a',
+        type: CivicMapItemType.post,
+        latitude: 41.90,
+        longitude: 12.49,
+      );
+      final postB = _item(
+        id: 'post-b',
+        type: CivicMapItemType.post,
+        latitude: 43.77,
+        longitude: 11.25,
+      );
+
+      final controller = CivicMapController(
+        loadPollItems: (_) => Future.value(
+          backgroundPartial
+              ? <CivicMapItem>[pollA]
+              : <CivicMapItem>[pollA, pollB],
+        ),
+        loadPostItems: (_) => Future.value(
+          backgroundPartial
+              ? <CivicMapItem>[postA]
+              : <CivicMapItem>[postA, postB],
+        ),
+        loadNewsItems: (_) => Future.value(const <CivicMapItem>[]),
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadForScope(world);
+      expect(controller.visibleItems.map((item) => item.id).toSet(), {
+        pollA.id,
+        pollB.id,
+        postA.id,
+        postB.id,
+      });
+
+      backgroundPartial = true;
+      await controller.loadForScope(world, clearSelection: false);
+
+      expect(
+        controller.visibleItems.map((item) => item.id).toSet(),
+        {pollA.id, pollB.id, postA.id, postB.id},
+        reason:
+            'automatic partial responses must not make stable civic markers vanish',
+      );
+
+      await controller.refresh();
+      expect(
+        controller.visibleItems.map((item) => item.id).toSet(),
+        {pollA.id, postA.id},
+        reason:
+            'manual refresh remains authoritative and may clean stale items',
+      );
+    });
   });
   group('marker selection grammar', () {
     test('mixed Home budget keeps News Vote and Voce represented', () {

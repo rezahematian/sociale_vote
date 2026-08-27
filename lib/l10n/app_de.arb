@@ -2281,6 +2281,20 @@
     "description": "Auth UI: explains public name and automatic username generation"
   },
   "adminCenterRefreshMarkersTooltip": "Globus-Marker aktualisieren",
+  "adminCenterMarkerDensityTitle": "World-Marker-Dichte",
+  "adminCenterMarkerDensitySubtitle": "Steuert das visuelle Marker-Budget des Home-Globus, ohne reale Koordinaten oder das Inhaltsranking zu verändern.",
+  "adminCenterMarkerDensityEmpty": "Leer",
+  "adminCenterMarkerDensityFull": "Voll",
+  "adminCenterMarkerDensityBudget": "Home-Budget: {count} Marker",
+  "@adminCenterMarkerDensityBudget": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterMarkerDensitySaveError": "Die World-Marker-Dichte konnte nicht gespeichert werden.",
+  "adminCenterMarkerDensityBackendUnavailable": "Die Backend-Einstellungen für World-Marker sind noch nicht verfügbar.",
   "adminCenterQuickActionsTitle": "Schnelle Kontoaktionen",
   "adminCenterModerationSnapshotTitle": "Moderations- und Aktivitätsübersicht",
   "adminCenterReportsReceivedMetric": "Erhaltene Meldungen",

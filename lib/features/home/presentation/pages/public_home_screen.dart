@@ -905,8 +905,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                               suspendWebSurface:
                                                   _isScopeSelectorActive,
                                               onGlobeScrollLockChanged: null,
-                                              onGlobeOrientationChanged:
-                                                  _handleHomeGlobeOrientationChanged,
+                                              onGlobeOrientationChanged: isSpaceHome
+                                                  ? _handleHomeGlobeOrientationChanged
+                                                  : null,
                                             ),
                                           ),
                                         ],
@@ -947,8 +948,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                 suspendWebSurface: _isScopeSelectorActive,
                                 onGlobeScrollLockChanged:
                                     _handleHomeGlobeScrollLockChanged,
-                                onGlobeOrientationChanged:
-                                    _handleHomeGlobeOrientationChanged,
+                                onGlobeOrientationChanged: isSpaceHome
+                                    ? _handleHomeGlobeOrientationChanged
+                                    : null,
                               ),
                             ],
                             Padding(

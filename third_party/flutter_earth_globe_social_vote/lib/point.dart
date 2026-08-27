@@ -24,6 +24,13 @@ class Point {
   /// The offset of the label from the point.
   final Offset labelOffset;
 
+  /// Screen-space adjustment used only for hit testing custom labels.
+  ///
+  /// This does not alter the geographic coordinates of the point. It lets
+  /// clients fan overlapping labels apart while keeping taps aligned with the
+  /// rendered marker.
+  final Offset hitTestOffset;
+
   /// The unique identifier of the point.
   final String id;
 
@@ -46,6 +53,7 @@ class Point {
   /// The [labelBuilder] parameter is a builder function that returns a widget to display as the label of the point.
   /// The [isLabelVisible] parameter determines whether the label is visible or not.
   /// The [labelOffset] parameter is the offset of the label from the point.
+  /// The [hitTestOffset] parameter shifts only the interactive hit target.
   /// The [id] parameter is the unique identifier of the point.
   /// The [style] parameter is the style of the point.
   /// The [labelTextStyle] parameter is the text style of the label.
@@ -79,6 +87,7 @@ class Point {
     this.labelBuilder,
     this.isLabelVisible = false,
     this.labelOffset = const Offset(0, 0),
+    this.hitTestOffset = Offset.zero,
     required this.id,
     this.style = const PointStyle(),
     this.labelTextStyle,
@@ -95,6 +104,7 @@ class Point {
         labelBuilder,
     bool? isLabelVisible,
     Offset? labelOffset,
+    Offset? hitTestOffset,
     String? id,
     PointStyle? style,
     TextStyle? labelTextStyle,
@@ -107,6 +117,7 @@ class Point {
       labelBuilder: labelBuilder ?? this.labelBuilder,
       isLabelVisible: isLabelVisible ?? this.isLabelVisible,
       labelOffset: labelOffset ?? this.labelOffset,
+      hitTestOffset: hitTestOffset ?? this.hitTestOffset,
       id: id ?? this.id,
       style: style ?? this.style,
       labelTextStyle: labelTextStyle ?? this.labelTextStyle,

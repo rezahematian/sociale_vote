@@ -29,6 +29,8 @@ import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/world_globe_widget.dart';
 import 'package:sociale_vote/features/admin/presentation/pages/world_brief_editor_page.dart';
+import 'package:sociale_vote/shared/services/world_appearance_service.dart';
+import 'package:sociale_vote/shared/services/world_marker_policy_service.dart';
 
 enum AdminCenterSection {
   dashboard,
@@ -85,6 +87,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   late final DeleteAdminAccount _deleteAdminAccount;
   late final AdminRepository _adminRepository;
   late final CivicMapController _adminGlobeController;
+  final WorldMarkerPolicyService _worldMarkerPolicy =
+      WorldMarkerPolicyService.instance;
   final TextEditingController _userSearchController = TextEditingController();
   final TextEditingController _auditActorController = TextEditingController();
   final TextEditingController _auditActionController = TextEditingController();
@@ -118,6 +122,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   bool _showEscalatedReportsOnly = false;
   AdminCenterSection _selectedSection = AdminCenterSection.dashboard;
   Locale? _adminLocaleOverride;
+  double? _markerDensityDraft;
+  bool _markerDensitySaving = false;
 
   List<_AdminDestination> _destinationsFor(BuildContext context) {
     return [
@@ -171,6 +177,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     _adminGlobeController =
         AppDI.instance.createCivicMapController(homePreview: true);
     _adminGlobeController.addListener(_handleAdminGlobeChanged);
+    _worldMarkerPolicy.addListener(_handleWorldMarkerPolicyChanged);
     _loadAdminDashboard = LoadAdminDashboard(_adminRepository);
     _loadAdminAudit = LoadAdminAudit(_adminRepository);
     _loadAdminReports = LoadAdminReports(_adminRepository);
@@ -185,11 +192,14 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     _deleteAdminAccount = DeleteAdminAccount(_adminRepository);
     unawaited(_loadDashboard(markLoading: false));
     unawaited(_loadAdminGlobe());
+    unawaited(WorldAppearanceService.instance.ensureLoaded());
+    unawaited(_worldMarkerPolicy.ensureLoaded(forceRefresh: true));
   }
 
   @override
   void dispose() {
     _adminGlobeController.removeListener(_handleAdminGlobeChanged);
+    _worldMarkerPolicy.removeListener(_handleWorldMarkerPolicyChanged);
     _adminGlobeController.dispose();
     _userSearchDebounce?.cancel();
     _userSearchController.dispose();
@@ -202,6 +212,47 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   void _handleAdminGlobeChanged() {
     if (mounted) {
       setState(() {});
+    }
+  }
+
+  void _handleWorldMarkerPolicyChanged() {
+    if (!mounted || _markerDensityDraft != null) return;
+    setState(() {});
+  }
+
+  Future<void> _saveMarkerDensity(double rawValue) async {
+    if (_markerDensitySaving) return;
+
+    final value = rawValue.round().clamp(0, 100).toInt();
+    setState(() {
+      _markerDensityDraft = value.toDouble();
+      _markerDensitySaving = true;
+    });
+
+    try {
+      await _worldMarkerPolicy.setMarkerDensityFromAdmin(value);
+      if (!mounted) return;
+      setState(() {
+        _markerDensityDraft = null;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _markerDensityDraft = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _adminL10n(context).adminCenterMarkerDensitySaveError,
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _markerDensitySaving = false;
+        });
+      }
     }
   }
 
@@ -2701,24 +2752,37 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     Widget buildGlobe(double size) {
       return SizedBox.square(
         dimension: size,
-        child: WorldGlobeWidget(
-          items: _adminGlobeController.visibleItems,
-          interactionProfile: WorldGlobeInteractionProfile.home,
-          markerDataSettled: !_adminGlobeController.isLoading &&
-              !_adminGlobeController.isRefreshing,
-          onItemTap: (item) {
-            unawaited(_openAdminGlobeItem(item));
-          },
-          onUseClassicMap: () {
-            unawaited(Navigator.of(context).pushNamed(AppRouter.civicMap));
+        child: AnimatedBuilder(
+          animation: WorldAppearanceService.instance,
+          builder: (context, _) {
+            final appearance = WorldAppearanceService.instance;
+            return WorldGlobeWidget(
+              items: _adminGlobeController.visibleItems,
+              interactionProfile: WorldGlobeInteractionProfile.home,
+              markerDataSettled: !_adminGlobeController.isLoading &&
+                  !_adminGlobeController.isRefreshing,
+              homeMarkerDensityOverride: (_markerDensityDraft ??
+                      _worldMarkerPolicy.markerDensity.toDouble())
+                  .round(),
+              visualStyle: appearance.globeStyle,
+              rotationVisualStyle: appearance.rotationStyle,
+              onItemTap: (item) {
+                unawaited(_openAdminGlobeItem(item));
+              },
+              onUseClassicMap: () {
+                unawaited(Navigator.of(context).pushNamed(AppRouter.civicMap));
+              },
+            );
           },
         ),
       );
     }
 
     Widget buildGlobeStage(double width, double height) {
-      final globeSize =
-          (math.min(width, height) - 22).clamp(230.0, 390.0).toDouble();
+      final globeSize = math
+          .max(1.0, math.min(width, height) - 22)
+          .clamp(1.0, 390.0)
+          .toDouble();
       final refreshing =
           _adminGlobeController.isLoading || _adminGlobeController.isRefreshing;
 
@@ -2756,6 +2820,173 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             ),
           ),
         ],
+      );
+    }
+
+    Widget buildMarkerDensityControl() {
+      final density =
+          (_markerDensityDraft ?? _worldMarkerPolicy.markerDensity.toDouble())
+              .clamp(0.0, 100.0)
+              .toDouble();
+      final effectiveBudget =
+          _worldMarkerPolicy.homeMarkerLimitForDensity(density.round());
+      final backendUnavailable =
+          _worldMarkerPolicy.lastError != null && !_worldMarkerPolicy.isLoaded;
+      final disabled = _markerDensitySaving ||
+          _worldMarkerPolicy.isLoading ||
+          backendUnavailable;
+
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.surface.withValues(alpha: 0.78),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: colors.outlineVariant.withValues(alpha: 0.52),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.scatter_plot_rounded,
+                    size: 20,
+                    color: colors.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _adminL10n(context).adminCenterMarkerDensityTitle,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        Text(
+                          _adminL10n(context).adminCenterMarkerDensitySubtitle,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.primaryContainer,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '${density.round()}%',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: colors.onPrimaryContainer,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 7),
+              Slider(
+                value: density,
+                min: 0,
+                max: 100,
+                divisions: 100,
+                label: '${density.round()}%',
+                onChanged: disabled
+                    ? null
+                    : (value) {
+                        setState(() {
+                          _markerDensityDraft = value;
+                        });
+                      },
+                onChangeEnd: disabled
+                    ? null
+                    : (value) => unawaited(_saveMarkerDensity(value)),
+              ),
+              Row(
+                children: [
+                  Text(
+                    _adminL10n(context).adminCenterMarkerDensityEmpty,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (_markerDensitySaving)
+                    const SizedBox.square(
+                      dimension: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  else
+                    Text(
+                      _adminL10n(context)
+                          .adminCenterMarkerDensityBudget(effectiveBudget),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  const Spacer(),
+                  Text(
+                    _adminL10n(context).adminCenterMarkerDensityFull,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              if (backendUnavailable) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.cloud_off_outlined,
+                      size: 16,
+                      color: colors.error,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        _adminL10n(context)
+                            .adminCenterMarkerDensityBackendUnavailable,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colors.error,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _worldMarkerPolicy.isLoading
+                          ? null
+                          : () => unawaited(
+                                _worldMarkerPolicy.ensureLoaded(
+                                  forceRefresh: true,
+                                ),
+                              ),
+                      child: Text(
+                        _adminL10n(context).adminCenterRetryAction,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
       );
     }
 
@@ -2915,6 +3146,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                     return buildOperationalPanel(constraints.maxWidth);
                   },
                 ),
+              ],
+              if (widget.currentRole == Role.admin) ...[
+                const SizedBox(height: 14),
+                buildMarkerDensityControl(),
               ],
             ],
           ),

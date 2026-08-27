@@ -113,78 +113,85 @@ class PremiumGlobePreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final config = _GlobePreviewConfig.forStyle(style);
 
-    Widget earth = ClipOval(
-      child: Image.asset(
-        config.asset,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        alignment: const Alignment(0.0, 0.02),
-        filterQuality: FilterQuality.high,
-        errorBuilder: (_, __, ___) => DecoratedBox(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(colors: config.fallback),
-          ),
+    Widget image = Image.asset(
+      config.asset,
+      width: size,
+      height: size,
+      fit: BoxFit.cover,
+      alignment: const Alignment(0.0, 0.02),
+      filterQuality: FilterQuality.high,
+      errorBuilder: (_, __, ___) => DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(colors: config.fallback),
         ),
       ),
     );
 
     if (config.colorFilter != null) {
-      earth = ColorFiltered(colorFilter: config.colorFilter!, child: earth);
+      image = ColorFiltered(colorFilter: config.colorFilter!, child: image);
     }
 
-    return SizedBox.square(
-      dimension: size + 18,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: size + 10,
-            height: size + 10,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: config.glow.withValues(alpha: 0.30),
-                  blurRadius: 22,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: config.rim.withValues(alpha: 0.76),
-                width: 1.4,
-              ),
-            ),
-            child: earth,
-          ),
-          if (style == GlobeVisualStyle.techNeon)
-            const Positioned.fill(
-              child: IgnorePointer(
+    final globeFace = ClipOval(
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox.square(
+        dimension: size,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            image,
+            if (style == GlobeVisualStyle.techNeon)
+              const IgnorePointer(
                 child: CustomPaint(
                   painter: _NeonLatitudePainter(color: Color(0xFFB565FF)),
                 ),
               ),
+            if (style == GlobeVisualStyle.minimalDay)
+              IgnorePointer(
+                child: ColoredBox(
+                  color: const Color(0xFFE9F7F7).withValues(alpha: 0.12),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+
+    return RepaintBoundary(
+      child: SizedBox.square(
+        dimension: size + 18,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: size + 10,
+              height: size + 10,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: config.glow.withValues(alpha: 0.30),
+                    blurRadius: 22,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
             ),
-          if (style == GlobeVisualStyle.minimalDay)
-            Positioned.fill(
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFFE9F7F7).withValues(alpha: 0.12),
+            globeFace,
+            IgnorePointer(
+              child: Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: config.rim.withValues(alpha: 0.76),
+                    width: 1.4,
                   ),
                 ),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

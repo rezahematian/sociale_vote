@@ -130,6 +130,10 @@ flutter:
     - assets/audio/pioggia_sul_mondo.ogg
     - assets/audio/pulse_giovane.ogg
     - assets/audio/AUDIO_LICENSES.txt
+    - web/vendor/three/three.module.js
+    - web/vendor/three/three.core.js
+    - web/vendor/three/addons/controls/OrbitControls.js
+    - web/vendor/three/LICENSE
   shaders:
     - shaders/scientific_sky.frag
 

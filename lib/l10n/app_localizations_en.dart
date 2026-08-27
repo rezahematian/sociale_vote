@@ -3015,6 +3015,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminCenterRefreshMarkersTooltip => 'Refresh globe markers';
 
   @override
+  String get adminCenterMarkerDensityTitle => 'World marker density';
+
+  @override
+  String get adminCenterMarkerDensitySubtitle => 'Controls the Home Globe visual marker budget without changing real coordinates or content ranking.';
+
+  @override
+  String get adminCenterMarkerDensityEmpty => 'Empty';
+
+  @override
+  String get adminCenterMarkerDensityFull => 'Full';
+
+  @override
+  String adminCenterMarkerDensityBudget(int count) {
+    return 'Home budget: $count markers';
+  }
+
+  @override
+  String get adminCenterMarkerDensitySaveError => 'Unable to save World marker density.';
+
+  @override
+  String get adminCenterMarkerDensityBackendUnavailable => 'Backend World marker settings are not available yet.';
+
+  @override
   String get adminCenterQuickActionsTitle => 'Quick account actions';
 
   @override

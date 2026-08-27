@@ -15,7 +15,6 @@ import 'package:sociale_vote/features/map/application/civic_map_controller.dart'
 import 'package:sociale_vote/features/map/presentation/widgets/civic_map_widget.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/world_globe_widget.dart';
 import 'package:sociale_vote/shared/services/world_appearance_service.dart';
-import 'package:sociale_vote/shared/widgets/radio_mondo_dock.dart';
 
 class HomeMapSection extends StatelessWidget {
   final String scopeShortLabel;
@@ -223,44 +222,11 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
                                   widget.onGlobeOrientationChanged,
                               visualStyle: appearance.globeStyle,
                               rotationVisualStyle: appearance.rotationStyle,
+                              showHomeRadioControl: true,
+                              radioVisualStyle: appearance.radioStyle,
                               markerDataSettled: !controller.isLoading &&
                                   !controller.isRefreshing,
                             ),
-                          ),
-                          Builder(
-                            builder: (context) {
-                              final innerWidth = constraints.maxWidth -
-                                  (horizontalPadding * 2);
-                              final innerHeight = sectionHeight - 32;
-                              final available = innerWidth < innerHeight
-                                  ? innerWidth
-                                  : innerHeight;
-                              final candidateSquare = available - 12;
-                              final globeSquare = candidateSquare < 220
-                                  ? 220.0
-                                  : candidateSquare;
-
-                              return Positioned.fill(
-                                child: Center(
-                                  child: SizedBox.square(
-                                    dimension: globeSquare,
-                                    child: Stack(
-                                      clipBehavior: Clip.none,
-                                      children: [
-                                        Positioned(
-                                          left: 24,
-                                          bottom: 24,
-                                          child: RadioMondoDock(
-                                            visualStyle: appearance.radioStyle,
-                                            size: 44,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
                           ),
                         ],
                       );

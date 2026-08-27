@@ -3015,6 +3015,29 @@ class AppLocalizationsFa extends AppLocalizations {
   String get adminCenterRefreshMarkersTooltip => 'نوسازی نشانگرهای کره زمین';
 
   @override
+  String get adminCenterMarkerDensityTitle => 'تراکم نشانگرهای World';
+
+  @override
+  String get adminCenterMarkerDensitySubtitle => 'بودجهٔ بصری نشانگرهای کرهٔ Home را بدون تغییر مختصات واقعی یا رتبه‌بندی محتوا تنظیم می‌کند.';
+
+  @override
+  String get adminCenterMarkerDensityEmpty => 'خالی';
+
+  @override
+  String get adminCenterMarkerDensityFull => 'پُر';
+
+  @override
+  String adminCenterMarkerDensityBudget(int count) {
+    return 'بودجهٔ Home: $count نشانگر';
+  }
+
+  @override
+  String get adminCenterMarkerDensitySaveError => 'ذخیرهٔ تراکم نشانگرهای World ممکن نشد.';
+
+  @override
+  String get adminCenterMarkerDensityBackendUnavailable => 'تنظیمات backend نشانگرهای World هنوز در دسترس نیست.';
+
+  @override
   String get adminCenterQuickActionsTitle => 'اقدامات سریع حساب';
 
   @override

@@ -326,28 +326,15 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     });
   }
 
-  lat_lng.LatLng _pointForItem(CivicMapItem item) {
-    if (_isValidLatLng(item.latitude, item.longitude)) {
-      return lat_lng.LatLng(item.latitude, item.longitude);
+  lat_lng.LatLng? _realPointForItem(CivicMapItem item) {
+    // CivicMapItem coordinates are produced from the persisted content anchor
+    // by AppDI. The renderer must never substitute navigation-scope/default
+    // coordinates, otherwise an unlocated item can become a false marker.
+    if (!_isValidLatLng(item.latitude, item.longitude)) {
+      return null;
     }
 
-    final location = item.contentLocation;
-    if (location != null) {
-      if (_isValidLatLng(location.latitude, location.longitude)) {
-        return lat_lng.LatLng(location.latitude!, location.longitude!);
-      }
-
-      if (_isValidLatLng(location.centerLat, location.centerLng)) {
-        return lat_lng.LatLng(location.centerLat!, location.centerLng!);
-      }
-    }
-
-    final scope = item.geoScope;
-    if (scope != null && _isValidLatLng(scope.centerLat, scope.centerLng)) {
-      return lat_lng.LatLng(scope.centerLat!, scope.centerLng!);
-    }
-
-    return _defaultCenter;
+    return lat_lng.LatLng(item.latitude, item.longitude);
   }
 
   void _handleBeyondActiveScope({
@@ -506,19 +493,32 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
       return const <_CivicMarkerGroup>[];
     }
 
-    final sorted = controller.visibleItems.toList(growable: false);
+    final validVisibleItems = controller.visibleItems
+        .where((item) => _realPointForItem(item) != null)
+        .toList(growable: false);
     final selected = controller.selectedItem;
 
     final maxMarkers = _maxMarkersForZoom(_currentZoom);
+    final singleTypeFilter = controller.visibleTypes.length == 1;
     final candidates = <CivicMapItem>[
-      ...CivicMapMarkerSelectionRules.select(
-        items: sorted,
-        totalLimit: maxMarkers,
-        newsLimit: _maxNewsMarkersForZoom(_currentZoom),
-      ),
+      ...(singleTypeFilter
+          ? (validVisibleItems.toList(growable: false)
+                ..sort(
+                  (a, b) => b.mapImportanceScore.compareTo(
+                    a.mapImportanceScore,
+                  ),
+                ))
+              .take(maxMarkers)
+          : CivicMapMarkerSelectionRules.select(
+              items: validVisibleItems,
+              totalLimit: maxMarkers,
+              newsLimit: _maxNewsMarkersForZoom(_currentZoom),
+            )),
     ];
 
-    if (selected != null && !candidates.any((item) => item.id == selected.id)) {
+    if (selected != null &&
+        _realPointForItem(selected) != null &&
+        !candidates.any((item) => item.id == selected.id)) {
       candidates.add(selected);
     }
 
@@ -529,7 +529,8 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
             (item) => _CivicMarkerGroup(
               representative: item,
               items: [item],
-              displayPoint: _pointForItem(item),
+              displayPoint: _realPointForItem(item)!,
+              visualOffset: Offset.zero,
             ),
           )
           .toList(growable: false);
@@ -539,7 +540,8 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     final typesByCell = <String, Set<CivicMapItemType>>{};
 
     for (final item in candidates) {
-      final point = _pointForItem(item);
+      final point = _realPointForItem(item);
+      if (point == null) continue;
       final latCell = (point.latitude / cellSize).floor();
       final lngCell = (point.longitude / cellSize).floor();
       final baseKey = '$latCell|$lngCell';
@@ -559,15 +561,17 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
       final keyParts = entry.key.split('|');
       final baseKey = '${keyParts[0]}|${keyParts[1]}';
       final hasMixedTypes = (typesByCell[baseKey]?.length ?? 0) > 1;
-      final actualPoint = _pointForItem(representative);
+      final actualPoint = _realPointForItem(representative);
+      if (actualPoint == null) continue;
 
       output.add(
         _CivicMarkerGroup(
           representative: representative,
           items: List<CivicMapItem>.unmodifiable(items),
-          displayPoint: hasMixedTypes
-              ? _offsetPointForType(actualPoint, representative.type, cellSize)
-              : actualPoint,
+          displayPoint: actualPoint,
+          visualOffset: hasMixedTypes
+              ? _screenOffsetForType(representative.type)
+              : Offset.zero,
         ),
       );
     }
@@ -581,19 +585,16 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
     return output;
   }
 
-  lat_lng.LatLng _offsetPointForType(
-    lat_lng.LatLng point,
-    CivicMapItemType type,
-    double cellSize,
-  ) {
-    final offset = math.min(0.06, math.max(0.00025, cellSize * 0.08));
+  Offset _screenOffsetForType(CivicMapItemType type) {
+    // Cross-type decluttering must be visual only. Previous V6.x versions
+    // nudged latitude/longitude by tiny amounts; at World zoom that is only a
+    // fraction of a pixel, so Vote/Voce/News could still paint on top of each
+    // other and appear to disappear. Keep the geographic anchor untouched and
+    // fan the icons in screen space instead.
     return switch (type) {
-      CivicMapItemType.poll =>
-        lat_lng.LatLng(point.latitude, point.longitude - offset),
-      CivicMapItemType.post =>
-        lat_lng.LatLng(point.latitude, point.longitude + offset),
-      CivicMapItemType.news =>
-        lat_lng.LatLng(point.latitude + (offset * 0.72), point.longitude),
+      CivicMapItemType.poll => const Offset(-20, 10),
+      CivicMapItemType.post => const Offset(20, 10),
+      CivicMapItemType.news => const Offset(0, -20),
     };
   }
 
@@ -602,10 +603,15 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
       return false;
     }
 
-    final first = _pointForItem(items.first);
+    final first = _realPointForItem(items.first);
+    if (first == null) {
+      return false;
+    }
+
     for (final item in items.skip(1)) {
-      final point = _pointForItem(item);
-      if ((point.latitude - first.latitude).abs() > 0.00002 ||
+      final point = _realPointForItem(item);
+      if (point == null ||
+          (point.latitude - first.latitude).abs() > 0.00002 ||
           (point.longitude - first.longitude).abs() > 0.00002) {
         return false;
       }
@@ -737,13 +743,16 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
           ? (group.items.length > 99 ? '99+' : '${group.items.length}')
           : item.heatBadgeLabel;
 
-      final markerBoxSize =
-          markerSize + (selected ? 34 : 20) + (badgeText != null ? 24 : 8);
+      final markerBoxSize = markerSize +
+          (selected ? 34 : 20) +
+          (badgeText != null ? 24 : 8) +
+          (group.visualOffset.distance * 2);
 
       return Marker(
         point: point,
         width: markerBoxSize,
         height: markerBoxSize,
+        alignment: Alignment.center,
         child: GestureDetector(
           onTap: () {
             if (!widget.interactive) {
@@ -769,13 +778,16 @@ class _CivicMapWidgetState extends State<CivicMapWidget> {
 
             _handleMarkerTap(item);
           },
-          child: _MapMarkerVisual(
-            size: markerSize,
-            color: color,
-            icon: _iconForType(item.type),
-            selected: selected,
-            tier: item.heatTier,
-            badgeText: badgeText,
+          child: Transform.translate(
+            offset: group.visualOffset,
+            child: _MapMarkerVisual(
+              size: markerSize,
+              color: color,
+              icon: _iconForType(item.type),
+              selected: selected,
+              tier: item.heatTier,
+              badgeText: badgeText,
+            ),
           ),
         ),
       );
@@ -869,11 +881,13 @@ class _CivicMarkerGroup {
   final CivicMapItem representative;
   final List<CivicMapItem> items;
   final lat_lng.LatLng displayPoint;
+  final Offset visualOffset;
 
   const _CivicMarkerGroup({
     required this.representative,
     required this.items,
     required this.displayPoint,
+    required this.visualOffset,
   });
 }
 

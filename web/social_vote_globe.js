@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-G3M-20260825-APPEARANCE-MARKER-STABLE1';
+const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-WORLD-V10.6-VOCE-GLYPH-FAILSOFT';
 
 const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
@@ -197,7 +197,7 @@ function drawMarkerGlyph(ctx, kind, center) {
     ctx.lineTo(center - 10, center + 12);
     ctx.lineTo(center - 15, center + 12);
     ctx.quadraticCurveTo(center - 19, center + 12, center - 19, center + 8);
-    ctx.lineTo(center - 8);
+    ctx.lineTo(center - 19, center - 8);
     ctx.quadraticCurveTo(center - 19, center - 12, center - 15, center - 12);
     ctx.closePath();
     ctx.stroke();
@@ -229,6 +229,76 @@ function drawMarkerGlyph(ctx, kind, center) {
   ctx.restore();
 }
 
+
+function markerVisualCenter(markers, markerIndex) {
+  const marker = markers[markerIndex];
+  const latitude = Number(marker?.latitude);
+  const longitude = Number(marker?.longitude);
+  const kind = typeof marker?.kind === 'string' ? marker.kind : '';
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return { x: 0.5, y: 0.5 };
+  }
+
+  let hasDifferentTypeAtSameAnchor = false;
+
+  for (let index = 0; index < markers.length; index += 1) {
+    if (index === markerIndex) {
+      continue;
+    }
+
+    const other = markers[index];
+    const otherLatitude = Number(other?.latitude);
+    const otherLongitude = Number(other?.longitude);
+    const otherKind =
+        typeof other?.kind === 'string'
+          ? other.kind
+          : '';
+
+    if (
+      !Number.isFinite(otherLatitude) ||
+      !Number.isFinite(otherLongitude) ||
+      otherKind === kind
+    ) {
+      continue;
+    }
+
+    const latitudeDelta = Math.abs(latitude - otherLatitude);
+    const longitudeDelta =
+        Math.abs(normalizeLongitude(longitude - otherLongitude));
+
+    // This is NOT a geographic move. The immutable world position remains the
+    // real content coordinate. We only detect near-identical anchors so
+    // different content types do not paint over one another on screen.
+    if (latitudeDelta <= 0.12 && longitudeDelta <= 0.12) {
+      hasDifferentTypeAtSameAnchor = true;
+      break;
+    }
+  }
+
+  if (!hasDifferentTypeAtSameAnchor) {
+    return { x: 0.5, y: 0.5 };
+  }
+
+  // THREE.Sprite.center offsets the billboard in its camera-facing plane while
+  // sprite.position remains the exact geographic anchor. Values stay bounded
+  // and are applied ONLY to cross-type collisions:
+  //   Vote = left/down, Voce = right/down, News = above.
+  if (kind === 'vote') {
+    return { x: 0.88, y: 0.72 };
+  }
+
+  if (kind === 'voce') {
+    return { x: 0.12, y: 0.72 };
+  }
+
+  if (kind === 'news') {
+    return { x: 0.5, y: 0.10 };
+  }
+
+  return { x: 0.5, y: 0.5 };
+}
+
 function createMarkerTexture(color, count, kind) {
   const size = 128;
   const canvas = document.createElement('canvas');
@@ -236,6 +306,10 @@ function createMarkerTexture(color, count, kind) {
   canvas.height = size;
 
   const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    console.warn('[SocialVoteWebGlobe] marker canvas context unavailable');
+    return null;
+  }
   const center = size / 2;
 
   const gradient = ctx.createRadialGradient(
@@ -357,9 +431,13 @@ class SocialVoteGlobeElement extends HTMLElement {
     this.style.height = '100%';
     this.style.minWidth = '0';
     this.style.minHeight = '0';
-    this.style.overflow = 'visible';
+    this.style.overflow = 'hidden';
+    this.style.borderRadius = '50%';
+    this.style.clipPath = 'circle(50%)';
     this.style.background = 'transparent';
     this.style.position = 'relative';
+    this.style.isolation = 'isolate';
+    this.style.contain = 'layout paint';
 
     if (!this._initialized) {
       this._initialize();
@@ -532,9 +610,9 @@ class SocialVoteGlobeElement extends HTMLElement {
       this._loadEarthTexture();
       this._startLoop();
 
-      // Renderer readiness is independent from texture download timing. This
-      // cancels Flutter's false timeout after route/layout recreation; a real
-      // texture/WebGL failure still emits socialvote-globe-error later.
+      // Renderer readiness is independent from texture download timing.
+      // Texture failures degrade to a local fallback and never invalidate an
+      // already-live WebGL renderer.
       setTimeout(() => {
         if (!this._disposed && this.isConnected) {
           dispatch(this, 'socialvote-globe-ready', {
@@ -548,6 +626,8 @@ class SocialVoteGlobeElement extends HTMLElement {
       this.removeAttribute('data-runtime-ready');
       console.error('[SocialVoteWebGlobe] init failed', error);
       dispatch(this, 'socialvote-globe-error', {
+        fatal: true,
+        stage: 'renderer-init',
         message: String(error),
       });
     }
@@ -995,6 +1075,8 @@ class SocialVoteGlobeElement extends HTMLElement {
     const dayRelativeUrl =
         configuredDay ||
         'assets/assets/globe/earth_day_nasa_blue_marble_2048.png';
+    const fallbackDayRelativeUrl =
+        'assets/assets/globe/earth_day_nasa_blue_marble_2048.png';
 
     const configuredNight = this._appearance.nightTextureUrl;
     const nightRelativeUrl =
@@ -1003,6 +1085,10 @@ class SocialVoteGlobeElement extends HTMLElement {
 
     const dayUrl = new URL(
       dayRelativeUrl,
+      document.baseURI,
+    ).href;
+    const fallbackDayUrl = new URL(
+      fallbackDayRelativeUrl,
       document.baseURI,
     ).href;
 
@@ -1020,57 +1106,96 @@ class SocialVoteGlobeElement extends HTMLElement {
 
     const loader = new THREE.TextureLoader();
 
+    const applyDayTexture = (texture, stage = 'texture') => {
+      if (this._disposed) {
+        texture.dispose();
+        return;
+      }
+
+      this._prepareColorTexture(texture);
+
+      this._earthTexture?.dispose();
+      this._earthTexture = texture;
+
+      this._earth.material.map = texture;
+      // Keep geographical detail readable on the night hemisphere while
+      // preserving the real-time solar terminator and city-light overlay.
+      this._earth.material.emissiveMap = texture;
+      this._earth.material.emissive.setHex(0xffffff);
+      this._earth.material.emissiveIntensity = 0.34;
+      this._earth.material.needsUpdate = true;
+      this._applyAppearanceMaterial();
+
+      this.setAttribute('data-runtime-ready', 'true');
+      dispatch(
+        this,
+        'socialvote-globe-ready',
+        {
+          build: SOCIAL_VOTE_GLOBE_BUILD,
+          stage,
+        },
+      );
+
+      requestAnimationFrame(() => {
+        if (!this._disposed) {
+          this._emitDiagnostics(stage);
+        }
+      });
+    };
+
+    const keepRendererAliveWithoutNewDayTexture = (error) => {
+      if (this._disposed) {
+        return;
+      }
+
+      // A failed image must never destroy a renderer that is already alive.
+      // Preserve the previous valid texture when available; otherwise the
+      // neutral material still leaves the sphere/markers interactive.
+      this._lastEarthTextureUrl = this._earthTexture
+        ? textureSignature
+        : null;
+      this.setAttribute('data-runtime-ready', 'true');
+      this._applyAppearanceMaterial();
+
+      console.warn(
+        '[SocialVoteWebGlobe] day texture unavailable; renderer kept alive',
+        error,
+      );
+      dispatch(this, 'socialvote-globe-warning', {
+        fatal: false,
+        stage: 'day-texture',
+        message: 'Earth day texture unavailable',
+      });
+      dispatch(this, 'socialvote-globe-ready', {
+        build: SOCIAL_VOTE_GLOBE_BUILD,
+        stage: 'renderer-without-new-texture',
+      });
+    };
+
+    const loadFallbackDayTexture = (primaryError) => {
+      if (dayUrl === fallbackDayUrl) {
+        keepRendererAliveWithoutNewDayTexture(primaryError);
+        return;
+      }
+
+      console.warn(
+        '[SocialVoteWebGlobe] primary day texture failed; trying local fallback',
+        primaryError,
+      );
+
+      loader.load(
+        fallbackDayUrl,
+        (texture) => applyDayTexture(texture, 'fallback-texture'),
+        undefined,
+        keepRendererAliveWithoutNewDayTexture,
+      );
+    };
+
     loader.load(
       dayUrl,
-      (texture) => {
-        if (this._disposed) {
-          texture.dispose();
-          return;
-        }
-
-        this._prepareColorTexture(texture);
-
-        this._earthTexture?.dispose();
-        this._earthTexture = texture;
-
-        this._earth.material.map = texture;
-        // Keep geographical detail readable on the night hemisphere while
-        // preserving the real-time solar terminator and city-light overlay.
-        this._earth.material.emissiveMap = texture;
-        this._earth.material.emissive.setHex(0xffffff);
-        this._earth.material.emissiveIntensity = 0.34;
-        this._earth.material.needsUpdate = true;
-        this._applyAppearanceMaterial();
-
-        dispatch(
-          this,
-          'socialvote-globe-ready',
-          {
-            build: SOCIAL_VOTE_GLOBE_BUILD,
-          },
-        );
-
-        requestAnimationFrame(() => {
-          if (!this._disposed) {
-            this._emitDiagnostics('ready');
-          }
-        });
-      },
+      (texture) => applyDayTexture(texture, 'texture'),
       undefined,
-      (error) => {
-        console.error(
-          '[SocialVoteWebGlobe] day texture failed',
-          error,
-        );
-
-        dispatch(
-          this,
-          'socialvote-globe-error',
-          {
-            message: 'Earth day texture failed',
-          },
-        );
-      },
+      loadFallbackDayTexture,
     );
 
     // Night lights are progressive enhancement. If this secondary texture
@@ -1246,7 +1371,11 @@ class SocialVoteGlobeElement extends HTMLElement {
 
     if (Array.isArray(this._config.markers)) {
       const markerSignature = JSON.stringify(this._config.markers);
-      if (markerSignature !== this._lastMarkersSignature) {
+      const expectedMarkerCount = this._config.markers.length;
+      if (
+        markerSignature !== this._lastMarkersSignature ||
+        (expectedMarkerCount > 0 && this._markerSprites.length === 0)
+      ) {
         this._lastMarkersSignature = markerSignature;
         this._rebuildMarkers(this._config.markers);
       }
@@ -1335,7 +1464,8 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._markerSprites = [];
     this._markerResources = [];
 
-    for (const marker of markers) {
+    for (let markerIndex = 0; markerIndex < markers.length; markerIndex += 1) {
+      const marker = markers[markerIndex];
       const latitude = Number(marker.latitude);
       const longitude = Number(marker.longitude);
 
@@ -1367,27 +1497,57 @@ class SocialVoteGlobeElement extends HTMLElement {
         1.45,
       );
 
-      const texture = createMarkerTexture(
-        color,
-        count,
-        kind,
-      );
+      let texture = null;
+
+      try {
+        texture = createMarkerTexture(
+          color,
+          count,
+          kind,
+        );
+      } catch (error) {
+        console.error(
+          '[SocialVoteWebGlobe] marker texture failed',
+          {
+            markerId: String(marker.id || ''),
+            kind,
+            error,
+          },
+        );
+        continue;
+      }
+
+      // Marker drawing is a progressive layer: one malformed/unsupported
+      // glyph/canvas must never take the whole Globe renderer down.
+      if (!texture) {
+        continue;
+      }
 
       const material = new THREE.SpriteMaterial({
         map: texture,
         transparent: true,
-        depthTest: true,
+        // The front/back hemisphere test below is authoritative. Disabling
+        // depth testing prevents a camera-facing billboard from intersecting
+        // the sphere and appearing to sink into the Earth or disappear.
+        depthTest: false,
         depthWrite: false,
         sizeAttenuation: true,
       });
 
       const sprite = new THREE.Sprite(material);
+      sprite.renderOrder = 50;
+      sprite.frustumCulled = false;
+      // Geographic position remains immutable. When Vote/Voce/News share the
+      // same real anchor, fan only their billboards in camera/screen space so
+      // no type visually absorbs another.
+      const visualCenter = markerVisualCenter(markers, markerIndex);
+      sprite.center.set(visualCenter.x, visualCenter.y);
 
       sprite.position.copy(
         latLngToVector(
           latitude,
           longitude,
-          1.028,
+          1.036,
         ),
       );
 
@@ -1405,6 +1565,11 @@ class SocialVoteGlobeElement extends HTMLElement {
         material,
         texture,
       });
+    }
+
+    this._updateMarkerVisibility();
+    if (this._initialized) {
+      this._emitDiagnostics('markers-rebuilt');
     }
   }
 
@@ -1543,6 +1708,18 @@ class SocialVoteGlobeElement extends HTMLElement {
       cameraFov: Number(this._camera.fov.toFixed(2)),
       cameraDistance: Number(this._camera.position.length().toFixed(4)),
       pixelRatio: Number(this._renderer.getPixelRatio().toFixed(2)),
+      configuredMarkerCount: Array.isArray(this._config.markers)
+        ? this._config.markers.length
+        : 0,
+      configuredMarkerKinds: Array.isArray(this._config.markers)
+        ? this._config.markers.reduce((counts, marker) => {
+            const kind = typeof marker?.kind === 'string' ? marker.kind : 'unknown';
+            counts[kind] = (counts[kind] || 0) + 1;
+            return counts;
+          }, {})
+        : {},
+      renderedMarkerCount: this._markerSprites.length,
+      visibleMarkerCount: this._markerSprites.filter((sprite) => sprite.visible).length,
       hostOverflow: getComputedStyle(this).overflow,
       canvasOverflow:
           getComputedStyle(canvas).overflow || 'visible',
@@ -1577,14 +1754,15 @@ class SocialVoteGlobeElement extends HTMLElement {
 
     const rect = this.getBoundingClientRect();
 
-    const width = Math.max(
-      1,
-      Math.floor(rect.width),
-    );
-    const height = Math.max(
-      1,
-      Math.floor(rect.height),
-    );
+    // Platform views can be attached while an AnimatedSwitcher/route is still
+    // measuring them. Do not lock the renderer to a synthetic 1x1 viewport;
+    // ResizeObserver will call us again as soon as real dimensions exist.
+    if (rect.width < 2 || rect.height < 2) {
+      return;
+    }
+
+    const width = Math.floor(rect.width);
+    const height = Math.floor(rect.height);
 
     this._renderer.setSize(
       width,
@@ -1600,6 +1778,29 @@ class SocialVoteGlobeElement extends HTMLElement {
         this._emitDiagnostics('resize');
       }
     });
+  }
+
+  _updateMarkerVisibility() {
+    if (!this._camera || this._markerSprites.length === 0) {
+      return;
+    }
+
+    const cameraDirection = this._camera.position.clone().normalize();
+
+    for (const sprite of this._markerSprites) {
+      const markerDirection = sprite.position.clone().normalize();
+      const facing = markerDirection.dot(cameraDirection);
+
+      // Do not render markers through the Earth or exactly on the limb. This
+      // prevents the lower half of a billboard from being depth-clipped by
+      // the sphere and looking as if it falls into a hole.
+      const visible = facing > 0.055;
+      sprite.visible = visible;
+
+      if (visible) {
+        sprite.material.opacity = clamp((facing - 0.055) / 0.12, 0.18, 1.0);
+      }
+    }
   }
 
   _startLoop() {
@@ -1626,6 +1827,7 @@ class SocialVoteGlobeElement extends HTMLElement {
       }
 
       this._controls.update();
+      this._updateMarkerVisibility();
       this._renderer.render(
         this._scene,
         this._camera,

@@ -847,7 +847,8 @@ class CivicMapController extends ChangeNotifier {
         store: store,
         result: result,
         preservePreviousOnError: sameScope,
-        preservePreviousOnEmpty: sameScope,
+        preservePreviousOnEmpty: isBackgroundRefresh,
+        mergeWithPrevious: isBackgroundRefresh,
       );
 
       if (!storeChanged) {
@@ -924,28 +925,33 @@ class CivicMapController extends ChangeNotifier {
     // same scope remain fail-soft for presentation and preserve the last good
     // marker snapshot.
     // A settled manual refresh is authoritative: if a source really returns
-    // empty, its old markers must disappear. Automatic same-scope background
-    // reloads are different: a transient empty response must not wipe a valid
-    // live snapshot a few seconds after the map opens.
-    final preserveSettledEmptySnapshot = isBackgroundRefresh;
+    // fewer or zero items, stale markers may disappear. Automatic same-scope
+    // background reloads are fail-soft: empty *or partial* transient payloads
+    // are merged into the last stable source snapshot so Poll/Voce cannot
+    // vanish a few seconds after opening the map. A manual refresh remains the
+    // explicit cleanup path for content that is genuinely gone.
+    final preserveBackgroundSnapshot = isBackgroundRefresh;
 
     final finalPollChanged = _applySourceResult(
       store: _pollItems,
       result: pollResult,
       preservePreviousOnError: sameScope,
-      preservePreviousOnEmpty: preserveSettledEmptySnapshot,
+      preservePreviousOnEmpty: preserveBackgroundSnapshot,
+      mergeWithPrevious: preserveBackgroundSnapshot,
     );
     final finalPostChanged = _applySourceResult(
       store: _postItems,
       result: postResult,
       preservePreviousOnError: sameScope,
-      preservePreviousOnEmpty: preserveSettledEmptySnapshot,
+      preservePreviousOnEmpty: preserveBackgroundSnapshot,
+      mergeWithPrevious: preserveBackgroundSnapshot,
     );
     final finalNewsChanged = _applySourceResult(
       store: _newsItems,
       result: newsResult,
       preservePreviousOnError: sameScope,
-      preservePreviousOnEmpty: preserveSettledEmptySnapshot,
+      preservePreviousOnEmpty: preserveBackgroundSnapshot,
+      mergeWithPrevious: preserveBackgroundSnapshot,
     );
 
     if (finalPollChanged || finalPostChanged || finalNewsChanged) {
@@ -997,6 +1003,7 @@ class CivicMapController extends ChangeNotifier {
     required _CivicMapLoadResult result,
     required bool preservePreviousOnError,
     required bool preservePreviousOnEmpty,
+    bool mergeWithPrevious = false,
   }) {
     if (result.hasError && preservePreviousOnError) {
       return false;
@@ -1011,6 +1018,37 @@ class CivicMapController extends ChangeNotifier {
 
     if (!hasPreviousData && incomingIsEmpty) {
       return false;
+    }
+
+    if (mergeWithPrevious && hasPreviousData && !incomingIsEmpty) {
+      final merged = <String, CivicMapItem>{
+        for (final item in store) item.id: item,
+      };
+      for (final item in result.items) {
+        merged[item.id] = item;
+      }
+
+      final next = merged.values.toList(growable: false);
+      final changed = next.length != store.length ||
+          result.items.any((incoming) {
+            final previous = store.where((item) => item.id == incoming.id);
+            if (previous.isEmpty) return true;
+            final old = previous.first;
+            return old.latitude != incoming.latitude ||
+                old.longitude != incoming.longitude ||
+                old.title != incoming.title ||
+                old.heat != incoming.heat ||
+                old.commentCount != incoming.commentCount;
+          });
+
+      if (!changed) {
+        return false;
+      }
+
+      store
+        ..clear()
+        ..addAll(next);
+      return true;
     }
 
     store
@@ -1216,74 +1254,19 @@ class CivicMapController extends ChangeNotifier {
 
   List<CivicMapItem> _normalizeAndSpreadItems(
     List<CivicMapItem> items,
-    GeoScope scope,
+    GeoScope _,
   ) {
     if (items.isEmpty) {
       return const <CivicMapItem>[];
     }
 
-    // Le coordinate persistite non vengono più spostate per evitare overlap.
-    // Il decluttering/clustering è responsabilità del layer visuale e varia
-    // con lo zoom, mantenendo sempre la geografia reale del contenuto.
-    return items.map((item) {
-      if (_isValidLatLng(item.latitude, item.longitude)) {
-        return item;
-      }
-
-      final fallback = _resolveBestPoint(
-        item: item,
-        fallbackScope: scope,
-      );
-
-      return item.copyWith(
-        latitude: fallback.$1,
-        longitude: fallback.$2,
-        geoScope: item.geoScope ?? scope,
-      );
-    }).toList(growable: false);
-  }
-
-  (double, double) _resolveBestPoint({
-    required CivicMapItem item,
-    required GeoScope fallbackScope,
-  }) {
-    if (_isValidLatLng(item.latitude, item.longitude)) {
-      return (item.latitude, item.longitude);
-    }
-
-    final location = item.contentLocation;
-    if (location != null) {
-      if (_isValidLatLng(location.latitude, location.longitude)) {
-        return (location.latitude!, location.longitude!);
-      }
-
-      if (_isValidLatLng(location.centerLat, location.centerLng)) {
-        return (location.centerLat!, location.centerLng!);
-      }
-    }
-
-    final itemScope = item.geoScope;
-    if (itemScope != null &&
-        _isValidLatLng(itemScope.centerLat, itemScope.centerLng)) {
-      return (itemScope.centerLat!, itemScope.centerLng!);
-    }
-
-    return _fallbackCenterForScope(fallbackScope);
-  }
-
-  (double, double) _fallbackCenterForScope(GeoScope scope) {
-    if (_isValidLatLng(scope.centerLat, scope.centerLng)) {
-      return (scope.centerLat!, scope.centerLng!);
-    }
-
-    switch (scope.level) {
-      case GeoScopeLevel.world:
-        return (20.0, 0.0);
-      case GeoScopeLevel.country:
-        return (45.0, 10.0);
-      case GeoScopeLevel.city:
-        return (45.4642, 9.1900);
-    }
+    // Persisted content coordinates are authoritative. Invalid coordinates
+    // are not replaced with scope/world/city centers: doing so would fabricate
+    // a geographic position and can place markers in another country or
+    // hemisphere. Visual overlap is handled only by the renderer.
+    return items
+        .where((item) => _isValidLatLng(item.latitude, item.longitude))
+        .toList(growable: false);
   }
 
   void _reconcileSelectionAfterReload() {

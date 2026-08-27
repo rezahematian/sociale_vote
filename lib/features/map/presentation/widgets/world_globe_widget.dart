@@ -16,6 +16,8 @@ import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
 import 'package:sociale_vote/shared/services/world_appearance_service.dart';
+import 'package:sociale_vote/shared/services/world_marker_policy_service.dart';
+import 'package:sociale_vote/shared/widgets/radio_mondo_dock.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 
 import 'package:sociale_vote/app/localization/de_fallback.dart';
@@ -164,9 +166,18 @@ class WorldGlobeWidget extends StatefulWidget {
   final GlobeVisualStyle visualStyle;
   final GlobeRotationVisualStyle rotationVisualStyle;
 
+  /// Home-only Radio control. Keeping Radio and Rotate inside the same globe
+  /// viewport prevents mobile drift/overflow between independent overlays.
+  final bool showHomeRadioControl;
+  final RadioVisualStyle radioVisualStyle;
+
   /// False while the map controller is refreshing/loading a same-scope
   /// snapshot. Renderers must keep the last stable markers in that interval.
   final bool markerDataSettled;
+
+  /// Admin-only preview override for Home marker density. Public surfaces use
+  /// the backend-authoritative WorldMarkerPolicyService value.
+  final int? homeMarkerDensityOverride;
 
   const WorldGlobeWidget({
     super.key,
@@ -182,7 +193,10 @@ class WorldGlobeWidget extends StatefulWidget {
     this.initialFocusZoom,
     this.visualStyle = GlobeVisualStyle.classic,
     this.rotationVisualStyle = GlobeRotationVisualStyle.classic,
+    this.showHomeRadioControl = false,
+    this.radioVisualStyle = RadioVisualStyle.vintageClassic,
     this.markerDataSettled = true,
+    this.homeMarkerDensityOverride,
   });
 
   @override
@@ -198,7 +212,8 @@ class WorldGlobeWidget extends StatefulWidget {
   }
 }
 
-class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
+class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
+    with WidgetsBindingObserver {
   static const double _countryFocusDistance = 2.24;
   static const double _handoffMapZoom = 4.05;
 
@@ -212,12 +227,40 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
   bool _deepZoomHandoffTriggered = false;
   bool _autoRotateEnabled = true;
   String? _lastWebLayoutDiagnostic;
+  final WorldMarkerPolicyService _markerPolicy =
+      WorldMarkerPolicyService.instance;
 
   bool get _isHomeProfile =>
       widget.interactionProfile == WorldGlobeInteractionProfile.home;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _markerPolicy.addListener(_handleMarkerPolicyChanged);
+    // Refresh on each newly attached Web globe so a backend Admin density
+    // change is picked up when the user revisits/reloads the surface. The
+    // service de-duplicates concurrent requests across Admin/Home/Civic Map.
+    unawaited(_markerPolicy.ensureLoaded(forceRefresh: true));
+  }
+
+  void _handleMarkerPolicyChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Another Web tab/window may have changed the backend-authoritative
+      // density. Refresh only the marker budget when this surface resumes.
+      unawaited(_markerPolicy.ensureLoaded(forceRefresh: true));
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _markerPolicy.removeListener(_handleMarkerPolicyChanged);
     _focusNotifier.dispose();
     super.dispose();
   }
@@ -237,11 +280,9 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
             ? constraints.maxHeight
             : MediaQuery.sizeOf(context).height;
 
-        final available = math.min(finiteWidth, finiteHeight);
-        final squareSize = math.max(
-          220.0,
-          available - (_isHomeProfile ? 12.0 : 18.0),
-        );
+        final available = math.max(1.0, math.min(finiteWidth, finiteHeight));
+        final inset = _isHomeProfile ? 12.0 : 18.0;
+        final squareSize = math.max(1.0, available - inset);
 
         final diagnostic = '${finiteWidth.toStringAsFixed(1)}x'
             '${finiteHeight.toStringAsFixed(1)}'
@@ -271,6 +312,9 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
                       autoRotateEnabled: _autoRotateEnabled,
                       visualStyle: widget.visualStyle.name,
                       markerDataSettled: widget.markerDataSettled,
+                      homeMarkerLimit: _markerPolicy.homeMarkerLimitForDensity(
+                        widget.homeMarkerDensityOverride,
+                      ),
                       onMarkerTap: _handleMarkerTap,
                       onSurfaceTap: _handleSurfaceTap,
                       onOrientationChanged: widget.onOrientationChanged,
@@ -281,10 +325,19 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget> {
                       initialFocusZoom: widget.initialFocusZoom,
                       onUnavailable: widget.onUseClassicMap,
                     ),
+                    if (_isHomeProfile && widget.showHomeRadioControl)
+                      Positioned(
+                        left: 18,
+                        bottom: 18,
+                        child: RadioMondoDock(
+                          visualStyle: widget.radioVisualStyle,
+                          size: 44,
+                        ),
+                      ),
                     if (isAuthenticated)
                       Positioned(
-                        right: 24,
-                        bottom: 24,
+                        right: 18,
+                        bottom: 18,
                         child: _GlobeRotationButton(
                           isRotating: _autoRotateEnabled,
                           visualStyle: widget.rotationVisualStyle,
@@ -766,10 +819,12 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
       });
     };
 
-    _scientificSkyTimer = Timer.periodic(
-      const Duration(milliseconds: 33),
-      (_) => _syncScientificSkyOrientation(),
-    );
+    if (widget.onOrientationChanged != null) {
+      _scientificSkyTimer = Timer.periodic(
+        const Duration(milliseconds: 50),
+        (_) => _syncScientificSkyOrientation(),
+      );
+    }
 
     _syncGlobeContentPoints();
   }
@@ -968,6 +1023,17 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
       _applyNativeVisualStyle(widget.visualStyle);
     }
 
+    if (oldWidget.onOrientationChanged != widget.onOrientationChanged) {
+      _scientificSkyTimer?.cancel();
+      _scientificSkyTimer = null;
+      if (widget.onOrientationChanged != null) {
+        _scientificSkyTimer = Timer.periodic(
+          const Duration(milliseconds: 50),
+          (_) => _syncScientificSkyOrientation(),
+        );
+      }
+    }
+
     if (oldWidget.initialFocusLatitude != widget.initialFocusLatitude ||
         oldWidget.initialFocusLongitude != widget.initialFocusLongitude ||
         oldWidget.initialFocusZoom != widget.initialFocusZoom) {
@@ -1092,6 +1158,15 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
                               onPointerCancel: _handleExplorePointerCancel,
                               child: globe,
                             ),
+                  if (_isHomeProfile && widget.showHomeRadioControl)
+                    Positioned(
+                      left: 12,
+                      bottom: 12,
+                      child: RadioMondoDock(
+                        visualStyle: widget.radioVisualStyle,
+                        size: 44,
+                      ),
+                    ),
                   if (isAuthenticated)
                     Positioned(
                       right: 12,
@@ -1591,9 +1666,21 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
             );
           },
           isLabelVisible: true,
-          // labelBuilder is positioned above the mathematical point. A
-          // negative half-height places the visual marker exactly on it.
-          labelOffset: Offset(0, -markerVisualSize / 2),
+          // Keep the geographic anchor exact. If Vote/Voce/News share the
+          // same area, fan their visual labels in screen space instead of
+          // falsifying latitude/longitude by a tiny offset that is invisible
+          // at World zoom.
+          labelOffset: Offset(
+            group.visualOffset.dx,
+            (-markerVisualSize / 2) + group.visualOffset.dy,
+          ),
+          // labelOffset is subtracted by the globe renderer. Mirror that
+          // screen-space fan-out in the point hit target so Android/native
+          // taps select the marker the user actually sees.
+          hitTestOffset: Offset(
+            -group.visualOffset.dx,
+            -group.visualOffset.dy,
+          ),
           labelTextStyle: TextStyle(
             color: const Color(0xFFF7FAFF),
             fontSize: _isHomeProfile ? 10.5 : 9,
@@ -1667,27 +1754,11 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
         latitudeTotal += item.latitude;
         longitudeTotal += item.longitude;
       }
-      var latitude = latitudeTotal / groupItems.length;
-      var longitude = longitudeTotal / groupItems.length;
+      final latitude = latitudeTotal / groupItems.length;
+      final longitude = longitudeTotal / groupItems.length;
       final keyParts = entry.key.split('|');
       final baseKey = '${keyParts[0]}|${keyParts[1]}';
-      if ((typesByCell[baseKey]?.length ?? 0) > 1) {
-        final offset = _isHomeProfile
-            ? 0.18
-            : switch (_markerZoomBucket(_globeController.zoom)) {
-                0 => 0.08,
-                1 => 0.04,
-                2 => 0.015,
-                _ => 0.004,
-              };
-        if (representative.type == CivicMapItemType.poll) {
-          longitude -= offset;
-        } else if (representative.type == CivicMapItemType.post) {
-          longitude += offset;
-        } else {
-          latitude += offset * 0.72;
-        }
-      }
+      final hasMixedTypes = (typesByCell[baseKey]?.length ?? 0) > 1;
 
       output.add(
         _WorldGlobeMarkerGroup(
@@ -1695,6 +1766,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
           items: List<CivicMapItem>.unmodifiable(groupItems),
           latitude: latitude.clamp(-89.999, 89.999).toDouble(),
           longitude: longitude.clamp(-179.999, 179.999).toDouble(),
+          visualOffset: hasMixedTypes
+              ? _globeScreenOffsetForType(representative.type)
+              : Offset.zero,
         ),
       );
     }
@@ -1706,6 +1780,15 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     );
 
     return output;
+  }
+
+  Offset _globeScreenOffsetForType(CivicMapItemType type) {
+    final distance = _isHomeProfile ? 17.0 : 13.0;
+    return switch (type) {
+      CivicMapItemType.poll => Offset(-distance, distance * 0.45),
+      CivicMapItemType.post => Offset(distance, distance * 0.45),
+      CivicMapItemType.news => Offset(0, -distance * 0.75),
+    };
   }
 
   CivicMapItem _preferredGlobeMarkerRepresentative(List<CivicMapItem> items) {
@@ -2564,12 +2647,14 @@ class _WorldGlobeMarkerGroup {
   final List<CivicMapItem> items;
   final double latitude;
   final double longitude;
+  final Offset visualOffset;
 
   const _WorldGlobeMarkerGroup({
     required this.representative,
     required this.items,
     required this.latitude,
     required this.longitude,
+    required this.visualOffset,
   });
 }
 

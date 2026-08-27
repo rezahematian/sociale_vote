@@ -5859,6 +5859,48 @@ abstract class AppLocalizations {
   /// **'Refresh globe markers'**
   String get adminCenterRefreshMarkersTooltip;
 
+  /// No description provided for @adminCenterMarkerDensityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'World marker density'**
+  String get adminCenterMarkerDensityTitle;
+
+  /// No description provided for @adminCenterMarkerDensitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Controls the Home Globe visual marker budget without changing real coordinates or content ranking.'**
+  String get adminCenterMarkerDensitySubtitle;
+
+  /// No description provided for @adminCenterMarkerDensityEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty'**
+  String get adminCenterMarkerDensityEmpty;
+
+  /// No description provided for @adminCenterMarkerDensityFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full'**
+  String get adminCenterMarkerDensityFull;
+
+  /// No description provided for @adminCenterMarkerDensityBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Home budget: {count} markers'**
+  String adminCenterMarkerDensityBudget(int count);
+
+  /// No description provided for @adminCenterMarkerDensitySaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save World marker density.'**
+  String get adminCenterMarkerDensitySaveError;
+
+  /// No description provided for @adminCenterMarkerDensityBackendUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Backend World marker settings are not available yet.'**
+  String get adminCenterMarkerDensityBackendUnavailable;
+
   /// No description provided for @adminCenterQuickActionsTitle.
   ///
   /// In en, this message translates to:

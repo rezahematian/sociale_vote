@@ -1947,34 +1947,9 @@ class AppDI {
       return nestedScope;
     }
 
-    if (type == CivicMapItemType.news) {
-      return null;
-    }
-
-    if (fallbackScope.centerLat != null &&
-        fallbackScope.centerLng != null &&
-        _isValidLatLng(fallbackScope.centerLat, fallbackScope.centerLng)) {
-      return (fallbackScope.centerLat!, fallbackScope.centerLng!);
-    }
-
-    final levelName = _readScopeLevelName(fallbackScope);
-
-    if (levelName == 'world') {
-      return (20.0, 0.0);
-    }
-
-    if (levelName == 'country') {
-      return (45.0, 10.0);
-    }
-
-    if (levelName == 'city') {
-      return (45.4642, 9.1900);
-    }
-
-    if (levelName == 'area') {
-      return null;
-    }
-
+    // Do not invent geographic positions from the navigation scope.
+    // Content coordinates, ContentLocation or the entity's own geo scope are
+    // the only valid anchors. Unlocated/global Vote and Voce stay off-map.
     return null;
   }
 

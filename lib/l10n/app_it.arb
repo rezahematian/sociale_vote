@@ -2281,6 +2281,20 @@
     "description": "Auth UI: explains public name and automatic username generation"
   },
   "adminCenterRefreshMarkersTooltip": "Aggiorna marker del globo",
+  "adminCenterMarkerDensityTitle": "Densità marker World",
+  "adminCenterMarkerDensitySubtitle": "Regola il budget visuale dei marker del Globe Home senza modificare coordinate reali o ranking dei contenuti.",
+  "adminCenterMarkerDensityEmpty": "Vuoto",
+  "adminCenterMarkerDensityFull": "Pieno",
+  "adminCenterMarkerDensityBudget": "Budget Home: {count} marker",
+  "@adminCenterMarkerDensityBudget": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterMarkerDensitySaveError": "Impossibile salvare la densità marker World.",
+  "adminCenterMarkerDensityBackendUnavailable": "Le impostazioni backend dei marker World non sono ancora disponibili.",
   "adminCenterQuickActionsTitle": "Azioni rapide account",
   "adminCenterModerationSnapshotTitle": "Riepilogo moderazione e attività",
   "adminCenterReportsReceivedMetric": "Segnalazioni ricevute",

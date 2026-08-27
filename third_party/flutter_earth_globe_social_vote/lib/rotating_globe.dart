@@ -1038,7 +1038,11 @@ class RotatingGlobeState extends State<RotatingGlobe>
 
       final scaledSize = point.point.style.size * (0.7 + 0.6 * point.depth);
       final hitRect = Rect.fromCenter(
-        center: point.position2D,
+        // Custom Social Vote marker labels can be fanned apart in screen
+        // space so Vote/Voce/News at the same geographic point remain
+        // independently visible. Keep pointer hit testing aligned with that
+        // rendered position without falsifying latitude/longitude.
+        center: point.position2D + point.point.hitTestOffset,
         width: scaledSize * 2 + 18,
         height: scaledSize * 2 + 18,
       );

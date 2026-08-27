@@ -39,21 +39,46 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
   RadioMondoTrack? get currentTrack => _currentTrack;
 
   Future<void> initialize() async {
-    if (_initialized) return;
-    _initialized = true;
-    WidgetsBinding.instance.addObserver(this);
-    await _player.setPlayerMode(PlayerMode.mediaPlayer);
-    await _player.setVolume(_volume);
+    await _ensureInitialized();
+  }
+
+  Future<bool> _ensureInitialized() async {
+    if (_initialized) return true;
+
+    var observerAdded = false;
+    try {
+      WidgetsBinding.instance.addObserver(this);
+      observerAdded = true;
+      await _player.setPlayerMode(PlayerMode.mediaPlayer);
+      await _player.setVolume(_volume);
+      _initialized = true;
+      return true;
+    } catch (error, stackTrace) {
+      if (observerAdded) {
+        WidgetsBinding.instance.removeObserver(this);
+      }
+      _initialized = false;
+      if (kDebugMode) {
+        debugPrint('Radio Mondo initialization error: $error\n$stackTrace');
+      }
+      return false;
+    }
   }
 
   Future<bool> play(RadioMondoTrack track) async {
-    await initialize();
     if (_isLoading) return false;
 
     _isLoading = true;
     notifyListeners();
 
     try {
+      final initialized = await _ensureInitialized();
+      if (!initialized) {
+        _currentTrack = null;
+        _isPlaying = false;
+        return false;
+      }
+
       _selectedTrack = track;
       await _player.stop();
       await _player.setReleaseMode(ReleaseMode.loop);
@@ -78,8 +103,9 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> stop() async {
     if (!_initialized) return;
     try {
+      // Keep the AudioPlayer reusable during the app lifetime.
+      // Releasing on every stop caused unstable native re-entry on some Android devices.
       await _player.stop();
-      await _player.release();
     } catch (error, stackTrace) {
       if (kDebugMode) {
         debugPrint('Radio Mondo stop error: $error\n$stackTrace');

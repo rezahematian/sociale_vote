@@ -150,12 +150,24 @@ class NewsRepositoryImpl implements NewsRepository {
       language: _normalizeLanguageCode(language),
     );
 
-    final worldBriefs = await _loadVisibleWorldBriefs(
-      languageCode: candidate.language,
-      countryCode: candidate.countryCode,
-      cityId: candidate.cityId,
-      limit: limit == null ? 50 : (limit * 2).clamp(10, 100).toInt(),
-    );
+    List<NewsItem> worldBriefs = const <NewsItem>[];
+    try {
+      worldBriefs = await _loadVisibleWorldBriefs(
+        languageCode: candidate.language,
+        countryCode: candidate.countryCode,
+        cityId: candidate.cityId,
+        limit: limit == null ? 50 : (limit * 2).clamp(10, 100).toInt(),
+      );
+    } catch (error, stackTrace) {
+      // World Brief and provider news are independent sources. A temporary
+      // Supabase/RLS/network failure in one source must not blank the entire
+      // News surface on Android or Web.
+      if (kDebugMode) {
+        debugPrint(
+            'World Briefs unavailable; provider news remains usable: $error');
+        debugPrint('$stackTrace');
+      }
+    }
 
     List<NewsItem> providerNews = const <NewsItem>[];
     try {
@@ -204,12 +216,21 @@ class NewsRepositoryImpl implements NewsRepository {
       language: _normalizeLanguageCode(language),
     );
 
-    final worldBriefs = await _loadVisibleWorldBriefs(
-      languageCode: candidate.language,
-      countryCode: candidate.countryCode,
-      cityId: candidate.cityId,
-      limit: limit == null ? 30 : (limit * 2).clamp(10, 100).toInt(),
-    );
+    List<NewsItem> worldBriefs = const <NewsItem>[];
+    try {
+      worldBriefs = await _loadVisibleWorldBriefs(
+        languageCode: candidate.language,
+        countryCode: candidate.countryCode,
+        cityId: candidate.cityId,
+        limit: limit == null ? 30 : (limit * 2).clamp(10, 100).toInt(),
+      );
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint(
+            'World Brief trending unavailable; provider news remains usable: $error');
+        debugPrint('$stackTrace');
+      }
+    }
 
     List<NewsItem> providerNews = const <NewsItem>[];
     try {
