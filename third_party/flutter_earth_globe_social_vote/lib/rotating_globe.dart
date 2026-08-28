@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_earth_globe/background_shader_painter.dart';
@@ -1725,6 +1726,104 @@ class RotatingGlobeState extends State<RotatingGlobe>
     );
   }
 
+  bool get _isAndroidNative =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
+  /// Android V9.3 compositor guard.
+  ///
+  /// Clip only the rendered sphere/foreground canvas to the real spherical
+  /// footprint. Custom marker labels are built later as sibling widgets and
+  /// therefore remain free to straddle the limb. This replaces V9.2's
+  /// whole-widget ClipOval, which converted the old square compositor boundary
+  /// into a visible circular annulus and clipped marker labels at the edge.
+  Widget _buildAndroidSafeSphereContent(
+    BoxConstraints constraints,
+    Widget child,
+  ) {
+    if (!_isAndroidNative ||
+        widget.showSpaceBackground ||
+        widget.controller.background != null) {
+      return child;
+    }
+
+    final radius = convertedRadius();
+    if (!radius.isFinite || radius <= 0) {
+      return child;
+    }
+
+    // V9.4: V9.3 correctly removed the rectangular compositor edge, but it
+    // also made several Android appearance presets visually collapse because
+    // their distinguishing atmosphere treatment was disabled. Keep the clip
+    // strictly on the sphere while restoring a style-specific surface treatment
+    // derived from the controller values already set by Social Vote. This stays
+    // entirely inside the native renderer; no Web/Three.js/shared UI code is
+    // involved.
+    final treatedChild = _buildAndroidAppearanceTreatment(child);
+
+    return ClipPath(
+      clipper: _SphereFootprintClipper(radius),
+      clipBehavior: Clip.antiAlias,
+      child: treatedChild,
+    );
+  }
+
+  Widget _buildAndroidAppearanceTreatment(Widget child) {
+    if (!_isAndroidNative) {
+      return child;
+    }
+
+    final controller = widget.controller;
+    final atmosphereValue = controller.atmosphereColor.toARGB32();
+
+    // The native WorldGlobeWidget already exposes six presets through a unique
+    // combination of texture + lighting + atmosphere settings. V9.4 uses those
+    // existing controller values as renderer inputs, rather than adding another
+    // source of truth. Realistic and Night already have dedicated textures; the
+    // three stylised presets below need an explicit surface treatment on Android
+    // so that what the user selects is visibly reflected on the real globe.
+    if (!controller.showAtmosphere && controller.ambientLight >= 0.99) {
+      // Minimal Day: clean, pale daylight without an external glow.
+      return ColorFiltered(
+        colorFilter: const ColorFilter.mode(
+          Color(0x33D8F2ED),
+          BlendMode.screen,
+        ),
+        child: child,
+      );
+    }
+
+    if (atmosphereValue == 0xFFB34DFF) {
+      // Tech Neon: preserve geographic texture detail while clearly moving the
+      // surface toward the violet/indigo visual language shown in settings.
+      return ColorFiltered(
+        colorFilter: const ColorFilter.mode(
+          Color(0x66372F9D),
+          BlendMode.color,
+        ),
+        child: ColorFiltered(
+          colorFilter: const ColorFilter.mode(
+            Color(0x220B1025),
+            BlendMode.multiply,
+          ),
+          child: child,
+        ),
+      );
+    }
+
+    if (atmosphereValue == 0xFF55C8FF) {
+      // Bright: slightly brighter/cooler than Classic, without the old halo.
+      return ColorFiltered(
+        colorFilter: const ColorFilter.mode(
+          Color(0x264AB8FF),
+          BlendMode.screen,
+        ),
+        child: child,
+      );
+    }
+
+    return child;
+  }
+
   /// Build the atmospheric glow widget that wraps around the globe
   Widget _buildAtmosphericGlow(BoxConstraints constraints, Widget child) {
     final radius = convertedRadius();
@@ -1736,15 +1835,40 @@ class RotatingGlobeState extends State<RotatingGlobe>
 
     final showAtmosphere = widget.controller.showAtmosphere;
 
-    // If atmosphere is not enabled, just return the child
     if (!showAtmosphere) {
       return child;
     }
 
     final glowColor = widget.controller.atmosphereColor;
-    final glowBlur = widget.controller.atmosphereBlur;
     final glowOpacity = widget.controller.atmosphereOpacity;
     final glowThickness = widget.controller.atmosphereThickness;
+
+    // V9.4 Android: restore the appearance semantics that V9.3 accidentally
+    // flattened, but draw them as an INNER rim. Nothing is painted outside the
+    // Earth footprint, so the "ozone" annulus cannot return and marker labels
+    // remain unclipped siblings above the renderer.
+    if (_isAndroidNative) {
+      return Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          child,
+          IgnorePointer(
+            child: CustomPaint(
+              size: Size(constraints.maxWidth, constraints.maxHeight),
+              painter: _AndroidInnerAtmospherePainter(
+                radius: radius,
+                color: glowColor,
+                opacity: glowOpacity,
+                thickness: glowThickness,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final glowBlur = widget.controller.atmosphereBlur;
 
     // Calculate spread based on thickness relative to globe radius
     final glowSpread = radius * glowThickness;
@@ -1988,23 +2112,25 @@ class RotatingGlobeState extends State<RotatingGlobe>
               onInteractionStart: (ScaleStartDetails details) {
                 _lastRotationX = rotationX;
                 _lastRotationZ = rotationZ;
-                if (widget.lockVerticalRotation) {
-                  final maxHomeTilt = radians(
-                    widget.maxVerticalTiltDegrees.clamp(0.0, 45.0).toDouble(),
-                  );
-                  rotationX =
-                      rotationX.clamp(-maxHomeTilt, maxHomeTilt).toDouble();
-                  rotationY = -rotationX;
-                  _lastRotationX = rotationX;
-                } else {
-                  final maxExploreTilt = radians(
-                    widget.maxVerticalTiltDegrees.clamp(0.0, 89.0).toDouble(),
-                  );
-                  rotationX = rotationX
-                      .clamp(-maxExploreTilt, maxExploreTilt)
-                      .toDouble();
-                  rotationY = -rotationX;
-                  _lastRotationX = rotationX;
+                if (!_isAndroidNative) {
+                  if (widget.lockVerticalRotation) {
+                    final maxHomeTilt = radians(
+                      widget.maxVerticalTiltDegrees.clamp(0.0, 45.0).toDouble(),
+                    );
+                    rotationX =
+                        rotationX.clamp(-maxHomeTilt, maxHomeTilt).toDouble();
+                    rotationY = -rotationX;
+                    _lastRotationX = rotationX;
+                  } else {
+                    final maxExploreTilt = radians(
+                      widget.maxVerticalTiltDegrees.clamp(0.0, 89.0).toDouble(),
+                    );
+                    rotationX = rotationX
+                        .clamp(-maxExploreTilt, maxExploreTilt)
+                        .toDouble();
+                    rotationY = -rotationX;
+                    _lastRotationX = rotationX;
+                  }
                 }
                 _lastFocalPoint = details.focalPoint;
                 _lastScale = 1.0; // Reset scale tracking
@@ -2041,9 +2167,24 @@ class RotatingGlobeState extends State<RotatingGlobe>
                       (1.0 + widget.controller.zoom * 0.3);
                   _onZoomUpdated(zoomDelta);
                 }
-                final offset = details.focalPoint - _lastFocalPoint;
                 // Apply pan sensitivity that adjusts with zoom level for consistent feel
                 final panFactor = _panSensitivity;
+
+                // Android Home intentionally keeps panSensitivity at zero while
+                // the outer arbiter decides page-scroll vs globe-drag. While
+                // ownership is still pending, continuously follow the finger as
+                // the baseline instead of keeping the original touch-down point.
+                // This avoids both failure modes seen on device: applying the
+                // whole intent threshold as a jump, or consuming one extra frame
+                // as a visible stop when ownership changes to the globe.
+                if (_isAndroidNative && panFactor <= 0.0) {
+                  _lastFocalPoint = details.focalPoint;
+                  _lastRotationX = rotationX;
+                  _lastRotationZ = rotationZ;
+                  return;
+                }
+
+                final offset = details.focalPoint - _lastFocalPoint;
                 if (widget.lockVerticalRotation) {
                   final maxHomeTilt = radians(
                     widget.maxVerticalTiltDegrees.clamp(0.0, 45.0).toDouble(),
@@ -2149,6 +2290,15 @@ class RotatingGlobeState extends State<RotatingGlobe>
                         (BuildContext context, BoxConstraints constraints) {
                       final updatedCenter = Offset(
                           constraints.maxWidth / 2, constraints.maxHeight / 2);
+                      final foregroundOffset = Offset(
+                        widget.alignment.x * constraints.maxWidth / 2,
+                        widget.alignment.y * constraints.maxHeight / 2,
+                      );
+
+                      // Decide label visibility in the same build frame as
+                      // the sphere. Otherwise a marker/filter update while
+                      // rotation is paused can leave custom labels stale.
+                      _calculateForegroundPositions(constraints);
                       if (updatedCenter != center) {
                         Future.delayed(Duration.zero, () {
                           setState(() {
@@ -2163,7 +2313,10 @@ class RotatingGlobeState extends State<RotatingGlobe>
                             left: widget.alignment.x * constraints.maxWidth / 2,
                             child: _buildAtmosphericGlow(
                               constraints,
-                              _buildSphereContent(constraints),
+                              _buildAndroidSafeSphereContent(
+                                constraints,
+                                _buildSphereContent(constraints),
+                              ),
                             ),
                           ),
                           if (visiblePoints.isNotEmpty)
@@ -2214,19 +2367,62 @@ class RotatingGlobeState extends State<RotatingGlobe>
 
                                 double width = e.value.size?.width ?? 0;
                                 double height = e.value.size?.height ?? 0;
+
+                                // Android 3D markers are geographic surface
+                                // overlays, not pins floating above the planet.
+                                // Keep the label centred on the true projected
+                                // lat/lng anchor and progressively fade/scale it
+                                // through the final limb band. No coordinate is
+                                // moved and the rear hemisphere remains hidden by
+                                // the renderer's existing front-facing test.
+                                final renderData = _isAndroidNative
+                                    ? _pointRenderData
+                                        .where((data) => data.id == e.key)
+                                        .firstOrNull
+                                    : null;
+                                final limbT = renderData == null
+                                    ? 1.0
+                                    : ((renderData.depth - 0.04) / 0.24)
+                                        .clamp(0.0, 1.0)
+                                        .toDouble();
+                                final limbSmooth =
+                                    limbT * limbT * (3.0 - 2.0 * limbT);
+                                final markerScale = _isAndroidNative
+                                    ? 0.72 + (0.28 * limbSmooth)
+                                    : 1.0;
+                                final markerOpacity =
+                                    _isAndroidNative ? limbSmooth : 1.0;
+                                final topAnchor = _isAndroidNative
+                                    ? pos.dy +
+                                        foregroundOffset.dy -
+                                        point.labelOffset.dy -
+                                        (height / 2)
+                                    : pos.dy +
+                                        foregroundOffset.dy -
+                                        point.labelOffset.dy -
+                                        height;
+
                                 return Positioned(
                                     key: e.value.key,
-                                    left: pos.dx -
+                                    left: pos.dx +
+                                        foregroundOffset.dx -
                                         point.labelOffset.dx -
                                         (width / 2),
-                                    top: pos.dy - point.labelOffset.dy - height,
-                                    child: RepaintBoundary(
-                                      child: point.labelBuilder!(
-                                              context,
-                                              point,
-                                              e.value.isHovering,
-                                              e.value.isVisible) ??
-                                          Container(),
+                                    top: topAnchor,
+                                    child: Opacity(
+                                      opacity: markerOpacity,
+                                      child: Transform.scale(
+                                        scale: markerScale,
+                                        alignment: Alignment.center,
+                                        child: RepaintBoundary(
+                                          child: point.labelBuilder!(
+                                                  context,
+                                                  point,
+                                                  e.value.isHovering,
+                                                  e.value.isVisible) ??
+                                              Container(),
+                                        ),
+                                      ),
                                     ));
                               },
                             ).whereType<Widget>(),
@@ -2281,10 +2477,12 @@ class RotatingGlobeState extends State<RotatingGlobe>
                                 double height = e.value.size?.height ?? 0;
                                 return Positioned(
                                     key: e.value.key,
-                                    left: pos.dx -
+                                    left: pos.dx +
+                                        foregroundOffset.dx -
                                         connection.labelOffset.dx -
                                         (width / 2),
-                                    top: pos.dy -
+                                    top: pos.dy +
+                                        foregroundOffset.dy -
                                         connection.labelOffset.dy -
                                         height,
                                     child: RepaintBoundary(
@@ -2325,6 +2523,70 @@ class _SocialVoteSpaceStar {
     required this.brightness,
     required this.warmth,
   });
+}
+
+class _AndroidInnerAtmospherePainter extends CustomPainter {
+  const _AndroidInnerAtmospherePainter({
+    required this.radius,
+    required this.color,
+    required this.opacity,
+    required this.thickness,
+  });
+
+  final double radius;
+  final Color color;
+  final double opacity;
+  final double thickness;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (!radius.isFinite || radius <= 0 || opacity <= 0) {
+      return;
+    }
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final strokeWidth =
+        math.max(1.0, radius * math.max(0.006, thickness) * 1.8);
+    final ringRadius = math.max(0.0, radius - strokeWidth * 0.55);
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..color = color.withValues(alpha: (opacity * 0.72).clamp(0.0, 1.0))
+      ..isAntiAlias = true;
+
+    canvas.drawCircle(center, ringRadius, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _AndroidInnerAtmospherePainter oldDelegate) {
+    return oldDelegate.radius != radius ||
+        oldDelegate.color != color ||
+        oldDelegate.opacity != opacity ||
+        oldDelegate.thickness != thickness;
+  }
+}
+
+class _SphereFootprintClipper extends CustomClipper<Path> {
+  const _SphereFootprintClipper(this.radius);
+
+  final double radius;
+
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..addOval(
+        Rect.fromCircle(
+          center: Offset(size.width / 2, size.height / 2),
+          radius: radius,
+        ),
+      );
+  }
+
+  @override
+  bool shouldReclip(covariant _SphereFootprintClipper oldClipper) {
+    return oldClipper.radius != radius;
+  }
 }
 
 class _SocialVoteSpaceBackgroundPainter extends CustomPainter {

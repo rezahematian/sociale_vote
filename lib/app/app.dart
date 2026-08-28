@@ -442,14 +442,22 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
               localeListResolutionCallback:
                   AppLocaleController.resolveSystemLocale,
               builder: (context, child) {
-                return BiometricSessionGate(
-                  skipLock: _hasRecoverySignal(Uri.base),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      child ?? const SizedBox.shrink(),
-                      const SocialVoteHudOverlay(),
-                    ],
+                return Directionality(
+                  // Product geometry is physical and stable across locales:
+                  // Persian changes the writing direction of Persian strings,
+                  // not the position/order of buttons, navigation or controls.
+                  // Authored content keeps its own script direction on content
+                  // surfaces via socialVoteContentDirection(...).
+                  textDirection: TextDirection.ltr,
+                  child: BiometricSessionGate(
+                    skipLock: _hasRecoverySignal(Uri.base),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        child ?? const SizedBox.shrink(),
+                        const SocialVoteHudOverlay(),
+                      ],
+                    ),
                   ),
                 );
               },

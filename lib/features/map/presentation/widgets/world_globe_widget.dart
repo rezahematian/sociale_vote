@@ -641,7 +641,8 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
   }
 }
 
-class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
+class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
+    with WidgetsBindingObserver {
   static const bool _isWasmBuild = bool.fromEnvironment('dart.tool.dart2wasm');
 
   static const String _earthTextureClassicAsset =
@@ -691,13 +692,14 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
 
   // Home shows only a small set of high-value beacons. Larger clustering
   // keeps dense regions readable at the fixed Home globe scale.
-  static const int _homeFeaturedMarkerLimit = 9;
   static const double _homeMarkerClusterDegrees = 18.0;
 
   static const int _exploreMarkerLimitFar = 36;
   static const int _exploreMarkerLimitNear = 96;
 
   late final FlutterEarthGlobeController _globeController;
+  final WorldMarkerPolicyService _markerPolicy =
+      WorldMarkerPolicyService.instance;
   bool _texturePrecached = false;
   bool _autoRotateEnabled = true;
   String? _nativeTextureAsset;
@@ -827,6 +829,25 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     }
 
     _syncGlobeContentPoints();
+    WidgetsBinding.instance.addObserver(this);
+    _markerPolicy.addListener(_handleMarkerPolicyChanged);
+    unawaited(_markerPolicy.ensureLoaded(forceRefresh: true));
+  }
+
+  void _handleMarkerPolicyChanged() {
+    if (!mounted || !_isHomeProfile) {
+      return;
+    }
+
+    _lastNativeMarkerInputSignature = null;
+    _syncGlobeContentPoints();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_markerPolicy.ensureLoaded(forceRefresh: true));
+    }
   }
 
   bool get _hasValidInitialFocus {
@@ -970,6 +991,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _markerPolicy.removeListener(_handleMarkerPolicyChanged);
     _scientificSkyTimer?.cancel();
     _nativeRotationWarmupTimer?.cancel();
     _nativeNaturalTiltTimer?.cancel();
@@ -1021,6 +1044,12 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
 
     if (oldWidget.visualStyle != widget.visualStyle) {
       _applyNativeVisualStyle(widget.visualStyle);
+    }
+
+    if (oldWidget.homeMarkerDensityOverride !=
+        widget.homeMarkerDensityOverride) {
+      _lastNativeMarkerInputSignature = null;
+      _syncGlobeContentPoints();
     }
 
     if (oldWidget.onOrientationChanged != widget.onOrientationChanged) {
@@ -1158,23 +1187,31 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
                               onPointerCancel: _handleExplorePointerCancel,
                               child: globe,
                             ),
-                  if (_isHomeProfile && widget.showHomeRadioControl)
+                  if ((_isHomeProfile && widget.showHomeRadioControl) ||
+                      isAuthenticated)
                     Positioned(
                       left: 12,
-                      bottom: 12,
-                      child: RadioMondoDock(
-                        visualStyle: widget.radioVisualStyle,
-                        size: 44,
-                      ),
-                    ),
-                  if (isAuthenticated)
-                    Positioned(
                       right: 12,
                       bottom: 12,
-                      child: _GlobeRotationButton(
-                        isRotating: _autoRotateEnabled,
-                        visualStyle: widget.rotationVisualStyle,
-                        onPressed: _toggleNativeAutoRotation,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          if (_isHomeProfile && widget.showHomeRadioControl)
+                            RadioMondoDock(
+                              visualStyle: widget.radioVisualStyle,
+                              size: 44,
+                            )
+                          else
+                            const SizedBox(width: 44, height: 44),
+                          if (isAuthenticated)
+                            _GlobeRotationButton(
+                              isRotating: _autoRotateEnabled,
+                              visualStyle: widget.rotationVisualStyle,
+                              onPressed: _toggleNativeAutoRotation,
+                            )
+                          else
+                            const SizedBox(width: 44, height: 44),
+                        ],
                       ),
                     ),
                   if (!_isHomeProfile &&
@@ -1495,11 +1532,14 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     List<CivicMapItem> items,
     bool settled, {
     int? zoomBucket,
+    int? markerLimit,
   }) {
     final buffer = StringBuffer()
       ..write(settled ? '1' : '0')
       ..write('|')
       ..write(zoomBucket ?? -1)
+      ..write('|')
+      ..write(markerLimit ?? -1)
       ..write('|');
 
     for (final item in items) {
@@ -1611,10 +1651,16 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     }
 
     final zoom = _globeController.zoom;
+    final markerLimit = _isHomeProfile
+        ? _markerPolicy.homeMarkerLimitForDensity(
+            widget.homeMarkerDensityOverride,
+          )
+        : _markerLimitForZoom(zoom);
     final markerSignature = _markerInputSignature(
       widget.items,
       widget.markerDataSettled,
       zoomBucket: _markerZoomBucket(zoom),
+      markerLimit: markerLimit,
     );
     if (_lastNativeMarkerInputSignature == markerSignature) {
       return;
@@ -1623,8 +1669,6 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
     final clusterDegrees = _isHomeProfile
         ? _homeMarkerClusterDegrees
         : _markerClusterDegreesForZoom(zoom);
-    final markerLimit =
-        _isHomeProfile ? _homeFeaturedMarkerLimit : _markerLimitForZoom(zoom);
     final groups = _buildExploreMarkerGroups(
       widget.items,
       clusterDegrees: clusterDegrees,
@@ -1748,14 +1792,6 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
       final groupItems = entry.value;
       final representative = _preferredGlobeMarkerRepresentative(groupItems);
 
-      var latitudeTotal = 0.0;
-      var longitudeTotal = 0.0;
-      for (final item in groupItems) {
-        latitudeTotal += item.latitude;
-        longitudeTotal += item.longitude;
-      }
-      final latitude = latitudeTotal / groupItems.length;
-      final longitude = longitudeTotal / groupItems.length;
       final keyParts = entry.key.split('|');
       final baseKey = '${keyParts[0]}|${keyParts[1]}';
       final hasMixedTypes = (typesByCell[baseKey]?.length ?? 0) > 1;
@@ -1764,8 +1800,11 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget> {
         _WorldGlobeMarkerGroup(
           representative: representative,
           items: List<CivicMapItem>.unmodifiable(groupItems),
-          latitude: latitude.clamp(-89.999, 89.999).toDouble(),
-          longitude: longitude.clamp(-179.999, 179.999).toDouble(),
+          // The representative's persisted anchor is authoritative. A
+          // geographic average would invent a coordinate and can jump across
+          // the antimeridian; overlap is handled only in screen space.
+          latitude: representative.latitude,
+          longitude: representative.longitude,
           visualOffset: hasMixedTypes
               ? _globeScreenOffsetForType(representative.type)
               : Offset.zero,
@@ -2417,35 +2456,32 @@ class _GlobeRotationButton extends StatelessWidget {
       button: true,
       toggled: isRotating,
       label: label,
-      child: Tooltip(
-        message: label,
-        child: Material(
-          color: Colors.transparent,
-          shape: const CircleBorder(),
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: onPressed,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              curve: Curves.easeOut,
-              width: style.size,
-              height: style.size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: style.background,
-                border: Border.all(
-                  width: style.borderWidth,
-                  color: style.border,
-                ),
-                boxShadow: style.shadows,
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onPressed,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOut,
+            width: style.size,
+            height: style.size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: style.background,
+              border: Border.all(
+                width: style.borderWidth,
+                color: style.border,
               ),
-              alignment: Alignment.center,
-              child: CustomPaint(
-                size: Size.square(style.iconSize),
-                painter: _CircularArrowPainter(
-                  color: style.foreground,
-                  strokeWidth: style.strokeWidth,
-                ),
+              boxShadow: style.shadows,
+            ),
+            alignment: Alignment.center,
+            child: CustomPaint(
+              size: Size.square(style.iconSize),
+              painter: _CircularArrowPainter(
+                color: style.foreground,
+                strokeWidth: style.strokeWidth,
               ),
             ),
           ),

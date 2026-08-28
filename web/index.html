@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -24,7 +24,54 @@
   >
   <meta name="theme-color" content="#FFFFFF">
 
-  <!-- Social preview baseline. Dynamic Poll/Post metadata remains a later server-side step. -->
+  <!--
+    Flutter Hosting serves one SPA shell for several routes. Google supports a
+    JavaScript-created canonical when the original HTML does not declare a
+    conflicting canonical. Dynamic Post/Poll metadata injected at the edge is
+    preserved because an existing canonical is never replaced here.
+  -->
+  <script id="social-vote-seo">
+    (() => {
+      const rawPath = window.location.pathname || '/';
+      const path = rawPath.length > 1 ? rawPath.replace(/\/+$/, '') : '/';
+      const publicExactPaths = new Set([
+        '/',
+        '/polls',
+        '/news',
+        '/social',
+        '/map',
+        '/terms',
+        '/privacy',
+        '/how-it-works'
+      ]);
+      const publicPathPatterns = [
+        /^\/poll\/[^/]+$/,
+        /^\/post\/[^/]+$/,
+        /^\/city\/[a-zA-Z]{2}\/[^/]+$/
+      ];
+      const isIndexable = publicExactPaths.has(path) ||
+        publicPathPatterns.some((pattern) => pattern.test(path));
+
+      let robots = document.querySelector('meta[name="robots"]');
+      if (!robots) {
+        robots = document.createElement('meta');
+        robots.name = 'robots';
+        document.head.appendChild(robots);
+      }
+      robots.content = isIndexable
+        ? 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1'
+        : 'noindex,nofollow';
+
+      if (isIndexable && !document.querySelector('link[rel="canonical"]')) {
+        const canonical = document.createElement('link');
+        canonical.rel = 'canonical';
+        canonical.href = `https://socialevote.com${path}`;
+        document.head.appendChild(canonical);
+      }
+    })();
+  </script>
+
+  <!-- Social preview baseline. Dynamic Poll/Post metadata remains server/edge-owned. -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Social Vote">
   <meta property="og:title" content="Social Vote">
@@ -44,8 +91,8 @@
   <meta name="apple-mobile-web-app-title" content="Social Vote">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png">
+  <!-- Social Vote favicon (square and larger than Google's 48px recommendation). -->
+  <link rel="icon" type="image/png" sizes="96x96" href="favicon.png">
 
   <title>Social Vote</title>
   <link rel="manifest" href="manifest.json">

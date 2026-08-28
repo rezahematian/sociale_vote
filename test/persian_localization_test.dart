@@ -142,13 +142,22 @@ void main() {
     final openControl = find.byKey(const ValueKey<String>('radio-mondo-open'));
     expect(openControl, findsOneWidget);
 
+    final semanticsFinder = find.ancestor(
+      of: openControl,
+      matching: find.byWidgetPredicate(
+        (widget) => widget is Semantics &&
+            (widget.properties.label ?? '').contains('رادیوی جهان'),
+      ),
+    );
+    expect(semanticsFinder, findsOneWidget);
+
+    // Globe controls deliberately avoid Tooltip/RawTooltip overlays on
+    // Android. Long-press belongs exclusively to the track picker.
     final tooltipFinder = find.ancestor(
       of: openControl,
       matching: find.byType(Tooltip),
     );
-    expect(tooltipFinder, findsOneWidget);
-    final tooltip = tester.widget<Tooltip>(tooltipFinder);
-    expect(tooltip.message, contains('رادیوی جهان'));
+    expect(tooltipFinder, findsNothing);
 
     // The visual treatment is intentionally icon/gramophone-only.
     expect(find.text('رادیوی جهان'), findsNothing);

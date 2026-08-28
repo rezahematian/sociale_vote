@@ -127,7 +127,10 @@ class SphereShaderPainter extends CustomPainter {
         ..shader = shader
         ..isAntiAlias = true
         ..blendMode = BlendMode.srcOver;
-      canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
+      // Submit only the sphere footprint. A full-canvas shader draw can expose
+      // a rectangular magenta/error surface on older Android GPU drivers
+      // while an appearance texture is rebound.
+      canvas.drawCircle(center, radius + 1.5, paint);
     } catch (e) {
       // On WebGL, shaders can fail during paint - log and notify
       debugPrint('SphereShaderPainter.paint error: $e');

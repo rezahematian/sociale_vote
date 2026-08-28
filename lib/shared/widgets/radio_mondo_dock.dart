@@ -40,28 +40,23 @@ class RadioMondoDock extends StatelessWidget {
           button: true,
           toggled: active,
           label: label,
-          child: Tooltip(
-            message: active
-                ? '${l10n.radioMondoStopAction} · ${_trackLabel(l10n, track)}'
-                : '${l10n.radioMondoTitle} · ${_trackLabel(l10n, track)}',
-            child: Material(
-              color: Colors.transparent,
-              shape: const CircleBorder(),
-              child: InkWell(
-                key: const ValueKey<String>('radio-mondo-open'),
-                customBorder: const CircleBorder(),
-                onTap: radio.isLoading
-                    ? null
-                    : () => _togglePlayback(context, radio),
-                onLongPress: radio.isLoading
-                    ? null
-                    : () => _showTrackPicker(context, radio),
-                child: PremiumRadioControlVisual(
-                  style: visualStyle,
-                  active: active,
-                  loading: radio.isLoading,
-                  size: size,
-                ),
+          child: Material(
+            color: Colors.transparent,
+            shape: const CircleBorder(),
+            child: InkWell(
+              key: const ValueKey<String>('radio-mondo-open'),
+              customBorder: const CircleBorder(),
+              onTap: radio.isLoading
+                  ? null
+                  : () => _togglePlayback(context, radio),
+              onLongPress: radio.isLoading
+                  ? null
+                  : () => _showTrackPicker(context, radio),
+              child: PremiumRadioControlVisual(
+                style: visualStyle,
+                active: active,
+                loading: radio.isLoading,
+                size: size,
               ),
             ),
           ),

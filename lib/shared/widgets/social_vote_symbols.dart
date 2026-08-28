@@ -219,51 +219,64 @@ class GlobeContentMarker extends StatelessWidget {
             ? '$label Inhalte'
             : '$label items';
 
+    // Android/native visual recovery: keep the original layout footprint so
+    // geographic anchoring and hit-target math remain unchanged, while the
+    // visible glyph is deliberately quieter than the 24-34 px V9 surface.
+    // The Web renderer does not instantiate GlobeContentMarker.
+    final visualSize = (size * 0.72).clamp(16.0, 24.5).toDouble();
+
     return IgnorePointer(
       child: Semantics(
         image: true,
         label: _isCluster
             ? clusterDescription
             : SocialVoteSymbols.contentLabel(kind),
-        child: Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            color: const Color(0xFF0A1020),
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: color,
-              width: size >= 30 ? 3 : 2.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.34),
-                blurRadius: size * 0.42,
-                spreadRadius: 1,
-              ),
-              const BoxShadow(
-                color: Color(0x66000000),
-                blurRadius: 5,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: _isCluster
-              ? Text(
-                  label,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Colors.white,
-                        fontSize: label.length > 2 ? size * 0.27 : size * 0.32,
-                        fontWeight: FontWeight.w800,
-                        height: 1,
-                      ),
-                )
-              : Icon(
-                  SocialVoteSymbols.contentIcon(kind),
-                  color: Colors.white,
-                  size: size * 0.48,
+        child: SizedBox.square(
+          dimension: size,
+          child: Center(
+            child: Container(
+              width: visualSize,
+              height: visualSize,
+              decoration: BoxDecoration(
+                color: const Color(0xFF0A1020),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: color,
+                  width: visualSize >= 23 ? 2.5 : 2.0,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.30),
+                    blurRadius: visualSize * 0.34,
+                    spreadRadius: 0.5,
+                  ),
+                  const BoxShadow(
+                    color: Color(0x55000000),
+                    blurRadius: 4,
+                    offset: Offset(0, 1.5),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: _isCluster
+                  ? Text(
+                      label,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: Colors.white,
+                            fontSize: label.length > 2
+                                ? visualSize * 0.27
+                                : visualSize * 0.32,
+                            fontWeight: FontWeight.w800,
+                            height: 1,
+                          ),
+                    )
+                  : Icon(
+                      SocialVoteSymbols.contentIcon(kind),
+                      color: Colors.white,
+                      size: visualSize * 0.48,
+                    ),
+            ),
+          ),
         ),
       ),
     );

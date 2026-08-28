@@ -46,31 +46,38 @@ class HomeTopBar extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     if (!isLoggedIn) {
-      final guestActions = Wrap(
-        spacing: 6,
-        runSpacing: 6,
-        alignment: WrapAlignment.end,
-        crossAxisAlignment: WrapCrossAlignment.center,
+      // Social Vote final guest header: keep brand + auth on one compact row.
+      final guestUtilityActions = <Widget>[
+        if (onHowItWorksPressed != null)
+          _HowItWorksIconButton(onPressed: onHowItWorksPressed!),
+        if (onDiscoveryPressed != null)
+          _DiscoverIconButton(
+            scopeShortLabel: scopeShortLabel,
+            onPressed: onDiscoveryPressed!,
+          ),
+      ];
+
+      final guestAuthActions = Row(
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          if (onHowItWorksPressed != null)
-            _HowItWorksIconButton(onPressed: onHowItWorksPressed!),
-          if (onDiscoveryPressed != null) ...[
-            _DiscoverIconButton(
-              scopeShortLabel: scopeShortLabel,
-              onPressed: onDiscoveryPressed!,
-            ),
-          ],
           OutlinedButton(
             onPressed: onLoginPressed,
             style: OutlinedButton.styleFrom(
               visualDensity: VisualDensity.compact,
+              minimumSize: const Size(0, 36),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             child: Text(l10n.homeLoginButton),
           ),
+          const SizedBox(width: 4),
           FilledButton(
             onPressed: onRegisterPressed,
             style: FilledButton.styleFrom(
               visualDensity: VisualDensity.compact,
+              minimumSize: const Size(0, 36),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             child: Text(l10n.homeRegisterButton),
           ),
@@ -81,24 +88,53 @@ class HomeTopBar extends StatelessWidget {
         builder: (context, constraints) {
           if (constraints.maxWidth < 430) {
             return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                const _ColorfulBrand(),
-                const SizedBox(height: 8),
-                Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: guestActions,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    const Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: AlignmentDirectional.centerStart,
+                        child: _ColorfulBrand(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    guestAuthActions,
+                  ],
                 ),
+                if (guestUtilityActions.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: guestUtilityActions,
+                    ),
+                  ),
+                ],
               ],
             );
           }
 
           return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               const Expanded(child: _ColorfulBrand()),
               const SizedBox(width: 8),
-              guestActions,
+              if (guestUtilityActions.isNotEmpty) ...[
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: guestUtilityActions,
+                ),
+                const SizedBox(width: 6),
+              ],
+              guestAuthActions,
             ],
           );
         },

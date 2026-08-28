@@ -1,446 +1,58 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Social Vote Child Safety Standards against child sexual abuse and exploitation (CSAE) and child sexual abuse material (CSAM).">
   <meta name="robots" content="index,follow">
-  <meta name="theme-color" content="#2563EB">
-
-  <link rel="canonical" href="https://socialevote.com/child-safety/">
-  <link rel="icon" type="image/png" href="/favicon.png">
-  <link rel="apple-touch-icon" href="/icons/Icon-192.png">
-
   <title>Child Safety Standards | Social Vote</title>
-
+  <meta name="description" content="Social Vote child safety standards and reporting information.">
   <style>
-    :root {
-      color-scheme: light;
-      --bg: #f5f7fb;
-      --surface: #ffffff;
-      --surface-soft: #f8fafc;
-      --border: #dce3ec;
-      --text: #111827;
-      --muted: #4b5563;
-      --primary: #2563eb;
-      --primary-soft: #eff6ff;
-      --danger: #b91c1c;
-      --danger-soft: #fef2f2;
-      --success: #047857;
-      --success-soft: #ecfdf5;
-      --shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
-      --radius: 20px;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-        "Segoe UI", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(37, 99, 235, 0.09), transparent 34rem),
-        var(--bg);
-      line-height: 1.65;
-    }
-
-    a { color: var(--primary); }
-
-    .page {
-      width: min(100% - 32px, 920px);
-      margin: 0 auto;
-      padding: 28px 0 48px;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 22px;
-    }
-
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 800;
-    }
-
-    .brand-mark {
-      display: grid;
-      width: 40px;
-      height: 40px;
-      place-items: center;
-      border-radius: 13px;
-      color: #fff;
-      background: linear-gradient(135deg, #2563eb, #7c3aed);
-      box-shadow: 0 9px 24px rgba(37, 99, 235, 0.24);
-      font-size: 20px;
-    }
-
-    .lang {
-      display: inline-flex;
-      gap: 4px;
-      padding: 4px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: #fff;
-    }
-
-    .lang button {
-      border: 0;
-      border-radius: 999px;
-      padding: 8px 13px;
-      font: inherit;
-      font-weight: 700;
-      cursor: pointer;
-      background: transparent;
-      color: var(--muted);
-    }
-
-    .lang button[aria-pressed="true"] {
-      color: #fff;
-      background: var(--primary);
-    }
-
-    .card {
-      overflow: hidden;
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      background: rgba(255,255,255,.97);
-      box-shadow: var(--shadow);
-    }
-
-    .hero {
-      padding: clamp(28px, 6vw, 54px);
-      border-bottom: 1px solid var(--border);
-      background:
-        linear-gradient(135deg, rgba(37,99,235,.08), rgba(124,58,237,.04)),
-        #fff;
-    }
-
-    .eyebrow {
-      display: inline-block;
-      margin-bottom: 16px;
-      padding: 7px 11px;
-      border-radius: 999px;
-      color: var(--primary);
-      background: var(--primary-soft);
-      font-size: 13px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .03em;
-    }
-
-    h1, h2, h3, p { margin-top: 0; }
-
-    h1 {
-      margin-bottom: 14px;
-      font-size: clamp(34px, 6vw, 54px);
-      line-height: 1.05;
-      letter-spacing: -.04em;
-    }
-
-    .lead {
-      max-width: 760px;
-      margin-bottom: 0;
-      color: var(--muted);
-      font-size: 18px;
-    }
-
-    .content {
-      display: grid;
-      gap: 16px;
-      padding: clamp(22px, 5vw, 42px);
-    }
-
-    .section {
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: clamp(20px, 4vw, 28px);
-      background: var(--surface);
-    }
-
-    .section h2 {
-      margin-bottom: 10px;
-      font-size: 25px;
-      line-height: 1.2;
-    }
-
-    .section p:last-child,
-    .section ul:last-child {
-      margin-bottom: 0;
-    }
-
-    .muted { color: var(--muted); }
-
-    .zero {
-      border-color: #fecaca;
-      background: var(--danger-soft);
-    }
-
-    .zero strong { color: var(--danger); }
-
-    .action {
-      border-color: #a7f3d0;
-      background: var(--success-soft);
-    }
-
-    ul {
-      margin-bottom: 0;
-      padding-left: 22px;
-    }
-
-    li + li { margin-top: 8px; }
-
-    .contact {
-      padding: 16px;
-      border: 1px dashed var(--border);
-      border-radius: 14px;
-      background: var(--surface-soft);
-      overflow-wrap: anywhere;
-    }
-
-    .small {
-      color: #6b7280;
-      font-size: 14px;
-    }
-
-    footer {
-      padding: 22px 4px 0;
-      color: #6b7280;
-      text-align: center;
-      font-size: 14px;
-    }
-
-    [hidden] { display: none !important; }
-
-    @media (max-width: 620px) {
-      .topbar { align-items: flex-start; }
-      .brand span:last-child { display: none; }
-    }
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#f7f8fb;color:#16181d;line-height:1.55}
+    main{max-width:860px;margin:0 auto;padding:40px 20px 64px}
+    article{background:#fff;border:1px solid #e2e5ea;border-radius:18px;padding:28px}
+    h1{margin-top:0} h2{margin-top:28px} a{color:inherit} .muted{color:#5d6470}
+    .lang{display:flex;gap:8px;margin-bottom:20px}.lang button{padding:8px 12px;border:1px solid #cbd0d8;border-radius:10px;background:#fff;cursor:pointer}
+    [hidden]{display:none!important}
   </style>
 </head>
 <body>
-  <main class="page">
-    <div class="topbar">
-      <a class="brand" href="/">
-        <span class="brand-mark" aria-hidden="true">✓</span>
-        <span>Social Vote</span>
-      </a>
-
-      <div class="lang" aria-label="Language">
-        <button type="button" data-lang="en" aria-pressed="true">EN</button>
-        <button type="button" data-lang="it" aria-pressed="false">IT</button>
-      </div>
-    </div>
-
-    <section class="card">
-      <section id="panel-en" data-panel="en">
-        <header class="hero">
-          <div class="eyebrow">Child Safety</div>
-          <h1>Child Safety Standards</h1>
-          <p class="lead">
-            Social Vote prohibits child sexual abuse and exploitation (CSAE) and
-            child sexual abuse material (CSAM). These standards describe how we
-            prevent, report, review and act on child-safety concerns.
-          </p>
-        </header>
-
-        <div class="content">
-          <section class="section zero">
-            <h2>Zero tolerance for CSAE and CSAM</h2>
-            <p>
-              <strong>Social Vote does not allow content or behavior that sexually
-              exploits, abuses or endangers children.</strong> This includes CSAM,
-              grooming, sextortion, sexual exploitation or trafficking of a child,
-              solicitation involving minors, and attempts to facilitate or normalize
-              such conduct.
-            </p>
-          </section>
-
-          <section class="section">
-            <h2>In-app reporting</h2>
-            <p class="muted">
-              Social Vote provides in-app reporting tools that allow users to report
-              users and user-generated content for review. Reports are handled through
-              our moderation process and may result in content removal, account action,
-              escalation or other protective measures.
-            </p>
-          </section>
-
-          <section class="section action">
-            <h2>How we act on CSAM and child-safety reports</h2>
-            <ul>
-              <li>We review reports and credible notices involving potential CSAE or CSAM.</li>
-              <li>When we obtain actual knowledge of prohibited content, we take appropriate action, including removing or disabling access to the content.</li>
-              <li>We may restrict, suspend or terminate accounts involved in child sexual abuse or exploitation.</li>
-              <li>We preserve information when reasonably necessary for safety, legal compliance and reporting obligations.</li>
-              <li>Confirmed CSAM is reported to the National Center for Missing &amp; Exploited Children (NCMEC) or the relevant regional/national authority when required by applicable law.</li>
-            </ul>
-          </section>
-
-          <section class="section">
-            <h2>Compliance with child-safety laws</h2>
-            <p class="muted">
-              Social Vote is committed to complying with applicable child-safety laws
-              and regulations in the jurisdictions where the service is made available.
-              We cooperate with lawful requests from competent authorities where required.
-            </p>
-          </section>
-
-          <section class="section">
-            <h2>Child-safety contact</h2>
-            <p class="muted">
-              Google Play and competent authorities may use the following designated
-              contact for notifications concerning CSAE, CSAM or child-safety enforcement.
-            </p>
-            <div class="contact">
-              <strong>Social Vote Child Safety Contact</strong><br>
-              <a href="mailto:support@socialevote.com">support@socialevote.com</a>
-            </div>
-          </section>
-
-          <section class="section">
-            <h2>Reporting an urgent concern</h2>
-            <p class="muted">
-              If you believe a child is in immediate danger, contact your local emergency
-              services or law-enforcement authority first. You may also report relevant
-              content inside Social Vote using the available reporting tools.
-            </p>
-          </section>
-
-          <section class="section">
-            <h2>Scope and updates</h2>
-            <p class="muted">
-              These standards apply to Social Vote and its user-generated content and
-              community features. We may update these standards when our product,
-              legal obligations or safety procedures change.
-            </p>
-            <p class="small">Last updated: 10 August 2026.</p>
-          </section>
-        </div>
-      </section>
-
-      <section id="panel-it" data-panel="it" hidden>
-        <header class="hero">
-          <div class="eyebrow">Sicurezza dei minori</div>
-          <h1>Standard di sicurezza dei minori</h1>
-          <p class="lead">
-            Social Vote vieta l'abuso e lo sfruttamento sessuale dei minori (CSAE)
-            e il materiale pedopornografico (CSAM). Questi standard descrivono come
-            preveniamo, segnaliamo, esaminiamo e gestiamo i problemi di sicurezza dei minori.
-          </p>
-        </header>
-
-        <div class="content">
-          <section class="section zero">
-            <h2>Tolleranza zero per CSAE e CSAM</h2>
-            <p>
-              <strong>Social Vote non consente contenuti o comportamenti che sfruttano
-              sessualmente, abusano o mettono in pericolo i minori.</strong> Sono inclusi
-              CSAM, adescamento, estorsione sessuale, sfruttamento o tratta sessuale di minori,
-              richieste rivolte a minori e tentativi di agevolare o normalizzare tali condotte.
-            </p>
-          </section>
-
-          <section class="section">
-            <h2>Segnalazioni nell'app</h2>
-            <p class="muted">
-              Social Vote mette a disposizione strumenti di segnalazione in-app per
-              segnalare utenti e contenuti generati dagli utenti. Le segnalazioni vengono
-              gestite tramite il processo di moderazione e possono portare alla rimozione
-              del contenuto, ad azioni sull'account, escalation o altre misure di protezione.
-            </p>
-          </section>
-
-          <section class="section action">
-            <h2>Come interveniamo su CSAM e segnalazioni di sicurezza</h2>
-            <ul>
-              <li>Esaminiamo segnalazioni e notifiche attendibili relative a possibili CSAE o CSAM.</li>
-              <li>Quando veniamo effettivamente a conoscenza di contenuti vietati, adottiamo misure appropriate, inclusa la rimozione o la disabilitazione dell'accesso.</li>
-              <li>Possiamo limitare, sospendere o chiudere account coinvolti in abuso o sfruttamento sessuale di minori.</li>
-              <li>Conserviamo le informazioni quando ragionevolmente necessario per sicurezza, conformità legale e obblighi di segnalazione.</li>
-              <li>Il CSAM confermato viene segnalato al National Center for Missing &amp; Exploited Children (NCMEC) o all'autorità regionale/nazionale competente quando richiesto dalla legge applicabile.</li>
-            </ul>
-          </section>
-
-          <section class="section">
-            <h2>Conformità alle leggi sulla sicurezza dei minori</h2>
-            <p class="muted">
-              Social Vote si impegna a rispettare le leggi e i regolamenti applicabili
-              sulla sicurezza dei minori nelle giurisdizioni in cui il servizio è disponibile
-              e a collaborare con richieste legittime delle autorità competenti quando richiesto.
-            </p>
-          </section>
-
-          <section class="section">
-            <h2>Contatto per la sicurezza dei minori</h2>
-            <p class="muted">
-              Google Play e le autorità competenti possono utilizzare il seguente contatto
-              designato per comunicazioni relative a CSAE, CSAM o interventi di sicurezza.
-            </p>
-            <div class="contact">
-              <strong>Social Vote Child Safety Contact</strong><br>
-              <a href="mailto:support@socialevote.com">support@socialevote.com</a>
-            </div>
-          </section>
-
-          <section class="section">
-            <h2>Segnalazione di un pericolo urgente</h2>
-            <p class="muted">
-              Se ritieni che un minore sia in pericolo immediato, contatta prima i servizi
-              di emergenza o le forze dell'ordine locali. Puoi inoltre segnalare i contenuti
-              rilevanti direttamente all'interno di Social Vote.
-            </p>
-          </section>
-
-          <section class="section">
-            <h2>Ambito e aggiornamenti</h2>
-            <p class="muted">
-              Questi standard si applicano a Social Vote, ai contenuti generati dagli utenti
-              e alle funzionalità della community. Potremo aggiornarli quando cambiano il prodotto,
-              gli obblighi legali o le procedure di sicurezza.
-            </p>
-            <p class="small">Ultimo aggiornamento: 10 agosto 2026.</p>
-          </section>
-        </div>
-      </section>
-    </section>
-
-    <footer>
-      Social Vote · <a href="/privacy">Privacy Policy</a> ·
-      <a href="mailto:support@socialevote.com">support@socialevote.com</a>
-    </footer>
-  </main>
-
-  <script>
-    const buttons = document.querySelectorAll("[data-lang]");
-    const panels = document.querySelectorAll("[data-panel]");
-
-    function setLanguage(lang) {
-      document.documentElement.lang = lang;
-      buttons.forEach((button) => {
-        button.setAttribute("aria-pressed", button.dataset.lang === lang ? "true" : "false");
-      });
-      panels.forEach((panel) => {
-        panel.hidden = panel.dataset.panel !== lang;
-      });
-    }
-
-    buttons.forEach((button) => {
-      button.addEventListener("click", () => setLanguage(button.dataset.lang));
-    });
-
-    const browserLanguage = (navigator.language || "en").toLowerCase();
-    if (browserLanguage.startsWith("it")) {
-      setLanguage("it");
-    }
-  </script>
+<main>
+  <div class="lang"><button data-lang="en">English</button><button data-lang="it">Italiano</button></div>
+  <article data-panel="en">
+    <h1>Social Vote Child Safety Standards</h1>
+    <p class="muted">Last updated: 28 August 2026</p>
+    <h2>Zero tolerance for child sexual abuse and exploitation</h2>
+    <p>Social Vote prohibits child sexual abuse and exploitation (CSAE), child sexual abuse material (CSAM), grooming, sexualization of minors, trafficking or solicitation involving minors, and any content or conduct that facilitates or promotes harm to children.</p>
+    <h2>Reporting and user controls</h2>
+    <p>Users can report objectionable content or accounts in the app. Authenticated users can also block other users through public-profile controls. Reports can be reviewed by authorised moderators and administrators and may result in content removal, account restrictions, suspension, session revocation or other proportionate action.</p>
+    <h2>Action on CSAM and legal compliance</h2>
+    <p>When Social Vote obtains actual knowledge of CSAM or other child sexual abuse or exploitation, it will take appropriate action, including removal or restriction of the material or account, preservation of information where legally required, and reporting to the competent authority where applicable under law.</p>
+    <h2>Audience</h2>
+    <p>Social Vote is intended only for users aged 18 or older and is not directed to children.</p>
+    <h2>Child-safety contact</h2>
+    <p>Child-safety concerns may be sent to <a href="mailto:support@socialevote.com">support@socialevote.com</a>. Include enough information to identify the relevant account or content. Do not email illegal material.</p>
+    <p>See also the Social Vote Terms of Service and Privacy Policy at <a href="https://socialevote.com/terms">socialevote.com/terms</a> and <a href="https://socialevote.com/privacy">socialevote.com/privacy</a>.</p>
+  </article>
+  <article data-panel="it" hidden>
+    <h1>Standard di sicurezza dei minori di Social Vote</h1>
+    <p class="muted">Ultimo aggiornamento: 28 agosto 2026</p>
+    <h2>Tolleranza zero per abuso e sfruttamento sessuale di minori</h2>
+    <p>Social Vote vieta abuso e sfruttamento sessuale di minori (CSAE), materiale di abuso sessuale su minori (CSAM), adescamento, sessualizzazione di minori, tratta o sollecitazione che coinvolga minori e qualsiasi contenuto o condotta che faciliti o promuova danni ai minori.</p>
+    <h2>Segnalazioni e controlli utente</h2>
+    <p>Gli utenti possono segnalare contenuti o account discutibili nell’app. Gli utenti autenticati possono anche bloccare altri utenti tramite i controlli del profilo pubblico. Le segnalazioni possono essere esaminate da moderatori e amministratori autorizzati e possono comportare rimozione dei contenuti, limitazioni dell’account, sospensione, revoca di sessioni o altre misure proporzionate.</p>
+    <h2>Intervento su CSAM e conformità legale</h2>
+    <p>Quando Social Vote viene effettivamente a conoscenza di CSAM o di altri casi di abuso o sfruttamento sessuale di minori, adotta misure appropriate, incluse rimozione o limitazione del materiale o dell’account, conservazione delle informazioni quando richiesta dalla legge e segnalazione all’autorità competente quando applicabile.</p>
+    <h2>Pubblico</h2>
+    <p>Social Vote è destinato esclusivamente a utenti di almeno 18 anni e non è rivolto ai minori.</p>
+    <h2>Contatto sicurezza minori</h2>
+    <p>Le segnalazioni relative alla sicurezza dei minori possono essere inviate a <a href="mailto:support@socialevote.com">support@socialevote.com</a>. Inserire informazioni sufficienti per identificare account o contenuto. Non inviare materiale illegale via email.</p>
+    <p>Vedi anche Termini di servizio e Informativa sulla privacy: <a href="https://socialevote.com/terms">socialevote.com/terms</a> e <a href="https://socialevote.com/privacy">socialevote.com/privacy</a>.</p>
+  </article>
+</main>
+<script>
+const buttons=document.querySelectorAll('[data-lang]');const panels=document.querySelectorAll('[data-panel]');
+function setLang(lang){document.documentElement.lang=lang;panels.forEach(p=>p.hidden=p.dataset.panel!==lang);buttons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===lang)));}
+buttons.forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));setLang((navigator.language||'en').toLowerCase().startsWith('it')?'it':'en');
+</script>
 </body>
 </html>

@@ -164,7 +164,7 @@ class _LegalDocument {
   }
 
   static const _LegalDocument _termsItalian = _LegalDocument(
-    notice: 'Versione aggiornata al 23 agosto 2026. Sito ufficiale: '
+    notice: 'Versione aggiornata al 28 agosto 2026. Sito ufficiale: '
         'socialevote.com. Social Vote è destinato esclusivamente a persone '
         'di almeno 18 anni.',
     sections: [
@@ -181,7 +181,7 @@ class _LegalDocument {
       _LegalSection(
         title: '2. Il servizio',
         body: 'Social Vote è una piattaforma civica e sociale che consente di '
-            'consultare contenuti pubblici, usare Pulse e Pulse Now, '
+            'consultare contenuti pubblici, usare Pulse e Pulse Now, World Brief e Radio Mondo, '
             'partecipare a Vote (sondaggi e consultazioni), pubblicare Voci, '
             'commentare, reagire, salvare contenuti, consultare News e usare '
             'funzioni geografiche e Civic Map. Il servizio include inoltre '
@@ -210,7 +210,7 @@ class _LegalDocument {
             'ingannevoli, minacciosi, discriminatori, molesti o abusivi; '
             'impersonificazione; spam; manipolazione di voti, segnalazioni o '
             'sistemi di verifica; accessi non autorizzati; diffusione illecita '
-            'di dati personali; sfruttamento di minori; e violazioni di '
+            'di dati personali; contenuti sessualmente espliciti non consentiti; abuso o sfruttamento sessuale di minori (CSAE), materiale di abuso sessuale su minori (CSAM); e violazioni di '
             'copyright o di altri diritti di terzi. È inoltre vietato tentare '
             'di aggirare limitazioni tecniche, controlli di sicurezza o regole '
             'di partecipazione.',
@@ -239,7 +239,8 @@ class _LegalDocument {
       ),
       _LegalSection(
         title: '7. Segnalazioni, moderazione e riesame',
-        body: 'Contenuti e account possono essere segnalati. Moderatori e '
+        body:
+            'Contenuti e account possono essere segnalati e gli utenti autenticati possono bloccare altri utenti tramite le funzioni disponibili nel profilo pubblico. Gli standard pubblici di sicurezza dei minori sono disponibili su socialevote.com/child-safety/. Moderatori e '
             'amministratori autorizzati possono esaminare le segnalazioni e, '
             'quando necessario, nascondere o ripristinare contenuti, '
             'sospendere o riattivare account, revocare sessioni o adottare '
@@ -395,7 +396,7 @@ class _LegalDocument {
             'harassing or abusive content or activity is prohibited, as are '
             'impersonation, spam, manipulation of votes, reports or '
             'verification systems, unauthorised access, unlawful disclosure '
-            'of personal data, child exploitation and infringement of '
+            'of personal data, disallowed sexually explicit content, child sexual abuse or exploitation (CSAE), child sexual abuse material (CSAM), and infringement of '
             'copyright or other third-party rights. Attempts to bypass '
             'technical restrictions, security controls or participation rules '
             'are also prohibited.',
@@ -589,7 +590,8 @@ class _LegalDocument {
       ),
       _LegalSection(
         title: '6. Memoria locale, sessioni e Firebase',
-        body: 'L’app può conservare localmente preferenze come lingua, tema, '
+        body:
+            'L’app può conservare localmente preferenze come lingua, tema, aspetto del mondo/Globe, Radio Mondo, '
             'News e impostazione “Ricordami”. Quando “Ricordami” è attivo, '
             'una sessione tecnica di autenticazione Supabase può essere '
             'conservata localmente; al logout la sessione viene rimossa. '
@@ -598,7 +600,7 @@ class _LegalDocument {
             'Installation ID (FID), identificatore tecnico distinto per '
             'installazione che non identifica direttamente una persona o un '
             'dispositivo fisico. Social Vote non usa Advertising ID per '
-            'pubblicità personalizzata.',
+            'pubblicità personalizzata. Le tracce di Radio Mondo incluse nell’app vengono riprodotte localmente e Social Vote non usa la riproduzione audio come segnale pubblicitario o di profilazione.',
       ),
       _LegalSection(
         title: '7. Fornitori e destinatari',
@@ -799,7 +801,8 @@ class _LegalDocument {
       ),
       _LegalSection(
         title: '6. Local storage, sessions and Firebase',
-        body: 'The app may store preferences such as language, theme, News '
+        body:
+            'The app may store preferences such as language, theme, world/Globe appearance, Radio Mondo and News '
             'settings and the “Remember me” choice locally. When “Remember '
             'me” is enabled, a technical Supabase authentication session may '
             'be stored locally; it is removed on logout. Firebase Analytics '
@@ -808,7 +811,7 @@ class _LegalDocument {
             'technical identifier that is different for each installation '
             'and does not directly identify a person or physical device. '
             'Social Vote does not use Advertising ID for personalised '
-            'advertising.',
+            'advertising. Bundled Radio Mondo tracks are played locally and Social Vote does not use audio playback as an advertising or profiling signal.',
       ),
       _LegalSection(
         title: '7. Providers and recipients',
@@ -996,7 +999,7 @@ class _LegalDocument {
             'Inhalte oder Handlungen sowie Identitätstäuschung, Spam, die '
             'Manipulation von Abstimmungen, Meldungen oder '
             'Verifizierungssystemen, unbefugter Zugriff, die rechtswidrige '
-            'Offenlegung personenbezogener Daten, die Ausbeutung Minderjähriger '
+            'Offenlegung personenbezogener Daten, unzulässige sexuell explizite Inhalte, sexueller Missbrauch oder sexuelle Ausbeutung von Minderjährigen (CSAE), Darstellungen sexuellen Missbrauchs von Minderjährigen (CSAM) '
             'und die Verletzung von Urheberrechten oder sonstigen Rechten '
             'Dritter. Auch der Versuch, technische Beschränkungen, '
             'Sicherheitskontrollen oder Teilnahmeregeln zu umgehen, ist '
@@ -1027,7 +1030,8 @@ class _LegalDocument {
       ),
       _LegalSection(
         title: '7. Meldungen, Moderation und Überprüfung',
-        body: 'Inhalte und Konten können gemeldet werden. Autorisierte '
+        body:
+            'Inhalte und Konten können gemeldet werden; authentifizierte Nutzende können andere Nutzende über die Funktionen im öffentlichen Profil blockieren. Die veröffentlichten Kinderschutzstandards von Social Vote sind unter socialevote.com/child-safety/ verfügbar. Autorisierte '
             'Moderatoren und Administratoren dürfen Meldungen prüfen und, '
             'soweit erforderlich, Inhalte ausblenden oder wiederherstellen, '
             'Konten sperren oder reaktivieren, Sitzungen widerrufen oder andere '
@@ -1211,7 +1215,8 @@ class _LegalDocument {
       ),
       _LegalSection(
         title: '6. Lokaler Speicher, Sitzungen und Firebase',
-        body: 'Die App kann Einstellungen wie Sprache, Design, '
+        body:
+            'Die App kann Einstellungen wie Sprache, Design, Welt-/Globe-Darstellung, Radio Mondo und '
             'Nachrichteneinstellungen und die Auswahl „Angemeldet bleiben“ '
             'lokal speichern. Wenn „Angemeldet bleiben“ aktiviert ist, kann '
             'eine technische Supabase-Authentifizierungssitzung lokal '
@@ -1297,7 +1302,7 @@ class _LegalDocument {
       ),
       _LegalSection(
         title: '13. Änderungen und Stand',
-        body: 'Diese Datenschutzerklärung hat den Stand 23. August 2026. '
+        body: 'Diese Datenschutzerklärung hat den Stand 28. August 2026. '
             'Wesentliche Änderungen werden, soweit erforderlich, über die App '
             'oder einen anderen geeigneten Kanal mitgeteilt. Die öffentliche '
             'Fassung ist unter socialevote.com/privacy verfügbar.',
@@ -1370,7 +1375,7 @@ class _LegalDocument {
             'die anwendbare Rechtsgrundlage und Voraussetzungen prüfen, wenn '
             'Antworten besondere Kategorien von Daten offenbaren können. '
             'Social Vote verwendet Session-Entscheidungen nicht für '
-            'personalisierte Werbung.',
+            'personalisierte Werbung. Die in der App enthaltenen Radio-Mondo-Titel werden lokal wiedergegeben; Social Vote verwendet die Audiowiedergabe nicht als Signal für Werbung oder Profiling.',
       ),
     ],
   );

@@ -1,0 +1,1025 @@
+SOCIAL VOTE — MASTER ROADMAP OPERATIVA UNIFICATA CURRENT
+Checkpoint: 2026-08-28 11:38 UTC — Google/SEO PASS + Android V9 preparato
+PROGETTO AUTOREVOLE: C:\FLUTTER_PROJECTS\sociale_vote
+
+======================================================================
+0. ORDINE DELLA VERITÀ — BLOCCATO
+======================================================================
+1. runtime/output più recente
+2. progetto locale CURRENT
+3. ultimo SOCIAL_VOTE_SOURCE_HANDOFF_CURRENT.zip
+4. questa MASTER ROADMAP
+5. SOCIAL_VOTE_PROJECT_RULES_CURRENT
+6. SOCIAL_VOTE_CRITICAL_REFERENCE_CURRENT
+7. storico / vecchi ZIP / vecchie roadmap
+
+Regole permanenti:
+- runtime reale > CURRENT > handoff > roadmap > storico
+- niente PASS senza verifica reale
+- niente refactor generale
+- file completi quando si tocca codice
+- backup/rollback fuori project tree
+- GeoScopeController unica source of truth geografica
+- AuthGuard + ParticipationPolicy centrali
+- backend/RLS/RPC autorevoli
+- mai service_role/segreti nel client
+- non cambiare Android package/upload key/Firebase Android
+- non ripristinare vecchi ZIP sopra CURRENT
+- se una patch fallisce e lo script fa rollback, considerare NON applicata
+- non ripetere analyze/build già chiusi se il sorgente non cambia
+- dopo Web World freeze creare un nuovo SOURCE_HANDOFF_CURRENT: l'handoff precedente
+  non deve essere usato per sovrascrivere i file Web più recenti
+
+======================================================================
+1. CHECKPOINT CONSOLIDATO — CHIUSO
+======================================================================
+
+1.1 ENTERPRISE FOUNDATION
+- audit enterprise storico PASS=109 WARN=10 FAIL=0
+- package Android: com.hematianapps.socialvote
+- Firebase Android migrato e verificato
+- Asset Links già verificati
+- upload key invariata
+- Web hosting operativo
+- auth/session hardening già presente
+- RLS/backend autorevoli
+
+1.2 ORGANIZATION / SESSIONS FOUNDATION
+- Organization separata da Persona
+- ruoli/membership foundation
+- Organization verification
+- Organization profile
+- Official Publishing Voce/Vote
+- Sessions:
+  * Controlled
+  * Open Anonymous
+  * Organizer-only
+  * Access Pass
+  * QR
+  * Stage/Presenter
+  * anti-double-vote ordinario
+  * Verified Result
+  * PDF / Report ID / SHA-256 / QR
+- principali flussi Sessions già provati runtime in checkpoint precedenti
+
+1.3 WORLD APPEARANCE
+- 6 Globe
+- 7 Radio
+- 7 Rotate
+- WorldAppearanceService
+- preferenze locali
+- no autoplay/background audio
+- Home Globe resta discovery
+- Radio/Rotate devono stare ordinati nel viewport Globe
+
+======================================================================
+2. WORLD BRIEF / NEWS — STATO
+======================================================================
+
+2.1 WORLD BRIEF BACKEND — PASS
+- foundation World Brief applicata
+- RLS enabled + forced
+- policy fail-closed
+- World Brief Editorial V2 migration applicata
+- VERIFY V2:
+  social_vote_view_column=true
+  social_vote_view_check=true
+  rls_enabled=true
+  rls_forced=true
+  independent_source_guard=true
+  five_rls_policies=true
+
+2.2 ADMIN WRITE RPC — PASS
+- vecchio 42501 diagnosticato
+- Admin Write RPC V5.2 source/analyze/test PASS
+- Timestamp Fix V5.3 DB smoke PASS:
+  rpc_save=true
+  timestamps_valid=true
+  insert_uses_single_timestamp=true
+  rpc_delete=true
+
+2.3 PRIMO WORLD BRIEF REALE — E2E PASS
+Primo brief:
+- Iran -> Tehran
+- bozza salvata runtime
+- pubblicato runtime
+- News visualizzazione PASS
+- marker News su Globe Home PASS
+
+Conclusione:
+WORLD BRIEF principale è E2E PASS.
+NON riaprire il backend World Brief salvo regressione reale.
+
+2.4 VISIONE WORLD BRIEF — BLOCCATA
+Struttura editoriale:
+- titolo
+- cosa è successo
+- perché conta
+- cosa non è ancora certo
+- Lettura Social Vote separata dai fatti
+- fonti HTTPS indipendenti
+- località
+- News ON
+- Globe ON/OFF
+- featured
+- breaking
+- priority
+- expiry/review
+
+Obiettivo futuro:
+ridurre dipendenza da NewsAPI tramite:
+- fonti ufficiali/primarie
+- RSS/Atom
+- agenzie/provider multipli
+- event candidate feed interno
+- deduplica
+- assistenza AI per ricerca/bozza
+- pubblicazione umana obbligatoria
+- storico revisioni
+
+======================================================================
+2.5 GOOGLE SEARCH / SAFE BROWSING / SEO — FOUNDATION CHIUSA
+======================================================================
+
+STATO SEARCH CONSOLE:
+- proprietà Domain socialevote.com verificata via Cloudflare
+- Home https://socialevote.com/ indicizzata
+- /register non indicizzato / URL sconosciuto a Google:
+  non è un problema SEO prioritario perché è una route Auth
+- Azioni manuali: NESSUN PROBLEMA RILEVATO
+- Problemi di sicurezza: NESSUN PROBLEMA RILEVATO
+- email Google ricevuta il 28/08/2026:
+  * esito positivo del controllo del sito socialevote.com
+  * richiesta di revisione ricevuta ed elaborata
+  * Google conferma che il sito non contiene più link a download dannosi
+  * rimozione degli avvisi comunicata da Google
+- GOOGLE SECURITY REVIEW / SEARCH CONSOLE SECURITY = PASS REALE
+
+CONTROLLI GIÀ FATTI:
+- Home/Register/Reset aperti in nuova sessione Chrome senza interstitial rosso
+- nessun redirect visibile verso domini non autorizzati nei test mostrati
+- firebase.json mostrato coerente con Hosting SPA e header di sicurezza
+- scan build mostrato non ha fornito evidenza di script malevolo/iniezione;
+  il match javascript:0 nel JS compilato non è stato considerato prova di malware
+- NON esiste prova per attribuire il flag a una persona/segnalazione specifica
+
+REVIEW GOOGLE:
+- richiesta di riesame “Pagine ingannevoli” INVIATA il 27/08/2026
+- esito positivo ricevuto il 28/08/2026
+- Search Console mostra “Nessun problema rilevato”
+- stato = PASS / CHIUSO
+- non inviare altre review
+- non modificare Login/Register/Reset alla cieca solo per inseguire il flag
+- non esiste evidenza corrente che richieda patch Auth/security
+
+SEO TECHNICAL FOUNDATION — RUNTIME REALE 28/08/2026:
+- query Google “social vote” in Chrome incognito:
+  * socialevote.com mostrato come primo risultato organico visibile sotto AI Overview
+  * evidenza positiva ma non ranking universale: posizione variabile per paese/lingua/tempo
+- Home live = HTTP 200, metadata Open Graph presenti
+- Voce Merano live = HTTP 200, title/description/OG/canonical dinamici corretti
+- /register = HTTP 200 con shell Home; route Auth non è target SEO
+- GOOGLE SEO + SOCIAL VOTE FAVICON V1 applicato e deployato
+- https://socialevote.com/ = HTTP 200, SEO/Favicon Social Vote PASS
+- https://socialevote.com/robots.txt = file reale, HTTP 200,
+  Content-Type text/plain; charset=utf-8
+- https://socialevote.com/sitemap.xml = XML reale, HTTP 200,
+  Content-Type application/xml
+- Voce Merano canonical dinamica preservata sul dominio custom = PASS
+- Search Console sitemap.xml = Riuscita, 12 pagine rilevate,
+  “Sitemap elaborata correttamente”
+- invio errato della root come sitemap rimosso; non reinviarlo
+- URL Inspection live Home = disponibile per Google / indicizzabile
+- URL Inspection live Voce Merano = disponibile per Google / indicizzabile
+- richieste di indicizzazione inviate una sola volta
+- favicon Social Vote già corretta nel sito live; l'icona nei risultati Google
+  resta dipendente dal prossimo crawl e può mantenere temporaneamente Flutter
+- socialevote.web.app serve gli asset SEO reali; la canonical dinamica Post è
+  autorità del dominio custom/edge e non è richiesta sul dominio Firebase
+
+GOOGLE SECURITY + SEO/FAVICON V1 + SITEMAP FOUNDATION = PASS / CHIUSO.
+Non promettere posizione n.1 universale: il risultato organico osservato è
+positivo ma ranking e favicon SERP dipendono da crawl, paese, lingua e query.
+
+RESTANO FUTURI, NON BLOCCANTI PER ANDROID:
+1. audit rendering/indexabilità Flutter SPA
+2. Core Web Vitals / page experience
+3. metadata/hreflang/structured data avanzati
+
+PAGINE PUBBLICHE TARGET:
+- /
+- /social-vote
+- /vote
+- /voce
+- /world-brief
+- /business
+- /sessions
+- /verified-results
+- /organizations
+- /how-it-works
+- /trust-security
+- profili Organization pubblici
+- World Brief con URL stabili
+
+MULTILINGUA FUTURA:
+- IT / EN / DE
+- FA quando foundation completa
+- hreflang + canonical coerenti
+- structured data solo se semanticamente corretto:
+  Organization/WebSite, Article/NewsArticle, BreadcrumbList,
+  ProfilePage/Organization dove applicabile
+
+REGOLA:
+Google review può procedere in parallelo allo sviluppo. Non bloccare Android aspettando
+la risposta, ma controllare subito qualsiasi nuovo messaggio Search Console.
+
+======================================================================
+3. GLOBE / CIVIC MAP — WEB V10.6, GATE FINALE OPEN
+======================================================================
+
+3.1 CONTRATTO PRODOTTO DEFINITIVO
+GLOBE HOME:
+- mostra insieme News + Vote + Voce
+- nessun selettore per tipo sulla Home
+- Globe pulito, budget marker limitato
+- icona vera News / Vote / Voce
+- niente pallini viola generici
+- niente numeri/account sopra il Globe
+- dimensioni S/M/L in base alla rilevanza
+- tap marker: preview del contenuto + possibilità di aprire dettaglio
+- tap Globe: Civic Map
+- rotazione/manual interaction resta disponibile
+- Radio/Rotate ordinati e coerenti
+
+CIVIC MAP:
+- filtro SOLO qui: Tutti | News | Vote | Voce
+- filtro non cambia scope/centro/zoom
+- cluster solo tra contenuti dello stesso tipo
+- Poll/Post/News co-localizzati non devono assorbirsi a vicenda
+- background reload non deve cancellare snapshot stabile
+- refresh manuale resta autorevole
+- Web + Android stessa grammatica
+
+3.2 DATI GEOGRAFICI CONFERMATI
+Voce/Post geolocalizzato reale:
+- id: eaef26ed-a9a5-47df-9046-53739ac23e85
+- titolo: “Social Vote parte da Merano”
+- location: IT / Merano
+- latitude: 46.6713536
+- longitude: 11.1646348
+- questo contenuto DEVE avere marker
+
+Post storico senza coordinate:
+- id: 84fd6de2-97f3-449d-b668-4b99476a001e
+- “first post of this socialeVote”
+- nessuna location/coordinate
+- NON deve ricevere coordinate inventate/fallback
+
+Regola:
+nessun marker può essere spostato geograficamente per decluttering.
+Se contenuti diversi condividono lo stesso anchor, separazione solo screen-space.
+
+3.3 G3N — MARKER GEOGRAPHY/STABILITY FOUNDATION
+Pacchetto:
+SOCIAL_VOTE_WEB_GLOBE_MARKER_STABILITY_G3N_20260827.zip
+
+Stato:
+- applicato
+- dart format PASS
+- analyze PASS
+- test PASS
+- Web release build PASS
+- runtime successivo ha mostrato News/Vote/Voce sul Globe e migliorato il problema
+  dei marker che “cadono nel buco”
+
+Principi applicati:
+- nessun fallback geografico inventato
+- nessuna media geografica di cluster
+- representative content usa coordinate reali
+- rimosso decluttering estremo tramite sprite.center
+- backside/edge marker nascosti/fade
+- viewport circolare/trasparente per evitare pink rectangle
+
+3.4 DENSITY ADMIN V1.1 — BACKEND/SECURITY PASS, RUNTIME FINALE OPEN
+Feature:
+- Admin Center slider World marker density 0–100
+- 0% = Home Globe senza marker
+- 30% = baseline circa 9 slot
+- 100% = max-safe circa 30 slot
+- modifica SOLO budget/decluttering
+- NON modifica coordinate, ranking o GeoScope
+- Civic Map non è soggetta alla density Home
+
+Backend:
+- public.social_vote_world_surface_settings
+- row globale marker_density=30
+- write solo tramite RPC admin_set_world_marker_density(...)
+- lettura client fail-soft
+- audit admin changes
+
+Hardening privilege applicato:
+- revoke DML client
+- select anon/authenticated
+- RPC admin security-definer
+
+VERIFY finale tutti true:
+- settings_table
+- rls_enabled
+- rls_forced
+- public_read_policy
+- no_client_write_policy
+- anon_can_read
+- authenticated_can_read
+- anon_cannot_write
+- authenticated_cannot_write
+- admin_rpc
+- admin_rpc_security_definer
+- authenticated_can_call_rpc
+- anon_cannot_call_rpc
+- global_row_valid
+
+Conclusione:
+DENSITY BACKEND/SECURITY = PASS.
+DENSITY RUNTIME VISUALE = ancora da chiudere dopo V10.6.
+
+3.5 WEB WORLD V9 / V10.x — STORIA CORRETTA
+V9:
+- source/build PASS
+- runtime FAIL/parziale:
+  * Admin: 3D temporaneamente non disponibile
+  * Civic Map filtro Voce: contenuto visibile=1 ma marker assente
+  * appearance C/E/F con background rettangolare
+
+V10:
+- PRECHECK FAIL per hash catturato pre-format
+- nessuna modifica
+- NON APPLICATO
+
+V10.1:
+- source/build riferito PASS
+- introdotto Three.js locale + OrbitControls e retry/fallback
+- runtime ancora FAIL perché bootstrap asset incompleto
+
+V10.2:
+- SOURCE/BUILD PASS reale
+- corretto import map da vendor/... a ./vendor/...
+- runtime log ha dimostrato richieste:
+  * /vendor/three/three.module.js 200
+  * /vendor/three/addons/controls/OrbitControls.js 200
+  * /vendor/three/three.core.js 200
+- successivamente scoperto che three.core.js non esisteva realmente nel build:
+  il rewrite SPA poteva rispondere index.html con status 200
+- quindi V10.2 bootstrap NON era sufficiente
+
+V10.3:
+- FAIL nel PRECHECK per incompatibilità PowerShell 5.1
+  (-Raw + -TotalCount)
+- nessuna modifica
+- NON APPLICATO
+
+V10.3.1:
+- core aggiunto temporaneamente
+- flutter build web PASS
+- verifica build FAIL: build/web/vendor/three/three.core.js non copiato
+- rollback ha rimosso il nuovo core
+- NON APPLICATO
+
+V10.4:
+- Three.js trasformato in asset Flutter dichiarato
+- import map spostato verso assets/web/vendor/three/...
+- include three.core.js reale nel bundle
+- runtime utente: Globe tornato su Home e Civic Map
+- Admin 3D ancora assente in quel checkpoint
+- bootstrap/package asset Web quindi sostanzialmente recuperato
+
+V10.5:
+- aggiunto decluttering cross-type screen-space
+- deploy Web effettuato nel flusso operativo
+- runtime: Post/Voce ancora non visibile e Admin 3D ancora assente
+- quindi V10.5 NON chiude il runtime
+
+V10.6 — ROOT FIX:
+Pacchetto:
+SOCIAL_VOTE_WEB_VOCE_ADMIN_3D_ROOT_FIX_V10_6_20260827.zip
+
+Root cause individuata:
+- glyph Voce Web conteneva:
+  ctx.lineTo(center - 8);
+- Canvas lineTo richiede x,y
+- l'eccezione poteva:
+  * abbattere init renderer Admin se Voce presente all'avvio;
+  * interrompere marker rebuild lasciando Globe vivo ma Voce assente
+
+Fix:
+- lineTo Voce corretto
+- createMarkerTexture protetto marker-by-marker fail-soft
+- cache-bust renderer
+- nessun Dart/GeoScope/Auth/Android/Business/SQL modificato
+
+RUNTIME UTENTE DOPO V10.6:
+- POST/VOCE VISIBILE = PASS
+- GLOBE 3D ADMIN VISIBILE = PASS
+
+SUB-GATE ROOT FIX V10.6 = CHIUSO.
+Questi due PASS sono REALI e non vanno riaperti senza regressione.
+
+3.6 WEB WORLD — COSA MANCA PRIMA DEL FREEZE
+NON dichiarare ancora Web World Surface completa PASS.
+Restano da verificare in runtime corrente V10.6:
+
+A. HOME MARKER MIX
+- News + Vote + Voce insieme
+- nessun marker geograficamente falso
+- nessun marker sud/fuori località
+- nessun marker “nel buco”
+- stabilità >30 secondi
+
+B. APPEARANCE A–F
+- A/B/C/D/E/F
+- nessun rettangolo/quadrato rosa
+- marker non devono sparire al cambio appearance
+- almeno 3 cicli 3D -> 2D -> 3D senza perdita
+
+C. CIVIC MAP 3D
+- Tutti | News | Vote | Voce
+- Voce Merano resta visibile
+- tipi co-localizzati non si assorbono
+- filtro non resetta scope/centro/zoom
+- stabilità >30 secondi
+
+D. CIVIC MAP 2D
+- stessi 4 filtri
+- marker stabili
+- filtro non resetta viewport
+- background reload non cancella snapshot valido
+
+E. MARKER INTERACTION
+- tap/click marker
+- preview corretta
+- apertura dettaglio corretta
+
+F. DENSITY ADMIN
+- Admin 3D ora visibile
+- test 0 -> 30 -> 100 -> 30
+- quantità marker cambia
+- coordinate non cambiano
+- 0 rimuove marker Home
+- 100 aumenta fino al budget max-safe
+- persistenza backend dopo reload/focus
+- Civic Map non cambia con Density
+
+DEFINITION OF DONE WEB WORLD:
+- A+B+C+D+E+F runtime PASS
+- quindi FREEZE logica Web World
+- creare nuovo SOURCE_HANDOFF_CURRENT dopo freeze
+- solo allora port Android
+
+======================================================================
+4. PUBLISHER SIGNATURE / AVATAR — OPEN VISUAL GATE
+======================================================================
+Contratto:
+- Persona -> CERCHIO
+- Organization/azienda/associazione -> QUADRATO arrotondato
+- istituzione/ente pubblico/politico/public official -> TRIANGOLO
+- foto/logo deve riempire bene la propria forma
+- niente bande viola laterali che sembrano parte della foto
+- sigillo verifica sovrapposto
+- nome senza chip
+- @username piccolo sotto
+- firma cliccabile
+- Persona -> profilo Persona
+- Organization -> profilo Organization, non operatore
+- dimensioni:
+  commenti piccola
+  card standard
+  detail/profile grande
+
+STATO:
+specifica definita.
+Runtime visuale finale ancora da confermare su tutte le superfici.
+
+======================================================================
+5. BUSINESS — STATO ATTUALE
+======================================================================
+
+5.1 MODELLO COMMERCIALE BLOCCATO
+- Persone = GRATIS
+- un solo “Social Vote Business”
+- Business = a pagamento in futuro
+- adesso = Business Pilot gratuito
+- niente 20 piani/varianti
+- niente pay-to-verify
+- niente pay-to-trend
+- billing automatico NON necessario per il pilot iniziale
+
+5.2 ACCESSO BUSINESS
+Regola:
+servizi Business sensibili disponibili solo a Organization verificata +
+Workspace attivo + ruolo autorizzato.
+
+Business V2 verify PASS:
+join_requires_verified_org=true
+vote_requires_verified_org=true
+bootstrap_requires_verified_identity=true
+authenticated_can_bootstrap=true
+anon_cannot_bootstrap=true
+
+Conclusione:
+BUSINESS V2 FOUNDATION = PASS backend/read-only verify.
+
+5.3 BUSINESS V3 SELLABLE — NON APPLICATO
+Obiettivo concordato:
+- Workspace Dashboard professionale
+- area Risultati / Verified Results
+- Team / ruoli
+- onboarding cliente
+- Media / Publisher
+- Public Institution
+- Business/Association
+- Pilot gratuito
+- limiti/fair-use comunicati in modo trasparente
+
+Tentativo:
+SOCIAL_VOTE_BUSINESS_V3_SELLABLE_MARKERS_V7_20260826.zip
+
+Esito:
+flutter analyze:
+- 3 info prefer_const_constructors
+- 1 warning unused_local_variable
+poi ROLLBACK completo.
+
+Quindi:
+BUSINESS V3 NON È NEL CURRENT.
+Non correggere sopra il payload fallito; ripartire dal CURRENT dopo World Web+Android stabile.
+
+5.4 WORKSPACE SELLABLE — CONTRATTO
+Navigazione target:
+- Panoramica
+- Pubblica
+- Sessions
+- Risultati
+- Team
+- Organization
+
+Dashboard:
+- Organization
+- verifica
+- ruolo utente
+- Pilot gratuito
+- Workspace attivo
+- KPI utili
+- CTA:
+  Crea Session
+  Pubblica Vote
+  Pubblica Voce
+
+Risultati:
+- Sessions concluse
+- Verified Result
+- Report ID
+- SHA-256
+- QR
+- PDF
+- export futuro dove supportato
+
+Team:
+- Owner
+- Manager
+- Operator
+- Viewer
+- NON mostrare “Invita membro” finché flusso backend invito/revoca/audit
+  non è realmente pronto
+
+5.5 BUSINESS PER SETTORE
+Media / Publisher:
+- Organization verificata
+- Official Publishing
+- Voce / Vote / Sessions
+- futura Official News / Publisher News
+- futura integrazione RSS/API
+- pagamento non deve comprare ranking/featured
+
+Public Institution:
+- Organization publicBody verificata
+- comunicazioni ufficiali
+- consultazioni
+- Vote
+- Sessions
+- Verified Results
+- prima della vendita formale a PA:
+  accessibilità, privacy/DPA, sicurezza, retention, procurement/contratti
+
+Business / Association:
+- Organization verificata
+- Voce
+- Vote
+- Sessions
+- Workspace
+- Results
+
+======================================================================
+6. LIMITI / FAIR USE — DECISIONE
+======================================================================
+Sì: comunicare agli utenti che Social Vote applica limiti ragionevoli.
+
+Categorie da spiegare:
+- creazione account
+- pubblicazioni
+- commenti/reazioni
+- partecipazione
+- Sessions
+- frequenza azioni
+- richieste simultanee
+- automazioni/flood
+- abuso intenzionale
+
+Regola:
+- NON inventare numeri finché non sono enforce server-side
+- UI spiega fair use
+- P4 implementerà quote/rate limit reali lato backend
+- un attaccante non deve poter bypassare limiti chiamando Supabase direttamente
+
+======================================================================
+7. P3 — PERSIAN / RTL
+======================================================================
+Ordine: dopo Business/stability.
+
+Decisioni:
+- Home/Vote/News/Voce non completamente mirror
+- contenuto IT/EN/DE resta LTR
+- contenuto Persian/Arabic/Hebrew resta RTL nel suo spazio
+- Account/Settings/Admin possono usare RTL naturale
+- no overflow
+- no chip/date/engagement disordinati
+- ritorno Persian -> IT pulito
+- controllare anche Workspace e World Brief Editor
+
+======================================================================
+8. P4 — DIFESA ANTI-ABUSO / ANTI-SABOTAGGIO
+======================================================================
+Obiettivo:
+impedire flood di post/commenti/poll/reazioni/report/account/sessioni.
+
+Server-side:
+- burst limit
+- hourly/daily quota
+- cooldown progressivo
+- account age/trust
+- verification-based limits
+- Organization limits
+- duplicate/spam detection
+- link/mention abuse
+- temporary lock
+- admin audit
+- kill switch endpoint
+- News proxy protection
+- retry/backoff/circuit breaker
+
+Minimum release:
+- un singolo account non può floodare le mutazioni principali
+- limiti backend verificati
+- errori UI chiari
+- admin può intervenire
+
+======================================================================
+9. ANDROID NATIVE STABILIZATION V9.1 — RUNNER HOTFIX / RUNTIME OPEN
+======================================================================
+
+STATO PRECEDENTE:
+Android V8:
+- source/analyze/test/Web build/APK build PASS
+- runtime Android FAIL:
+  * marker geograficamente errati/sud
+  * perdita marker al cambio appearance
+  * pink square/frame
+  * Civic Map instabile
+  * Radio RawTooltip/Overlay RedScreen
+  * layout Globe/Radio/Rotate non release-quality
+
+DIAGNOSI V9 SUL SOURCE CURRENT V10.6:
+- geografia/controller dati non sono il root cause del disordine nativo
+- il renderer sposta la sfera nel canvas Android portrait ma i widget-label
+  marker non ricevevano lo stesso offset: marker visivamente nel “sud/buco”
+- visibility map dei label aggiornata in un builder annidato, quindi con
+  rotazione ferma marker nuovi/filtrati potevano restare invisibili
+- clustering nativo calcolava ancora una media lat/lng: viola il contratto
+  “nessuna coordinata inventata” e può saltare l'antimeridiano
+- cambio rapido appearance A->F poteva completare decode texture fuori ordine
+- shader nativo disegnava sull'intero rettangolo canvas anche fuori sfera:
+  rischio pink/error frame su vecchi driver GPU Android
+- Home Android usava budget fisso 9 e non la Density backend-authoritative
+- Radio/Rotate usavano Tooltip overlay dentro il viewport interattivo; il
+  long-press Radio competeva con RawTooltip/Overlay su Android
+
+PATCH CONSOLIDATA PREPARATA:
+SOCIAL_VOTE_ANDROID_V9_1_PLUS_AUTH_DIAGNOSTIC_20260828.zip
+
+SCOPE MINIMO V9:
+1. allinea marker widget alla stessa sfera/canvas Android
+2. aggiorna marker/label nello stesso frame anche con rotazione ferma
+3. ancora cluster alla coordinata reale del representative, mai alla media
+4. porta Density backend anche sulla Home Android (0/30/100)
+5. texture appearance “latest request wins” con commit atomico
+6. shader limitato alla footprint circolare per evitare frame rettangolare
+7. Radio/Rotate senza Tooltip/RawTooltip overlay, Semantics preservata
+8. Radio sinistra + Rotate destra in un'unica riga stabile
+9. test aggiornato per il contratto Semantics/no Tooltip
+10. analyze/test/Web build/APK release/install+launch raggruppati nello script
+
+INVARIANTI NON TOCCATI:
+- GeoScopeController
+- AuthGuard / ParticipationPolicy
+- coordinate/ranking/backend/RLS/RPC
+- Web Three.js V10.6 e SEO/Favicon V1
+- package com.hematianapps.socialvote
+- upload key e Firebase Android
+- versionCode/AAB/Play
+
+STATO V9/V9.1 AL CHECKPOINT:
+- diagnostica source = COMPLETA
+- primo run V9: analyze PASS reale; test 40/40 PASS reale
+- Web build interrotto dal runner PowerShell su stderr non fatale
+  "Wasm dry run findings" prima della lettura dell'exit code
+- rollback completato: V9 NON APPLICATO, CURRENT ripristinato
+- V9.1 conserva gli stessi sei file gia verificati e corregge solo il runner
+- analyze/test non vengono ripetuti di default perche il payload non cambia
+- Web build/APK/runtime = OPEN
+- runtime device reale = OPEN
+- Android non è ancora RC/PASS
+
+PORT ANDROID TARGET:
+1. stessa source of truth marker/geografia
+2. nessun fallback coordinate inventate
+3. stessa grammatica News/Vote/Voce
+4. stesso budget/density dove applicabile
+5. appearance A–F senza perdita marker/frame
+6. Radio no RawTooltip/Overlay RedScreen
+7. Rotate ordinato
+8. Home portrait/small viewport
+9. Civic Map 2D/3D stabile >30s
+10. marker preview/detail
+11. Publisher Signature smoke
+12. News/World Brief smoke
+13. Organization/Workspace/Sessions smoke minimo
+
+BUILD/PLAY:
+- leggere versionCode massimo già usato prima del nuovo upload
+- nuovo versionCode > precedente
+- package com.hematianapps.socialvote invariato
+- upload key invariata
+- Firebase Android invariato
+- attenzione: install -r può fallire correttamente se sul device è presente una build
+  Play firmata con Play App Signing key e APK locale ha upload key diversa
+
+DEFINITION OF DONE ANDROID:
+- analyze/test coerenti col source modificato
+- APK release PASS
+- runtime device PASS
+- nessun RedScreen
+- World surface stabile
+- solo dopo generare AAB e aggiornare closed test/Play
+
+RUN V9.1:
+- eseguire APPLICA_VERIFICA_ANDROID_V9_1.ps1 dal pacchetto consolidato
+- lo script applica solo se i sei file CURRENT hanno hash atteso o sono già V9
+- backup/rollback fuori project tree
+- stderr Flutter non fatale viene loggato; decide solo l'exit code reale
+- analyze/test gia PASS non vengono ripetuti salvo parametro esplicito
+- se build riesce e ADB vede un solo device: install -r + launch + logcat
+- mismatch firma Play/local = STOP sicuro; nessun uninstall automatico
+- checklist visuale obbligatoria prima di dichiarare runtime PASS
+
+======================================================================
+10. SHOWCASE / PRESENTAZIONE
+======================================================================
+Da non perdere:
+creare modo semplice per far capire cosa è stato costruito.
+
+In-app “Come funziona / Scopri Social Vote”:
+- Globe + Civic Map
+- Vote + Voce
+- Identity/verification
+- World Brief
+- Organization
+- Workspace
+- Sessions
+- Verified Result
+- sicurezza/fiducia
+
+Demo kit futuro:
+- demo 30 sec
+- demo 3 min
+- demo 10 min
+- one-page PDF
+- screenshot forti
+- QR Web
+- breve video
+- pagina Business/Pilot
+- scheda sicurezza/verification
+
+Dataset demo:
+- 1 Vote Merano
+- 1 Voce
+- 1 World Brief
+- 1 Organization
+- 1 Session conclusa
+- 1 Verified Result
+
+======================================================================
+11. AUTH / SIGNUP PASSWORD — DIAGNOSTIC GATE OPEN
+======================================================================
+Problema riferito:
+- tester/amico ha incontrato errore registrazione/password
+- causa esatta NON ancora riprodotta
+- NON patchare Auth alla cieca
+
+Stato client noto:
+- nonempty
+- password min 8
+- conferma uguale
+- password apparentemente trim() prima di validation/submit
+- alcuni weak-password backend riconosciuti da AuthController
+- RegisterForm può rendere generici alcuni errori server
+
+Prossimo test controllato:
+- password <8
+- >=8 semplice
+- strong mixed
+- mismatch
+- email già usata
+- temp-mail
+- verificare policy Supabase effettiva
+
+Invarianti da preservare:
+- temp-mail blocklist
+- Before User Created Hook
+- signup RLS guard
+- cooldown 30 giorni riuso email cancellata
+- username unico case-insensitive
+
+======================================================================
+12. ORDINE OPERATIVO DA ORA — VINCOLANTE
+======================================================================
+
+P0-A — GOOGLE SEARCH / SECURITY STATUS
+1. Google Security Review = PASS / CHIUSO
+2. Search Console Security = nessun problema rilevato
+3. non inviare altre review
+4. GOOGLE SEO/FAVICON V1 = APPLICATO / DEPLOY PASS
+5. Home/robots/sitemap/Post canonical live = PASS
+6. sitemap.xml Search Console = Riuscita / 12 pagine
+7. URL Inspection live Home + Voce Merano = PASS / richieste inviate
+8. favicon Google può aggiornarsi solo dopo nuovo crawl
+9. auth routes non sono target SEO principali
+
+P0-B — WEB MARKER + GLOBE V10.6
+1. runtime Home News+Vote+Voce
+2. geografia reale / nessun marker sud/falso
+3. stability >30s
+4. appearance A–F
+5. 3 cicli 3D<->2D senza perdita
+6. Civic Map Tutti/News/Vote/Voce 3D
+7. Civic Map Tutti/News/Vote/Voce 2D
+8. preview marker -> detail
+9. NON toccare root fix V10.6 se questi restano PASS:
+   Post/Voce visibile + Admin 3D visibile
+
+P0-C — DENSITY
+1. Admin 3D è ora disponibile
+2. test 0 -> 30 -> 100 -> 30
+3. verificare effetto Home
+4. verificare coordinate immutate
+5. reload/focus/persistenza backend
+6. Civic Map indipendente dalla density
+7. se PASS: freeze World Web
+
+P0-D — ANDROID V9 (scelta operativa utente, senza falso Web freeze)
+1. applicare/verificare ANDROID_NATIVE_STABILIZATION_V9
+2. analyze/test/Web build/APK release
+3. install/launch device se ADB disponibile
+4. checklist visuale completa Android; runtime resta OPEN fino a evidenza
+5. nessun AAB/versionCode/Play prima del runtime PASS
+
+P0-E — FREEZE / HANDOFF
+1. creare nuovo SOCIAL_VOTE_SOURCE_HANDOFF_CURRENT dal progetto CURRENT
+2. aggiornare manifest SHA
+3. non usare handoff vecchio per ripristino Web
+4. includere Web V10.6 + SEO/Favicon V1 + Android V9 verificato
+
+P1 — ANDROID
+1. port/adapt baseline Web una sola volta
+2. fix Radio/Rotate/Overlay Android nello stesso ciclo coerente
+3. analyze/test
+4. APK release
+5. runtime reale device
+6. AAB/versionCode/closed test SOLO dopo runtime PASS
+
+P2 — AUTH PASSWORD DIAGNOSTIC
+- riprodurre problema tester e allineare client alla policy Supabase reale
+
+P3 — BUSINESS V3 SELLABLE
+- ripartire dal CURRENT, non dal payload rollback V7
+
+P4 — PUBLISHER SIGNATURE VISUAL GATE
+- completare runtime su card/detail/comment/profile
+
+P5 — PERSIAN / RTL
+- foundation completa e regression IT/EN/DE
+
+P6 — ANTI-ABUSO / FAIR USE SERVER-SIDE
+- quote/rate-limit reali + UI errori + admin controls
+
+P7 — SEO CONTENT / WORLD BRIEF AUTHORITY
+- pagine pubbliche indexable
+- metadata/hreflang/structured data
+- contenuti originali Social Vote
+- Search Console KPI
+
+P8 — SHOWCASE / FREEZE FINALE / RELEASE
+- Come funziona
+- demo kit
+- final regression
+- release
+
+======================================================================
+13. DEFINIZIONE DI PASS CORRENTE
+======================================================================
+
+GOOGLE SEARCH / SAFE BROWSING:
+- Domain Search Console verificato
+- Manual Actions = nessun problema
+- review “Pagine ingannevoli” = ESITO POSITIVO ricevuto 28/08/2026
+- Search Console Security = NESSUN PROBLEMA RILEVATO
+- GOOGLE SECURITY = PASS REALE / CHIUSO
+- query “social vote” = socialevote.com primo risultato organico visibile nel test mostrato
+- SEO/Favicon V1 = APPLICATA / DEPLOY / LIVE PASS
+- sitemap.xml Search Console = Riuscita / 12 pagine
+- URL Inspection live Home + Voce Merano = PASS / indicizzabili
+- favicon SERP = attesa nuovo crawl, non regressione source
+
+WORLD BRIEF:
+PASS E2E.
+
+BUSINESS V2:
+PASS foundation.
+
+BUSINESS V3:
+NON APPLICATO / ROLLBACK.
+
+MARKER V7:
+NON APPLICATO / ROLLBACK.
+
+DENSITY V1.1:
+BACKEND / SECURITY PASS.
+RUNTIME VISUALE finale OPEN.
+
+WEB WORLD V10.6:
+- bootstrap Three.js locale recuperato
+- Home Globe tornato
+- Civic Map Globe tornato
+- Post/Voce visibile = RUNTIME PASS
+- Admin Globe 3D visibile = RUNTIME PASS
+- root-fix V10.6 sub-gate = CHIUSO
+- FULL WEB WORLD PASS = NON ANCORA
+  (mancano marker mix/stability, appearance A–F, Civic Map 2D/3D completo,
+   preview/detail, Density runtime)
+
+ANDROID V8:
+SOURCE / ANALYZE / TEST / WEB BUILD / APK BUILD PASS storico.
+RUNTIME ANDROID FAIL.
+NON usare come RC finale.
+
+ANDROID NATIVE STABILIZATION V9.1:
+- root cause source diagnosticati
+- primo run V9: analyze PASS; test 40/40 PASS; Web build non concluso
+- rollback dei sei file COMPLETATO; V9 NON APPLICATO
+- V9.1 runner hotfix + payload invariato = PREPARATO
+- Web build/APK release = OPEN fino al nuovo run sul CURRENT
+- runtime device = OPEN
+- nessun AAB/versionCode/Play ancora
+
+AUTH PASSWORD:
+OPEN DIAGNOSTIC.
+
+PUBLISHER SIGNATURE:
+OPEN VISUAL GATE.
+
+PERSIAN:
+OPEN.
+
+ANTI-ABUSO:
+OPEN.
+
+======================================================================
+14. NOTA OPERATIVA CRITICA
+======================================================================
+Il Globe è una signature surface di Social Vote.
+Non introdurre altre patch casuali o grandi refactor.
+
+Da questo checkpoint:
+- preservare V10.6 root fix
+- applicare/verificare Android V9 una volta sola sul CURRENT
+- chiudere runtime Android con checklist device
+- mantenere aperti i gate Web/Density non realmente verificati
+- dopo freeze verificato generare handoff CURRENT nuovo
+- non tornare a ciclo Web->Android->Web salvo regressione reale dimostrata

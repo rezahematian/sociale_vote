@@ -3,6 +3,8 @@ library;
 
 import 'globe_coordinates.dart';
 import 'rotating_globe.dart';
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'flutter_earth_globe_controller.dart';
@@ -79,7 +81,7 @@ class FlutterEarthGlobe extends StatefulWidget {
 class FlutterEarthGlobeState extends State<FlutterEarthGlobe> {
   @override
   Widget build(BuildContext context) {
-    return RotatingGlobe(
+    final globe = RotatingGlobe(
       key: widget.controller.globeKey,
       controller: widget.controller,
       radius: widget.radius,
@@ -93,5 +95,23 @@ class FlutterEarthGlobeState extends State<FlutterEarthGlobe> {
       inertiaStrength: widget.inertiaStrength,
       showSpaceBackground: widget.showSpaceBackground,
     );
+
+    // V9.3 Android: do not clip the whole widget. Marker labels intentionally
+    // straddle the visible limb; RotatingGlobe now clips only the sphere paint
+    // layer on Android. Preserve V9.2 behavior on Web/non-Android surfaces.
+    final isAndroidNative =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+    if (isAndroidNative) {
+      return globe;
+    }
+
+    if (!widget.showSpaceBackground && widget.controller.background == null) {
+      return ClipOval(
+        clipBehavior: Clip.antiAlias,
+        child: globe,
+      );
+    }
+
+    return globe;
   }
 }

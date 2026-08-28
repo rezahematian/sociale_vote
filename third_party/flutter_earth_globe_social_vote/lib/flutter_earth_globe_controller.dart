@@ -23,6 +23,7 @@ import 'point_connection_style.dart';
 /// It is also used to set the style of the sphere.
 /// It is also used to listen to the events of the globe.
 class FlutterEarthGlobeController extends ChangeNotifier {
+  int _surfaceLoadGeneration = 0;
   bool _isRotating = false; // Whether the globe is rotating.
   bool _isReady = false; // Whether the globe is ready.
   List<Point> points = []; // The points on the globe.
@@ -718,14 +719,31 @@ class FlutterEarthGlobeController extends ChangeNotifier {
     ImageProvider image, {
     ImageConfiguration configuration = const ImageConfiguration(),
   }) {
-    image
-        .resolve(configuration)
-        .addListener(ImageStreamListener((info, _) async {
-      surface = info.image;
-      surfaceConfiguration = configuration;
-      surfaceProcessed = await convertImageToUint32List(info.image);
-      notifyListeners();
-    }));
+    final generation = ++_surfaceLoadGeneration;
+    final stream = image.resolve(configuration);
+    late final ImageStreamListener listener;
+
+    listener = ImageStreamListener(
+      (info, _) async {
+        stream.removeListener(listener);
+        final processed = await convertImageToUint32List(info.image);
+
+        // Rapid A->F appearance changes may complete out of order on Android.
+        // Only the most recently requested surface can become authoritative.
+        if (generation != _surfaceLoadGeneration) {
+          return;
+        }
+
+        surface = info.image;
+        surfaceConfiguration = configuration;
+        surfaceProcessed = processed;
+        notifyListeners();
+      },
+      onError: (_, __) {
+        stream.removeListener(listener);
+      },
+    );
+    stream.addListener(listener);
   }
 
   /// Loads the [image] as the night surface of the globe for day/night cycle effect.
