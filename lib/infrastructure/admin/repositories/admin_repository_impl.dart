@@ -459,6 +459,244 @@ class AdminRepositoryImpl implements AdminRepository {
   }
 
   @override
+  Future<AdminWorkspaceEntitlement?> getWorkspaceEntitlement({
+    required String targetUserId,
+  }) async {
+    final raw = await _client.rpc(
+      'admin_get_workspace_entitlement',
+      params: <String, dynamic>{'p_target_user_id': targetUserId.trim()},
+    );
+    if (raw == null) return null;
+    final row = raw is Map<String, dynamic>
+        ? raw
+        : raw is Map
+            ? Map<String, dynamic>.from(raw)
+            : const <String, dynamic>{};
+    if (row.isEmpty) return null;
+    return _workspaceEntitlementFromRow(row);
+  }
+
+  @override
+  Future<AdminWorkspaceEntitlement> setWorkspaceEntitlement({
+    required String targetUserId,
+    required AdminWorkspaceEntitlementStatus entitlementStatus,
+    DateTime? expiresAt,
+    required String reason,
+  }) async {
+    final raw = await _client.rpc(
+      'admin_set_workspace_entitlement',
+      params: <String, dynamic>{
+        'p_target_user_id': targetUserId.trim(),
+        'p_entitlement_status': entitlementStatus.storageKey,
+        'p_expires_at': expiresAt?.toUtc().toIso8601String(),
+        'p_reason': reason.trim(),
+      },
+    );
+    final row = raw is Map<String, dynamic>
+        ? raw
+        : raw is Map
+            ? Map<String, dynamic>.from(raw)
+            : const <String, dynamic>{};
+    if (row.isEmpty) {
+      throw const AdminRepositoryException(
+        message: 'Workspace entitlement response is empty.',
+      );
+    }
+    return _workspaceEntitlementFromRow(row);
+  }
+
+  AdminWorkspaceEntitlement _workspaceEntitlementFromRow(
+    Map<String, dynamic> row,
+  ) {
+    DateTime? readDate(String key) {
+      final value = row[key]?.toString().trim();
+      if (value == null || value.isEmpty) return null;
+      return DateTime.tryParse(value)?.toLocal();
+    }
+
+    return AdminWorkspaceEntitlement(
+      organizationId: row['organization_id']?.toString().trim() ?? '',
+      organizationName: row['organization_name']?.toString().trim() ?? '',
+      verificationStatus:
+          row['verification_status']?.toString().trim() ?? 'unknown',
+      workspaceId: row['workspace_id']?.toString().trim() ?? '',
+      entitlementStatus: AdminWorkspaceEntitlementStatusX.fromStorageKey(
+        row['entitlement_status']?.toString(),
+      ),
+      workspaceStatus: row['workspace_status']?.toString().trim() ?? 'unknown',
+      planKey: row['plan_key']?.toString().trim() ?? '',
+      commercialMode: row['commercial_mode']?.toString().trim() ?? '',
+      billingEnabled: row['billing_enabled'] == true,
+      entitlementStartedAt: readDate('entitlement_started_at'),
+      entitlementExpiresAt: readDate('entitlement_expires_at'),
+    );
+  }
+
+  @override
+  Future<AdminFinanceSnapshot> getFinanceSnapshot() async {
+    final raw = await _client.rpc('admin_finance_snapshot');
+    final row = _asObject(raw, context: 'admin_finance_snapshot');
+    final entries = _readRequiredObjectList(row, 'entries')
+        .map(_mapFinanceEntry)
+        .toList(growable: false);
+
+    return AdminFinanceSnapshot(
+      currency: _readRequiredString(row, 'currency'),
+      monthStart: _readRequiredDateTime(row, 'month_start'),
+      monthIncomeCents: _readRequiredNonNegativeInt(row, 'month_income_cents'),
+      monthExpenseCents:
+          _readRequiredNonNegativeInt(row, 'month_expense_cents'),
+      monthBalanceCents: _readRequiredSignedInt(row, 'month_balance_cents'),
+      totalIncomeCents: _readRequiredNonNegativeInt(row, 'total_income_cents'),
+      totalExpenseCents:
+          _readRequiredNonNegativeInt(row, 'total_expense_cents'),
+      totalBalanceCents: _readRequiredSignedInt(row, 'total_balance_cents'),
+      entries: entries,
+      generatedAt: _readRequiredDateTime(row, 'generated_at'),
+    );
+  }
+
+  @override
+  Future<void> addFinanceEntry({
+    required DateTime occurredOn,
+    required AdminFinanceDirection direction,
+    required int amountCents,
+    required String category,
+    String? counterparty,
+    String? note,
+    required String reason,
+  }) async {
+    await _client.rpc(
+      'admin_finance_add_entry',
+      params: <String, dynamic>{
+        'p_occurred_on': _dateOnly(occurredOn),
+        'p_direction': direction.storageKey,
+        'p_amount_cents': amountCents,
+        'p_category': category.trim(),
+        'p_counterparty': _nullableString(counterparty),
+        'p_note': _nullableString(note),
+        'p_reason': reason.trim(),
+      },
+    );
+  }
+
+  @override
+  Future<void> voidFinanceEntry({
+    required String entryId,
+    required String reason,
+  }) async {
+    await _client.rpc(
+      'admin_finance_void_entry',
+      params: <String, dynamic>{
+        'p_entry_id': entryId.trim(),
+        'p_reason': reason.trim(),
+      },
+    );
+  }
+
+  @override
+  Future<List<AdminRadioMondoTrack>> getRadioMondoTracks() async {
+    final raw = await _client.rpc('admin_radio_mondo_list');
+    if (raw is! List) {
+      throw _invalidResponse('admin_radio_mondo_list');
+    }
+    return raw
+        .map((item) => _mapRadioMondoTrack(
+              _asObject(item, context: 'admin_radio_mondo_list'),
+            ))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<AdminRadioMondoTrack> upsertRadioMondoTrack({
+    String? trackId,
+    required String title,
+    required String audioUrl,
+    required int sortOrder,
+    required bool isEnabled,
+    required String attribution,
+    String? licenseUrl,
+    required bool rightsConfirmed,
+    required String reason,
+  }) async {
+    final raw = await _client.rpc(
+      'admin_radio_mondo_upsert',
+      params: <String, dynamic>{
+        'p_track_id': _nullableString(trackId),
+        'p_title': title.trim(),
+        'p_audio_url': audioUrl.trim(),
+        'p_sort_order': sortOrder,
+        'p_is_enabled': isEnabled,
+        'p_attribution': attribution.trim(),
+        'p_license_url': _nullableString(licenseUrl),
+        'p_rights_confirmed': rightsConfirmed,
+        'p_reason': reason.trim(),
+      },
+    );
+    return _mapRadioMondoTrack(
+      _asObject(raw, context: 'admin_radio_mondo_upsert'),
+    );
+  }
+
+  @override
+  Future<void> setRadioMondoTrackEnabled({
+    required String trackId,
+    required bool isEnabled,
+    required String reason,
+  }) async {
+    await _client.rpc(
+      'admin_radio_mondo_set_enabled',
+      params: <String, dynamic>{
+        'p_track_id': trackId.trim(),
+        'p_is_enabled': isEnabled,
+        'p_reason': reason.trim(),
+      },
+    );
+  }
+
+  AdminFinanceEntry _mapFinanceEntry(Map<String, Object?> row) {
+    return AdminFinanceEntry(
+      id: _readRequiredString(row, 'id'),
+      occurredOn: _readRequiredDateTime(row, 'occurred_on'),
+      direction: AdminFinanceDirectionX.fromStorageKey(
+        _readOptionalString(row, 'direction'),
+      ),
+      amountCents: _readRequiredNonNegativeInt(row, 'amount_cents'),
+      currency: _readRequiredString(row, 'currency'),
+      category: _readRequiredString(row, 'category'),
+      counterparty: _readOptionalString(row, 'counterparty'),
+      note: _readOptionalString(row, 'note'),
+      createdAt: _readRequiredDateTime(row, 'created_at'),
+    );
+  }
+
+  AdminRadioMondoTrack _mapRadioMondoTrack(Map<String, Object?> row) {
+    return AdminRadioMondoTrack(
+      id: _readRequiredString(row, 'id'),
+      title: _readRequiredString(row, 'title'),
+      audioUrl: _readRequiredString(row, 'audio_url'),
+      sortOrder: _readRequiredNonNegativeInt(row, 'sort_order'),
+      isEnabled: _readRequiredBool(row, 'is_enabled'),
+      attribution: _readRequiredString(row, 'attribution'),
+      licenseUrl: _readOptionalString(row, 'license_url'),
+      createdAt: _readRequiredDateTime(row, 'created_at'),
+      updatedAt: _readRequiredDateTime(row, 'updated_at'),
+    );
+  }
+
+  String _dateOnly(DateTime value) {
+    final local = value.toLocal();
+    final month = local.month.toString().padLeft(2, '0');
+    final day = local.day.toString().padLeft(2, '0');
+    return '${local.year}-$month-$day';
+  }
+
+  String? _nullableString(String? value) {
+    final normalized = value?.trim();
+    return normalized == null || normalized.isEmpty ? null : normalized;
+  }
+
+  @override
   Future<List<AdminAuditEntry>> getAuditEntries({
     String? actorUserId,
     String? action,
@@ -1017,6 +1255,24 @@ class AdminRepositoryImpl implements AdminRepository {
             : null;
 
     if (parsed == null || parsed < 0) {
+      throw _invalidResponse(key);
+    }
+
+    return parsed;
+  }
+
+  int _readRequiredSignedInt(
+    Map<String, Object?> source,
+    String key,
+  ) {
+    final value = source[key];
+    final parsed = value is int
+        ? value
+        : value is String
+            ? int.tryParse(value)
+            : null;
+
+    if (parsed == null) {
       throw _invalidResponse(key);
     }
 

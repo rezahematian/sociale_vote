@@ -1382,50 +1382,79 @@ class _MyProfileViewState extends State<_MyProfileView> {
                         Navigator.of(context).pushNamed(AppRouter.howItWorks),
                   ),
                 ),
-                if (profile?.isOrganizationActor == true) ...[
-                  const SizedBox(height: 18),
-                  _SectionTitle(l10n.organizationAccountSectionTitle),
-                  FutureBuilder<OrganizationProfile?>(
+                if (profile != null)
+                  FutureBuilder<OrganizationContext?>(
                     future: AppDI.instance.organizationRepository
-                        .getPublicOrganizationByOperator(currentUserId),
+                        .getMyOrganization(),
                     builder: (context, snapshot) {
-                      final organization = snapshot.data;
-                      if (organization != null) {
-                        return _OrganizationAccountCard(
-                          organization: organization,
-                          verifiedLabel: l10n.organizationVerifiedLabel,
-                          onViewPublic: () {
-                            Navigator.of(context).push<void>(
-                              MaterialPageRoute<void>(
-                                builder: (_) => PublicUserProfilePage(
-                                  userId: currentUserId,
+                      final organizationContext = snapshot.data;
+                      final canBootstrapWorkspace =
+                          profile.isOrganizationActor ||
+                              profile.isInstitutionActor;
+
+                      // Enterprise rule:
+                      // - any active Organization member can reach Workspace;
+                      // - a verified Organization or Public Institution can
+                      //   bootstrap its own Workspace;
+                      // - a Public Official remains a person and only receives
+                      //   Workspace through explicit Organization membership.
+                      if (organizationContext == null &&
+                          !canBootstrapWorkspace) {
+                        return const SizedBox.shrink();
+                      }
+
+                      final organization = organizationContext?.organization;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 18),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _SectionTitle(
+                              l10n.organizationAccountSectionTitle,
+                            ),
+                            if (organization != null)
+                              _OrganizationAccountCard(
+                                organization: organization,
+                                verifiedLabel: l10n.organizationVerifiedLabel,
+                                onViewPublic: () {
+                                  Navigator.of(context).push<void>(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => PublicUserProfilePage(
+                                        userId: currentUserId,
+                                        organizationId: organization.id,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                onManage: () async {
+                                  await Navigator.of(context).pushNamed(
+                                    AppRouter.organizationWorkspace,
+                                  );
+                                  if (mounted) setState(() {});
+                                },
+                              )
+                            else
+                              Card(
+                                margin: EdgeInsets.zero,
+                                child: ListTile(
+                                  leading: const Icon(Icons.apartment_rounded),
+                                  title: Text(l10n.organizationWorkspaceTitle),
+                                  subtitle:
+                                      Text(l10n.organizationPilotBannerBody),
+                                  trailing: const Icon(
+                                    Icons.chevron_right_rounded,
+                                  ),
+                                  onTap: () => Navigator.of(context).pushNamed(
+                                    AppRouter.organizationWorkspace,
+                                  ),
                                 ),
                               ),
-                            );
-                          },
-                          onManage: () async {
-                            await Navigator.of(context).pushNamed(
-                              AppRouter.organizationWorkspace,
-                            );
-                            if (mounted) setState(() {});
-                          },
-                        );
-                      }
-                      return Card(
-                        margin: EdgeInsets.zero,
-                        child: ListTile(
-                          leading: const Icon(Icons.apartment_rounded),
-                          title: Text(l10n.organizationWorkspaceTitle),
-                          subtitle: Text(l10n.organizationPilotBannerBody),
-                          trailing: const Icon(Icons.chevron_right_rounded),
-                          onTap: () => Navigator.of(context).pushNamed(
-                            AppRouter.organizationWorkspace,
-                          ),
+                          ],
                         ),
                       );
                     },
                   ),
-                ],
                 if (controller.errorMessage != null) ...[
                   const SizedBox(height: 12),
                   Card(

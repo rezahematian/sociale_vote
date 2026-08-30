@@ -107,6 +107,54 @@ abstract class AdminRepository {
     required String accountIdentifier,
   });
 
+  Future<AdminWorkspaceEntitlement?> getWorkspaceEntitlement({
+    required String targetUserId,
+  });
+
+  Future<AdminWorkspaceEntitlement> setWorkspaceEntitlement({
+    required String targetUserId,
+    required AdminWorkspaceEntitlementStatus entitlementStatus,
+    DateTime? expiresAt,
+    required String reason,
+  });
+
+  Future<AdminFinanceSnapshot> getFinanceSnapshot();
+
+  Future<void> addFinanceEntry({
+    required DateTime occurredOn,
+    required AdminFinanceDirection direction,
+    required int amountCents,
+    required String category,
+    String? counterparty,
+    String? note,
+    required String reason,
+  });
+
+  Future<void> voidFinanceEntry({
+    required String entryId,
+    required String reason,
+  });
+
+  Future<List<AdminRadioMondoTrack>> getRadioMondoTracks();
+
+  Future<AdminRadioMondoTrack> upsertRadioMondoTrack({
+    String? trackId,
+    required String title,
+    required String audioUrl,
+    required int sortOrder,
+    required bool isEnabled,
+    required String attribution,
+    String? licenseUrl,
+    required bool rightsConfirmed,
+    required String reason,
+  });
+
+  Future<void> setRadioMondoTrackEnabled({
+    required String trackId,
+    required bool isEnabled,
+    required String reason,
+  });
+
   Future<List<AdminAuditEntry>> getAuditEntries({
     String? actorUserId,
     String? action,

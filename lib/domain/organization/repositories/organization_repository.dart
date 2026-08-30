@@ -26,6 +26,19 @@ abstract class OrganizationRepository {
     String? websiteUrl,
     String? description,
   });
+  Future<List<OrganizationTeamMember>> listTeamMembers();
+  Future<void> addExistingTeamMember({
+    required String identifier,
+    required String role,
+  });
+  Future<void> setTeamMemberRole({
+    required String userId,
+    required String role,
+  });
+  Future<void> revokeTeamMember({
+    required String userId,
+  });
+
   Future<String> uploadOrganizationMedia({
     required String organizationId,
     required Uint8List bytes,

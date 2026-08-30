@@ -701,10 +701,8 @@ class _OrganizationWorkspaceAccessGateState
       return;
     }
 
-    final allowed = await AuthGuard.ensureCanPerformAction(
-      context,
-      ParticipationAction.manageOrganizationSessions,
-    );
+    final allowed =
+        await AuthGuard.ensureCanAccessOrganizationWorkspace(context);
     if (!mounted) return;
     setState(() {
       _checking = false;

@@ -129,6 +129,51 @@ class AuthGuard {
     return false;
   }
 
+  /// Gate centrale per il Workspace Organization.
+  ///
+  /// L'identità personale e la membership Organization sono due capability
+  /// distinte. Un membro Team attivo può avere un profilo Persona e deve essere
+  /// riconosciuto tramite il contesto server-side dell'Organization. Solo quando
+  /// non esiste una membership attiva si applica la policy di bootstrap per una
+  /// Organization o Institution verificata.
+  static Future<bool> ensureCanAccessOrganizationWorkspace(
+    BuildContext context,
+  ) async {
+    final authenticated = await ensureAuthenticated(
+      context,
+      actionLabel: _actionLabel(
+        context,
+        ParticipationAction.manageOrganizationSessions,
+      ),
+    );
+    if (!authenticated || !context.mounted) {
+      return false;
+    }
+
+    try {
+      final organizationContext =
+          await AppDI.instance.organizationRepository.getMyOrganization();
+      if (organizationContext != null) {
+        return true;
+      }
+    } catch (_) {
+      if (!context.mounted) {
+        return false;
+      }
+      await _showOrganizationAccessCheckFailedDialog(context);
+      return false;
+    }
+
+    if (!context.mounted) {
+      return false;
+    }
+
+    return ensureCanPerformAction(
+      context,
+      ParticipationAction.manageOrganizationSessions,
+    );
+  }
+
   static Future<bool> _ensureCurrentSessionIsValid(
     BuildContext context,
   ) async {
@@ -607,6 +652,44 @@ class AuthGuard {
     );
   }
 
+  static Future<void> _showOrganizationAccessCheckFailedDialog(
+    BuildContext context,
+  ) {
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(
+            _isItalian(dialogContext)
+                ? 'Verifica accesso non riuscita'
+                : deOrEnglish(
+                    dialogContext,
+                    english: 'Access check failed',
+                    german: 'Zugriffsprüfung fehlgeschlagen',
+                  ),
+          ),
+          content: Text(
+            _isItalian(dialogContext)
+                ? 'Non è stato possibile verificare la membership del Team. Riprova senza modificare ruoli o Workspace.'
+                : deOrEnglish(
+                    dialogContext,
+                    english:
+                        'The Team membership could not be verified. Try again without changing roles or Workspace access.',
+                    german:
+                        'Die Team-Mitgliedschaft konnte nicht geprüft werden. Versuche es erneut, ohne Rollen oder Workspace-Zugriff zu ändern.',
+                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   static String _permissionDeniedMessage(
     BuildContext context,
     ParticipationAction action,
@@ -632,12 +715,12 @@ class AuthGuard {
                 german: 'Diese Aktion ist Administratoren vorbehalten.');
       case ParticipationAction.manageOrganizationSessions:
         return isItalian
-            ? 'Questa area è disponibile solo per organizzazioni verificate.'
+            ? 'Questa area è disponibile per Organization o enti verificati e per i membri attivi del loro Team.'
             : deOrEnglish(context,
                 english:
-                    'This area is available only to verified organizations.',
+                    'This area is available to verified organizations or institutions and to active Team members.',
                 german:
-                    'Dieser Bereich ist nur für verifizierte Organisationen verfügbar.');
+                    'Dieser Bereich ist für verifizierte Organisationen oder Institutionen und aktive Teammitglieder verfügbar.');
       case ParticipationAction.vote:
       case ParticipationAction.createPoll:
       case ParticipationAction.react:

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:sociale_vote/domain/admin/entities/admin_entities.dart';
 import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/content/news/entities/world_brief.dart';
@@ -10,7 +11,7 @@ import 'package:sociale_vote/shared/services/social_vote_hud_service.dart';
 
 void main() {
   group('release candidate foundations', () {
-    test('Radio Mondo exposes only bundled, user-selected tracks', () {
+    test('Radio Mondo keeps bundled fallback tracks', () {
       expect(
         RadioMondoTrack.values.map((track) => track.assetPath),
         containsAll(<String>{
@@ -18,6 +19,54 @@ void main() {
           'audio/pioggia_sul_mondo.ogg',
           'audio/pulse_giovane.ogg',
         }),
+      );
+    });
+
+    test('Radio Mondo supports a rights-attributed remote station', () {
+      const station = RadioMondoStation(
+        id: 'remote-test',
+        title: 'Test station',
+        audioUrl: 'https://cdn.example.com/audio/test.ogg',
+        attribution: 'Owned by Social Vote',
+      );
+
+      expect(station.isBuiltIn, isFalse);
+      expect(station.audioUrl, startsWith('https://'));
+      expect(station.attribution, isNotEmpty);
+    });
+
+    test('admin finance snapshot keeps signed balance and immutable entries',
+        () {
+      final snapshot = AdminFinanceSnapshot(
+        currency: 'EUR',
+        monthStart: DateTime.utc(2026, 8),
+        monthIncomeCents: 50000,
+        monthExpenseCents: 62500,
+        monthBalanceCents: -12500,
+        totalIncomeCents: 50000,
+        totalExpenseCents: 62500,
+        totalBalanceCents: -12500,
+        entries: const <AdminFinanceEntry>[],
+        generatedAt: DateTime.utc(2026, 8, 30),
+      );
+
+      expect(snapshot.currency, 'EUR');
+      expect(snapshot.monthBalanceCents, -12500);
+      expect(
+        () => snapshot.entries.add(
+          AdminFinanceEntry(
+            id: 'blocked',
+            occurredOn: DateTime.utc(2026, 8, 30),
+            direction: AdminFinanceDirection.expense,
+            amountCents: 1,
+            currency: 'EUR',
+            category: 'Test',
+            counterparty: null,
+            note: null,
+            createdAt: DateTime.utc(2026, 8, 30),
+          ),
+        ),
+        throwsUnsupportedError,
       );
     });
 

@@ -29,6 +29,8 @@ import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/world_globe_widget.dart';
 import 'package:sociale_vote/features/admin/presentation/pages/world_brief_editor_page.dart';
+import 'package:sociale_vote/features/admin/presentation/widgets/admin_finance_control_section.dart';
+import 'package:sociale_vote/features/admin/presentation/widgets/admin_radio_mondo_control_section.dart';
 import 'package:sociale_vote/shared/services/world_appearance_service.dart';
 import 'package:sociale_vote/shared/services/world_marker_policy_service.dart';
 
@@ -38,11 +40,28 @@ enum AdminCenterSection {
   users,
   verification,
   reports,
+  finance,
+  radioMondo,
   audit,
 }
 
 AppLocalizations _adminL10n(BuildContext context) =>
     AppLocalizations.of(context)!;
+
+String _adminControlText(
+  BuildContext context, {
+  required String it,
+  required String en,
+  required String de,
+  required String fa,
+}) {
+  return switch (Localizations.localeOf(context).languageCode.toLowerCase()) {
+    'it' => it,
+    'de' => de,
+    'fa' => fa,
+    _ => en,
+  };
+}
 
 typedef AdminCenterSectionBuilder = Widget Function(
     BuildContext context, AdminCenterSection section);
@@ -121,6 +140,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   AdminReportTargetType? _reportTargetTypeFilter;
   bool _showEscalatedReportsOnly = false;
   AdminCenterSection _selectedSection = AdminCenterSection.dashboard;
+  int _controlRefreshRevision = 0;
   Locale? _adminLocaleOverride;
   double? _markerDensityDraft;
   bool _markerDensitySaving = false;
@@ -159,6 +179,26 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         selectedIcon: Icons.flag,
         label: _adminL10n(context).adminCenterReportsNavigation,
       ),
+      if (widget.currentRole == Role.admin)
+        _AdminDestination(
+          section: AdminCenterSection.finance,
+          icon: Icons.account_balance_wallet_outlined,
+          selectedIcon: Icons.account_balance_wallet_rounded,
+          label: _adminControlText(
+            context,
+            it: 'Finanze',
+            en: 'Finance',
+            de: 'Finanzen',
+            fa: 'مالی',
+          ),
+        ),
+      if (widget.currentRole == Role.admin)
+        _AdminDestination(
+          section: AdminCenterSection.radioMondo,
+          icon: Icons.radio_outlined,
+          selectedIcon: Icons.radio_rounded,
+          label: 'Radio Mondo',
+        ),
       if (widget.currentRole == Role.admin)
         _AdminDestination(
           section: AdminCenterSection.audit,
@@ -408,6 +448,11 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         );
       } else if (_selectedSection == AdminCenterSection.audit) {
         await _loadAudit(markLoading: _auditEntries.isEmpty);
+      } else if (_selectedSection == AdminCenterSection.finance ||
+          _selectedSection == AdminCenterSection.radioMondo) {
+        setState(() {
+          _controlRefreshRevision += 1;
+        });
       } else {
         await _loadDashboard(markLoading: _dashboardSummary == null);
         if (_selectedSection == AdminCenterSection.dashboard) {
@@ -602,6 +647,154 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     _userDetail = null;
     _isUserDetailLoading = false;
     _userDetailLoadFailed = false;
+  }
+
+  Future<void> _openWorkspaceEntitlementDialog(
+    AdminUserDetail detail,
+  ) async {
+    if (widget.currentRole != Role.admin) return;
+
+    AdminWorkspaceEntitlement? current;
+    try {
+      current = await _adminRepository.getWorkspaceEntitlement(
+        targetUserId: detail.id,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+      return;
+    }
+
+    if (!mounted) return;
+    if (current == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Questo account non ha ancora una Organization/Workspace associata.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    var selected = current.entitlementStatus;
+    final reasonController = TextEditingController();
+
+    final result = await showDialog<(AdminWorkspaceEntitlementStatus, String)>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Stato Workspace'),
+          content: SizedBox(
+            width: 500,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  current!.organizationName.isEmpty
+                      ? current.organizationId
+                      : current.organizationName,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Verifica: ${current.verificationStatus} · '
+                  'Piano: ${current.planKey} · '
+                  'Modalità: ${current.commercialMode}',
+                ),
+                const SizedBox(height: 18),
+                DropdownButtonFormField<AdminWorkspaceEntitlementStatus>(
+                  initialValue: selected,
+                  decoration: const InputDecoration(
+                    labelText: 'Entitlement Workspace',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: AdminWorkspaceEntitlementStatus.none,
+                      child: Text('Non attivo'),
+                    ),
+                    DropdownMenuItem(
+                      value: AdminWorkspaceEntitlementStatus.pilot,
+                      child: Text('Pilot'),
+                    ),
+                    DropdownMenuItem(
+                      value: AdminWorkspaceEntitlementStatus.active,
+                      child: Text('Attivo'),
+                    ),
+                    DropdownMenuItem(
+                      value: AdminWorkspaceEntitlementStatus.suspended,
+                      child: Text('Sospeso'),
+                    ),
+                    DropdownMenuItem(
+                      value: AdminWorkspaceEntitlementStatus.expired,
+                      child: Text('Scaduto'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setDialogState(() => selected = value);
+                    }
+                  },
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: reasonController,
+                  maxLength: 1000,
+                  minLines: 2,
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    labelText: 'Motivo admin',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'La verifica dell’identità resta separata dallo stato Workspace.',
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+            ),
+            FilledButton(
+              onPressed: () {
+                final reason = reasonController.text.trim();
+                if (reason.isEmpty) return;
+                Navigator.of(dialogContext).pop((selected, reason));
+              },
+              child: const Text('Salva'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    reasonController.dispose();
+    if (result == null) return;
+
+    try {
+      await _adminRepository.setWorkspaceEntitlement(
+        targetUserId: detail.id,
+        entitlementStatus: result.$1,
+        reason: result.$2,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Stato Workspace aggiornato.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    }
   }
 
   Future<void> _openChangeRoleDialog(AdminUserDetail detail) async {
@@ -1657,6 +1850,20 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       return _buildReportsSection(context);
     }
 
+    if (_selectedSection == AdminCenterSection.finance) {
+      return AdminFinanceControlSection(
+        repository: _adminRepository,
+        refreshRevision: _controlRefreshRevision,
+      );
+    }
+
+    if (_selectedSection == AdminCenterSection.radioMondo) {
+      return AdminRadioMondoControlSection(
+        repository: _adminRepository,
+        refreshRevision: _controlRefreshRevision,
+      );
+    }
+
     if (_selectedSection == AdminCenterSection.audit) {
       return _buildAuditSection(context);
     }
@@ -2335,7 +2542,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             onReactivate: () => _openReactivateAccountDialog(detail),
             onForceLogout: () => _openForceLogoutDialog(detail),
             onChangeIdentity: () => _openPublicIdentityDialog(detail),
+            onWorkspaceEntitlement: () =>
+                _openWorkspaceEntitlementDialog(detail),
             onDelete: () => _openDeleteAccountDialog(detail),
+            canManageWorkspace: widget.currentRole == Role.admin,
           ),
           if (hasInsights) ...[
             const SizedBox(height: 12),
@@ -2994,6 +3204,12 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       final sideBySide = width >= 820;
       final compact = width < 520;
       final horizontalPadding = compact ? 12.0 : 18.0;
+      final viewportHeight = MediaQuery.sizeOf(context).height;
+      final commandStageHeight = sideBySide
+          ? math.max(360.0, math.min(560.0, viewportHeight - 360.0))
+          : compact
+              ? 300.0
+              : 340.0;
 
       return Container(
         decoration: BoxDecoration(
@@ -3098,7 +3314,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               const SizedBox(height: 14),
               if (sideBySide)
                 SizedBox(
-                  height: 360,
+                  height: commandStageHeight,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -3283,7 +3499,9 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         NavigationRail(
+          backgroundColor: Theme.of(context).colorScheme.surface,
           extended: extendRail,
+          minExtendedWidth: 238,
           selectedIndex: selectedIndex < 0 ? 0 : selectedIndex,
           groupAlignment: -1,
           onDestinationSelected: (index) {
@@ -3741,7 +3959,9 @@ class _AdminUserCommandCard extends StatelessWidget {
   final Future<void> Function() onReactivate;
   final Future<void> Function() onForceLogout;
   final Future<void> Function() onChangeIdentity;
+  final Future<void> Function() onWorkspaceEntitlement;
   final Future<void> Function() onDelete;
+  final bool canManageWorkspace;
 
   const _AdminUserCommandCard({
     required this.detail,
@@ -3750,7 +3970,9 @@ class _AdminUserCommandCard extends StatelessWidget {
     required this.onReactivate,
     required this.onForceLogout,
     required this.onChangeIdentity,
+    required this.onWorkspaceEntitlement,
     required this.onDelete,
+    required this.canManageWorkspace,
   });
 
   String _title(BuildContext context) {
@@ -3950,6 +4172,13 @@ class _AdminUserCommandCard extends StatelessWidget {
                   label: _adminL10n(context).adminCenterChangeIdentityAction,
                   onPressed: canManageAccount
                       ? () => unawaited(onChangeIdentity())
+                      : null,
+                ),
+                actionButton(
+                  icon: Icons.business_center_outlined,
+                  label: 'Workspace',
+                  onPressed: canManageWorkspace
+                      ? () => unawaited(onWorkspaceEntitlement())
                       : null,
                 ),
                 actionButton(

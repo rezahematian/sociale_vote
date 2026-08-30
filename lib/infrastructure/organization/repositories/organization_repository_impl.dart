@@ -206,6 +206,53 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
   }
 
   @override
+  Future<List<OrganizationTeamMember>> listTeamMembers() async {
+    final raw = await _client.rpc('organization_team_list');
+    final rows = raw is List ? raw : const <dynamic>[];
+    return rows
+        .map((item) => OrganizationTeamMember.fromJson(_map(item)))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<void> addExistingTeamMember({
+    required String identifier,
+    required String role,
+  }) async {
+    await _client.rpc(
+      'organization_team_add_existing_user',
+      params: <String, dynamic>{
+        'p_identifier': identifier.trim(),
+        'p_role': role.trim().toLowerCase(),
+      },
+    );
+  }
+
+  @override
+  Future<void> setTeamMemberRole({
+    required String userId,
+    required String role,
+  }) async {
+    await _client.rpc(
+      'organization_team_set_role',
+      params: <String, dynamic>{
+        'p_user_id': userId.trim(),
+        'p_role': role.trim().toLowerCase(),
+      },
+    );
+  }
+
+  @override
+  Future<void> revokeTeamMember({
+    required String userId,
+  }) async {
+    await _client.rpc(
+      'organization_team_revoke',
+      params: <String, dynamic>{'p_user_id': userId.trim()},
+    );
+  }
+
+  @override
   Future<String> uploadOrganizationMedia({
     required String organizationId,
     required Uint8List bytes,

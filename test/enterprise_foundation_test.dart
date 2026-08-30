@@ -7,6 +7,7 @@ import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/app/theme/colors.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
+import 'package:sociale_vote/domain/identity/value_objects/institution_level.dart';
 import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
@@ -177,6 +178,23 @@ void main() {
           actorType: ActorType.organization,
         ),
         isTrue,
+      );
+      expect(
+        policy.canPerform(
+          userId: 'public-institution-operator',
+          action: ParticipationAction.manageOrganizationSessions,
+          actorType: ActorType.institution,
+          institutionLevel: InstitutionLevel.publicAgency,
+        ),
+        isTrue,
+      );
+      expect(
+        policy.canPerform(
+          userId: 'unclassified-institution',
+          action: ParticipationAction.manageOrganizationSessions,
+          actorType: ActorType.institution,
+        ),
+        isFalse,
       );
     });
   });

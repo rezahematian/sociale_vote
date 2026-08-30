@@ -3,6 +3,151 @@ import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_status.dart';
 
+enum AdminWorkspaceEntitlementStatus {
+  none,
+  pilot,
+  active,
+  suspended,
+  expired,
+}
+
+extension AdminWorkspaceEntitlementStatusX on AdminWorkspaceEntitlementStatus {
+  String get storageKey => switch (this) {
+        AdminWorkspaceEntitlementStatus.none => 'none',
+        AdminWorkspaceEntitlementStatus.pilot => 'pilot',
+        AdminWorkspaceEntitlementStatus.active => 'active',
+        AdminWorkspaceEntitlementStatus.suspended => 'suspended',
+        AdminWorkspaceEntitlementStatus.expired => 'expired',
+      };
+
+  static AdminWorkspaceEntitlementStatus fromStorageKey(String? value) {
+    return switch (value?.trim().toLowerCase()) {
+      'pilot' => AdminWorkspaceEntitlementStatus.pilot,
+      'active' => AdminWorkspaceEntitlementStatus.active,
+      'suspended' => AdminWorkspaceEntitlementStatus.suspended,
+      'expired' => AdminWorkspaceEntitlementStatus.expired,
+      _ => AdminWorkspaceEntitlementStatus.none,
+    };
+  }
+}
+
+class AdminWorkspaceEntitlement {
+  final String organizationId;
+  final String organizationName;
+  final String verificationStatus;
+  final String workspaceId;
+  final AdminWorkspaceEntitlementStatus entitlementStatus;
+  final String workspaceStatus;
+  final String planKey;
+  final String commercialMode;
+  final bool billingEnabled;
+  final DateTime? entitlementStartedAt;
+  final DateTime? entitlementExpiresAt;
+
+  const AdminWorkspaceEntitlement({
+    required this.organizationId,
+    required this.organizationName,
+    required this.verificationStatus,
+    required this.workspaceId,
+    required this.entitlementStatus,
+    required this.workspaceStatus,
+    required this.planKey,
+    required this.commercialMode,
+    required this.billingEnabled,
+    required this.entitlementStartedAt,
+    required this.entitlementExpiresAt,
+  });
+}
+
+enum AdminFinanceDirection { income, expense }
+
+extension AdminFinanceDirectionX on AdminFinanceDirection {
+  String get storageKey => switch (this) {
+        AdminFinanceDirection.income => 'income',
+        AdminFinanceDirection.expense => 'expense',
+      };
+
+  static AdminFinanceDirection fromStorageKey(String? value) {
+    return value?.trim().toLowerCase() == 'income'
+        ? AdminFinanceDirection.income
+        : AdminFinanceDirection.expense;
+  }
+}
+
+class AdminFinanceEntry {
+  final String id;
+  final DateTime occurredOn;
+  final AdminFinanceDirection direction;
+  final int amountCents;
+  final String currency;
+  final String category;
+  final String? counterparty;
+  final String? note;
+  final DateTime createdAt;
+
+  const AdminFinanceEntry({
+    required this.id,
+    required this.occurredOn,
+    required this.direction,
+    required this.amountCents,
+    required this.currency,
+    required this.category,
+    required this.counterparty,
+    required this.note,
+    required this.createdAt,
+  });
+}
+
+class AdminFinanceSnapshot {
+  final String currency;
+  final DateTime monthStart;
+  final int monthIncomeCents;
+  final int monthExpenseCents;
+  final int monthBalanceCents;
+  final int totalIncomeCents;
+  final int totalExpenseCents;
+  final int totalBalanceCents;
+  final List<AdminFinanceEntry> entries;
+  final DateTime generatedAt;
+
+  AdminFinanceSnapshot({
+    required this.currency,
+    required this.monthStart,
+    required this.monthIncomeCents,
+    required this.monthExpenseCents,
+    required this.monthBalanceCents,
+    required this.totalIncomeCents,
+    required this.totalExpenseCents,
+    required this.totalBalanceCents,
+    required List<AdminFinanceEntry> entries,
+    required this.generatedAt,
+  }) : entries = List<AdminFinanceEntry>.unmodifiable(entries);
+}
+
+class AdminRadioMondoTrack {
+  final String id;
+  final String title;
+  final String audioUrl;
+  final int sortOrder;
+  final bool isEnabled;
+  final String attribution;
+  final String? licenseUrl;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const AdminRadioMondoTrack({
+    required this.id,
+    required this.title,
+    required this.audioUrl,
+    required this.sortOrder,
+    required this.isEnabled,
+    required this.attribution,
+    required this.licenseUrl,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+}
+
 enum AdminAccountStatus {
   active,
   suspended,

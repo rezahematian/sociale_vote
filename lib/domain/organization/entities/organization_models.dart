@@ -109,6 +109,76 @@ class OrganizationFollowState {
   }
 }
 
+enum WorkspaceEntitlementStatus {
+  none,
+  pilot,
+  active,
+  suspended,
+  expired,
+}
+
+extension WorkspaceEntitlementStatusX on WorkspaceEntitlementStatus {
+  String get storageKey => switch (this) {
+        WorkspaceEntitlementStatus.none => 'none',
+        WorkspaceEntitlementStatus.pilot => 'pilot',
+        WorkspaceEntitlementStatus.active => 'active',
+        WorkspaceEntitlementStatus.suspended => 'suspended',
+        WorkspaceEntitlementStatus.expired => 'expired',
+      };
+
+  static WorkspaceEntitlementStatus fromStorageKey(String? value) {
+    return switch (value?.trim().toLowerCase()) {
+      'pilot' => WorkspaceEntitlementStatus.pilot,
+      'active' => WorkspaceEntitlementStatus.active,
+      'suspended' => WorkspaceEntitlementStatus.suspended,
+      'expired' => WorkspaceEntitlementStatus.expired,
+      _ => WorkspaceEntitlementStatus.none,
+    };
+  }
+}
+
+class OrganizationTeamMember {
+  final String userId;
+  final String? username;
+  final String? displayName;
+  final String? email;
+  final String membershipRole;
+  final String membershipStatus;
+  final DateTime? createdAt;
+
+  const OrganizationTeamMember({
+    required this.userId,
+    required this.username,
+    required this.displayName,
+    required this.email,
+    required this.membershipRole,
+    required this.membershipStatus,
+    required this.createdAt,
+  });
+
+  factory OrganizationTeamMember.fromJson(Map<String, dynamic> json) {
+    return OrganizationTeamMember(
+      userId: _string(json['user_id']) ?? '',
+      username: _string(json['username']),
+      displayName: _string(json['display_name']),
+      email: _string(json['email']),
+      membershipRole: _string(json['membership_role']) ?? 'viewer',
+      membershipStatus: _string(json['membership_status']) ?? 'active',
+      createdAt: _date(json['created_at']),
+    );
+  }
+
+  String get label {
+    final name = displayName?.trim();
+    if (name != null && name.isNotEmpty) return name;
+    final handle = username?.trim();
+    if (handle != null && handle.isNotEmpty) return '@$handle';
+    final mail = email?.trim();
+    if (mail != null && mail.isNotEmpty) return mail;
+    return userId;
+  }
+}
+
 class OrganizationWorkspace {
   final String id;
   final String organizationId;
@@ -116,6 +186,9 @@ class OrganizationWorkspace {
   final String status;
   final String commercialMode;
   final bool billingEnabled;
+  final WorkspaceEntitlementStatus entitlementStatus;
+  final DateTime? entitlementStartedAt;
+  final DateTime? entitlementExpiresAt;
 
   const OrganizationWorkspace({
     required this.id,
@@ -124,6 +197,9 @@ class OrganizationWorkspace {
     required this.status,
     required this.commercialMode,
     required this.billingEnabled,
+    this.entitlementStatus = WorkspaceEntitlementStatus.pilot,
+    this.entitlementStartedAt,
+    this.entitlementExpiresAt,
   });
 
   factory OrganizationWorkspace.fromJson(Map<String, dynamic> json) {
@@ -134,6 +210,14 @@ class OrganizationWorkspace {
       status: _string(json['status']) ?? 'active',
       commercialMode: _string(json['commercial_mode']) ?? 'pilot_free',
       billingEnabled: json['billing_enabled'] == true,
+      entitlementStatus: WorkspaceEntitlementStatusX.fromStorageKey(
+        _string(json['entitlement_status']) ??
+            ((_string(json['plan_key']) ?? 'pilot') == 'pilot'
+                ? 'pilot'
+                : 'active'),
+      ),
+      entitlementStartedAt: _date(json['entitlement_started_at']),
+      entitlementExpiresAt: _date(json['entitlement_expires_at']),
     );
   }
 }
@@ -164,7 +248,11 @@ class OrganizationContext {
   bool get canManageProfile =>
       membershipRole == 'owner' || membershipRole == 'manager';
   bool get isWorkspaceActive =>
-      workspace.status.trim().toLowerCase() == 'active';
+      workspace.status.trim().toLowerCase() == 'active' &&
+      (workspace.entitlementStatus == WorkspaceEntitlementStatus.pilot ||
+          workspace.entitlementStatus == WorkspaceEntitlementStatus.active) &&
+      (workspace.entitlementExpiresAt == null ||
+          workspace.entitlementExpiresAt!.isAfter(DateTime.now()));
   bool get canUseBusinessServices =>
       organization.isVerified && isWorkspaceActive;
   bool get canPublishOfficial => canUseBusinessServices && canManageProfile;
@@ -172,8 +260,10 @@ class OrganizationContext {
       canUseBusinessServices &&
       (canManageProfile || membershipRole == 'operator');
   bool get isFreePilot =>
-      workspace.planKey.trim().toLowerCase() == 'pilot' ||
-      workspace.commercialMode.trim().toLowerCase() == 'pilot_free';
+      workspace.entitlementStatus == WorkspaceEntitlementStatus.pilot;
+  bool get hasWorkspaceEntitlement =>
+      workspace.entitlementStatus == WorkspaceEntitlementStatus.pilot ||
+      workspace.entitlementStatus == WorkspaceEntitlementStatus.active;
 }
 
 String? _string(dynamic value) {

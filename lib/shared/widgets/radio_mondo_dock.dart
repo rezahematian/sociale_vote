@@ -9,7 +9,7 @@ import 'package:sociale_vote/shared/widgets/world_control_visuals.dart';
 /// Compact Radio Mondo control beside the Home Globe.
 ///
 /// Home intentionally shows one circular control only. Tap toggles playback;
-/// long-press opens the three original tracks. Playback policy remains owned by
+/// long-press opens the original tracks and the enabled Admin catalog. Playback policy remains owned by
 /// [RadioMondoService]: no autoplay, no background service, no GeoScope coupling.
 class RadioMondoDock extends StatelessWidget {
   final RadioVisualStyle visualStyle;
@@ -29,12 +29,12 @@ class RadioMondoDock extends StatelessWidget {
       animation: radio,
       builder: (context, _) {
         final l10n = AppLocalizations.of(context)!;
-        final track = radio.selectedTrack;
+        final station = radio.selectedStation;
         final active = radio.isPlaying;
         final label = active
             ? '${l10n.radioMondoTitle}. ${l10n.radioMondoPlaying}. '
-                '${_trackLabel(l10n, track)}'
-            : '${l10n.radioMondoTitle}. ${_trackLabel(l10n, track)}';
+                '${_stationLabel(l10n, station)}'
+            : '${l10n.radioMondoTitle}. ${_stationLabel(l10n, station)}';
 
         return Semantics(
           button: true,
@@ -79,7 +79,7 @@ class RadioMondoDock extends StatelessWidget {
       return;
     }
 
-    await _playTrack(context, radio, radio.selectedTrack);
+    await _playStation(context, radio, radio.selectedStation);
   }
 
   Future<void> _showTrackPicker(
@@ -87,72 +87,94 @@ class RadioMondoDock extends StatelessWidget {
     RadioMondoService radio,
   ) async {
     final l10n = AppLocalizations.of(context)!;
-    final selected = await showModalBottomSheet<RadioMondoTrack>(
+    final stations = radio.stations;
+    final selected = await showModalBottomSheet<RadioMondoStation>(
       context: context,
       showDragHandle: true,
       builder: (sheetContext) {
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
-                child: Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(
-                    l10n.radioMondoTitle,
-                    style: Theme.of(sheetContext)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w800),
+          child: SizedBox(
+            height: MediaQuery.sizeOf(sheetContext).height * 0.72,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      l10n.radioMondoTitle,
+                      style: Theme.of(sheetContext)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
+                    ),
                   ),
                 ),
-              ),
-              for (final track in RadioMondoTrack.values)
-                ListTile(
-                  leading: Icon(_trackIcon(track)),
-                  title: Text(_trackLabel(l10n, track)),
-                  trailing: track == radio.selectedTrack
-                      ? Icon(
-                          radio.isPlaying
-                              ? Icons.equalizer_rounded
-                              : Icons.check_rounded,
-                        )
-                      : null,
-                  onTap: () => Navigator.pop(sheetContext, track),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: stations.length,
+                    itemBuilder: (_, index) {
+                      final station = stations[index];
+                      return ListTile(
+                        leading: Icon(_stationIcon(station)),
+                        title: Text(_stationLabel(l10n, station)),
+                        subtitle: station.attribution == null
+                            ? null
+                            : Text(
+                                station.attribution!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                        trailing: station.id == radio.selectedStation.id
+                            ? Icon(
+                                radio.isPlaying
+                                    ? Icons.equalizer_rounded
+                                    : Icons.check_rounded,
+                              )
+                            : null,
+                        onTap: () => Navigator.pop(sheetContext, station),
+                      );
+                    },
+                  ),
                 ),
-              const SizedBox(height: 8),
-            ],
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         );
       },
     );
 
     if (selected != null && context.mounted) {
-      await _playTrack(context, radio, selected);
+      await _playStation(context, radio, selected);
     }
   }
 
-  Future<void> _playTrack(
+  Future<void> _playStation(
     BuildContext context,
     RadioMondoService radio,
-    RadioMondoTrack track,
+    RadioMondoStation station,
   ) async {
     final l10n = AppLocalizations.of(context)!;
-    final success = await radio.play(track);
+    final success = await radio.playStation(station);
     if (!context.mounted) return;
 
     if (success) {
       SocialVoteHud.showInfo(
         l10n.radioMondoPlaying,
-        detail: _trackLabel(l10n, track),
+        detail: _stationLabel(l10n, station),
       );
     } else {
       SocialVoteHud.showError(l10n.radioMondoPlaybackError);
     }
   }
 
-  static String _trackLabel(AppLocalizations l10n, RadioMondoTrack track) {
+  static String _stationLabel(
+    AppLocalizations l10n,
+    RadioMondoStation station,
+  ) {
+    final track = station.builtInTrack;
+    if (track == null) return station.title;
     return switch (track) {
       RadioMondoTrack.classicalOrbit => l10n.radioMondoTrackClassical,
       RadioMondoTrack.worldRain => l10n.radioMondoTrackRain,
@@ -160,7 +182,9 @@ class RadioMondoDock extends StatelessWidget {
     };
   }
 
-  static IconData _trackIcon(RadioMondoTrack track) {
+  static IconData _stationIcon(RadioMondoStation station) {
+    final track = station.builtInTrack;
+    if (track == null) return Icons.library_music_outlined;
     return switch (track) {
       RadioMondoTrack.classicalOrbit => Icons.piano_rounded,
       RadioMondoTrack.worldRain => Icons.water_drop_outlined,

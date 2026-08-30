@@ -1158,12 +1158,19 @@ class _SingleLineChipRow extends StatelessWidget {
   Widget build(BuildContext context) {
     const spacing = AppSpacing.unitXS;
 
+    // PublisherSignature uses a 32 px avatar plus its verification seal
+    // and local padding. A fixed 32 px strip clips that signature by ~1 px
+    // on Web and triggers the yellow/black RenderFlex overflow indicator.
+    // Keep metadata pills at 32 px, but give the strip enough vertical room.
+    final rowHeight = math.max(chipHeight, 40.0);
+
     return SizedBox(
-      height: chipHeight,
+      height: rowHeight,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         physics: const ClampingScrollPhysics(),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             for (var index = 0; index < items.length; index++) ...[
               if (index > 0) const SizedBox(width: spacing),

@@ -59,9 +59,14 @@ class ParticipationPolicy {
 
       case ParticipationAction.manageOrganizationSessions:
         return canActAsOrganization(
-          actorType: actorType,
-          verificationLevel: verificationLevel,
-        );
+              actorType: actorType,
+              verificationLevel: verificationLevel,
+            ) ||
+            canActAsInstitution(
+              actorType: actorType,
+              verificationLevel: verificationLevel,
+              institutionLevel: institutionLevel,
+            );
 
       case ParticipationAction.accessAdminCenter:
       case ParticipationAction.reviewVerificationRequests:
