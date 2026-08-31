@@ -11,6 +11,7 @@ class OrganizationWorkspaceController extends ChangeNotifier {
 
   OrganizationContext? context;
   List<LiveSessionSummary> sessions = const [];
+  List<OrganizationExternalLink> externalLinks = const [];
   bool isLoading = false;
   bool isSaving = false;
   Object? error;
@@ -25,7 +26,13 @@ class OrganizationWorkspaceController extends ChangeNotifier {
       if (context == null && bootstrapIfNeeded) {
         context = await repository.bootstrapFromVerifiedProfile();
       }
-      sessions = context == null ? const [] : await repository.listSessions();
+      if (context == null) {
+        sessions = const [];
+        externalLinks = const [];
+      } else {
+        sessions = await repository.listSessions();
+        externalLinks = await repository.listMyExternalLinks();
+      }
     } catch (e) {
       error = e;
     } finally {
@@ -62,6 +69,23 @@ class OrganizationWorkspaceController extends ChangeNotifier {
         websiteUrl: websiteUrl,
         description: description,
       );
+    } catch (e) {
+      error = e;
+      rethrow;
+    } finally {
+      isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> replaceExternalLinks(
+    Map<OrganizationExternalLinkProvider, String?> links,
+  ) async {
+    isSaving = true;
+    error = null;
+    notifyListeners();
+    try {
+      externalLinks = await repository.replaceExternalLinks(links);
     } catch (e) {
       error = e;
       rethrow;

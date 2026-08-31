@@ -17,6 +17,13 @@ abstract class OrganizationRepository {
     String organizationId,
   );
   Future<Set<String>> getMyFollowedOrganizationIds();
+  Future<List<OrganizationExternalLink>> listMyExternalLinks();
+  Future<List<OrganizationExternalLink>> listPublicExternalLinks(
+    String organizationId,
+  );
+  Future<List<OrganizationExternalLink>> replaceExternalLinks(
+    Map<OrganizationExternalLinkProvider, String?> links,
+  );
   Future<OrganizationContext> updateOrganizationProfile({
     required OrganizationEntityType entityType,
     required String legalName,

@@ -676,7 +676,6 @@ class _OrganizationWorkspaceAccessGate extends StatefulWidget {
 class _OrganizationWorkspaceAccessGateState
     extends State<_OrganizationWorkspaceAccessGate> {
   bool _checking = true;
-  bool _allowed = false;
 
   @override
   void initState() {
@@ -686,37 +685,34 @@ class _OrganizationWorkspaceAccessGateState
 
   Future<void> _check() async {
     if (AppDI.instance.currentUserId == null) {
-      if (!mounted) return;
-      setState(() {
-        _checking = false;
-        _allowed = false;
-      });
-      final popped = await Navigator.of(context).maybePop();
-      if (!popped && mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRouter.home,
-          (_) => false,
-        );
-      }
+      await _leaveDeniedRoute();
       return;
     }
 
     final allowed =
         await AuthGuard.ensureCanAccessOrganizationWorkspace(context);
     if (!mounted) return;
+    if (!allowed) {
+      await _leaveDeniedRoute();
+      return;
+    }
+
     setState(() {
       _checking = false;
-      _allowed = allowed;
     });
-    if (!allowed) {
-      final popped = await Navigator.of(context).maybePop();
-      if (!popped && mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRouter.home,
-          (_) => false,
-        );
-      }
+  }
+
+  Future<void> _leaveDeniedRoute() async {
+    if (!mounted) return;
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
+      return;
     }
+    navigator.pushNamedAndRemoveUntil(
+      AppRouter.home,
+      (_) => false,
+    );
   }
 
   @override
@@ -726,9 +722,7 @@ class _OrganizationWorkspaceAccessGateState
         body: Center(child: CircularProgressIndicator()),
       );
     }
-    return _allowed
-        ? const OrganizationWorkspacePage()
-        : const Scaffold(body: SizedBox.shrink());
+    return const OrganizationWorkspacePage();
   }
 }
 

@@ -118,6 +118,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   AdminUserSearchPage? _userSearchPage;
   AdminUserSummary? _selectedUser;
   AdminUserDetail? _userDetail;
+  AdminWorkspaceEntitlement? _workspaceEntitlement;
+  bool _workspaceEntitlementLoadFailed = false;
   Timer? _userSearchDebounce;
   int _usersRequestGeneration = 0;
   int _userDetailRequestGeneration = 0;
@@ -572,12 +574,26 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         _userDetailLoadFailed = false;
         if (markLoading) {
           _userDetail = null;
+          _workspaceEntitlement = null;
+          _workspaceEntitlementLoadFailed = false;
         }
       });
     }
 
     try {
       final detail = await _adminRepository.getUserDetail(userId: user.id);
+      AdminWorkspaceEntitlement? workspaceEntitlement;
+      var workspaceEntitlementLoadFailed = false;
+
+      if (widget.currentRole == Role.admin) {
+        try {
+          workspaceEntitlement = await _adminRepository.getWorkspaceEntitlement(
+            targetUserId: user.id,
+          );
+        } catch (_) {
+          workspaceEntitlementLoadFailed = true;
+        }
+      }
 
       if (!mounted ||
           requestGeneration != _userDetailRequestGeneration ||
@@ -588,6 +604,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       setState(() {
         _selectedUser = detail.toSummary();
         _userDetail = detail;
+        _workspaceEntitlement = workspaceEntitlement;
+        _workspaceEntitlementLoadFailed = workspaceEntitlementLoadFailed;
         _isUserDetailLoading = false;
         _userDetailLoadFailed = false;
       });
@@ -627,6 +645,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     setState(() {
       _selectedUser = user;
       _userDetail = null;
+      _workspaceEntitlement = null;
+      _workspaceEntitlementLoadFailed = false;
       _isUserDetailLoading = true;
       _userDetailLoadFailed = false;
     });
@@ -645,6 +665,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     _userDetailRequestGeneration++;
     _selectedUser = null;
     _userDetail = null;
+    _workspaceEntitlement = null;
+    _workspaceEntitlementLoadFailed = false;
     _isUserDetailLoading = false;
     _userDetailLoadFailed = false;
   }
@@ -678,7 +700,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       return;
     }
 
-    var selected = current.entitlementStatus;
+    final currentEntitlement = current;
+    var selected = currentEntitlement.entitlementStatus;
     final reasonController = TextEditingController();
 
     final result = await showDialog<(AdminWorkspaceEntitlementStatus, String)>(
@@ -693,24 +716,30 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  current!.organizationName.isEmpty
-                      ? current.organizationId
-                      : current.organizationName,
+                  currentEntitlement.organizationName.isEmpty
+                      ? currentEntitlement.organizationId
+                      : currentEntitlement.organizationName,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Verifica: ${current.verificationStatus} · '
-                  'Piano: ${current.planKey} · '
-                  'Modalità: ${current.commercialMode}',
+                  'Verifica: ${currentEntitlement.verificationStatus} · '
+                  'Piano: ${currentEntitlement.planKey} · '
+                  'Modalità: ${currentEntitlement.commercialMode}',
                 ),
                 const SizedBox(height: 18),
+                _AdminWorkspaceStateSummary(
+                  label: 'Stato attuale',
+                  status: currentEntitlement.entitlementStatus,
+                  icon: Icons.history,
+                ),
+                const SizedBox(height: 10),
                 DropdownButtonFormField<AdminWorkspaceEntitlementStatus>(
                   initialValue: selected,
                   decoration: const InputDecoration(
-                    labelText: 'Entitlement Workspace',
+                    labelText: 'Nuovo stato Workspace',
                     border: OutlineInputBorder(),
                   ),
                   items: const [
@@ -747,12 +776,20 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                   maxLength: 1000,
                   minLines: 2,
                   maxLines: 4,
+                  onChanged: (_) => setDialogState(() {}),
                   decoration: const InputDecoration(
                     labelText: 'Motivo admin',
                     border: OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 6),
+                _AdminWorkspaceStateSummary(
+                  label: 'Stato da applicare',
+                  status: selected,
+                  icon: Icons.arrow_forward,
+                  emphasized: selected != currentEntitlement.entitlementStatus,
+                ),
+                const SizedBox(height: 10),
                 const Text(
                   'La verifica dell’identità resta separata dallo stato Workspace.',
                 ),
@@ -765,12 +802,15 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
             ),
             FilledButton(
-              onPressed: () {
-                final reason = reasonController.text.trim();
-                if (reason.isEmpty) return;
-                Navigator.of(dialogContext).pop((selected, reason));
-              },
-              child: const Text('Salva'),
+              onPressed: selected != currentEntitlement.entitlementStatus &&
+                      reasonController.text.trim().isNotEmpty
+                  ? () {
+                      Navigator.of(dialogContext).pop(
+                        (selected, reasonController.text.trim()),
+                      );
+                    }
+                  : null,
+              child: const Text('Applica modifica'),
             ),
           ],
         ),
@@ -781,14 +821,26 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     if (result == null) return;
 
     try {
-      await _adminRepository.setWorkspaceEntitlement(
+      final updated = await _adminRepository.setWorkspaceEntitlement(
         targetUserId: detail.id,
         entitlementStatus: result.$1,
         reason: result.$2,
       );
       if (!mounted) return;
+      final selectedUser = _selectedUser;
+      if (selectedUser != null && selectedUser.id == detail.id) {
+        setState(() {
+          _workspaceEntitlement = updated;
+          _workspaceEntitlementLoadFailed = false;
+        });
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Stato Workspace aggiornato.')),
+        SnackBar(
+          content: Text(
+            'Workspace aggiornato: '
+            '${_adminWorkspaceEntitlementLabel(context, updated.entitlementStatus)}.',
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
@@ -2432,21 +2484,55 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     Widget verificationSection() {
       return _AdminUserDetailSection(
         title: _adminL10n(context).adminCenterVerificationNavigation,
-        children: [
-          _AdminUserDetailField(
-            icon: Icons.workspace_premium_outlined,
-            label: _adminL10n(context).adminCenterVerificationLevelLabel,
-            value: _verificationLevelLabel(context, detail.verificationLevel),
-          ),
-          _AdminUserDetailField(
-            icon: Icons.verified_user_outlined,
-            label: _adminL10n(context).adminCenterVerificationStatusLabel,
-            value: _adminVerificationStatusLabel(
-              context,
-              detail.verificationStatus,
-            ),
-          ),
-        ],
+        children: detail.actorType == ActorType.citizen
+            ? [
+                _AdminUserDetailField(
+                  icon: Icons.workspace_premium_outlined,
+                  label: _adminL10n(context).adminCenterVerificationLevelLabel,
+                  value: _verificationLevelLabel(
+                    context,
+                    detail.verificationLevel,
+                  ),
+                ),
+                _AdminUserDetailField(
+                  icon: Icons.verified_user_outlined,
+                  label: _adminL10n(context).adminCenterVerificationStatusLabel,
+                  value: _adminVerificationStatusLabel(
+                    context,
+                    detail.verificationStatus,
+                  ),
+                ),
+              ]
+            : [
+                _AdminUserDetailField(
+                  icon: Icons.verified_rounded,
+                  label: _adminControlText(
+                    context,
+                    it: 'Identità pubblica',
+                    en: 'Public identity',
+                    de: 'Öffentliche Identität',
+                    fa: 'هویت عمومی',
+                  ),
+                  value: _actorTypeLabel(context, detail.actorType),
+                ),
+                _AdminUserDetailField(
+                  icon: Icons.info_outline,
+                  label: _adminControlText(
+                    context,
+                    it: 'Livelli persona',
+                    en: 'Person levels',
+                    de: 'Personenstufen',
+                    fa: 'سطوح شخصی',
+                  ),
+                  value: _adminControlText(
+                    context,
+                    it: 'Non applicabili a questa identità',
+                    en: 'Not applicable to this identity',
+                    de: 'Für diese Identität nicht anwendbar',
+                    fa: 'برای این هویت کاربرد ندارد',
+                  ),
+                ),
+              ],
       );
     }
 
@@ -2537,6 +2623,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           const SizedBox(height: 4),
           _AdminUserCommandCard(
             detail: detail,
+            workspaceEntitlement: _workspaceEntitlement,
+            workspaceEntitlementLoadFailed: _workspaceEntitlementLoadFailed,
             onChangeRole: () => _openChangeRoleDialog(detail),
             onSuspend: () => _openSuspendAccountDialog(detail),
             onReactivate: () => _openReactivateAccountDialog(detail),
@@ -3920,13 +4008,23 @@ class _AdminUserCard extends StatelessWidget {
                           icon: Icons.account_circle_outlined,
                           label: _actorTypeLabel(context, user.actorType),
                         ),
-                        _AdminUserAttribute(
-                          icon: Icons.workspace_premium_outlined,
-                          label: _verificationLevelLabel(
-                            context,
-                            user.verificationLevel,
+                        if (user.actorType == ActorType.citizen)
+                          _AdminUserAttribute(
+                            icon: Icons.workspace_premium_outlined,
+                            label: _verificationLevelLabel(
+                              context,
+                              user.verificationLevel,
+                            ),
                           ),
-                        ),
+                        if (user.actorType == ActorType.citizen &&
+                            user.verificationStatus != VerificationStatus.none)
+                          _AdminUserAttribute(
+                            icon: Icons.verified_user_outlined,
+                            label: _adminVerificationStatusLabel(
+                              context,
+                              user.verificationStatus,
+                            ),
+                          ),
                         if (!user.roleSynchronized)
                           _AdminUserAttribute(
                             icon: Icons.sync_problem,
@@ -3954,6 +4052,8 @@ class _AdminUserCard extends StatelessWidget {
 
 class _AdminUserCommandCard extends StatelessWidget {
   final AdminUserDetail detail;
+  final AdminWorkspaceEntitlement? workspaceEntitlement;
+  final bool workspaceEntitlementLoadFailed;
   final Future<void> Function() onChangeRole;
   final Future<void> Function() onSuspend;
   final Future<void> Function() onReactivate;
@@ -3965,6 +4065,8 @@ class _AdminUserCommandCard extends StatelessWidget {
 
   const _AdminUserCommandCard({
     required this.detail,
+    required this.workspaceEntitlement,
+    required this.workspaceEntitlementLoadFailed,
     required this.onChangeRole,
     required this.onSuspend,
     required this.onReactivate,
@@ -4077,6 +4179,20 @@ class _AdminUserCommandCard extends StatelessWidget {
                         ),
                       ],
                       const SizedBox(height: 10),
+                      Text(
+                        _adminControlText(
+                          context,
+                          it: 'Stato attuale',
+                          en: 'Current state',
+                          de: 'Aktueller Status',
+                          fa: 'وضعیت فعلی',
+                        ),
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 7),
                       Wrap(
                         spacing: 7,
                         runSpacing: 7,
@@ -4098,20 +4214,50 @@ class _AdminUserCommandCard extends StatelessWidget {
                             icon: Icons.account_circle_outlined,
                             label: _actorTypeLabel(context, detail.actorType),
                           ),
-                          _AdminUserAttribute(
-                            icon: Icons.workspace_premium_outlined,
-                            label: _verificationLevelLabel(
-                              context,
-                              detail.verificationLevel,
+                          if (detail.actorType == ActorType.citizen)
+                            _AdminUserAttribute(
+                              icon: Icons.workspace_premium_outlined,
+                              label: _verificationLevelLabel(
+                                context,
+                                detail.verificationLevel,
+                              ),
                             ),
-                          ),
-                          _AdminUserAttribute(
-                            icon: Icons.verified_user_outlined,
-                            label: _adminVerificationStatusLabel(
-                              context,
-                              detail.verificationStatus,
+                          if (detail.actorType == ActorType.citizen &&
+                              detail.verificationStatus !=
+                                  VerificationStatus.none)
+                            _AdminUserAttribute(
+                              icon: Icons.verified_user_outlined,
+                              label: _adminVerificationStatusLabel(
+                                context,
+                                detail.verificationStatus,
+                              ),
                             ),
-                          ),
+                          if (canManageWorkspace)
+                            _AdminUserAttribute(
+                              icon: workspaceEntitlementLoadFailed
+                                  ? Icons.sync_problem
+                                  : Icons.business_center_outlined,
+                              label: workspaceEntitlementLoadFailed
+                                  ? _adminControlText(
+                                      context,
+                                      it: 'Workspace non disponibile',
+                                      en: 'Workspace unavailable',
+                                      de: 'Workspace nicht verfügbar',
+                                      fa: 'فضای کاری در دسترس نیست',
+                                    )
+                                  : workspaceEntitlement == null
+                                      ? _adminControlText(
+                                          context,
+                                          it: 'Workspace non associato',
+                                          en: 'No linked Workspace',
+                                          de: 'Kein Workspace verknüpft',
+                                          fa: 'فضای کاری متصل نیست',
+                                        )
+                                      : 'Workspace: ${_adminWorkspaceEntitlementLabel(context, workspaceEntitlement!.entitlementStatus)}',
+                              color: workspaceEntitlementLoadFailed
+                                  ? colors.error
+                                  : null,
+                            ),
                           if (!detail.roleSynchronized)
                             _AdminUserAttribute(
                               icon: Icons.sync_problem,
@@ -4130,7 +4276,13 @@ class _AdminUserCommandCard extends StatelessWidget {
             Divider(color: colors.outlineVariant),
             const SizedBox(height: 10),
             Text(
-              _adminL10n(context).adminCenterQuickActionsTitle,
+              _adminControlText(
+                context,
+                it: 'Azioni disponibili',
+                en: 'Available actions',
+                de: 'Verfügbare Aktionen',
+                fa: 'اقدام‌های موجود',
+              ),
               style: theme.textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w800,
               ),
@@ -4176,7 +4328,13 @@ class _AdminUserCommandCard extends StatelessWidget {
                 ),
                 actionButton(
                   icon: Icons.business_center_outlined,
-                  label: 'Workspace',
+                  label: _adminControlText(
+                    context,
+                    it: 'Gestisci Workspace',
+                    en: 'Manage Workspace',
+                    de: 'Workspace verwalten',
+                    fa: 'مدیریت فضای کاری',
+                  ),
                   onPressed: canManageWorkspace
                       ? () => unawaited(onWorkspaceEntitlement())
                       : null,
@@ -4190,6 +4348,55 @@ class _AdminUserCommandCard extends StatelessWidget {
                   danger: true,
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AdminWorkspaceStateSummary extends StatelessWidget {
+  final String label;
+  final AdminWorkspaceEntitlementStatus status;
+  final IconData icon;
+  final bool emphasized;
+
+  const _AdminWorkspaceStateSummary({
+    required this.label,
+    required this.status,
+    required this.icon,
+    this.emphasized = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final foreground =
+        emphasized ? colors.onPrimaryContainer : colors.onSurfaceVariant;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: emphasized
+            ? colors.primaryContainer
+            : colors.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: foreground),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '$label: ${_adminWorkspaceEntitlementLabel(context, status)}',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: foreground,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
             ),
           ],
         ),
@@ -5646,6 +5853,43 @@ String _adminAccountStatusLabel(
     case AdminAccountStatus.unknown:
       return l10n.adminCenterUnknown;
   }
+}
+
+String _adminWorkspaceEntitlementLabel(
+  BuildContext context,
+  AdminWorkspaceEntitlementStatus status,
+) {
+  return switch (status) {
+    AdminWorkspaceEntitlementStatus.none => _adminControlText(
+        context,
+        it: 'Non attivo',
+        en: 'Not active',
+        de: 'Nicht aktiv',
+        fa: 'غیرفعال',
+      ),
+    AdminWorkspaceEntitlementStatus.pilot => 'Pilot',
+    AdminWorkspaceEntitlementStatus.active => _adminControlText(
+        context,
+        it: 'Attivo',
+        en: 'Active',
+        de: 'Aktiv',
+        fa: 'فعال',
+      ),
+    AdminWorkspaceEntitlementStatus.suspended => _adminControlText(
+        context,
+        it: 'Sospeso',
+        en: 'Suspended',
+        de: 'Gesperrt',
+        fa: 'تعلیق‌شده',
+      ),
+    AdminWorkspaceEntitlementStatus.expired => _adminControlText(
+        context,
+        it: 'Scaduto',
+        en: 'Expired',
+        de: 'Abgelaufen',
+        fa: 'منقضی',
+      ),
+  };
 }
 
 String _adminAuditResultLabel(BuildContext context, AdminAuditResult result) {

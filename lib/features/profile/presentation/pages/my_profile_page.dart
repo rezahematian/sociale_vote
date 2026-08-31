@@ -147,6 +147,7 @@ class _MyProfileView extends StatefulWidget {
 
 class _MyProfileViewState extends State<_MyProfileView> {
   late Future<int> _unreadNotificationsFuture;
+  late Future<OrganizationContext?> _organizationContextFuture;
   final BiometricUnlockService _biometricService = BiometricUnlockService();
 
   bool _isDeletingAccount = false;
@@ -162,11 +163,22 @@ class _MyProfileViewState extends State<_MyProfileView> {
   void initState() {
     super.initState();
     _unreadNotificationsFuture = _loadUnreadNotificationsCount();
+    _organizationContextFuture = _loadOrganizationContext();
     unawaited(_loadBiometricState());
   }
 
   Future<int> _loadUnreadNotificationsCount() {
     return AppDI.instance.getUnreadNotificationsCount(currentUserId);
+  }
+
+  Future<OrganizationContext?> _loadOrganizationContext() {
+    return AppDI.instance.organizationRepository.getMyOrganization();
+  }
+
+  void _refreshOrganizationContext() {
+    setState(() {
+      _organizationContextFuture = _loadOrganizationContext();
+    });
   }
 
   void _refreshUnreadNotificationsCount() {
@@ -1384,8 +1396,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                 ),
                 if (profile != null)
                   FutureBuilder<OrganizationContext?>(
-                    future: AppDI.instance.organizationRepository
-                        .getMyOrganization(),
+                    future: _organizationContextFuture,
                     builder: (context, snapshot) {
                       final organizationContext = snapshot.data;
                       final canBootstrapWorkspace =
@@ -1431,7 +1442,9 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                   await Navigator.of(context).pushNamed(
                                     AppRouter.organizationWorkspace,
                                   );
-                                  if (mounted) setState(() {});
+                                  if (mounted) {
+                                    _refreshOrganizationContext();
+                                  }
                                 },
                               )
                             else
@@ -1445,9 +1458,14 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                   trailing: const Icon(
                                     Icons.chevron_right_rounded,
                                   ),
-                                  onTap: () => Navigator.of(context).pushNamed(
-                                    AppRouter.organizationWorkspace,
-                                  ),
+                                  onTap: () async {
+                                    await Navigator.of(context).pushNamed(
+                                      AppRouter.organizationWorkspace,
+                                    );
+                                    if (mounted) {
+                                      _refreshOrganizationContext();
+                                    }
+                                  },
                                 ),
                               ),
                           ],

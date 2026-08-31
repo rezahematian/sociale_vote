@@ -32,6 +32,7 @@ class PublicUserProfilePage extends StatefulWidget {
 class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
   UserProfile? _profile;
   OrganizationProfile? _organization;
+  List<OrganizationExternalLink> _organizationExternalLinks = const [];
   List<Poll> _polls = const [];
   List<Post> _posts = const [];
   bool _isLoading = true;
@@ -97,6 +98,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
       setState(() {
         _profile = null;
         _organization = null;
+        _organizationExternalLinks = const [];
         _polls = const [];
         _posts = const [];
         _isLoading = false;
@@ -145,6 +147,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
       setState(() {
         _profile = null;
         _organization = null;
+        _organizationExternalLinks = const [];
         _polls = const [];
         _posts = const [];
         _isLoading = false;
@@ -177,6 +180,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
       if (mounted) {
         setState(() {
           _organization = null;
+          _organizationExternalLinks = const [];
           _organizationFollowState = null;
           _organizationFollowStateLoading = false;
           _organizationFollowStateLoadError = false;
@@ -197,17 +201,35 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
       setState(() => _organization = organization);
 
       if (organization != null) {
-        await _loadOrganizationFollowState(organization);
+        await Future.wait<void>(<Future<void>>[
+          _loadOrganizationFollowState(organization),
+          _loadOrganizationExternalLinks(organization),
+        ]);
       }
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _organization = null;
+        _organizationExternalLinks = const [];
         _organizationFollowState = null;
         _organizationFollowStateLoading = false;
         _organizationFollowStateLoadError = true;
         _organizationFollowActionLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadOrganizationExternalLinks(
+    OrganizationProfile organization,
+  ) async {
+    try {
+      final links = await AppDI.instance.organizationRepository
+          .listPublicExternalLinks(organization.id);
+      if (!mounted || _organization?.id != organization.id) return;
+      setState(() => _organizationExternalLinks = links);
+    } catch (_) {
+      if (!mounted || _organization?.id != organization.id) return;
+      setState(() => _organizationExternalLinks = const []);
     }
   }
 
@@ -754,6 +776,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
             const SizedBox(height: 12),
             _OrganizationPublicActions(
               organization: _organization!,
+              externalLinks: _organizationExternalLinks,
               followState: _organizationFollowState,
               followStateLoading: _organizationFollowStateLoading,
               followStateLoadError: _organizationFollowStateLoadError,
@@ -1005,6 +1028,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
 
 class _OrganizationPublicActions extends StatelessWidget {
   final OrganizationProfile organization;
+  final List<OrganizationExternalLink> externalLinks;
   final OrganizationFollowState? followState;
   final bool followStateLoading;
   final bool followStateLoadError;
@@ -1016,6 +1040,7 @@ class _OrganizationPublicActions extends StatelessWidget {
 
   const _OrganizationPublicActions({
     required this.organization,
+    required this.externalLinks,
     required this.followState,
     required this.followStateLoading,
     required this.followStateLoadError,
@@ -1091,32 +1116,59 @@ class _OrganizationPublicActions extends StatelessWidget {
                   label: Text(l10n.organizationOfficialWebsiteAction),
                 );
 
-          if (constraints.maxWidth < 620) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                identity,
-                if (websiteButton != null) ...[
-                  const SizedBox(height: 10),
-                  Align(alignment: Alignment.centerLeft, child: websiteButton),
-                ],
-              ],
-            );
-          }
+          final channelButtons = externalLinks
+              .where((link) => link.isPublic)
+              .map(
+                (link) => OutlinedButton.icon(
+                  onPressed: () => _openExternalLink(link.canonicalUrl),
+                  icon: Icon(_externalIcon(link.provider)),
+                  label: Text(link.provider.label),
+                ),
+              )
+              .toList(growable: false);
 
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+          final actions = <Widget>[
+            if (websiteButton != null) websiteButton,
+            ...channelButtons,
+          ];
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(child: identity),
-              if (websiteButton != null) ...[
-                const SizedBox(width: 12),
-                websiteButton,
+              if (constraints.maxWidth < 620)
+                identity
+              else
+                Align(alignment: Alignment.centerLeft, child: identity),
+              if (actions.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: actions,
+                ),
               ],
             ],
           );
         },
       ),
     );
+  }
+
+  Future<void> _openExternalLink(String rawUrl) async {
+    final uri = Uri.tryParse(rawUrl);
+    if (uri == null || uri.scheme != 'https') return;
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  IconData _externalIcon(OrganizationExternalLinkProvider provider) {
+    return switch (provider) {
+      OrganizationExternalLinkProvider.youtube =>
+        Icons.play_circle_outline_rounded,
+      OrganizationExternalLinkProvider.linkedin => Icons.work_outline_rounded,
+      OrganizationExternalLinkProvider.whatsapp => Icons.chat_outlined,
+      OrganizationExternalLinkProvider.instagram => Icons.photo_camera_outlined,
+      OrganizationExternalLinkProvider.telegram => Icons.send_outlined,
+    };
   }
 }
 

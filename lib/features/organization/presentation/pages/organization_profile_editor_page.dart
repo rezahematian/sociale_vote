@@ -27,6 +27,11 @@ class _OrganizationProfileEditorPageState
   final _city = TextEditingController();
   final _website = TextEditingController();
   final _description = TextEditingController();
+  final _youtube = TextEditingController();
+  final _linkedin = TextEditingController();
+  final _whatsapp = TextEditingController();
+  final _instagram = TextEditingController();
+  final _telegram = TextEditingController();
   OrganizationEntityType _type = OrganizationEntityType.other;
   bool _uploadingCover = false;
   bool _uploadingLogo = false;
@@ -51,6 +56,10 @@ class _OrganizationProfileEditorPageState
     _website.text = org.websiteUrl ?? '';
     _description.text = org.description ?? '';
     _type = org.entityType;
+
+    for (final link in widget.controller.externalLinks) {
+      _externalController(link.provider).text = link.canonicalUrl;
+    }
   }
 
   @override
@@ -61,6 +70,11 @@ class _OrganizationProfileEditorPageState
     _city.dispose();
     _website.dispose();
     _description.dispose();
+    _youtube.dispose();
+    _linkedin.dispose();
+    _whatsapp.dispose();
+    _instagram.dispose();
+    _telegram.dispose();
     super.dispose();
   }
 
@@ -135,7 +149,31 @@ class _OrganizationProfileEditorPageState
       return;
     }
 
+    final externalLinks = <OrganizationExternalLinkProvider, String?>{};
+    for (final provider in OrganizationExternalLinkProvider.values) {
+      final raw = _externalController(provider).text;
+      try {
+        externalLinks[provider] = provider.normalizeUrl(raw);
+      } on FormatException {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _tr(
+                context,
+                it: 'Controlla il link ${provider.label}: deve essere un URL HTTPS ufficiale.',
+                en: 'Check the ${provider.label} link: it must be an official HTTPS URL.',
+                de: 'Prüfe den ${provider.label}-Link: Er muss eine offizielle HTTPS-URL sein.',
+                fa: 'پیوند ${provider.label} را بررسی کنید: باید نشانی رسمی HTTPS باشد.',
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+    }
+
     try {
+      await widget.controller.replaceExternalLinks(externalLinks);
       await widget.controller.updateProfile(
         entityType: _type,
         legalName: _legalName.text,
@@ -157,6 +195,18 @@ class _OrganizationProfileEditorPageState
         SnackBar(content: Text(e.toString())),
       );
     }
+  }
+
+  TextEditingController _externalController(
+    OrganizationExternalLinkProvider provider,
+  ) {
+    return switch (provider) {
+      OrganizationExternalLinkProvider.youtube => _youtube,
+      OrganizationExternalLinkProvider.linkedin => _linkedin,
+      OrganizationExternalLinkProvider.whatsapp => _whatsapp,
+      OrganizationExternalLinkProvider.instagram => _instagram,
+      OrganizationExternalLinkProvider.telegram => _telegram,
+    };
   }
 
   @override
@@ -345,6 +395,67 @@ class _OrganizationProfileEditorPageState
                     ),
                   ),
                   const SizedBox(height: 12),
+                  Card(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.hub_outlined),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _tr(
+                                    context,
+                                    it: 'Canali ufficiali',
+                                    en: 'Official channels',
+                                    de: 'Offizielle Kanäle',
+                                    fa: 'کانال‌های رسمی',
+                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w800),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _tr(
+                              context,
+                              it: 'Aggiungi solo profili dell’Organization. Questi link non assegnano automaticamente verifica o accesso Workspace.',
+                              en: 'Add only organization profiles. These links never grant verification or Workspace access automatically.',
+                              de: 'Füge nur Profile der Organisation hinzu. Diese Links gewähren niemals automatisch Verifizierung oder Workspace-Zugriff.',
+                              fa: 'فقط پروفایل‌های سازمان را اضافه کنید. این پیوندها به‌طور خودکار تأیید یا دسترسی Workspace نمی‌دهند.',
+                            ),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 14),
+                          ...OrganizationExternalLinkProvider.values.map(
+                            (provider) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: TextField(
+                                controller: _externalController(provider),
+                                keyboardType: TextInputType.url,
+                                autocorrect: false,
+                                enableSuggestions: false,
+                                decoration: InputDecoration(
+                                  labelText: provider.label,
+                                  hintText: _externalHint(provider),
+                                  prefixIcon: Icon(_externalIcon(provider)),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: _description,
                     minLines: 4,
@@ -389,4 +500,43 @@ class _OrganizationProfileEditorPageState
       OrganizationEntityType.other => l10n.organizationTypeOther,
     };
   }
+
+  String _externalHint(OrganizationExternalLinkProvider provider) {
+    return switch (provider) {
+      OrganizationExternalLinkProvider.youtube =>
+        'https://www.youtube.com/@socialvote',
+      OrganizationExternalLinkProvider.linkedin =>
+        'https://www.linkedin.com/company/social-vote',
+      OrganizationExternalLinkProvider.whatsapp => 'https://wa.me/…',
+      OrganizationExternalLinkProvider.instagram =>
+        'https://www.instagram.com/socialvote',
+      OrganizationExternalLinkProvider.telegram => 'https://t.me/socialvote',
+    };
+  }
+
+  IconData _externalIcon(OrganizationExternalLinkProvider provider) {
+    return switch (provider) {
+      OrganizationExternalLinkProvider.youtube =>
+        Icons.play_circle_outline_rounded,
+      OrganizationExternalLinkProvider.linkedin => Icons.work_outline_rounded,
+      OrganizationExternalLinkProvider.whatsapp => Icons.chat_outlined,
+      OrganizationExternalLinkProvider.instagram => Icons.photo_camera_outlined,
+      OrganizationExternalLinkProvider.telegram => Icons.send_outlined,
+    };
+  }
+}
+
+String _tr(
+  BuildContext context, {
+  required String it,
+  required String en,
+  required String de,
+  required String fa,
+}) {
+  return switch (Localizations.localeOf(context).languageCode) {
+    'it' => it,
+    'de' => de,
+    'fa' => fa,
+    _ => en,
+  };
 }

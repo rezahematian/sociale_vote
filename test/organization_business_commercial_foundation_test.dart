@@ -23,7 +23,8 @@ OrganizationContext ctx(String verification, String status, String role) =>
             planKey: 'pilot',
             status: status,
             commercialMode: 'pilot_free',
-            billingEnabled: false),
+            billingEnabled: false,
+            entitlementStatus: WorkspaceEntitlementStatus.pilot),
         membershipRole: role);
 
 void main() {
@@ -40,5 +41,19 @@ void main() {
   });
   test('pilot is free', () {
     expect(ctx('verified', 'active', 'owner').isFreePilot, true);
+  });
+
+  test('missing entitlement fails closed instead of inventing pilot access',
+      () {
+    final workspace = OrganizationWorkspace.fromJson(<String, dynamic>{
+      'id': 'w',
+      'organization_id': 'o',
+      'plan_key': 'pilot',
+      'status': 'active',
+      'commercial_mode': 'pilot_free',
+      'billing_enabled': false,
+    });
+
+    expect(workspace.entitlementStatus, WorkspaceEntitlementStatus.none);
   });
 }

@@ -181,6 +181,47 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
   }
 
   @override
+  Future<List<OrganizationExternalLink>> listMyExternalLinks() async {
+    final raw = await _client.rpc('organization_external_links_list_mine');
+    return _externalLinksFromRaw(raw);
+  }
+
+  @override
+  Future<List<OrganizationExternalLink>> listPublicExternalLinks(
+    String organizationId,
+  ) async {
+    final normalized = organizationId.trim();
+    if (normalized.isEmpty) return const <OrganizationExternalLink>[];
+
+    final raw = await _client.rpc(
+      'organization_external_links_public',
+      params: <String, dynamic>{'p_organization_id': normalized},
+    );
+    return _externalLinksFromRaw(raw);
+  }
+
+  @override
+  Future<List<OrganizationExternalLink>> replaceExternalLinks(
+    Map<OrganizationExternalLinkProvider, String?> links,
+  ) async {
+    final payload = <Map<String, dynamic>>[];
+    for (final provider in OrganizationExternalLinkProvider.values) {
+      final canonicalUrl = provider.normalizeUrl(links[provider]);
+      if (canonicalUrl == null) continue;
+      payload.add(<String, dynamic>{
+        'provider': provider.storageKey,
+        'canonical_url': canonicalUrl,
+      });
+    }
+
+    final raw = await _client.rpc(
+      'organization_external_links_replace',
+      params: <String, dynamic>{'p_links': payload},
+    );
+    return _externalLinksFromRaw(raw);
+  }
+
+  @override
   Future<OrganizationContext> updateOrganizationProfile({
     required OrganizationEntityType entityType,
     required String legalName,
@@ -512,6 +553,20 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
     final result = _map(raw);
     if (result.isEmpty) throw StateError('Unexpected empty backend response.');
     return result;
+  }
+
+  List<OrganizationExternalLink> _externalLinksFromRaw(dynamic raw) {
+    final rows = raw is List ? raw : const <dynamic>[];
+    final result = <OrganizationExternalLink>[];
+    for (final item in rows) {
+      final row = _map(item);
+      if (row.isEmpty) continue;
+      result.add(OrganizationExternalLink.fromJson(row));
+    }
+    result.sort(
+      (left, right) => left.provider.index.compareTo(right.provider.index),
+    );
+    return List<OrganizationExternalLink>.unmodifiable(result);
   }
 
   Map<String, dynamic> _map(dynamic raw) {

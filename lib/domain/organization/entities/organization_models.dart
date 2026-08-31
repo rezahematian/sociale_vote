@@ -109,6 +109,133 @@ class OrganizationFollowState {
   }
 }
 
+enum OrganizationExternalLinkProvider {
+  youtube,
+  linkedin,
+  whatsapp,
+  instagram,
+  telegram,
+}
+
+extension OrganizationExternalLinkProviderX
+    on OrganizationExternalLinkProvider {
+  String get storageKey => switch (this) {
+        OrganizationExternalLinkProvider.youtube => 'youtube',
+        OrganizationExternalLinkProvider.linkedin => 'linkedin',
+        OrganizationExternalLinkProvider.whatsapp => 'whatsapp',
+        OrganizationExternalLinkProvider.instagram => 'instagram',
+        OrganizationExternalLinkProvider.telegram => 'telegram',
+      };
+
+  String get label => switch (this) {
+        OrganizationExternalLinkProvider.youtube => 'YouTube',
+        OrganizationExternalLinkProvider.linkedin => 'LinkedIn',
+        OrganizationExternalLinkProvider.whatsapp => 'WhatsApp',
+        OrganizationExternalLinkProvider.instagram => 'Instagram',
+        OrganizationExternalLinkProvider.telegram => 'Telegram',
+      };
+
+  static OrganizationExternalLinkProvider? tryFromStorageKey(String? value) {
+    return switch (value?.trim().toLowerCase()) {
+      'youtube' => OrganizationExternalLinkProvider.youtube,
+      'linkedin' => OrganizationExternalLinkProvider.linkedin,
+      'whatsapp' => OrganizationExternalLinkProvider.whatsapp,
+      'instagram' => OrganizationExternalLinkProvider.instagram,
+      'telegram' => OrganizationExternalLinkProvider.telegram,
+      _ => null,
+    };
+  }
+
+  String? normalizeUrl(String? value) {
+    final raw = value?.trim();
+    if (raw == null || raw.isEmpty) return null;
+    if (raw.length > 500) {
+      throw FormatException('$label URL is too long.');
+    }
+
+    final withScheme = raw.contains('://') ? raw : 'https://$raw';
+    final uri = Uri.tryParse(withScheme);
+    if (uri == null ||
+        uri.scheme.toLowerCase() != 'https' ||
+        uri.host.trim().isEmpty ||
+        uri.userInfo.isNotEmpty ||
+        (uri.hasPort && uri.port != 443) ||
+        uri.hasFragment) {
+      throw FormatException('Use a valid HTTPS $label URL.');
+    }
+
+    final host = uri.host.toLowerCase().replaceFirst(RegExp(r'\.$'), '');
+    final allowed = switch (this) {
+      OrganizationExternalLinkProvider.youtube =>
+        _hostMatches(host, 'youtube.com'),
+      OrganizationExternalLinkProvider.linkedin =>
+        _hostMatches(host, 'linkedin.com'),
+      OrganizationExternalLinkProvider.whatsapp =>
+        host == 'wa.me' || _hostMatches(host, 'whatsapp.com'),
+      OrganizationExternalLinkProvider.instagram =>
+        _hostMatches(host, 'instagram.com'),
+      OrganizationExternalLinkProvider.telegram =>
+        host == 't.me' || _hostMatches(host, 'telegram.me'),
+    };
+    if (!allowed) {
+      throw FormatException('Use an official $label URL.');
+    }
+
+    return uri
+        .replace(
+          scheme: 'https',
+          host: host,
+          fragment: null,
+        )
+        .toString();
+  }
+}
+
+class OrganizationExternalLink {
+  final String id;
+  final String organizationId;
+  final OrganizationExternalLinkProvider provider;
+  final String canonicalUrl;
+  final String connectionMode;
+  final String visibility;
+  final String status;
+  final DateTime? verifiedAt;
+
+  const OrganizationExternalLink({
+    required this.id,
+    required this.organizationId,
+    required this.provider,
+    required this.canonicalUrl,
+    required this.connectionMode,
+    required this.visibility,
+    required this.status,
+    required this.verifiedAt,
+  });
+
+  factory OrganizationExternalLink.fromJson(Map<String, dynamic> json) {
+    final provider = OrganizationExternalLinkProviderX.tryFromStorageKey(
+      _string(json['provider']),
+    );
+    if (provider == null) {
+      throw const FormatException('Unsupported external link provider.');
+    }
+
+    return OrganizationExternalLink(
+      id: _string(json['id']) ?? '',
+      organizationId: _string(json['organization_id']) ?? '',
+      provider: provider,
+      canonicalUrl: _string(json['canonical_url']) ?? '',
+      connectionMode: _string(json['connection_mode']) ?? 'declared',
+      visibility: _string(json['visibility']) ?? 'public',
+      status: _string(json['status']) ?? 'active',
+      verifiedAt: _date(json['verified_at']),
+    );
+  }
+
+  bool get isPublic => visibility == 'public' && status == 'active';
+  bool get isOwnershipVerified => connectionMode == 'ownership_verified';
+}
+
 enum WorkspaceEntitlementStatus {
   none,
   pilot,
@@ -197,7 +324,7 @@ class OrganizationWorkspace {
     required this.status,
     required this.commercialMode,
     required this.billingEnabled,
-    this.entitlementStatus = WorkspaceEntitlementStatus.pilot,
+    this.entitlementStatus = WorkspaceEntitlementStatus.none,
     this.entitlementStartedAt,
     this.entitlementExpiresAt,
   });
@@ -211,10 +338,7 @@ class OrganizationWorkspace {
       commercialMode: _string(json['commercial_mode']) ?? 'pilot_free',
       billingEnabled: json['billing_enabled'] == true,
       entitlementStatus: WorkspaceEntitlementStatusX.fromStorageKey(
-        _string(json['entitlement_status']) ??
-            ((_string(json['plan_key']) ?? 'pilot') == 'pilot'
-                ? 'pilot'
-                : 'active'),
+        _string(json['entitlement_status']),
       ),
       entitlementStartedAt: _date(json['entitlement_started_at']),
       entitlementExpiresAt: _date(json['entitlement_expires_at']),
@@ -288,4 +412,8 @@ Map<String, dynamic> _map(dynamic value) {
   if (value is Map<String, dynamic>) return value;
   if (value is Map) return Map<String, dynamic>.from(value);
   return const <String, dynamic>{};
+}
+
+bool _hostMatches(String host, String rootDomain) {
+  return host == rootDomain || host.endsWith('.$rootDomain');
 }
