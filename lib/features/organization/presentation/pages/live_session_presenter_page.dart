@@ -12,6 +12,7 @@ import 'package:sociale_vote/domain/organization/repositories/organization_repos
 import 'package:sociale_vote/features/organization/presentation/pages/live_session_access_passes_page.dart';
 import 'package:sociale_vote/features/organization/presentation/pages/live_session_stage_page.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/services/egress_policy_service.dart';
 
 class LiveSessionPresenterPage extends StatefulWidget {
   final String sessionId;
@@ -26,8 +27,10 @@ class LiveSessionPresenterPage extends StatefulWidget {
       _LiveSessionPresenterPageState();
 }
 
-class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
+class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage>
+    with WidgetsBindingObserver {
   late final OrganizationRepository _repository;
+  final EgressPolicyService _egressPolicy = EgressPolicyService.instance;
   LiveSessionDetail? _detail;
   bool _loading = true;
   bool _busy = false;
@@ -35,23 +38,77 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
   Object? _error;
   Timer? _timer;
   int _section = 0;
+  bool _appVisible = true;
 
   @override
   void initState() {
     super.initState();
     _repository = AppDI.instance.organizationRepository;
-    _load();
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (_detail?.session.status == 'open' && !_busy) {
-        _load(silent: true);
-      }
-    });
+    WidgetsBinding.instance.addObserver(this);
+    _egressPolicy.addListener(_handleEgressPolicyChanged);
+    unawaited(_egressPolicy.initialize());
+    unawaited(_load().whenComplete(_scheduleNextRefresh));
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _egressPolicy.removeListener(_handleEgressPolicyChanged);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appVisible = state == AppLifecycleState.resumed;
+    if (_appVisible) {
+      _scheduleNextRefresh();
+    } else {
+      _timer?.cancel();
+      _timer = null;
+    }
+  }
+
+  void _handleEgressPolicyChanged() {
+    if (mounted) _scheduleNextRefresh();
+  }
+
+  EgressSessionActivity _sessionActivity() {
+    return _detail?.openQuestion == null
+        ? EgressSessionActivity.waiting
+        : EgressSessionActivity.active;
+  }
+
+  void _scheduleNextRefresh() {
+    _timer?.cancel();
+    _timer = null;
+    if (!mounted || !_appVisible || _detail?.session.status != 'open') {
+      return;
+    }
+
+    final delay = EgressPolicyService.sessionRefreshDelayFor(
+      mode: _egressPolicy.mode,
+      activity: _sessionActivity(),
+    );
+    if (delay == null) return;
+    _timer = Timer(delay, _runAutomaticRefresh);
+  }
+
+  Future<void> _runAutomaticRefresh() async {
+    if (!mounted) return;
+    final routeVisible = ModalRoute.of(context)?.isCurrent ?? true;
+    if (!_appVisible || !routeVisible || _busy) {
+      _scheduleNextRefresh();
+      return;
+    }
+
+    final allowed = await _egressPolicy.tryConsumeAutomatic(
+      EgressAutomaticTraffic.sessionPresenter,
+    );
+    if (allowed && mounted) {
+      await _load(silent: true);
+    }
+    _scheduleNextRefresh();
   }
 
   Future<void> _load({bool silent = false}) async {
@@ -83,6 +140,7 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
       });
     } finally {
       _refreshInFlight = false;
+      if (mounted) _scheduleNextRefresh();
     }
   }
 

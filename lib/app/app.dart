@@ -12,6 +12,7 @@ import 'package:sociale_vote/domain/identity/value_objects/role.dart';
 import 'package:sociale_vote/features/auth/presentation/widgets/biometric_session_gate.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/navigation_service.dart';
+import 'package:sociale_vote/shared/services/egress_policy_service.dart';
 import 'package:sociale_vote/shared/services/radio_mondo_service.dart';
 import 'package:sociale_vote/shared/services/social_vote_hud_service.dart';
 
@@ -255,6 +256,7 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
   void initState() {
     super.initState();
     unawaited(AppLocaleController.load());
+    unawaited(EgressPolicyService.instance.initialize());
     unawaited(RadioMondoService.instance.initialize());
 
     _appearanceUserSubscription =

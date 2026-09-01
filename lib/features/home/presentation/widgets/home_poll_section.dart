@@ -23,6 +23,10 @@ class HomePollSection extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final controller = context.watch<PollListController>();
+    final surfaceVisible = TickerMode.valuesOf(context).enabled;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.setSurfaceVisible(surfaceVisible);
+    });
 
     final header = Row(
       children: [

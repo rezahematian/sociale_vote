@@ -157,6 +157,7 @@ import 'package:sociale_vote/infrastructure/poll/repositories/vote_repository_im
 import 'package:sociale_vote/infrastructure/search/repositories/search_repository_in_memory.dart';
 import 'package:sociale_vote/infrastructure/social/repositories/post_repository_impl.dart';
 import 'package:sociale_vote/shared/services/storage_service.dart';
+import 'package:sociale_vote/shared/services/egress_policy_service.dart';
 
 class UserRepositoryImpl implements UserRepository {
   final AuthApi _authApi;
@@ -284,7 +285,8 @@ class AppDI {
   static const int _pollMapBatchSize = 120;
   static const int _postMapBatchSize = 120;
   static const int _newsMapBatchSize = 80;
-  static const int _homeMapBatchSize = 12;
+  static const int _homeMapNormalBatchSize = 10;
+  static const int _homeMapConservativeBatchSize = 4;
   static const Duration _mapEngagementCacheTtl = Duration(seconds: 20);
 
   final GeoScopeController _geoScopeController = GeoScopeController();
@@ -981,7 +983,7 @@ class AppDI {
     );
   }
 
-  PollListController createPollListController() {
+  PollListController createPollListController({int pageSize = 10}) {
     return PollListController(
       getPollsUseCase: getPolls,
       getPollResults: getPollResults,
@@ -989,6 +991,7 @@ class AppDI {
       geoScopeController: geoScopeController,
       toggleReaction: toggleReaction,
       getReactionSummary: getReactionSummary,
+      pageSize: pageSize,
     );
   }
 
@@ -1023,22 +1026,24 @@ class AppDI {
     );
   }
 
-  NewsController createNewsController() {
+  NewsController createNewsController({int pageSize = 10}) {
     return NewsController(
       getNewsFeed,
       toggleReaction,
       getReactionSummary,
       _contentVisibilityFilter,
+      pageSize,
     );
   }
 
-  FeedController createFeedController() {
+  FeedController createFeedController({int pageSize = 10}) {
     return FeedController(
       getFeed: getFeed,
       geoScopeController: geoScopeController,
       toggleReaction: toggleReaction,
       getReactionSummary: getReactionSummary,
       getCommentCountForTarget: getCommentCountForTarget,
+      pageSize: pageSize,
     );
   }
 
@@ -1095,23 +1100,27 @@ class AppDI {
       );
     }
 
+    final homeBatchSize = EgressPolicyService.instance.mode == EgressMode.normal
+        ? _homeMapNormalBatchSize
+        : _homeMapConservativeBatchSize;
+
     // Home needs only a handful of representative markers. Do not perform
     // the full Civic Map load (up to 320 entities + engagement metrics) while
     // the first screen and native globe are becoming interactive.
     return CivicMapController(
       loadPollItems: (scope) => _loadPollMapItemsForScope(
         scope,
-        batchSize: _homeMapBatchSize,
+        batchSize: homeBatchSize,
         includeEngagement: false,
       ),
       loadPostItems: (scope) => _loadPostMapItemsForScope(
         scope,
-        batchSize: _homeMapBatchSize,
+        batchSize: homeBatchSize,
         includeEngagement: false,
       ),
       loadNewsItems: (scope) => _loadNewsMapItemsForScope(
         scope,
-        batchSize: _homeMapBatchSize,
+        batchSize: homeBatchSize,
         includeEngagement: false,
       ),
     );

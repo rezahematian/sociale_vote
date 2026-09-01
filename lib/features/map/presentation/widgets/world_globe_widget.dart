@@ -229,6 +229,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
   String? _lastWebLayoutDiagnostic;
   final WorldMarkerPolicyService _markerPolicy =
       WorldMarkerPolicyService.instance;
+  bool _markerPolicyRebuildScheduled = false;
 
   bool get _isHomeProfile =>
       widget.interactionProfile == WorldGlobeInteractionProfile.home;
@@ -245,7 +246,12 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
   }
 
   void _handleMarkerPolicyChanged() {
-    if (mounted) setState(() {});
+    if (!mounted || _markerPolicyRebuildScheduled) return;
+    _markerPolicyRebuildScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _markerPolicyRebuildScheduled = false;
+      if (mounted) setState(() {});
+    });
   }
 
   @override

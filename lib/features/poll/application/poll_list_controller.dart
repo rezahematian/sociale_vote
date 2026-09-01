@@ -14,6 +14,7 @@ import 'package:sociale_vote/domain/poll/usecases/get_poll_results.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_polls.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_status.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
+import 'package:sociale_vote/shared/services/egress_policy_service.dart';
 
 enum PollSortMode {
   latest,
@@ -34,6 +35,7 @@ class PollListController extends ChangeNotifier {
   final GeoScopeController geoScopeController;
   final ToggleReaction toggleReaction;
   final GetReactionSummary getReactionSummary;
+  final int pageSize;
 
   late final VoidCallback _geoScopeListener;
 
@@ -49,7 +51,6 @@ class PollListController extends ChangeNotifier {
   bool _isLoading = false;
   bool _hasMoreFromSource = true;
 
-  static const int _pageSize = 10;
   int _currentOffset = 0;
 
   /// Lista sorgente: tutti i poll ricevuti dal backend per lo scope corrente.
@@ -75,11 +76,13 @@ class PollListController extends ChangeNotifier {
     required this.geoScopeController,
     required this.toggleReaction,
     required this.getReactionSummary,
-  }) {
+    this.pageSize = 10,
+  }) : assert(pageSize > 0) {
     _geoScopeListener = () {
       loadPolls(userId: _lastKnownUserId);
     };
     geoScopeController.addListener(_geoScopeListener);
+    EgressPolicyService.instance.addListener(_handleEgressPolicyChanged);
   }
 
   // ===== Getters di stato esposto alla UI =====
@@ -215,12 +218,12 @@ class PollListController extends ChangeNotifier {
     final result = await getPollsUseCase(
       countryCode: countryCode,
       cityId: cityId,
-      limit: _pageSize,
+      limit: pageSize,
       offset: _currentOffset,
     );
     if (!_isCurrentLoad(generation)) return;
 
-    if (result.length < _pageSize) {
+    if (result.length < pageSize) {
       _hasMoreFromSource = false;
     }
 
@@ -314,7 +317,15 @@ class PollListController extends ChangeNotifier {
   // ===== Realtime voti =====
 
   void _ensureVoteSubscriptions(List<Poll> polls) {
-    if (_isDisposed || polls.isEmpty) return;
+    final egressPolicy = EgressPolicyService.instance;
+    if (_isDisposed ||
+        polls.isEmpty ||
+        !_surfaceVisible ||
+        !egressPolicy.isAppVisible ||
+        egressPolicy.automaticBudgetExhausted ||
+        egressPolicy.mode == EgressMode.emergency) {
+      return;
+    }
 
     for (final poll in polls) {
       final pollId = poll.id.value;
@@ -350,6 +361,16 @@ class PollListController extends ChangeNotifier {
 
   Future<void> _reloadPollResult(String pollId) async {
     if (_isDisposed) return;
+
+    final allowed = await EgressPolicyService.instance.tryConsumeAutomatic(
+      EgressAutomaticTraffic.pollRealtimeResult,
+    );
+    if (!allowed || _isDisposed) {
+      if (EgressPolicyService.instance.automaticBudgetExhausted) {
+        _clearVoteSubscriptions();
+      }
+      return;
+    }
 
     if (!_pollResultReloading.add(pollId)) {
       _pollResultReloadQueued.add(pollId);
@@ -402,6 +423,32 @@ class PollListController extends ChangeNotifier {
 
     _pollResultReloading.clear();
     _pollResultReloadQueued.clear();
+  }
+
+  bool _surfaceVisible = true;
+
+  void setSurfaceVisible(bool visible) {
+    if (_isDisposed || _surfaceVisible == visible) return;
+    _surfaceVisible = visible;
+
+    if (!visible) {
+      _clearVoteSubscriptions();
+      return;
+    }
+
+    _ensureVoteSubscriptions(_allPolls);
+  }
+
+  void _handleEgressPolicyChanged() {
+    if (_isDisposed) return;
+    final policy = EgressPolicyService.instance;
+    if (!_surfaceVisible ||
+        !policy.isAppVisible ||
+        policy.mode == EgressMode.emergency) {
+      _clearVoteSubscriptions();
+      return;
+    }
+    _ensureVoteSubscriptions(_allPolls);
   }
 
   // ===== Reaction helpers =====
@@ -530,6 +577,7 @@ class PollListController extends ChangeNotifier {
     _isDisposed = true;
     _loadGeneration++;
     geoScopeController.removeListener(_geoScopeListener);
+    EgressPolicyService.instance.removeListener(_handleEgressPolicyChanged);
     _clearVoteSubscriptions();
     super.dispose();
   }

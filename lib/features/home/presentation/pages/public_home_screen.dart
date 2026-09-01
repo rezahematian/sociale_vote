@@ -36,6 +36,7 @@ import 'package:sociale_vote/features/social/presentation/pages/create_post_page
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/data/countries.dart' as country_data;
 import 'package:sociale_vote/shared/services/auth_guard.dart';
+import 'package:sociale_vote/shared/services/egress_policy_service.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class PublicHomeScreen extends StatefulWidget {
@@ -70,6 +71,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   bool _isRefreshingHomeNewsLanguageKey = false;
   bool _isRefreshingHome = false;
   int _homeRefreshVersion = 0;
+  bool _nextHomeReloadUserInitiated = false;
   bool _isHomeGlobeScrollLocked = false;
   bool _isScopeSelectorActive = false;
 
@@ -152,7 +154,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     _homeNotificationsControllerUserId = normalizedUserId;
 
     if (kIsWeb) {
-      unawaited(controller.refreshUnreadCount());
+      unawaited(_refreshUnreadAutomatically(controller));
       return;
     }
 
@@ -162,21 +164,49 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
         if (!mounted || !identical(_homeNotificationsController, controller)) {
           return;
         }
-        unawaited(controller.refreshUnreadCount());
+        unawaited(_refreshUnreadAutomatically(controller));
       },
     );
   }
 
+  Future<void> _refreshUnreadAutomatically(
+    NotificationsController controller,
+  ) async {
+    final allowed = await EgressPolicyService.instance.tryConsumeAutomatic(
+      EgressAutomaticTraffic.homeNotifications,
+    );
+    if (!allowed || !mounted) return;
+    await controller.refreshUnreadCount();
+  }
+
   void _scheduleHomeLoad(
+    EgressAutomaticTraffic traffic,
     Duration nativeDelay,
-    Future<void> Function() load,
-  ) {
+    Future<void> Function() load, {
+    required bool userInitiated,
+  }) {
+    Future<void> run() async {
+      if (!userInitiated) {
+        final allowed =
+            await EgressPolicyService.instance.tryConsumeAutomatic(traffic);
+        if (!allowed) return;
+      }
+      await load();
+    }
+
     if (kIsWeb) {
-      unawaited(load());
+      unawaited(run());
       return;
     }
 
-    unawaited(Future<void>.delayed(nativeDelay, load));
+    unawaited(Future<void>.delayed(nativeDelay, run));
+  }
+
+  void _markNextHomeReloadUserInitiated() {
+    _nextHomeReloadUserInitiated = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _nextHomeReloadUserInitiated = false;
+    });
   }
 
   void _setWorld() => _geoScopeController.setWorld();
@@ -441,6 +471,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       return;
     }
 
+    _markNextHomeReloadUserInitiated();
     setState(() {
       _homeRefreshVersion += 1;
     });
@@ -465,6 +496,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       return;
     }
 
+    _markNextHomeReloadUserInitiated();
     setState(() {
       _homeRefreshVersion += 1;
     });
@@ -623,6 +655,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       return;
     }
 
+    _markNextHomeReloadUserInitiated();
     setState(() {
       _isRefreshingHome = true;
       _homeRefreshVersion += 1;
@@ -742,308 +775,319 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                 AppColors.backgroundAlt,
               ];
 
-        return Directionality(
-            // Stable product geometry: Persian changes language, not the
-            // physical position/order of Home controls and content sections.
-            textDirection: TextDirection.ltr,
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
-              appBar: AppBar(
-                backgroundColor: Colors.black,
-                surfaceTintColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-                elevation: 0,
-                scrolledUnderElevation: 0,
-                centerTitle: false,
-                titleSpacing: 16,
-                toolbarHeight: appBarToolbarHeight,
-                title: HomeTopBar(
-                  scopeShortLabel: scopeShortLabel,
-                  isLoggedIn: isLoggedIn,
-                  unreadNotificationsCount: unreadNotificationsCount,
-                  onLoginPressed: _onLoginPressed,
-                  onRegisterPressed: _onRegisterPressed,
-                  onProfilePressed: _onProfilePressed,
-                  onLogoutPressed: _onLogoutPressed,
-                  onDiscoveryPressed: _onDiscoveryPressed,
-                  onHowItWorksPressed: _onHowItWorksPressed,
-                  onNotificationsPressed:
-                      isLoggedIn ? _onNotificationsPressed : null,
-                  currentAppearanceMode:
-                      isLoggedIn ? currentAppearanceMode : null,
-                  onAppearanceModeChanged:
-                      isLoggedIn ? _onAppearanceModeChanged : null,
-                ),
+        final homeReloadUserInitiated = _nextHomeReloadUserInitiated;
+
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider<PollListController>(
+              key: ValueKey(
+                'home_shared_polls_${isLoggedIn ? currentUserId : 'guest'}_$_homeRefreshVersion',
               ),
-              body: Theme(
-                data: homeContentTheme,
-                child: Stack(
-                  children: [
-                    // CLASSIC stays exactly on the approved Home gradient.
-                    Positioned.fill(
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 220),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: backgroundGradient,
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+              create: (_) {
+                final controller =
+                    AppDI.instance.createPollListController(pageSize: 3);
+                _scheduleHomeLoad(
+                  EgressAutomaticTraffic.homePolls,
+                  _nativePollWarmupDelay,
+                  () => controller.loadPolls(userId: currentUserId),
+                  userInitiated: homeReloadUserInitiated,
+                );
+                return controller;
+              },
+            ),
+            ChangeNotifierProvider<FeedController>(
+              key: ValueKey(
+                'home_shared_social_${isLoggedIn ? currentUserId : 'guest'}_$_homeRefreshVersion',
+              ),
+              create: (_) {
+                final controller =
+                    AppDI.instance.createFeedController(pageSize: 3);
+                _scheduleHomeLoad(
+                  EgressAutomaticTraffic.homeSocial,
+                  _nativeSocialWarmupDelay,
+                  () => controller.loadFeed(userId: currentUserId),
+                  userInitiated: homeReloadUserInitiated,
+                );
+                return controller;
+              },
+            ),
+            ChangeNotifierProvider<NewsController>(
+              key: ValueKey(
+                'home_shared_news_${scope.level}_${scope.countryCode}_${scope.cityId}_${_homeNewsLanguageKey}_$_homeRefreshVersion',
+              ),
+              create: (_) {
+                final controller =
+                    AppDI.instance.createNewsController(pageSize: 6);
+                _scheduleHomeLoad(
+                  EgressAutomaticTraffic.homeNews,
+                  _nativeNewsWarmupDelay,
+                  () => controller.loadNews(userId: currentUserId),
+                  userInitiated: homeReloadUserInitiated,
+                );
+                return controller;
+              },
+            ),
+          ],
+          child: Directionality(
+              // Stable product geometry: Persian changes language, not the
+              // physical position/order of Home controls and content sections.
+              textDirection: TextDirection.ltr,
+              child: Scaffold(
+                backgroundColor: Colors.transparent,
+                appBar: AppBar(
+                  backgroundColor: Colors.black,
+                  surfaceTintColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  elevation: 0,
+                  scrolledUnderElevation: 0,
+                  centerTitle: false,
+                  titleSpacing: 16,
+                  toolbarHeight: appBarToolbarHeight,
+                  title: HomeTopBar(
+                    scopeShortLabel: scopeShortLabel,
+                    isLoggedIn: isLoggedIn,
+                    unreadNotificationsCount: unreadNotificationsCount,
+                    onLoginPressed: _onLoginPressed,
+                    onRegisterPressed: _onRegisterPressed,
+                    onProfilePressed: _onProfilePressed,
+                    onLogoutPressed: _onLogoutPressed,
+                    onDiscoveryPressed: _onDiscoveryPressed,
+                    onHowItWorksPressed: _onHowItWorksPressed,
+                    onNotificationsPressed:
+                        isLoggedIn ? _onNotificationsPressed : null,
+                    currentAppearanceMode:
+                        isLoggedIn ? currentAppearanceMode : null,
+                    onAppearanceModeChanged:
+                        isLoggedIn ? _onAppearanceModeChanged : null,
+                  ),
+                ),
+                body: Theme(
+                  data: homeContentTheme,
+                  child: Stack(
+                    children: [
+                      // CLASSIC stays exactly on the approved Home gradient.
+                      Positioned.fill(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 220),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: backgroundGradient,
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                           ),
                         ),
                       ),
-                    ),
 
-                    if (isSpaceHome) ...[
-                      Positioned.fill(
-                        child: ScientificSkyBackground(
-                          orientationListenable: _homeSkyOrientation,
-                          fieldOfViewDegrees: 96.0,
-                          exposure: 0.60,
+                      if (isSpaceHome) ...[
+                        Positioned.fill(
+                          child: ScientificSkyBackground(
+                            orientationListenable: _homeSkyOrientation,
+                            fieldOfViewDegrees: 96.0,
+                            exposure: 0.60,
+                          ),
                         ),
-                      ),
-                      Positioned.fill(
-                        child: IgnorePointer(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: isDark
-                                    ? [
-                                        Colors.black.withValues(alpha: 0.08),
-                                        const Color(0xFF030712)
-                                            .withValues(alpha: 0.16),
-                                        Colors.black.withValues(alpha: 0.28),
-                                      ]
-                                    : [
-                                        const Color(0xFF030712)
-                                            .withValues(alpha: 0.10),
-                                        const Color(0xFF050B18)
-                                            .withValues(alpha: 0.20),
-                                        Colors.white.withValues(alpha: 0.20),
-                                      ],
-                                stops: const [0.0, 0.68, 1.0],
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: isDark
+                                      ? [
+                                          Colors.black.withValues(alpha: 0.08),
+                                          const Color(0xFF030712)
+                                              .withValues(alpha: 0.16),
+                                          Colors.black.withValues(alpha: 0.28),
+                                        ]
+                                      : [
+                                          const Color(0xFF030712)
+                                              .withValues(alpha: 0.10),
+                                          const Color(0xFF050B18)
+                                              .withValues(alpha: 0.20),
+                                          Colors.white.withValues(alpha: 0.20),
+                                        ],
+                                  stops: const [0.0, 0.68, 1.0],
+                                ),
                               ),
                             ),
+                          ),
+                        ),
+                      ],
+
+                      SafeArea(
+                        child: RefreshIndicator(
+                          onRefresh: _onRefreshHome,
+                          child: ListView(
+                            physics: _isHomeGlobeScrollLocked
+                                ? const NeverScrollableScrollPhysics()
+                                : const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.only(bottom: 16),
+                            children: [
+                              if (isDesktopWeb)
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(32, 20, 32, 6),
+                                  child: Align(
+                                    alignment: Alignment.topCenter,
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 1440,
+                                      ),
+                                      child: SizedBox(
+                                        height: 560,
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: [
+                                            Expanded(
+                                              flex: 45,
+                                              child: Column(
+                                                children: [
+                                                  HomeHeroSection(
+                                                    scopeShortLabel:
+                                                        scopeShortLabel,
+                                                    spaceStyle: isSpaceHome,
+                                                    desktopCompact: true,
+                                                    onOpenPolls: () {
+                                                      Navigator.pushNamed(
+                                                        context,
+                                                        AppRouter.polls,
+                                                      );
+                                                    },
+                                                    onOpenNews:
+                                                        _onOpenNewsPressed,
+                                                    onCreate: _onCreatePressed,
+                                                    onExplore:
+                                                        _onExplorePressed,
+                                                    onOpenSearch:
+                                                        _openSearchPage,
+                                                    onScopePressed:
+                                                        _openScopeSelectorSheet,
+                                                  ),
+                                                  const SizedBox(height: 14),
+                                                  Expanded(
+                                                    child: HomeWebWorldPanel(
+                                                      key: ValueKey(
+                                                        'home_web_info_${scope.level}_${scope.countryCode}_${scope.cityId}_${currentUserId ?? 'guest'}_$_homeRefreshVersion',
+                                                      ),
+                                                      scopeShortLabel:
+                                                          scopeShortLabel,
+                                                      currentUserId:
+                                                          currentUserId,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 22),
+                                            Expanded(
+                                              flex: 55,
+                                              child: HomeMapSection(
+                                                key: ValueKey(
+                                                  'home_web_map_${scope.level}_${scope.countryCode}_${scope.cityId}_$_homeRefreshVersion',
+                                                ),
+                                                scopeShortLabel:
+                                                    scopeShortLabel,
+                                                desktopHeroMode: true,
+                                                initialLoadUserInitiated:
+                                                    homeReloadUserInitiated,
+                                                suspendWebSurface:
+                                                    _isScopeSelectorActive,
+                                                onGlobeScrollLockChanged: null,
+                                                onGlobeOrientationChanged:
+                                                    isSpaceHome
+                                                        ? _handleHomeGlobeOrientationChanged
+                                                        : null,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              else ...[
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    30,
+                                    14,
+                                    30,
+                                    0,
+                                  ),
+                                  child: HomeHeroSection(
+                                    scopeShortLabel: scopeShortLabel,
+                                    spaceStyle: isSpaceHome,
+                                    onOpenPolls: () {
+                                      Navigator.pushNamed(
+                                        context,
+                                        AppRouter.polls,
+                                      );
+                                    },
+                                    onOpenNews: _onOpenNewsPressed,
+                                    onCreate: _onCreatePressed,
+                                    onExplore: _onExplorePressed,
+                                    onOpenSearch: _openSearchPage,
+                                    onScopePressed: _openScopeSelectorSheet,
+                                  ),
+                                ),
+                                HomeMapSection(
+                                  key: ValueKey(
+                                    'home_map_${scope.level}_${scope.countryCode}_${scope.cityId}_$_homeRefreshVersion',
+                                  ),
+                                  scopeShortLabel: scopeShortLabel,
+                                  initialLoadUserInitiated:
+                                      homeReloadUserInitiated,
+                                  suspendWebSurface: _isScopeSelectorActive,
+                                  onGlobeScrollLockChanged:
+                                      _handleHomeGlobeScrollLockChanged,
+                                  onGlobeOrientationChanged: isSpaceHome
+                                      ? _handleHomeGlobeOrientationChanged
+                                      : null,
+                                ),
+                              ],
+                              Padding(
+                                padding: EdgeInsets.fromLTRB(
+                                  isDesktopWeb ? 32 : 16,
+                                  12,
+                                  isDesktopWeb ? 32 : 16,
+                                  16,
+                                ),
+                                child: Align(
+                                  alignment: Alignment.topCenter,
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth:
+                                          isDesktopWeb ? 1180 : double.infinity,
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        HomePollSection(
+                                          scopeShortLabel: scopeShortLabel,
+                                        ),
+                                        const SizedBox(height: 24),
+                                        HomeNewsSection(
+                                          scopeShortLabel: scopeShortLabel,
+                                        ),
+                                        const SizedBox(height: 24),
+                                        HomeSocialSection(
+                                          scopeShortLabel: scopeShortLabel,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ],
-
-                    SafeArea(
-                      child: RefreshIndicator(
-                        onRefresh: _onRefreshHome,
-                        child: ListView(
-                          physics: _isHomeGlobeScrollLocked
-                              ? const NeverScrollableScrollPhysics()
-                              : const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.only(bottom: 16),
-                          children: [
-                            if (isDesktopWeb)
-                              Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(32, 20, 32, 6),
-                                child: Align(
-                                  alignment: Alignment.topCenter,
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: 1440,
-                                    ),
-                                    child: SizedBox(
-                                      height: 560,
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        children: [
-                                          Expanded(
-                                            flex: 45,
-                                            child: Column(
-                                              children: [
-                                                HomeHeroSection(
-                                                  scopeShortLabel:
-                                                      scopeShortLabel,
-                                                  spaceStyle: isSpaceHome,
-                                                  desktopCompact: true,
-                                                  onOpenPolls: () {
-                                                    Navigator.pushNamed(
-                                                      context,
-                                                      AppRouter.polls,
-                                                    );
-                                                  },
-                                                  onOpenNews:
-                                                      _onOpenNewsPressed,
-                                                  onCreate: _onCreatePressed,
-                                                  onExplore: _onExplorePressed,
-                                                  onOpenSearch: _openSearchPage,
-                                                  onScopePressed:
-                                                      _openScopeSelectorSheet,
-                                                ),
-                                                const SizedBox(height: 14),
-                                                Expanded(
-                                                  child: HomeWebWorldPanel(
-                                                    key: ValueKey(
-                                                      'home_web_info_${scope.level}_${scope.countryCode}_${scope.cityId}_${currentUserId ?? 'guest'}_$_homeRefreshVersion',
-                                                    ),
-                                                    scopeShortLabel:
-                                                        scopeShortLabel,
-                                                    currentUserId:
-                                                        currentUserId,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          const SizedBox(width: 22),
-                                          Expanded(
-                                            flex: 55,
-                                            child: HomeMapSection(
-                                              key: ValueKey(
-                                                'home_web_map_${scope.level}_${scope.countryCode}_${scope.cityId}_$_homeRefreshVersion',
-                                              ),
-                                              scopeShortLabel: scopeShortLabel,
-                                              desktopHeroMode: true,
-                                              suspendWebSurface:
-                                                  _isScopeSelectorActive,
-                                              onGlobeScrollLockChanged: null,
-                                              onGlobeOrientationChanged: isSpaceHome
-                                                  ? _handleHomeGlobeOrientationChanged
-                                                  : null,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              )
-                            else ...[
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  30,
-                                  14,
-                                  30,
-                                  0,
-                                ),
-                                child: HomeHeroSection(
-                                  scopeShortLabel: scopeShortLabel,
-                                  spaceStyle: isSpaceHome,
-                                  onOpenPolls: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      AppRouter.polls,
-                                    );
-                                  },
-                                  onOpenNews: _onOpenNewsPressed,
-                                  onCreate: _onCreatePressed,
-                                  onExplore: _onExplorePressed,
-                                  onOpenSearch: _openSearchPage,
-                                  onScopePressed: _openScopeSelectorSheet,
-                                ),
-                              ),
-                              HomeMapSection(
-                                key: ValueKey(
-                                  'home_map_${scope.level}_${scope.countryCode}_${scope.cityId}_$_homeRefreshVersion',
-                                ),
-                                scopeShortLabel: scopeShortLabel,
-                                suspendWebSurface: _isScopeSelectorActive,
-                                onGlobeScrollLockChanged:
-                                    _handleHomeGlobeScrollLockChanged,
-                                onGlobeOrientationChanged: isSpaceHome
-                                    ? _handleHomeGlobeOrientationChanged
-                                    : null,
-                              ),
-                            ],
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(
-                                isDesktopWeb ? 32 : 16,
-                                12,
-                                isDesktopWeb ? 32 : 16,
-                                16,
-                              ),
-                              child: Align(
-                                alignment: Alignment.topCenter,
-                                child: ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    maxWidth:
-                                        isDesktopWeb ? 1180 : double.infinity,
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      ChangeNotifierProvider<
-                                          PollListController>(
-                                        key: ValueKey(
-                                          'home_polls_${scope.level}_${scope.countryCode}_${scope.cityId}_${isLoggedIn ? currentUserId : 'guest'}_$_homeRefreshVersion',
-                                        ),
-                                        create: (_) {
-                                          final controller = AppDI.instance
-                                              .createPollListController();
-                                          final userId =
-                                              AppDI.instance.currentUserId;
-                                          _scheduleHomeLoad(
-                                            _nativePollWarmupDelay,
-                                            () => controller.loadPolls(
-                                              userId: userId,
-                                            ),
-                                          );
-                                          return controller;
-                                        },
-                                        child: HomePollSection(
-                                          scopeShortLabel: scopeShortLabel,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 24),
-                                      ChangeNotifierProvider<NewsController>(
-                                        key: ValueKey(
-                                          'home_news_${scope.level}_${scope.countryCode}_${scope.cityId}_${_homeNewsLanguageKey}_$_homeRefreshVersion',
-                                        ),
-                                        create: (_) {
-                                          final controller = AppDI.instance
-                                              .createNewsController();
-                                          _scheduleHomeLoad(
-                                            _nativeNewsWarmupDelay,
-                                            () => controller.loadNews(),
-                                          );
-                                          return controller;
-                                        },
-                                        child: HomeNewsSection(
-                                          scopeShortLabel: scopeShortLabel,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 24),
-                                      ChangeNotifierProvider<FeedController>(
-                                        key: ValueKey(
-                                          'home_social_${scope.level}_${scope.countryCode}_${scope.cityId}_${AppDI.instance.currentUserId ?? 'guest'}_$_homeRefreshVersion',
-                                        ),
-                                        create: (_) {
-                                          final controller = AppDI.instance
-                                              .createFeedController();
-                                          final userId =
-                                              AppDI.instance.currentUserId;
-                                          _scheduleHomeLoad(
-                                            _nativeSocialWarmupDelay,
-                                            () => controller.loadFeed(
-                                              userId: userId,
-                                            ),
-                                          );
-                                          return controller;
-                                        },
-                                        child: HomeSocialSection(
-                                          scopeShortLabel: scopeShortLabel,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ));
+              )),
+        );
       },
     );
   }

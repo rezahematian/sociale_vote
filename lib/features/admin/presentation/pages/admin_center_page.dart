@@ -33,6 +33,7 @@ import 'package:sociale_vote/features/admin/presentation/widgets/admin_finance_c
 import 'package:sociale_vote/features/admin/presentation/widgets/admin_radio_mondo_control_section.dart';
 import 'package:sociale_vote/shared/services/world_appearance_service.dart';
 import 'package:sociale_vote/shared/services/world_marker_policy_service.dart';
+import 'package:sociale_vote/shared/services/egress_policy_service.dart';
 
 enum AdminCenterSection {
   dashboard,
@@ -108,6 +109,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   late final CivicMapController _adminGlobeController;
   final WorldMarkerPolicyService _worldMarkerPolicy =
       WorldMarkerPolicyService.instance;
+  final EgressPolicyService _egressPolicy = EgressPolicyService.instance;
   final TextEditingController _userSearchController = TextEditingController();
   final TextEditingController _auditActorController = TextEditingController();
   final TextEditingController _auditActionController = TextEditingController();
@@ -146,6 +148,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   Locale? _adminLocaleOverride;
   double? _markerDensityDraft;
   bool _markerDensitySaving = false;
+  bool _egressModeSaving = false;
+  bool _controlRebuildScheduled = false;
 
   List<_AdminDestination> _destinationsFor(BuildContext context) {
     return [
@@ -220,6 +224,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         AppDI.instance.createCivicMapController(homePreview: true);
     _adminGlobeController.addListener(_handleAdminGlobeChanged);
     _worldMarkerPolicy.addListener(_handleWorldMarkerPolicyChanged);
+    _egressPolicy.addListener(_handleEgressPolicyChanged);
     _loadAdminDashboard = LoadAdminDashboard(_adminRepository);
     _loadAdminAudit = LoadAdminAudit(_adminRepository);
     _loadAdminReports = LoadAdminReports(_adminRepository);
@@ -236,12 +241,15 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     unawaited(_loadAdminGlobe());
     unawaited(WorldAppearanceService.instance.ensureLoaded());
     unawaited(_worldMarkerPolicy.ensureLoaded(forceRefresh: true));
+    unawaited(_egressPolicy.initialize());
+    unawaited(_egressPolicy.ensureModeLoaded(forceRefresh: true));
   }
 
   @override
   void dispose() {
     _adminGlobeController.removeListener(_handleAdminGlobeChanged);
     _worldMarkerPolicy.removeListener(_handleWorldMarkerPolicyChanged);
+    _egressPolicy.removeListener(_handleEgressPolicyChanged);
     _adminGlobeController.dispose();
     _userSearchDebounce?.cancel();
     _userSearchController.dispose();
@@ -259,7 +267,20 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
 
   void _handleWorldMarkerPolicyChanged() {
     if (!mounted || _markerDensityDraft != null) return;
-    setState(() {});
+    _scheduleControlRebuild();
+  }
+
+  void _handleEgressPolicyChanged() {
+    if (mounted) _scheduleControlRebuild();
+  }
+
+  void _scheduleControlRebuild() {
+    if (!mounted || _controlRebuildScheduled) return;
+    _controlRebuildScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controlRebuildScheduled = false;
+      if (mounted) setState(() {});
+    });
   }
 
   Future<void> _saveMarkerDensity(double rawValue) async {
@@ -295,6 +316,32 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           _markerDensitySaving = false;
         });
       }
+    }
+  }
+
+  Future<void> _saveEgressMode(EgressMode mode) async {
+    if (_egressModeSaving || mode == _egressPolicy.mode) return;
+    setState(() => _egressModeSaving = true);
+
+    try {
+      await _egressPolicy.setModeFromAdmin(mode);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _adminControlText(
+              context,
+              it: 'Impossibile salvare la modalità traffico.',
+              en: 'Unable to save the traffic mode.',
+              de: 'Der Datenmodus konnte nicht gespeichert werden.',
+              fa: 'ذخیره حالت ترافیک ممکن نیست.',
+            ),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _egressModeSaving = false);
     }
   }
 
@@ -3288,6 +3335,200 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       );
     }
 
+    String formatBudgetMiB(int bytes) {
+      return (bytes / (1024 * 1024)).toStringAsFixed(1);
+    }
+
+    Widget buildEgressModeControl() {
+      final mode = _egressPolicy.mode;
+      final budget = _egressPolicy.dailyAutomaticBudgetBytes;
+      final used = _egressPolicy.estimatedAutomaticBytesUsed;
+      final progress =
+          budget <= 0 ? 1.0 : (used / budget).clamp(0.0, 1.0).toDouble();
+      final disabled = _egressModeSaving || _egressPolicy.isSavingMode;
+
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.surface.withValues(alpha: 0.78),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: colors.outlineVariant.withValues(alpha: 0.52),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.data_saver_on_rounded,
+                    size: 21,
+                    color: colors.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _adminControlText(
+                            context,
+                            it: 'Traffico automatico',
+                            en: 'Automatic traffic',
+                            de: 'Automatischer Datenverkehr',
+                            fa: 'ترافیک خودکار',
+                          ),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _adminControlText(
+                            context,
+                            it: 'Controlla Home, News, Realtime e polling Session. Login, voto e azioni manuali restano disponibili.',
+                            en: 'Controls Home, News, Realtime and Session polling. Login, voting and manual actions stay available.',
+                            de: 'Steuert Home, News, Realtime und Sitzungsabfragen. Anmeldung, Abstimmung und manuelle Aktionen bleiben verfügbar.',
+                            fa: 'خانه، اخبار، بلادرنگ و نظرسنجی جلسه را کنترل می‌کند. ورود، رأی و اقدامات دستی فعال می‌مانند.',
+                          ),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (disabled)
+                    const SizedBox.square(
+                      dimension: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SegmentedButton<EgressMode>(
+                segments: [
+                  ButtonSegment<EgressMode>(
+                    value: EgressMode.normal,
+                    icon: const Icon(Icons.speed_rounded),
+                    label: Text(
+                      _adminControlText(
+                        context,
+                        it: 'Normale',
+                        en: 'Normal',
+                        de: 'Normal',
+                        fa: 'عادی',
+                      ),
+                    ),
+                  ),
+                  ButtonSegment<EgressMode>(
+                    value: EgressMode.conservative,
+                    icon: const Icon(Icons.savings_outlined),
+                    label: Text(
+                      _adminControlText(
+                        context,
+                        it: 'Risparmio',
+                        en: 'Conservative',
+                        de: 'Sparmodus',
+                        fa: 'کم‌مصرف',
+                      ),
+                    ),
+                  ),
+                  ButtonSegment<EgressMode>(
+                    value: EgressMode.emergency,
+                    icon: const Icon(Icons.pause_circle_outline_rounded),
+                    label: Text(
+                      _adminControlText(
+                        context,
+                        it: 'Emergenza',
+                        en: 'Emergency',
+                        de: 'Notfall',
+                        fa: 'اضطراری',
+                      ),
+                    ),
+                  ),
+                ],
+                selected: <EgressMode>{mode},
+                showSelectedIcon: false,
+                onSelectionChanged: disabled
+                    ? null
+                    : (selection) {
+                        if (selection.isNotEmpty) {
+                          unawaited(_saveEgressMode(selection.first));
+                        }
+                      },
+              ),
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 6,
+                  backgroundColor: colors.surfaceContainerHighest,
+                  color: mode == EgressMode.emergency
+                      ? colors.error
+                      : colors.primary,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                mode == EgressMode.emergency
+                    ? _adminControlText(
+                        context,
+                        it: 'Aggiornamenti automatici sospesi. Sono consentiti gli aggiornamenti manuali.',
+                        en: 'Automatic refreshes are paused. Manual refreshes remain available.',
+                        de: 'Automatische Aktualisierungen sind pausiert. Manuelle Aktualisierungen bleiben verfügbar.',
+                        fa: 'به‌روزرسانی خودکار متوقف است. به‌روزرسانی دستی فعال می‌ماند.',
+                      )
+                    : '${formatBudgetMiB(used)} / ${formatBudgetMiB(budget)} MiB '
+                        '${_adminControlText(context, it: 'stimati oggi per installazione', en: 'estimated today per installation', de: 'heute pro Installation geschätzt', fa: 'برآورد امروز برای هر نصب')}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (_egressPolicy.lastError != null) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.cloud_off_outlined,
+                        size: 16, color: colors.error),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        _adminControlText(
+                          context,
+                          it: 'Configurazione backend non disponibile: resta attiva la modalità Risparmio.',
+                          en: 'Backend configuration unavailable: Conservative mode remains active.',
+                          de: 'Backend-Konfiguration nicht verfügbar: Der Sparmodus bleibt aktiv.',
+                          fa: 'پیکربندی سرور در دسترس نیست؛ حالت کم‌مصرف فعال می‌ماند.',
+                        ),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colors.error,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _egressPolicy.isLoadingMode
+                          ? null
+                          : () => unawaited(
+                                _egressPolicy.ensureModeLoaded(
+                                  forceRefresh: true,
+                                ),
+                              ),
+                      child: Text(_adminL10n(context).adminCenterRetryAction),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+
     Widget buildCommandDeck(double width) {
       final sideBySide = width >= 820;
       final compact = width < 520;
@@ -3454,6 +3695,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               if (widget.currentRole == Role.admin) ...[
                 const SizedBox(height: 14),
                 buildMarkerDensityControl(),
+                const SizedBox(height: 14),
+                buildEgressModeControl(),
               ],
             ],
           ),

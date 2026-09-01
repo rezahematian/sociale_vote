@@ -9,6 +9,7 @@ import 'package:sociale_vote/domain/organization/entities/live_session_models.da
 import 'package:sociale_vote/domain/organization/repositories/organization_repository.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/current_location_uri.dart';
+import 'package:sociale_vote/shared/services/egress_policy_service.dart';
 
 class LiveSessionParticipantPage extends StatefulWidget {
   final String joinCode;
@@ -23,9 +24,10 @@ class LiveSessionParticipantPage extends StatefulWidget {
       _LiveSessionParticipantPageState();
 }
 
-class _LiveSessionParticipantPageState
-    extends State<LiveSessionParticipantPage> {
+class _LiveSessionParticipantPageState extends State<LiveSessionParticipantPage>
+    with WidgetsBindingObserver {
   late final OrganizationRepository _repository;
+  final EgressPolicyService _egressPolicy = EgressPolicyService.instance;
   final _tokenController = TextEditingController();
   LiveSessionDetail? _detail;
   String? _participantSecret;
@@ -43,6 +45,7 @@ class _LiveSessionParticipantPageState
   Object? _error;
   Timer? _timer;
   bool _refreshInFlight = false;
+  bool _appVisible = true;
 
   @override
   void initState() {
@@ -56,17 +59,81 @@ class _LiveSessionParticipantPageState
       _detectedPass = pass;
       _tokenController.text = pass;
     }
-    _restoreParticipantSession();
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (!_loading && !_joining && !_voting) _refreshState(silent: true);
-    });
+    WidgetsBinding.instance.addObserver(this);
+    _egressPolicy.addListener(_handleEgressPolicyChanged);
+    unawaited(_egressPolicy.initialize());
+    unawaited(
+      _restoreParticipantSession().whenComplete(_scheduleNextRefresh),
+    );
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _egressPolicy.removeListener(_handleEgressPolicyChanged);
+    WidgetsBinding.instance.removeObserver(this);
     _tokenController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appVisible = state == AppLifecycleState.resumed;
+    if (_appVisible) {
+      _scheduleNextRefresh();
+    } else {
+      _timer?.cancel();
+      _timer = null;
+    }
+  }
+
+  void _handleEgressPolicyChanged() {
+    if (mounted) _scheduleNextRefresh();
+  }
+
+  EgressSessionActivity _sessionActivity() {
+    final detail = _detail;
+    if (detail == null || detail.session.status == 'draft') {
+      return EgressSessionActivity.idle;
+    }
+    if (detail.openQuestion != null &&
+        _participantSecret != null &&
+        !_hasVotedOpenQuestion) {
+      return EgressSessionActivity.active;
+    }
+    return EgressSessionActivity.waiting;
+  }
+
+  void _scheduleNextRefresh() {
+    _timer?.cancel();
+    _timer = null;
+    if (!mounted || !_appVisible || _detail?.session.status == 'closed') {
+      return;
+    }
+
+    final delay = EgressPolicyService.sessionRefreshDelayFor(
+      mode: _egressPolicy.mode,
+      activity: _sessionActivity(),
+    );
+    if (delay == null) return;
+    _timer = Timer(delay, _runAutomaticRefresh);
+  }
+
+  Future<void> _runAutomaticRefresh() async {
+    if (!mounted) return;
+    final routeVisible = ModalRoute.of(context)?.isCurrent ?? true;
+    if (!_appVisible || !routeVisible || _loading || _joining || _voting) {
+      _scheduleNextRefresh();
+      return;
+    }
+
+    final allowed = await _egressPolicy.tryConsumeAutomatic(
+      EgressAutomaticTraffic.sessionParticipant,
+    );
+    if (allowed && mounted) {
+      await _refreshState(silent: true);
+    }
+    _scheduleNextRefresh();
   }
 
   String? _passFromFragment(String fragment) {
@@ -151,6 +218,7 @@ class _LiveSessionParticipantPageState
       });
     } finally {
       _refreshInFlight = false;
+      if (mounted) _scheduleNextRefresh();
     }
   }
 

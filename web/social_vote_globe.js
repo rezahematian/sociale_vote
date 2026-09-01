@@ -2207,7 +2207,6 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._autoRotateButton?.remove?.();
     this._autoRotateButton = null;
 
-    this._renderer?.forceContextLoss?.();
     this._renderer?.dispose();
 
     this.replaceChildren();

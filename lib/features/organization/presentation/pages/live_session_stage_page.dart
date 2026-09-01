@@ -7,6 +7,7 @@ import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/domain/organization/entities/live_session_models.dart';
 import 'package:sociale_vote/domain/organization/repositories/organization_repository.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/services/egress_policy_service.dart';
 
 class LiveSessionStagePage extends StatefulWidget {
   final String sessionId;
@@ -22,24 +23,87 @@ class LiveSessionStagePage extends StatefulWidget {
   State<LiveSessionStagePage> createState() => _LiveSessionStagePageState();
 }
 
-class _LiveSessionStagePageState extends State<LiveSessionStagePage> {
+class _LiveSessionStagePageState extends State<LiveSessionStagePage>
+    with WidgetsBindingObserver {
+  final EgressPolicyService _egressPolicy = EgressPolicyService.instance;
   LiveSessionDetail? _detail;
   Object? _error;
   Timer? _timer;
   bool _refreshInFlight = false;
+  bool _appVisible = true;
 
   @override
   void initState() {
     super.initState();
-    _load();
-    _timer =
-        Timer.periodic(const Duration(seconds: 5), (_) => _load(silent: true));
+    WidgetsBinding.instance.addObserver(this);
+    _egressPolicy.addListener(_handleEgressPolicyChanged);
+    unawaited(_egressPolicy.initialize());
+    unawaited(_load().whenComplete(_scheduleNextRefresh));
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _egressPolicy.removeListener(_handleEgressPolicyChanged);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appVisible = state == AppLifecycleState.resumed;
+    if (_appVisible) {
+      _scheduleNextRefresh();
+    } else {
+      _timer?.cancel();
+      _timer = null;
+    }
+  }
+
+  void _handleEgressPolicyChanged() {
+    if (mounted) _scheduleNextRefresh();
+  }
+
+  EgressSessionActivity _sessionActivity() {
+    final detail = _detail;
+    if (detail == null || detail.session.status == 'draft') {
+      return EgressSessionActivity.idle;
+    }
+    return detail.openQuestion == null
+        ? EgressSessionActivity.waiting
+        : EgressSessionActivity.active;
+  }
+
+  void _scheduleNextRefresh() {
+    _timer?.cancel();
+    _timer = null;
+    if (!mounted || !_appVisible || _detail?.session.status == 'closed') {
+      return;
+    }
+
+    final delay = EgressPolicyService.sessionRefreshDelayFor(
+      mode: _egressPolicy.mode,
+      activity: _sessionActivity(),
+    );
+    if (delay == null) return;
+    _timer = Timer(delay, _runAutomaticRefresh);
+  }
+
+  Future<void> _runAutomaticRefresh() async {
+    if (!mounted) return;
+    final routeVisible = ModalRoute.of(context)?.isCurrent ?? true;
+    if (!_appVisible || !routeVisible) {
+      _scheduleNextRefresh();
+      return;
+    }
+
+    final allowed = await _egressPolicy.tryConsumeAutomatic(
+      EgressAutomaticTraffic.sessionStage,
+    );
+    if (allowed && mounted) {
+      await _load(silent: true);
+    }
+    _scheduleNextRefresh();
   }
 
   Future<void> _load({bool silent = false}) async {
@@ -61,6 +125,7 @@ class _LiveSessionStagePageState extends State<LiveSessionStagePage> {
       setState(() => _error = e);
     } finally {
       _refreshInFlight = false;
+      if (mounted) _scheduleNextRefresh();
     }
   }
 
@@ -106,11 +171,23 @@ class _LiveSessionStagePageState extends State<LiveSessionStagePage> {
                   Positioned(
                     top: 12,
                     right: 12,
-                    child: IconButton.filledTonal(
-                      onPressed: () => Navigator.of(context).pop(),
-                      tooltip:
-                          MaterialLocalizations.of(context).closeButtonTooltip,
-                      icon: const Icon(Icons.close_rounded),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton.filledTonal(
+                          onPressed: _refreshInFlight ? null : _load,
+                          tooltip: MaterialLocalizations.of(context)
+                              .refreshIndicatorSemanticLabel,
+                          icon: const Icon(Icons.refresh_rounded),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton.filledTonal(
+                          onPressed: () => Navigator.of(context).pop(),
+                          tooltip: MaterialLocalizations.of(context)
+                              .closeButtonTooltip,
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                      ],
                     ),
                   ),
                 ],

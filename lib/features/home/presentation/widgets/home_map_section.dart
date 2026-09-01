@@ -15,6 +15,7 @@ import 'package:sociale_vote/features/map/application/civic_map_controller.dart'
 import 'package:sociale_vote/features/map/presentation/widgets/civic_map_widget.dart';
 import 'package:sociale_vote/features/map/presentation/widgets/world_globe_widget.dart';
 import 'package:sociale_vote/shared/services/world_appearance_service.dart';
+import 'package:sociale_vote/shared/services/egress_policy_service.dart';
 
 class HomeMapSection extends StatelessWidget {
   final String scopeShortLabel;
@@ -22,6 +23,7 @@ class HomeMapSection extends StatelessWidget {
   final ValueChanged<Offset>? onGlobeOrientationChanged;
   final bool desktopHeroMode;
   final bool suspendWebSurface;
+  final bool initialLoadUserInitiated;
 
   const HomeMapSection({
     super.key,
@@ -30,6 +32,7 @@ class HomeMapSection extends StatelessWidget {
     this.onGlobeOrientationChanged,
     this.desktopHeroMode = false,
     this.suspendWebSurface = false,
+    this.initialLoadUserInitiated = false,
   });
 
   @override
@@ -50,6 +53,7 @@ class HomeMapSection extends StatelessWidget {
         onGlobeScrollLockChanged: onGlobeScrollLockChanged,
         onGlobeOrientationChanged: onGlobeOrientationChanged,
         desktopHeroMode: desktopHeroMode,
+        initialLoadUserInitiated: initialLoadUserInitiated,
       ),
     );
   }
@@ -124,12 +128,14 @@ class _HomeMapSectionView extends StatefulWidget {
   final ValueChanged<bool>? onGlobeScrollLockChanged;
   final ValueChanged<Offset>? onGlobeOrientationChanged;
   final bool desktopHeroMode;
+  final bool initialLoadUserInitiated;
 
   const _HomeMapSectionView({
     required this.scopeShortLabel,
     required this.onGlobeScrollLockChanged,
     required this.onGlobeOrientationChanged,
     required this.desktopHeroMode,
+    required this.initialLoadUserInitiated,
   });
 
   @override
@@ -141,6 +147,7 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
   static const Duration _nativeMarkerWarmupDelay = Duration(milliseconds: 1900);
 
   String? _lastSyncedScopeKey;
+  bool _initialAutomaticLoadAttempted = false;
 
   @override
   void initState() {
@@ -364,19 +371,30 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
     }
 
     _lastSyncedScopeKey = scopeKey;
+    final isInitialAutomaticLoad =
+        !_initialAutomaticLoadAttempted && !widget.initialLoadUserInitiated;
+    _initialAutomaticLoadAttempted = true;
 
     final scheduledScopeKey = scopeKey;
     const warmupDelay =
         kIsWeb ? _webMarkerWarmupDelay : _nativeMarkerWarmupDelay;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future<void>.delayed(warmupDelay, () {
+      unawaited(Future<void>.delayed(warmupDelay, () async {
         if (!mounted || _lastSyncedScopeKey != scheduledScopeKey) {
           return;
         }
 
-        controller.syncScope(scope);
-      });
+        if (isInitialAutomaticLoad) {
+          final allowed =
+              await EgressPolicyService.instance.tryConsumeAutomatic(
+            EgressAutomaticTraffic.homeMap,
+          );
+          if (!allowed || !mounted) return;
+        }
+
+        await controller.syncScope(scope);
+      }));
     });
   }
 

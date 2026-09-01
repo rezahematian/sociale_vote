@@ -29,13 +29,16 @@ class NewsController extends ChangeNotifier {
   final ToggleReaction _toggleReaction;
   final GetReactionSummary _getReactionSummary;
   final ContentVisibilityFilter _contentVisibilityFilter;
+  final int pageSize;
 
   NewsController(
     this._getNewsFeed,
     this._toggleReaction,
     this._getReactionSummary, [
     ContentVisibilityFilter? contentVisibilityFilter,
-  ]) : _contentVisibilityFilter = contentVisibilityFilter ??
+    this.pageSize = 10,
+  ])  : assert(pageSize > 0),
+        _contentVisibilityFilter = contentVisibilityFilter ??
             ContentVisibilityFilter(Supabase.instance.client);
 
   bool _isLoading = false;
@@ -46,8 +49,6 @@ class NewsController extends ChangeNotifier {
   final Map<String, ReactionSummary> _reactionSummaries =
       <String, ReactionSummary>{};
   final Map<String, int> _commentCounts = <String, int>{};
-
-  static const int _pageSize = 10;
 
   int _currentOffset = 0;
   bool _hasMoreFromSource = true;
@@ -370,7 +371,7 @@ class NewsController extends ChangeNotifier {
       cityId: scopeFilter.cityId,
       topic: _selectedTopic.apiValue,
       language: _effectiveLanguageApiValue(),
-      limit: _pageSize,
+      limit: pageSize,
       offset: _currentOffset,
       allowProviderRefresh: false,
     );
@@ -379,7 +380,7 @@ class NewsController extends ChangeNotifier {
       return;
     }
 
-    if (sourceResult.length < _pageSize) {
+    if (sourceResult.length < pageSize) {
       _hasMoreFromSource = false;
     }
 

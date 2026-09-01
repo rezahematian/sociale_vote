@@ -13,15 +13,13 @@ import 'package:sociale_vote/infrastructure/news/aggregator/news_aggregator.dart
 import 'package:sociale_vote/infrastructure/news/mappers/news_mapper.dart';
 import 'package:sociale_vote/infrastructure/news/models/news_dto.dart';
 import 'package:sociale_vote/infrastructure/moderation/services/content_visibility_filter.dart';
+import 'package:sociale_vote/shared/services/egress_policy_service.dart';
 
 class NewsRepositoryImpl implements NewsRepository {
   static const String _cacheTable = 'news_feed_cache';
   static const int _cachePayloadVersion = 3;
   static const int _defaultRefreshFetchLimit = 50;
   static const Duration _cacheTtl = Duration(minutes: 30);
-  static const int _fallbackCacheScanLimit = 60;
-  static const Duration _removedIdentityCacheTtl = Duration(minutes: 5);
-  static const Duration _memoryCacheTtl = Duration(seconds: 30);
 
   static const int _maxArticlesToGeocodePerRefresh = 8;
   static const int _maxLocationCandidatesPerArticle = 3;
@@ -830,7 +828,10 @@ class NewsRepositoryImpl implements NewsRepository {
   }) async {
     final memoryKey = '$cacheKey|${requestedLanguage ?? ''}';
     final cachedEntry = _exactMemoryCache[memoryKey];
-    if (cachedEntry != null && !cachedEntry.isExpired(_memoryCacheTtl)) {
+    if (cachedEntry != null &&
+        !cachedEntry.isExpired(
+          EgressPolicyService.instance.newsMemoryCacheTtl,
+        )) {
       return cachedEntry.feed;
     }
 
@@ -902,7 +903,10 @@ class NewsRepositoryImpl implements NewsRepository {
   }) async {
     final memoryKey = '${candidate.cacheKey}|${requestedLanguage ?? ''}';
     final cachedEntry = _fallbackMemoryCache[memoryKey];
-    if (cachedEntry != null && !cachedEntry.isExpired(_memoryCacheTtl)) {
+    if (cachedEntry != null &&
+        !cachedEntry.isExpired(
+          EgressPolicyService.instance.newsMemoryCacheTtl,
+        )) {
       return cachedEntry.feed;
     }
 
@@ -947,7 +951,7 @@ class NewsRepositoryImpl implements NewsRepository {
             'languages_present, payload_version',
           )
           .order('refreshed_at', ascending: false)
-          .limit(_fallbackCacheScanLimit);
+          .limit(EgressPolicyService.instance.newsFallbackScanLimit);
 
       _CachedNewsFeed? bestCache;
       var bestScore = -1;
@@ -1143,7 +1147,7 @@ class NewsRepositoryImpl implements NewsRepository {
           .from(_cacheTable)
           .select('payload, country_code, city_id, refreshed_at')
           .order('refreshed_at', ascending: false)
-          .limit(_fallbackCacheScanLimit);
+          .limit(EgressPolicyService.instance.newsFallbackScanLimit);
 
       for (final row in rows) {
         final payload = row['payload'];
@@ -1341,7 +1345,8 @@ class NewsRepositoryImpl implements NewsRepository {
     final loadedAt = _removedNewsIdentityKeysLoadedAt;
 
     if (loadedAt != null &&
-        now.difference(loadedAt) <= _removedIdentityCacheTtl) {
+        now.difference(loadedAt) <=
+            EgressPolicyService.instance.removedNewsIdentityCacheTtl) {
       return Set<String>.unmodifiable(_removedNewsIdentityKeys);
     }
 
@@ -1371,7 +1376,7 @@ class NewsRepositoryImpl implements NewsRepository {
           .from(_cacheTable)
           .select('payload, country_code, city_id, refreshed_at')
           .order('refreshed_at', ascending: false)
-          .limit(_fallbackCacheScanLimit);
+          .limit(EgressPolicyService.instance.newsFallbackScanLimit);
 
       final identityKeysByMappedId = <String, Set<String>>{};
 

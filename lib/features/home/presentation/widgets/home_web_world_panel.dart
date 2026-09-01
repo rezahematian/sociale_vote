@@ -1,8 +1,6 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/features/news/application/news_controller.dart';
@@ -20,7 +18,7 @@ import 'package:sociale_vote/app/localization/de_fallback.dart';
 ///
 /// The normal Home feed below remains unchanged and continues to contain the
 /// full News section.
-class HomeWebWorldPanel extends StatefulWidget {
+class HomeWebWorldPanel extends StatelessWidget {
   final String scopeShortLabel;
   final String? currentUserId;
 
@@ -31,98 +29,22 @@ class HomeWebWorldPanel extends StatefulWidget {
   });
 
   @override
-  State<HomeWebWorldPanel> createState() => _HomeWebWorldPanelState();
-}
-
-class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
-  late final PollListController _pollController;
-  late final FeedController _feedController;
-  late final NewsController _newsController;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _pollController = AppDI.instance.createPollListController();
-    _feedController = AppDI.instance.createFeedController();
-    _newsController = AppDI.instance.createNewsController();
-
-    _pollController.addListener(_handleControllerChanged);
-    _feedController.addListener(_handleControllerChanged);
-    _newsController.addListener(_handleControllerChanged);
-
-    unawaited(
-      _pollController.loadPolls(
-        userId: widget.currentUserId,
-      ),
-    );
-    unawaited(
-      _feedController.loadFeed(
-        userId: widget.currentUserId,
-      ),
-    );
-    unawaited(
-      _newsController.loadNews(
-        userId: widget.currentUserId,
-      ),
-    );
-  }
-
-  @override
-  void didUpdateWidget(covariant HomeWebWorldPanel oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (oldWidget.currentUserId != widget.currentUserId ||
-        oldWidget.scopeShortLabel != widget.scopeShortLabel) {
-      unawaited(
-        _pollController.loadPolls(
-          userId: widget.currentUserId,
-        ),
-      );
-      unawaited(
-        _feedController.loadFeed(
-          userId: widget.currentUserId,
-        ),
-      );
-      unawaited(
-        _newsController.loadNews(
-          userId: widget.currentUserId,
-        ),
-      );
-    }
-  }
-
-  void _handleControllerChanged() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  @override
-  void dispose() {
-    _pollController.removeListener(_handleControllerChanged);
-    _feedController.removeListener(_handleControllerChanged);
-    _newsController.removeListener(_handleControllerChanged);
-    _pollController.dispose();
-    _feedController.dispose();
-    _newsController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final pollController = context.watch<PollListController>();
+    final feedController = context.watch<FeedController>();
+    final newsController = context.watch<NewsController>();
 
     final poll =
-        _pollController.polls.isEmpty ? null : _pollController.polls.first;
+        pollController.polls.isEmpty ? null : pollController.polls.first;
 
-    final posts = List<Post>.from(_feedController.posts);
+    final posts = List<Post>.from(feedController.posts);
     posts.sort((a, b) {
-      final heatA = _feedController.likeCountForPost(a) -
-          _feedController.dislikeCountForPost(a);
-      final heatB = _feedController.likeCountForPost(b) -
-          _feedController.dislikeCountForPost(b);
+      final heatA = feedController.likeCountForPost(a) -
+          feedController.dislikeCountForPost(a);
+      final heatB = feedController.likeCountForPost(b) -
+          feedController.dislikeCountForPost(b);
 
       if (heatA != heatB) {
         return heatB.compareTo(heatA);
@@ -132,8 +54,7 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
     });
 
     final post = posts.isEmpty ? null : posts.first;
-    final news =
-        _newsController.news.isEmpty ? null : _newsController.news.first;
+    final news = newsController.news.isEmpty ? null : newsController.news.first;
 
     return Container(
       width: double.infinity,
@@ -161,7 +82,7 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Social Vote · ${widget.scopeShortLabel}',
+                  'Social Vote · $scopeShortLabel',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleSmall?.copyWith(
@@ -174,10 +95,10 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
           const SizedBox(height: 10),
           _WebPulseRow(
             icon: Icons.how_to_vote_outlined,
-            label: l10n.homePollsTitle(widget.scopeShortLabel),
+            label: l10n.homePollsTitle(scopeShortLabel),
             title: poll?.title,
             trailingValue: poll?.voteCount.toString(),
-            loading: _pollController.isLoading && poll == null,
+            loading: pollController.isLoading && poll == null,
             onTap: poll == null
                 ? () {
                     Navigator.pushNamed(context, AppRouter.polls);
@@ -196,12 +117,12 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
           const SizedBox(height: 8),
           _WebPulseRow(
             icon: Icons.forum_outlined,
-            label: l10n.homeSocialTitle(widget.scopeShortLabel),
+            label: l10n.homeSocialTitle(scopeShortLabel),
             title: post?.title,
             trailingValue: post == null
                 ? null
-                : _feedController.commentCountForPost(post).toString(),
-            loading: _feedController.isLoading && post == null,
+                : feedController.commentCountForPost(post).toString(),
+            loading: feedController.isLoading && post == null,
             onTap: post == null
                 ? () {
                     Navigator.pushNamed(context, AppRouter.social);
@@ -220,10 +141,10 @@ class _HomeWebWorldPanelState extends State<HomeWebWorldPanel> {
           const SizedBox(height: 8),
           _WebPulseRow(
             icon: Icons.newspaper_outlined,
-            label: l10n.homeNewsTitle(widget.scopeShortLabel),
+            label: l10n.homeNewsTitle(scopeShortLabel),
             title: news?.title,
             trailingValue: null,
-            loading: _newsController.isLoading && news == null,
+            loading: newsController.isLoading && news == null,
             onTap: news == null
                 ? () {
                     Navigator.pushNamed(context, AppRouter.news);

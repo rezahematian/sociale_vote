@@ -44,7 +44,6 @@ class _PollListPageState extends State<PollListPage> {
     _reloadPolls();
 
     _scrollController.addListener(_onScroll);
-    AppDI.instance.geoScopeController.addListener(_onScopeChanged);
     _sessionSub =
         AppDI.instance.sessionRepository.watchCurrentUserId().listen((_) {
       _reloadPolls();
@@ -54,7 +53,6 @@ class _PollListPageState extends State<PollListPage> {
   @override
   void dispose() {
     _sessionSub?.cancel();
-    AppDI.instance.geoScopeController.removeListener(_onScopeChanged);
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _pollListController.dispose();
@@ -98,10 +96,6 @@ class _PollListPageState extends State<PollListPage> {
         });
       }
     }
-  }
-
-  void _onScopeChanged() {
-    _reloadPolls();
   }
 
   void _onScroll() {
@@ -235,6 +229,10 @@ class _PollListPageState extends State<PollListPage> {
         builder: (context) {
           final l10n = AppLocalizations.of(context)!;
           final theme = Theme.of(context);
+          final surfaceVisible = TickerMode.valuesOf(context).enabled;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _pollListController.setSurfaceVisible(surfaceVisible);
+          });
           final colorScheme = theme.colorScheme;
           final isDark = theme.brightness == Brightness.dark;
 

@@ -43,6 +43,7 @@ class FeedController extends ChangeNotifier {
   final ToggleReaction _toggleReaction;
   final GetReactionSummary _getReactionSummary;
   final GetCommentCountForTarget _getCommentCountForTarget;
+  final int pageSize;
 
   FeedController({
     required GetFeed getFeed,
@@ -50,11 +51,13 @@ class FeedController extends ChangeNotifier {
     required ToggleReaction toggleReaction,
     required GetReactionSummary getReactionSummary,
     required GetCommentCountForTarget getCommentCountForTarget,
+    this.pageSize = 10,
   })  : _getFeed = getFeed,
         _geoScopeController = geoScopeController,
         _toggleReaction = toggleReaction,
         _getReactionSummary = getReactionSummary,
-        _getCommentCountForTarget = getCommentCountForTarget {
+        _getCommentCountForTarget = getCommentCountForTarget,
+        assert(pageSize > 0) {
     _geoScopeController.addListener(_handleScopeChanged);
   }
 
@@ -83,7 +86,6 @@ class FeedController extends ChangeNotifier {
   final Map<String, int> _commentCounts = <String, int>{};
 
   /// Paging reale.
-  static const int _pageSize = 10;
   int _currentOffset = 0;
   bool _hasMoreFromSource = true;
 
@@ -117,10 +119,6 @@ class FeedController extends ChangeNotifier {
     _sortMode = mode;
     _sortPosts();
     _notifyListeners();
-
-    if (mode == FeedSortMode.hottest && _hasMoreFromSource) {
-      unawaited(_loadAllRemainingPostsForHottest());
-    }
   }
 
   // ===== REACTION SUMMARY =====
@@ -212,15 +210,11 @@ class FeedController extends ChangeNotifier {
     _notifyListeners();
 
     try {
-      _isPreparingHottest = _sortMode == FeedSortMode.hottest;
+      // Hottest is intentionally ranked over the pages already requested by
+      // the user. Do not drain the complete backend feed on first render.
+      _isPreparingHottest = false;
 
       await _loadNextPage(generation: generation);
-
-      while (_isCurrentRequest(generation) &&
-          _sortMode == FeedSortMode.hottest &&
-          _hasMoreFromSource) {
-        await _loadNextPage(generation: generation);
-      }
 
       if (_isCurrentRequest(generation)) {
         _sortPosts();
@@ -292,47 +286,6 @@ class FeedController extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadAllRemainingPostsForHottest() async {
-    if (_isDisposed || _isLoading || !_hasMoreFromSource) {
-      return;
-    }
-
-    final generation = _requestGeneration;
-    _isPreparingHottest = true;
-    _setLoading(true);
-
-    try {
-      while (_isCurrentRequest(generation) &&
-          _sortMode == FeedSortMode.hottest &&
-          _hasMoreFromSource) {
-        await _loadNextPage(generation: generation);
-      }
-
-      if (_isCurrentRequest(generation)) {
-        _sortPosts();
-      }
-    } catch (e, stackTrace) {
-      if (!_isCurrentRequest(generation)) {
-        return;
-      }
-
-      _hasError = _posts.isEmpty;
-      _errorMessage = _posts.isEmpty
-          ? 'Impossibile caricare il feed.'
-          : 'Impossibile completare l’ordinamento dei post più caldi.';
-
-      if (kDebugMode) {
-        debugPrint('Error loading remaining hottest posts: $e');
-        debugPrint('$stackTrace');
-      }
-    } finally {
-      _isPreparingHottest = false;
-      if (_isCurrentRequest(generation)) {
-        _setLoading(false);
-      }
-    }
-  }
-
   Future<void> _loadNextPage({
     required int generation,
   }) async {
@@ -364,7 +317,7 @@ class FeedController extends ChangeNotifier {
     final result = await _getFeed(
       countryCode: countryCode,
       cityId: cityId,
-      limit: _pageSize,
+      limit: pageSize,
       offset: requestedOffset,
     );
 
@@ -397,7 +350,7 @@ class FeedController extends ChangeNotifier {
 
     _currentOffset = requestedOffset + result.length;
 
-    if (result.length < _pageSize || uniquePosts.isEmpty) {
+    if (result.length < pageSize || uniquePosts.isEmpty) {
       _hasMoreFromSource = false;
     }
 
