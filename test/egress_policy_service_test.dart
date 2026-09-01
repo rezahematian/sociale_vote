@@ -58,5 +58,12 @@ void main() {
         isNull,
       );
     });
+
+    test('poll realtime traffic is part of the automatic budget contract', () {
+      expect(
+        EgressAutomaticTraffic.values,
+        contains(EgressAutomaticTraffic.pollRealtimeResult),
+      );
+    });
   });
 }

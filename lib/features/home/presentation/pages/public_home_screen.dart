@@ -179,18 +179,16 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     await controller.refreshUnreadCount();
   }
 
-  void _scheduleHomeLoad(
-    EgressAutomaticTraffic traffic,
+  void _scheduleEssentialHomeLoad(
     Duration nativeDelay,
-    Future<void> Function() load, {
-    required bool userInitiated,
-  }) {
+    Future<void> Function() load,
+  ) {
     Future<void> run() async {
-      if (!userInitiated) {
-        final allowed =
-            await EgressPolicyService.instance.tryConsumeAutomatic(traffic);
-        if (!allowed) return;
-      }
+      // Creating the Home controllers is the first visible data load caused by
+      // opening Home, not a background refresh. It must remain available when
+      // the automatic budget is exhausted or Emergency mode is active.
+      // Realtime, timers, notifications and other automatic refreshes keep
+      // using EgressPolicyService independently.
       await load();
     }
 
@@ -786,11 +784,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
               create: (_) {
                 final controller =
                     AppDI.instance.createPollListController(pageSize: 3);
-                _scheduleHomeLoad(
-                  EgressAutomaticTraffic.homePolls,
+                _scheduleEssentialHomeLoad(
                   _nativePollWarmupDelay,
                   () => controller.loadPolls(userId: currentUserId),
-                  userInitiated: homeReloadUserInitiated,
                 );
                 return controller;
               },
@@ -802,11 +798,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
               create: (_) {
                 final controller =
                     AppDI.instance.createFeedController(pageSize: 3);
-                _scheduleHomeLoad(
-                  EgressAutomaticTraffic.homeSocial,
+                _scheduleEssentialHomeLoad(
                   _nativeSocialWarmupDelay,
                   () => controller.loadFeed(userId: currentUserId),
-                  userInitiated: homeReloadUserInitiated,
                 );
                 return controller;
               },
@@ -818,11 +812,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
               create: (_) {
                 final controller =
                     AppDI.instance.createNewsController(pageSize: 6);
-                _scheduleHomeLoad(
-                  EgressAutomaticTraffic.homeNews,
+                _scheduleEssentialHomeLoad(
                   _nativeNewsWarmupDelay,
                   () => controller.loadNews(userId: currentUserId),
-                  userInitiated: homeReloadUserInitiated,
                 );
                 return controller;
               },

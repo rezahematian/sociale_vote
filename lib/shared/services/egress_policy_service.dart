@@ -43,7 +43,9 @@ class EgressPolicyService extends ChangeNotifier with WidgetsBindingObserver {
   static const String _settingsTable = 'social_vote_world_surface_settings';
   static const String _settingsRowId = 'global';
   static const String _adminSetModeRpc = 'admin_set_egress_mode';
-  static const Duration _remoteModeTtl = Duration(minutes: 15);
+  // Active clients re-check the remote kill switch before automatic traffic.
+  // Two minutes bounds emergency propagation without adding idle polling.
+  static const Duration _remoteModeTtl = Duration(minutes: 2);
 
   static const String _dayPreferenceKey = 'egress_auto_budget_day_v2';
   static const String _usedPreferenceKey = 'egress_auto_budget_used_v2';
@@ -254,6 +256,7 @@ class EgressPolicyService extends ChangeNotifier with WidgetsBindingObserver {
     if (!_initialized) {
       await initialize();
     }
+    await ensureModeLoaded();
     await _rollLocalBudgetIfNeeded();
 
     if (!_appVisible || _mode == EgressMode.emergency) {
@@ -358,7 +361,7 @@ class EgressPolicyService extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     if (visible) {
-      unawaited(ensureModeLoaded());
+      unawaited(ensureModeLoaded(forceRefresh: true));
     }
   }
 }

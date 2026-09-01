@@ -12,6 +12,7 @@ import 'package:sociale_vote/domain/poll/value_objects/poll_outcome.dart';
 import 'package:sociale_vote/domain/poll/services/poll_quorum_evaluator.dart';
 import 'package:sociale_vote/domain/poll/services/poll_outcome_calculator.dart';
 import 'package:sociale_vote/domain/poll/services/poll_results_visibility_resolver.dart';
+import 'package:sociale_vote/shared/services/egress_policy_service.dart';
 
 /// Controller application-layer per:
 /// - risultati
@@ -25,6 +26,7 @@ class PollResultController extends ChangeNotifier {
   final PollQuorumEvaluator _quorumEvaluator;
   final PollOutcomeCalculator _outcomeCalculator;
   final PollResultsVisibilityResolver _visibilityResolver;
+  final EgressPolicyService _egressPolicy = EgressPolicyService.instance;
 
   static const Duration _realtimeReloadDebounce = Duration(milliseconds: 250);
   static const int _publicVotesPageSize = 50;
@@ -49,7 +51,10 @@ class PollResultController extends ChangeNotifier {
   })  : _quorumEvaluator = quorumEvaluator ?? const PollQuorumEvaluator(),
         _outcomeCalculator = outcomeCalculator ?? const PollOutcomeCalculator(),
         _visibilityResolver =
-            visibilityResolver ?? const PollResultsVisibilityResolver();
+            visibilityResolver ?? const PollResultsVisibilityResolver() {
+    _egressPolicy.addListener(_handleEgressPolicyChanged);
+    unawaited(_egressPolicy.initialize());
+  }
 
   bool _isLoading = false;
   PollResult? _result;
@@ -275,6 +280,16 @@ class PollResultController extends ChangeNotifier {
   Future<void> _ensureRealtimeSubscription(Poll poll) async {
     final pollId = poll.id.value;
 
+    await _egressPolicy.initialize();
+    if (_isDisposed) return;
+
+    if (!_egressPolicy.isAppVisible ||
+        _egressPolicy.automaticBudgetExhausted ||
+        _egressPolicy.mode == EgressMode.emergency) {
+      await _cancelRealtimeSubscription();
+      return;
+    }
+
     if (_subscribedPollId == pollId) {
       return;
     }
@@ -294,18 +309,54 @@ class PollResultController extends ChangeNotifier {
     _reloadDebounceTimer?.cancel();
     _reloadDebounceTimer = Timer(_realtimeReloadDebounce, () {
       if (_isDisposed) return;
-
-      if (_isLoading) {
-        _reloadQueued = true;
-        return;
-      }
-
-      if (_isPublicVotesLoading) {
-        _publicVotesReloadQueued = true;
-      }
-
-      unawaited(reload());
+      unawaited(_runRealtimeReload());
     });
+  }
+
+  Future<void> _runRealtimeReload() async {
+    final allowed = await _egressPolicy.tryConsumeAutomatic(
+      EgressAutomaticTraffic.pollRealtimeResult,
+    );
+    if (!allowed || _isDisposed) {
+      if (_egressPolicy.automaticBudgetExhausted ||
+          _egressPolicy.mode == EgressMode.emergency) {
+        await _cancelRealtimeSubscription();
+      }
+      return;
+    }
+
+    if (_isLoading) {
+      _reloadQueued = true;
+      return;
+    }
+
+    if (_isPublicVotesLoading) {
+      _publicVotesReloadQueued = true;
+    }
+
+    await reload();
+  }
+
+  Future<void> _cancelRealtimeSubscription() async {
+    await _votesSubscription?.cancel();
+    _votesSubscription = null;
+    _subscribedPollId = null;
+  }
+
+  void _handleEgressPolicyChanged() {
+    if (_isDisposed) return;
+
+    if (!_egressPolicy.isAppVisible ||
+        _egressPolicy.automaticBudgetExhausted ||
+        _egressPolicy.mode == EgressMode.emergency) {
+      unawaited(_cancelRealtimeSubscription());
+      return;
+    }
+
+    final poll = _lastPoll;
+    if (poll != null) {
+      unawaited(_ensureRealtimeSubscription(poll));
+    }
   }
 
   Future<void> reload() async {
@@ -406,6 +457,7 @@ class PollResultController extends ChangeNotifier {
   @override
   void dispose() {
     _isDisposed = true;
+    _egressPolicy.removeListener(_handleEgressPolicyChanged);
     _reloadDebounceTimer?.cancel();
     _votesSubscription?.cancel();
     super.dispose();

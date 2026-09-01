@@ -642,20 +642,18 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
     }
 
     try {
-      final loadedPolls = await AppDI.instance.pollRepository.getPollsByAuthor(
-        authorUserId: normalizedUserId,
-        limit: 20,
-        offset: 0,
-      );
       final organizationId = _explicitOrganizationId;
       final polls = organizationId == null
-          ? loadedPolls
-          : loadedPolls
-              .where(
-                (poll) =>
-                    poll.publisherOrganizationId?.trim() == organizationId,
-              )
-              .toList(growable: false);
+          ? await AppDI.instance.pollRepository.getPollsByAuthor(
+              authorUserId: normalizedUserId,
+              limit: 20,
+              offset: 0,
+            )
+          : await AppDI.instance.pollRepository
+              .getPollsByPublisherOrganizations(
+              organizationIds: <String>{organizationId},
+              limit: 20,
+            );
 
       if (!mounted) return;
 
@@ -689,20 +687,18 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
     }
 
     try {
-      final loadedPosts = await AppDI.instance.postRepository.getPostsByAuthor(
-        authorUserId: normalizedUserId,
-        limit: 20,
-        offset: 0,
-      );
       final organizationId = _explicitOrganizationId;
       final posts = organizationId == null
-          ? loadedPosts
-          : loadedPosts
-              .where(
-                (post) =>
-                    post.publisherOrganizationId?.trim() == organizationId,
-              )
-              .toList(growable: false);
+          ? await AppDI.instance.postRepository.getPostsByAuthor(
+              authorUserId: normalizedUserId,
+              limit: 20,
+              offset: 0,
+            )
+          : await AppDI.instance.postRepository
+              .getPostsByPublisherOrganizations(
+              organizationIds: <String>{organizationId},
+              limit: 20,
+            );
 
       if (!mounted) return;
 

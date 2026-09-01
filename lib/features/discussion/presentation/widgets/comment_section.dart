@@ -7,6 +7,7 @@ import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 
 import 'package:sociale_vote/domain/discussion/entities/comment.dart';
 import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
@@ -1385,6 +1386,8 @@ class _CommentTile extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             comment.content,
+            textDirection: socialVoteContentDirection(comment.content),
+            textAlign: socialVoteContentTextAlign(comment.content),
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.35,
             ),
