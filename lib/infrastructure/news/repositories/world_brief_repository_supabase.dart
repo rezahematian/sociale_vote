@@ -38,7 +38,7 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
       final requestedCountry = _country(countryCode);
       final requestedCity = _text(cityId)?.toLowerCase();
 
-      return rows.map(_fromRow).where((brief) {
+      return _briefsFromRows(rows).where((brief) {
         if (requestedLanguage != null &&
             brief.languageCode != requestedLanguage) {
           return false;
@@ -90,10 +90,7 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
     final rows = await query
         .order('updated_at', ascending: false)
         .limit(limit.clamp(1, 200).toInt());
-    return (rows as List<dynamic>)
-        .whereType<Map<String, dynamic>>()
-        .map(_fromRow)
-        .toList(growable: false);
+    return _briefsFromRows(rows);
   }
 
   @override
@@ -175,6 +172,22 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
       },
     );
     return _fromRow(_rpcRow(data));
+  }
+
+  List<WorldBrief> _briefsFromRows(dynamic data) {
+    if (data is! List) {
+      throw StateError('Invalid World Brief list backend response.');
+    }
+
+    return data.map<WorldBrief>((row) {
+      if (row is Map<String, dynamic>) {
+        return _fromRow(row);
+      }
+      if (row is Map) {
+        return _fromRow(Map<String, dynamic>.from(row));
+      }
+      throw StateError('Invalid World Brief row backend response.');
+    }).toList(growable: false);
   }
 
   Map<String, dynamic> _rpcRow(dynamic data) {

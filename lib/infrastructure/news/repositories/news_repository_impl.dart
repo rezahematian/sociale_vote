@@ -21,6 +21,7 @@ class NewsRepositoryImpl implements NewsRepository {
   static const Duration _cacheTtl = Duration(minutes: 30);
   static const int _fallbackCacheScanLimit = 60;
   static const Duration _removedIdentityCacheTtl = Duration(minutes: 5);
+  static const Duration _memoryCacheTtl = Duration(seconds: 30);
 
   static const int _maxArticlesToGeocodePerRefresh = 8;
   static const int _maxLocationCandidatesPerArticle = 3;
@@ -98,6 +99,15 @@ class NewsRepositoryImpl implements NewsRepository {
 
   final Map<String, Future<List<Map<String, dynamic>>>> _inFlightRefreshes =
       <String, Future<List<Map<String, dynamic>>>>{};
+
+  final Map<String, _MemoryCachedNewsFeedEntry> _exactMemoryCache =
+      <String, _MemoryCachedNewsFeedEntry>{};
+  final Map<String, Future<_CachedNewsFeed?>> _exactCacheReadsInFlight =
+      <String, Future<_CachedNewsFeed?>>{};
+  final Map<String, _MemoryCachedNewsFeedEntry> _fallbackMemoryCache =
+      <String, _MemoryCachedNewsFeedEntry>{};
+  final Map<String, Future<_CachedNewsFeed?>> _fallbackReadsInFlight =
+      <String, Future<_CachedNewsFeed?>>{};
 
   Set<String> _removedNewsIdentityKeys = <String>{};
   DateTime? _removedNewsIdentityKeysLoadedAt;
@@ -818,6 +828,43 @@ class NewsRepositoryImpl implements NewsRepository {
     required String cacheKey,
     required String? requestedLanguage,
   }) async {
+    final memoryKey = '$cacheKey|${requestedLanguage ?? ''}';
+    final cachedEntry = _exactMemoryCache[memoryKey];
+    if (cachedEntry != null && !cachedEntry.isExpired(_memoryCacheTtl)) {
+      return cachedEntry.feed;
+    }
+
+    final inFlight = _exactCacheReadsInFlight[memoryKey];
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    final load = _readExactCacheRemote(
+      cacheKey: cacheKey,
+      requestedLanguage: requestedLanguage,
+    );
+    _exactCacheReadsInFlight[memoryKey] = load;
+
+    try {
+      final feed = await load;
+      if (feed != null) {
+        _exactMemoryCache[memoryKey] = _MemoryCachedNewsFeedEntry(
+          feed: feed,
+          storedAt: DateTime.now().toUtc(),
+        );
+      }
+      return feed;
+    } finally {
+      if (identical(_exactCacheReadsInFlight[memoryKey], load)) {
+        _exactCacheReadsInFlight.remove(memoryKey);
+      }
+    }
+  }
+
+  Future<_CachedNewsFeed?> _readExactCacheRemote({
+    required String cacheKey,
+    required String? requestedLanguage,
+  }) async {
     try {
       final rows = await AppSupabase.client
           .from(_cacheTable)
@@ -850,6 +897,43 @@ class NewsRepositoryImpl implements NewsRepository {
   }
 
   Future<_CachedNewsFeed?> _readBestFallbackCache({
+    required _NewsFeedCandidate candidate,
+    required String? requestedLanguage,
+  }) async {
+    final memoryKey = '${candidate.cacheKey}|${requestedLanguage ?? ''}';
+    final cachedEntry = _fallbackMemoryCache[memoryKey];
+    if (cachedEntry != null && !cachedEntry.isExpired(_memoryCacheTtl)) {
+      return cachedEntry.feed;
+    }
+
+    final inFlight = _fallbackReadsInFlight[memoryKey];
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    final load = _readBestFallbackCacheRemote(
+      candidate: candidate,
+      requestedLanguage: requestedLanguage,
+    );
+    _fallbackReadsInFlight[memoryKey] = load;
+
+    try {
+      final feed = await load;
+      if (feed != null) {
+        _fallbackMemoryCache[memoryKey] = _MemoryCachedNewsFeedEntry(
+          feed: feed,
+          storedAt: DateTime.now().toUtc(),
+        );
+      }
+      return feed;
+    } finally {
+      if (identical(_fallbackReadsInFlight[memoryKey], load)) {
+        _fallbackReadsInFlight.remove(memoryKey);
+      }
+    }
+  }
+
+  Future<_CachedNewsFeed?> _readBestFallbackCacheRemote({
     required _NewsFeedCandidate candidate,
     required String? requestedLanguage,
   }) async {
@@ -1036,6 +1120,8 @@ class NewsRepositoryImpl implements NewsRepository {
         },
         onConflict: 'cache_key',
       );
+      _exactMemoryCache.clear();
+      _fallbackMemoryCache.clear();
     } catch (e, st) {
       if (kDebugMode) {
         debugPrint('NewsRepositoryImpl cache write failed: $e');
@@ -3123,6 +3209,20 @@ class _NewsJsonVisibilityCandidate {
     required this.json,
     required this.identityKeys,
   });
+}
+
+class _MemoryCachedNewsFeedEntry {
+  final _CachedNewsFeed feed;
+  final DateTime storedAt;
+
+  const _MemoryCachedNewsFeedEntry({
+    required this.feed,
+    required this.storedAt,
+  });
+
+  bool isExpired(Duration ttl) {
+    return DateTime.now().toUtc().difference(storedAt) > ttl;
+  }
 }
 
 class _NewsFeedCandidate {

@@ -31,6 +31,7 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
   LiveSessionDetail? _detail;
   bool _loading = true;
   bool _busy = false;
+  bool _refreshInFlight = false;
   Object? _error;
   Timer? _timer;
   int _section = 0;
@@ -40,7 +41,7 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
     super.initState();
     _repository = AppDI.instance.organizationRepository;
     _load();
-    _timer = Timer.periodic(const Duration(seconds: 2), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
       if (_detail?.session.status == 'open' && !_busy) {
         _load(silent: true);
       }
@@ -54,6 +55,11 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
   }
 
   Future<void> _load({bool silent = false}) async {
+    if (_refreshInFlight) {
+      return;
+    }
+    _refreshInFlight = true;
+
     if (!silent && mounted) {
       setState(() => _loading = true);
     }
@@ -75,6 +81,8 @@ class _LiveSessionPresenterPageState extends State<LiveSessionPresenterPage> {
         _error = e;
         _loading = false;
       });
+    } finally {
+      _refreshInFlight = false;
     }
   }
 

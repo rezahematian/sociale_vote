@@ -53,6 +53,7 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
   bool _organizationFollowStateLoading = false;
   bool _organizationFollowStateLoadError = false;
   bool _organizationFollowActionLoading = false;
+  int _contentFilterIndex = 0;
 
   String? get _explicitOrganizationId {
     final normalized = widget.organizationId?.trim();
@@ -767,41 +768,52 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
         children: [
-          if (_organization != null) ...[
-            OrganizationCoverHeader(
-              organization: _organization!,
-              verifiedLabel: l10n.organizationVerifiedLabel,
-              compact: true,
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 980),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_organization != null) ...[
+                    OrganizationCoverHeader(
+                      organization: _organization!,
+                      verifiedLabel: l10n.organizationVerifiedLabel,
+                      compact: true,
+                    ),
+                    const SizedBox(height: 12),
+                    _OrganizationPublicActions(
+                      organization: _organization!,
+                      externalLinks: _organizationExternalLinks,
+                      followState: _organizationFollowState,
+                      followStateLoading: _organizationFollowStateLoading,
+                      followStateLoadError: _organizationFollowStateLoadError,
+                      followActionLoading: _organizationFollowActionLoading,
+                      showFollowAction: AppDI.instance.currentUserId?.trim() !=
+                          widget.userId.trim(),
+                      l10n: l10n,
+                      onToggleFollow: () => _toggleOrganizationFollow(l10n),
+                      onRetryFollow: () =>
+                          _loadOrganizationFollowState(_organization!),
+                    ),
+                  ] else
+                    _PublicProfileHeader(
+                      profile: profile,
+                      l10n: l10n,
+                      followState: _followState,
+                      followStateLoading: _followStateLoading,
+                      followStateLoadError: _followStateLoadError,
+                      followActionLoading: _followActionLoading,
+                      onToggleFollow: () => _toggleAccountFollow(l10n),
+                      onRetryFollow: _loadFollowState,
+                    ),
+                  const SizedBox(height: 18),
+                  _buildPublicContentSection(
+                    context,
+                    l10n,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-            _OrganizationPublicActions(
-              organization: _organization!,
-              externalLinks: _organizationExternalLinks,
-              followState: _organizationFollowState,
-              followStateLoading: _organizationFollowStateLoading,
-              followStateLoadError: _organizationFollowStateLoadError,
-              followActionLoading: _organizationFollowActionLoading,
-              showFollowAction:
-                  AppDI.instance.currentUserId?.trim() != widget.userId.trim(),
-              l10n: l10n,
-              onToggleFollow: () => _toggleOrganizationFollow(l10n),
-              onRetryFollow: () => _loadOrganizationFollowState(_organization!),
-            ),
-          ] else
-            _PublicProfileHeader(
-              profile: profile,
-              l10n: l10n,
-              followState: _followState,
-              followStateLoading: _followStateLoading,
-              followStateLoadError: _followStateLoadError,
-              followActionLoading: _followActionLoading,
-              onToggleFollow: () => _toggleAccountFollow(l10n),
-              onRetryFollow: _loadFollowState,
-            ),
-          const SizedBox(height: 20),
-          _buildPublicContentSection(
-            context,
-            l10n,
           ),
         ],
       ),
@@ -813,98 +825,104 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
     AppLocalizations l10n,
   ) {
     final theme = Theme.of(context);
+    final showPolls = _contentFilterIndex == 0 || _contentFilterIndex == 2;
+    final showPosts = _contentFilterIndex == 0 || _contentFilterIndex == 1;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.publicProfileContentSectionTitle,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        // Poll pubblici
         Row(
           children: [
-            Icon(
-              Icons.how_to_vote_outlined,
-              size: 18,
-              color: theme.colorScheme.primary,
+            Expanded(
+              child: Text(
+                l10n.publicProfileContentSectionTitle,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             ),
-            const SizedBox(width: 8),
             Text(
-              '${l10n.publicProfilePollsAction} · ${_polls.length}',
+              '${_polls.length + _posts.length}',
               style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
                 fontWeight: FontWeight.w700,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 10),
-        if (_pollsLoading)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(
-              child: CircularProgressIndicator(),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _PublicContentFilterChip(
+              label: l10n.searchTypeAll,
+              count: _polls.length + _posts.length,
+              selected: _contentFilterIndex == 0,
+              onSelected: () => setState(() => _contentFilterIndex = 0),
             ),
-          )
-        else if (_pollsLoadError)
-          Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.error_outline_rounded,
-                    color: theme.colorScheme.error,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      l10n.publicProfilePollsLoadError,
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: _loadPolls,
-                    tooltip: MaterialLocalizations.of(context)
-                        .refreshIndicatorSemanticLabel,
-                    icon: const Icon(Icons.refresh_rounded),
-                  ),
-                ],
-              ),
+            _PublicContentFilterChip(
+              label: l10n.publicProfilePostsAction,
+              count: _posts.length,
+              selected: _contentFilterIndex == 1,
+              onSelected: () => setState(() => _contentFilterIndex = 1),
             ),
-          )
-        else if (_polls.isEmpty)
-          Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.inbox_outlined,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.48),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      l10n.publicProfilePollsEmpty,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.68,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            _PublicContentFilterChip(
+              label: l10n.publicProfilePollsAction,
+              count: _polls.length,
+              selected: _contentFilterIndex == 2,
+              onSelected: () => setState(() => _contentFilterIndex = 2),
             ),
-          )
-        else
-          ..._polls.map(
+          ],
+        ),
+        const SizedBox(height: 14),
+        if (showPosts) ...[
+          _PublicContentGroupHeader(
+            icon: Icons.article_outlined,
+            label: l10n.publicProfilePostsAction,
+            count: _posts.length,
+          ),
+          const SizedBox(height: 8),
+          _buildPostsContent(context, l10n),
+          if (showPolls) const SizedBox(height: 18),
+        ],
+        if (showPolls) ...[
+          _PublicContentGroupHeader(
+            icon: Icons.how_to_vote_outlined,
+            label: l10n.publicProfilePollsAction,
+            count: _polls.length,
+          ),
+          const SizedBox(height: 8),
+          _buildPollsContent(context, l10n),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPollsContent(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
+    if (_pollsLoading) {
+      return const _PublicContentLoading();
+    }
+
+    if (_pollsLoadError) {
+      return _PublicContentError(
+        message: l10n.publicProfilePollsLoadError,
+        onRetry: _loadPolls,
+      );
+    }
+
+    if (_polls.isEmpty) {
+      return _PublicContentEmpty(
+        message: l10n.publicProfilePollsEmpty,
+      );
+    }
+
+    return Column(
+      children: _polls
+          .map(
             (poll) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: _PublicPollTile(
@@ -920,91 +938,35 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
                 },
               ),
             ),
-          ),
+          )
+          .toList(growable: false),
+    );
+  }
 
-        const SizedBox(height: 18),
+  Widget _buildPostsContent(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
+    if (_postsLoading) {
+      return const _PublicContentLoading();
+    }
 
-        // Post pubblici
-        Row(
-          children: [
-            Icon(
-              Icons.article_outlined,
-              size: 18,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '${l10n.publicProfilePostsAction} · ${_posts.length}',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        if (_postsLoading)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
-          )
-        else if (_postsLoadError)
-          Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.error_outline_rounded,
-                    color: theme.colorScheme.error,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      l10n.publicProfilePostsLoadError,
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: _loadPosts,
-                    tooltip: MaterialLocalizations.of(context)
-                        .refreshIndicatorSemanticLabel,
-                    icon: const Icon(Icons.refresh_rounded),
-                  ),
-                ],
-              ),
-            ),
-          )
-        else if (_posts.isEmpty)
-          Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.inbox_outlined,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.48),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      l10n.publicProfilePostsEmpty,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.68,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-        else
-          ..._posts.map(
+    if (_postsLoadError) {
+      return _PublicContentError(
+        message: l10n.publicProfilePostsLoadError,
+        onRetry: _loadPosts,
+      );
+    }
+
+    if (_posts.isEmpty) {
+      return _PublicContentEmpty(
+        message: l10n.publicProfilePostsEmpty,
+      );
+    }
+
+    return Column(
+      children: _posts
+          .map(
             (post) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: _PublicPostTile(
@@ -1020,8 +982,194 @@ class _PublicUserProfilePageState extends State<PublicUserProfilePage> {
                 },
               ),
             ),
+          )
+          .toList(growable: false),
+    );
+  }
+}
+
+class _PublicContentFilterChip extends StatelessWidget {
+  final String label;
+  final int count;
+  final bool selected;
+  final VoidCallback onSelected;
+
+  const _PublicContentFilterChip({
+    required this.label,
+    required this.count,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return ChoiceChip(
+      selected: selected,
+      onSelected: (_) => onSelected(),
+      showCheckmark: false,
+      avatar: selected
+          ? Icon(
+              Icons.check_rounded,
+              size: 16,
+              color: theme.colorScheme.onSecondaryContainer,
+            )
+          : null,
+      label: Text('$label $count'),
+      labelStyle: theme.textTheme.labelLarge?.copyWith(
+        fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+      ),
+    );
+  }
+}
+
+class _PublicContentGroupHeader extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final int count;
+
+  const _PublicContentGroupHeader({
+    required this.icon,
+    required this.label,
+    required this.count,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final secondary = theme.colorScheme.onSurface.withValues(alpha: 0.58);
+
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 18,
+          color: theme.colorScheme.primary,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w800,
           ),
+        ),
+        const SizedBox(width: 7),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            '$count',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: secondary,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
       ],
+    );
+  }
+}
+
+class _PublicContentLoading extends StatelessWidget {
+  const _PublicContentLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(
+          child: SizedBox.square(
+            dimension: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PublicContentError extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _PublicContentError({
+    required this.message,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Icon(
+              Icons.error_outline_rounded,
+              color: theme.colorScheme.error,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: theme.textTheme.bodyMedium,
+              ),
+            ),
+            IconButton(
+              onPressed: onRetry,
+              tooltip: MaterialLocalizations.of(context)
+                  .refreshIndicatorSemanticLabel,
+              icon: const Icon(Icons.refresh_rounded),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PublicContentEmpty extends StatelessWidget {
+  final String message;
+
+  const _PublicContentEmpty({
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(
+              Icons.inbox_outlined,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.48),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1069,87 +1217,109 @@ class _OrganizationPublicActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final website = organization.websiteUrl?.trim();
     final typeLabel = _organizationTypeLabel(l10n, organization.entityType);
+    final showType = organization.entityType != OrganizationEntityType.other;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final identity = Wrap(
-            spacing: 10,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Chip(
-                avatar: const Icon(Icons.category_outlined, size: 16),
-                label: Text(typeLabel),
-              ),
-              _OrganizationFollowSummary(
-                state: followState,
-                isLoading: followStateLoading,
-                hasError: followStateLoadError,
-                isActionLoading: followActionLoading,
-                showAction: showFollowAction,
-                l10n: l10n,
-                onToggle: onToggleFollow,
-                onRetry: onRetryFollow,
-              ),
-            ],
+    final websiteButton = website == null || website.isEmpty
+        ? null
+        : OutlinedButton.icon(
+            onPressed: () async {
+              final normalized = website.startsWith('http://') ||
+                      website.startsWith('https://')
+                  ? website
+                  : 'https://$website';
+              final uri = Uri.tryParse(normalized);
+              if (uri != null) {
+                await launchUrl(
+                  uri,
+                  mode: LaunchMode.externalApplication,
+                );
+              }
+            },
+            icon: const Icon(Icons.language_rounded),
+            label: Text(l10n.organizationOfficialWebsiteAction),
           );
 
-          final websiteButton = website == null || website.isEmpty
-              ? null
-              : OutlinedButton.icon(
-                  onPressed: () async {
-                    final normalized = website.startsWith('http://') ||
-                            website.startsWith('https://')
-                        ? website
-                        : 'https://$website';
-                    final uri = Uri.tryParse(normalized);
-                    if (uri != null) {
-                      await launchUrl(uri,
-                          mode: LaunchMode.externalApplication);
-                    }
-                  },
-                  icon: const Icon(Icons.language_rounded),
-                  label: Text(l10n.organizationOfficialWebsiteAction),
-                );
+    final channelButtons = externalLinks
+        .where((link) => link.isPublic)
+        .map(
+          (link) => OutlinedButton.icon(
+            onPressed: () => _openExternalLink(link.canonicalUrl),
+            icon: Icon(_externalIcon(link.provider)),
+            label: Text(link.provider.label),
+          ),
+        )
+        .toList(growable: false);
 
-          final channelButtons = externalLinks
-              .where((link) => link.isPublic)
-              .map(
-                (link) => OutlinedButton.icon(
-                  onPressed: () => _openExternalLink(link.canonicalUrl),
-                  icon: Icon(_externalIcon(link.provider)),
-                  label: Text(link.provider.label),
-                ),
-              )
-              .toList(growable: false);
+    final actions = <Widget>[
+      if (websiteButton != null) websiteButton,
+      ...channelButtons,
+    ];
 
-          final actions = <Widget>[
-            if (websiteButton != null) websiteButton,
-            ...channelButtons,
-          ];
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (constraints.maxWidth < 620)
-                identity
-              else
-                Align(alignment: Alignment.centerLeft, child: identity),
-              if (actions.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: actions,
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Wrap(
+              spacing: 12,
+              runSpacing: 10,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (showType)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.category_outlined,
+                        size: 17,
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.60,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        typeLabel,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.72,
+                          ),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                _OrganizationFollowSummary(
+                  state: followState,
+                  isLoading: followStateLoading,
+                  hasError: followStateLoadError,
+                  isActionLoading: followActionLoading,
+                  showAction: showFollowAction,
+                  l10n: l10n,
+                  onToggle: onToggleFollow,
+                  onRetry: onRetryFollow,
                 ),
               ],
+            ),
+            if (actions.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              Divider(
+                height: 1,
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
+              ),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: actions,
+              ),
             ],
-          );
-        },
+          ],
+        ),
       ),
     );
   }
@@ -1294,17 +1464,21 @@ class _PublicProfileHeader extends StatelessWidget {
     final bio = _normalize(profile.bio);
     final identityDetail = _normalize(profile.identityDetailLabel);
     final residence = _residenceLabel(profile, l10n);
+    final memberSince = MaterialLocalizations.of(context).formatMediumDate(
+      profile.createdAt.toLocal(),
+    );
 
     final nameLabel = displayName ?? l10n.publicProfileUserFallback;
 
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+        padding: const EdgeInsets.all(16),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxWidth < 620;
+
+            final identity = Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 PublisherAvatar(
@@ -1313,25 +1487,25 @@ class _PublicProfileHeader extends StatelessWidget {
                   actorType: profile.actorType,
                   verificationLevel: profile.verificationLevel,
                   institutionLevel: profile.institutionLevel,
-                  size: 72,
+                  size: compact ? 68 : 78,
                   showTooltip: false,
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Flexible(
-                            child: Text(
-                              nameLabel,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w800,
-                              ),
+                          Text(
+                            nameLabel,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                           if (UserIdentityMark.shouldShowForProfile(profile))
@@ -1342,7 +1516,7 @@ class _PublicProfileHeader extends StatelessWidget {
                         ],
                       ),
                       if (username != null) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
                         Text(
                           '@$username',
                           style: theme.textTheme.bodyMedium?.copyWith(
@@ -1352,11 +1526,14 @@ class _PublicProfileHeader extends StatelessWidget {
                         ),
                       ],
                       if (identityDetail != null) ...[
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 5),
                         Text(
                           identityDetail,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.70,
+                            ),
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -1364,9 +1541,9 @@ class _PublicProfileHeader extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 18),
-            _AccountFollowSummary(
+            );
+
+            final follow = _AccountFollowSummary(
               state: followState,
               isLoading: followStateLoading,
               hasError: followStateLoadError,
@@ -1374,35 +1551,49 @@ class _PublicProfileHeader extends StatelessWidget {
               l10n: l10n,
               onToggle: onToggleFollow,
               onRetry: onRetryFollow,
-            ),
-            const SizedBox(height: 18),
-            Text(
-              bio ?? l10n.publicProfileNoBio,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                height: 1.45,
-                color: bio == null
-                    ? theme.colorScheme.onSurface.withValues(alpha: 0.58)
-                    : null,
-                fontStyle: bio == null ? FontStyle.italic : null,
-              ),
-            ),
-            const SizedBox(height: 18),
-            const Divider(height: 1),
-            const SizedBox(height: 14),
-            _PublicProfileInfoRow(
-              icon: Icons.location_on_outlined,
-              label: l10n.publicProfileResidenceLabel,
-              value: residence,
-            ),
-            const SizedBox(height: 12),
-            _PublicProfileInfoRow(
-              icon: Icons.calendar_today_outlined,
-              label: l10n.publicProfileMemberSinceLabel,
-              value: MaterialLocalizations.of(context).formatMediumDate(
-                profile.createdAt.toLocal(),
-              ),
-            ),
-          ],
+            );
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                identity,
+                const SizedBox(height: 14),
+                follow,
+                const SizedBox(height: 14),
+                Text(
+                  bio ?? l10n.publicProfileNoBio,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    height: 1.4,
+                    color: bio == null
+                        ? theme.colorScheme.onSurface.withValues(alpha: 0.56)
+                        : null,
+                    fontStyle: bio == null ? FontStyle.italic : null,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Divider(
+                  height: 1,
+                  color:
+                      theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 18,
+                  runSpacing: 10,
+                  children: [
+                    _PublicProfileMeta(
+                      icon: Icons.location_on_outlined,
+                      value: residence,
+                    ),
+                    _PublicProfileMeta(
+                      icon: Icons.calendar_today_outlined,
+                      value: memberSince,
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -1563,50 +1754,34 @@ class _FollowCount extends StatelessWidget {
   }
 }
 
-class _PublicProfileInfoRow extends StatelessWidget {
+class _PublicProfileMeta extends StatelessWidget {
   final IconData icon;
-  final String label;
   final String value;
 
-  const _PublicProfileInfoRow({
+  const _PublicProfileMeta({
     required this.icon,
-    required this.label,
     required this.value,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final secondaryColor = theme.colorScheme.onSurface.withValues(alpha: 0.62);
+    final secondary = theme.colorScheme.onSurface.withValues(alpha: 0.62);
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
           icon,
-          size: 18,
-          color: secondaryColor,
+          size: 17,
+          color: secondary,
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: secondaryColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+        const SizedBox(width: 6),
+        Text(
+          value,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: secondary,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ],

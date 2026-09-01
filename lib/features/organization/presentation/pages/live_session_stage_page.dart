@@ -26,13 +26,14 @@ class _LiveSessionStagePageState extends State<LiveSessionStagePage> {
   LiveSessionDetail? _detail;
   Object? _error;
   Timer? _timer;
+  bool _refreshInFlight = false;
 
   @override
   void initState() {
     super.initState();
     _load();
     _timer =
-        Timer.periodic(const Duration(seconds: 2), (_) => _load(silent: true));
+        Timer.periodic(const Duration(seconds: 5), (_) => _load(silent: true));
   }
 
   @override
@@ -42,6 +43,11 @@ class _LiveSessionStagePageState extends State<LiveSessionStagePage> {
   }
 
   Future<void> _load({bool silent = false}) async {
+    if (_refreshInFlight) {
+      return;
+    }
+    _refreshInFlight = true;
+
     try {
       final detail =
           await widget.repository.getOrganizerSession(widget.sessionId);
@@ -53,6 +59,8 @@ class _LiveSessionStagePageState extends State<LiveSessionStagePage> {
     } catch (e) {
       if (!mounted || silent) return;
       setState(() => _error = e);
+    } finally {
+      _refreshInFlight = false;
     }
   }
 

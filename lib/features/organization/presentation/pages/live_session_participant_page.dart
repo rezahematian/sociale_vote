@@ -42,6 +42,7 @@ class _LiveSessionParticipantPageState
   bool _showManualPass = false;
   Object? _error;
   Timer? _timer;
+  bool _refreshInFlight = false;
 
   @override
   void initState() {
@@ -56,7 +57,7 @@ class _LiveSessionParticipantPageState
       _tokenController.text = pass;
     }
     _restoreParticipantSession();
-    _timer = Timer.periodic(const Duration(seconds: 2), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
       if (!_loading && !_joining && !_voting) _refreshState(silent: true);
     });
   }
@@ -103,6 +104,11 @@ class _LiveSessionParticipantPageState
   }
 
   Future<void> _refreshState({bool silent = false}) async {
+    if (_refreshInFlight) {
+      return;
+    }
+    _refreshInFlight = true;
+
     if (!silent && mounted) setState(() => _loading = true);
     try {
       final raw = await _repository.getPublicSessionState(
@@ -143,6 +149,8 @@ class _LiveSessionParticipantPageState
         _error = e;
         _loading = false;
       });
+    } finally {
+      _refreshInFlight = false;
     }
   }
 
