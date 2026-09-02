@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
+import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 
@@ -1098,6 +1099,8 @@ class _CommentSectionState extends State<CommentSection> {
     String? rawError,
   ) {
     switch (rawError) {
+      case antiAbuseRateLimitCode:
+        return antiAbuseRateLimitMessage(context);
       case 'Impossibile aggiungere il commento.':
         return _localizedText(
           l10n,
@@ -1384,12 +1387,15 @@ class _CommentTile extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Text(
-            comment.content,
-            textDirection: socialVoteContentDirection(comment.content),
-            textAlign: socialVoteContentTextAlign(comment.content),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              height: 1.35,
+          SizedBox(
+            width: double.infinity,
+            child: Text(
+              comment.content,
+              textDirection: socialVoteContentDirection(comment.content),
+              textAlign: socialVoteContentTextAlign(comment.content),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                height: 1.35,
+              ),
             ),
           ),
           const SizedBox(height: 8),

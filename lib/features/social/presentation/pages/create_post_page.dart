@@ -7,6 +7,7 @@ import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 import 'package:sociale_vote/domain/organization/entities/organization_models.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
+import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
 import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 
@@ -410,20 +411,22 @@ class _CreatePostPageState extends State<CreatePostPage> {
       );
 
       Navigator.of(context).pop(true);
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       final languageCode =
           Localizations.localeOf(context).languageCode.toLowerCase();
       setState(() {
-        _submitError = languageCode == 'it'
-            ? 'Impossibile pubblicare la Voce. Controlla la connessione e riprova.'
-            : deOrEnglish(
-                context,
-                english:
-                    'Unable to publish the Voce. Check your connection and try again.',
-                german:
-                    'Die Voce konnte nicht veröffentlicht werden. Prüfe die Verbindung und versuche es erneut.',
-              );
+        _submitError = isAntiAbuseRateLimitError(e)
+            ? antiAbuseRateLimitMessage(context)
+            : languageCode == 'it'
+                ? 'Impossibile pubblicare la Voce. Controlla la connessione e riprova.'
+                : deOrEnglish(
+                    context,
+                    english:
+                        'Unable to publish the Voce. Check your connection and try again.',
+                    german:
+                        'Die Voce konnte nicht veröffentlicht werden. Prüfe die Verbindung und versuche es erneut.',
+                  );
       });
     } finally {
       if (mounted) {

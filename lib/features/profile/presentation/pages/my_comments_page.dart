@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/domain/discussion/entities/comment.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 
 class MyCommentsPage extends StatefulWidget {
   const MyCommentsPage({super.key});
@@ -89,9 +90,16 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                comment.content,
-                                style: Theme.of(context).textTheme.bodyMedium,
+                              SizedBox(
+                                width: double.infinity,
+                                child: Text(
+                                  comment.content,
+                                  textDirection:
+                                      socialVoteContentDirection(comment.content),
+                                  textAlign:
+                                      socialVoteContentTextAlign(comment.content),
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
                               ),
                               const SizedBox(height: 6),
                               Text(

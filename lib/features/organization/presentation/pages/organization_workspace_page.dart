@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
@@ -9,6 +10,7 @@ import 'package:sociale_vote/features/organization/presentation/pages/create_liv
 import 'package:sociale_vote/features/organization/presentation/pages/live_session_presenter_page.dart';
 import 'package:sociale_vote/features/organization/presentation/pages/organization_profile_editor_page.dart';
 import 'package:sociale_vote/features/organization/presentation/widgets/organization_cover_header.dart';
+import 'package:sociale_vote/features/organization/presentation/widgets/organization_external_channel_icon.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/create_poll_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
 import 'package:sociale_vote/features/social/presentation/pages/create_post_page.dart';
@@ -205,6 +207,7 @@ class _OrganizationWorkspacePageState extends State<OrganizationWorkspacePage> {
                   _EnterpriseWorkspaceShell(
                     data: data,
                     sessions: _controller.sessions,
+                    externalLinks: _controller.externalLinks,
                     selectedSection: _section,
                     onSectionChanged: (section) {
                       setState(() => _section = section);
@@ -342,6 +345,7 @@ class _WorkspaceHeaderActions extends StatelessWidget {
 class _EnterpriseWorkspaceShell extends StatelessWidget {
   final OrganizationContext data;
   final List<LiveSessionSummary> sessions;
+  final List<OrganizationExternalLink> externalLinks;
   final _WorkspaceSection selectedSection;
   final ValueChanged<_WorkspaceSection> onSectionChanged;
   final VoidCallback onCreateVoice;
@@ -355,6 +359,7 @@ class _EnterpriseWorkspaceShell extends StatelessWidget {
   const _EnterpriseWorkspaceShell({
     required this.data,
     required this.sessions,
+    required this.externalLinks,
     required this.selectedSection,
     required this.onSectionChanged,
     required this.onCreateVoice,
@@ -374,6 +379,7 @@ class _EnterpriseWorkspaceShell extends StatelessWidget {
         final content = _WorkspaceSectionContent(
           data: data,
           sessions: sessions,
+          externalLinks: externalLinks,
           section: selectedSection,
           onCreateVoice: onCreateVoice,
           onCreateVote: onCreateVote,
@@ -655,6 +661,7 @@ class _SideStatusLine extends StatelessWidget {
 class _WorkspaceSectionContent extends StatelessWidget {
   final OrganizationContext data;
   final List<LiveSessionSummary> sessions;
+  final List<OrganizationExternalLink> externalLinks;
   final _WorkspaceSection section;
   final VoidCallback onCreateVoice;
   final VoidCallback onCreateVote;
@@ -667,6 +674,7 @@ class _WorkspaceSectionContent extends StatelessWidget {
   const _WorkspaceSectionContent({
     required this.data,
     required this.sessions,
+    required this.externalLinks,
     required this.section,
     required this.onCreateVoice,
     required this.onCreateVote,
@@ -709,6 +717,7 @@ class _WorkspaceSectionContent extends StatelessWidget {
       _WorkspaceSection.team => _TeamSection(data: data),
       _WorkspaceSection.organization => _OrganizationSection(
           data: data,
+          externalLinks: externalLinks,
           onEditProfile: onEditProfile,
           onViewPublicProfile: onViewPublicProfile,
         ),
@@ -1591,11 +1600,13 @@ class _TeamSectionState extends State<_TeamSection> {
 
 class _OrganizationSection extends StatelessWidget {
   final OrganizationContext data;
+  final List<OrganizationExternalLink> externalLinks;
   final VoidCallback onEditProfile;
   final VoidCallback onViewPublicProfile;
 
   const _OrganizationSection({
     required this.data,
+    required this.externalLinks,
     required this.onEditProfile,
     required this.onViewPublicProfile,
   });
@@ -1628,12 +1639,13 @@ class _OrganizationSection extends StatelessWidget {
           _tr(context, it: 'Città', en: 'City', de: 'Stadt'),
           organization.city!,
         ),
-      if (organization.websiteUrl != null)
-        (
-          _tr(context, it: 'Sito', en: 'Website', de: 'Website'),
-          organization.websiteUrl!,
-        ),
     ];
+    final website = organization.websiteUrl?.trim();
+    final publicExternalLinks = externalLinks
+        .where((link) => link.isPublic && link.canonicalUrl.trim().isNotEmpty)
+        .toList(growable: false);
+    final hasOfficialChannels =
+        (website != null && website.isNotEmpty) || publicExternalLinks.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1712,6 +1724,60 @@ class _OrganizationSection extends StatelessWidget {
             ),
           ),
         ),
+        if (hasOfficialChannels) ...[
+          const SizedBox(height: 12),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    _tr(
+                      context,
+                      it: 'Canali ufficiali',
+                      en: 'Official channels',
+                      de: 'Offizielle Kanäle',
+                    ),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      if (website != null && website.isNotEmpty)
+                        _OfficialChannelCard(
+                          icon: const OrganizationWebsiteIcon(size: 30),
+                          label: _tr(
+                            context,
+                            it: 'Sito ufficiale',
+                            en: 'Official website',
+                            de: 'Offizielle Website',
+                          ),
+                          url: website,
+                        ),
+                      ...publicExternalLinks.map(
+                        (link) => _OfficialChannelCard(
+                          icon: OrganizationExternalChannelIcon(
+                            provider: link.provider,
+                            size: 30,
+                          ),
+                          label: link.provider.label,
+                          url: link.canonicalUrl,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
         if (organization.description != null) ...[
           const SizedBox(height: 12),
           _InformationPanel(
@@ -1726,6 +1792,77 @@ class _OrganizationSection extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _OfficialChannelCard extends StatelessWidget {
+  final Widget icon;
+  final String label;
+  final String url;
+
+  const _OfficialChannelCard({
+    required this.icon,
+    required this.label,
+    required this.url,
+  });
+
+  Future<void> _open() async {
+    final raw = url.trim();
+    final normalized = raw.startsWith('http://') || raw.startsWith('https://')
+        ? raw
+        : 'https://$raw';
+    final uri = Uri.tryParse(normalized);
+    if (uri == null || !uri.hasScheme) return;
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: 190, maxWidth: 360),
+      child: Material(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: _open,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                icon,
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        label,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        url,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

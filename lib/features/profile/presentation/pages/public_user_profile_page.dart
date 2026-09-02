@@ -7,6 +7,7 @@ import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
 import 'package:sociale_vote/domain/identity/entities/account_follow_state.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/organization/entities/organization_models.dart';
+import 'package:sociale_vote/features/organization/presentation/widgets/organization_external_channel_icon.dart';
 import 'package:sociale_vote/features/organization/presentation/widgets/organization_cover_header.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/poll_detail_page.dart';
 import 'package:sociale_vote/features/social/presentation/pages/post_detail_page.dart';
@@ -1220,7 +1221,9 @@ class _OrganizationPublicActions extends StatelessWidget {
 
     final websiteButton = website == null || website.isEmpty
         ? null
-        : OutlinedButton.icon(
+        : _OfficialChannelIconAction(
+            tooltip: l10n.organizationOfficialWebsiteAction,
+            icon: const OrganizationWebsiteIcon(size: 36),
             onPressed: () async {
               final normalized = website.startsWith('http://') ||
                       website.startsWith('https://')
@@ -1234,17 +1237,18 @@ class _OrganizationPublicActions extends StatelessWidget {
                 );
               }
             },
-            icon: const Icon(Icons.language_rounded),
-            label: Text(l10n.organizationOfficialWebsiteAction),
           );
 
     final channelButtons = externalLinks
         .where((link) => link.isPublic)
         .map(
-          (link) => OutlinedButton.icon(
+          (link) => _OfficialChannelIconAction(
+            tooltip: link.provider.label,
+            icon: OrganizationExternalChannelIcon(
+              provider: link.provider,
+              size: 36,
+            ),
             onPressed: () => _openExternalLink(link.canonicalUrl),
-            icon: Icon(_externalIcon(link.provider)),
-            label: Text(link.provider.label),
           ),
         )
         .toList(growable: false);
@@ -1326,15 +1330,40 @@ class _OrganizationPublicActions extends StatelessWidget {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
-  IconData _externalIcon(OrganizationExternalLinkProvider provider) {
-    return switch (provider) {
-      OrganizationExternalLinkProvider.youtube =>
-        Icons.play_circle_outline_rounded,
-      OrganizationExternalLinkProvider.linkedin => Icons.work_outline_rounded,
-      OrganizationExternalLinkProvider.whatsapp => Icons.chat_outlined,
-      OrganizationExternalLinkProvider.instagram => Icons.photo_camera_outlined,
-      OrganizationExternalLinkProvider.telegram => Icons.send_outlined,
-    };
+}
+
+class _OfficialChannelIconAction extends StatelessWidget {
+  final String tooltip;
+  final Widget icon;
+  final VoidCallback onPressed;
+
+  const _OfficialChannelIconAction({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: colors.outlineVariant),
+        ),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(5),
+            child: icon,
+          ),
+        ),
+      ),
+    );
   }
 }
 

@@ -20,6 +20,7 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
+import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
 
 class CreatePollPage extends StatelessWidget {
   final bool preferOrganizationPublisher;
@@ -315,6 +316,10 @@ class _CreatePollViewState extends State<_CreatePollView> {
 
   String _localizedControllerError(CreatePollController controller) {
     final raw = controller.errorMessage?.trim();
+    if (raw == antiAbuseRateLimitCode) {
+      return antiAbuseRateLimitMessage(context);
+    }
+
     if (raw == null || raw.isEmpty) {
       return _isItalian
           ? 'Impossibile completare l’operazione.'

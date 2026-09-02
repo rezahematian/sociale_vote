@@ -172,22 +172,19 @@ class AppRouter {
     return _isSupportedStartupPath(path) ? path : home;
   }
 
-  /// Public content links must open the requested destination immediately,
-  /// while keeping Home underneath it in the Navigator stack. This gives a
-  /// first-time visitor a normal Back path into the rest of Social Vote.
+  /// Every supported non-Home startup destination keeps Home underneath it.
+  ///
+  /// This is especially important on Web refresh/deep-link startup: if a page
+  /// such as Organization becomes the only route in the Navigator stack, the
+  /// standard AppBar back button disappears and the user can become trapped on
+  /// that page. Keeping Home underneath preserves a deterministic escape path.
   static List<Route<dynamic>> onGenerateInitialRoutes(
     String initialRouteName,
   ) {
     final routeName = _normalizePath(initialRouteName);
-    final needsHomeUnderneath =
-        _publicContentId(routeName, prefix: 'poll') != null ||
-            _publicContentId(routeName, prefix: 'post') != null ||
-            _publicSessionJoinCode(routeName) != null ||
-            _publicVerifiedSessionId(routeName) != null ||
-            _publicCityTarget(routeName) != null ||
-            routeName == adminCenter;
+    final needsHomeUnderneath = routeName != home;
 
-    if (!needsHomeUnderneath || routeName == home) {
+    if (!needsHomeUnderneath) {
       return <Route<dynamic>>[
         onGenerateRoute(RouteSettings(name: routeName)),
       ];

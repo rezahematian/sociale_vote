@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-WORLD-V10.6-VOCE-GLYPH-FAILSOFT';
+const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-WORLD-V10.6-ROUTE-LIFECYCLE-V1.0.2';
 
 const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
@@ -360,7 +360,12 @@ function createMarkerTexture(color, count, kind) {
 
 class SocialVoteGlobeElement extends HTMLElement {
   static get observedAttributes() {
-    return ['data-config', 'data-appearance', 'data-focus'];
+    return [
+      'data-config',
+      'data-appearance',
+      'data-focus',
+      'data-route-active',
+    ];
   }
 
   constructor() {
@@ -385,6 +390,7 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._lastSunUpdateAt = 0;
 
     this._isAuthenticated = false;
+    this._routeActive = true;
     this._autoRotateEnabled = false;
     this._autoRotatePreference = false;
     this._resumeAutoRotateAfterInteraction = false;
@@ -482,6 +488,10 @@ class SocialVoteGlobeElement extends HTMLElement {
     if (name === 'data-focus' && this._initialized) {
       this._applyFocusAttribute();
     }
+
+    if (name === 'data-route-active') {
+      this._routeActive = newValue !== 'false';
+    }
   }
 
   _readConfig() {
@@ -507,6 +517,7 @@ class SocialVoteGlobeElement extends HTMLElement {
   _initialize() {
     this._readConfig();
     this._readAppearance();
+    this._routeActive = this.getAttribute('data-route-active') !== 'false';
     this.removeAttribute('data-runtime-ready');
 
     try {
@@ -1814,7 +1825,7 @@ class SocialVoteGlobeElement extends HTMLElement {
             renderFrame,
           );
 
-      if (document.hidden) {
+      if (document.hidden || !this.isConnected || !this._routeActive) {
         return;
       }
 
@@ -2096,7 +2107,15 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._updateSun(true);
 
     requestAnimationFrame(() => {
-      if (!this._disposed && this._renderer && this._scene && this._camera) {
+      if (
+        !this._disposed &&
+        this.isConnected &&
+        this._routeActive &&
+        !document.hidden &&
+        this._renderer &&
+        this._scene &&
+        this._camera
+      ) {
         this._renderer.render(this._scene, this._camera);
         this._emitDiagnostics('context-restored');
       }
@@ -2106,6 +2125,8 @@ class SocialVoteGlobeElement extends HTMLElement {
   _onVisibilityChange() {
     if (
       !document.hidden &&
+      this.isConnected &&
+      this._routeActive &&
       this._renderer &&
       this._camera
     ) {

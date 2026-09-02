@@ -10,6 +10,7 @@ import 'package:sociale_vote/app/theme/radius.dart';
 import 'package:sociale_vote/app/theme/spacing.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
+import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 
@@ -1597,6 +1598,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
         return l10n.pollDetail_voteErrorClosed;
       case VoteErrorType.alreadyVoted:
         return l10n.pollDetail_voteErrorAlreadyVoted;
+      case VoteErrorType.rateLimited:
+        return antiAbuseRateLimitMessage(context);
       case VoteErrorType.generic:
         return l10n.pollDetail_voteErrorGeneric;
     }

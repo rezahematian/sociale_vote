@@ -96,6 +96,7 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
 
   bool _failed = false;
   bool _ready = false;
+  bool _routeActive = true;
   int _surfaceGeneration = 0;
   int _automaticRendererRetries = 0;
   String? _lastConfigJson;
@@ -110,6 +111,15 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
   void initState() {
     super.initState();
     widget.focusListenable?.addListener(_handleFocusChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final tickerModeEnabled = TickerMode.valuesOf(context).enabled;
+    final routeIsCurrent = ModalRoute.of(context)?.isCurrent ?? true;
+    _publishRouteActivity(tickerModeEnabled && routeIsCurrent);
   }
 
   @override
@@ -247,6 +257,7 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     _element = element;
     _failed = false;
     _ready = element.getAttribute('data-runtime-ready') == 'true';
+    _publishRouteActivity(_routeActive, force: true);
 
     element.style
       ..display = 'block'
@@ -587,6 +598,15 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
 
   void _handleFocusChanged() {
     _applyFocusIfPossible();
+  }
+
+  void _publishRouteActivity(bool active, {bool force = false}) {
+    if (!force && active == _routeActive) {
+      return;
+    }
+
+    _routeActive = active;
+    _element?.setAttribute('data-route-active', active ? 'true' : 'false');
   }
 
   void _applyConfigIfPossible({bool force = false}) {

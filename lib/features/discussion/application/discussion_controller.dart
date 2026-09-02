@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:sociale_vote/core/analytics/analytics_service.dart';
+import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/discussion/entities/comment.dart';
 import 'package:sociale_vote/domain/discussion/usecases/get_comments_for_target.dart';
@@ -185,7 +186,9 @@ class DiscussionController extends ChangeNotifier {
         contentLength: trimmed.length,
       );
     } catch (e) {
-      _errorMessage = 'Impossibile aggiungere il commento.';
+      _errorMessage = isAntiAbuseRateLimitError(e)
+          ? antiAbuseRateLimitCode
+          : 'Impossibile aggiungere il commento.';
     } finally {
       _isSubmitting = false;
       _safeNotifyListeners();
@@ -236,7 +239,9 @@ class DiscussionController extends ChangeNotifier {
         contentLength: trimmed.length,
       );
     } catch (e) {
-      _errorMessage = 'Impossibile aggiungere la risposta.';
+      _errorMessage = isAntiAbuseRateLimitError(e)
+          ? antiAbuseRateLimitCode
+          : 'Impossibile aggiungere la risposta.';
     } finally {
       _isSubmitting = false;
       _safeNotifyListeners();

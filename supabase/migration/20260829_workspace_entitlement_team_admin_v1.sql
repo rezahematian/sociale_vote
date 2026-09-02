@@ -102,6 +102,7 @@ begin
   left join public.user_profiles up on up.id = om.user_id
   left join auth.users au on au.id = om.user_id
   where om.organization_id = v_org_id
+    and om.status = 'active'
   order by
     case om.membership_role when 'owner' then 0 when 'manager' then 1 when 'operator' then 2 else 3 end,
     om.created_at asc;

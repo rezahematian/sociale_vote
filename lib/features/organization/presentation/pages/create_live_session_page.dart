@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sociale_vote/domain/organization/entities/live_session_models.dart';
 import 'package:sociale_vote/domain/organization/repositories/organization_repository.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
 
 class CreateLiveSessionPage extends StatefulWidget {
   final OrganizationRepository repository;
@@ -55,8 +56,11 @@ class _CreateLiveSessionPageState extends State<CreateLiveSessionPage> {
       Navigator.of(context).pop(id);
     } catch (e) {
       if (!mounted) return;
+      final message = isAntiAbuseRateLimitError(e)
+          ? antiAbuseRateLimitMessage(context)
+          : e.toString();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text(message)),
       );
       setState(() => _saving = false);
     }

@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:sociale_vote/domain/organization/entities/organization_models.dart';
 import 'package:sociale_vote/features/organization/application/organization_workspace_controller.dart';
 import 'package:sociale_vote/features/organization/presentation/widgets/organization_cover_header.dart';
+import 'package:sociale_vote/features/organization/presentation/widgets/organization_external_channel_icon.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class OrganizationProfileEditorPage extends StatefulWidget {
@@ -446,7 +447,13 @@ class _OrganizationProfileEditorPageState
                                 decoration: InputDecoration(
                                   labelText: provider.label,
                                   hintText: _externalHint(provider),
-                                  prefixIcon: Icon(_externalIcon(provider)),
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: OrganizationExternalChannelIcon(
+                                      provider: provider,
+                                      size: 24,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -514,16 +521,6 @@ class _OrganizationProfileEditorPageState
     };
   }
 
-  IconData _externalIcon(OrganizationExternalLinkProvider provider) {
-    return switch (provider) {
-      OrganizationExternalLinkProvider.youtube =>
-        Icons.play_circle_outline_rounded,
-      OrganizationExternalLinkProvider.linkedin => Icons.work_outline_rounded,
-      OrganizationExternalLinkProvider.whatsapp => Icons.chat_outlined,
-      OrganizationExternalLinkProvider.instagram => Icons.photo_camera_outlined,
-      OrganizationExternalLinkProvider.telegram => Icons.send_outlined,
-    };
-  }
 }
 
 String _tr(

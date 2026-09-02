@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/core/analytics/analytics_service.dart';
 import 'package:sociale_vote/core/security/participation_policy.dart';
+import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
 import 'package:sociale_vote/domain/geo/repositories/device_location_repository.dart';
 import 'package:sociale_vote/domain/geo/repositories/geocoding_repository.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
@@ -746,9 +747,11 @@ class CreatePollController extends ChangeNotifier {
       }
 
       _isSubmitting = false;
-      _errorMessage = kDebugMode
-          ? 'Create poll failed: $e'
-          : 'Unable to create poll at the moment.';
+      _errorMessage = isAntiAbuseRateLimitError(e)
+          ? antiAbuseRateLimitCode
+          : kDebugMode
+              ? 'Create poll failed: $e'
+              : 'Unable to create poll at the moment.';
       notifyListeners();
       return null;
     }

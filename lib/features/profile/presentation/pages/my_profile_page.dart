@@ -28,6 +28,7 @@ import 'package:sociale_vote/features/profile/presentation/pages/my_posts_page.d
 import 'package:sociale_vote/features/profile/presentation/pages/organization_verification_request_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/world_appearance_settings_page.dart';
+import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/services/biometric_unlock_service.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
@@ -179,6 +180,31 @@ class _MyProfileViewState extends State<_MyProfileView> {
     setState(() {
       _organizationContextFuture = _loadOrganizationContext();
     });
+  }
+
+  Future<void> _retryOrganizationContextAccess(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final authenticated = await AuthGuard.ensureAuthenticated(
+      context,
+      actionLabel: l10n.organizationWorkspaceTitle,
+    );
+    if (!mounted || !authenticated) {
+      return;
+    }
+
+    _refreshOrganizationContext();
+  }
+
+  String _workspaceAccessCheckFailedMessage(BuildContext context) {
+    return switch (Localizations.localeOf(context).languageCode) {
+      'it' =>
+        'Impossibile verificare ora l\'accesso al Workspace. Tocca per riprovare.',
+      'de' =>
+        'Der Workspace-Zugriff kann gerade nicht geprüft werden. Tippe zum Wiederholen.',
+      'fa' =>
+        'در حال حاضر امکان بررسی دسترسی Workspace نیست. برای تلاش دوباره ضربه بزنید.',
+      _ => 'Workspace access cannot be checked right now. Tap to try again.',
+    };
   }
 
   void _refreshUnreadNotificationsCount() {
@@ -1398,6 +1424,37 @@ class _MyProfileViewState extends State<_MyProfileView> {
                   FutureBuilder<OrganizationContext?>(
                     future: _organizationContextFuture,
                     builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 18),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _SectionTitle(
+                                l10n.organizationAccountSectionTitle,
+                              ),
+                              Card(
+                                margin: EdgeInsets.zero,
+                                child: ListTile(
+                                  leading: const Icon(Icons.sync_problem),
+                                  title: Text(
+                                    l10n.organizationWorkspaceTitle,
+                                  ),
+                                  subtitle: Text(
+                                    _workspaceAccessCheckFailedMessage(
+                                      context,
+                                    ),
+                                  ),
+                                  trailing: const Icon(Icons.refresh),
+                                  onTap: () =>
+                                      _retryOrganizationContextAccess(context),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
                       final organizationContext = snapshot.data;
                       final canBootstrapWorkspace =
                           profile.isOrganizationActor ||

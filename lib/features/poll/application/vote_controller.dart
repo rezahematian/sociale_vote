@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sociale_vote/core/analytics/analytics_service.dart';
+import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
 import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
@@ -15,6 +16,7 @@ enum VoteErrorType {
   unauthorized,
   closed,
   alreadyVoted,
+  rateLimited,
   generic,
 }
 
@@ -154,7 +156,9 @@ class VoteController extends ChangeNotifier {
       if (_isOperationCurrent(operationId)) {
         final message = e.toString().toLowerCase();
 
-        if (message.contains('duplicate') ||
+        if (isAntiAbuseRateLimitError(e)) {
+          _errorType = VoteErrorType.rateLimited;
+        } else if (message.contains('duplicate') ||
             message.contains('unique') ||
             message.contains('already voted') ||
             message.contains('unique_vote') ||
