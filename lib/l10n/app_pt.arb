@@ -1,0 +1,2726 @@
+{
+  "@@locale": "pt",
+  "appTitle": "Social Vote",
+  "voteButton": "Votar",
+  "createPollPageTitle": "Criar Vote",
+  "createPollPageSubtitle": "Defina uma nova votação cívica",
+  "createPollBasicInfoTitle": "Informações básicas",
+  "createPollBasicInfoSubtitle": "Defina os principais detalhes do Vote.",
+  "createPollTitleFieldLabel": "Título *",
+  "createPollTitleFieldHelper": "Uma pergunta ou afirmação clara e concisa.",
+  "createPollDescriptionFieldLabel": "Descrição (opcional)",
+  "createPollVotingModelTitle": "Como funciona a votação",
+  "createPollVotingModelSubtitle": "Escolha se cada pessoa pode selecionar uma resposta ou várias respostas.",
+  "createPollTypeFieldLabel": "Tipo de Vote",
+  "createPollSelectionRules": "Regras de seleção: mínimo {min}, máximo {max} seleções (ajustadas automaticamente com base no tipo de Vote e nas opções).",
+  "@createPollSelectionRules": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "createPollAllowVoteChangeTitle": "Permitir que os votantes alterem seu voto",
+  "createPollAllowVoteChangeSubtitle": "Até que o Vote seja encerrado.",
+  "createPollOptionsTitle": "Respostas",
+  "createPollOptionsSubtitle": "Insira pelo menos duas respostas para os votantes escolherem. Os campos marcados com * são obrigatórios.",
+  "createPollOptionLabel": "Opção {index}{requiredMarker}",
+  "@createPollOptionLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "requiredMarker": {}
+    }
+  },
+  "createPollRemoveOptionTooltip": "Remover opção",
+  "createPollAddOptionButton": "Adicionar opção",
+  "createPollParticipationPrivacyTitle": "Participação e privacidade",
+  "createPollParticipationPrivacySubtitle": "Decida quem pode votar e qual deve ser o nível de privacidade dos votos.",
+  "createPollWhoCanVoteLabel": "Quem pode votar?",
+  "createPollParticipationEveryoneSubtitle": "Qualquer usuário cadastrado pode participar.",
+  "createPollParticipationGeoScopeSubtitle": "Limite este Vote a pessoas de um país específico.",
+  "createPollCountryFieldLabel": "País para este Vote",
+  "createPollCountryFieldHelper": "Este país definirá quem poderá participar deste Vote (futura integração com o backend).",
+  "createPollVoteAnonymityTitle": "Anonimato do voto",
+  "createPollAnonymityAnonymousSubtitle": "Opção padrão recomendada para plataformas de votação cívica.",
+  "createPollAnonymityPublicSubtitle": "Use com cautela: os votos podem ser associados a identidades (recurso futuro).",
+  "createPollResultsValidityTitle": "Resultados e validade",
+  "createPollResultsValiditySubtitle": "Controle quando os resultados ficam visíveis e defina um quórum mínimo, se necessário.",
+  "createPollResultsVisibilityFieldLabel": "Visibilidade dos resultados",
+  "createPollQuorumTitle": "Quórum (opcional)",
+  "createPollQuorumSubtitle": "Se definido, o Vote será considerado válido somente se atingir pelo menos este número de votos. Deixe em branco para não exigir quórum.",
+  "createPollQuorumMinVotesFieldLabel": "Número mínimo de votos",
+  "createPollTimingTitle": "Período",
+  "createPollTimingSubtitle": "Defina quando o Vote deve ficar aberto para votação.",
+  "createPollStartDateLabel": "Data de início",
+  "createPollEndDateLabel": "Data de término",
+  "createPollChangeDateButtonLabel": "Alterar",
+  "createPollTimingStatusInfo": "O status inicial (aberto/agendado/encerrado) será determinado automaticamente com base nessas datas.",
+  "createPollSuccessMessage": "Vote criado com sucesso",
+  "createPollSubmitCreatingLabel": "Criando...",
+  "createPollSubmitLabel": "Criar Vote",
+  "createPollPollTypeYesNoLabel": "Sim / Não",
+  "createPollPollTypeSingleChoiceLabel": "Uma resposta",
+  "createPollPollTypeMultipleChoiceLabel": "Várias respostas",
+  "createPollPollTypeApprovalLabel": "Votação por aprovação",
+  "createPollPollTypeRankedLabel": "Escolha por ordem de preferência",
+  "createPollPollTypeScoreLabel": "Pontuação / Avaliação",
+  "createPollParticipationScopeEveryoneLabel": "Todos podem votar",
+  "createPollParticipationScopeGeoScopeOnlyLabel": "Somente usuários de um país específico",
+  "createPollAnonymityLevelAnonymousLabel": "Os votos são anônimos",
+  "createPollAnonymityLevelPublicLabel": "Os votos são públicos (uso avançado / restrito)",
+  "createPollResultsVisibilityAlwaysLabel": "Sempre visíveis (enquanto o Vote estiver aberto)",
+  "createPollResultsVisibilityAfterVoteLabel": "Visíveis somente após votar",
+  "createPollResultsVisibilityAfterCloseLabel": "Visíveis somente após o encerramento do Vote",
+  "homeLoginButton": "Entrar",
+  "homeRegisterButton": "Cadastrar-se",
+  "homeProfileButton": "Perfil",
+  "homeLogoutButton": "Sair",
+  "homeLogoutMessage": "Sessão encerrada. Agora você está usando o app como visitante (somente leitura).",
+  "homeSearchHint": "Buscar cidades, países, contas e conteúdo...",
+  "searchPageTitle": "Buscar",
+  "searchInputHint": "Buscar contas, Vote, News, Voce...",
+  "searchClearTooltip": "Limpar busca",
+  "searchTypeAll": "Tudo",
+  "searchTypePolls": "Vote",
+  "searchTypeNews": "News",
+  "searchTypePosts": "Voce",
+  "searchTypeAccounts": "Contas",
+  "searchSortHottest": "Mais populares",
+  "searchSortLatest": "Mais recentes",
+  "searchPollStatusAll": "Todos os Vote",
+  "searchPollStatusOpen": "Abertos",
+  "searchPollStatusClosed": "Encerrados",
+  "searchIdleMessage": "Digite um termo para começar a buscar.",
+  "searchErrorMessage": "Ocorreu um erro durante a busca.",
+  "searchRetryButton": "Tentar novamente",
+  "searchEmptyMessage": "Nenhum resultado encontrado para esta busca.",
+  "searchContentUnavailable": "Conteúdo indisponível",
+  "searchResultTypePoll": "Vote",
+  "searchResultTypeNews": "News",
+  "searchResultTypePost": "Voce",
+  "searchResultTypeAccount": "Conta",
+  "searchResultTypeMixed": "Misto",
+  "homeUserStatusLoggedIn": "Conectado como: {userId}",
+  "@homeUserStatusLoggedIn": {
+    "placeholders": {
+      "userId": {}
+    }
+  },
+  "homeUserStatusGuest": "Modo visitante: você pode apenas ler. Entre ou cadastre-se para votar, comentar e reagir.",
+  "homeScopeLabelWorld": "Mundo – Votações e notícias globais",
+  "homeScopeLabelCountry": "País – Votações e notícias nacionais",
+  "homeScopeLabelCity": "Cidade – Votações e notícias locais",
+  "homeScopeShortWorld": "Mundo",
+  "homeScopeShortCountry": "País",
+  "homeScopeShortCity": "Cidade",
+  "homeScopeChipWorld": "Mundo",
+  "homeScopeChipItaly": "Itália",
+  "homeScopeChipTorino": "Turim",
+  "homeScopeChangedWorld": "Escopo alterado para Mundo",
+  "homeScopeChangedItaly": "Escopo alterado para Itália",
+  "homeScopeChangedTorino": "Escopo alterado para Turim",
+  "followScopeButtonFollowed": "Seguindo",
+  "followScopeButtonFollow": "Seguir esta área",
+  "homeTrendingTitle": "Pulse Now",
+  "homeTrendingError": "Não foi possível carregar o Pulse Now para esta área.",
+  "homeTrendingEmpty": "Não há conteúdo no Pulse Now para esta área no momento.",
+  "homeForYouTitle": "Pulse ({scope})",
+  "@homeForYouTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeForYouError": "Não foi possível carregar o Pulse para esta área.",
+  "homeForYouEmpty": "Não há conteúdo sugerido no Pulse para esta área no momento.",
+  "homePollsTitle": "Vote em destaque ({scope})",
+  "@homePollsTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homePollsEmptyTitle": "Não há Vote para esta área",
+  "homePollsEmptySubtitle": "Não há Vote disponíveis para esta área.",
+  "homePollsViewAllButton": "Ver Vote",
+  "homeNewsTitle": "Principais notícias ({scope})",
+  "@homeNewsTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeNewsErrorTitle": "Não foi possível carregar as notícias",
+  "homeNewsErrorSubtitle": "Houve um problema ao carregar as notícias desta área.",
+  "homeNewsEmptyTitle": "Não há notícias para esta área",
+  "homeNewsEmptySubtitle": "Não há notícias para este escopo no momento.",
+  "homeNewsViewAllButton": "Ver todas as notícias",
+  "homeNewsBreakingBadge": "URGENTE",
+  "homeSocialTitle": "Voce ({scope})",
+  "@homeSocialTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeSocialErrorTitle": "Não foi possível carregar Voce",
+  "homeSocialErrorSubtitle": "Houve um problema ao carregar Voce para esta área.",
+  "homeSocialEmptyTitle": "Não há Voce para esta área",
+  "homeSocialEmptySubtitle": "Não há conteúdo de Voce para esta área no momento.",
+  "homeSocialViewFeedButton": "Ver todos os Voce",
+  "pollDetail_title": "Detalhes do Vote",
+  "pollDetail_removeFromFavoritesTooltip": "Remover dos salvos",
+  "pollDetail_addToFavoritesTooltip": "Salvar",
+  "pollDetail_chipAnonymous": "Voto anônimo",
+  "pollDetail_chipPublic": "Voto público",
+  "pollDetail_chipRestrictedGeo": "Restrito ao escopo geográfico",
+  "pollDetail_quorumReached": "Quórum atingido ({currentVotes} / {requiredVotes})",
+  "@pollDetail_quorumReached": {
+    "placeholders": {
+      "currentVotes": {
+        "type": "int"
+      },
+      "requiredVotes": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_quorumNotReached": "Quórum não atingido ({currentVotes} / {requiredVotes})",
+  "@pollDetail_quorumNotReached": {
+    "placeholders": {
+      "currentVotes": {
+        "type": "int"
+      },
+      "requiredVotes": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_optionsTitle": "Opções",
+  "pollDetail_statusClosedMessage": "Este Vote está encerrado.",
+  "pollDetail_statusScheduledMessage": "Este Vote ainda não está aberto.",
+  "pollDetail_statusNotAvailableMessage": "A votação não está disponível.",
+  "pollDetail_voteSubmitted": "Voto enviado com sucesso!",
+  "pollDetail_voteButton": "Votar",
+  "pollDetail_resultsTitle": "Resultados",
+  "pollDetail_outcomePrefix": "Resultado: {label}",
+  "@pollDetail_outcomePrefix": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "pollDetail_noResults": "Ainda não há resultados disponíveis.",
+  "pollDetail_resultsAfterVote": "Os resultados ficarão visíveis após você votar.",
+  "pollDetail_resultsWhenClosed": "Os resultados ficarão visíveis quando o Vote for encerrado.",
+  "pollType_yesNo": "Sim / Não",
+  "pollType_singleChoice": "Escolha única",
+  "pollType_multipleChoice": "Escolha múltipla",
+  "pollType_approval": "Aprovação",
+  "pollStatus_draft": "Rascunho",
+  "pollStatus_open": "Aberto",
+  "pollStatus_closed": "Encerrado",
+  "pollStatus_scheduled": "Agendado",
+  "pollGeo_global": "Global",
+  "pollGeo_local": "Local",
+  "pollOutcome_approved": "Aprovado",
+  "pollOutcome_rejected": "Rejeitado",
+  "pollOutcome_tie": "Empate",
+  "pollOutcome_noMajority": "Sem maioria",
+  "pollOutcome_notApplicable": "Não aplicável",
+  "pollList_title": "Vote",
+  "pollList_scopeWorld": "Mundo",
+  "pollList_scopeCountryFallback": "País",
+  "pollList_scopeCityFallback": "Cidade",
+  "pollList_scopeDescriptionGlobal": "Exibindo Vote globais.",
+  "pollList_scopeDescriptionCountry": "Exibindo Vote para este país.",
+  "pollList_scopeDescriptionCity": "Exibindo Vote para esta cidade.",
+  "pollList_filterStatus_all": "Todos",
+  "pollList_filterStatus_open": "Abertos",
+  "pollList_filterStatus_closed": "Encerrados",
+  "pollList_sort_latest": "Mais recentes",
+  "pollList_sort_hottest": "Mais populares",
+  "pollList_filterScope_currentArea": "Área atual",
+  "pollList_headerTitle": "{scopeLabel} · {count, plural, =0 {nenhum Vote encontrado} =1 {1 Vote encontrado} other {{count} Vote encontrados}}",
+  "@pollList_headerTitle": {
+    "placeholders": {
+      "scopeLabel": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollList_createPollButton": "Criar Vote",
+  "pollList_paginationHint": "Role para carregar mais Vote…",
+  "pollList_emptyMessage": "Não há Vote que correspondam a este filtro para esta área.",
+  "pollType_ranked": "Escolha por ordem de preferência",
+  "pollType_score": "Votação por pontuação",
+  "pollVisibility_whileOpen": "Resultados visíveis enquanto estiver aberto",
+  "pollVisibility_afterVote": "Resultados visíveis após votar",
+  "pollVisibility_afterClose": "Resultados visíveis após o encerramento",
+  "pollCard_countryRestricted": "Restrito por país",
+  "pollCard_restrictedToCountry": "Restrito a {countryName}",
+  "@pollCard_restrictedToCountry": {
+    "placeholders": {
+      "countryName": {}
+    }
+  },
+  "pollCard_quorumLabel": "Quórum {minVotes}",
+  "@pollCard_quorumLabel": {
+    "placeholders": {
+      "minVotes": {
+        "type": "int"
+      }
+    }
+  },
+  "pollCard_resultsVisibleChip": "Resultados visíveis",
+  "@pollCard_resultsVisibleChip": {
+    "description": "Compact PollCard label used when results are always visible"
+  },
+  "pollCard_resultsAfterVoteChip": "Após votar",
+  "@pollCard_resultsAfterVoteChip": {
+    "description": "Compact PollCard label used when results are visible after voting"
+  },
+  "pollCard_resultsAfterCloseChip": "Após o encerramento",
+  "@pollCard_resultsAfterCloseChip": {
+    "description": "Compact PollCard label used when results are visible after the poll closes"
+  },
+  "pollCard_publicOfficialPublisher": "Agente público",
+  "@pollCard_publicOfficialPublisher": {
+    "description": "PollCard label for a poll published by a public official"
+  },
+  "pollCard_institutionPublisher": "Instituição",
+  "@pollCard_institutionPublisher": {
+    "description": "PollCard label for a poll published by an institution"
+  },
+  "pollCard_representativePublisher": "Representante",
+  "@pollCard_representativePublisher": {
+    "description": "Fallback PollCard label for representative publishing"
+  },
+  "pollCard_voteCountLabel": "{count, plural, =1 {voto} other {votos}}",
+  "@pollCard_voteCountLabel": {
+    "description": "Singular or plural label shown below the vote count in PollCard",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollCard_viewDetails": "Ver detalhes",
+  "pollResult_title": "{count, plural, =0 {Resultados (sem votos)} =1 {Resultados (1 voto)} other {Resultados ({count} votos)}}",
+  "@pollResult_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voteError_noSelection": "Selecione pelo menos uma opção.",
+  "voteError_unauthorized": "Você não tem permissão para votar neste Vote.",
+  "voteError_generic": "Não foi possível enviar o voto. Tente novamente.",
+  "commentSection_title": "Comentários",
+  "commentSection_sortLabel": "Ordenar:",
+  "commentSection_sortOldest": "Mais antigos",
+  "commentSection_sortNewest": "Mais recentes",
+  "commentSection_errorGeneric": "Ocorreu um erro ao carregar os comentários.",
+  "commentSection_empty": "Ainda não há comentários. Seja o primeiro a comentar.",
+  "commentSection_loadMore": "Carregar mais comentários",
+  "commentSection_replyingTo": "Respondendo a: {snippet}",
+  "@commentSection_replyingTo": {
+    "placeholders": {
+      "snippet": {}
+    }
+  },
+  "commentSection_cancelReply": "Cancelar",
+  "commentSection_inputHintRoot": "Adicionar um comentário...",
+  "commentSection_inputHintReply": "Escreva uma resposta...",
+  "commentSection_deleteAction": "Excluir",
+  "commentSection_replyAction": "Responder",
+  "commentSection_youBadge": "Você",
+  "newsDetail_title": "Detalhes da notícia",
+  "newsDetail_breakingBadge": "URGENTE",
+  "newsDetail_removeFromFavoritesTooltip": "Remover dos salvos",
+  "newsDetail_addToFavoritesTooltip": "Salvar",
+  "newsDetail_bodyFallback": "Não há texto adicional disponível para esta notícia.",
+  "newsDetail_footerMoreContext": "Mais contexto e fontes em breve.",
+  "newsFeed_title": "News",
+  "newsFeed_scopeWorld": "Mundo",
+  "newsFeed_scopeCountry": "País",
+  "newsFeed_scopeCity": "Cidade",
+  "newsFeed_scopeLabel": "Escopo: {scope}",
+  "@newsFeed_scopeLabel": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "newsFeed_scopeGlobalDescription": "Exibindo notícias globais.",
+  "newsFeed_scopeCountryDescription": "Exibindo notícias deste país.",
+  "newsFeed_scopeCityDescription": "Exibindo notícias desta cidade.",
+  "newsFeed_emptyTitle": "Não há notícias disponíveis para esta área.",
+  "newsFeed_emptySubtitle": "Puxe para atualizar ou tente novamente mais tarde.",
+  "newsFeed_itemsFound": "{count} notícia(s) encontrada(s)",
+  "@newsFeed_itemsFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newsFeed_loadingMoreHint": "Role para carregar mais notícias…",
+  "newsFeed_errorTitle": "Não foi possível carregar as notícias",
+  "newsFeed_errorGeneric": "Ocorreu um erro inesperado ao carregar as notícias.",
+  "newsFeed_retryButton": "Tentar novamente",
+  "newsCard_headerTitle": "News",
+  "newsFeed_errorUnauthorized": "A configuração de News é inválida (chave de API).",
+  "newsFeed_errorRateLimited": "Muitas solicitações. Tente novamente em instantes.",
+  "newsFeed_errorServerUnavailable": "O serviço de News está temporariamente indisponível. Tente novamente mais tarde.",
+  "newsFeed_errorTimeout": "A solicitação está demorando demais. Tente novamente.",
+  "newsFeed_errorNetwork": "Sem conexão. Verifique sua internet e tente novamente.",
+  "newsFeed_moreTooltip": "Mais",
+  "newsFeed_actionCopyTitle": "Copiar título",
+  "newsFeed_actionRefreshFeed": "Atualizar feed",
+  "newsFeed_copiedTitleToast": "Título copiado",
+  "newsFeed_languageTooltip": "Idioma de News",
+  "newsFeed_languageAuto": "AUTO",
+  "newsFeed_languageIt": "IT",
+  "newsFeed_languageEn": "EN",
+  "newsFeed_languageEs": "ES",
+  "newsFeed_languageFr": "FR",
+  "newsFeed_languageDe": "DE",
+  "newsFeed_languageAr": "AR",
+  "newsFeed_languageFa": "FA",
+  "newsFeed_languageLimitedHint": "Fontes limitadas neste idioma. Tente AUTO.",
+  "newsTopic_all": "Tudo",
+  "newsTopic_world": "Mundo",
+  "newsTopic_nation": "Nacional",
+  "newsTopic_business": "Negócios",
+  "newsTopic_technology": "Tecnologia",
+  "newsTopic_science": "Ciência",
+  "newsTopic_health": "Saúde",
+  "newsTopic_sports": "Esportes",
+  "newsTopic_entertainment": "Entretenimento",
+  "newsDetail_openSource": "Abrir artigo da fonte",
+  "@newsDetail_openSource": {
+    "description": "Button to open the original article from the source website"
+  },
+  "newsDetail_openSourceUnavailable": "Não foi possível abrir o artigo da fonte",
+  "@newsDetail_openSourceUnavailable": {
+    "description": "Shown when the source link cannot be opened"
+  },
+  "socialFeedTitle": "Voce",
+  "@socialFeedTitle": {
+    "description": "Title of the main social feed page"
+  },
+  "socialFeedCreatePostButton": "Criar Voce",
+  "@socialFeedCreatePostButton": {
+    "description": "Button that opens the post creation flow"
+  },
+  "commonCancelButton": "Cancelar",
+  "@commonCancelButton": {
+    "description": "Generic Cancel button label"
+  },
+  "commonApplyButton": "Aplicar",
+  "@commonApplyButton": {
+    "description": "Generic Apply button label"
+  },
+  "homeScopeChooseCountry": "Escolher país",
+  "@homeScopeChooseCountry": {
+    "description": "Title and action for choosing the Home scope country"
+  },
+  "homeScopeCountrySearchHint": "Buscar país ou código...",
+  "@homeScopeCountrySearchHint": {
+    "description": "Hint shown in the country search field"
+  },
+  "homeScopeChooseCity": "Escolher cidade",
+  "@homeScopeChooseCity": {
+    "description": "Title and action for choosing the Home scope city"
+  },
+  "homeScopeCountryWithCode": "País: {code}",
+  "@homeScopeCountryWithCode": {
+    "description": "Selected country shown in the city selection dialog",
+    "placeholders": {
+      "code": {
+        "type": "String",
+        "example": "IT"
+      }
+    }
+  },
+  "homeScopeCityFieldLabel": "Cidade",
+  "@homeScopeCityFieldLabel": {
+    "description": "City field label in the Home scope selector"
+  },
+  "homeScopeCityExampleHint": "Digite uma cidade, ex.: Merano",
+  "@homeScopeCityExampleHint": {
+    "description": "Examples shown in the city field"
+  },
+  "homeScopeCityRequiredError": "Digite uma cidade.",
+  "@homeScopeCityRequiredError": {
+    "description": "Error shown when the city field is empty"
+  },
+  "homeScopeCityNotFoundError": "Cidade não encontrada no país selecionado.",
+  "@homeScopeCityNotFoundError": {
+    "description": "Error shown when the city does not belong to the selected country"
+  },
+  "homeScopeCityVerificationError": "Não foi possível verificar a cidade. Tente novamente.",
+  "@homeScopeCityVerificationError": {
+    "description": "Generic error shown while verifying the city"
+  },
+  "homeScopeVerifyingButton": "Verificando...",
+  "@homeScopeVerifyingButton": {
+    "description": "Label shown while the city is being verified"
+  },
+  "homeMapOpenButton": "Abrir mapa",
+  "@homeMapOpenButton": {
+    "description": "Button label that opens the full Civic Map from Home"
+  },
+  "homeHeroHeadline": "Dê forma ao futuro.\nJuntos.",
+  "@homeHeroHeadline": {
+    "description": "Main headline shown in the Home hero"
+  },
+  "homeHeroPollsAction": "Vote",
+  "@homeHeroPollsAction": {
+    "description": "Compact Home dashboard action that opens polls"
+  },
+  "homeHeroNewsAction": "News",
+  "@homeHeroNewsAction": {
+    "description": "Compact Home dashboard action that opens news"
+  },
+  "homeHeroCreateAction": "Criar",
+  "@homeHeroCreateAction": {
+    "description": "Compact Home dashboard action for creating a poll or post"
+  },
+  "homeHeroExploreAction": "Explorar",
+  "@homeHeroExploreAction": {
+    "description": "Compact Home dashboard action that opens the full Civic Map"
+  },
+  "homeAccountMenuLabel": "Conta",
+  "@homeAccountMenuLabel": {
+    "description": "Label and tooltip for the Account entry in the Home top bar"
+  },
+  "homeThemeSystemMenuItem": "Tema: sistema",
+  "@homeThemeSystemMenuItem": {
+    "description": "Account menu item for using the system theme"
+  },
+  "homeThemeLightMenuItem": "Tema: claro",
+  "@homeThemeLightMenuItem": {
+    "description": "Account menu item for using the light theme"
+  },
+  "homeThemeDarkMenuItem": "Tema: escuro",
+  "@homeThemeDarkMenuItem": {
+    "description": "Account menu item for using the dark theme"
+  },
+  "profileAppLanguageTitle": "Idioma do app",
+  "@profileAppLanguageTitle": {
+    "description": "Title of the app language setting"
+  },
+  "profileAppLanguageSystem": "Sistema",
+  "@profileAppLanguageSystem": {
+    "description": "Option that follows the device language"
+  },
+  "profileAppLanguageSystemDescription": "Usa o idioma do seu dispositivo",
+  "@profileAppLanguageSystemDescription": {
+    "description": "Description of the system language option"
+  },
+  "profileAppLanguageItalian": "Italiano",
+  "@profileAppLanguageItalian": {
+    "description": "Italian app language option"
+  },
+  "profileAppLanguageEnglish": "Inglês",
+  "@profileAppLanguageEnglish": {
+    "description": "English app language option"
+  },
+  "homeNotificationsTooltip": "Notificações",
+  "@homeNotificationsTooltip": {
+    "description": "Tooltip for the notifications button in the Home top bar"
+  },
+  "postCard_authorFallback": "Autor",
+  "@postCard_authorFallback": {
+    "description": "Fallback author name shown in the PostCard when no name is available"
+  },
+  "postCard_globalLocation": "Global",
+  "@postCard_globalLocation": {
+    "description": "Global location label shown in the PostCard"
+  },
+  "commonSaveButton": "Salvar",
+  "@commonSaveButton": {
+    "description": "Generic Save button label"
+  },
+  "commonDeleteButton": "Excluir",
+  "@commonDeleteButton": {
+    "description": "Generic Delete button label"
+  },
+  "contentReport_menuAction": "Denunciar conteúdo",
+  "@contentReport_menuAction": {
+    "description": "Menu action used to report content"
+  },
+  "contentReport_dialogTitle": "Denunciar conteúdo",
+  "@contentReport_dialogTitle": {
+    "description": "Content report dialog title"
+  },
+  "contentReport_authenticationRequired": "Você precisa estar conectado para denunciar conteúdo",
+  "@contentReport_authenticationRequired": {
+    "description": "Message shown to a signed-out user"
+  },
+  "contentReport_submittedMessage": "Denúncia enviada",
+  "@contentReport_submittedMessage": {
+    "description": "Report submission confirmation"
+  },
+  "contentReport_alreadySubmittedMessage": "Você já denunciou este conteúdo",
+  "@contentReport_alreadySubmittedMessage": {
+    "description": "Message shown when the content was already reported"
+  },
+  "contentReport_submitError": "Não foi possível enviar a denúncia",
+  "@contentReport_submitError": {
+    "description": "Generic error while submitting a report"
+  },
+  "contentReport_sendButton": "Enviar",
+  "@contentReport_sendButton": {
+    "description": "Report submission button"
+  },
+  "contentReport_reasonSpam": "Spam",
+  "@contentReport_reasonSpam": {
+    "description": "Spam report reason"
+  },
+  "contentReport_reasonHarassment": "Assédio ou abuso",
+  "@contentReport_reasonHarassment": {
+    "description": "Harassment or abuse report reason"
+  },
+  "contentReport_reasonHateSpeech": "Discurso de ódio",
+  "@contentReport_reasonHateSpeech": {
+    "description": "Hate speech report reason"
+  },
+  "contentReport_reasonMisinformation": "Desinformação",
+  "@contentReport_reasonMisinformation": {
+    "description": "Misinformation report reason"
+  },
+  "contentReport_reasonViolence": "Violência",
+  "@contentReport_reasonViolence": {
+    "description": "Violence report reason"
+  },
+  "contentReport_reasonOther": "Outro",
+  "@contentReport_reasonOther": {
+    "description": "Other report reason"
+  },
+  "postDetail_title": "Detalhes de Voce",
+  "@postDetail_title": {
+    "description": "Post detail page title"
+  },
+  "postDetail_favoriteUpdateError": "Não foi possível atualizar os itens salvos",
+  "@postDetail_favoriteUpdateError": {
+    "description": "Favorites update error on the post detail page"
+  },
+  "postDetail_shareMessage": "Abra o Social Vote para ver este Voce.",
+  "@postDetail_shareMessage": {
+    "description": "Text appended when sharing a post"
+  },
+  "postDetail_shareError": "Não foi possível compartilhar o Voce",
+  "@postDetail_shareError": {
+    "description": "Post sharing error"
+  },
+  "postDetail_editDialogTitle": "Editar Voce",
+  "@postDetail_editDialogTitle": {
+    "description": "Edit post dialog title"
+  },
+  "postDetail_editTitleFieldLabel": "Título",
+  "@postDetail_editTitleFieldLabel": {
+    "description": "Title field label in the edit post dialog"
+  },
+  "postDetail_editContentFieldLabel": "Conteúdo",
+  "@postDetail_editContentFieldLabel": {
+    "description": "Content field label in the edit post dialog"
+  },
+  "postDetail_editRequiredError": "Título e conteúdo são obrigatórios.",
+  "@postDetail_editRequiredError": {
+    "description": "Required fields error in the edit post dialog"
+  },
+  "postDetail_updateSuccess": "Voce atualizado",
+  "@postDetail_updateSuccess": {
+    "description": "Post update confirmation"
+  },
+  "postDetail_updateError": "Não foi possível atualizar o Voce",
+  "@postDetail_updateError": {
+    "description": "Post update error"
+  },
+  "postDetail_deleteDialogTitle": "Excluir este Voce?",
+  "@postDetail_deleteDialogTitle": {
+    "description": "Post deletion confirmation title"
+  },
+  "postDetail_deleteDialogMessage": "Esta ação não pode ser desfeita.",
+  "@postDetail_deleteDialogMessage": {
+    "description": "Post deletion confirmation message"
+  },
+  "postDetail_deleteError": "Não foi possível excluir o Voce",
+  "@postDetail_deleteError": {
+    "description": "Post deletion error"
+  },
+  "postDetail_editMenuItem": "Editar Voce",
+  "@postDetail_editMenuItem": {
+    "description": "Edit post menu item"
+  },
+  "postDetail_deleteMenuItem": "Excluir Voce",
+  "@postDetail_deleteMenuItem": {
+    "description": "Delete post menu item"
+  },
+  "postDetail_loadError": "Ocorreu um erro ao carregar o Voce.",
+  "@postDetail_loadError": {
+    "description": "Generic post detail loading error"
+  },
+  "postDetail_notFound": "Voce não encontrado.",
+  "@postDetail_notFound": {
+    "description": "Post not found message"
+  },
+  "postDetail_errorTitle": "Erro",
+  "@postDetail_errorTitle": {
+    "description": "Post detail error state title"
+  },
+  "postDetail_authorFallback": "Autor",
+  "@postDetail_authorFallback": {
+    "description": "Fallback author name on the post detail page"
+  },
+  "postDetail_shareAction": "Compartilhar",
+  "@postDetail_shareAction": {
+    "description": "Share action on the post detail page"
+  },
+  "postDetail_saveAction": "Salvar",
+  "@postDetail_saveAction": {
+    "description": "Save action on the post detail page"
+  },
+  "postDetail_addToFavoritesTooltip": "Salvar",
+  "@postDetail_addToFavoritesTooltip": {
+    "description": "Add to favorites tooltip on the post detail page"
+  },
+  "postDetail_removeFromFavoritesTooltip": "Remover dos salvos",
+  "@postDetail_removeFromFavoritesTooltip": {
+    "description": "Remove from favorites tooltip on the post detail page"
+  },
+  "newsDetail_favoriteUpdateError": "Não foi possível atualizar os itens salvos",
+  "@newsDetail_favoriteUpdateError": {
+    "description": "Favorites update error on the news detail page"
+  },
+  "newsDetail_shareMessage": "Abra o Social Vote para ver esta notícia.",
+  "@newsDetail_shareMessage": {
+    "description": "Text appended when sharing a news item"
+  },
+  "newsDetail_shareError": "Não foi possível compartilhar a notícia",
+  "@newsDetail_shareError": {
+    "description": "News sharing error"
+  },
+  "newsDetail_shareTooltip": "Compartilhar",
+  "@newsDetail_shareTooltip": {
+    "description": "Share tooltip on the news detail page"
+  },
+  "authLoginPageTitle": "Entrar",
+  "@authLoginPageTitle": {
+    "description": "Auth UI: authLoginPageTitle"
+  },
+  "authLoginHeadline": "Bem-vindo de volta",
+  "@authLoginHeadline": {
+    "description": "Auth UI: authLoginHeadline"
+  },
+  "authEmailLabel": "E-mail",
+  "@authEmailLabel": {
+    "description": "Auth UI: authEmailLabel"
+  },
+  "authPasswordLabel": "Senha",
+  "@authPasswordLabel": {
+    "description": "Auth UI: authPasswordLabel"
+  },
+  "authRememberMeLabel": "Lembrar de mim",
+  "@authRememberMeLabel": {
+    "description": "Auth UI: authRememberMeLabel"
+  },
+  "authForgotPasswordAction": "Esqueceu a senha?",
+  "@authForgotPasswordAction": {
+    "description": "Auth UI: authForgotPasswordAction"
+  },
+  "authLoginButton": "Entrar",
+  "@authLoginButton": {
+    "description": "Auth UI: authLoginButton"
+  },
+  "authRegisterPrompt": "Não tem uma conta?",
+  "@authRegisterPrompt": {
+    "description": "Auth UI: authRegisterPrompt"
+  },
+  "authRegisterAction": "Cadastrar-se",
+  "@authRegisterAction": {
+    "description": "Auth UI: authRegisterAction"
+  },
+  "authRegisterPageTitle": "Cadastrar-se",
+  "@authRegisterPageTitle": {
+    "description": "Auth UI: authRegisterPageTitle"
+  },
+  "authRegisterHeadline": "Criar uma conta",
+  "@authRegisterHeadline": {
+    "description": "Auth UI: authRegisterHeadline"
+  },
+  "authPersonalAccountOwnershipTitle": "O login sempre pertence a uma pessoa",
+  "@authPersonalAccountOwnershipTitle": {
+    "description": "Explains that authentication belongs to a person even when representing an organization"
+  },
+  "authPersonalAccountOwnershipBody": "Se você representa uma organização, crie sua conta pessoal. Depois de entrar, você poderá solicitar uma Organização Verificada e gerenciá-la pelo Workspace.",
+  "@authPersonalAccountOwnershipBody": {
+    "description": "Explains the person-to-organization registration path"
+  },
+  "authOrganizationPathAction": "Como funciona para organizações",
+  "@authOrganizationPathAction": {
+    "description": "Opens the guide for the organization account path"
+  },
+  "authDisplayNameLabel": "Nome público",
+  "@authDisplayNameLabel": {
+    "description": "Auth UI: authDisplayNameLabel"
+  },
+  "authUsernameLabel": "Nome de usuário",
+  "@authUsernameLabel": {
+    "description": "Auth UI: authUsernameLabel"
+  },
+  "authCountryOfResidenceLabel": "País de residência",
+  "@authCountryOfResidenceLabel": {
+    "description": "Auth UI: authCountryOfResidenceLabel"
+  },
+  "authCityOfResidenceLabel": "Cidade de residência (opcional)",
+  "@authCityOfResidenceLabel": {
+    "description": "Auth UI: authCityOfResidenceLabel"
+  },
+  "authConfirmPasswordLabel": "Confirmar senha",
+  "@authConfirmPasswordLabel": {
+    "description": "Auth UI: authConfirmPasswordLabel"
+  },
+  "authLegalConsentPrefix": "Confirmo que tenho pelo menos 18 anos. Aceito os Termos de Serviço e confirmo que li a Política de Privacidade.",
+  "@authLegalConsentPrefix": {
+    "description": "Auth UI: authLegalConsentPrefix"
+  },
+  "authTermsOfServiceAction": "os Termos de Serviço",
+  "@authTermsOfServiceAction": {
+    "description": "Auth UI: authTermsOfServiceAction"
+  },
+  "authPrivacyPolicyAction": "a Política de Privacidade",
+  "@authPrivacyPolicyAction": {
+    "description": "Auth UI: authPrivacyPolicyAction"
+  },
+  "authRegisterButton": "Cadastrar-se",
+  "@authRegisterButton": {
+    "description": "Auth UI: authRegisterButton"
+  },
+  "authLoginPrompt": "Já tem uma conta?",
+  "@authLoginPrompt": {
+    "description": "Auth UI: authLoginPrompt"
+  },
+  "authLoginAction": "Entrar",
+  "@authLoginAction": {
+    "description": "Auth UI: authLoginAction"
+  },
+  "authForgotPasswordDialogTitle": "Redefinir senha",
+  "@authForgotPasswordDialogTitle": {
+    "description": "Auth UI: authForgotPasswordDialogTitle"
+  },
+  "authForgotPasswordDialogBody": "Digite o e-mail vinculado à sua conta. Enviaremos um link para você escolher uma nova senha.",
+  "@authForgotPasswordDialogBody": {
+    "description": "Auth UI: authForgotPasswordDialogBody"
+  },
+  "authForgotPasswordSendButton": "Enviar link",
+  "@authForgotPasswordSendButton": {
+    "description": "Auth UI: authForgotPasswordSendButton"
+  },
+  "authPasswordResetEmailSent": "E-mail de redefinição enviado. Verifique sua caixa de entrada.",
+  "@authPasswordResetEmailSent": {
+    "description": "Auth UI: authPasswordResetEmailSent"
+  },
+  "authResetPasswordPageTitle": "Redefinir senha",
+  "@authResetPasswordPageTitle": {
+    "description": "Auth UI: authResetPasswordPageTitle"
+  },
+  "authResetPasswordHeadline": "Escolha uma nova senha",
+  "@authResetPasswordHeadline": {
+    "description": "Auth UI: authResetPasswordHeadline"
+  },
+  "authNewPasswordLabel": "Nova senha",
+  "@authNewPasswordLabel": {
+    "description": "Auth UI: authNewPasswordLabel"
+  },
+  "authConfirmNewPasswordLabel": "Confirmar nova senha",
+  "@authConfirmNewPasswordLabel": {
+    "description": "Auth UI: authConfirmNewPasswordLabel"
+  },
+  "authUpdatePasswordButton": "Atualizar senha",
+  "@authUpdatePasswordButton": {
+    "description": "Auth UI: authUpdatePasswordButton"
+  },
+  "authPasswordUpdated": "Senha atualizada com sucesso.",
+  "@authPasswordUpdated": {
+    "description": "Auth UI: authPasswordUpdated"
+  },
+  "authEmailConfirmationTitle": "Verifique seu e-mail",
+  "@authEmailConfirmationTitle": {
+    "description": "Auth UI: authEmailConfirmationTitle"
+  },
+  "authEmailConfirmationIntro": "Enviamos um link de confirmação para:",
+  "@authEmailConfirmationIntro": {
+    "description": "Auth UI: authEmailConfirmationIntro"
+  },
+  "authEmailConfirmationInstructions": "Abra o link da mensagem para verificar seu endereço. Depois da confirmação, volte ao app e entre.",
+  "@authEmailConfirmationInstructions": {
+    "description": "Auth UI: authEmailConfirmationInstructions"
+  },
+  "authBackToLoginButton": "Voltar para o login",
+  "@authBackToLoginButton": {
+    "description": "Auth UI: authBackToLoginButton"
+  },
+  "authUseAnotherEmailButton": "Usar outro endereço de e-mail",
+  "@authUseAnotherEmailButton": {
+    "description": "Auth UI: authUseAnotherEmailButton"
+  },
+  "authEmailRequiredError": "Digite seu e-mail.",
+  "@authEmailRequiredError": {
+    "description": "Auth UI: authEmailRequiredError"
+  },
+  "authEmailInvalidError": "Digite um endereço de e-mail válido.",
+  "@authEmailInvalidError": {
+    "description": "Auth UI: authEmailInvalidError"
+  },
+  "authPasswordRequiredError": "Digite sua senha.",
+  "@authPasswordRequiredError": {
+    "description": "Auth UI: authPasswordRequiredError"
+  },
+  "authPasswordTooShortError": "A senha deve ter pelo menos 8 caracteres.",
+  "@authPasswordTooShortError": {
+    "description": "Auth UI: authPasswordTooShortError"
+  },
+  "authDisplayNameRequiredError": "Digite seu nome público.",
+  "@authDisplayNameRequiredError": {
+    "description": "Auth UI: authDisplayNameRequiredError"
+  },
+  "authDisplayNameTooShortError": "O nome público é muito curto.",
+  "@authDisplayNameTooShortError": {
+    "description": "Auth UI: authDisplayNameTooShortError"
+  },
+  "authUsernameRequiredError": "Digite um nome de usuário.",
+  "@authUsernameRequiredError": {
+    "description": "Auth UI: authUsernameRequiredError"
+  },
+  "authUsernameInvalidError": "Use de 3 a 20 caracteres: letras minúsculas, números e sublinhados.",
+  "@authUsernameInvalidError": {
+    "description": "Auth UI: authUsernameInvalidError"
+  },
+  "authUsernameAlreadyTakenError": "O nome de usuário já está em uso.",
+  "@authUsernameAlreadyTakenError": {
+    "description": "Auth UI: username already in use"
+  },
+  "authCountryRequiredError": "Selecione seu país de residência.",
+  "@authCountryRequiredError": {
+    "description": "Auth UI: authCountryRequiredError"
+  },
+  "authCityRequiredError": "Digite sua cidade de residência.",
+  "@authCityRequiredError": {
+    "description": "Auth UI: authCityRequiredError"
+  },
+  "authConfirmPasswordRequiredError": "Confirme sua senha.",
+  "@authConfirmPasswordRequiredError": {
+    "description": "Auth UI: authConfirmPasswordRequiredError"
+  },
+  "authPasswordsDoNotMatchError": "As senhas não coincidem.",
+  "@authPasswordsDoNotMatchError": {
+    "description": "Auth UI: authPasswordsDoNotMatchError"
+  },
+  "authLegalConsentRequiredError": "Para se cadastrar, confirme que tem pelo menos 18 anos, aceite os Termos de Serviço e confirme que leu a Política de Privacidade.",
+  "@authLegalConsentRequiredError": {
+    "description": "Auth UI: authLegalConsentRequiredError"
+  },
+  "authForgotPasswordEmailRequiredError": "Digite o e-mail da conta que você deseja recuperar.",
+  "@authForgotPasswordEmailRequiredError": {
+    "description": "Auth UI: authForgotPasswordEmailRequiredError"
+  },
+  "authInvalidCredentialsError": "E-mail ou senha inválidos.",
+  "@authInvalidCredentialsError": {
+    "description": "Auth UI: authInvalidCredentialsError"
+  },
+  "authEmailAlreadyRegisteredError": "Este e-mail já está cadastrado.",
+  "@authEmailAlreadyRegisteredError": {
+    "description": "Auth UI: authEmailAlreadyRegisteredError"
+  },
+  "authEmailNotConfirmedError": "E-mail não confirmado. Verifique sua caixa de entrada antes de entrar.",
+  "@authEmailNotConfirmedError": {
+    "description": "Auth UI: authEmailNotConfirmedError"
+  },
+  "authTooManyAttemptsError": "Muitas tentativas. Aguarde alguns minutos e tente novamente.",
+  "@authTooManyAttemptsError": {
+    "description": "Auth UI: authTooManyAttemptsError"
+  },
+  "authNetworkError": "Erro de rede. Verifique sua conexão e tente novamente.",
+  "@authNetworkError": {
+    "description": "Auth UI: authNetworkError"
+  },
+  "authLoginGenericError": "Falha ao entrar. Tente novamente.",
+  "@authLoginGenericError": {
+    "description": "Auth UI: authLoginGenericError"
+  },
+  "authRegisterGenericError": "Falha no cadastro. Tente novamente.",
+  "@authRegisterGenericError": {
+    "description": "Auth UI: authRegisterGenericError"
+  },
+  "authPasswordResetGenericError": "Não foi possível enviar o link de redefinição. Tente novamente.",
+  "@authPasswordResetGenericError": {
+    "description": "Auth UI: authPasswordResetGenericError"
+  },
+  "authPasswordUpdateGenericError": "Não foi possível atualizar a senha. Tente novamente.",
+  "@authPasswordUpdateGenericError": {
+    "description": "Auth UI: authPasswordUpdateGenericError"
+  },
+  "authShowPasswordTooltip": "Mostrar senha",
+  "@authShowPasswordTooltip": {
+    "description": "Auth UI: authShowPasswordTooltip"
+  },
+  "authHidePasswordTooltip": "Ocultar senha",
+  "@authHidePasswordTooltip": {
+    "description": "Auth UI: authHidePasswordTooltip"
+  },
+  "authTermsPageTitle": "Termos de Serviço",
+  "@authTermsPageTitle": {
+    "description": "Auth UI: authTermsPageTitle"
+  },
+  "authPrivacyPageTitle": "Política de Privacidade",
+  "@authPrivacyPageTitle": {
+    "description": "Auth UI: authPrivacyPageTitle"
+  },
+  "authCloseButton": "Fechar",
+  "@authCloseButton": {
+    "description": "Auth UI: authCloseButton"
+  },
+  "pollDetail_favoriteUpdateError": "Não foi possível atualizar os itens salvos",
+  "@pollDetail_favoriteUpdateError": {
+    "description": "Poll detail UI: pollDetail_favoriteUpdateError"
+  },
+  "pollDetail_shareMessage": "Abra o Social Vote para ver e votar neste Vote.",
+  "@pollDetail_shareMessage": {
+    "description": "Poll detail UI: pollDetail_shareMessage"
+  },
+  "pollDetail_shareError": "Não foi possível compartilhar o Vote",
+  "@pollDetail_shareError": {
+    "description": "Poll detail UI: pollDetail_shareError"
+  },
+  "pollDetail_editPermissionError": "Você só pode editar seus próprios Vote sem votos registrados",
+  "@pollDetail_editPermissionError": {
+    "description": "Poll detail UI: pollDetail_editPermissionError"
+  },
+  "pollDetail_editSuccessMessage": "Vote atualizado",
+  "@pollDetail_editSuccessMessage": {
+    "description": "Poll detail UI: pollDetail_editSuccessMessage"
+  },
+  "pollDetail_editMenuItem": "Editar Vote",
+  "@pollDetail_editMenuItem": {
+    "description": "Poll detail UI: pollDetail_editMenuItem"
+  },
+  "pollDetail_editSavingMenuItem": "Salvando...",
+  "@pollDetail_editSavingMenuItem": {
+    "description": "Poll detail UI: pollDetail_editSavingMenuItem"
+  },
+  "pollDetail_deletePermissionError": "Você só pode excluir seus próprios Vote",
+  "@pollDetail_deletePermissionError": {
+    "description": "Poll detail UI: pollDetail_deletePermissionError"
+  },
+  "pollDetail_deleteError": "Não foi possível excluir o Vote",
+  "@pollDetail_deleteError": {
+    "description": "Poll detail UI: pollDetail_deleteError"
+  },
+  "pollDetail_deleteDialogTitle": "Excluir Vote",
+  "@pollDetail_deleteDialogTitle": {
+    "description": "Poll detail UI: pollDetail_deleteDialogTitle"
+  },
+  "pollDetail_deleteDialogMessage": "Deseja realmente excluir \"{title}\"? Esta ação não pode ser desfeita.",
+  "@pollDetail_deleteDialogMessage": {
+    "description": "Poll detail UI: pollDetail_deleteDialogMessage",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "pollDetail_deleteMenuItem": "Excluir Vote",
+  "@pollDetail_deleteMenuItem": {
+    "description": "Poll detail UI: pollDetail_deleteMenuItem"
+  },
+  "pollDetail_deleteDeletingMenuItem": "Excluindo...",
+  "@pollDetail_deleteDeletingMenuItem": {
+    "description": "Poll detail UI: pollDetail_deleteDeletingMenuItem"
+  },
+  "pollDetail_publicVotesAvailableTitle": "Votos públicos disponíveis",
+  "@pollDetail_publicVotesAvailableTitle": {
+    "description": "Poll detail UI: pollDetail_publicVotesAvailableTitle"
+  },
+  "pollDetail_publicVotesAvailableMessage": "Este Vote permite ver quem votou em cada opção.",
+  "@pollDetail_publicVotesAvailableMessage": {
+    "description": "Poll detail UI: pollDetail_publicVotesAvailableMessage"
+  },
+  "pollDetail_publicVotesAction": "Ver votos públicos",
+  "@pollDetail_publicVotesAction": {
+    "description": "Poll detail UI: pollDetail_publicVotesAction"
+  },
+  "pollDetail_retryButton": "Tentar novamente",
+  "@pollDetail_retryButton": {
+    "description": "Poll detail UI: pollDetail_retryButton"
+  },
+  "pollDetail_voteErrorNoOption": "Selecione pelo menos uma opção",
+  "@pollDetail_voteErrorNoOption": {
+    "description": "Poll detail UI: pollDetail_voteErrorNoOption"
+  },
+  "pollDetail_voteErrorAuthenticationRequired": "Você precisa estar conectado para votar",
+  "@pollDetail_voteErrorAuthenticationRequired": {
+    "description": "Poll detail UI: pollDetail_voteErrorAuthenticationRequired"
+  },
+  "pollDetail_voteErrorClosed": "Este Vote está encerrado",
+  "@pollDetail_voteErrorClosed": {
+    "description": "Poll detail UI: pollDetail_voteErrorClosed"
+  },
+  "pollDetail_voteErrorAlreadyVoted": "Você já votou neste Vote",
+  "@pollDetail_voteErrorAlreadyVoted": {
+    "description": "Poll detail UI: pollDetail_voteErrorAlreadyVoted"
+  },
+  "pollDetail_voteErrorGeneric": "Não foi possível enviar o voto",
+  "@pollDetail_voteErrorGeneric": {
+    "description": "Poll detail UI: pollDetail_voteErrorGeneric"
+  },
+  "pollDetail_publicVotesSheetTitle": "Votos públicos",
+  "@pollDetail_publicVotesSheetTitle": {
+    "description": "Poll detail UI: pollDetail_publicVotesSheetTitle"
+  },
+  "pollDetail_publicVotesSheetDescription": "Aqui você pode ver quem votou em cada opção deste Vote.",
+  "@pollDetail_publicVotesSheetDescription": {
+    "description": "Poll detail UI: pollDetail_publicVotesSheetDescription"
+  },
+  "pollDetail_publicVotesSearchHint": "Buscar usuários",
+  "@pollDetail_publicVotesSearchHint": {
+    "description": "Poll detail UI: pollDetail_publicVotesSearchHint"
+  },
+  "pollDetail_publicVotesLoadError": "Não foi possível carregar os votos públicos",
+  "@pollDetail_publicVotesLoadError": {
+    "description": "Poll detail UI: pollDetail_publicVotesLoadError"
+  },
+  "pollDetail_publicVotesEmpty": "Não há votos públicos disponíveis",
+  "@pollDetail_publicVotesEmpty": {
+    "description": "Poll detail UI: pollDetail_publicVotesEmpty"
+  },
+  "pollDetail_publicVotesSearchEmpty": "Nenhum usuário encontrado para esta busca",
+  "@pollDetail_publicVotesSearchEmpty": {
+    "description": "Poll detail UI: pollDetail_publicVotesSearchEmpty"
+  },
+  "pollDetail_publicVotesResultsCount": "{count} resultados carregados",
+  "@pollDetail_publicVotesResultsCount": {
+    "description": "Poll detail UI: pollDetail_publicVotesResultsCount",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_publicVotesLoadMore": "Carregar mais",
+  "@pollDetail_publicVotesLoadMore": {
+    "description": "Poll detail UI: pollDetail_publicVotesLoadMore"
+  },
+  "pollDetail_publicVotesUserFallback": "Usuário",
+  "@pollDetail_publicVotesUserFallback": {
+    "description": "Poll detail UI: pollDetail_publicVotesUserFallback"
+  },
+  "pollDetail_editDialogTitle": "Editar Vote",
+  "@pollDetail_editDialogTitle": {
+    "description": "Poll detail UI: pollDetail_editDialogTitle"
+  },
+  "pollDetail_editTitleFieldLabel": "Título",
+  "@pollDetail_editTitleFieldLabel": {
+    "description": "Poll detail UI: pollDetail_editTitleFieldLabel"
+  },
+  "pollDetail_editTitleRequired": "O título é obrigatório",
+  "@pollDetail_editTitleRequired": {
+    "description": "Poll detail UI: pollDetail_editTitleRequired"
+  },
+  "pollDetail_editDescriptionFieldLabel": "Descrição",
+  "@pollDetail_editDescriptionFieldLabel": {
+    "description": "Poll detail UI: pollDetail_editDescriptionFieldLabel"
+  },
+  "pollDetail_editError": "Não foi possível atualizar o Vote",
+  "@pollDetail_editError": {
+    "description": "Poll detail UI: pollDetail_editError"
+  },
+  "pollDetail_loadError": "Não foi possível carregar o Vote",
+  "@pollDetail_loadError": {
+    "description": "Poll detail UI: pollDetail_loadError"
+  },
+  "pollDetail_notFound": "Vote não encontrado",
+  "@pollDetail_notFound": {
+    "description": "Poll detail UI: pollDetail_notFound"
+  },
+  "profileEditPageTitle": "Editar perfil",
+  "@profileEditPageTitle": {
+    "description": "Edit profile UI: profileEditPageTitle"
+  },
+  "profileLoginRequiredMessage": "Você precisa estar conectado para editar seu perfil.",
+  "@profileLoginRequiredMessage": {
+    "description": "Edit profile UI: profileLoginRequiredMessage"
+  },
+  "profileAvatarUploading": "Enviando...",
+  "@profileAvatarUploading": {
+    "description": "Edit profile UI: profileAvatarUploading"
+  },
+  "profileUploadAvatarButton": "Enviar avatar",
+  "@profileUploadAvatarButton": {
+    "description": "Edit profile UI: profileUploadAvatarButton"
+  },
+  "profileDisplayNameLabel": "Nome de exibição",
+  "@profileDisplayNameLabel": {
+    "description": "Edit profile UI: profileDisplayNameLabel"
+  },
+  "profileDisplayNameRequiredError": "O nome de exibição é obrigatório.",
+  "@profileDisplayNameRequiredError": {
+    "description": "Edit profile UI: profileDisplayNameRequiredError"
+  },
+  "profileUsernameHint": "ex.: mario_roma",
+  "@profileUsernameHint": {
+    "description": "Edit profile UI: profileUsernameHint"
+  },
+  "profileUsernameHelper": "3–20 caracteres: letras minúsculas, números e sublinhados",
+  "@profileUsernameHelper": {
+    "description": "Edit profile UI: profileUsernameHelper"
+  },
+  "profileAvatarUrlLabel": "URL do avatar",
+  "@profileAvatarUrlLabel": {
+    "description": "Edit profile UI: profileAvatarUrlLabel"
+  },
+  "profileBioLabel": "Bio",
+  "@profileBioLabel": {
+    "description": "Edit profile UI: profileBioLabel"
+  },
+  "profileClearCountryButton": "Limpar país",
+  "@profileClearCountryButton": {
+    "description": "Edit profile UI: profileClearCountryButton"
+  },
+  "profileCityResidenceHelper": "A cidade de residência é verificada em relação ao país selecionado antes de salvar.",
+  "@profileCityResidenceHelper": {
+    "description": "Edit profile UI: profileCityResidenceHelper"
+  },
+  "profileCityNotFoundError": "Cidade não encontrada no país selecionado.",
+  "@profileCityNotFoundError": {
+    "description": "Edit profile UI: profileCityNotFoundError"
+  },
+  "profileCityVerificationError": "Não foi possível verificar a cidade agora.",
+  "@profileCityVerificationError": {
+    "description": "Edit profile UI: profileCityVerificationError"
+  },
+  "profileAvatarUploadError": "Não foi possível enviar o avatar.",
+  "@profileAvatarUploadError": {
+    "description": "Edit profile UI: profileAvatarUploadError"
+  },
+  "profileAccountSectionTitle": "Conta",
+  "@profileAccountSectionTitle": {
+    "description": "Edit profile UI: profileAccountSectionTitle"
+  },
+  "profileAccountEmailHelper": "O endereço de e-mail da conta não pode ser alterado nesta tela.",
+  "@profileAccountEmailHelper": {
+    "description": "Edit profile UI: profileAccountEmailHelper"
+  },
+  "profileChangePasswordAction": "Alterar senha",
+  "@profileChangePasswordAction": {
+    "description": "Edit profile UI: profileChangePasswordAction"
+  },
+  "profileChangePasswordDescription": "Defina uma nova senha para esta conta.",
+  "@profileChangePasswordDescription": {
+    "description": "Edit profile UI: profileChangePasswordDescription"
+  },
+  "notificationsPageTitle": "Notificações",
+  "@notificationsPageTitle": {
+    "description": "Notifications UI: notificationsPageTitle"
+  },
+  "notificationsMarkAllReadAction": "Marcar tudo como lido",
+  "@notificationsMarkAllReadAction": {
+    "description": "Notifications UI: notificationsMarkAllReadAction"
+  },
+  "notificationsNoTargetMessage": "Esta notificação não possui um destino disponível.",
+  "@notificationsNoTargetMessage": {
+    "description": "Notifications UI: notificationsNoTargetMessage"
+  },
+  "notificationsTargetUnavailableMessage": "O conteúdo vinculado a esta notificação está indisponível.",
+  "@notificationsTargetUnavailableMessage": {
+    "description": "Notifications UI: notificationsTargetUnavailableMessage"
+  },
+  "notificationsLoadError": "Não foi possível carregar as notificações.",
+  "@notificationsLoadError": {
+    "description": "Notifications UI: notificationsLoadError"
+  },
+  "notificationsRetryButton": "Tentar novamente",
+  "@notificationsRetryButton": {
+    "description": "Notifications UI: notificationsRetryButton"
+  },
+  "notificationsEmptyMessage": "Não há notificações disponíveis.",
+  "@notificationsEmptyMessage": {
+    "description": "Notifications UI: notificationsEmptyMessage"
+  },
+  "notificationsCommentReplyTitle": "Nova resposta ao seu comentário",
+  "@notificationsCommentReplyTitle": {
+    "description": "Notifications UI: notificationsCommentReplyTitle"
+  },
+  "notificationsMentionTitle": "Você foi mencionado",
+  "@notificationsMentionTitle": {
+    "description": "Notifications UI: notificationsMentionTitle"
+  },
+  "notificationsPollResultTitle": "Atualização de Vote",
+  "@notificationsPollResultTitle": {
+    "description": "Notifications UI: notificationsPollResultTitle"
+  },
+  "notificationsCommentReplySubtitle": "O usuário {actor} respondeu em {target}",
+  "@notificationsCommentReplySubtitle": {
+    "description": "Notifications UI: notificationsCommentReplySubtitle",
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsMentionSubtitle": "O usuário {actor} mencionou você em {target}",
+  "@notificationsMentionSubtitle": {
+    "description": "Notifications UI: notificationsMentionSubtitle",
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsPollResultSubtitle": "Um novo resultado está disponível em {target}",
+  "@notificationsPollResultSubtitle": {
+    "description": "Notifications UI: notificationsPollResultSubtitle",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsTargetPost": "um Voce",
+  "@notificationsTargetPost": {
+    "description": "Notifications UI: notificationsTargetPost"
+  },
+  "notificationsTargetNews": "uma notícia",
+  "@notificationsTargetNews": {
+    "description": "Notifications UI: notificationsTargetNews"
+  },
+  "notificationsTargetPoll": "um Vote",
+  "@notificationsTargetPoll": {
+    "description": "Notifications UI: notificationsTargetPoll"
+  },
+  "notificationsTargetVideo": "um vídeo",
+  "@notificationsTargetVideo": {
+    "description": "Notifications UI: notificationsTargetVideo"
+  },
+  "notificationsTargetContent": "conteúdo",
+  "@notificationsTargetContent": {
+    "description": "Notifications UI: notificationsTargetContent"
+  },
+  "notificationsUserFallback": "usuário",
+  "@notificationsUserFallback": {
+    "description": "Notifications UI: notificationsUserFallback"
+  },
+  "profileDeleteAccountAction": "Excluir conta",
+  "@profileDeleteAccountAction": {
+    "description": "Account hub: destructive action used to permanently delete the current account"
+  },
+  "profileDeleteAccountDescription": "Excluir permanentemente a conta e o acesso",
+  "@profileDeleteAccountDescription": {
+    "description": "Account hub: short description below the delete-account action"
+  },
+  "profileDeleteAccountDialogTitle": "Excluir conta",
+  "@profileDeleteAccountDialogTitle": {
+    "description": "Delete-account confirmation dialog title"
+  },
+  "profileDeleteAccountDialogMessage": "Esta ação é permanente. A conta não poderá ser recuperada. Digite DELETE para confirmar.",
+  "@profileDeleteAccountDialogMessage": {
+    "description": "Delete-account confirmation dialog warning"
+  },
+  "profileDeleteAccountConfirmationLabel": "Confirmação de exclusão",
+  "@profileDeleteAccountConfirmationLabel": {
+    "description": "Label for the typed delete-account confirmation field"
+  },
+  "profileDeleteAccountConfirmationHint": "Digite DELETE",
+  "@profileDeleteAccountConfirmationHint": {
+    "description": "Hint for the typed delete-account confirmation field"
+  },
+  "profileDeleteAccountConfirmationError": "Digite DELETE para continuar.",
+  "@profileDeleteAccountConfirmationError": {
+    "description": "Validation error when the delete-account confirmation is incorrect"
+  },
+  "profileDeleteAccountCancelButton": "Cancelar",
+  "@profileDeleteAccountCancelButton": {
+    "description": "Cancel button in the delete-account dialog"
+  },
+  "profileDeleteAccountConfirmButton": "Excluir permanentemente",
+  "@profileDeleteAccountConfirmButton": {
+    "description": "Destructive confirmation button in the delete-account dialog"
+  },
+  "profileDeleteAccountFailureMessage": "Não foi possível excluir a conta. Tente novamente.",
+  "@profileDeleteAccountFailureMessage": {
+    "description": "Fallback message shown when account deletion fails"
+  },
+  "identityActorTypePerson": "Pessoa",
+  "@identityActorTypePerson": {
+    "description": "Public identity type label for a personal account"
+  },
+  "identityActorTypePublicOfficial": "Agente público",
+  "@identityActorTypePublicOfficial": {
+    "description": "Public identity type label for a verified public official"
+  },
+  "identityActorTypePublicInstitution": "Instituição pública",
+  "@identityActorTypePublicInstitution": {
+    "description": "Public identity type label for a verified public institution"
+  },
+  "identityActorTypeVerifiedOrganization": "Organização verificada",
+  "@identityActorTypeVerifiedOrganization": {
+    "description": "Public identity type label for a verified non-governmental organization"
+  },
+  "identityVerificationNotVerified": "Não verificado",
+  "@identityVerificationNotVerified": {
+    "description": "Verification state label for a personal account without verification"
+  },
+  "identityVerificationLevel1": "Identidade verificada",
+  "@identityVerificationLevel1": {
+    "description": "Public label for personal identity verification level 1"
+  },
+  "identityVerificationLevel2": "Identidade verificada avançada",
+  "@identityVerificationLevel2": {
+    "description": "Public label for personal identity verification level 2"
+  },
+  "identityBadgeLevel1": "Identidade verificada",
+  "@identityBadgeLevel1": {
+    "description": "Tooltip and badge label for personal verification level 1"
+  },
+  "identityBadgeLevel2": "Identidade verificada avançada",
+  "@identityBadgeLevel2": {
+    "description": "Tooltip and badge label for personal verification level 2"
+  },
+  "identityBadgePublicOfficial": "Agente público",
+  "@identityBadgePublicOfficial": {
+    "description": "Tooltip and badge label for a verified public official"
+  },
+  "identityBadgePublicInstitution": "Instituição pública",
+  "@identityBadgePublicInstitution": {
+    "description": "Tooltip and badge label for a verified public institution"
+  },
+  "identityBadgeVerifiedOrganization": "Organização verificada",
+  "@identityBadgeVerifiedOrganization": {
+    "description": "Tooltip and badge label for a verified organization"
+  },
+  "identityOrganizationNameLabel": "Nome da organização",
+  "@identityOrganizationNameLabel": {
+    "description": "Field label for the verified organization name"
+  },
+  "identityOrganizationNameRequired": "Digite o nome da organização.",
+  "@identityOrganizationNameRequired": {
+    "description": "Validation error when the organization name is missing"
+  },
+  "identityInstitutionLevelMunicipality": "Municipal",
+  "@identityInstitutionLevelMunicipality": {
+    "description": "Institution level label for a municipality"
+  },
+  "identityInstitutionLevelProvince": "Provincial",
+  "@identityInstitutionLevelProvince": {
+    "description": "Institution level label for a province"
+  },
+  "identityInstitutionLevelRegion": "Regional",
+  "@identityInstitutionLevelRegion": {
+    "description": "Institution level label for a region"
+  },
+  "identityInstitutionLevelMinistry": "Ministério",
+  "@identityInstitutionLevelMinistry": {
+    "description": "Institution level label for a ministry"
+  },
+  "identityInstitutionLevelGovernment": "Governo",
+  "@identityInstitutionLevelGovernment": {
+    "description": "Institution level label for a government"
+  },
+  "identityInstitutionLevelPublicAgency": "Agência pública",
+  "@identityInstitutionLevelPublicAgency": {
+    "description": "Institution level label for a public agency"
+  },
+  "identityInstitutionLevelOtherPublicBody": "Outro órgão público",
+  "@identityInstitutionLevelOtherPublicBody": {
+    "description": "Institution level label for another public body"
+  },
+  "verificationRequestPersonLevel1": "Verificação de pessoa — Nível 1",
+  "@verificationRequestPersonLevel1": {
+    "description": "Verification request type label for personal verification level 1"
+  },
+  "verificationRequestPersonLevel2": "Verificação de pessoa — Nível 2",
+  "@verificationRequestPersonLevel2": {
+    "description": "Verification request type label for personal verification level 2"
+  },
+  "verificationRequestPublicOfficial": "Verificação de agente público",
+  "@verificationRequestPublicOfficial": {
+    "description": "Verification request type label for a public official"
+  },
+  "verificationRequestPublicInstitution": "Verificação de instituição pública",
+  "@verificationRequestPublicInstitution": {
+    "description": "Verification request type label for a public institution"
+  },
+  "verificationRequestVerifiedOrganization": "Verificação de organização",
+  "@verificationRequestVerifiedOrganization": {
+    "description": "Verification request type label for a verified organization"
+  },
+  "verificationCenterTitle": "Verificação e tipo de conta",
+  "@verificationCenterTitle": {
+    "description": "Title of the verification and account type bottom sheet"
+  },
+  "verificationCurrentAccountSection": "Conta atual",
+  "@verificationCurrentAccountSection": {
+    "description": "Section title for the current verified identity state"
+  },
+  "verificationAccountTypeValue": "Tipo de conta: {accountType}",
+  "@verificationAccountTypeValue": {
+    "description": "Current public account type row",
+    "placeholders": {
+      "accountType": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationLevelValue": "Nível de verificação: {level}",
+  "@verificationLevelValue": {
+    "description": "Current personal verification level row",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationOfficialTitleValue": "Cargo oficial: {title}",
+  "@verificationOfficialTitleValue": {
+    "description": "Current official title row",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationInstitutionNameValue": "Instituição: {name}",
+  "@verificationInstitutionNameValue": {
+    "description": "Current public institution name row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationOrganizationNameValue": "Organização: {name}",
+  "@verificationOrganizationNameValue": {
+    "description": "Current verified organization name row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationInstitutionLevelValue": "Nível da instituição: {level}",
+  "@verificationInstitutionLevelValue": {
+    "description": "Current institution level row",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationActiveRequestSection": "Solicitação ativa",
+  "@verificationActiveRequestSection": {
+    "description": "Section title for an active verification request"
+  },
+  "verificationProfileUnchangedUntilApproval": "Seu perfil atual não mudará até que a solicitação seja aprovada.",
+  "@verificationProfileUnchangedUntilApproval": {
+    "description": "Explanation shown while a verification request is pending"
+  },
+  "verificationCancelPendingAction": "Cancelar solicitação pendente",
+  "@verificationCancelPendingAction": {
+    "description": "Button label to cancel a pending verification request"
+  },
+  "verificationPendingBlocksNewRequests": "Você não pode enviar uma nova solicitação enquanto houver outra pendente.",
+  "@verificationPendingBlocksNewRequests": {
+    "description": "Message explaining that only one pending request is allowed"
+  },
+  "verificationNoActiveRequestSection": "Sem solicitações ativas",
+  "@verificationNoActiveRequestSection": {
+    "description": "Section title when there is no active verification request"
+  },
+  "verificationNoActiveRequestDescription": "No momento, você não tem solicitações em análise.",
+  "@verificationNoActiveRequestDescription": {
+    "description": "Message shown when there is no active verification request"
+  },
+  "verificationLastRejectedSection": "Última solicitação rejeitada",
+  "@verificationLastRejectedSection": {
+    "description": "Section title for the most recently rejected request"
+  },
+  "verificationLastRejectedDescription": "Sua última solicitação foi rejeitada.",
+  "@verificationLastRejectedDescription": {
+    "description": "Message shown after a rejected verification request"
+  },
+  "verificationRejectedCanResubmit": "Seu perfil atual não mudou. Você pode corrigir as informações e enviar uma nova solicitação.",
+  "@verificationRejectedCanResubmit": {
+    "description": "Explanation shown after a rejected request"
+  },
+  "verificationAvailableRequestsSection": "Solicitações disponíveis",
+  "@verificationAvailableRequestsSection": {
+    "description": "Section title for verification request actions"
+  },
+  "verificationRequestLevel1Title": "Solicitar verificação de pessoa — Nível 1",
+  "@verificationRequestLevel1Title": {
+    "description": "Action title for personal verification level 1"
+  },
+  "verificationRequestLevel1Subtitle": "Verificação básica de identidade pessoal",
+  "@verificationRequestLevel1Subtitle": {
+    "description": "Action subtitle for personal verification level 1"
+  },
+  "verificationRequestLevel2Title": "Solicitar verificação de pessoa — Nível 2",
+  "@verificationRequestLevel2Title": {
+    "description": "Action title for personal verification level 2"
+  },
+  "verificationRequestLevel2Subtitle": "Verificação avançada de identidade pessoal",
+  "@verificationRequestLevel2Subtitle": {
+    "description": "Action subtitle for personal verification level 2"
+  },
+  "verificationRequestPublicOfficialTitle": "Solicitar uma conta de agente público",
+  "@verificationRequestPublicOfficialTitle": {
+    "description": "Action title for public official verification"
+  },
+  "verificationRequestPublicOfficialSubtitle": "Requer cargo oficial e análise",
+  "@verificationRequestPublicOfficialSubtitle": {
+    "description": "Action subtitle for public official verification"
+  },
+  "verificationRequestPublicInstitutionTitle": "Solicitar uma conta de instituição pública",
+  "@verificationRequestPublicInstitutionTitle": {
+    "description": "Action title for public institution verification"
+  },
+  "verificationRequestPublicInstitutionSubtitle": "Requer nome da instituição, nível da instituição e análise",
+  "@verificationRequestPublicInstitutionSubtitle": {
+    "description": "Action subtitle for public institution verification"
+  },
+  "verificationRequestOrganizationTitle": "Solicitar uma conta de organização verificada",
+  "@verificationRequestOrganizationTitle": {
+    "description": "Action title for verified organization verification"
+  },
+  "verificationRequestOrganizationSubtitle": "Requer dados da organização, função do representante e análise de um administrador",
+  "@verificationRequestOrganizationSubtitle": {
+    "description": "Action subtitle for verified organization verification"
+  },
+  "verificationNoSelfServiceUpgrade": "Não há opções de verificação disponíveis para o status atual da sua conta.",
+  "@verificationNoSelfServiceUpgrade": {
+    "description": "Message when no self-service verification action is available"
+  },
+  "verificationRequestSubmitSuccess": "Solicitação enviada com sucesso.",
+  "@verificationRequestSubmitSuccess": {
+    "description": "Success message after submitting a verification request"
+  },
+  "verificationRequestSubmitFailure": "Não foi possível enviar a solicitação.",
+  "@verificationRequestSubmitFailure": {
+    "description": "Fallback error message after submitting a verification request"
+  },
+  "verificationOfficialTitleDialogTitle": "Verificação de agente público",
+  "@verificationOfficialTitleDialogTitle": {
+    "description": "Dialog title for a public official verification request"
+  },
+  "verificationOfficialTitleLabel": "Cargo oficial",
+  "@verificationOfficialTitleLabel": {
+    "description": "Field label for a public official title"
+  },
+  "verificationOfficialTitleHint": "ex.: Prefeito, Vereador, Ministro",
+  "@verificationOfficialTitleHint": {
+    "description": "Hint for the public official title field"
+  },
+  "verificationInstitutionDialogTitle": "Verificação de instituição pública",
+  "@verificationInstitutionDialogTitle": {
+    "description": "Dialog title for a public institution verification request"
+  },
+  "verificationInstitutionNameLabel": "Nome da instituição",
+  "@verificationInstitutionNameLabel": {
+    "description": "Field label for the public institution name"
+  },
+  "verificationInstitutionNameHint": "ex.: Prefeitura de Roma",
+  "@verificationInstitutionNameHint": {
+    "description": "Hint for the public institution name field"
+  },
+  "verificationInstitutionLevelLabel": "Nível da instituição",
+  "@verificationInstitutionLevelLabel": {
+    "description": "Field label for the public institution level"
+  },
+  "verificationOrganizationDialogTitle": "Verificação de organização",
+  "@verificationOrganizationDialogTitle": {
+    "description": "Dialog title for a verified organization request"
+  },
+  "verificationOrganizationNameHint": "ex.: Associação Meio Ambiente Itália",
+  "@verificationOrganizationNameHint": {
+    "description": "Hint for the verified organization name field"
+  },
+  "verificationSubmitRequestAction": "Enviar solicitação",
+  "@verificationSubmitRequestAction": {
+    "description": "Button label to submit a verification request"
+  },
+  "verificationCancelDialogTitle": "Cancelar solicitação",
+  "@verificationCancelDialogTitle": {
+    "description": "Title of the pending verification cancellation dialog"
+  },
+  "verificationCancelDialogBody": "Tem certeza de que deseja cancelar a solicitação de verificação pendente?",
+  "@verificationCancelDialogBody": {
+    "description": "Confirmation message for cancelling a pending verification request"
+  },
+  "verificationCancelSuccess": "Solicitação cancelada.",
+  "@verificationCancelSuccess": {
+    "description": "Success message after cancelling a verification request"
+  },
+  "verificationCancelFailure": "Não foi possível cancelar a solicitação.",
+  "@verificationCancelFailure": {
+    "description": "Fallback error after cancelling a verification request"
+  },
+  "verificationStatusPendingSuffix": "solicitação em análise",
+  "@verificationStatusPendingSuffix": {
+    "description": "Status suffix shown when a verification request is pending"
+  },
+  "verificationStatusRejectedSuffix": "última solicitação rejeitada",
+  "@verificationStatusRejectedSuffix": {
+    "description": "Status suffix shown when the last verification request was rejected"
+  },
+  "verificationReviewPageTitle": "Análise de verificação",
+  "@verificationReviewPageTitle": {
+    "description": "Title of the administrator verification review page"
+  },
+  "verificationReviewLoginRequired": "Você precisa estar conectado para analisar solicitações de verificação.",
+  "@verificationReviewLoginRequired": {
+    "description": "Message shown when the reviewer is not logged in"
+  },
+  "verificationReviewPendingCount": "Solicitações pendentes: {count}",
+  "@verificationReviewPendingCount": {
+    "description": "Number of pending verification requests",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "verificationReviewNoPendingRequests": "Não há solicitações de verificação pendentes.",
+  "@verificationReviewNoPendingRequests": {
+    "description": "Message shown when there are no pending verification requests"
+  },
+  "verificationReviewUserIdLabel": "ID do usuário",
+  "@verificationReviewUserIdLabel": {
+    "description": "Label for the user identifier in a verification review card"
+  },
+  "verificationReviewSubmittedLabel": "Enviada",
+  "@verificationReviewSubmittedLabel": {
+    "description": "Label for the submission date of a verification request"
+  },
+  "verificationReviewOfficialTitleLabel": "Cargo oficial",
+  "@verificationReviewOfficialTitleLabel": {
+    "description": "Label for the public official title in a review card"
+  },
+  "verificationReviewInstitutionLabel": "Instituição",
+  "@verificationReviewInstitutionLabel": {
+    "description": "Label for the institution name in a review card"
+  },
+  "verificationReviewOrganizationLabel": "Organização",
+  "@verificationReviewOrganizationLabel": {
+    "description": "Label for the organization name in a review card"
+  },
+  "verificationReviewNoteLabel": "Nota da análise",
+  "@verificationReviewNoteLabel": {
+    "description": "Label for an existing review note"
+  },
+  "verificationReviewRejectAction": "Rejeitar",
+  "@verificationReviewRejectAction": {
+    "description": "Button label to reject a verification request"
+  },
+  "verificationReviewApproveAction": "Aprovar",
+  "@verificationReviewApproveAction": {
+    "description": "Button label to approve a verification request"
+  },
+  "verificationReviewApproveDialogTitle": "Aprovar solicitação",
+  "@verificationReviewApproveDialogTitle": {
+    "description": "Title of the approve verification request dialog"
+  },
+  "verificationReviewRejectDialogTitle": "Rejeitar solicitação",
+  "@verificationReviewRejectDialogTitle": {
+    "description": "Title of the reject verification request dialog"
+  },
+  "verificationReviewApproveConfirmation": "Confirmar a aprovação desta solicitação?",
+  "@verificationReviewApproveConfirmation": {
+    "description": "Confirmation message before approving a verification request"
+  },
+  "verificationReviewRejectConfirmation": "Confirmar a rejeição desta solicitação?",
+  "@verificationReviewRejectConfirmation": {
+    "description": "Confirmation message before rejecting a verification request"
+  },
+  "verificationReviewOptionalNoteLabel": "Nota opcional da análise",
+  "@verificationReviewOptionalNoteLabel": {
+    "description": "Field label for an optional review note"
+  },
+  "verificationReviewRequiredNoteLabel": "Motivo da rejeição",
+  "@verificationReviewRequiredNoteLabel": {
+    "description": "Field label for the required rejection reason"
+  },
+  "verificationReviewOptionalHelper": "Opcional",
+  "@verificationReviewOptionalHelper": {
+    "description": "Helper text for an optional review note"
+  },
+  "verificationReviewRequiredHelper": "Obrigatório ao rejeitar",
+  "@verificationReviewRequiredHelper": {
+    "description": "Helper text for the required rejection reason"
+  },
+  "verificationReviewRequiredNoteError": "Digite o motivo da rejeição.",
+  "@verificationReviewRequiredNoteError": {
+    "description": "Validation error when the rejection reason is missing"
+  },
+  "verificationReviewApprovedSuccess": "Solicitação aprovada.",
+  "@verificationReviewApprovedSuccess": {
+    "description": "Success message after approving a verification request"
+  },
+  "verificationReviewRejectedSuccess": "Solicitação rejeitada.",
+  "@verificationReviewRejectedSuccess": {
+    "description": "Success message after rejecting a verification request"
+  },
+  "verificationReviewOperationFailure": "A operação falhou.",
+  "@verificationReviewOperationFailure": {
+    "description": "Fallback error message for a failed review operation"
+  },
+  "adminCenterTitle": "Central de Administração",
+  "adminCenterDashboardNavigation": "Painel",
+  "adminCenterUsersNavigation": "Usuários",
+  "adminCenterVerificationNavigation": "Verificação",
+  "adminCenterReportsNavigation": "Denúncias",
+  "adminCenterAuditNavigation": "Auditoria",
+  "adminCenterAccountDetailsTitle": "Detalhes da conta",
+  "adminCenterTryAgainAction": "Tentar novamente",
+  "adminCenterRetryAction": "Tentar novamente",
+  "adminCenterClearAction": "Limpar",
+  "adminCenterApplyFiltersAction": "Aplicar filtros",
+  "adminCenterAllDates": "Todas as datas",
+  "adminCenterAuditDateFilterHelp": "Filtrar auditoria por data",
+  "adminCenterActorUserIdLabel": "ID do usuário ator",
+  "adminCenterActionLabel": "Ação",
+  "adminCenterAuditActionHint": "resolve_escalated_report",
+  "adminCenterTargetIdLabel": "ID do alvo",
+  "adminCenterOutcomeLabel": "Resultado",
+  "adminCenterAllOutcomes": "Todos os resultados",
+  "adminCenterOutcomeSuccess": "Sucesso",
+  "adminCenterOutcomeFailure": "Falha",
+  "adminCenterOutcomeDenied": "Negado",
+  "adminCenterOutcomeNoChange": "Sem alteração",
+  "adminCenterOutcomeUnknown": "Desconhecido",
+  "adminCenterAuditUnavailableTitle": "Auditoria indisponível",
+  "adminCenterAuditUnavailableMessage": "Verifique sua conexão e suas permissões e tente novamente.",
+  "adminCenterNoAuditEntriesTitle": "Sem registros de auditoria",
+  "adminCenterNoAuditEntriesMessage": "Não há registros que correspondam aos filtros selecionados.",
+  "adminCenterAuditIdLabel": "ID da auditoria",
+  "adminCenterActorLabel": "Ator",
+  "adminCenterReasonLabel": "Motivo",
+  "adminCenterTimestampLabel": "Data e hora",
+  "adminCenterErrorLabel": "Erro",
+  "adminCenterRecordedValuesTitle": "Valores registrados",
+  "adminCenterPreviousValueLabel": "Anterior",
+  "adminCenterNewValueLabel": "Novo",
+  "adminCenterContentTypeLabel": "Tipo de conteúdo",
+  "adminCenterAllContent": "Todo o conteúdo",
+  "adminCenterPolls": "Vote",
+  "adminCenterPosts": "Voce",
+  "adminCenterNews": "News",
+  "adminCenterAwaitingAdminDecision": "Aguardando decisão do administrador",
+  "adminCenterStatusLabel": "Status",
+  "adminCenterAllStatuses": "Todos os status",
+  "adminCenterStatusOpen": "Aberto",
+  "adminCenterStatusInReview": "Em análise",
+  "adminCenterStatusResolved": "Resolvido",
+  "adminCenterStatusDismissed": "Descartado",
+  "adminCenterAdminQueueUnavailableTitle": "Fila de escalonamento administrativo indisponível",
+  "adminCenterReportsUnavailableTitle": "Denúncias indisponíveis",
+  "adminCenterConnectionTryAgainMessage": "Verifique sua conexão e tente novamente.",
+  "adminCenterNoAdminReportsTitle": "Não há denúncias aguardando decisão do administrador",
+  "adminCenterNoReportsTitle": "Não há denúncias",
+  "adminCenterNoAdminReportsMessage": "Não há denúncias escaladas que exijam análise de um administrador.",
+  "adminCenterNoReportsMessage": "Não há denúncias que correspondam aos filtros selecionados.",
+  "adminCenterSearchUsersHint": "Buscar por nome, usuário, e-mail ou ID",
+  "adminCenterClearSearchTooltip": "Limpar busca",
+  "adminCenterUsersUnavailableTitle": "Usuários indisponíveis",
+  "adminCenterNoUsersFoundTitle": "Nenhum usuário encontrado",
+  "adminCenterNoUsersTitle": "Não há usuários",
+  "adminCenterNoUsersFoundMessage": "Tente outro nome, usuário, e-mail ou ID.",
+  "adminCenterNoUsersMessage": "Não há contas para exibir.",
+  "adminCenterAccountUnavailableTitle": "Conta indisponível",
+  "adminCenterBackToUsersAction": "Voltar para usuários",
+  "adminCenterPublicIdentitySection": "Identidade pública",
+  "adminCenterDisplayNameLabel": "Nome de exibição",
+  "adminCenterNotProvided": "Não informado",
+  "adminCenterUsernameLabel": "Nome de usuário",
+  "adminCenterUserIdLabel": "ID do usuário",
+  "adminCenterIdentityTypeLabel": "Tipo de identidade",
+  "adminCenterAccountSection": "Conta",
+  "adminCenterTechnicalRoleLabel": "Função técnica",
+  "adminCenterRoleMirrorLabel": "Espelho da função no perfil",
+  "adminCenterRoleSynchronizationLabel": "Sincronização de funções",
+  "adminCenterSynchronized": "Sincronizado",
+  "adminCenterNotSynchronized": "Não sincronizado",
+  "adminCenterRoleNotSynchronized": "Função não sincronizada",
+  "adminCenterAccountStatusLabel": "Status da conta",
+  "adminCenterSuspendedUntilLabel": "Suspensa até",
+  "adminCenterAccountManagementSection": "Gerenciamento da conta",
+  "adminCenterDangerZoneSection": "Zona de risco",
+  "adminCenterRoleManagementSection": "Gerenciamento de funções",
+  "adminCenterVerificationLevelLabel": "Nível de verificação",
+  "adminCenterVerificationStatusLabel": "Status da verificação",
+  "adminCenterAccessInformationSection": "Informações de acesso",
+  "adminCenterEmailLabel": "E-mail",
+  "adminCenterNotAvailable": "Indisponível",
+  "adminCenterEmailConfirmationLabel": "Confirmação do e-mail",
+  "adminCenterNotConfirmed": "Não confirmado",
+  "adminCenterRegisteredLabel": "Cadastrado",
+  "adminCenterLastAccessLabel": "Último acesso",
+  "adminCenterLoadingDashboardTitle": "Carregando painel",
+  "adminCenterLoadingDashboardMessage": "Obtendo os indicadores mais recentes.",
+  "adminCenterDashboardUnavailableTitle": "Painel indisponível",
+  "adminCenterIndicatorsUnavailableMessage": "Não foi possível carregar os indicadores.",
+  "adminCenterVerificationPendingIndicator": "Verificações pendentes",
+  "adminCenterOpenReportsIndicator": "Denúncias abertas",
+  "adminCenterSuspendedAccountsIndicator": "Contas suspensas",
+  "adminCenterStaffIndicator": "Equipe",
+  "adminCenterNoPendingWorkTitle": "Não há trabalho pendente",
+  "adminCenterNoPendingWorkMessage": "Não há verificações, denúncias nem contas suspensas pendentes.",
+  "adminCenterCouldNotUpdateUsers": "Não foi possível atualizar a lista de usuários.",
+  "adminCenterCouldNotUpdateReports": "Não foi possível atualizar a fila de denúncias.",
+  "adminCenterUnnamedUser": "Usuário sem nome",
+  "adminCenterTemporarySuspensionTitle": "Suspensão temporária",
+  "adminCenterReactivateDescription": "Remova a suspensão imediatamente e permita um novo login.",
+  "adminCenterSuspendDescription": "Bloqueie o acesso por tempo limitado e encerre todas as sessões atuais.",
+  "adminCenterSuspensionUnavailableDescription": "A suspensão exige uma conta sincronizada que não seja de administrador.",
+  "adminCenterReactivateAccountAction": "Reativar conta",
+  "adminCenterSuspendAccountAction": "Suspender conta",
+  "adminCenterForceLogoutAction": "Forçar logout",
+  "adminCenterSuspendedForceLogoutDescription": "A suspensão já encerrou as sessões atuais. Reative a conta antes de testar um logout separado.",
+  "adminCenterForceLogoutDescription": "Encerre todas as sessões atuais sem suspender a conta.",
+  "adminCenterForceLogoutUnavailableDescription": "O logout forçado exige uma conta sincronizada que não seja de administrador.",
+  "adminCenterPermanentDeletionTitle": "Exclusão permanente da conta",
+  "adminCenterPermanentDeletionDescription": "Exclua os dados de autenticação, encerre todas as sessões e anonimize o registro público mantido.",
+  "adminCenterDeletionUnavailableDescription": "A exclusão exige uma conta sincronizada que não seja de administrador.",
+  "adminCenterDeleteAccountPermanentlyAction": "Excluir conta permanentemente",
+  "adminCenterDurationOneHour": "1 hora",
+  "adminCenterDurationOneDay": "24 horas",
+  "adminCenterDurationSevenDays": "7 dias",
+  "adminCenterDurationThirtyDays": "30 dias",
+  "adminCenterSuspendImmediateEffect": "A conta perderá o acesso imediatamente e todas as sessões atuais serão encerradas.",
+  "adminCenterDurationLabel": "Duração",
+  "adminCenterSuspendReasonHint": "Explique por que esta conta deve ser suspensa",
+  "adminCenterReactivateReasonHint": "Explique por que esta conta pode ser reativada",
+  "adminCenterReactivateConfirmation": "Confirmo que esta conta pode recuperar o acesso.",
+  "adminCenterReactivateFailure": "Não foi possível reativar a conta. Verifique sua função e status e tente novamente.",
+  "adminCenterReactivateSuccess": "Conta reativada. Um novo login agora é permitido.",
+  "adminCenterForceLogoutFullDescription": "Encerre todas as sessões atuais desta conta. A conta permanece ativa e pode entrar novamente.",
+  "adminCenterForceLogoutReasonHint": "Explique por que as sessões atuais devem ser encerradas",
+  "adminCenterForceLogoutConfirmation": "Confirmo o encerramento imediato de todas as sessões atuais desta conta.",
+  "adminCenterForceLogoutFailure": "Não foi possível desconectar a conta. Verifique sua função e status e tente novamente.",
+  "adminCenterForceLogoutSuccess": "Sessões atuais encerradas. A conta pode entrar novamente.",
+  "adminCenterSuspendFailure": "Não foi possível suspender a conta. Verifique sua função e status e tente novamente.",
+  "adminCenterDeleteReasonHint": "Explique por que esta conta deve ser excluída",
+  "adminCenterTypeDeleteLabel": "Digite DELETE",
+  "adminCenterTypeAccountIdLabel": "Digite o ID completo da conta",
+  "adminCenterDeletePermanentlyAction": "Excluir permanentemente",
+  "adminCenterDeleteIrreversibleWarning": "Esta ação é irreversível. Os dados de autenticação e as sessões atuais serão removidos, o avatar será excluído e o registro público mantido será anonimizado. O registro de auditoria permanecerá.",
+  "adminCenterDeleteFailure": "Não foi possível excluir a conta. Verifique sua função, status e valores de confirmação e tente novamente.",
+  "adminCenterDeleteSuccess": "Conta excluída permanentemente e dados pessoais anonimizados.",
+  "adminCenterChangeTechnicalRoleTitle": "Alterar função técnica",
+  "adminCenterChangeRoleDescription": "Revise a função atual e a solicitada antes de confirmar.",
+  "adminCenterChangeRoleUnavailableDescription": "Alterações de função exigem uma conta sincronizada e não excluída.",
+  "adminCenterChangeRoleAction": "Alterar função",
+  "adminCenterChangePublicIdentityTitle": "Alterar identidade pública",
+  "adminCenterChangeIdentityDescription": "Atualize o tipo de conta pública e o nível de verificação.",
+  "adminCenterChangeIdentityUnavailableDescription": "Alterações de identidade exigem uma conta sincronizada que não seja de administrador.",
+  "adminCenterChangeIdentityAction": "Alterar identidade",
+  "adminCenterChoosePublicIdentityMessage": "Escolha o tipo de conta pública e seu status de verificação.",
+  "adminCenterPublicAccountTypeLabel": "Tipo de conta pública",
+  "adminCenterPersonVerificationHelper": "Nível 1 e Nível 2 estão disponíveis somente para Pessoa.",
+  "adminCenterNonPersonVerificationHelper": "Contas que não são Pessoa não usam Nível 1 nem Nível 2.",
+  "adminCenterBeforeLabel": "Antes",
+  "adminCenterAfterLabel": "Depois",
+  "adminCenterIdentityReasonHint": "Explique por que a identidade pública deve mudar",
+  "adminCenterIdentityConfirmation": "Confirmo a identidade pública e o nível de verificação mostrados acima.",
+  "adminCenterIdentityChangeFailure": "Não foi possível alterar a identidade pública. Verifique o status da conta e tente novamente.",
+  "adminCenterChooseTechnicalRoleMessage": "Escolha a nova função técnica e registre por que essa alteração é necessária.",
+  "adminCenterNewTechnicalRoleLabel": "Nova função técnica",
+  "adminCenterSelectRole": "Selecionar uma função",
+  "adminCenterRoleSessionWarning": "Essa alteração encerra a sessão ativa do destinatário. Ele precisará entrar novamente antes de continuar usando a conta.",
+  "adminCenterRoleReasonHint": "Explique por que a função técnica deve mudar",
+  "adminCenterRoleConfirmation": "Confirmo a função mostrada acima e entendo que o destinatário deve entrar novamente.",
+  "adminCenterRoleChangeFailure": "Não foi possível concluir a alteração da função. Verifique o status da conta e tente novamente.",
+  "adminCenterChangingRole": "Alterando função",
+  "adminCenterConfirmRoleChange": "Confirmar alteração da função",
+  "adminCenterRoleUser": "Usuário",
+  "adminCenterRoleModerator": "Moderador",
+  "adminCenterRoleAdmin": "Administrador",
+  "adminCenterAccountStatusActive": "Ativa",
+  "adminCenterAccountStatusSuspended": "Suspensa",
+  "adminCenterAccountStatusDeleted": "Excluída",
+  "adminCenterVerificationStatusNone": "Nenhum",
+  "adminCenterVerificationStatusPending": "Pendente",
+  "adminCenterVerificationStatusRejected": "Rejeitada",
+  "adminCenterVerificationNotVerified": "Não verificado",
+  "adminCenterVerificationLevel1": "Nível 1",
+  "adminCenterVerificationLevel2": "Nível 2",
+  "adminCenterReportSingular": "denúncia",
+  "adminCenterReportPlural": "denúncias",
+  "adminCenterUserSingular": "usuário",
+  "adminCenterUserPlural": "usuários",
+  "adminCenterPoll": "Vote",
+  "adminCenterPost": "Voce",
+  "adminCenterUnknown": "Desconhecido",
+  "adminCenterContentHidden": "Conteúdo oculto",
+  "adminCenterContentVisible": "Conteúdo visível",
+  "adminCenterReportedByLabel": "Denunciado por",
+  "adminCenterContentOwnerLabel": "Proprietário do conteúdo",
+  "adminCenterReviewReportAction": "Analisar denúncia",
+  "adminCenterAdminDecisionAction": "Decisão do administrador",
+  "adminCenterRestoreContentAction": "Restaurar conteúdo",
+  "adminCenterHideContentAction": "Ocultar conteúdo",
+  "adminCenterOpenProfileAction": "Abrir perfil",
+  "adminCenterOpenContentAction": "Abrir conteúdo",
+  "adminCenterDecisionNoViolation": "Sem violação",
+  "adminCenterDecisionViolationConfirmed": "Violação confirmada",
+  "adminCenterDecisionEscalateToAdmin": "Escalonar para administrador",
+  "adminCenterResolutionNoAccountAction": "Nenhuma ação na conta",
+  "adminCenterResolutionAccountSuspended": "Conta suspensa",
+  "adminCenterResolutionLogoutForced": "Logout forçado",
+  "adminCenterResolutionAccountDeleted": "Conta excluída",
+  "adminCenterReviewerLabel": "Revisor",
+  "adminCenterDecisionDescriptionNoViolation": "Descarta a denúncia porque o conteúdo não viola as regras atuais.",
+  "adminCenterDecisionDescriptionViolation": "Confirma uma violação e mantém o caso em análise para a ação de conteúdo tratada em AC8.5.",
+  "adminCenterDecisionDescriptionEscalation": "Escalona o caso para uma análise do administrador no nível da conta.",
+  "adminCenterChooseModerationOutcome": "Escolha o resultado da moderação para esta denúncia.",
+  "adminCenterDecisionAlreadyRecordedFailure": "Não foi possível registrar a decisão. A denúncia pode já ter sido analisada. Atualize a fila e tente novamente.",
+  "adminCenterDecisionLabel": "Decisão",
+  "adminCenterReportReasonLabel": "Motivo da denúncia",
+  "adminCenterReviewNoteLabel": "Nota da análise",
+  "adminCenterReviewNoteHint": "Explique as evidências e a decisão de moderação",
+  "adminCenterRecordingDecision": "Registrando decisão",
+  "adminCenterConfirmDecision": "Confirmar decisão",
+  "adminCenterAdministratorDecisionTitle": "Decisão do administrador",
+  "adminCenterResolutionDescriptionNoAction": "Encerra a denúncia escalada sem alterar a conta.",
+  "adminCenterResolutionDescriptionSuspended": "Encerra a denúncia depois que uma suspensão bem-sucedida da conta já tiver sido registrada no log de auditoria.",
+  "adminCenterResolutionDescriptionLogout": "Encerra a denúncia depois que um logout forçado bem-sucedido já tiver sido registrado no log de auditoria.",
+  "adminCenterResolutionDescriptionDeleted": "Encerra a denúncia depois que uma exclusão bem-sucedida da conta já tiver sido registrada no log de auditoria.",
+  "adminCenterChooseFinalOutcome": "Escolha o resultado final do administrador para este escalonamento.",
+  "adminCenterAdminResolutionFailure": "Não foi possível registrar a decisão do administrador. Atualize a fila e tente novamente.",
+  "adminCenterAdminResolutionRequiresAction": "Conclua primeiro a ação correspondente na conta; depois volte a esta denúncia e registre a decisão final do administrador.",
+  "adminCenterEscalationNoteLabel": "Nota de escalonamento",
+  "adminCenterFinalOutcomeLabel": "Resultado final",
+  "adminCenterAdministratorNoteLabel": "Nota do administrador",
+  "adminCenterAdministratorNoteHint": "Explique a decisão final no nível da conta",
+  "adminCenterHideContentFailure": "Não foi possível ocultar o conteúdo. Atualize a fila de denúncias e tente novamente.",
+  "adminCenterRestoreContentFailure": "Não foi possível restaurar o conteúdo. Atualize a fila de denúncias e tente novamente.",
+  "adminCenterHideContentWarning": "Isso remove o conteúdo denunciado do acesso público. A ação poderá ser revertida depois pelo filtro de denúncias resolvidas.",
+  "adminCenterRestoreContentWarning": "Isso torna o conteúdo denunciado público novamente.",
+  "adminCenterActionReasonLabel": "Motivo da ação",
+  "adminCenterHideContentReasonHint": "Explique por que o conteúdo deve ser ocultado",
+  "adminCenterRestoreContentReasonHint": "Explique por que o conteúdo pode ser restaurado",
+  "adminCenterHidingContent": "Ocultando conteúdo",
+  "adminCenterRestoringContent": "Restaurando conteúdo",
+  "adminCenterReportedProfileTitle": "Perfil denunciado",
+  "adminCenterReportedProfileNotice": "Este contexto do perfil vem da fila protegida de denúncias. As ações administrativas na conta continuam separadas.",
+  "adminCenterCouldNotRefreshIndicators": "Não foi possível atualizar os indicadores.",
+  "adminCenterCouldNotRefreshAccount": "Não foi possível atualizar os detalhes da conta.",
+  "adminCenterReportAlreadyReviewed": "Esta denúncia já foi analisada ou não está mais pendente.",
+  "adminCenterReportNotAwaitingAdmin": "Esta denúncia não está aguardando uma decisão do administrador.",
+  "adminCenterConfirmedViolationRequired": "É necessária uma violação confirmada antes de alterar a visibilidade do conteúdo.",
+  "adminCenterContentHiddenSuccess": "O conteúdo denunciado foi ocultado.",
+  "adminCenterContentRestoredSuccess": "O conteúdo denunciado foi restaurado.",
+  "adminCenterMissingContentId": "O identificador original do conteúdo está ausente.",
+  "adminCenterUnsupportedTargetType": "Esta denúncia possui um tipo de alvo não suportado.",
+  "adminCenterOriginalContentUnavailable": "O conteúdo original não está mais disponível.",
+  "adminCenterNoReportedProfile": "Nenhum perfil denunciado está associado a este conteúdo.",
+  "adminCenterRoleChangedSuccess": "Função técnica alterada de {previousRole} para {newRole}. O destinatário foi desconectado e precisa entrar novamente.",
+  "@adminCenterRoleChangedSuccess": {
+    "placeholders": {
+      "previousRole": {
+        "type": "String"
+      },
+      "newRole": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterIdentityChangedSuccess": "Identidade pública alterada para {actorType} com {verificationLevel}.",
+  "@adminCenterIdentityChangedSuccess": {
+    "placeholders": {
+      "actorType": {
+        "type": "String"
+      },
+      "verificationLevel": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAccountSuspendedSuccess": "Conta suspensa até {dateTime}. O destinatário foi desconectado.",
+  "@adminCenterAccountSuspendedSuccess": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterReportDecisionRecorded": "Decisão da denúncia registrada: {decision}.",
+  "@adminCenterReportDecisionRecorded": {
+    "placeholders": {
+      "decision": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAdministratorDecisionRecorded": "Decisão do administrador registrada: {decision}.",
+  "@adminCenterAdministratorDecisionRecorded": {
+    "placeholders": {
+      "decision": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterUsersCount": "{count, plural, =1 {{count} usuário} other {{count} usuários}}",
+  "@adminCenterUsersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterReportsCount": "{count, plural, =1 {{count} denúncia} other {{count} denúncias}}",
+  "@adminCenterReportsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterAccountValue": "Conta: {account}",
+  "@adminCenterAccountValue": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterSuspendedUntilValue": "Suspensa até: {dateTime}",
+  "@adminCenterSuspendedUntilValue": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterSuspendConfirmation": "Confirmo a suspensão até {dateTime} e o encerramento imediato das sessões atuais.",
+  "@adminCenterSuspendConfirmation": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAccountIdValue": "ID da conta: {accountId}",
+  "@adminCenterAccountIdValue": {
+    "placeholders": {
+      "accountId": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterCurrentRoleValue": "Atual: {role}",
+  "@adminCenterCurrentRoleValue": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterTargetFallback": "{targetType} {targetId}",
+  "@adminCenterTargetFallback": {
+    "placeholders": {
+      "targetType": {
+        "type": "String"
+      },
+      "targetId": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterMinimumCharactersRequired": "É necessária uma nota de pelo menos {count} caracteres.",
+  "@adminCenterMinimumCharactersRequired": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterMinimumReasonCharactersRequired": "É necessário um motivo de pelo menos {count} caracteres.",
+  "@adminCenterMinimumReasonCharactersRequired": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterPageOf": "Página {currentPage} de {totalPages}",
+  "@adminCenterPageOf": {
+    "placeholders": {
+      "currentPage": {
+        "type": "int"
+      },
+      "totalPages": {
+        "type": "int"
+      }
+    }
+  },
+  "profilePublicProfileSectionTitle": "Perfil público",
+  "profileIdentityVerificationSectionTitle": "Identidade e verificação",
+  "profilePreferencesSectionTitle": "Preferências",
+  "profileNotificationsSectionTitle": "Notificações",
+  "profileActivitySectionTitle": "Atividade pessoal",
+  "profileSecurityAccountSectionTitle": "Segurança e conta",
+  "profileThemeTitle": "Tema",
+  "profileThemeSystem": "Sistema",
+  "profileThemeSystemDescription": "Segue o tema do dispositivo",
+  "profileThemeLight": "Claro",
+  "profileThemeDark": "Escuro",
+  "profileMyPollsTitle": "Vote",
+  "profileMyPostsTitle": "Voce",
+  "profileMyCommentsTitle": "Meus comentários",
+  "profileMyFavoritesTitle": "Meus salvos",
+  "profileAccountConnectionsTitle": "Seguindo e seguidores",
+  "accountConnectionsFollowingTab": "Seguindo",
+  "accountConnectionsFollowersTab": "Seguidores",
+  "accountConnectionsEmptyFollowing": "Você ainda não segue nenhuma conta.",
+  "accountConnectionsEmptyFollowers": "Você ainda não tem seguidores.",
+  "accountConnectionsLoadError": "Não foi possível carregar as contas. Tente novamente.",
+  "profileMyFollowedScopesTitle": "Minhas áreas seguidas",
+  "profileLogoutAction": "Sair",
+  "profileLogoutDescription": "Sair da conta atual",
+  "profileLogoutDialogTitle": "Sair",
+  "profileLogoutDialogMessage": "Tem certeza de que deseja sair da sua conta?",
+  "profileLogoutCancelButton": "Cancelar",
+  "profileLogoutConfirmButton": "Sair",
+  "publicProfilePageTitle": "Perfil público",
+  "publicProfileUserFallback": "Usuário",
+  "publicProfileNoBio": "Nenhuma bio disponível.",
+  "publicProfileResidenceLabel": "Residência",
+  "publicProfileResidenceUnknown": "Não informada",
+  "publicProfileMemberSinceLabel": "Membro desde",
+  "publicProfileContentSectionTitle": "Conteúdo público",
+  "publicProfilePollsAction": "Vote",
+  "publicProfilePostsAction": "Voce",
+  "publicProfileBlockUserAction": "Bloquear usuário",
+  "publicProfileLoadError": "Não foi possível carregar o perfil.",
+  "publicProfileNotFound": "Perfil indisponível.",
+  "publicProfileUnblockUserAction": "Desbloquear usuário",
+  "publicProfileBlockDialogTitle": "Bloquear este usuário?",
+  "publicProfileBlockDialogMessage": "Você poderá desbloqueá-lo depois pelo perfil público.",
+  "publicProfileUnblockDialogTitle": "Desbloquear este usuário?",
+  "publicProfileUnblockDialogMessage": "O usuário deixará de estar na sua lista de bloqueados.",
+  "publicProfileBlockSuccess": "Usuário bloqueado.",
+  "publicProfileUnblockSuccess": "Usuário desbloqueado.",
+  "publicProfileBlockError": "Não foi possível atualizar o bloqueio. Tente novamente.",
+  "publicProfileFollowersLabel": "seguidores",
+  "publicProfileFollowingLabel": "seguindo",
+  "publicProfileFollowAction": "Seguir",
+  "publicProfileUnfollowAction": "Deixar de seguir",
+  "publicProfileFollowSuccess": "Conta seguida.",
+  "publicProfileUnfollowSuccess": "Você deixou de seguir a conta.",
+  "publicProfileFollowError": "Não foi possível atualizar o acompanhamento. Tente novamente.",
+  "publicProfileFollowRetry": "Recarregar informações de acompanhamento",
+  "contentLanguageFieldLabel": "Idioma do conteúdo",
+  "contentLanguageFieldHelper": "Selecione o idioma em que você escreveu o conteúdo.",
+  "contentLanguageUndetermined": "Não informado",
+  "createPollAdvancedOptionsTitle": "Opções avançadas",
+  "createPollAdvancedOptionsSubtitle": "Anonimato, visibilidade dos resultados, alteração de voto e quórum.",
+  "onboardingSkipButton": "Pular",
+  "onboardingNextButton": "Próximo",
+  "onboardingStartButton": "Começar",
+  "onboardingPollTitle": "Vote",
+  "onboardingPollDescription": "Participe de um Vote sobre temas importantes para você ou crie um para coletar a opinião da comunidade.",
+  "onboardingHeatIceTitle": "Heat e Ice",
+  "onboardingHeatIceDescription": "Use Heat e Ice para mostrar com que intensidade um conteúdo está atraindo seu interesse.",
+  "onboardingCivicMapTitle": "Mapa Cívico",
+  "onboardingCivicMapDescription": "Explore Vote, Voce e News no mapa e descubra o que está acontecendo em diferentes áreas.",
+  "onboardingGeoScopeTitle": "GeoScope",
+  "onboardingGeoScopeDescription": "Escolha o nível geográfico que deseja seguir: mundo, país ou cidade.",
+  "onboardingVerificationTitle": "Verificação de identidade",
+  "onboardingVerificationDescription": "Alguns Vote podem exigir um nível de verificação para proteger a integridade da votação.",
+  "pollDetail_voteReceiptButton": "Comprovante de voto",
+  "pollDetail_voteReceiptTitle": "Comprovante de voto",
+  "pollDetail_voteReceiptIdLabel": "ID do comprovante",
+  "pollDetail_voteReceiptDateLabel": "Registrado",
+  "pollDetail_voteReceiptPrivacy": "Este comprovante confirma que seu voto foi registrado sem mostrar a opção que você escolheu.",
+  "pollDetail_voteReceiptCloseButton": "Fechar",
+  "profileBiometricUnlockTitle": "Desbloqueio biométrico",
+  "profileBiometricUnlockDescription": "Protege sua sessão lembrada com a impressão digital ou reconhecimento biométrico do dispositivo.",
+  "profileBiometricRequiresRememberMe": "Exige que Lembrar de mim esteja ativado.",
+  "profileBiometricUnavailable": "A biometria não está disponível ou não está configurada neste dispositivo.",
+  "profileBiometricEnableReason": "Confirme sua biometria para ativar o desbloqueio do Social Vote.",
+  "profileBiometricEnabledMessage": "Desbloqueio biométrico ativado.",
+  "profileBiometricDisabledMessage": "Desbloqueio biométrico desativado.",
+  "profileBiometricAuthFailedMessage": "A autenticação biométrica não foi concluída.",
+  "biometricLockTitle": "Social Vote está bloqueado",
+  "biometricLockMessage": "Use a biometria do seu dispositivo para desbloquear a sessão lembrada.",
+  "biometricUnlockButton": "Desbloquear",
+  "biometricUsePasswordButton": "Usar senha",
+  "biometricUnlockReason": "Desbloqueie sua sessão do Social Vote.",
+  "biometricUnlockFailedMessage": "Falha no desbloqueio. Tente novamente ou use sua senha.",
+  "adminCenterOperationalActivityTitle": "Atividade operacional",
+  "adminCenterOperationalActivitySubtitle": "Contadores agregados. Sem rastreamento de presença on-line em tempo real.",
+  "adminCenterLast24HoursLabel": "24 horas",
+  "adminCenterLast7DaysLabel": "7 dias",
+  "adminCenterNewUsersMetric": "Novos cadastros",
+  "adminCenterRecentSignInsMetric": "Logins recentes",
+  "adminCenterPollsCreatedMetric": "Vote criados",
+  "adminCenterPostsCreatedMetric": "Voce criados",
+  "adminCenterAdminActionsMetric": "Ações administrativas",
+  "authPublicNameHelper": "Este é o nome que outros usuários verão. Seu nome de usuário é criado automaticamente.",
+  "@authPublicNameHelper": {
+    "description": "Auth UI: explains public name and automatic username generation"
+  },
+  "adminCenterRefreshMarkersTooltip": "Atualizar marcadores do globo",
+  "adminCenterMarkerDensityTitle": "Densidade de marcadores do mundo",
+  "adminCenterMarkerDensitySubtitle": "Controla o limite visual de marcadores do Globo da Home sem alterar coordenadas reais nem a classificação do conteúdo.",
+  "adminCenterMarkerDensityEmpty": "Vazio",
+  "adminCenterMarkerDensityFull": "Completo",
+  "adminCenterMarkerDensityBudget": "Limite da Home: {count} marcadores",
+  "@adminCenterMarkerDensityBudget": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterMarkerDensitySaveError": "Não foi possível salvar a densidade de marcadores do mundo.",
+  "adminCenterMarkerDensityBackendUnavailable": "As configurações de backend dos marcadores do mundo ainda não estão disponíveis.",
+  "adminCenterQuickActionsTitle": "Ações rápidas da conta",
+  "adminCenterModerationSnapshotTitle": "Resumo de moderação e atividade",
+  "adminCenterReportsReceivedMetric": "Denúncias recebidas",
+  "adminCenterPendingReportsMetric": "Denúncias pendentes",
+  "adminCenterConfirmedViolationsMetric": "Violações confirmadas",
+  "adminCenterReportsFiledMetric": "Denúncias enviadas",
+  "adminCenterCommentsCreatedMetric": "Comentários criados",
+  "adminCenterAdminActionsOnAccountMetric": "Ações administrativas na conta",
+  "adminCenterLastReportReceivedLabel": "Última denúncia recebida",
+  "adminCenterOpenFullAccountAction": "Abrir controles completos da conta",
+  "profileAppLanguageGerman": "Alemão",
+  "profileAppLanguagePersian": "Persa",
+  "@profileAppLanguageGerman": {
+    "description": "Label for the German app language option"
+  },
+  "discoveryPageTitle": "Explorar",
+  "@discoveryPageTitle": {
+    "description": "Title of the Discovery section"
+  },
+  "organizationWorkspaceTitle": "Workspace da organização",
+  "organizationPilotBannerTitle": "Piloto gratuito",
+  "organizationPilotBannerBody": "As Sessions são gratuitas durante o piloto. Alguns recursos profissionais podem se tornar pagos no futuro; a cobrança não está ativa agora.",
+  "organizationVerifiedLabel": "Organização verificada",
+  "organizationEditProfile": "Editar perfil da organização",
+  "organizationCreateSession": "Nova Session",
+  "organizationNoSessions": "Ainda não há Sessions. Crie a primeira para uma reunião, oficina ou evento.",
+  "organizationSessionsTitle": "Sessions ao vivo",
+  "organizationRequiresVerificationTitle": "Organização verificada obrigatória",
+  "organizationRequiresVerificationBody": "Este Workspace está disponível somente para contas aprovadas pelo Social Vote como organização verificada.",
+  "organizationProfileEditorTitle": "Perfil da organização",
+  "organizationLegalName": "Nome legal",
+  "organizationPublicName": "Nome público",
+  "organizationType": "Tipo de organização",
+  "organizationCountryCode": "Código do país",
+  "organizationCity": "Cidade",
+  "organizationWebsite": "Site oficial",
+  "organizationDescription": "Descrição",
+  "organizationUploadCover": "Alterar capa",
+  "organizationUploadLogo": "Alterar logotipo",
+  "organizationMediaUpdated": "Imagem da organização atualizada.",
+  "organizationNamesRequired": "Nome legal e nome público são obrigatórios.",
+  "organizationTypeAssociation": "Associação",
+  "organizationTypeNonprofit": "Sem fins lucrativos",
+  "organizationTypeCompany": "Empresa",
+  "organizationTypeCooperative": "Cooperativa",
+  "organizationTypeSports": "Organização esportiva",
+  "organizationTypePublicBody": "Órgão público",
+  "organizationTypeCommittee": "Comitê / grupo",
+  "organizationTypeOther": "Outro",
+  "sessionCreateTitle": "Criar Live Session",
+  "sessionTitleLabel": "Título da Session",
+  "sessionExpectedParticipants": "Participantes esperados",
+  "sessionAccessMode": "Acesso dos participantes",
+  "sessionAccessOpen": "Anônimo aberto",
+  "sessionAccessOpenHint": "Qualquer pessoa com o link/código pode entrar. A prevenção de duplicidade é feita em regime de melhor esforço; este modo não garante uma pessoa-um voto.",
+  "sessionAccessControlled": "Anônimo controlado",
+  "sessionAccessControlledHint": "Use Access Pass anônimos de uso único. O Social Vote armazena somente o hash do Access Pass e não vincula as escolhas de voto às credenciais dos participantes.",
+  "sessionResultsVisibility": "Visibilidade dos resultados",
+  "sessionResultsLive": "Ao vivo",
+  "sessionResultsAfterVote": "Depois que o participante votar",
+  "sessionResultsAfterClose": "Depois que a pergunta for encerrada",
+  "sessionResultsOrganizerOnly": "Somente organizador",
+  "sessionCreateAction": "Criar Session",
+  "sessionPilotLimit": "Limite do piloto: de 1 a 250 participantes por Session.",
+  "sessionStatusDraft": "Rascunho",
+  "sessionStatusOpen": "Aberta",
+  "sessionStatusClosed": "Encerrada",
+  "sessionJoinCode": "Código de entrada",
+  "sessionShareJoin": "Compartilhar link de entrada",
+  "sessionCopyJoinLink": "Copiar link",
+  "sessionGenerateTokens": "Gerar Access Pass",
+  "sessionGenerateTokensCount": "Número de Access Pass",
+  "sessionTokensOneTimeTitle": "Salve estas credenciais agora",
+  "sessionTokensOneTimeBody": "Os Access Pass em texto simples aparecem somente no resultado deste lote. O Social Vote armazena apenas seus hashes. Copie e distribua-os com segurança.",
+  "sessionCopyTokens": "Copiar todos os links",
+  "sessionTokensSavedAction": "Eu os salvei",
+  "sessionOpenAction": "Abrir Session",
+  "sessionCloseAction": "Encerrar Session",
+  "sessionCloseConfirm": "Encerrar a votação e criar o snapshot imutável de Verified Result?",
+  "sessionQuestionsTitle": "Perguntas",
+  "sessionAddQuestion": "Adicionar pergunta",
+  "sessionQuestionTitle": "Pergunta",
+  "sessionQuestionType": "Tipo de pergunta",
+  "sessionTypeYesNo": "Sim / Não",
+  "sessionTypeSingle": "Escolha única",
+  "sessionTypeMultiple": "Escolha múltipla",
+  "sessionOptions": "Opções",
+  "sessionOptionHint": "Uma opção por linha.",
+  "sessionMinSelections": "Seleções mínimas",
+  "sessionMaxSelections": "Seleções máximas",
+  "sessionAddAction": "Adicionar",
+  "sessionOpenQuestion": "Abrir pergunta",
+  "sessionCloseQuestion": "Encerrar pergunta",
+  "sessionNoQuestions": "Ainda não há perguntas.",
+  "sessionPresenterTitle": "Apresentador",
+  "sessionParticipantTitle": "Social Vote Live",
+  "sessionJoinAction": "Entrar na Session",
+  "sessionTokenLabel": "Token do participante",
+  "sessionTokenHint": "SV-…",
+  "sessionWaitingQuestion": "Aguardando o organizador abrir uma pergunta…",
+  "sessionVoteAction": "Enviar voto",
+  "sessionVoteReceived": "Voto recebido",
+  "sessionResultsUnavailable": "Os resultados ainda não estão visíveis segundo a política desta Session.",
+  "sessionPrivacyNotice": "O organizador define a finalidade operacional e as perguntas da Session. O Social Vote processa os dados técnicos necessários para fornecer e proteger o serviço. Os modos anônimos não expõem ao organizador o vínculo entre a credencial do participante e uma escolha. Os papéis de privacidade podem depender do contexto e dos acordos aplicáveis.",
+  "sessionNonBindingNotice": "As Sessions piloto destinam-se a consulta e participação. Elas não constituem eleição legal, votação estatutária de assembleia nem certificação juridicamente vinculante.",
+  "sessionOptionYes": "Sim",
+  "sessionOptionNo": "Não",
+  "verifiedResultTitle": "Verified Result",
+  "verifiedResultValid": "Verificação de integridade aprovada",
+  "verifiedResultInvalid": "Falha na verificação de integridade",
+  "verifiedResultReportId": "ID do relatório",
+  "verifiedResultHash": "Hash SHA-256 do resultado",
+  "verifiedResultGeneratedBy": "Gerado e selado quanto à integridade pelo Social Vote",
+  "verifiedResultNotLegalCertificate": "Este é um relatório verificável de resultado agregado, não um certificado legal nem uma certificação de eleição juridicamente vinculante.",
+  "verifiedResultShare": "Compartilhar link de verificação",
+  "sessionResponses": "{count} respostas",
+  "@sessionResponses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionResultVotes": "{count} votos",
+  "@sessionResultVotes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "organizationVerifiedIdentityLocked": "Nome e país fazem parte da identidade verificada da organização. Alterá-los exigirá uma nova verificação. Você pode alterar livremente capa, logotipo, tipo, cidade, site e descrição.",
+  "verifiedResultOpenedAt": "Session aberta",
+  "verifiedResultEligibleCredentials": "Credenciais elegíveis",
+  "verifiedResultIntegritySeal": "Selo de integridade do Social Vote",
+  "organizationVerifiedNameLocked": "O nome verificado e o país estão bloqueados. Alterá-los exige uma nova análise de verificação.",
+  "sessionRetentionLabel": "Retenção de votos brutos",
+  "sessionRetention24h": "24 horas",
+  "sessionRetention7d": "7 dias",
+  "sessionRetention30d": "30 dias",
+  "sessionRetentionValue": "Retenção de votos brutos: {value}",
+  "@sessionRetentionValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "verifiedResultPrintPdf": "Baixar PDF",
+  "verifiedResultPdfError": "Não foi possível baixar o PDF. Tente novamente.",
+  "verifiedResultRestrictedTitle": "Resultado restrito",
+  "verifiedResultRestrictedBody": "Este Verified Result não está disponível publicamente. Entre com uma conta de organização autorizada para visualizá-lo.",
+  "verifiedResultPrivateVerificationTitle": "Verificação pública indisponível",
+  "verifiedResultPrivateVerificationBody": "Este resultado é restrito ao organizador. O ID do relatório, SHA-256 e a verificação de integridade continuam disponíveis no relatório autorizado.",
+  "organizationAccountSectionTitle": "Suas organizações",
+  "organizationManageAction": "Gerenciar",
+  "organizationViewPublicProfileAction": "Ver perfil",
+  "organizationOfficialWebsiteAction": "Site oficial",
+  "organizationVerificationIntro": "A verificação cobre tanto a existência da organização quanto sua autoridade para representá-la. O Social Vote analisará as informações enviadas antes da aprovação.",
+  "organizationVerificationLegalName": "Nome legal",
+  "organizationVerificationPublicName": "Nome público",
+  "organizationVerificationType": "Tipo de organização",
+  "organizationVerificationCountry": "País",
+  "organizationVerificationCountryRequired": "Selecione o país da organização.",
+  "organizationVerificationCity": "Cidade",
+  "organizationVerificationWebsite": "Site oficial",
+  "organizationVerificationRepresentativeRole": "Sua função na organização",
+  "organizationVerificationRegistryId": "Identificador de registro / fiscal / da organização",
+  "organizationVerificationAuthorityNote": "Como podemos verificar que você pode representá-la?",
+  "organizationVerificationAuthorityHelper": "Informe brevemente sua função ou a evidência que um administrador poderá verificar durante o piloto.",
+  "organizationVerificationRequired": "Campo obrigatório.",
+  "sessionControlRoomTitle": "Sala de Controle da Session",
+  "sessionSectionLive": "Ao vivo",
+  "sessionSectionQuestions": "Perguntas",
+  "sessionSectionAccess": "Acesso",
+  "sessionSectionSettings": "Configurações",
+  "sessionStageAction": "Abrir Stage",
+  "sessionAccessPassesTitle": "Access Pass de participantes",
+  "sessionAccessPassesSubtitle": "Cada passe abre esta Session Anônima Controlada sem exigir que o participante digite a credencial longa. O Social Vote não armazena o passe em texto simples.",
+  "sessionAccessPass": "Access Pass",
+  "sessionAccessPassDetected": "Access Pass detectado",
+  "sessionAccessPassAutomatic": "Seu passe pessoal está pronto. Continue para entrar na Session anonimamente.",
+  "sessionAccessPassFallback": "Inserir passe manualmente",
+  "sessionAccessPassInvalid": "Este Access Pass é inválido, já não está disponível ou a Session não está aberta.",
+  "sessionAccessPassPrintWarning": "Imprima, salve ou distribua estes passes agora. Depois que você sair desta tela, o Social Vote não poderá mostrar novamente os passes em texto simples.",
+  "sessionExistingPassesHidden": "Por segurança, passes gerados anteriormente não podem ser exibidos novamente em texto simples. Gere novos Access Pass para obter novos links pessoais ou códigos QR.",
+  "sessionCopyPassLinks": "Copiar todos os links",
+  "sessionCopyPassLink": "Copiar este link",
+  "sessionControlledNeedsAccessPass": "Antes de abrir uma Session controlada, gere pelo menos um Access Pass.",
+  "sessionJoinedParticipants": "Credenciais de acesso conectadas",
+  "sessionAccessesUsed": "Acessos que votaram",
+  "sessionBallotsRecorded": "Votos registrados",
+  "sessionQuestionsCompleted": "Perguntas concluídas",
+  "sessionCurrentQuestion": "Pergunta atual",
+  "sessionNoOpenQuestionTitle": "Nenhuma pergunta está aberta",
+  "sessionNoOpenQuestionBody": "Os participantes estão conectados e aguardando. Abra a próxima pergunta quando estiver pronto.",
+  "sessionNotStartedTitle": "A Session ainda não começou",
+  "sessionNotStartedBody": "Esta Session existe, mas ainda não está aberta. Mantenha esta página aberta e aguarde o organizador iniciá-la.",
+  "sessionNoAccountRequired": "Não é necessária uma conta do Social Vote",
+  "sessionReceiptDetails": "Detalhes do comprovante",
+  "sessionOpenAccessInstructions": "Exiba ou compartilhe este QR. Qualquer pessoa com o link pode entrar enquanto a Session estiver aberta.",
+  "sessionControlledAccessInstructions": "Crie passes de acesso pessoais e entregue um a cada participante. O QR de cada passe contém a credencial automaticamente.",
+  "sessionControlRoomHint": "Gerencie o acesso, as perguntas, o Stage projetado e o Verified Result final em um só lugar.",
+  "sessionPresenterScreenTitle": "Palco ao vivo",
+  "sessionStageWaiting": "Aguardando a próxima pergunta",
+  "sessionStageScan": "Escaneie para entrar na Session",
+  "sessionConfigurationTitle": "Configuração da Session",
+  "sessionAccessRecommended": "Recomendado para reuniões controladas",
+  "sessionCreateIntroTitle": "Configurar a reunião",
+  "sessionCreateIntroBody": "Escolha como os participantes entram, quando os resultados ficam visíveis e por quanto tempo os votos brutos são retidos. Essas configurações são aplicadas pelo backend.",
+  "verifiedCertificateNumber": "Número do certificado",
+  "verifiedCertificateStatus": "Status da integridade",
+  "verifiedCertificateIntegrityVerified": "INTEGRIDADE VERIFICADA",
+  "verifiedCertificateIntegrityFailed": "FALHA NA VERIFICAÇÃO DE INTEGRIDADE",
+  "verifiedCertificateOrganizationSection": "Organização",
+  "verifiedCertificateSessionSection": "Session",
+  "verifiedCertificateParticipationSection": "Participação",
+  "verifiedCertificateResultsSection": "Resultados verificados",
+  "verifiedCertificateIntegritySection": "Integridade do resultado",
+  "verifiedCertificateLegalName": "Nome legal",
+  "verifiedCertificateOrganizationType": "Tipo de organização",
+  "verifiedCertificateLocation": "Localização",
+  "verifiedCertificateWebsite": "Site",
+  "verifiedCertificateVerification": "Verificação",
+  "verifiedCertificateIssuedAt": "Certificado emitido",
+  "verifiedCertificateAlgorithm": "Algoritmo de integridade",
+  "verifiedCertificateSchema": "Esquema do relatório",
+  "verifiedCertificateJoinedCredentials": "Credenciais conectadas",
+  "verifiedCertificateBallotsTotal": "Votos registrados",
+  "verifiedCertificateQuestionsTotal": "Perguntas",
+  "verifiedCertificatePrivacyModel": "Modelo de resultado anônimo",
+  "verifiedCertificatePrivacyText": "O snapshot imutável contém somente resultados agregados. Ele não contém identidade de participante, Access Pass em texto simples, segredo do participante nem qualquer vínculo entre uma credencial de participante e uma escolha de voto.",
+  "verifiedCertificateVerifyQr": "Escaneie este QR para verificar o relatório on-line.",
+  "organizationDashboardTitle": "Visão geral da organização",
+  "organizationActiveSessions": "Sessions ao vivo",
+  "organizationVerifiedReports": "Relatórios verificados",
+  "organizationTotalSessions": "Total de Sessions",
+  "sessionPrivacyPolicyAction": "Ler a Política de Privacidade",
+  "@sessionPrivacyPolicyAction": {
+    "description": "Participant Session link to the full Privacy Policy"
+  },
+  "radioMondoTitle": "Rádio do Mundo",
+  "radioMondoDescription": "Três paisagens sonoras originais para explorar o Social Vote. A reprodução começa somente quando você escolhe uma faixa.",
+  "radioMondoTrackClassical": "Órbita clássica",
+  "radioMondoTrackRain": "Chuva sobre o mundo",
+  "radioMondoTrackYoung": "Pulso jovem",
+  "radioMondoPlaying": "Tocando agora",
+  "radioMondoStopped": "Rádio do Mundo parada",
+  "radioMondoStopAction": "Parar",
+  "radioMondoPlaybackError": "Não foi possível reproduzir o áudio",
+  "radioMondoForegroundOnly": "A reprodução para quando o Social Vote é fechado, enviado para segundo plano ou quando a aba do navegador fica oculta.",
+  "adminCenterEditorialNavigation": "World Briefs",
+  "worldBriefEditorTitle": "World Briefs do Social Vote",
+  "worldBriefEditorDescription": "Prepare briefings baseados em evidências, mantenha a incerteza visível e decida o que aparece em News e no Globo.",
+  "worldBriefAllStatuses": "Todos os status",
+  "worldBriefCreateAction": "Criar brief",
+  "worldBriefDraftSaved": "Rascunho salvo",
+  "worldBriefPublished": "Brief publicado",
+  "worldBriefWithdrawn": "Brief retirado",
+  "worldBriefSaveError": "Não foi possível salvar o brief",
+  "worldBriefPublishError": "Não foi possível publicar o brief",
+  "worldBriefDraftDeleted": "Rascunho excluído",
+  "worldBriefDeleteDraft": "Excluir rascunho",
+  "worldBriefDeleteDraftConfirm": "Excluir permanentemente este rascunho não publicado?",
+  "worldBriefRetry": "Tentar novamente",
+  "worldBriefStatusDraft": "Rascunho",
+  "worldBriefStatusPublished": "Publicado",
+  "worldBriefStatusWithdrawn": "Retirado",
+  "worldBriefSetupRequired": "Backend editorial ainda não está pronto",
+  "worldBriefSetupRequiredBody": "Aplique a migração de banco de dados do World Brief incluída antes de usar esta seção.",
+  "worldBriefEmptyTitle": "Ainda não há World Briefs",
+  "worldBriefEmptyBody": "Crie um rascunho, documente pelo menos duas fontes e publique somente após revisão editorial.",
+  "worldBriefFeatured": "Destaque",
+  "worldBriefOnGlobe": "Mostrar no Globo",
+  "worldBriefPriority": "Prioridade",
+  "worldBriefEditAction": "Editar",
+  "worldBriefPublishAction": "Publicar",
+  "worldBriefWithdrawAction": "Retirar",
+  "worldBriefSaveDraftAction": "Salvar rascunho",
+  "worldBriefLanguage": "Idioma do brief",
+  "worldBriefTitleField": "Manchete",
+  "worldBriefWhatHappened": "O que aconteceu",
+  "worldBriefWhyItMatters": "Por que importa",
+  "worldBriefWhatIsUncertain": "O que ainda é incerto",
+  "worldBriefSources": "URLs das fontes",
+  "worldBriefSourcesHint": "Uma URL HTTPS por linha; pelo menos duas fontes independentes.",
+  "worldBriefTwoSourcesRequired": "Adicione pelo menos duas fontes.",
+  "worldBriefHttpsSourcesRequired": "Todas as fontes devem usar HTTPS.",
+  "worldBriefGlobeSection": "Posicionamento no Globo",
+  "worldBriefGlobeRequiresPoint": "A visibilidade no Globo exige latitude e longitude válidas.",
+  "worldBriefCountryCode": "Código do país",
+  "worldBriefCityId": "ID da cidade",
+  "worldBriefLocationLabel": "Rótulo da localização",
+  "worldBriefLatitude": "Latitude",
+  "worldBriefLongitude": "Longitude",
+  "worldBriefBreaking": "Atualização urgente",
+  "worldBriefExpiry": "Janela de revisão ou expiração",
+  "worldBriefExpiryDays": "{days, plural, =1{1 dia} other{{days} dias}}",
+  "@worldBriefExpiryDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "worldBriefRequiredField": "Este campo é obrigatório.",
+  "worldBriefCoordinatesRequired": "Digite uma coordenada válida.",
+  "profileHowItWorksTitle": "Como o Social Vote funciona",
+  "profileHowItWorksSubtitle": "Pessoas, Organizações, Voce, Vote, Sessions e verificação.",
+  "profileMyPostsLoginRequired": "Você precisa estar conectado para ver seus Voce.",
+  "profileMyPostsCreatedByYou": "Voce criados por você",
+  "profileMyPostsEmpty": "Você ainda não criou nenhum Voce.",
+  "profileMyPollsLoginRequired": "Você precisa estar conectado para ver seus Vote.",
+  "profileMyPollsCreatedByYou": "Vote criados por você",
+  "profileMyPollsEmpty": "Você ainda não criou nenhum Vote.",
+  "profileMyCommentsLoginRequired": "Você precisa estar conectado para ver seus comentários.",
+  "profileMyCommentsEmpty": "Você ainda não escreveu nenhum comentário.",
+  "profileFollowedScopesLoginRequired": "Você precisa estar conectado.",
+  "profileFollowedScopesEmpty": "Você ainda não segue nenhuma área.",
+  "profileFollowedScopeWorld": "Mundo",
+  "profileFollowedScopeCountry": "País: {code}",
+  "@profileFollowedScopeCountry": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeCity": "Cidade: {city}",
+  "@profileFollowedScopeCity": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeArea": "Área ({radius} km)",
+  "@profileFollowedScopeArea": {
+    "placeholders": {
+      "radius": {
+        "type": "double"
+      }
+    }
+  },
+  "publicProfilePollsLoadError": "Não foi possível carregar os Vote públicos.",
+  "publicProfilePollsEmpty": "Não há Vote públicos.",
+  "publicProfilePostsLoadError": "Não foi possível carregar os Voce públicos.",
+  "publicProfilePostsEmpty": "Não há Voce públicos.",
+  "worldBriefSocialVoteView": "Visão do Social Vote",
+  "worldBriefSocialVoteViewHint": "Análise ou ponto de vista editorial do Social Vote. Mantenha-o separado dos fatos relatados e da incerteza.",
+  "worldBriefSocialVoteViewPublicNote": "Análise editorial do Social Vote, claramente separada dos fatos relatados acima.",
+  "worldBriefIndependentSourcesRequired": "A publicação exige pelo menos duas fontes HTTPS de domínios diferentes.",
+  "worldBriefPublishConfirmTitle": "Verificação final antes de publicar",
+  "worldBriefPublishConfirmSources": "{count, plural, =1{1 fonte inserida} other{{count} fontes inseridas}}",
+  "@worldBriefPublishConfirmSources": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldBriefEnterpriseEditorTitle": "Editor editorial profissional",
+  "worldBriefEnterpriseEditorHelp": "Monte o brief por seção. O Social Vote cuida automaticamente do posicionamento técnico no Globo: escolha um país e uma cidade, não coordenadas.",
+  "worldBriefEditorialContentSection": "Conteúdo editorial",
+  "worldBriefEditorialContentHelp": "Mantenha separados os fatos, a relevância, a incerteza e a visão do Social Vote. Isso torna o brief mais fácil de verificar e ler.",
+  "worldBriefSourcesSection": "Fontes e verificação",
+  "worldBriefSourcesSectionHelp": "Adicione fontes HTTPS verificáveis. A publicação exige pelo menos dois domínios independentes.",
+  "worldBriefDistributionSection": "Distribuição",
+  "worldBriefDistributionHelp": "Escolha onde o brief aparece. A publicação o disponibiliza em News; o posicionamento no Globo é opcional.",
+  "worldBriefNewsDestination": "Publicar no Social Vote News",
+  "worldBriefNewsDestinationHelp": "Este é o principal destino de um World Brief depois de publicado.",
+  "worldBriefGlobeAutomaticHelp": "Adiciona um marcador ao Globo. Escolha o local e o Social Vote resolve a posição automaticamente.",
+  "worldBriefPlacementMode": "Posicionamento do marcador",
+  "worldBriefPlacementCity": "Cidade / local",
+  "worldBriefPlacementCountry": "Centro do país",
+  "worldBriefCountry": "País",
+  "worldBriefCity": "Cidade ou local",
+  "worldBriefCityHelp": "Exemplo: Teerã. Não digite latitude nem longitude.",
+  "worldBriefResolveLocation": "Resolver localização",
+  "worldBriefCoordinatesAutomatic": "As coordenadas são tratadas automaticamente e não devem ser inseridas manualmente.",
+  "worldBriefLocationResolved": "Localização pronta: {location}",
+  "worldBriefChooseCountryFirst": "Escolha primeiro um país.",
+  "worldBriefChooseCityFirst": "Digite primeiro uma cidade ou local.",
+  "worldBriefLocationNotResolved": "Não foi possível resolver uma localização confiável. Verifique o país e a cidade e tente novamente.",
+  "worldBriefVisibilitySection": "Visibilidade e prioridade",
+  "worldBriefVisibilityHelp": "Controle o destaque editorial, a urgência, a ordenação e a duração sem alterar os fatos relatados.",
+  "worldBriefFeaturedHelp": "Dê ao brief mais destaque nas superfícies editoriais.",
+  "worldBriefBreakingHelp": "Use apenas para eventos realmente urgentes ou em rápida evolução.",
+  "worldBriefPriorityHelp": "0 = prioridade normal/baixa; 100 = prioridade editorial máxima. Isso não altera o status de veracidade do conteúdo.",
+  "worldBriefExpiryHelp": "Após esta janela, o brief não deve permanecer ativo sem outra revisão editorial.",
+  "@worldBriefLocationResolved": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "profileAppLanguageSpanish": "Espanhol",
+  "profileAppLanguagePortuguese": "Português",
+  "homeHeroPurpose": "Descubra o que importa, compartilhe sua Voce e participe de Vote.",
+  "commentSection_hideComments": "Ocultar comentários",
+  "commentSection_viewComments": "Ver comentários",
+  "commentSection_hideReplies": "Ocultar respostas",
+  "commentSection_editing": "Editando: {snippet}",
+  "@commentSection_editing": {
+    "placeholders": {
+      "snippet": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_editInputHint": "Editar seu comentário",
+  "commentSection_replyTo": "Responder a {author}",
+  "@commentSection_replyTo": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_userFallback": "Usuário",
+  "commentSection_addError": "Não foi possível adicionar o comentário.",
+  "commentSection_nestedReplyError": "Respostas aninhadas além de um nível não são suportadas.",
+  "commentSection_addReplyError": "Não foi possível adicionar a resposta.",
+  "commentSection_editError": "Não foi possível editar o comentário.",
+  "commentSection_deleteError": "Não foi possível excluir o comentário.",
+  "commentSection_edited": "Editado",
+  "commentSection_editAction": "Editar"
+}

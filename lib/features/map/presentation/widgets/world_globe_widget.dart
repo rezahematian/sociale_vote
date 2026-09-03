@@ -58,6 +58,11 @@ Future<void> _showHomeGlobeMarkerPreview({
     'it' => 'Apri dettaglio',
     'de' => 'Details öffnen',
     'fa' => 'باز کردن جزئیات',
+    'es' => 'Abrir detalles',
+    'pt' => 'Abrir detalhes',
+    'fr' => 'Ouvrir les détails',
+    'ar' => 'فتح التفاصيل',
+    'ro' => 'Deschide detaliile',
     _ => 'Open details',
   };
 
@@ -191,10 +196,10 @@ class WorldGlobeWidget extends StatefulWidget {
     this.initialFocusLatitude,
     this.initialFocusLongitude,
     this.initialFocusZoom,
-    this.visualStyle = GlobeVisualStyle.classic,
-    this.rotationVisualStyle = GlobeRotationVisualStyle.classic,
+    this.visualStyle = GlobeVisualStyle.bright,
+    this.rotationVisualStyle = GlobeRotationVisualStyle.minimal,
     this.showHomeRadioControl = false,
-    this.radioVisualStyle = RadioVisualStyle.vintageClassic,
+    this.radioVisualStyle = RadioVisualStyle.oldStyle,
     this.markerDataSettled = true,
     this.homeMarkerDensityOverride,
   });
@@ -1632,13 +1637,13 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
         _globeController
           ..surfaceLightingEnabled = true
           ..lightAngle = -20
-          ..lightIntensity = 1.05
-          ..ambientLight = 0.72
+          ..lightIntensity = 1.02
+          ..ambientLight = 0.84
           ..showAtmosphere = true
-          ..atmosphereColor = const Color(0xFFB34DFF)
-          ..atmosphereBlur = 24
-          ..atmosphereThickness = 0.014
-          ..atmosphereOpacity = 0.42;
+          ..atmosphereColor = const Color(0xFF9B7CFF)
+          ..atmosphereBlur = 20
+          ..atmosphereThickness = 0.011
+          ..atmosphereOpacity = 0.24;
         break;
       case GlobeVisualStyle.minimalDay:
         _globeController
@@ -2447,12 +2452,22 @@ class _GlobeRotationButton extends StatelessWidget {
             'it' => 'Ferma rotazione',
             'de' => 'Drehung stoppen',
             'fa' => 'توقف چرخش',
+            'es' => 'Detener rotación',
+            'pt' => 'Parar rotação',
+            'fr' => 'Arrêter la rotation',
+            'ar' => 'إيقاف الدوران',
+            'ro' => 'Oprește rotația',
             _ => 'Stop rotation',
           }
         : switch (languageCode) {
             'it' => 'Avvia rotazione',
             'de' => 'Drehung starten',
             'fa' => 'شروع چرخش',
+            'es' => 'Iniciar rotación',
+            'pt' => 'Iniciar rotação',
+            'fr' => 'Démarrer la rotation',
+            'ar' => 'بدء الدوران',
+            'ro' => 'Pornește rotația',
             _ => 'Start rotation',
           };
 

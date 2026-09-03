@@ -1547,6 +1547,11 @@ class _MapTypeFilters extends StatelessWidget {
       if (language == 'it') return 'Tutti';
       if (language == 'de') return 'Alle';
       if (language == 'fa') return 'همه';
+      if (language == 'es') return 'Todos';
+      if (language == 'pt') return 'Todos';
+      if (language == 'fr') return 'Tous';
+      if (language == 'ar') return 'الكل';
+      if (language == 'ro') return 'Toate';
       return 'All';
     }
     return switch (type) {

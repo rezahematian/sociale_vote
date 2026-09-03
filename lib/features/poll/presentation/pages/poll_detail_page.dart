@@ -13,6 +13,7 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
@@ -1701,7 +1702,7 @@ class _PollChoiceResultRow extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: Text(
+                              child: SocialVoteDirectionalText(
                                 label,
                                 style: theme.textTheme.titleSmall?.copyWith(
                                   color: colorScheme.onSurface,
@@ -2406,10 +2407,20 @@ class _EditPollDialogState extends State<_EditPollDialog> {
     _descriptionController = TextEditingController(
       text: widget.initialDescription,
     );
+    _titleController.addListener(_refreshEditableDirection);
+    _descriptionController.addListener(_refreshEditableDirection);
+  }
+
+  void _refreshEditableDirection() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   void dispose() {
+    _titleController.removeListener(_refreshEditableDirection);
+    _descriptionController.removeListener(_refreshEditableDirection);
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
@@ -2448,6 +2459,14 @@ class _EditPollDialogState extends State<_EditPollDialog> {
                 controller: _titleController,
                 autofocus: true,
                 textInputAction: TextInputAction.next,
+                textDirection: socialVoteEditableTextDirection(
+                  context,
+                  _titleController.text,
+                ),
+                textAlign: socialVoteEditableTextAlign(
+                  context,
+                  _titleController.text,
+                ),
                 decoration: InputDecoration(
                   labelText: l10n.pollDetail_editTitleFieldLabel,
                 ),
@@ -2464,6 +2483,14 @@ class _EditPollDialogState extends State<_EditPollDialog> {
                 controller: _descriptionController,
                 minLines: 3,
                 maxLines: 5,
+                textDirection: socialVoteEditableTextDirection(
+                  context,
+                  _descriptionController.text,
+                ),
+                textAlign: socialVoteEditableTextAlign(
+                  context,
+                  _descriptionController.text,
+                ),
                 decoration: InputDecoration(
                   labelText: l10n.pollDetail_editDescriptionFieldLabel,
                 ),

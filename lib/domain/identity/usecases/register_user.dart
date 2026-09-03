@@ -74,6 +74,12 @@ class RegisterUser {
     return switch (normalized) {
       'it' => 'it',
       'de' => 'de',
+      'fa' => 'fa',
+      'es' => 'es',
+      'pt' => 'pt',
+      'fr' => 'fr',
+      'ar' => 'ar',
+      'ro' => 'ro',
       _ => 'en',
     };
   }

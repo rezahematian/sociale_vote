@@ -4035,4 +4035,59 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get worldBriefExpiryHelp => 'پس از این بازه، گزارش بدون بازبینی تحریریه جدید نباید فعال بماند.';
+
+  @override
+  String get profileAppLanguageSpanish => 'اسپانیایی';
+
+  @override
+  String get profileAppLanguagePortuguese => 'پرتغالی';
+
+  @override
+  String get homeHeroPurpose => 'آنچه اهمیت دارد را کشف کنید، Voce خود را به اشتراک بگذارید و در Vote شرکت کنید.';
+
+  @override
+  String get commentSection_hideComments => 'بستن دیدگاه‌ها';
+
+  @override
+  String get commentSection_viewComments => 'مشاهده دیدگاه‌ها';
+
+  @override
+  String get commentSection_hideReplies => 'پنهان کردن پاسخ‌ها';
+
+  @override
+  String commentSection_editing(String snippet) {
+    return 'در حال ویرایش: $snippet';
+  }
+
+  @override
+  String get commentSection_editInputHint => 'دیدگاه خود را ویرایش کنید';
+
+  @override
+  String commentSection_replyTo(String author) {
+    return 'پاسخ به $author';
+  }
+
+  @override
+  String get commentSection_userFallback => 'کاربر';
+
+  @override
+  String get commentSection_addError => 'افزودن دیدگاه ممکن نشد.';
+
+  @override
+  String get commentSection_nestedReplyError => 'پاسخ‌های تو‌در‌تو بیش از یک سطح پشتیبانی نمی‌شوند.';
+
+  @override
+  String get commentSection_addReplyError => 'افزودن پاسخ ممکن نشد.';
+
+  @override
+  String get commentSection_editError => 'ویرایش دیدگاه ممکن نشد.';
+
+  @override
+  String get commentSection_deleteError => 'حذف دیدگاه ممکن نشد.';
+
+  @override
+  String get commentSection_edited => 'ویرایش‌شده';
+
+  @override
+  String get commentSection_editAction => 'ویرایش';
 }

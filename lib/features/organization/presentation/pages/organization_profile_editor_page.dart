@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:sociale_vote/domain/organization/entities/organization_models.dart';
@@ -6,6 +8,7 @@ import 'package:sociale_vote/features/organization/application/organization_work
 import 'package:sociale_vote/features/organization/presentation/widgets/organization_cover_header.dart';
 import 'package:sociale_vote/features/organization/presentation/widgets/organization_external_channel_icon.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 
 class OrganizationProfileEditorPage extends StatefulWidget {
   final OrganizationWorkspaceController controller;
@@ -40,7 +43,15 @@ class _OrganizationProfileEditorPageState
   @override
   void initState() {
     super.initState();
+    _city.addListener(_refreshEditableDirection);
+    _description.addListener(_refreshEditableDirection);
     _fillFromCurrentOrganization();
+  }
+
+  void _refreshEditableDirection() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _fillFromCurrentOrganization() {
@@ -65,6 +76,8 @@ class _OrganizationProfileEditorPageState
 
   @override
   void dispose() {
+    _city.removeListener(_refreshEditableDirection);
+    _description.removeListener(_refreshEditableDirection);
     _legalName.dispose();
     _publicName.dispose();
     _country.dispose();
@@ -328,6 +341,14 @@ class _OrganizationProfileEditorPageState
                   const SizedBox(height: 12),
                   TextField(
                     controller: _legalName,
+                    textDirection: socialVoteContentDirection(
+                      _legalName.text,
+                      fallback: socialVoteLocaleTextDirection(context),
+                    ),
+                    textAlign: socialVoteContentTextAlign(
+                      _legalName.text,
+                      fallback: socialVoteLocaleTextDirection(context),
+                    ),
                     readOnly: true,
                     decoration: InputDecoration(
                       labelText: l10n.organizationLegalName,
@@ -337,6 +358,14 @@ class _OrganizationProfileEditorPageState
                   const SizedBox(height: 12),
                   TextField(
                     controller: _publicName,
+                    textDirection: socialVoteContentDirection(
+                      _publicName.text,
+                      fallback: socialVoteLocaleTextDirection(context),
+                    ),
+                    textAlign: socialVoteContentTextAlign(
+                      _publicName.text,
+                      fallback: socialVoteLocaleTextDirection(context),
+                    ),
                     readOnly: true,
                     decoration: InputDecoration(
                       labelText: l10n.organizationPublicName,
@@ -349,6 +378,8 @@ class _OrganizationProfileEditorPageState
                       final wide = constraints.maxWidth >= 620;
                       final country = TextField(
                         controller: _country,
+                        textDirection: TextDirection.ltr,
+                        textAlign: TextAlign.left,
                         readOnly: true,
                         textCapitalization: TextCapitalization.characters,
                         maxLength: 2,
@@ -360,6 +391,14 @@ class _OrganizationProfileEditorPageState
                       );
                       final city = TextField(
                         controller: _city,
+                        textDirection: socialVoteEditableTextDirection(
+                          context,
+                          _city.text,
+                        ),
+                        textAlign: socialVoteEditableTextAlign(
+                          context,
+                          _city.text,
+                        ),
                         textCapitalization: TextCapitalization.words,
                         decoration: InputDecoration(
                           labelText: l10n.organizationCity,
@@ -389,6 +428,8 @@ class _OrganizationProfileEditorPageState
                   const SizedBox(height: 12),
                   TextField(
                     controller: _website,
+                    textDirection: TextDirection.ltr,
+                    textAlign: TextAlign.left,
                     keyboardType: TextInputType.url,
                     autocorrect: false,
                     decoration: InputDecoration(
@@ -441,6 +482,8 @@ class _OrganizationProfileEditorPageState
                               padding: const EdgeInsets.only(bottom: 12),
                               child: TextField(
                                 controller: _externalController(provider),
+                                textDirection: TextDirection.ltr,
+                                textAlign: TextAlign.left,
                                 keyboardType: TextInputType.url,
                                 autocorrect: false,
                                 enableSuggestions: false,
@@ -465,6 +508,14 @@ class _OrganizationProfileEditorPageState
                   const SizedBox(height: 12),
                   TextField(
                     controller: _description,
+                    textDirection: socialVoteEditableTextDirection(
+                      context,
+                      _description.text,
+                    ),
+                    textAlign: socialVoteEditableTextAlign(
+                      context,
+                      _description.text,
+                    ),
                     minLines: 4,
                     maxLines: 8,
                     textCapitalization: TextCapitalization.sentences,
@@ -530,10 +581,8 @@ String _tr(
   required String de,
   required String fa,
 }) {
-  return switch (Localizations.localeOf(context).languageCode) {
-    'it' => it,
-    'de' => de,
-    'fa' => fa,
-    _ => en,
-  };
+  final language = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (language == 'it') return it;
+  if (language == 'fa') return fa;
+  return deOrEnglish(context, english: en, german: de);
 }

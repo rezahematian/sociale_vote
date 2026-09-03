@@ -4041,4 +4041,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldBriefExpiryHelp => 'After this window the brief should not remain active without another editorial review.';
+
+  @override
+  String get profileAppLanguageSpanish => 'Spanish';
+
+  @override
+  String get profileAppLanguagePortuguese => 'Portuguese';
+
+  @override
+  String get homeHeroPurpose => 'Discover what matters, share your Voce and take part in Vote.';
+
+  @override
+  String get commentSection_hideComments => 'Hide comments';
+
+  @override
+  String get commentSection_viewComments => 'View comments';
+
+  @override
+  String get commentSection_hideReplies => 'Hide replies';
+
+  @override
+  String commentSection_editing(String snippet) {
+    return 'Editing: $snippet';
+  }
+
+  @override
+  String get commentSection_editInputHint => 'Edit your comment';
+
+  @override
+  String commentSection_replyTo(String author) {
+    return 'Reply to $author';
+  }
+
+  @override
+  String get commentSection_userFallback => 'User';
+
+  @override
+  String get commentSection_addError => 'Unable to add the comment.';
+
+  @override
+  String get commentSection_nestedReplyError => 'Nested replies beyond one level are not supported.';
+
+  @override
+  String get commentSection_addReplyError => 'Unable to add the reply.';
+
+  @override
+  String get commentSection_editError => 'Unable to edit the comment.';
+
+  @override
+  String get commentSection_deleteError => 'Unable to delete the comment.';
+
+  @override
+  String get commentSection_edited => 'Edited';
+
+  @override
+  String get commentSection_editAction => 'Edit';
 }

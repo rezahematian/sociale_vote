@@ -2691,5 +2691,36 @@
         "type": "String"
       }
     }
-  }
+  },
+  "profileAppLanguageSpanish": "Spanish",
+  "profileAppLanguagePortuguese": "Portuguese",
+  "homeHeroPurpose": "Discover what matters, share your Voce and take part in Vote.",
+  "commentSection_hideComments": "Hide comments",
+  "commentSection_viewComments": "View comments",
+  "commentSection_hideReplies": "Hide replies",
+  "commentSection_editing": "Editing: {snippet}",
+  "@commentSection_editing": {
+    "placeholders": {
+      "snippet": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_editInputHint": "Edit your comment",
+  "commentSection_replyTo": "Reply to {author}",
+  "@commentSection_replyTo": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_userFallback": "User",
+  "commentSection_addError": "Unable to add the comment.",
+  "commentSection_nestedReplyError": "Nested replies beyond one level are not supported.",
+  "commentSection_addReplyError": "Unable to add the reply.",
+  "commentSection_editError": "Unable to edit the comment.",
+  "commentSection_deleteError": "Unable to delete the comment.",
+  "commentSection_edited": "Edited",
+  "commentSection_editAction": "Edit"
 }

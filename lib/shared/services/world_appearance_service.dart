@@ -43,9 +43,41 @@ class WorldAppearanceService extends ChangeNotifier {
   static const String _radioKey = 'world_appearance_radio_v1';
   static const String _rotationKey = 'world_appearance_rotation_v1';
 
-  GlobeVisualStyle _globeStyle = GlobeVisualStyle.classic;
-  RadioVisualStyle _radioStyle = RadioVisualStyle.vintageClassic;
-  GlobeRotationVisualStyle _rotationStyle = GlobeRotationVisualStyle.classic;
+  static const GlobeVisualStyle defaultGlobeStyle = GlobeVisualStyle.bright;
+  static const RadioVisualStyle defaultRadioStyle = RadioVisualStyle.oldStyle;
+  static const GlobeRotationVisualStyle defaultRotationStyle =
+      GlobeRotationVisualStyle.minimal;
+
+  /// Curated release choices. Legacy enum values remain defined so older local
+  /// preferences can be migrated safely without widening the public settings UI.
+  static const List<GlobeVisualStyle> selectableGlobeStyles =
+      <GlobeVisualStyle>[
+    GlobeVisualStyle.classic,
+    GlobeVisualStyle.realistic,
+    GlobeVisualStyle.bright,
+    GlobeVisualStyle.nightLights,
+    GlobeVisualStyle.techNeon,
+  ];
+
+  static const List<RadioVisualStyle> selectableRadioStyles =
+      <RadioVisualStyle>[
+    RadioVisualStyle.vintageClassic,
+    RadioVisualStyle.oldStyle,
+    RadioVisualStyle.retroElegant,
+    RadioVisualStyle.woodMinimal,
+  ];
+
+  static const List<GlobeRotationVisualStyle> selectableRotationStyles =
+      <GlobeRotationVisualStyle>[
+    GlobeRotationVisualStyle.classic,
+    GlobeRotationVisualStyle.minimal,
+    GlobeRotationVisualStyle.neon,
+    GlobeRotationVisualStyle.premium,
+  ];
+
+  GlobeVisualStyle _globeStyle = defaultGlobeStyle;
+  RadioVisualStyle _radioStyle = defaultRadioStyle;
+  GlobeRotationVisualStyle _rotationStyle = defaultRotationStyle;
 
   bool _loaded = false;
   Future<void>? _loadFuture;
@@ -63,21 +95,24 @@ class WorldAppearanceService extends ChangeNotifier {
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
 
-    _globeStyle = _readEnum(
-      prefs.getString(_globeKey),
-      GlobeVisualStyle.values,
-      GlobeVisualStyle.classic,
-    );
-    _radioStyle = _readEnum(
-      prefs.getString(_radioKey),
-      RadioVisualStyle.values,
-      RadioVisualStyle.vintageClassic,
-    );
-    _rotationStyle = _readEnum(
-      prefs.getString(_rotationKey),
-      GlobeRotationVisualStyle.values,
-      GlobeRotationVisualStyle.classic,
-    );
+    final storedGlobe = prefs.getString(_globeKey);
+    final storedRadio = prefs.getString(_radioKey);
+    final storedRotation = prefs.getString(_rotationKey);
+
+    _globeStyle = _readGlobeStyle(storedGlobe);
+    _radioStyle = _readRadioStyle(storedRadio);
+    _rotationStyle = _readRotationStyle(storedRotation);
+
+    // One-time local migration for choices removed from the compact selector.
+    // Existing supported choices remain untouched.
+    await Future.wait<void>([
+      if (storedGlobe != null && storedGlobe != _globeStyle.name)
+        prefs.setString(_globeKey, _globeStyle.name),
+      if (storedRadio != null && storedRadio != _radioStyle.name)
+        prefs.setString(_radioKey, _radioStyle.name),
+      if (storedRotation != null && storedRotation != _rotationStyle.name)
+        prefs.setString(_rotationKey, _rotationStyle.name),
+    ]);
 
     _loaded = true;
     _loadFuture = null;
@@ -120,9 +155,9 @@ class WorldAppearanceService extends ChangeNotifier {
   Future<void> reset() async {
     await ensureLoaded();
 
-    _globeStyle = GlobeVisualStyle.classic;
-    _radioStyle = RadioVisualStyle.vintageClassic;
-    _rotationStyle = GlobeRotationVisualStyle.classic;
+    _globeStyle = defaultGlobeStyle;
+    _radioStyle = defaultRadioStyle;
+    _rotationStyle = defaultRotationStyle;
     notifyListeners();
 
     final prefs = await SharedPreferences.getInstance();
@@ -131,6 +166,44 @@ class WorldAppearanceService extends ChangeNotifier {
       prefs.remove(_radioKey),
       prefs.remove(_rotationKey),
     ]);
+  }
+
+  static GlobeVisualStyle _readGlobeStyle(String? stored) {
+    if (stored == GlobeVisualStyle.minimalDay.name) {
+      return defaultGlobeStyle;
+    }
+    final value = _readEnum(stored, GlobeVisualStyle.values, defaultGlobeStyle);
+    return selectableGlobeStyles.contains(value) ? value : defaultGlobeStyle;
+  }
+
+  static RadioVisualStyle _readRadioStyle(String? stored) {
+    if (stored == RadioVisualStyle.modernVintage.name ||
+        stored == RadioVisualStyle.steampunk.name) {
+      return defaultRadioStyle;
+    }
+    if (stored == RadioVisualStyle.minimalChic.name) {
+      return RadioVisualStyle.woodMinimal;
+    }
+    final value = _readEnum(stored, RadioVisualStyle.values, defaultRadioStyle);
+    return selectableRadioStyles.contains(value) ? value : defaultRadioStyle;
+  }
+
+  static GlobeRotationVisualStyle _readRotationStyle(String? stored) {
+    if (stored == GlobeRotationVisualStyle.subtle.name ||
+        stored == GlobeRotationVisualStyle.glass.name) {
+      return defaultRotationStyle;
+    }
+    if (stored == GlobeRotationVisualStyle.filled.name) {
+      return GlobeRotationVisualStyle.premium;
+    }
+    final value = _readEnum(
+      stored,
+      GlobeRotationVisualStyle.values,
+      defaultRotationStyle,
+    );
+    return selectableRotationStyles.contains(value)
+        ? value
+        : defaultRotationStyle;
   }
 
   static T _readEnum<T extends Enum>(

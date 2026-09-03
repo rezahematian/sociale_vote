@@ -55,7 +55,7 @@ class WebWorldGlobeSurface extends StatefulWidget {
     required this.homeProfile,
     required this.isAuthenticated,
     required this.autoRotateEnabled,
-    this.visualStyle = 'classic',
+    this.visualStyle = 'bright',
     this.markerDataSettled = true,
     this.homeMarkerLimit = 9,
     required this.onMarkerTap,

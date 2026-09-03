@@ -722,6 +722,12 @@ class _RegisterFormState extends State<RegisterForm> {
     final language = switch (localeLanguageCode) {
       'it' => 'it',
       'de' => 'de',
+      'fa' => 'fa',
+      'es' => 'es',
+      'pt' => 'pt',
+      'fr' => 'fr',
+      'ar' => 'ar',
+      'ro' => 'ro',
       _ => 'en',
     };
     final displayName = _displayNameController.text.trim();

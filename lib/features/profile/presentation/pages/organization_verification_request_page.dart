@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/domain/organization/entities/organization_models.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
 
 class OrganizationVerificationRequestDraft {
@@ -51,7 +52,36 @@ class _OrganizationVerificationRequestPageState
   String? _countryCode;
 
   @override
+  void initState() {
+    super.initState();
+    for (final controller in <TextEditingController>[
+      _legalName,
+      _publicName,
+      _city,
+      _representativeRole,
+      _authorityNote,
+    ]) {
+      controller.addListener(_refreshEditableDirection);
+    }
+  }
+
+  void _refreshEditableDirection() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
   void dispose() {
+    for (final controller in <TextEditingController>[
+      _legalName,
+      _publicName,
+      _city,
+      _representativeRole,
+      _authorityNote,
+    ]) {
+      controller.removeListener(_refreshEditableDirection);
+    }
     _legalName.dispose();
     _publicName.dispose();
     _city.dispose();
@@ -99,6 +129,14 @@ class _OrganizationVerificationRequestPageState
     return normalized.isEmpty ? null : normalized;
   }
 
+  TextDirection _directionFor(TextEditingController controller) {
+    return socialVoteEditableTextDirection(context, controller.text);
+  }
+
+  TextAlign _alignFor(TextEditingController controller) {
+    return socialVoteEditableTextAlign(context, controller.text);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -132,6 +170,8 @@ class _OrganizationVerificationRequestPageState
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _legalName,
+                  textDirection: _directionFor(_legalName),
+                  textAlign: _alignFor(_legalName),
                   textCapitalization: TextCapitalization.words,
                   validator: _required,
                   decoration: InputDecoration(
@@ -141,6 +181,8 @@ class _OrganizationVerificationRequestPageState
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _publicName,
+                  textDirection: _directionFor(_publicName),
+                  textAlign: _alignFor(_publicName),
                   textCapitalization: TextCapitalization.words,
                   validator: _required,
                   decoration: InputDecoration(
@@ -180,6 +222,8 @@ class _OrganizationVerificationRequestPageState
                     final wide = constraints.maxWidth >= 620;
                     final city = TextFormField(
                       controller: _city,
+                      textDirection: _directionFor(_city),
+                      textAlign: _alignFor(_city),
                       textCapitalization: TextCapitalization.words,
                       decoration: InputDecoration(
                         labelText: l10n.organizationVerificationCity,
@@ -187,6 +231,8 @@ class _OrganizationVerificationRequestPageState
                     );
                     final website = TextFormField(
                       controller: _website,
+                      textDirection: TextDirection.ltr,
+                      textAlign: TextAlign.left,
                       keyboardType: TextInputType.url,
                       autocorrect: false,
                       decoration: InputDecoration(
@@ -210,6 +256,8 @@ class _OrganizationVerificationRequestPageState
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _representativeRole,
+                  textDirection: _directionFor(_representativeRole),
+                  textAlign: _alignFor(_representativeRole),
                   textCapitalization: TextCapitalization.words,
                   validator: _required,
                   decoration: InputDecoration(
@@ -220,6 +268,8 @@ class _OrganizationVerificationRequestPageState
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _registryId,
+                  textDirection: TextDirection.ltr,
+                  textAlign: TextAlign.left,
                   decoration: InputDecoration(
                     labelText: l10n.organizationVerificationRegistryId,
                   ),
@@ -227,6 +277,8 @@ class _OrganizationVerificationRequestPageState
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _authorityNote,
+                  textDirection: _directionFor(_authorityNote),
+                  textAlign: _alignFor(_authorityNote),
                   minLines: 3,
                   maxLines: 6,
                   validator: _required,

@@ -2691,5 +2691,36 @@
         "type": "String"
       }
     }
-  }
+  },
+  "profileAppLanguageSpanish": "Spanisch",
+  "profileAppLanguagePortuguese": "Portugiesisch",
+  "homeHeroPurpose": "Entdecke, was zählt, teile deine Voce und nimm an Vote teil.",
+  "commentSection_hideComments": "Kommentare ausblenden",
+  "commentSection_viewComments": "Kommentare anzeigen",
+  "commentSection_hideReplies": "Antworten ausblenden",
+  "commentSection_editing": "Wird bearbeitet: {snippet}",
+  "@commentSection_editing": {
+    "placeholders": {
+      "snippet": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_editInputHint": "Kommentar bearbeiten",
+  "commentSection_replyTo": "Antwort an {author}",
+  "@commentSection_replyTo": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_userFallback": "Benutzer",
+  "commentSection_addError": "Der Kommentar konnte nicht hinzugefügt werden.",
+  "commentSection_nestedReplyError": "Verschachtelte Antworten über eine Ebene hinaus werden nicht unterstützt.",
+  "commentSection_addReplyError": "Die Antwort konnte nicht hinzugefügt werden.",
+  "commentSection_editError": "Der Kommentar konnte nicht bearbeitet werden.",
+  "commentSection_deleteError": "Der Kommentar konnte nicht gelöscht werden.",
+  "commentSection_edited": "Bearbeitet",
+  "commentSection_editAction": "Bearbeiten"
 }

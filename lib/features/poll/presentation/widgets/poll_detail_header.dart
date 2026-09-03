@@ -13,6 +13,7 @@ import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 
 class PollDetailHeader extends StatelessWidget {
   final Poll poll;
@@ -297,7 +298,7 @@ class PollDetailHeader extends StatelessWidget {
             const SizedBox(height: 22),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 760),
-              child: Text(
+              child: SocialVoteDirectionalText(
                 poll.title,
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w800,
@@ -311,7 +312,7 @@ class PollDetailHeader extends StatelessWidget {
               const SizedBox(height: 12),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 820),
-                child: Text(
+                child: SocialVoteDirectionalText(
                   description,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     height: 1.48,

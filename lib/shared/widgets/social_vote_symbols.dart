@@ -86,34 +86,50 @@ abstract final class SocialVoteSymbols {
     final language = Localizations.localeOf(context).languageCode.toLowerCase();
 
     return switch (actorType) {
-      ActorType.organization => language == 'it'
-          ? 'Organizzazione'
-          : language == 'de'
-              ? 'Organisation'
-              : language == 'fa'
-                  ? 'سازمان'
-                  : 'Organization',
-      ActorType.institution => language == 'it'
-          ? 'Istituzione pubblica'
-          : language == 'de'
-              ? 'Öffentliche Institution'
-              : language == 'fa'
-                  ? 'نهاد عمومی'
-                  : 'Public institution',
-      ActorType.publicOfficial => language == 'it'
-          ? 'Funzionario pubblico'
-          : language == 'de'
-              ? 'Amtsperson'
-              : language == 'fa'
-                  ? 'مقام عمومی'
-                  : 'Public official',
-      ActorType.citizen => language == 'it'
-          ? 'Cittadino'
-          : language == 'de'
-              ? 'Bürgerkonto'
-              : language == 'fa'
-                  ? 'شهروند'
-                  : 'Citizen',
+      ActorType.organization => switch (language) {
+          'it' => 'Organizzazione',
+          'de' => 'Organisation',
+          'fa' => 'سازمان',
+          'es' => 'Organización',
+          'pt' => 'Organização',
+          'fr' => 'Organisation',
+          'ar' => 'منظمة',
+          'ro' => 'Organizație',
+          _ => 'Organization',
+        },
+      ActorType.institution => switch (language) {
+          'it' => 'Istituzione pubblica',
+          'de' => 'Öffentliche Institution',
+          'fa' => 'نهاد عمومی',
+          'es' => 'Institución pública',
+          'pt' => 'Instituição pública',
+          'fr' => 'Institution publique',
+          'ar' => 'مؤسسة عامة',
+          'ro' => 'Instituție publică',
+          _ => 'Public institution',
+        },
+      ActorType.publicOfficial => switch (language) {
+          'it' => 'Funzionario pubblico',
+          'de' => 'Amtsperson',
+          'fa' => 'مقام عمومی',
+          'es' => 'Cargo público',
+          'pt' => 'Agente público',
+          'fr' => 'Responsable public',
+          'ar' => 'مسؤول عام',
+          'ro' => 'Oficial public',
+          _ => 'Public official',
+        },
+      ActorType.citizen => switch (language) {
+          'it' => 'Cittadino',
+          'de' => 'Bürgerkonto',
+          'fa' => 'شهروند',
+          'es' => 'Ciudadano',
+          'pt' => 'Cidadão',
+          'fr' => 'Citoyen',
+          'ar' => 'مواطن',
+          'ro' => 'Cetățean',
+          _ => 'Citizen',
+        },
     };
   }
 
@@ -138,11 +154,19 @@ abstract final class SocialVoteSymbols {
 
   static String openProfileLabel(BuildContext context) {
     final language = Localizations.localeOf(context).languageCode.toLowerCase();
-    if (language == 'it') return 'Apri profilo';
-    if (language == 'de') return 'Profil öffnen';
-    if (language == 'fa') return 'باز کردن پروفایل';
-    return 'Open profile';
+    return switch (language) {
+      'it' => 'Apri profilo',
+      'de' => 'Profil öffnen',
+      'fa' => 'باز کردن پروفایل',
+      'es' => 'Abrir perfil',
+      'pt' => 'Abrir perfil',
+      'fr' => 'Ouvrir le profil',
+      'ar' => 'فتح الملف الشخصي',
+      'ro' => 'Deschide profilul',
+      _ => 'Open profile',
+    };
   }
+
 }
 
 class ContentTypeMark extends StatelessWidget {
@@ -213,11 +237,17 @@ class GlobeContentMarker extends StatelessWidget {
         : SocialVoteSymbols.contentColor(kind);
     final label = clusterCount > 99 ? '99+' : '$clusterCount';
     final language = Localizations.localeOf(context).languageCode.toLowerCase();
-    final clusterDescription = language == 'it'
-        ? '$label contenuti'
-        : language == 'de'
-            ? '$label Inhalte'
-            : '$label items';
+    final clusterDescription = switch (language) {
+      'it' => '$label contenuti',
+      'de' => '$label Inhalte',
+      'fa' => '$label محتوا',
+      'es' => '$label contenidos',
+      'pt' => '$label conteúdos',
+      'fr' => '$label contenus',
+      'ar' => '$label عناصر',
+      'ro' => '$label elemente',
+      _ => '$label items',
+    };
 
     // Android/native visual recovery: keep the original layout footprint so
     // geographic anchoring and hit-target math remain unchanged, while the

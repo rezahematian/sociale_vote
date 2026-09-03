@@ -1,0 +1,1 @@
+void updateWebDocumentLanguage(String languageCode) {}

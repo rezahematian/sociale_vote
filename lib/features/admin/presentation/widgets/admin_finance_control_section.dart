@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 import 'package:intl/intl.dart';
 
 import 'package:sociale_vote/domain/admin/entities/admin_entities.dart';
@@ -756,10 +758,8 @@ String _financeText(
   String de,
   String fa,
 ) {
-  return switch (Localizations.localeOf(context).languageCode.toLowerCase()) {
-    'it' => it,
-    'de' => de,
-    'fa' => fa,
-    _ => en,
-  };
+  final language = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (language == 'it') return it;
+  if (language == 'fa') return fa;
+  return deOrEnglish(context, english: en, german: de);
 }

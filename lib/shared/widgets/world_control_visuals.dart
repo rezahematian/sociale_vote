@@ -142,7 +142,7 @@ class PremiumGlobePreview extends StatelessWidget {
             if (style == GlobeVisualStyle.techNeon)
               const IgnorePointer(
                 child: CustomPaint(
-                  painter: _NeonLatitudePainter(color: Color(0xFFB565FF)),
+                  painter: _NeonLatitudePainter(color: Color(0xFFA989FF)),
                 ),
               ),
             if (style == GlobeVisualStyle.minimalDay)
@@ -848,11 +848,11 @@ class _GlobePreviewConfig {
           fallback: [Color(0xFFF2B84C), Color(0xFF071326)],
         ),
       GlobeVisualStyle.techNeon => const _GlobePreviewConfig(
-          asset: night,
-          glow: Color(0xFFB552FF),
-          rim: Color(0xFFB565FF),
-          fallback: [Color(0xFF9A5BFF), Color(0xFF111738)],
-          colorFilter: ColorFilter.mode(Color(0x55372F9D), BlendMode.color),
+          asset: day,
+          glow: Color(0xFF9B6BFF),
+          rim: Color(0xFFA989FF),
+          fallback: [Color(0xFF7EA4FF), Color(0xFF2B316B)],
+          colorFilter: ColorFilter.mode(Color(0x334F45D9), BlendMode.screen),
         ),
       GlobeVisualStyle.minimalDay => const _GlobePreviewConfig(
           asset: day,

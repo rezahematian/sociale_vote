@@ -215,7 +215,7 @@ class PollCard extends StatelessWidget {
                           description: hasDescription ? description : null,
                         )
                       else ...[
-                        Text(
+                        SocialVoteDirectionalText(
                           poll.title,
                           style: (isCompactLayout
                                   ? theme.textTheme.titleMedium
@@ -227,12 +227,10 @@ class PollCard extends StatelessWidget {
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          textDirection: socialVoteContentDirection(poll.title),
-                          textAlign: socialVoteContentTextAlign(poll.title),
                         ),
                         if (hasDescription) ...[
                           const SizedBox(height: AppSpacing.unitS),
-                          Text(
+                          SocialVoteDirectionalText(
                             description,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.onSurface.withValues(
@@ -242,9 +240,6 @@ class PollCard extends StatelessWidget {
                             ),
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
-                            textDirection:
-                                socialVoteContentDirection(description),
-                            textAlign: socialVoteContentTextAlign(description),
                           ),
                         ],
                       ],
@@ -1263,7 +1258,7 @@ class _PollResultPreview extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          SocialVoteDirectionalText(
             title,
             style: (compact
                     ? theme.textTheme.titleMedium
@@ -1275,12 +1270,10 @@ class _PollResultPreview extends StatelessWidget {
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            textDirection: socialVoteContentDirection(title),
-            textAlign: socialVoteContentTextAlign(title),
           ),
           if (description != null) ...[
             const SizedBox(height: AppSpacing.unitS),
-            Text(
+            SocialVoteDirectionalText(
               description!,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
@@ -1288,8 +1281,6 @@ class _PollResultPreview extends StatelessWidget {
               ),
               maxLines: compact ? 3 : 2,
               overflow: TextOverflow.ellipsis,
-              textDirection: socialVoteContentDirection(description!),
-              textAlign: socialVoteContentTextAlign(description!),
             ),
           ],
         ],

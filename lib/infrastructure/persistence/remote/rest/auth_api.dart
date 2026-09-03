@@ -57,6 +57,12 @@ class AuthApi {
     final normalizedLanguage = switch (language.trim().toLowerCase()) {
       'it' => 'it',
       'de' => 'de',
+      'fa' => 'fa',
+      'es' => 'es',
+      'pt' => 'pt',
+      'fr' => 'fr',
+      'ar' => 'ar',
+      'ro' => 'ro',
       _ => 'en',
     };
     final normalizedCountry = country.trim();

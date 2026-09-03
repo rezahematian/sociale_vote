@@ -19,6 +19,7 @@ const List<ContentLanguageOption> supportedContentLanguages = [
   ContentLanguageOption(code: 'fr', label: 'Français'),
   ContentLanguageOption(code: 'de', label: 'Deutsch'),
   ContentLanguageOption(code: 'pt', label: 'Português'),
+  ContentLanguageOption(code: 'ro', label: 'Română'),
   ContentLanguageOption(code: 'ar', label: 'العربية'),
   ContentLanguageOption(code: 'fa', label: 'فارسی'),
   ContentLanguageOption(code: 'tr', label: 'Türkçe'),

@@ -7,6 +7,7 @@ import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location_source.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
 import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/social_vote_hud_service.dart';
 
@@ -551,6 +552,16 @@ class _WorldBriefFormDialogState extends State<_WorldBriefFormDialog> {
     _socialVoteView = TextEditingController(text: brief?.socialVoteView);
     _sources = TextEditingController(text: brief?.sourceUrls.join('\n'));
     _city = TextEditingController(text: brief?.cityId);
+    for (final controller in <TextEditingController>[
+      _title,
+      _whatHappened,
+      _whyItMatters,
+      _uncertain,
+      _socialVoteView,
+      _city,
+    ]) {
+      controller.addListener(_refreshEditableDirection);
+    }
     _language = brief?.languageCode ?? 'it';
     _countryCode = brief?.countryCode;
     _placementMode = brief?.cityId?.trim().isNotEmpty == true
@@ -584,8 +595,24 @@ class _WorldBriefFormDialogState extends State<_WorldBriefFormDialog> {
     }
   }
 
+  void _refreshEditableDirection() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   void dispose() {
+    for (final controller in <TextEditingController>[
+      _title,
+      _whatHappened,
+      _whyItMatters,
+      _uncertain,
+      _socialVoteView,
+      _city,
+    ]) {
+      controller.removeListener(_refreshEditableDirection);
+    }
     _title.dispose();
     _whatHappened.dispose();
     _whyItMatters.dispose();
@@ -696,6 +723,14 @@ class _WorldBriefFormDialogState extends State<_WorldBriefFormDialog> {
                         const SizedBox(height: 14),
                         TextFormField(
                           controller: _uncertain,
+                          textDirection: socialVoteEditableTextDirection(
+                            context,
+                            _uncertain.text,
+                          ),
+                          textAlign: socialVoteEditableTextAlign(
+                            context,
+                            _uncertain.text,
+                          ),
                           maxLines: 5,
                           decoration: InputDecoration(
                             labelText: l10n.worldBriefWhatIsUncertain,
@@ -706,6 +741,14 @@ class _WorldBriefFormDialogState extends State<_WorldBriefFormDialog> {
                         const SizedBox(height: 14),
                         TextFormField(
                           controller: _socialVoteView,
+                          textDirection: socialVoteEditableTextDirection(
+                            context,
+                            _socialVoteView.text,
+                          ),
+                          textAlign: socialVoteEditableTextAlign(
+                            context,
+                            _socialVoteView.text,
+                          ),
                           maxLines: 6,
                           decoration: InputDecoration(
                             labelText: l10n.worldBriefSocialVoteView,
@@ -725,6 +768,8 @@ class _WorldBriefFormDialogState extends State<_WorldBriefFormDialog> {
                     subtitle: l10n.worldBriefSourcesSectionHelp,
                     child: TextFormField(
                       controller: _sources,
+                      textDirection: TextDirection.ltr,
+                      textAlign: TextAlign.left,
                       maxLines: 6,
                       decoration: InputDecoration(
                         labelText: l10n.worldBriefSources,
@@ -1098,6 +1143,14 @@ class _WorldBriefFormDialogState extends State<_WorldBriefFormDialog> {
             const SizedBox(height: 14),
             TextFormField(
               controller: _city,
+              textDirection: socialVoteEditableTextDirection(
+                context,
+                _city.text,
+              ),
+              textAlign: socialVoteEditableTextAlign(
+                context,
+                _city.text,
+              ),
               decoration: InputDecoration(
                 labelText: l10n.worldBriefCity,
                 helperText: l10n.worldBriefCityHelp,
@@ -1202,6 +1255,14 @@ class _WorldBriefFormDialogState extends State<_WorldBriefFormDialog> {
     final l10n = AppLocalizations.of(context)!;
     return TextFormField(
       controller: controller,
+      textDirection: socialVoteEditableTextDirection(
+        context,
+        controller.text,
+      ),
+      textAlign: socialVoteEditableTextAlign(
+        context,
+        controller.text,
+      ),
       maxLines: maxLines,
       decoration: InputDecoration(
         labelText: label,

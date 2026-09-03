@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/features/home/presentation/pages/public_home_screen.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class FirstTimeOnboardingGate extends StatefulWidget {
   const FirstTimeOnboardingGate({super.key});
@@ -103,8 +104,7 @@ class _FirstTimeOnboardingPageState extends State<_FirstTimeOnboardingPage> {
   }) {
     final language = Localizations.localeOf(context).languageCode.toLowerCase();
     if (language == 'it') return it;
-    if (language == 'de') return de;
-    return en;
+    return deOrEnglish(context, english: en, german: de);
   }
 
   Future<void> _finish() async {

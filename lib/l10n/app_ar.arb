@@ -1,0 +1,2726 @@
+{
+  "@@locale": "ar",
+  "appTitle": "Social Vote",
+  "voteButton": "Vote",
+  "createPollPageTitle": "إنشاء Vote",
+  "createPollPageSubtitle": "عرّف تصويتًا مدنيًا جديدًا",
+  "createPollBasicInfoTitle": "المعلومات الأساسية",
+  "createPollBasicInfoSubtitle": "حدّد التفاصيل الرئيسية للـ Vote.",
+  "createPollTitleFieldLabel": "العنوان *",
+  "createPollTitleFieldHelper": "سؤال أو عبارة واضحة وموجزة.",
+  "createPollDescriptionFieldLabel": "الوصف (اختياري)",
+  "createPollVotingModelTitle": "طريقة التصويت",
+  "createPollVotingModelSubtitle": "اختر ما إذا كان بإمكان كل شخص تحديد إجابة واحدة أو عدة إجابات.",
+  "createPollTypeFieldLabel": "نوع Vote",
+  "createPollSelectionRules": "قواعد الاختيار: حد أدنى {min} وحد أقصى {max} من الاختيارات (يتم ضبطها تلقائيًا وفقًا لنوع Vote والخيارات).",
+  "@createPollSelectionRules": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "createPollAllowVoteChangeTitle": "السماح للمصوّتين بتغيير تصويتهم",
+  "createPollAllowVoteChangeSubtitle": "حتى إغلاق Vote.",
+  "createPollOptionsTitle": "الإجابات",
+  "createPollOptionsSubtitle": "أدخل إجابتين على الأقل ليختار المصوّتون من بينها. الحقول المعلّمة بـ * إلزامية.",
+  "createPollOptionLabel": "الخيار {index}{requiredMarker}",
+  "@createPollOptionLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "requiredMarker": {}
+    }
+  },
+  "createPollRemoveOptionTooltip": "إزالة الخيار",
+  "createPollAddOptionButton": "إضافة خيار",
+  "createPollParticipationPrivacyTitle": "المشاركة والخصوصية",
+  "createPollParticipationPrivacySubtitle": "حدّد من يمكنه التصويت ومدى خصوصية الأصوات.",
+  "createPollWhoCanVoteLabel": "من يمكنه التصويت؟",
+  "createPollParticipationEveryoneSubtitle": "يمكن لأي مستخدم مسجّل المشاركة.",
+  "createPollParticipationGeoScopeSubtitle": "حصر هذا الـ Vote بالأشخاص من بلد محدد.",
+  "createPollCountryFieldLabel": "بلد هذا الـ Vote",
+  "createPollCountryFieldHelper": "سيحدد هذا البلد من يُسمح له بالمشاركة في هذا الـ Vote (تكامل مستقبلي مع الخلفية).",
+  "createPollVoteAnonymityTitle": "إخفاء هوية Vote",
+  "createPollAnonymityAnonymousSubtitle": "الإعداد الافتراضي الموصى به لمنصات التصويت المدني.",
+  "createPollAnonymityPublicSubtitle": "استخدم بحذر: قد ترتبط الأصوات بالهويات (ميزة مستقبلية).",
+  "createPollResultsValidityTitle": "النتائج والصلاحية",
+  "createPollResultsValiditySubtitle": "تحكّم في وقت ظهور النتائج وحدد حدًا أدنى للنصاب إذا لزم الأمر.",
+  "createPollResultsVisibilityFieldLabel": "ظهور النتائج",
+  "createPollQuorumTitle": "النصاب (اختياري)",
+  "createPollQuorumSubtitle": "إذا تم تحديده، يُعتبر الـ Vote صالحًا فقط عند بلوغ هذا العدد الأدنى من الأصوات. اتركه فارغًا لعدم اشتراط نصاب.",
+  "createPollQuorumMinVotesFieldLabel": "الحد الأدنى لعدد الأصوات",
+  "createPollTimingTitle": "التوقيت",
+  "createPollTimingSubtitle": "حدّد الفترة التي يجب أن يكون فيها الـ Vote مفتوحًا للتصويت.",
+  "createPollStartDateLabel": "تاريخ البدء",
+  "createPollEndDateLabel": "تاريخ الانتهاء",
+  "createPollChangeDateButtonLabel": "تغيير",
+  "createPollTimingStatusInfo": "سيتم تحديد الحالة الأولية (مفتوح/مجدول/مغلق) تلقائيًا بناءً على هذه التواريخ.",
+  "createPollSuccessMessage": "تم إنشاء Vote بنجاح",
+  "createPollSubmitCreatingLabel": "جارٍ الإنشاء...",
+  "createPollSubmitLabel": "إنشاء Vote",
+  "createPollPollTypeYesNoLabel": "نعم / لا",
+  "createPollPollTypeSingleChoiceLabel": "إجابة واحدة",
+  "createPollPollTypeMultipleChoiceLabel": "عدة إجابات",
+  "createPollPollTypeApprovalLabel": "تصويت بالموافقة",
+  "createPollPollTypeRankedLabel": "اختيار ترتيبي",
+  "createPollPollTypeScoreLabel": "نقاط / تقييم",
+  "createPollParticipationScopeEveryoneLabel": "يمكن للجميع التصويت",
+  "createPollParticipationScopeGeoScopeOnlyLabel": "فقط المستخدمون في بلد محدد",
+  "createPollAnonymityLevelAnonymousLabel": "الأصوات مجهولة الهوية",
+  "createPollAnonymityLevelPublicLabel": "الأصوات علنية (استخدام متقدم / مقيّد)",
+  "createPollResultsVisibilityAlwaysLabel": "ظاهرة دائمًا (أثناء فتح Vote)",
+  "createPollResultsVisibilityAfterVoteLabel": "تظهر فقط بعد التصويت",
+  "createPollResultsVisibilityAfterCloseLabel": "تظهر فقط بعد إغلاق Vote",
+  "homeLoginButton": "تسجيل الدخول",
+  "homeRegisterButton": "إنشاء حساب",
+  "homeProfileButton": "الملف الشخصي",
+  "homeLogoutButton": "تسجيل الخروج",
+  "homeLogoutMessage": "تم تسجيل الخروج. أنت الآن تستخدم التطبيق كضيف (للقراءة فقط).",
+  "homeSearchHint": "ابحث عن مدن وبلدان وحسابات ومحتوى...",
+  "searchPageTitle": "بحث",
+  "searchInputHint": "ابحث في الحسابات وVote وNews وVoce...",
+  "searchClearTooltip": "مسح البحث",
+  "searchTypeAll": "الكل",
+  "searchTypePolls": "Vote",
+  "searchTypeNews": "News",
+  "searchTypePosts": "Voce",
+  "searchTypeAccounts": "الحسابات",
+  "searchSortHottest": "الأكثر رواجًا",
+  "searchSortLatest": "الأحدث",
+  "searchPollStatusAll": "كل Vote",
+  "searchPollStatusOpen": "مفتوح",
+  "searchPollStatusClosed": "مغلق",
+  "searchIdleMessage": "أدخل كلمة لبدء البحث.",
+  "searchErrorMessage": "حدث خطأ أثناء البحث.",
+  "searchRetryButton": "حاول مرة أخرى",
+  "searchEmptyMessage": "لم يتم العثور على نتائج لهذا البحث.",
+  "searchContentUnavailable": "المحتوى غير متاح",
+  "searchResultTypePoll": "Vote",
+  "searchResultTypeNews": "News",
+  "searchResultTypePost": "Voce",
+  "searchResultTypeAccount": "حساب",
+  "searchResultTypeMixed": "مختلط",
+  "homeUserStatusLoggedIn": "تم تسجيل الدخول باسم: {userId}",
+  "@homeUserStatusLoggedIn": {
+    "placeholders": {
+      "userId": {}
+    }
+  },
+  "homeUserStatusGuest": "وضع الضيف: يمكنك القراءة فقط. سجّل الدخول أو أنشئ حسابًا للتصويت والتعليق والتفاعل.",
+  "homeScopeLabelWorld": "العالم – تصويتات وأخبار عالمية",
+  "homeScopeLabelCountry": "البلد – تصويتات وأخبار وطنية",
+  "homeScopeLabelCity": "المدينة – تصويتات وأخبار محلية",
+  "homeScopeShortWorld": "العالم",
+  "homeScopeShortCountry": "البلد",
+  "homeScopeShortCity": "المدينة",
+  "homeScopeChipWorld": "العالم",
+  "homeScopeChipItaly": "إيطاليا",
+  "homeScopeChipTorino": "تورينو",
+  "homeScopeChangedWorld": "تم تغيير النطاق إلى العالم",
+  "homeScopeChangedItaly": "تم تغيير النطاق إلى إيطاليا",
+  "homeScopeChangedTorino": "تم تغيير النطاق إلى تورينو",
+  "followScopeButtonFollowed": "تتابعها",
+  "followScopeButtonFollow": "متابعة هذه المنطقة",
+  "homeTrendingTitle": "Pulse الآن",
+  "homeTrendingError": "تعذر تحميل Pulse الآن لهذه المنطقة.",
+  "homeTrendingEmpty": "لا يوجد محتوى في Pulse الآن لهذه المنطقة حاليًا.",
+  "homeForYouTitle": "Pulse ({scope})",
+  "@homeForYouTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeForYouError": "تعذر تحميل Pulse لهذه المنطقة.",
+  "homeForYouEmpty": "لا يوجد محتوى مقترح في Pulse لهذه المنطقة حاليًا.",
+  "homePollsTitle": "Vote في الواجهة ({scope})",
+  "@homePollsTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homePollsEmptyTitle": "لا يوجد Vote لهذه المنطقة",
+  "homePollsEmptySubtitle": "لا توجد Vote متاحة لهذه المنطقة.",
+  "homePollsViewAllButton": "عرض Vote",
+  "homeNewsTitle": "أهم News ({scope})",
+  "@homeNewsTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeNewsErrorTitle": "تعذر تحميل News",
+  "homeNewsErrorSubtitle": "حدثت مشكلة أثناء تحميل News لهذه المنطقة.",
+  "homeNewsEmptyTitle": "لا توجد News لهذه المنطقة",
+  "homeNewsEmptySubtitle": "لا توجد عناصر News لهذا النطاق حاليًا.",
+  "homeNewsViewAllButton": "عرض كل News",
+  "homeNewsBreakingBadge": "عاجل",
+  "homeSocialTitle": "Voce ({scope})",
+  "@homeSocialTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeSocialErrorTitle": "تعذر تحميل Voce",
+  "homeSocialErrorSubtitle": "حدثت مشكلة أثناء تحميل Voce لهذه المنطقة.",
+  "homeSocialEmptyTitle": "لا توجد Voce لهذه المنطقة",
+  "homeSocialEmptySubtitle": "لا يوجد محتوى Voce لهذه المنطقة حاليًا.",
+  "homeSocialViewFeedButton": "عرض كل Voce",
+  "pollDetail_title": "تفاصيل Vote",
+  "pollDetail_removeFromFavoritesTooltip": "إزالة من المحفوظات",
+  "pollDetail_addToFavoritesTooltip": "حفظ",
+  "pollDetail_chipAnonymous": "Vote مجهول الهوية",
+  "pollDetail_chipPublic": "Vote علني",
+  "pollDetail_chipRestrictedGeo": "مقيّد بالنطاق الجغرافي",
+  "pollDetail_quorumReached": "تم بلوغ النصاب ({currentVotes} / {requiredVotes})",
+  "@pollDetail_quorumReached": {
+    "placeholders": {
+      "currentVotes": {
+        "type": "int"
+      },
+      "requiredVotes": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_quorumNotReached": "لم يتم بلوغ النصاب ({currentVotes} / {requiredVotes})",
+  "@pollDetail_quorumNotReached": {
+    "placeholders": {
+      "currentVotes": {
+        "type": "int"
+      },
+      "requiredVotes": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_optionsTitle": "الخيارات",
+  "pollDetail_statusClosedMessage": "هذا الـ Vote مغلق.",
+  "pollDetail_statusScheduledMessage": "هذا الـ Vote لم يفتح بعد.",
+  "pollDetail_statusNotAvailableMessage": "التصويت غير متاح.",
+  "pollDetail_voteSubmitted": "تم إرسال التصويت بنجاح!",
+  "pollDetail_voteButton": "تصويت",
+  "pollDetail_resultsTitle": "النتائج",
+  "pollDetail_outcomePrefix": "النتيجة: {label}",
+  "@pollDetail_outcomePrefix": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "pollDetail_noResults": "لا توجد نتائج متاحة بعد.",
+  "pollDetail_resultsAfterVote": "ستظهر النتائج بعد تصويتك.",
+  "pollDetail_resultsWhenClosed": "ستظهر النتائج عند إغلاق Vote.",
+  "pollType_yesNo": "نعم / لا",
+  "pollType_singleChoice": "اختيار واحد",
+  "pollType_multipleChoice": "اختيارات متعددة",
+  "pollType_approval": "موافقة",
+  "pollStatus_draft": "مسودة",
+  "pollStatus_open": "مفتوح",
+  "pollStatus_closed": "مغلق",
+  "pollStatus_scheduled": "مجدول",
+  "pollGeo_global": "عالمي",
+  "pollGeo_local": "محلي",
+  "pollOutcome_approved": "مقبول",
+  "pollOutcome_rejected": "مرفوض",
+  "pollOutcome_tie": "تعادل",
+  "pollOutcome_noMajority": "لا توجد أغلبية",
+  "pollOutcome_notApplicable": "غير منطبق",
+  "pollList_title": "Vote",
+  "pollList_scopeWorld": "العالم",
+  "pollList_scopeCountryFallback": "البلد",
+  "pollList_scopeCityFallback": "المدينة",
+  "pollList_scopeDescriptionGlobal": "عرض Vote العالمية.",
+  "pollList_scopeDescriptionCountry": "عرض Vote لهذا البلد.",
+  "pollList_scopeDescriptionCity": "عرض Vote لهذه المدينة.",
+  "pollList_filterStatus_all": "الكل",
+  "pollList_filterStatus_open": "مفتوحة",
+  "pollList_filterStatus_closed": "مغلقة",
+  "pollList_sort_latest": "الأحدث",
+  "pollList_sort_hottest": "الأكثر رواجًا",
+  "pollList_filterScope_currentArea": "المنطقة الحالية",
+  "pollList_headerTitle": "{scopeLabel} · {count, plural, =0 {لم يتم العثور على Vote} =1 {تم العثور على Vote واحد} other {تم العثور على {count} Vote}}",
+  "@pollList_headerTitle": {
+    "placeholders": {
+      "scopeLabel": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollList_createPollButton": "إنشاء Vote",
+  "pollList_paginationHint": "مرّر لتحميل المزيد من Vote…",
+  "pollList_emptyMessage": "لا توجد Vote تطابق هذا الفلتر لهذه المنطقة.",
+  "pollType_ranked": "اختيار ترتيبي",
+  "pollType_score": "تصويت بالنقاط",
+  "pollVisibility_whileOpen": "النتائج ظاهرة أثناء الفتح",
+  "pollVisibility_afterVote": "النتائج ظاهرة بعد التصويت",
+  "pollVisibility_afterClose": "النتائج ظاهرة بعد الإغلاق",
+  "pollCard_countryRestricted": "مقيّد بالبلد",
+  "pollCard_restrictedToCountry": "مقيّد إلى {countryName}",
+  "@pollCard_restrictedToCountry": {
+    "placeholders": {
+      "countryName": {}
+    }
+  },
+  "pollCard_quorumLabel": "النصاب {minVotes}",
+  "@pollCard_quorumLabel": {
+    "placeholders": {
+      "minVotes": {
+        "type": "int"
+      }
+    }
+  },
+  "pollCard_resultsVisibleChip": "النتائج ظاهرة",
+  "@pollCard_resultsVisibleChip": {
+    "description": "Compact PollCard label used when results are always visible"
+  },
+  "pollCard_resultsAfterVoteChip": "بعد التصويت",
+  "@pollCard_resultsAfterVoteChip": {
+    "description": "Compact PollCard label used when results are visible after voting"
+  },
+  "pollCard_resultsAfterCloseChip": "بعد الإغلاق",
+  "@pollCard_resultsAfterCloseChip": {
+    "description": "Compact PollCard label used when results are visible after the poll closes"
+  },
+  "pollCard_publicOfficialPublisher": "مسؤول عام",
+  "@pollCard_publicOfficialPublisher": {
+    "description": "PollCard label for a poll published by a public official"
+  },
+  "pollCard_institutionPublisher": "مؤسسة",
+  "@pollCard_institutionPublisher": {
+    "description": "PollCard label for a poll published by an institution"
+  },
+  "pollCard_representativePublisher": "ممثل",
+  "@pollCard_representativePublisher": {
+    "description": "Fallback PollCard label for representative publishing"
+  },
+  "pollCard_voteCountLabel": "{count, plural, =1 {صوت} other {أصوات}}",
+  "@pollCard_voteCountLabel": {
+    "description": "Singular or plural label shown below the vote count in PollCard",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollCard_viewDetails": "عرض التفاصيل",
+  "pollResult_title": "{count, plural, =0 {النتائج (لا أصوات)} =1 {النتائج (صوت واحد)} other {النتائج ({count} أصوات)}}",
+  "@pollResult_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voteError_noSelection": "يرجى تحديد خيار واحد على الأقل.",
+  "voteError_unauthorized": "غير مسموح لك بالتصويت في هذا الـ Vote.",
+  "voteError_generic": "تعذر إرسال التصويت. يرجى المحاولة مرة أخرى.",
+  "commentSection_title": "التعليقات",
+  "commentSection_sortLabel": "ترتيب:",
+  "commentSection_sortOldest": "الأقدم",
+  "commentSection_sortNewest": "الأحدث",
+  "commentSection_errorGeneric": "حدث خطأ أثناء تحميل التعليقات.",
+  "commentSection_empty": "لا توجد تعليقات بعد. كن أول من يعلّق.",
+  "commentSection_loadMore": "تحميل المزيد من التعليقات",
+  "commentSection_replyingTo": "الرد على: {snippet}",
+  "@commentSection_replyingTo": {
+    "placeholders": {
+      "snippet": {}
+    }
+  },
+  "commentSection_cancelReply": "إلغاء",
+  "commentSection_inputHintRoot": "أضف تعليقًا...",
+  "commentSection_inputHintReply": "اكتب ردًا...",
+  "commentSection_deleteAction": "حذف",
+  "commentSection_replyAction": "رد",
+  "commentSection_youBadge": "أنت",
+  "newsDetail_title": "تفاصيل News",
+  "newsDetail_breakingBadge": "عاجل",
+  "newsDetail_removeFromFavoritesTooltip": "إزالة من المحفوظات",
+  "newsDetail_addToFavoritesTooltip": "حفظ",
+  "newsDetail_bodyFallback": "لا يوجد نص إضافي متاح لهذا العنصر من News.",
+  "newsDetail_footerMoreContext": "سيتم إضافة المزيد من السياق والمصادر قريبًا.",
+  "newsFeed_title": "News",
+  "newsFeed_scopeWorld": "العالم",
+  "newsFeed_scopeCountry": "البلد",
+  "newsFeed_scopeCity": "المدينة",
+  "newsFeed_scopeLabel": "النطاق: {scope}",
+  "@newsFeed_scopeLabel": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "newsFeed_scopeGlobalDescription": "عرض News العالمية.",
+  "newsFeed_scopeCountryDescription": "عرض News لهذا البلد.",
+  "newsFeed_scopeCityDescription": "عرض News لهذه المدينة.",
+  "newsFeed_emptyTitle": "لا توجد News متاحة لهذه المنطقة.",
+  "newsFeed_emptySubtitle": "اسحب للتحديث أو حاول مرة أخرى لاحقًا.",
+  "newsFeed_itemsFound": "تم العثور على {count} عنصر من News",
+  "@newsFeed_itemsFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newsFeed_loadingMoreHint": "مرّر لتحميل المزيد من News…",
+  "newsFeed_errorTitle": "تعذر تحميل News",
+  "newsFeed_errorGeneric": "حدث خطأ غير متوقع أثناء تحميل News.",
+  "newsFeed_retryButton": "إعادة المحاولة",
+  "newsCard_headerTitle": "News",
+  "newsFeed_errorUnauthorized": "إعداد News غير صالح (مفتاح API).",
+  "newsFeed_errorRateLimited": "طلبات كثيرة جدًا. يرجى المحاولة مرة أخرى بعد قليل.",
+  "newsFeed_errorServerUnavailable": "خدمة News غير متاحة مؤقتًا. يرجى المحاولة مرة أخرى لاحقًا.",
+  "newsFeed_errorTimeout": "يستغرق الطلب وقتًا طويلًا. يرجى المحاولة مرة أخرى.",
+  "newsFeed_errorNetwork": "لا يوجد اتصال. تحقق من الإنترنت وحاول مرة أخرى.",
+  "newsFeed_moreTooltip": "المزيد",
+  "newsFeed_actionCopyTitle": "نسخ العنوان",
+  "newsFeed_actionRefreshFeed": "تحديث الموجز",
+  "newsFeed_copiedTitleToast": "تم نسخ العنوان",
+  "newsFeed_languageTooltip": "لغة News",
+  "newsFeed_languageAuto": "تلقائي",
+  "newsFeed_languageIt": "IT",
+  "newsFeed_languageEn": "EN",
+  "newsFeed_languageEs": "ES",
+  "newsFeed_languageFr": "FR",
+  "newsFeed_languageDe": "DE",
+  "newsFeed_languageAr": "AR",
+  "newsFeed_languageFa": "FA",
+  "newsFeed_languageLimitedHint": "المصادر محدودة بهذه اللغة. جرّب الوضع التلقائي.",
+  "newsTopic_all": "الكل",
+  "newsTopic_world": "العالم",
+  "newsTopic_nation": "وطني",
+  "newsTopic_business": "الأعمال",
+  "newsTopic_technology": "التكنولوجيا",
+  "newsTopic_science": "العلوم",
+  "newsTopic_health": "الصحة",
+  "newsTopic_sports": "الرياضة",
+  "newsTopic_entertainment": "الترفيه",
+  "newsDetail_openSource": "فتح المقال المصدر",
+  "@newsDetail_openSource": {
+    "description": "Button to open the original article from the source website"
+  },
+  "newsDetail_openSourceUnavailable": "تعذر فتح المقال المصدر",
+  "@newsDetail_openSourceUnavailable": {
+    "description": "Shown when the source link cannot be opened"
+  },
+  "socialFeedTitle": "Voce",
+  "@socialFeedTitle": {
+    "description": "Title of the main social feed page"
+  },
+  "socialFeedCreatePostButton": "إنشاء Voce",
+  "@socialFeedCreatePostButton": {
+    "description": "Button that opens the post creation flow"
+  },
+  "commonCancelButton": "إلغاء",
+  "@commonCancelButton": {
+    "description": "Generic Cancel button label"
+  },
+  "commonApplyButton": "تطبيق",
+  "@commonApplyButton": {
+    "description": "Generic Apply button label"
+  },
+  "homeScopeChooseCountry": "اختر بلدًا",
+  "@homeScopeChooseCountry": {
+    "description": "Title and action for choosing the Home scope country"
+  },
+  "homeScopeCountrySearchHint": "ابحث عن بلد أو رمز...",
+  "@homeScopeCountrySearchHint": {
+    "description": "Hint shown in the country search field"
+  },
+  "homeScopeChooseCity": "اختر مدينة",
+  "@homeScopeChooseCity": {
+    "description": "Title and action for choosing the Home scope city"
+  },
+  "homeScopeCountryWithCode": "البلد: {code}",
+  "@homeScopeCountryWithCode": {
+    "description": "Selected country shown in the city selection dialog",
+    "placeholders": {
+      "code": {
+        "type": "String",
+        "example": "IT"
+      }
+    }
+  },
+  "homeScopeCityFieldLabel": "المدينة",
+  "@homeScopeCityFieldLabel": {
+    "description": "City field label in the Home scope selector"
+  },
+  "homeScopeCityExampleHint": "اكتب اسم مدينة، مثل Merano",
+  "@homeScopeCityExampleHint": {
+    "description": "Examples shown in the city field"
+  },
+  "homeScopeCityRequiredError": "أدخل مدينة.",
+  "@homeScopeCityRequiredError": {
+    "description": "Error shown when the city field is empty"
+  },
+  "homeScopeCityNotFoundError": "لم يتم العثور على المدينة في البلد المحدد.",
+  "@homeScopeCityNotFoundError": {
+    "description": "Error shown when the city does not belong to the selected country"
+  },
+  "homeScopeCityVerificationError": "تعذر التحقق من المدينة. حاول مرة أخرى.",
+  "@homeScopeCityVerificationError": {
+    "description": "Generic error shown while verifying the city"
+  },
+  "homeScopeVerifyingButton": "جارٍ التحقق...",
+  "@homeScopeVerifyingButton": {
+    "description": "Label shown while the city is being verified"
+  },
+  "homeMapOpenButton": "فتح الخريطة",
+  "@homeMapOpenButton": {
+    "description": "Button label that opens the full Civic Map from Home"
+  },
+  "homeHeroHeadline": "شكّلوا المستقبل.\nمعًا.",
+  "@homeHeroHeadline": {
+    "description": "Main headline shown in the Home hero"
+  },
+  "homeHeroPollsAction": "Vote",
+  "@homeHeroPollsAction": {
+    "description": "Compact Home dashboard action that opens polls"
+  },
+  "homeHeroNewsAction": "News",
+  "@homeHeroNewsAction": {
+    "description": "Compact Home dashboard action that opens news"
+  },
+  "homeHeroCreateAction": "إنشاء",
+  "@homeHeroCreateAction": {
+    "description": "Compact Home dashboard action for creating a poll or post"
+  },
+  "homeHeroExploreAction": "استكشاف",
+  "@homeHeroExploreAction": {
+    "description": "Compact Home dashboard action that opens the full Civic Map"
+  },
+  "homeAccountMenuLabel": "الحساب",
+  "@homeAccountMenuLabel": {
+    "description": "Label and tooltip for the Account entry in the Home top bar"
+  },
+  "homeThemeSystemMenuItem": "السمة: النظام",
+  "@homeThemeSystemMenuItem": {
+    "description": "Account menu item for using the system theme"
+  },
+  "homeThemeLightMenuItem": "السمة: فاتحة",
+  "@homeThemeLightMenuItem": {
+    "description": "Account menu item for using the light theme"
+  },
+  "homeThemeDarkMenuItem": "السمة: داكنة",
+  "@homeThemeDarkMenuItem": {
+    "description": "Account menu item for using the dark theme"
+  },
+  "profileAppLanguageTitle": "لغة التطبيق",
+  "@profileAppLanguageTitle": {
+    "description": "Title of the app language setting"
+  },
+  "profileAppLanguageSystem": "النظام",
+  "@profileAppLanguageSystem": {
+    "description": "Option that follows the device language"
+  },
+  "profileAppLanguageSystemDescription": "يستخدم لغة جهازك",
+  "@profileAppLanguageSystemDescription": {
+    "description": "Description of the system language option"
+  },
+  "profileAppLanguageItalian": "الإيطالية",
+  "@profileAppLanguageItalian": {
+    "description": "Italian app language option"
+  },
+  "profileAppLanguageEnglish": "الإنجليزية",
+  "@profileAppLanguageEnglish": {
+    "description": "English app language option"
+  },
+  "homeNotificationsTooltip": "الإشعارات",
+  "@homeNotificationsTooltip": {
+    "description": "Tooltip for the notifications button in the Home top bar"
+  },
+  "postCard_authorFallback": "الكاتب",
+  "@postCard_authorFallback": {
+    "description": "Fallback author name shown in the PostCard when no name is available"
+  },
+  "postCard_globalLocation": "عالمي",
+  "@postCard_globalLocation": {
+    "description": "Global location label shown in the PostCard"
+  },
+  "commonSaveButton": "حفظ",
+  "@commonSaveButton": {
+    "description": "Generic Save button label"
+  },
+  "commonDeleteButton": "حذف",
+  "@commonDeleteButton": {
+    "description": "Generic Delete button label"
+  },
+  "contentReport_menuAction": "الإبلاغ عن المحتوى",
+  "@contentReport_menuAction": {
+    "description": "Menu action used to report content"
+  },
+  "contentReport_dialogTitle": "الإبلاغ عن المحتوى",
+  "@contentReport_dialogTitle": {
+    "description": "Content report dialog title"
+  },
+  "contentReport_authenticationRequired": "يجب تسجيل الدخول للإبلاغ عن المحتوى",
+  "@contentReport_authenticationRequired": {
+    "description": "Message shown to a signed-out user"
+  },
+  "contentReport_submittedMessage": "تم إرسال البلاغ",
+  "@contentReport_submittedMessage": {
+    "description": "Report submission confirmation"
+  },
+  "contentReport_alreadySubmittedMessage": "لقد أبلغت عن هذا المحتوى بالفعل",
+  "@contentReport_alreadySubmittedMessage": {
+    "description": "Message shown when the content was already reported"
+  },
+  "contentReport_submitError": "تعذر إرسال البلاغ",
+  "@contentReport_submitError": {
+    "description": "Generic error while submitting a report"
+  },
+  "contentReport_sendButton": "إرسال",
+  "@contentReport_sendButton": {
+    "description": "Report submission button"
+  },
+  "contentReport_reasonSpam": "محتوى مزعج",
+  "@contentReport_reasonSpam": {
+    "description": "Spam report reason"
+  },
+  "contentReport_reasonHarassment": "تحرش أو إساءة",
+  "@contentReport_reasonHarassment": {
+    "description": "Harassment or abuse report reason"
+  },
+  "contentReport_reasonHateSpeech": "خطاب كراهية",
+  "@contentReport_reasonHateSpeech": {
+    "description": "Hate speech report reason"
+  },
+  "contentReport_reasonMisinformation": "معلومات مضللة",
+  "@contentReport_reasonMisinformation": {
+    "description": "Misinformation report reason"
+  },
+  "contentReport_reasonViolence": "عنف",
+  "@contentReport_reasonViolence": {
+    "description": "Violence report reason"
+  },
+  "contentReport_reasonOther": "أخرى",
+  "@contentReport_reasonOther": {
+    "description": "Other report reason"
+  },
+  "postDetail_title": "تفاصيل Voce",
+  "@postDetail_title": {
+    "description": "Post detail page title"
+  },
+  "postDetail_favoriteUpdateError": "تعذر تحديث العناصر المحفوظة",
+  "@postDetail_favoriteUpdateError": {
+    "description": "Favorites update error on the post detail page"
+  },
+  "postDetail_shareMessage": "افتح Social Vote لعرض هذه الـ Voce.",
+  "@postDetail_shareMessage": {
+    "description": "Text appended when sharing a post"
+  },
+  "postDetail_shareError": "تعذر مشاركة Voce",
+  "@postDetail_shareError": {
+    "description": "Post sharing error"
+  },
+  "postDetail_editDialogTitle": "تعديل Voce",
+  "@postDetail_editDialogTitle": {
+    "description": "Edit post dialog title"
+  },
+  "postDetail_editTitleFieldLabel": "العنوان",
+  "@postDetail_editTitleFieldLabel": {
+    "description": "Title field label in the edit post dialog"
+  },
+  "postDetail_editContentFieldLabel": "المحتوى",
+  "@postDetail_editContentFieldLabel": {
+    "description": "Content field label in the edit post dialog"
+  },
+  "postDetail_editRequiredError": "العنوان والمحتوى مطلوبان.",
+  "@postDetail_editRequiredError": {
+    "description": "Required fields error in the edit post dialog"
+  },
+  "postDetail_updateSuccess": "تم تحديث Voce",
+  "@postDetail_updateSuccess": {
+    "description": "Post update confirmation"
+  },
+  "postDetail_updateError": "تعذر تحديث Voce",
+  "@postDetail_updateError": {
+    "description": "Post update error"
+  },
+  "postDetail_deleteDialogTitle": "حذف هذه الـ Voce؟",
+  "@postDetail_deleteDialogTitle": {
+    "description": "Post deletion confirmation title"
+  },
+  "postDetail_deleteDialogMessage": "لا يمكن التراجع عن هذا الإجراء.",
+  "@postDetail_deleteDialogMessage": {
+    "description": "Post deletion confirmation message"
+  },
+  "postDetail_deleteError": "تعذر حذف Voce",
+  "@postDetail_deleteError": {
+    "description": "Post deletion error"
+  },
+  "postDetail_editMenuItem": "تعديل Voce",
+  "@postDetail_editMenuItem": {
+    "description": "Edit post menu item"
+  },
+  "postDetail_deleteMenuItem": "حذف Voce",
+  "@postDetail_deleteMenuItem": {
+    "description": "Delete post menu item"
+  },
+  "postDetail_loadError": "حدث خطأ أثناء تحميل Voce.",
+  "@postDetail_loadError": {
+    "description": "Generic post detail loading error"
+  },
+  "postDetail_notFound": "لم يتم العثور على Voce.",
+  "@postDetail_notFound": {
+    "description": "Post not found message"
+  },
+  "postDetail_errorTitle": "خطأ",
+  "@postDetail_errorTitle": {
+    "description": "Post detail error state title"
+  },
+  "postDetail_authorFallback": "الكاتب",
+  "@postDetail_authorFallback": {
+    "description": "Fallback author name on the post detail page"
+  },
+  "postDetail_shareAction": "مشاركة",
+  "@postDetail_shareAction": {
+    "description": "Share action on the post detail page"
+  },
+  "postDetail_saveAction": "حفظ",
+  "@postDetail_saveAction": {
+    "description": "Save action on the post detail page"
+  },
+  "postDetail_addToFavoritesTooltip": "حفظ",
+  "@postDetail_addToFavoritesTooltip": {
+    "description": "Add to favorites tooltip on the post detail page"
+  },
+  "postDetail_removeFromFavoritesTooltip": "إزالة من المحفوظات",
+  "@postDetail_removeFromFavoritesTooltip": {
+    "description": "Remove from favorites tooltip on the post detail page"
+  },
+  "newsDetail_favoriteUpdateError": "تعذر تحديث العناصر المحفوظة",
+  "@newsDetail_favoriteUpdateError": {
+    "description": "Favorites update error on the news detail page"
+  },
+  "newsDetail_shareMessage": "افتح Social Vote لعرض عنصر News هذا.",
+  "@newsDetail_shareMessage": {
+    "description": "Text appended when sharing a news item"
+  },
+  "newsDetail_shareError": "تعذر مشاركة News",
+  "@newsDetail_shareError": {
+    "description": "News sharing error"
+  },
+  "newsDetail_shareTooltip": "مشاركة",
+  "@newsDetail_shareTooltip": {
+    "description": "Share tooltip on the news detail page"
+  },
+  "authLoginPageTitle": "تسجيل الدخول",
+  "@authLoginPageTitle": {
+    "description": "Auth UI: authLoginPageTitle"
+  },
+  "authLoginHeadline": "مرحبًا بعودتك",
+  "@authLoginHeadline": {
+    "description": "Auth UI: authLoginHeadline"
+  },
+  "authEmailLabel": "البريد الإلكتروني",
+  "@authEmailLabel": {
+    "description": "Auth UI: authEmailLabel"
+  },
+  "authPasswordLabel": "كلمة المرور",
+  "@authPasswordLabel": {
+    "description": "Auth UI: authPasswordLabel"
+  },
+  "authRememberMeLabel": "تذكرني",
+  "@authRememberMeLabel": {
+    "description": "Auth UI: authRememberMeLabel"
+  },
+  "authForgotPasswordAction": "هل نسيت كلمة المرور؟",
+  "@authForgotPasswordAction": {
+    "description": "Auth UI: authForgotPasswordAction"
+  },
+  "authLoginButton": "تسجيل الدخول",
+  "@authLoginButton": {
+    "description": "Auth UI: authLoginButton"
+  },
+  "authRegisterPrompt": "ليس لديك حساب؟",
+  "@authRegisterPrompt": {
+    "description": "Auth UI: authRegisterPrompt"
+  },
+  "authRegisterAction": "إنشاء حساب",
+  "@authRegisterAction": {
+    "description": "Auth UI: authRegisterAction"
+  },
+  "authRegisterPageTitle": "إنشاء حساب",
+  "@authRegisterPageTitle": {
+    "description": "Auth UI: authRegisterPageTitle"
+  },
+  "authRegisterHeadline": "إنشاء حساب",
+  "@authRegisterHeadline": {
+    "description": "Auth UI: authRegisterHeadline"
+  },
+  "authPersonalAccountOwnershipTitle": "تسجيل الدخول يعود دائمًا إلى شخص",
+  "@authPersonalAccountOwnershipTitle": {
+    "description": "Explains that authentication belongs to a person even when representing an organization"
+  },
+  "authPersonalAccountOwnershipBody": "إذا كنت تمثل منظمة، فأنشئ حسابك الشخصي. بعد تسجيل الدخول، يمكنك طلب منظمة موثقة وإدارتها من Workspace.",
+  "@authPersonalAccountOwnershipBody": {
+    "description": "Explains the person-to-organization registration path"
+  },
+  "authOrganizationPathAction": "كيف يعمل الأمر للمنظمات",
+  "@authOrganizationPathAction": {
+    "description": "Opens the guide for the organization account path"
+  },
+  "authDisplayNameLabel": "الاسم العام",
+  "@authDisplayNameLabel": {
+    "description": "Auth UI: authDisplayNameLabel"
+  },
+  "authUsernameLabel": "اسم المستخدم",
+  "@authUsernameLabel": {
+    "description": "Auth UI: authUsernameLabel"
+  },
+  "authCountryOfResidenceLabel": "بلد الإقامة",
+  "@authCountryOfResidenceLabel": {
+    "description": "Auth UI: authCountryOfResidenceLabel"
+  },
+  "authCityOfResidenceLabel": "مدينة الإقامة (اختياري)",
+  "@authCityOfResidenceLabel": {
+    "description": "Auth UI: authCityOfResidenceLabel"
+  },
+  "authConfirmPasswordLabel": "تأكيد كلمة المرور",
+  "@authConfirmPasswordLabel": {
+    "description": "Auth UI: authConfirmPasswordLabel"
+  },
+  "authLegalConsentPrefix": "أؤكد أن عمري لا يقل عن 18 عامًا. أوافق على شروط الخدمة وأؤكد أنني قرأت سياسة الخصوصية.",
+  "@authLegalConsentPrefix": {
+    "description": "Auth UI: authLegalConsentPrefix"
+  },
+  "authTermsOfServiceAction": "شروط الخدمة",
+  "@authTermsOfServiceAction": {
+    "description": "Auth UI: authTermsOfServiceAction"
+  },
+  "authPrivacyPolicyAction": "سياسة الخصوصية",
+  "@authPrivacyPolicyAction": {
+    "description": "Auth UI: authPrivacyPolicyAction"
+  },
+  "authRegisterButton": "إنشاء حساب",
+  "@authRegisterButton": {
+    "description": "Auth UI: authRegisterButton"
+  },
+  "authLoginPrompt": "لديك حساب بالفعل؟",
+  "@authLoginPrompt": {
+    "description": "Auth UI: authLoginPrompt"
+  },
+  "authLoginAction": "تسجيل الدخول",
+  "@authLoginAction": {
+    "description": "Auth UI: authLoginAction"
+  },
+  "authForgotPasswordDialogTitle": "إعادة تعيين كلمة المرور",
+  "@authForgotPasswordDialogTitle": {
+    "description": "Auth UI: authForgotPasswordDialogTitle"
+  },
+  "authForgotPasswordDialogBody": "أدخل عنوان البريد الإلكتروني المرتبط بحسابك. سنرسل لك رابطًا لاختيار كلمة مرور جديدة.",
+  "@authForgotPasswordDialogBody": {
+    "description": "Auth UI: authForgotPasswordDialogBody"
+  },
+  "authForgotPasswordSendButton": "إرسال الرابط",
+  "@authForgotPasswordSendButton": {
+    "description": "Auth UI: authForgotPasswordSendButton"
+  },
+  "authPasswordResetEmailSent": "تم إرسال بريد إعادة تعيين كلمة المرور. تحقق من صندوق الوارد.",
+  "@authPasswordResetEmailSent": {
+    "description": "Auth UI: authPasswordResetEmailSent"
+  },
+  "authResetPasswordPageTitle": "إعادة تعيين كلمة المرور",
+  "@authResetPasswordPageTitle": {
+    "description": "Auth UI: authResetPasswordPageTitle"
+  },
+  "authResetPasswordHeadline": "اختر كلمة مرور جديدة",
+  "@authResetPasswordHeadline": {
+    "description": "Auth UI: authResetPasswordHeadline"
+  },
+  "authNewPasswordLabel": "كلمة المرور الجديدة",
+  "@authNewPasswordLabel": {
+    "description": "Auth UI: authNewPasswordLabel"
+  },
+  "authConfirmNewPasswordLabel": "تأكيد كلمة المرور الجديدة",
+  "@authConfirmNewPasswordLabel": {
+    "description": "Auth UI: authConfirmNewPasswordLabel"
+  },
+  "authUpdatePasswordButton": "تحديث كلمة المرور",
+  "@authUpdatePasswordButton": {
+    "description": "Auth UI: authUpdatePasswordButton"
+  },
+  "authPasswordUpdated": "تم تحديث كلمة المرور بنجاح.",
+  "@authPasswordUpdated": {
+    "description": "Auth UI: authPasswordUpdated"
+  },
+  "authEmailConfirmationTitle": "تحقق من بريدك الإلكتروني",
+  "@authEmailConfirmationTitle": {
+    "description": "Auth UI: authEmailConfirmationTitle"
+  },
+  "authEmailConfirmationIntro": "أرسلنا رابط تأكيد إلى:",
+  "@authEmailConfirmationIntro": {
+    "description": "Auth UI: authEmailConfirmationIntro"
+  },
+  "authEmailConfirmationInstructions": "افتح الرابط في الرسالة للتحقق من عنوانك. بعد التأكيد، عد إلى التطبيق وسجّل الدخول.",
+  "@authEmailConfirmationInstructions": {
+    "description": "Auth UI: authEmailConfirmationInstructions"
+  },
+  "authBackToLoginButton": "العودة لتسجيل الدخول",
+  "@authBackToLoginButton": {
+    "description": "Auth UI: authBackToLoginButton"
+  },
+  "authUseAnotherEmailButton": "استخدام عنوان بريد إلكتروني آخر",
+  "@authUseAnotherEmailButton": {
+    "description": "Auth UI: authUseAnotherEmailButton"
+  },
+  "authEmailRequiredError": "أدخل بريدك الإلكتروني.",
+  "@authEmailRequiredError": {
+    "description": "Auth UI: authEmailRequiredError"
+  },
+  "authEmailInvalidError": "أدخل عنوان بريد إلكتروني صالحًا.",
+  "@authEmailInvalidError": {
+    "description": "Auth UI: authEmailInvalidError"
+  },
+  "authPasswordRequiredError": "أدخل كلمة المرور.",
+  "@authPasswordRequiredError": {
+    "description": "Auth UI: authPasswordRequiredError"
+  },
+  "authPasswordTooShortError": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.",
+  "@authPasswordTooShortError": {
+    "description": "Auth UI: authPasswordTooShortError"
+  },
+  "authDisplayNameRequiredError": "أدخل اسمك العام.",
+  "@authDisplayNameRequiredError": {
+    "description": "Auth UI: authDisplayNameRequiredError"
+  },
+  "authDisplayNameTooShortError": "الاسم العام قصير جدًا.",
+  "@authDisplayNameTooShortError": {
+    "description": "Auth UI: authDisplayNameTooShortError"
+  },
+  "authUsernameRequiredError": "أدخل اسم مستخدم.",
+  "@authUsernameRequiredError": {
+    "description": "Auth UI: authUsernameRequiredError"
+  },
+  "authUsernameInvalidError": "استخدم من 3 إلى 20 حرفًا: أحرف إنجليزية صغيرة وأرقام وشرطة سفلية.",
+  "@authUsernameInvalidError": {
+    "description": "Auth UI: authUsernameInvalidError"
+  },
+  "authUsernameAlreadyTakenError": "اسم المستخدم مستخدم بالفعل.",
+  "@authUsernameAlreadyTakenError": {
+    "description": "Auth UI: username already in use"
+  },
+  "authCountryRequiredError": "اختر بلد إقامتك.",
+  "@authCountryRequiredError": {
+    "description": "Auth UI: authCountryRequiredError"
+  },
+  "authCityRequiredError": "أدخل مدينة إقامتك.",
+  "@authCityRequiredError": {
+    "description": "Auth UI: authCityRequiredError"
+  },
+  "authConfirmPasswordRequiredError": "أكد كلمة المرور.",
+  "@authConfirmPasswordRequiredError": {
+    "description": "Auth UI: authConfirmPasswordRequiredError"
+  },
+  "authPasswordsDoNotMatchError": "كلمتا المرور غير متطابقتين.",
+  "@authPasswordsDoNotMatchError": {
+    "description": "Auth UI: authPasswordsDoNotMatchError"
+  },
+  "authLegalConsentRequiredError": "لإنشاء حساب، أكد أن عمرك لا يقل عن 18 عامًا، ووافق على شروط الخدمة، وأكد أنك قرأت سياسة الخصوصية.",
+  "@authLegalConsentRequiredError": {
+    "description": "Auth UI: authLegalConsentRequiredError"
+  },
+  "authForgotPasswordEmailRequiredError": "أدخل البريد الإلكتروني للحساب الذي تريد استعادته.",
+  "@authForgotPasswordEmailRequiredError": {
+    "description": "Auth UI: authForgotPasswordEmailRequiredError"
+  },
+  "authInvalidCredentialsError": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+  "@authInvalidCredentialsError": {
+    "description": "Auth UI: authInvalidCredentialsError"
+  },
+  "authEmailAlreadyRegisteredError": "هذا البريد الإلكتروني مسجّل بالفعل.",
+  "@authEmailAlreadyRegisteredError": {
+    "description": "Auth UI: authEmailAlreadyRegisteredError"
+  },
+  "authEmailNotConfirmedError": "لم يتم تأكيد البريد الإلكتروني. تحقق من صندوق الوارد قبل تسجيل الدخول.",
+  "@authEmailNotConfirmedError": {
+    "description": "Auth UI: authEmailNotConfirmedError"
+  },
+  "authTooManyAttemptsError": "محاولات كثيرة جدًا. انتظر بضع دقائق وحاول مرة أخرى.",
+  "@authTooManyAttemptsError": {
+    "description": "Auth UI: authTooManyAttemptsError"
+  },
+  "authNetworkError": "خطأ في الشبكة. تحقق من اتصالك وحاول مرة أخرى.",
+  "@authNetworkError": {
+    "description": "Auth UI: authNetworkError"
+  },
+  "authLoginGenericError": "فشل تسجيل الدخول. حاول مرة أخرى.",
+  "@authLoginGenericError": {
+    "description": "Auth UI: authLoginGenericError"
+  },
+  "authRegisterGenericError": "فشل إنشاء الحساب. حاول مرة أخرى.",
+  "@authRegisterGenericError": {
+    "description": "Auth UI: authRegisterGenericError"
+  },
+  "authPasswordResetGenericError": "تعذر إرسال رابط إعادة التعيين. حاول مرة أخرى.",
+  "@authPasswordResetGenericError": {
+    "description": "Auth UI: authPasswordResetGenericError"
+  },
+  "authPasswordUpdateGenericError": "تعذر تحديث كلمة المرور. حاول مرة أخرى.",
+  "@authPasswordUpdateGenericError": {
+    "description": "Auth UI: authPasswordUpdateGenericError"
+  },
+  "authShowPasswordTooltip": "إظهار كلمة المرور",
+  "@authShowPasswordTooltip": {
+    "description": "Auth UI: authShowPasswordTooltip"
+  },
+  "authHidePasswordTooltip": "إخفاء كلمة المرور",
+  "@authHidePasswordTooltip": {
+    "description": "Auth UI: authHidePasswordTooltip"
+  },
+  "authTermsPageTitle": "شروط الخدمة",
+  "@authTermsPageTitle": {
+    "description": "Auth UI: authTermsPageTitle"
+  },
+  "authPrivacyPageTitle": "سياسة الخصوصية",
+  "@authPrivacyPageTitle": {
+    "description": "Auth UI: authPrivacyPageTitle"
+  },
+  "authCloseButton": "إغلاق",
+  "@authCloseButton": {
+    "description": "Auth UI: authCloseButton"
+  },
+  "pollDetail_favoriteUpdateError": "تعذر تحديث العناصر المحفوظة",
+  "@pollDetail_favoriteUpdateError": {
+    "description": "Poll detail UI: pollDetail_favoriteUpdateError"
+  },
+  "pollDetail_shareMessage": "افتح Social Vote لعرض هذا الـ Vote والتصويت فيه.",
+  "@pollDetail_shareMessage": {
+    "description": "Poll detail UI: pollDetail_shareMessage"
+  },
+  "pollDetail_shareError": "تعذر مشاركة Vote",
+  "@pollDetail_shareError": {
+    "description": "Poll detail UI: pollDetail_shareError"
+  },
+  "pollDetail_editPermissionError": "يمكنك تعديل Vote الخاصة بك فقط إذا لم تُسجل فيها أصوات",
+  "@pollDetail_editPermissionError": {
+    "description": "Poll detail UI: pollDetail_editPermissionError"
+  },
+  "pollDetail_editSuccessMessage": "تم تحديث Vote",
+  "@pollDetail_editSuccessMessage": {
+    "description": "Poll detail UI: pollDetail_editSuccessMessage"
+  },
+  "pollDetail_editMenuItem": "تعديل Vote",
+  "@pollDetail_editMenuItem": {
+    "description": "Poll detail UI: pollDetail_editMenuItem"
+  },
+  "pollDetail_editSavingMenuItem": "جارٍ الحفظ...",
+  "@pollDetail_editSavingMenuItem": {
+    "description": "Poll detail UI: pollDetail_editSavingMenuItem"
+  },
+  "pollDetail_deletePermissionError": "يمكنك حذف Vote الخاصة بك فقط",
+  "@pollDetail_deletePermissionError": {
+    "description": "Poll detail UI: pollDetail_deletePermissionError"
+  },
+  "pollDetail_deleteError": "تعذر حذف Vote",
+  "@pollDetail_deleteError": {
+    "description": "Poll detail UI: pollDetail_deleteError"
+  },
+  "pollDetail_deleteDialogTitle": "حذف Vote",
+  "@pollDetail_deleteDialogTitle": {
+    "description": "Poll detail UI: pollDetail_deleteDialogTitle"
+  },
+  "pollDetail_deleteDialogMessage": "هل تريد حقًا حذف \"{title}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+  "@pollDetail_deleteDialogMessage": {
+    "description": "Poll detail UI: pollDetail_deleteDialogMessage",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "pollDetail_deleteMenuItem": "حذف Vote",
+  "@pollDetail_deleteMenuItem": {
+    "description": "Poll detail UI: pollDetail_deleteMenuItem"
+  },
+  "pollDetail_deleteDeletingMenuItem": "جارٍ الحذف...",
+  "@pollDetail_deleteDeletingMenuItem": {
+    "description": "Poll detail UI: pollDetail_deleteDeletingMenuItem"
+  },
+  "pollDetail_publicVotesAvailableTitle": "الأصوات العلنية متاحة",
+  "@pollDetail_publicVotesAvailableTitle": {
+    "description": "Poll detail UI: pollDetail_publicVotesAvailableTitle"
+  },
+  "pollDetail_publicVotesAvailableMessage": "يتيح لك هذا الـ Vote معرفة من صوّت لكل خيار.",
+  "@pollDetail_publicVotesAvailableMessage": {
+    "description": "Poll detail UI: pollDetail_publicVotesAvailableMessage"
+  },
+  "pollDetail_publicVotesAction": "عرض الأصوات العلنية",
+  "@pollDetail_publicVotesAction": {
+    "description": "Poll detail UI: pollDetail_publicVotesAction"
+  },
+  "pollDetail_retryButton": "حاول مرة أخرى",
+  "@pollDetail_retryButton": {
+    "description": "Poll detail UI: pollDetail_retryButton"
+  },
+  "pollDetail_voteErrorNoOption": "حدّد خيارًا واحدًا على الأقل",
+  "@pollDetail_voteErrorNoOption": {
+    "description": "Poll detail UI: pollDetail_voteErrorNoOption"
+  },
+  "pollDetail_voteErrorAuthenticationRequired": "يجب تسجيل الدخول للتصويت",
+  "@pollDetail_voteErrorAuthenticationRequired": {
+    "description": "Poll detail UI: pollDetail_voteErrorAuthenticationRequired"
+  },
+  "pollDetail_voteErrorClosed": "هذا الـ Vote مغلق",
+  "@pollDetail_voteErrorClosed": {
+    "description": "Poll detail UI: pollDetail_voteErrorClosed"
+  },
+  "pollDetail_voteErrorAlreadyVoted": "لقد صوّت بالفعل في هذا الـ Vote",
+  "@pollDetail_voteErrorAlreadyVoted": {
+    "description": "Poll detail UI: pollDetail_voteErrorAlreadyVoted"
+  },
+  "pollDetail_voteErrorGeneric": "تعذر إرسال التصويت",
+  "@pollDetail_voteErrorGeneric": {
+    "description": "Poll detail UI: pollDetail_voteErrorGeneric"
+  },
+  "pollDetail_publicVotesSheetTitle": "الأصوات العلنية",
+  "@pollDetail_publicVotesSheetTitle": {
+    "description": "Poll detail UI: pollDetail_publicVotesSheetTitle"
+  },
+  "pollDetail_publicVotesSheetDescription": "يمكنك هنا معرفة من صوّت لكل خيار في هذا الـ Vote.",
+  "@pollDetail_publicVotesSheetDescription": {
+    "description": "Poll detail UI: pollDetail_publicVotesSheetDescription"
+  },
+  "pollDetail_publicVotesSearchHint": "البحث عن مستخدمين",
+  "@pollDetail_publicVotesSearchHint": {
+    "description": "Poll detail UI: pollDetail_publicVotesSearchHint"
+  },
+  "pollDetail_publicVotesLoadError": "تعذر تحميل الأصوات العلنية",
+  "@pollDetail_publicVotesLoadError": {
+    "description": "Poll detail UI: pollDetail_publicVotesLoadError"
+  },
+  "pollDetail_publicVotesEmpty": "لا توجد أصوات علنية متاحة",
+  "@pollDetail_publicVotesEmpty": {
+    "description": "Poll detail UI: pollDetail_publicVotesEmpty"
+  },
+  "pollDetail_publicVotesSearchEmpty": "لم يتم العثور على مستخدمين لهذا البحث",
+  "@pollDetail_publicVotesSearchEmpty": {
+    "description": "Poll detail UI: pollDetail_publicVotesSearchEmpty"
+  },
+  "pollDetail_publicVotesResultsCount": "تم تحميل {count} نتيجة",
+  "@pollDetail_publicVotesResultsCount": {
+    "description": "Poll detail UI: pollDetail_publicVotesResultsCount",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_publicVotesLoadMore": "تحميل المزيد",
+  "@pollDetail_publicVotesLoadMore": {
+    "description": "Poll detail UI: pollDetail_publicVotesLoadMore"
+  },
+  "pollDetail_publicVotesUserFallback": "مستخدم",
+  "@pollDetail_publicVotesUserFallback": {
+    "description": "Poll detail UI: pollDetail_publicVotesUserFallback"
+  },
+  "pollDetail_editDialogTitle": "تعديل Vote",
+  "@pollDetail_editDialogTitle": {
+    "description": "Poll detail UI: pollDetail_editDialogTitle"
+  },
+  "pollDetail_editTitleFieldLabel": "العنوان",
+  "@pollDetail_editTitleFieldLabel": {
+    "description": "Poll detail UI: pollDetail_editTitleFieldLabel"
+  },
+  "pollDetail_editTitleRequired": "العنوان مطلوب",
+  "@pollDetail_editTitleRequired": {
+    "description": "Poll detail UI: pollDetail_editTitleRequired"
+  },
+  "pollDetail_editDescriptionFieldLabel": "الوصف",
+  "@pollDetail_editDescriptionFieldLabel": {
+    "description": "Poll detail UI: pollDetail_editDescriptionFieldLabel"
+  },
+  "pollDetail_editError": "تعذر تحديث Vote",
+  "@pollDetail_editError": {
+    "description": "Poll detail UI: pollDetail_editError"
+  },
+  "pollDetail_loadError": "تعذر تحميل Vote",
+  "@pollDetail_loadError": {
+    "description": "Poll detail UI: pollDetail_loadError"
+  },
+  "pollDetail_notFound": "لم يتم العثور على Vote",
+  "@pollDetail_notFound": {
+    "description": "Poll detail UI: pollDetail_notFound"
+  },
+  "profileEditPageTitle": "تعديل الملف الشخصي",
+  "@profileEditPageTitle": {
+    "description": "Edit profile UI: profileEditPageTitle"
+  },
+  "profileLoginRequiredMessage": "يجب تسجيل الدخول لتعديل ملفك الشخصي.",
+  "@profileLoginRequiredMessage": {
+    "description": "Edit profile UI: profileLoginRequiredMessage"
+  },
+  "profileAvatarUploading": "جارٍ الرفع...",
+  "@profileAvatarUploading": {
+    "description": "Edit profile UI: profileAvatarUploading"
+  },
+  "profileUploadAvatarButton": "رفع صورة الملف",
+  "@profileUploadAvatarButton": {
+    "description": "Edit profile UI: profileUploadAvatarButton"
+  },
+  "profileDisplayNameLabel": "الاسم المعروض",
+  "@profileDisplayNameLabel": {
+    "description": "Edit profile UI: profileDisplayNameLabel"
+  },
+  "profileDisplayNameRequiredError": "الاسم المعروض مطلوب.",
+  "@profileDisplayNameRequiredError": {
+    "description": "Edit profile UI: profileDisplayNameRequiredError"
+  },
+  "profileUsernameHint": "مثال: mario_roma",
+  "@profileUsernameHint": {
+    "description": "Edit profile UI: profileUsernameHint"
+  },
+  "profileUsernameHelper": "من 3 إلى 20 حرفًا: أحرف صغيرة وأرقام وشرطة سفلية",
+  "@profileUsernameHelper": {
+    "description": "Edit profile UI: profileUsernameHelper"
+  },
+  "profileAvatarUrlLabel": "رابط صورة الملف",
+  "@profileAvatarUrlLabel": {
+    "description": "Edit profile UI: profileAvatarUrlLabel"
+  },
+  "profileBioLabel": "نبذة",
+  "@profileBioLabel": {
+    "description": "Edit profile UI: profileBioLabel"
+  },
+  "profileClearCountryButton": "مسح البلد",
+  "@profileClearCountryButton": {
+    "description": "Edit profile UI: profileClearCountryButton"
+  },
+  "profileCityResidenceHelper": "يتم التحقق من مدينة الإقامة مقابل البلد المحدد قبل الحفظ.",
+  "@profileCityResidenceHelper": {
+    "description": "Edit profile UI: profileCityResidenceHelper"
+  },
+  "profileCityNotFoundError": "لم يتم العثور على المدينة في البلد المحدد.",
+  "@profileCityNotFoundError": {
+    "description": "Edit profile UI: profileCityNotFoundError"
+  },
+  "profileCityVerificationError": "تعذر التحقق من المدينة الآن.",
+  "@profileCityVerificationError": {
+    "description": "Edit profile UI: profileCityVerificationError"
+  },
+  "profileAvatarUploadError": "تعذر رفع صورة الملف.",
+  "@profileAvatarUploadError": {
+    "description": "Edit profile UI: profileAvatarUploadError"
+  },
+  "profileAccountSectionTitle": "الحساب",
+  "@profileAccountSectionTitle": {
+    "description": "Edit profile UI: profileAccountSectionTitle"
+  },
+  "profileAccountEmailHelper": "لا يمكن تغيير البريد الإلكتروني للحساب من هذه الشاشة.",
+  "@profileAccountEmailHelper": {
+    "description": "Edit profile UI: profileAccountEmailHelper"
+  },
+  "profileChangePasswordAction": "تغيير كلمة المرور",
+  "@profileChangePasswordAction": {
+    "description": "Edit profile UI: profileChangePasswordAction"
+  },
+  "profileChangePasswordDescription": "عيّن كلمة مرور جديدة لهذا الحساب.",
+  "@profileChangePasswordDescription": {
+    "description": "Edit profile UI: profileChangePasswordDescription"
+  },
+  "notificationsPageTitle": "الإشعارات",
+  "@notificationsPageTitle": {
+    "description": "Notifications UI: notificationsPageTitle"
+  },
+  "notificationsMarkAllReadAction": "تحديد الكل كمقروء",
+  "@notificationsMarkAllReadAction": {
+    "description": "Notifications UI: notificationsMarkAllReadAction"
+  },
+  "notificationsNoTargetMessage": "لا توجد وجهة متاحة لهذا الإشعار.",
+  "@notificationsNoTargetMessage": {
+    "description": "Notifications UI: notificationsNoTargetMessage"
+  },
+  "notificationsTargetUnavailableMessage": "المحتوى المرتبط بهذا الإشعار غير متاح.",
+  "@notificationsTargetUnavailableMessage": {
+    "description": "Notifications UI: notificationsTargetUnavailableMessage"
+  },
+  "notificationsLoadError": "تعذر تحميل الإشعارات.",
+  "@notificationsLoadError": {
+    "description": "Notifications UI: notificationsLoadError"
+  },
+  "notificationsRetryButton": "حاول مرة أخرى",
+  "@notificationsRetryButton": {
+    "description": "Notifications UI: notificationsRetryButton"
+  },
+  "notificationsEmptyMessage": "لا توجد إشعارات متاحة.",
+  "@notificationsEmptyMessage": {
+    "description": "Notifications UI: notificationsEmptyMessage"
+  },
+  "notificationsCommentReplyTitle": "رد جديد على تعليقك",
+  "@notificationsCommentReplyTitle": {
+    "description": "Notifications UI: notificationsCommentReplyTitle"
+  },
+  "notificationsMentionTitle": "تمت الإشارة إليك",
+  "@notificationsMentionTitle": {
+    "description": "Notifications UI: notificationsMentionTitle"
+  },
+  "notificationsPollResultTitle": "تحديث Vote",
+  "@notificationsPollResultTitle": {
+    "description": "Notifications UI: notificationsPollResultTitle"
+  },
+  "notificationsCommentReplySubtitle": "رد المستخدم {actor} في {target}",
+  "@notificationsCommentReplySubtitle": {
+    "description": "Notifications UI: notificationsCommentReplySubtitle",
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsMentionSubtitle": "أشار إليك المستخدم {actor} في {target}",
+  "@notificationsMentionSubtitle": {
+    "description": "Notifications UI: notificationsMentionSubtitle",
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsPollResultSubtitle": "توجد نتيجة جديدة في {target}",
+  "@notificationsPollResultSubtitle": {
+    "description": "Notifications UI: notificationsPollResultSubtitle",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsTargetPost": "Voce",
+  "@notificationsTargetPost": {
+    "description": "Notifications UI: notificationsTargetPost"
+  },
+  "notificationsTargetNews": "مقال News",
+  "@notificationsTargetNews": {
+    "description": "Notifications UI: notificationsTargetNews"
+  },
+  "notificationsTargetPoll": "Vote",
+  "@notificationsTargetPoll": {
+    "description": "Notifications UI: notificationsTargetPoll"
+  },
+  "notificationsTargetVideo": "فيديو",
+  "@notificationsTargetVideo": {
+    "description": "Notifications UI: notificationsTargetVideo"
+  },
+  "notificationsTargetContent": "محتوى",
+  "@notificationsTargetContent": {
+    "description": "Notifications UI: notificationsTargetContent"
+  },
+  "notificationsUserFallback": "مستخدم",
+  "@notificationsUserFallback": {
+    "description": "Notifications UI: notificationsUserFallback"
+  },
+  "profileDeleteAccountAction": "حذف الحساب",
+  "@profileDeleteAccountAction": {
+    "description": "Account hub: destructive action used to permanently delete the current account"
+  },
+  "profileDeleteAccountDescription": "حذف الحساب والوصول نهائيًا",
+  "@profileDeleteAccountDescription": {
+    "description": "Account hub: short description below the delete-account action"
+  },
+  "profileDeleteAccountDialogTitle": "حذف الحساب",
+  "@profileDeleteAccountDialogTitle": {
+    "description": "Delete-account confirmation dialog title"
+  },
+  "profileDeleteAccountDialogMessage": "هذا الإجراء نهائي ولا يمكن استعادة الحساب. اكتب DELETE للتأكيد.",
+  "@profileDeleteAccountDialogMessage": {
+    "description": "Delete-account confirmation dialog warning"
+  },
+  "profileDeleteAccountConfirmationLabel": "تأكيد الحذف",
+  "@profileDeleteAccountConfirmationLabel": {
+    "description": "Label for the typed delete-account confirmation field"
+  },
+  "profileDeleteAccountConfirmationHint": "اكتب DELETE",
+  "@profileDeleteAccountConfirmationHint": {
+    "description": "Hint for the typed delete-account confirmation field"
+  },
+  "profileDeleteAccountConfirmationError": "اكتب DELETE للمتابعة.",
+  "@profileDeleteAccountConfirmationError": {
+    "description": "Validation error when the delete-account confirmation is incorrect"
+  },
+  "profileDeleteAccountCancelButton": "إلغاء",
+  "@profileDeleteAccountCancelButton": {
+    "description": "Cancel button in the delete-account dialog"
+  },
+  "profileDeleteAccountConfirmButton": "حذف نهائي",
+  "@profileDeleteAccountConfirmButton": {
+    "description": "Destructive confirmation button in the delete-account dialog"
+  },
+  "profileDeleteAccountFailureMessage": "تعذر حذف الحساب. حاول مرة أخرى.",
+  "@profileDeleteAccountFailureMessage": {
+    "description": "Fallback message shown when account deletion fails"
+  },
+  "identityActorTypePerson": "شخص",
+  "@identityActorTypePerson": {
+    "description": "Public identity type label for a personal account"
+  },
+  "identityActorTypePublicOfficial": "مسؤول عام",
+  "@identityActorTypePublicOfficial": {
+    "description": "Public identity type label for a verified public official"
+  },
+  "identityActorTypePublicInstitution": "مؤسسة عامة",
+  "@identityActorTypePublicInstitution": {
+    "description": "Public identity type label for a verified public institution"
+  },
+  "identityActorTypeVerifiedOrganization": "منظمة موثقة",
+  "@identityActorTypeVerifiedOrganization": {
+    "description": "Public identity type label for a verified non-governmental organization"
+  },
+  "identityVerificationNotVerified": "غير موثق",
+  "@identityVerificationNotVerified": {
+    "description": "Verification state label for a personal account without verification"
+  },
+  "identityVerificationLevel1": "هوية موثقة",
+  "@identityVerificationLevel1": {
+    "description": "Public label for personal identity verification level 1"
+  },
+  "identityVerificationLevel2": "هوية موثقة متقدمة",
+  "@identityVerificationLevel2": {
+    "description": "Public label for personal identity verification level 2"
+  },
+  "identityBadgeLevel1": "هوية موثقة",
+  "@identityBadgeLevel1": {
+    "description": "Tooltip and badge label for personal verification level 1"
+  },
+  "identityBadgeLevel2": "هوية موثقة متقدمة",
+  "@identityBadgeLevel2": {
+    "description": "Tooltip and badge label for personal verification level 2"
+  },
+  "identityBadgePublicOfficial": "مسؤول عام",
+  "@identityBadgePublicOfficial": {
+    "description": "Tooltip and badge label for a verified public official"
+  },
+  "identityBadgePublicInstitution": "مؤسسة عامة",
+  "@identityBadgePublicInstitution": {
+    "description": "Tooltip and badge label for a verified public institution"
+  },
+  "identityBadgeVerifiedOrganization": "منظمة موثقة",
+  "@identityBadgeVerifiedOrganization": {
+    "description": "Tooltip and badge label for a verified organization"
+  },
+  "identityOrganizationNameLabel": "اسم المنظمة",
+  "@identityOrganizationNameLabel": {
+    "description": "Field label for the verified organization name"
+  },
+  "identityOrganizationNameRequired": "أدخل اسم المنظمة.",
+  "@identityOrganizationNameRequired": {
+    "description": "Validation error when the organization name is missing"
+  },
+  "identityInstitutionLevelMunicipality": "بلدي",
+  "@identityInstitutionLevelMunicipality": {
+    "description": "Institution level label for a municipality"
+  },
+  "identityInstitutionLevelProvince": "إقليمي",
+  "@identityInstitutionLevelProvince": {
+    "description": "Institution level label for a province"
+  },
+  "identityInstitutionLevelRegion": "جهوي",
+  "@identityInstitutionLevelRegion": {
+    "description": "Institution level label for a region"
+  },
+  "identityInstitutionLevelMinistry": "وزارة",
+  "@identityInstitutionLevelMinistry": {
+    "description": "Institution level label for a ministry"
+  },
+  "identityInstitutionLevelGovernment": "حكومة",
+  "@identityInstitutionLevelGovernment": {
+    "description": "Institution level label for a government"
+  },
+  "identityInstitutionLevelPublicAgency": "هيئة عامة",
+  "@identityInstitutionLevelPublicAgency": {
+    "description": "Institution level label for a public agency"
+  },
+  "identityInstitutionLevelOtherPublicBody": "جهة عامة أخرى",
+  "@identityInstitutionLevelOtherPublicBody": {
+    "description": "Institution level label for another public body"
+  },
+  "verificationRequestPersonLevel1": "توثيق شخص — المستوى 1",
+  "@verificationRequestPersonLevel1": {
+    "description": "Verification request type label for personal verification level 1"
+  },
+  "verificationRequestPersonLevel2": "توثيق شخص — المستوى 2",
+  "@verificationRequestPersonLevel2": {
+    "description": "Verification request type label for personal verification level 2"
+  },
+  "verificationRequestPublicOfficial": "توثيق مسؤول عام",
+  "@verificationRequestPublicOfficial": {
+    "description": "Verification request type label for a public official"
+  },
+  "verificationRequestPublicInstitution": "توثيق مؤسسة عامة",
+  "@verificationRequestPublicInstitution": {
+    "description": "Verification request type label for a public institution"
+  },
+  "verificationRequestVerifiedOrganization": "توثيق منظمة",
+  "@verificationRequestVerifiedOrganization": {
+    "description": "Verification request type label for a verified organization"
+  },
+  "verificationCenterTitle": "التوثيق ونوع الحساب",
+  "@verificationCenterTitle": {
+    "description": "Title of the verification and account type bottom sheet"
+  },
+  "verificationCurrentAccountSection": "الحساب الحالي",
+  "@verificationCurrentAccountSection": {
+    "description": "Section title for the current verified identity state"
+  },
+  "verificationAccountTypeValue": "نوع الحساب: {accountType}",
+  "@verificationAccountTypeValue": {
+    "description": "Current public account type row",
+    "placeholders": {
+      "accountType": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationLevelValue": "مستوى التوثيق: {level}",
+  "@verificationLevelValue": {
+    "description": "Current personal verification level row",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationOfficialTitleValue": "الصفة الرسمية: {title}",
+  "@verificationOfficialTitleValue": {
+    "description": "Current official title row",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationInstitutionNameValue": "المؤسسة: {name}",
+  "@verificationInstitutionNameValue": {
+    "description": "Current public institution name row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationOrganizationNameValue": "المنظمة: {name}",
+  "@verificationOrganizationNameValue": {
+    "description": "Current verified organization name row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationInstitutionLevelValue": "مستوى المؤسسة: {level}",
+  "@verificationInstitutionLevelValue": {
+    "description": "Current institution level row",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationActiveRequestSection": "الطلب النشط",
+  "@verificationActiveRequestSection": {
+    "description": "Section title for an active verification request"
+  },
+  "verificationProfileUnchangedUntilApproval": "لن يتغير ملفك الحالي حتى تتم الموافقة على الطلب.",
+  "@verificationProfileUnchangedUntilApproval": {
+    "description": "Explanation shown while a verification request is pending"
+  },
+  "verificationCancelPendingAction": "إلغاء الطلب المعلّق",
+  "@verificationCancelPendingAction": {
+    "description": "Button label to cancel a pending verification request"
+  },
+  "verificationPendingBlocksNewRequests": "لا يمكنك إرسال طلب جديد أثناء وجود طلب آخر قيد الانتظار.",
+  "@verificationPendingBlocksNewRequests": {
+    "description": "Message explaining that only one pending request is allowed"
+  },
+  "verificationNoActiveRequestSection": "لا يوجد طلب نشط",
+  "@verificationNoActiveRequestSection": {
+    "description": "Section title when there is no active verification request"
+  },
+  "verificationNoActiveRequestDescription": "ليس لديك حاليًا أي طلب قيد المراجعة.",
+  "@verificationNoActiveRequestDescription": {
+    "description": "Message shown when there is no active verification request"
+  },
+  "verificationLastRejectedSection": "آخر طلب مرفوض",
+  "@verificationLastRejectedSection": {
+    "description": "Section title for the most recently rejected request"
+  },
+  "verificationLastRejectedDescription": "تم رفض طلبك الأخير.",
+  "@verificationLastRejectedDescription": {
+    "description": "Message shown after a rejected verification request"
+  },
+  "verificationRejectedCanResubmit": "لم يتغير ملفك الحالي. يمكنك تصحيح المعلومات وإرسال طلب جديد.",
+  "@verificationRejectedCanResubmit": {
+    "description": "Explanation shown after a rejected request"
+  },
+  "verificationAvailableRequestsSection": "الطلبات المتاحة",
+  "@verificationAvailableRequestsSection": {
+    "description": "Section title for verification request actions"
+  },
+  "verificationRequestLevel1Title": "طلب توثيق شخص — المستوى 1",
+  "@verificationRequestLevel1Title": {
+    "description": "Action title for personal verification level 1"
+  },
+  "verificationRequestLevel1Subtitle": "توثيق أساسي للهوية الشخصية",
+  "@verificationRequestLevel1Subtitle": {
+    "description": "Action subtitle for personal verification level 1"
+  },
+  "verificationRequestLevel2Title": "طلب توثيق شخص — المستوى 2",
+  "@verificationRequestLevel2Title": {
+    "description": "Action title for personal verification level 2"
+  },
+  "verificationRequestLevel2Subtitle": "توثيق متقدم للهوية الشخصية",
+  "@verificationRequestLevel2Subtitle": {
+    "description": "Action subtitle for personal verification level 2"
+  },
+  "verificationRequestPublicOfficialTitle": "طلب حساب مسؤول عام",
+  "@verificationRequestPublicOfficialTitle": {
+    "description": "Action title for public official verification"
+  },
+  "verificationRequestPublicOfficialSubtitle": "يتطلب صفة رسمية ومراجعة",
+  "@verificationRequestPublicOfficialSubtitle": {
+    "description": "Action subtitle for public official verification"
+  },
+  "verificationRequestPublicInstitutionTitle": "طلب حساب مؤسسة عامة",
+  "@verificationRequestPublicInstitutionTitle": {
+    "description": "Action title for public institution verification"
+  },
+  "verificationRequestPublicInstitutionSubtitle": "يتطلب اسم المؤسسة ومستواها ومراجعة",
+  "@verificationRequestPublicInstitutionSubtitle": {
+    "description": "Action subtitle for public institution verification"
+  },
+  "verificationRequestOrganizationTitle": "طلب حساب منظمة موثقة",
+  "@verificationRequestOrganizationTitle": {
+    "description": "Action title for verified organization verification"
+  },
+  "verificationRequestOrganizationSubtitle": "يتطلب تفاصيل المنظمة ودور الممثل ومراجعة Admin",
+  "@verificationRequestOrganizationSubtitle": {
+    "description": "Action subtitle for verified organization verification"
+  },
+  "verificationNoSelfServiceUpgrade": "لا توجد خيارات توثيق متاحة لحالة حسابك الحالية.",
+  "@verificationNoSelfServiceUpgrade": {
+    "description": "Message when no self-service verification action is available"
+  },
+  "verificationRequestSubmitSuccess": "تم إرسال الطلب بنجاح.",
+  "@verificationRequestSubmitSuccess": {
+    "description": "Success message after submitting a verification request"
+  },
+  "verificationRequestSubmitFailure": "تعذر إرسال الطلب.",
+  "@verificationRequestSubmitFailure": {
+    "description": "Fallback error message after submitting a verification request"
+  },
+  "verificationOfficialTitleDialogTitle": "توثيق مسؤول عام",
+  "@verificationOfficialTitleDialogTitle": {
+    "description": "Dialog title for a public official verification request"
+  },
+  "verificationOfficialTitleLabel": "الصفة الرسمية",
+  "@verificationOfficialTitleLabel": {
+    "description": "Field label for a public official title"
+  },
+  "verificationOfficialTitleHint": "مثال: عمدة، مستشار، وزير",
+  "@verificationOfficialTitleHint": {
+    "description": "Hint for the public official title field"
+  },
+  "verificationInstitutionDialogTitle": "توثيق مؤسسة عامة",
+  "@verificationInstitutionDialogTitle": {
+    "description": "Dialog title for a public institution verification request"
+  },
+  "verificationInstitutionNameLabel": "اسم المؤسسة",
+  "@verificationInstitutionNameLabel": {
+    "description": "Field label for the public institution name"
+  },
+  "verificationInstitutionNameHint": "مثال: مدينة روما",
+  "@verificationInstitutionNameHint": {
+    "description": "Hint for the public institution name field"
+  },
+  "verificationInstitutionLevelLabel": "مستوى المؤسسة",
+  "@verificationInstitutionLevelLabel": {
+    "description": "Field label for the public institution level"
+  },
+  "verificationOrganizationDialogTitle": "توثيق منظمة",
+  "@verificationOrganizationDialogTitle": {
+    "description": "Dialog title for a verified organization request"
+  },
+  "verificationOrganizationNameHint": "مثال: جمعية البيئة الإيطالية",
+  "@verificationOrganizationNameHint": {
+    "description": "Hint for the verified organization name field"
+  },
+  "verificationSubmitRequestAction": "إرسال الطلب",
+  "@verificationSubmitRequestAction": {
+    "description": "Button label to submit a verification request"
+  },
+  "verificationCancelDialogTitle": "إلغاء الطلب",
+  "@verificationCancelDialogTitle": {
+    "description": "Title of the pending verification cancellation dialog"
+  },
+  "verificationCancelDialogBody": "هل أنت متأكد من إلغاء طلب التوثيق المعلّق؟",
+  "@verificationCancelDialogBody": {
+    "description": "Confirmation message for cancelling a pending verification request"
+  },
+  "verificationCancelSuccess": "تم إلغاء الطلب.",
+  "@verificationCancelSuccess": {
+    "description": "Success message after cancelling a verification request"
+  },
+  "verificationCancelFailure": "تعذر إلغاء الطلب.",
+  "@verificationCancelFailure": {
+    "description": "Fallback error after cancelling a verification request"
+  },
+  "verificationStatusPendingSuffix": "طلب قيد المراجعة",
+  "@verificationStatusPendingSuffix": {
+    "description": "Status suffix shown when a verification request is pending"
+  },
+  "verificationStatusRejectedSuffix": "آخر طلب مرفوض",
+  "@verificationStatusRejectedSuffix": {
+    "description": "Status suffix shown when the last verification request was rejected"
+  },
+  "verificationReviewPageTitle": "مراجعة التوثيق",
+  "@verificationReviewPageTitle": {
+    "description": "Title of the administrator verification review page"
+  },
+  "verificationReviewLoginRequired": "يجب تسجيل الدخول لمراجعة طلبات التوثيق.",
+  "@verificationReviewLoginRequired": {
+    "description": "Message shown when the reviewer is not logged in"
+  },
+  "verificationReviewPendingCount": "الطلبات المعلقة: {count}",
+  "@verificationReviewPendingCount": {
+    "description": "Number of pending verification requests",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "verificationReviewNoPendingRequests": "لا توجد طلبات توثيق معلقة.",
+  "@verificationReviewNoPendingRequests": {
+    "description": "Message shown when there are no pending verification requests"
+  },
+  "verificationReviewUserIdLabel": "معرّف المستخدم",
+  "@verificationReviewUserIdLabel": {
+    "description": "Label for the user identifier in a verification review card"
+  },
+  "verificationReviewSubmittedLabel": "تم الإرسال",
+  "@verificationReviewSubmittedLabel": {
+    "description": "Label for the submission date of a verification request"
+  },
+  "verificationReviewOfficialTitleLabel": "الصفة الرسمية",
+  "@verificationReviewOfficialTitleLabel": {
+    "description": "Label for the public official title in a review card"
+  },
+  "verificationReviewInstitutionLabel": "المؤسسة",
+  "@verificationReviewInstitutionLabel": {
+    "description": "Label for the institution name in a review card"
+  },
+  "verificationReviewOrganizationLabel": "المنظمة",
+  "@verificationReviewOrganizationLabel": {
+    "description": "Label for the organization name in a review card"
+  },
+  "verificationReviewNoteLabel": "ملاحظة المراجعة",
+  "@verificationReviewNoteLabel": {
+    "description": "Label for an existing review note"
+  },
+  "verificationReviewRejectAction": "رفض",
+  "@verificationReviewRejectAction": {
+    "description": "Button label to reject a verification request"
+  },
+  "verificationReviewApproveAction": "موافقة",
+  "@verificationReviewApproveAction": {
+    "description": "Button label to approve a verification request"
+  },
+  "verificationReviewApproveDialogTitle": "الموافقة على الطلب",
+  "@verificationReviewApproveDialogTitle": {
+    "description": "Title of the approve verification request dialog"
+  },
+  "verificationReviewRejectDialogTitle": "رفض الطلب",
+  "@verificationReviewRejectDialogTitle": {
+    "description": "Title of the reject verification request dialog"
+  },
+  "verificationReviewApproveConfirmation": "تأكيد الموافقة على هذا الطلب؟",
+  "@verificationReviewApproveConfirmation": {
+    "description": "Confirmation message before approving a verification request"
+  },
+  "verificationReviewRejectConfirmation": "تأكيد رفض هذا الطلب؟",
+  "@verificationReviewRejectConfirmation": {
+    "description": "Confirmation message before rejecting a verification request"
+  },
+  "verificationReviewOptionalNoteLabel": "ملاحظة مراجعة اختيارية",
+  "@verificationReviewOptionalNoteLabel": {
+    "description": "Field label for an optional review note"
+  },
+  "verificationReviewRequiredNoteLabel": "سبب الرفض",
+  "@verificationReviewRequiredNoteLabel": {
+    "description": "Field label for the required rejection reason"
+  },
+  "verificationReviewOptionalHelper": "اختياري",
+  "@verificationReviewOptionalHelper": {
+    "description": "Helper text for an optional review note"
+  },
+  "verificationReviewRequiredHelper": "مطلوب عند الرفض",
+  "@verificationReviewRequiredHelper": {
+    "description": "Helper text for the required rejection reason"
+  },
+  "verificationReviewRequiredNoteError": "أدخل سبب الرفض.",
+  "@verificationReviewRequiredNoteError": {
+    "description": "Validation error when the rejection reason is missing"
+  },
+  "verificationReviewApprovedSuccess": "تمت الموافقة على الطلب.",
+  "@verificationReviewApprovedSuccess": {
+    "description": "Success message after approving a verification request"
+  },
+  "verificationReviewRejectedSuccess": "تم رفض الطلب.",
+  "@verificationReviewRejectedSuccess": {
+    "description": "Success message after rejecting a verification request"
+  },
+  "verificationReviewOperationFailure": "فشلت العملية.",
+  "@verificationReviewOperationFailure": {
+    "description": "Fallback error message for a failed review operation"
+  },
+  "adminCenterTitle": "مركز Admin",
+  "adminCenterDashboardNavigation": "لوحة التحكم",
+  "adminCenterUsersNavigation": "المستخدمون",
+  "adminCenterVerificationNavigation": "التوثيق",
+  "adminCenterReportsNavigation": "البلاغات",
+  "adminCenterAuditNavigation": "التدقيق",
+  "adminCenterAccountDetailsTitle": "تفاصيل الحساب",
+  "adminCenterTryAgainAction": "حاول مرة أخرى",
+  "adminCenterRetryAction": "إعادة المحاولة",
+  "adminCenterClearAction": "مسح",
+  "adminCenterApplyFiltersAction": "تطبيق الفلاتر",
+  "adminCenterAllDates": "كل التواريخ",
+  "adminCenterAuditDateFilterHelp": "تصفية التدقيق حسب التاريخ",
+  "adminCenterActorUserIdLabel": "معرّف مستخدم المنفّذ",
+  "adminCenterActionLabel": "الإجراء",
+  "adminCenterAuditActionHint": "resolve_escalated_report",
+  "adminCenterTargetIdLabel": "معرّف الهدف",
+  "adminCenterOutcomeLabel": "النتيجة",
+  "adminCenterAllOutcomes": "كل النتائج",
+  "adminCenterOutcomeSuccess": "نجاح",
+  "adminCenterOutcomeFailure": "فشل",
+  "adminCenterOutcomeDenied": "مرفوض",
+  "adminCenterOutcomeNoChange": "لا تغيير",
+  "adminCenterOutcomeUnknown": "غير معروف",
+  "adminCenterAuditUnavailableTitle": "التدقيق غير متاح",
+  "adminCenterAuditUnavailableMessage": "تحقق من الاتصال والصلاحيات ثم حاول مرة أخرى.",
+  "adminCenterNoAuditEntriesTitle": "لا توجد سجلات تدقيق",
+  "adminCenterNoAuditEntriesMessage": "لا توجد سجلات تطابق الفلاتر المحددة.",
+  "adminCenterAuditIdLabel": "معرّف التدقيق",
+  "adminCenterActorLabel": "المنفّذ",
+  "adminCenterReasonLabel": "السبب",
+  "adminCenterTimestampLabel": "الطابع الزمني",
+  "adminCenterErrorLabel": "خطأ",
+  "adminCenterRecordedValuesTitle": "القيم المسجلة",
+  "adminCenterPreviousValueLabel": "السابق",
+  "adminCenterNewValueLabel": "الجديد",
+  "adminCenterContentTypeLabel": "نوع المحتوى",
+  "adminCenterAllContent": "كل المحتوى",
+  "adminCenterPolls": "Vote",
+  "adminCenterPosts": "Voce",
+  "adminCenterNews": "News",
+  "adminCenterAwaitingAdminDecision": "بانتظار قرار Admin",
+  "adminCenterStatusLabel": "الحالة",
+  "adminCenterAllStatuses": "كل الحالات",
+  "adminCenterStatusOpen": "مفتوح",
+  "adminCenterStatusInReview": "قيد المراجعة",
+  "adminCenterStatusResolved": "تم الحل",
+  "adminCenterStatusDismissed": "مرفوض",
+  "adminCenterAdminQueueUnavailableTitle": "قائمة تصعيد Admin غير متاحة",
+  "adminCenterReportsUnavailableTitle": "البلاغات غير متاحة",
+  "adminCenterConnectionTryAgainMessage": "تحقق من الاتصال وحاول مرة أخرى.",
+  "adminCenterNoAdminReportsTitle": "لا توجد بلاغات بانتظار قرار Admin",
+  "adminCenterNoReportsTitle": "لا توجد بلاغات",
+  "adminCenterNoAdminReportsMessage": "لا توجد بلاغات مصعّدة تتطلب مراجعة مسؤول.",
+  "adminCenterNoReportsMessage": "لا توجد بلاغات تطابق الفلاتر المحددة.",
+  "adminCenterSearchUsersHint": "البحث بالاسم أو اسم المستخدم أو البريد الإلكتروني أو المعرّف",
+  "adminCenterClearSearchTooltip": "مسح البحث",
+  "adminCenterUsersUnavailableTitle": "المستخدمون غير متاحين",
+  "adminCenterNoUsersFoundTitle": "لم يتم العثور على مستخدمين",
+  "adminCenterNoUsersTitle": "لا يوجد مستخدمون",
+  "adminCenterNoUsersFoundMessage": "جرّب اسمًا أو اسم مستخدم أو بريدًا إلكترونيًا أو معرّفًا آخر.",
+  "adminCenterNoUsersMessage": "لا توجد حسابات لعرضها.",
+  "adminCenterAccountUnavailableTitle": "الحساب غير متاح",
+  "adminCenterBackToUsersAction": "العودة إلى المستخدمين",
+  "adminCenterPublicIdentitySection": "الهوية العامة",
+  "adminCenterDisplayNameLabel": "الاسم المعروض",
+  "adminCenterNotProvided": "غير متوفر",
+  "adminCenterUsernameLabel": "اسم المستخدم",
+  "adminCenterUserIdLabel": "معرّف المستخدم",
+  "adminCenterIdentityTypeLabel": "نوع الهوية",
+  "adminCenterAccountSection": "الحساب",
+  "adminCenterTechnicalRoleLabel": "الدور التقني",
+  "adminCenterRoleMirrorLabel": "مرآة دور الملف",
+  "adminCenterRoleSynchronizationLabel": "مزامنة الأدوار",
+  "adminCenterSynchronized": "متزامن",
+  "adminCenterNotSynchronized": "غير متزامن",
+  "adminCenterRoleNotSynchronized": "الدور غير متزامن",
+  "adminCenterAccountStatusLabel": "حالة الحساب",
+  "adminCenterSuspendedUntilLabel": "معلّق حتى",
+  "adminCenterAccountManagementSection": "إدارة الحساب",
+  "adminCenterDangerZoneSection": "منطقة الخطر",
+  "adminCenterRoleManagementSection": "إدارة الأدوار",
+  "adminCenterVerificationLevelLabel": "مستوى التوثيق",
+  "adminCenterVerificationStatusLabel": "حالة التوثيق",
+  "adminCenterAccessInformationSection": "معلومات الوصول",
+  "adminCenterEmailLabel": "البريد الإلكتروني",
+  "adminCenterNotAvailable": "غير متاح",
+  "adminCenterEmailConfirmationLabel": "تأكيد البريد الإلكتروني",
+  "adminCenterNotConfirmed": "غير مؤكد",
+  "adminCenterRegisteredLabel": "مسجّل",
+  "adminCenterLastAccessLabel": "آخر وصول",
+  "adminCenterLoadingDashboardTitle": "جارٍ تحميل لوحة التحكم",
+  "adminCenterLoadingDashboardMessage": "جارٍ جلب أحدث المؤشرات.",
+  "adminCenterDashboardUnavailableTitle": "لوحة التحكم غير متاحة",
+  "adminCenterIndicatorsUnavailableMessage": "تعذر تحميل المؤشرات.",
+  "adminCenterVerificationPendingIndicator": "توثيق معلق",
+  "adminCenterOpenReportsIndicator": "بلاغات مفتوحة",
+  "adminCenterSuspendedAccountsIndicator": "حسابات معلقة",
+  "adminCenterStaffIndicator": "طاقم",
+  "adminCenterNoPendingWorkTitle": "لا توجد مهام معلقة",
+  "adminCenterNoPendingWorkMessage": "لا توجد مهام معلقة في التوثيق أو البلاغات أو الحسابات المعلقة.",
+  "adminCenterCouldNotUpdateUsers": "تعذر تحديث قائمة المستخدمين.",
+  "adminCenterCouldNotUpdateReports": "تعذر تحديث قائمة البلاغات.",
+  "adminCenterUnnamedUser": "مستخدم بلا اسم",
+  "adminCenterTemporarySuspensionTitle": "تعليق مؤقت",
+  "adminCenterReactivateDescription": "إزالة التعليق فورًا والسماح بتسجيل دخول جديد.",
+  "adminCenterSuspendDescription": "حظر الوصول لفترة محدودة وإنهاء جميع الجلسات الحالية.",
+  "adminCenterSuspensionUnavailableDescription": "يتطلب التعليق حسابًا متزامنًا وغير Admin.",
+  "adminCenterReactivateAccountAction": "إعادة تفعيل الحساب",
+  "adminCenterSuspendAccountAction": "تعليق الحساب",
+  "adminCenterForceLogoutAction": "فرض تسجيل الخروج",
+  "adminCenterSuspendedForceLogoutDescription": "لقد أنهى التعليق الجلسات الحالية بالفعل. أعد تفعيل الحساب قبل اختبار تسجيل خروج منفصل.",
+  "adminCenterForceLogoutDescription": "إنهاء جميع الجلسات الحالية دون تعليق الحساب.",
+  "adminCenterForceLogoutUnavailableDescription": "يتطلب تسجيل الخروج القسري حسابًا متزامنًا وغير Admin.",
+  "adminCenterPermanentDeletionTitle": "الحذف الدائم للحساب",
+  "adminCenterPermanentDeletionDescription": "حذف بيانات المصادقة وإنهاء جميع الجلسات وإخفاء هوية السجل العام المحتفظ به.",
+  "adminCenterDeletionUnavailableDescription": "يتطلب الحذف حسابًا متزامنًا وغير Admin.",
+  "adminCenterDeleteAccountPermanentlyAction": "حذف الحساب نهائيًا",
+  "adminCenterDurationOneHour": "ساعة واحدة",
+  "adminCenterDurationOneDay": "24 ساعة",
+  "adminCenterDurationSevenDays": "7 أيام",
+  "adminCenterDurationThirtyDays": "30 يومًا",
+  "adminCenterSuspendImmediateEffect": "سيفقد الحساب الوصول فورًا وسيتم إنهاء جميع الجلسات الحالية.",
+  "adminCenterDurationLabel": "المدة",
+  "adminCenterSuspendReasonHint": "اشرح سبب ضرورة تعليق هذا الحساب",
+  "adminCenterReactivateReasonHint": "اشرح سبب إمكانية إعادة تفعيل هذا الحساب",
+  "adminCenterReactivateConfirmation": "أؤكد أن هذا الحساب يمكنه استعادة الوصول.",
+  "adminCenterReactivateFailure": "تعذر إعادة تفعيل الحساب. تحقق من دوره وحالته ثم حاول مرة أخرى.",
+  "adminCenterReactivateSuccess": "تمت إعادة تفعيل الحساب. يُسمح الآن بتسجيل دخول جديد.",
+  "adminCenterForceLogoutFullDescription": "إنهاء جميع الجلسات الحالية لهذا الحساب. يبقى الحساب نشطًا ويمكنه تسجيل الدخول مجددًا.",
+  "adminCenterForceLogoutReasonHint": "اشرح سبب ضرورة إنهاء الجلسات الحالية",
+  "adminCenterForceLogoutConfirmation": "أؤكد الإنهاء الفوري لجميع الجلسات الحالية لهذا الحساب.",
+  "adminCenterForceLogoutFailure": "تعذر تسجيل خروج الحساب. تحقق من دوره وحالته ثم حاول مرة أخرى.",
+  "adminCenterForceLogoutSuccess": "تم إنهاء الجلسات الحالية. يمكن للحساب تسجيل الدخول مجددًا.",
+  "adminCenterSuspendFailure": "تعذر تعليق الحساب. تحقق من دوره وحالته ثم حاول مرة أخرى.",
+  "adminCenterDeleteReasonHint": "اشرح سبب ضرورة حذف هذا الحساب",
+  "adminCenterTypeDeleteLabel": "اكتب DELETE",
+  "adminCenterTypeAccountIdLabel": "اكتب معرّف الحساب كاملًا",
+  "adminCenterDeletePermanentlyAction": "حذف نهائي",
+  "adminCenterDeleteIrreversibleWarning": "هذا الإجراء لا يمكن التراجع عنه. ستُحذف بيانات المصادقة والجلسات الحالية والصورة الرمزية، وسيتم إخفاء هوية السجل العام المحتفظ به. سيبقى سجل التدقيق.",
+  "adminCenterDeleteFailure": "تعذر حذف الحساب. تحقق من دوره وحالته وقيم التأكيد ثم حاول مرة أخرى.",
+  "adminCenterDeleteSuccess": "تم حذف الحساب نهائيًا وإخفاء هوية البيانات الشخصية.",
+  "adminCenterChangeTechnicalRoleTitle": "تغيير الدور التقني",
+  "adminCenterChangeRoleDescription": "راجع الدور الحالي والدور المطلوب قبل التأكيد.",
+  "adminCenterChangeRoleUnavailableDescription": "تتطلب تغييرات الدور حسابًا متزامنًا وغير محذوف.",
+  "adminCenterChangeRoleAction": "تغيير الدور",
+  "adminCenterChangePublicIdentityTitle": "تغيير الهوية العامة",
+  "adminCenterChangeIdentityDescription": "تحديث نوع الحساب العام ومستوى التوثيق.",
+  "adminCenterChangeIdentityUnavailableDescription": "تتطلب تغييرات الهوية حسابًا متزامنًا وغير Admin.",
+  "adminCenterChangeIdentityAction": "تغيير الهوية",
+  "adminCenterChoosePublicIdentityMessage": "اختر نوع الحساب العام وحالة توثيقه.",
+  "adminCenterPublicAccountTypeLabel": "نوع الحساب العام",
+  "adminCenterPersonVerificationHelper": "المستويان 1 و2 متاحان فقط لـ Persona.",
+  "adminCenterNonPersonVerificationHelper": "الحسابات غير Persona لا تستخدم المستوى 1 أو 2.",
+  "adminCenterBeforeLabel": "قبل",
+  "adminCenterAfterLabel": "بعد",
+  "adminCenterIdentityReasonHint": "اشرح سبب ضرورة تغيير الهوية العامة",
+  "adminCenterIdentityConfirmation": "أؤكد الهوية العامة ومستوى التوثيق الموضحين أعلاه.",
+  "adminCenterIdentityChangeFailure": "تعذر تغيير الهوية العامة. تحقق من حالة الحساب وحاول مرة أخرى.",
+  "adminCenterChooseTechnicalRoleMessage": "اختر الدور التقني الجديد وسجّل سبب الحاجة إلى هذا التغيير.",
+  "adminCenterNewTechnicalRoleLabel": "الدور التقني الجديد",
+  "adminCenterSelectRole": "اختر دورًا",
+  "adminCenterRoleSessionWarning": "ينهي هذا التغيير الجلسة النشطة للمستلم. يجب عليه تسجيل الدخول مجددًا قبل متابعة استخدام الحساب.",
+  "adminCenterRoleReasonHint": "اشرح سبب ضرورة تغيير الدور التقني",
+  "adminCenterRoleConfirmation": "أؤكد الدور الموضح أعلاه وأفهم أن المستلم يجب أن يسجل الدخول مجددًا.",
+  "adminCenterRoleChangeFailure": "تعذر إكمال تغيير الدور. تحقق من حالة الحساب وحاول مرة أخرى.",
+  "adminCenterChangingRole": "جارٍ تغيير الدور",
+  "adminCenterConfirmRoleChange": "تأكيد تغيير الدور",
+  "adminCenterRoleUser": "مستخدم",
+  "adminCenterRoleModerator": "مشرف",
+  "adminCenterRoleAdmin": "Admin",
+  "adminCenterAccountStatusActive": "نشط",
+  "adminCenterAccountStatusSuspended": "معلّق",
+  "adminCenterAccountStatusDeleted": "محذوف",
+  "adminCenterVerificationStatusNone": "لا شيء",
+  "adminCenterVerificationStatusPending": "معلق",
+  "adminCenterVerificationStatusRejected": "مرفوض",
+  "adminCenterVerificationNotVerified": "غير موثق",
+  "adminCenterVerificationLevel1": "المستوى 1",
+  "adminCenterVerificationLevel2": "المستوى 2",
+  "adminCenterReportSingular": "بلاغ",
+  "adminCenterReportPlural": "بلاغات",
+  "adminCenterUserSingular": "مستخدم",
+  "adminCenterUserPlural": "مستخدمون",
+  "adminCenterPoll": "Vote",
+  "adminCenterPost": "Voce",
+  "adminCenterUnknown": "غير معروف",
+  "adminCenterContentHidden": "المحتوى مخفي",
+  "adminCenterContentVisible": "المحتوى ظاهر",
+  "adminCenterReportedByLabel": "أبلغ عنه",
+  "adminCenterContentOwnerLabel": "مالك المحتوى",
+  "adminCenterReviewReportAction": "مراجعة البلاغ",
+  "adminCenterAdminDecisionAction": "قرار Admin",
+  "adminCenterRestoreContentAction": "استعادة المحتوى",
+  "adminCenterHideContentAction": "إخفاء المحتوى",
+  "adminCenterOpenProfileAction": "فتح الملف الشخصي",
+  "adminCenterOpenContentAction": "فتح المحتوى",
+  "adminCenterDecisionNoViolation": "لا توجد مخالفة",
+  "adminCenterDecisionViolationConfirmed": "تم تأكيد المخالفة",
+  "adminCenterDecisionEscalateToAdmin": "تصعيد إلى Admin",
+  "adminCenterResolutionNoAccountAction": "لا إجراء على الحساب",
+  "adminCenterResolutionAccountSuspended": "تم تعليق الحساب",
+  "adminCenterResolutionLogoutForced": "تم فرض تسجيل الخروج",
+  "adminCenterResolutionAccountDeleted": "تم حذف الحساب",
+  "adminCenterReviewerLabel": "المراجع",
+  "adminCenterDecisionDescriptionNoViolation": "يرفض البلاغ لأن المحتوى لا يخالف القواعد الحالية.",
+  "adminCenterDecisionDescriptionViolation": "يؤكد وجود مخالفة ويبقي الحالة قيد المراجعة لاتخاذ إجراء المحتوى في AC8.5.",
+  "adminCenterDecisionDescriptionEscalation": "يصعّد الحالة لمراجعة على مستوى الحساب من قبل مسؤول.",
+  "adminCenterChooseModerationOutcome": "اختر نتيجة الإشراف لهذا البلاغ.",
+  "adminCenterDecisionAlreadyRecordedFailure": "تعذر تسجيل القرار. ربما تمت مراجعة البلاغ بالفعل. حدّث القائمة وحاول مرة أخرى.",
+  "adminCenterDecisionLabel": "القرار",
+  "adminCenterReportReasonLabel": "سبب البلاغ",
+  "adminCenterReviewNoteLabel": "ملاحظة المراجعة",
+  "adminCenterReviewNoteHint": "اشرح الأدلة وقرار الإشراف",
+  "adminCenterRecordingDecision": "جارٍ تسجيل القرار",
+  "adminCenterConfirmDecision": "تأكيد القرار",
+  "adminCenterAdministratorDecisionTitle": "قرار المسؤول",
+  "adminCenterResolutionDescriptionNoAction": "يغلق البلاغ المصعّد دون تغيير الحساب.",
+  "adminCenterResolutionDescriptionSuspended": "يغلق البلاغ بعد تسجيل تعليق ناجح للحساب في سجل التدقيق.",
+  "adminCenterResolutionDescriptionLogout": "يغلق البلاغ بعد تسجيل خروج قسري ناجح في سجل التدقيق.",
+  "adminCenterResolutionDescriptionDeleted": "يغلق البلاغ بعد تسجيل حذف ناجح للحساب في سجل التدقيق.",
+  "adminCenterChooseFinalOutcome": "اختر النتيجة النهائية للمسؤول لهذا التصعيد.",
+  "adminCenterAdminResolutionFailure": "تعذر تسجيل قرار المسؤول. حدّث القائمة وحاول مرة أخرى.",
+  "adminCenterAdminResolutionRequiresAction": "أكمل إجراء الحساب المطابق أولًا، ثم عد إلى هذا البلاغ وسجّل القرار النهائي للمسؤول.",
+  "adminCenterEscalationNoteLabel": "ملاحظة التصعيد",
+  "adminCenterFinalOutcomeLabel": "النتيجة النهائية",
+  "adminCenterAdministratorNoteLabel": "ملاحظة المسؤول",
+  "adminCenterAdministratorNoteHint": "اشرح القرار النهائي على مستوى الحساب",
+  "adminCenterHideContentFailure": "تعذر إخفاء المحتوى. حدّث قائمة البلاغات وحاول مرة أخرى.",
+  "adminCenterRestoreContentFailure": "تعذر استعادة المحتوى. حدّث قائمة البلاغات وحاول مرة أخرى.",
+  "adminCenterHideContentWarning": "يؤدي هذا إلى إزالة المحتوى المبلّغ عنه من الوصول العام. يمكن التراجع عن الإجراء لاحقًا من فلتر البلاغات المحلولة.",
+  "adminCenterRestoreContentWarning": "يجعل هذا المحتوى المبلّغ عنه متاحًا للعامة مجددًا.",
+  "adminCenterActionReasonLabel": "سبب الإجراء",
+  "adminCenterHideContentReasonHint": "اشرح سبب ضرورة إخفاء المحتوى",
+  "adminCenterRestoreContentReasonHint": "اشرح سبب إمكانية استعادة المحتوى",
+  "adminCenterHidingContent": "جارٍ إخفاء المحتوى",
+  "adminCenterRestoringContent": "جارٍ استعادة المحتوى",
+  "adminCenterReportedProfileTitle": "الملف المبلّغ عنه",
+  "adminCenterReportedProfileNotice": "سياق الملف هذا يأتي من قائمة البلاغات المحمية. تبقى الإجراءات الإدارية على الحساب منفصلة.",
+  "adminCenterCouldNotRefreshIndicators": "تعذر تحديث المؤشرات.",
+  "adminCenterCouldNotRefreshAccount": "تعذر تحديث تفاصيل الحساب.",
+  "adminCenterReportAlreadyReviewed": "تمت مراجعة هذا البلاغ بالفعل أو لم يعد معلقًا.",
+  "adminCenterReportNotAwaitingAdmin": "هذا البلاغ لا ينتظر قرار مسؤول.",
+  "adminCenterConfirmedViolationRequired": "يلزم تأكيد وجود مخالفة قبل تغيير ظهور المحتوى.",
+  "adminCenterContentHiddenSuccess": "تم إخفاء المحتوى المبلّغ عنه.",
+  "adminCenterContentRestoredSuccess": "تمت استعادة المحتوى المبلّغ عنه.",
+  "adminCenterMissingContentId": "معرّف المحتوى الأصلي مفقود.",
+  "adminCenterUnsupportedTargetType": "هذا البلاغ لديه نوع هدف غير مدعوم.",
+  "adminCenterOriginalContentUnavailable": "المحتوى الأصلي لم يعد متاحًا.",
+  "adminCenterNoReportedProfile": "لا يوجد ملف مبلّغ عنه مرتبط بهذا المحتوى.",
+  "adminCenterRoleChangedSuccess": "تم تغيير الدور التقني من {previousRole} إلى {newRole}. تم تسجيل خروج المستلم ويجب عليه تسجيل الدخول مجددًا.",
+  "@adminCenterRoleChangedSuccess": {
+    "placeholders": {
+      "previousRole": {
+        "type": "String"
+      },
+      "newRole": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterIdentityChangedSuccess": "تم تغيير الهوية العامة إلى {actorType} مع {verificationLevel}.",
+  "@adminCenterIdentityChangedSuccess": {
+    "placeholders": {
+      "actorType": {
+        "type": "String"
+      },
+      "verificationLevel": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAccountSuspendedSuccess": "تم تعليق الحساب حتى {dateTime}. تم تسجيل خروج المستلم.",
+  "@adminCenterAccountSuspendedSuccess": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterReportDecisionRecorded": "تم تسجيل قرار البلاغ: {decision}.",
+  "@adminCenterReportDecisionRecorded": {
+    "placeholders": {
+      "decision": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAdministratorDecisionRecorded": "تم تسجيل قرار المسؤول: {decision}.",
+  "@adminCenterAdministratorDecisionRecorded": {
+    "placeholders": {
+      "decision": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterUsersCount": "{count, plural, =1 {{count} مستخدم} other {{count} مستخدمين}}",
+  "@adminCenterUsersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterReportsCount": "{count, plural, =1 {{count} بلاغ} other {{count} بلاغات}}",
+  "@adminCenterReportsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterAccountValue": "الحساب: {account}",
+  "@adminCenterAccountValue": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterSuspendedUntilValue": "معلّق حتى: {dateTime}",
+  "@adminCenterSuspendedUntilValue": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterSuspendConfirmation": "أؤكد التعليق حتى {dateTime} والإنهاء الفوري للجلسات الحالية.",
+  "@adminCenterSuspendConfirmation": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAccountIdValue": "معرّف الحساب: {accountId}",
+  "@adminCenterAccountIdValue": {
+    "placeholders": {
+      "accountId": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterCurrentRoleValue": "الحالي: {role}",
+  "@adminCenterCurrentRoleValue": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterTargetFallback": "{targetType} {targetId}",
+  "@adminCenterTargetFallback": {
+    "placeholders": {
+      "targetType": {
+        "type": "String"
+      },
+      "targetId": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterMinimumCharactersRequired": "يلزم إدخال ملاحظة من {count} أحرف على الأقل.",
+  "@adminCenterMinimumCharactersRequired": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterMinimumReasonCharactersRequired": "يلزم إدخال سبب من {count} أحرف على الأقل.",
+  "@adminCenterMinimumReasonCharactersRequired": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterPageOf": "الصفحة {currentPage} من {totalPages}",
+  "@adminCenterPageOf": {
+    "placeholders": {
+      "currentPage": {
+        "type": "int"
+      },
+      "totalPages": {
+        "type": "int"
+      }
+    }
+  },
+  "profilePublicProfileSectionTitle": "الملف العام",
+  "profileIdentityVerificationSectionTitle": "الهوية والتوثيق",
+  "profilePreferencesSectionTitle": "التفضيلات",
+  "profileNotificationsSectionTitle": "الإشعارات",
+  "profileActivitySectionTitle": "النشاط الشخصي",
+  "profileSecurityAccountSectionTitle": "الأمان والحساب",
+  "profileThemeTitle": "السمة",
+  "profileThemeSystem": "النظام",
+  "profileThemeSystemDescription": "يتبع سمة الجهاز",
+  "profileThemeLight": "فاتح",
+  "profileThemeDark": "داكن",
+  "profileMyPollsTitle": "Vote",
+  "profileMyPostsTitle": "Voce",
+  "profileMyCommentsTitle": "تعليقاتي",
+  "profileMyFavoritesTitle": "محفوظاتي",
+  "profileAccountConnectionsTitle": "المتابَعون والمتابعون",
+  "accountConnectionsFollowingTab": "أتابع",
+  "accountConnectionsFollowersTab": "المتابعون",
+  "accountConnectionsEmptyFollowing": "أنت لا تتابع أي حساب بعد.",
+  "accountConnectionsEmptyFollowers": "ليس لديك متابعون بعد.",
+  "accountConnectionsLoadError": "تعذر تحميل الحسابات. حاول مرة أخرى.",
+  "profileMyFollowedScopesTitle": "مناطقي المتابَعة",
+  "profileLogoutAction": "تسجيل الخروج",
+  "profileLogoutDescription": "تسجيل الخروج من الحساب الحالي",
+  "profileLogoutDialogTitle": "تسجيل الخروج",
+  "profileLogoutDialogMessage": "هل أنت متأكد من تسجيل الخروج من حسابك؟",
+  "profileLogoutCancelButton": "إلغاء",
+  "profileLogoutConfirmButton": "تسجيل الخروج",
+  "publicProfilePageTitle": "الملف العام",
+  "publicProfileUserFallback": "مستخدم",
+  "publicProfileNoBio": "لا توجد نبذة متاحة.",
+  "publicProfileResidenceLabel": "الإقامة",
+  "publicProfileResidenceUnknown": "غير محدد",
+  "publicProfileMemberSinceLabel": "عضو منذ",
+  "publicProfileContentSectionTitle": "المحتوى العام",
+  "publicProfilePollsAction": "Vote",
+  "publicProfilePostsAction": "Voce",
+  "publicProfileBlockUserAction": "حظر المستخدم",
+  "publicProfileLoadError": "تعذر تحميل الملف الشخصي.",
+  "publicProfileNotFound": "الملف الشخصي غير متاح.",
+  "publicProfileUnblockUserAction": "إلغاء حظر المستخدم",
+  "publicProfileBlockDialogTitle": "حظر هذا المستخدم؟",
+  "publicProfileBlockDialogMessage": "يمكنك إلغاء حظره لاحقًا من ملفه العام.",
+  "publicProfileUnblockDialogTitle": "إلغاء حظر هذا المستخدم؟",
+  "publicProfileUnblockDialogMessage": "لن يعود المستخدم موجودًا في قائمة الحظر لديك.",
+  "publicProfileBlockSuccess": "تم حظر المستخدم.",
+  "publicProfileUnblockSuccess": "تم إلغاء حظر المستخدم.",
+  "publicProfileBlockError": "تعذر تحديث الحظر. حاول مرة أخرى.",
+  "publicProfileFollowersLabel": "متابعون",
+  "publicProfileFollowingLabel": "يتابع",
+  "publicProfileFollowAction": "متابعة",
+  "publicProfileUnfollowAction": "إلغاء المتابعة",
+  "publicProfileFollowSuccess": "تمت متابعة الحساب.",
+  "publicProfileUnfollowSuccess": "تم إلغاء متابعة الحساب.",
+  "publicProfileFollowError": "تعذر تحديث المتابعة. حاول مرة أخرى.",
+  "publicProfileFollowRetry": "إعادة تحميل معلومات المتابعة",
+  "contentLanguageFieldLabel": "لغة المحتوى",
+  "contentLanguageFieldHelper": "اختر اللغة التي كتبت بها المحتوى.",
+  "contentLanguageUndetermined": "غير محدد",
+  "createPollAdvancedOptionsTitle": "خيارات متقدمة",
+  "createPollAdvancedOptionsSubtitle": "إخفاء الهوية وظهور النتائج وتغيير التصويت والنصاب.",
+  "onboardingSkipButton": "تخطي",
+  "onboardingNextButton": "التالي",
+  "onboardingStartButton": "ابدأ",
+  "onboardingPollTitle": "Vote",
+  "onboardingPollDescription": "شارك في Vote حول المواضيع التي تهمك، أو أنشئ واحدًا لجمع رأي المجتمع.",
+  "onboardingHeatIceTitle": "Heat وIce",
+  "onboardingHeatIceDescription": "استخدم Heat وIce لإظهار مدى قوة اهتمامك بمحتوى ما.",
+  "onboardingCivicMapTitle": "Civic Map",
+  "onboardingCivicMapDescription": "استكشف Vote وVoce وNews على الخريطة واكتشف ما يحدث في مناطق مختلفة.",
+  "onboardingGeoScopeTitle": "GeoScope",
+  "onboardingGeoScopeDescription": "اختر المستوى الجغرافي الذي تريد متابعته: العالم أو البلد أو المدينة.",
+  "onboardingVerificationTitle": "توثيق الهوية",
+  "onboardingVerificationDescription": "قد تتطلب بعض Vote مستوى توثيق لحماية نزاهة التصويت.",
+  "pollDetail_voteReceiptButton": "إيصال التصويت",
+  "pollDetail_voteReceiptTitle": "إيصال التصويت",
+  "pollDetail_voteReceiptIdLabel": "معرّف الإيصال",
+  "pollDetail_voteReceiptDateLabel": "تم التسجيل",
+  "pollDetail_voteReceiptPrivacy": "يؤكد هذا الإيصال أن تصويتك سُجل دون إظهار الخيار الذي اخترته.",
+  "pollDetail_voteReceiptCloseButton": "إغلاق",
+  "profileBiometricUnlockTitle": "فتح القفل بالقياسات الحيوية",
+  "profileBiometricUnlockDescription": "يحمي جلستك المحفوظة ببصمة الجهاز أو التعرف الحيوي.",
+  "profileBiometricRequiresRememberMe": "يتطلب تفعيل تذكرني.",
+  "profileBiometricUnavailable": "القياسات الحيوية غير متاحة أو غير مهيأة على هذا الجهاز.",
+  "profileBiometricEnableReason": "أكد هويتك البيومترية لتفعيل فتح Social Vote.",
+  "profileBiometricEnabledMessage": "تم تفعيل الفتح البيومتري.",
+  "profileBiometricDisabledMessage": "تم تعطيل الفتح البيومتري.",
+  "profileBiometricAuthFailedMessage": "لم تكتمل المصادقة البيومترية.",
+  "biometricLockTitle": "Social Vote مقفل",
+  "biometricLockMessage": "استخدم القياسات الحيوية لجهازك لفتح الجلسة المحفوظة.",
+  "biometricUnlockButton": "فتح",
+  "biometricUsePasswordButton": "استخدام كلمة المرور",
+  "biometricUnlockReason": "افتح جلسة Social Vote الخاصة بك.",
+  "biometricUnlockFailedMessage": "فشل فتح القفل. حاول مرة أخرى أو استخدم كلمة المرور.",
+  "adminCenterOperationalActivityTitle": "النشاط التشغيلي",
+  "adminCenterOperationalActivitySubtitle": "عدادات مجمعة. لا يوجد تتبع لحظي للحضور عبر الإنترنت.",
+  "adminCenterLast24HoursLabel": "24 ساعة",
+  "adminCenterLast7DaysLabel": "7 أيام",
+  "adminCenterNewUsersMetric": "تسجيلات جديدة",
+  "adminCenterRecentSignInsMetric": "تسجيلات دخول حديثة",
+  "adminCenterPollsCreatedMetric": "Vote تم إنشاؤها",
+  "adminCenterPostsCreatedMetric": "Voce تم إنشاؤها",
+  "adminCenterAdminActionsMetric": "إجراءات Admin",
+  "authPublicNameHelper": "هذا هو الاسم الذي سيراه المستخدمون الآخرون. يتم إنشاء اسم المستخدم تلقائيًا.",
+  "@authPublicNameHelper": {
+    "description": "Auth UI: explains public name and automatic username generation"
+  },
+  "adminCenterRefreshMarkersTooltip": "تحديث علامات Globe",
+  "adminCenterMarkerDensityTitle": "كثافة علامات العالم",
+  "adminCenterMarkerDensitySubtitle": "يتحكم في الميزانية البصرية لعلامات Home Globe دون تغيير الإحداثيات الحقيقية أو ترتيب المحتوى.",
+  "adminCenterMarkerDensityEmpty": "فارغ",
+  "adminCenterMarkerDensityFull": "كامل",
+  "adminCenterMarkerDensityBudget": "ميزانية Home: {count} علامة",
+  "@adminCenterMarkerDensityBudget": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterMarkerDensitySaveError": "تعذر حفظ كثافة علامات العالم.",
+  "adminCenterMarkerDensityBackendUnavailable": "إعدادات علامات العالم في الخلفية غير متاحة بعد.",
+  "adminCenterQuickActionsTitle": "إجراءات سريعة للحساب",
+  "adminCenterModerationSnapshotTitle": "لمحة عن الإشراف والنشاط",
+  "adminCenterReportsReceivedMetric": "بلاغات مستلمة",
+  "adminCenterPendingReportsMetric": "بلاغات معلقة",
+  "adminCenterConfirmedViolationsMetric": "مخالفات مؤكدة",
+  "adminCenterReportsFiledMetric": "بلاغات مقدمة",
+  "adminCenterCommentsCreatedMetric": "تعليقات منشأة",
+  "adminCenterAdminActionsOnAccountMetric": "إجراءات Admin على الحساب",
+  "adminCenterLastReportReceivedLabel": "آخر بلاغ مستلم",
+  "adminCenterOpenFullAccountAction": "فتح جميع عناصر تحكم الحساب",
+  "profileAppLanguageGerman": "الألمانية",
+  "profileAppLanguagePersian": "الفارسية",
+  "@profileAppLanguageGerman": {
+    "description": "Label for the German app language option"
+  },
+  "discoveryPageTitle": "استكشاف",
+  "@discoveryPageTitle": {
+    "description": "Title of the Discovery section"
+  },
+  "organizationWorkspaceTitle": "Workspace المنظمة",
+  "organizationPilotBannerTitle": "تجربة مجانية",
+  "organizationPilotBannerBody": "Sessions مجانية خلال المرحلة التجريبية. قد تصبح بعض الميزات الاحترافية مدفوعة مستقبلًا؛ الفوترة غير مفعلة الآن.",
+  "organizationVerifiedLabel": "منظمة موثقة",
+  "organizationEditProfile": "تعديل ملف المنظمة",
+  "organizationCreateSession": "Session جديدة",
+  "organizationNoSessions": "لا توجد Sessions بعد. أنشئ الأولى لاجتماع أو ورشة أو فعالية.",
+  "organizationSessionsTitle": "Sessions مباشرة",
+  "organizationRequiresVerificationTitle": "مطلوب منظمة موثقة",
+  "organizationRequiresVerificationBody": "هذا الـ Workspace متاح فقط للحسابات التي اعتمدتها Social Vote كمنظمة موثقة.",
+  "organizationProfileEditorTitle": "ملف المنظمة",
+  "organizationLegalName": "الاسم القانوني",
+  "organizationPublicName": "الاسم العام",
+  "organizationType": "نوع المنظمة",
+  "organizationCountryCode": "رمز البلد",
+  "organizationCity": "المدينة",
+  "organizationWebsite": "الموقع الرسمي",
+  "organizationDescription": "الوصف",
+  "organizationUploadCover": "تغيير الغلاف",
+  "organizationUploadLogo": "تغيير الشعار",
+  "organizationMediaUpdated": "تم تحديث صورة المنظمة.",
+  "organizationNamesRequired": "الاسمان القانوني والعام مطلوبان.",
+  "organizationTypeAssociation": "جمعية",
+  "organizationTypeNonprofit": "منظمة غير ربحية",
+  "organizationTypeCompany": "شركة",
+  "organizationTypeCooperative": "تعاونية",
+  "organizationTypeSports": "منظمة رياضية",
+  "organizationTypePublicBody": "جهة عامة",
+  "organizationTypeCommittee": "لجنة / مجموعة",
+  "organizationTypeOther": "أخرى",
+  "sessionCreateTitle": "إنشاء Live Session",
+  "sessionTitleLabel": "عنوان Session",
+  "sessionExpectedParticipants": "المشاركون المتوقعون",
+  "sessionAccessMode": "وصول المشاركين",
+  "sessionAccessOpen": "مجهول ومفتوح",
+  "sessionAccessOpenHint": "يمكن لأي شخص لديه الرابط/الرمز الانضمام. منع التكرار يتم بأفضل جهد ولا يضمن هذا الوضع شخصًا واحدًا = صوتًا واحدًا.",
+  "sessionAccessControlled": "مجهول ومتحكم به",
+  "sessionAccessControlledHint": "استخدم Access Passes مجهولة ولمرة واحدة. تخزن Social Vote فقط بصمة Access Pass ولا تربط خيارات الاقتراع ببيانات اعتماد المشارك.",
+  "sessionResultsVisibility": "ظهور النتائج",
+  "sessionResultsLive": "مباشر",
+  "sessionResultsAfterVote": "بعد تصويت المشارك",
+  "sessionResultsAfterClose": "بعد إغلاق السؤال",
+  "sessionResultsOrganizerOnly": "للمنظم فقط",
+  "sessionCreateAction": "إنشاء Session",
+  "sessionPilotLimit": "حد المرحلة التجريبية: من 1 إلى 250 مشاركًا لكل Session.",
+  "sessionStatusDraft": "مسودة",
+  "sessionStatusOpen": "مفتوحة",
+  "sessionStatusClosed": "مغلقة",
+  "sessionJoinCode": "رمز الانضمام",
+  "sessionShareJoin": "مشاركة رابط الانضمام",
+  "sessionCopyJoinLink": "نسخ الرابط",
+  "sessionGenerateTokens": "إنشاء Access Passes",
+  "sessionGenerateTokensCount": "عدد Access Passes",
+  "sessionTokensOneTimeTitle": "احفظ بيانات الاعتماد هذه الآن",
+  "sessionTokensOneTimeBody": "تُعرض Access Passes بالنص الصريح فقط في نتيجة هذه الدفعة. تخزن Social Vote بصماتها فقط. انسخها ووزعها بأمان.",
+  "sessionCopyTokens": "نسخ كل الروابط",
+  "sessionTokensSavedAction": "لقد حفظتها",
+  "sessionOpenAction": "فتح Session",
+  "sessionCloseAction": "إغلاق Session",
+  "sessionCloseConfirm": "إغلاق التصويت وإنشاء لقطة Verified Result غير قابلة للتغيير؟",
+  "sessionQuestionsTitle": "الأسئلة",
+  "sessionAddQuestion": "إضافة سؤال",
+  "sessionQuestionTitle": "السؤال",
+  "sessionQuestionType": "نوع السؤال",
+  "sessionTypeYesNo": "نعم / لا",
+  "sessionTypeSingle": "اختيار واحد",
+  "sessionTypeMultiple": "اختيارات متعددة",
+  "sessionOptions": "الخيارات",
+  "sessionOptionHint": "خيار واحد في كل سطر.",
+  "sessionMinSelections": "الحد الأدنى للاختيارات",
+  "sessionMaxSelections": "الحد الأقصى للاختيارات",
+  "sessionAddAction": "إضافة",
+  "sessionOpenQuestion": "فتح السؤال",
+  "sessionCloseQuestion": "إغلاق السؤال",
+  "sessionNoQuestions": "لا توجد أسئلة بعد.",
+  "sessionPresenterTitle": "المقدّم",
+  "sessionParticipantTitle": "Social Vote Live",
+  "sessionJoinAction": "الانضمام إلى Session",
+  "sessionTokenLabel": "رمز المشارك",
+  "sessionTokenHint": "SV-…",
+  "sessionWaitingQuestion": "بانتظار أن يفتح المنظم سؤالًا…",
+  "sessionVoteAction": "إرسال التصويت",
+  "sessionVoteReceived": "تم استلام التصويت",
+  "sessionResultsUnavailable": "النتائج غير ظاهرة بعد وفق سياسة هذه الـ Session.",
+  "sessionPrivacyNotice": "يحدد المنظم الغرض التشغيلي وأسئلة Session. تعالج Social Vote البيانات التقنية اللازمة لتقديم الخدمة وحمايتها. الأوضاع المجهولة لا تكشف للمنظم العلاقة بين بيانات اعتماد المشارك واختياره. قد تعتمد أدوار الخصوصية على السياق والاتفاقيات المعمول بها.",
+  "sessionNonBindingNotice": "Sessions التجريبية مخصصة للتشاور والمشاركة. وهي ليست انتخابات قانونية ولا تصويت جمعية نظامية ولا اعتمادًا ملزمًا قانونيًا.",
+  "sessionOptionYes": "نعم",
+  "sessionOptionNo": "لا",
+  "verifiedResultTitle": "Verified Result",
+  "verifiedResultValid": "نجح فحص النزاهة",
+  "verifiedResultInvalid": "فشل فحص النزاهة",
+  "verifiedResultReportId": "معرّف التقرير",
+  "verifiedResultHash": "بصمة SHA-256 للنتيجة",
+  "verifiedResultGeneratedBy": "تم إنشاؤه وختم نزاهته بواسطة Social Vote",
+  "verifiedResultNotLegalCertificate": "هذا تقرير نتيجة مجمعة قابلة للتحقق، وليس شهادة قانونية ولا اعتمادًا لانتخابات ملزمة قانونيًا.",
+  "verifiedResultShare": "مشاركة رابط التحقق",
+  "sessionResponses": "{count} استجابات",
+  "@sessionResponses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionResultVotes": "{count} أصوات",
+  "@sessionResultVotes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "organizationVerifiedIdentityLocked": "الاسم والبلد جزء من الهوية الموثقة للمنظمة. تغييرهما يتطلب توثيقًا جديدًا. يمكنك تغيير الغلاف والشعار والنوع والمدينة والموقع والوصف بحرية.",
+  "verifiedResultOpenedAt": "تم فتح Session",
+  "verifiedResultEligibleCredentials": "بيانات الاعتماد المؤهلة",
+  "verifiedResultIntegritySeal": "ختم نزاهة Social Vote",
+  "organizationVerifiedNameLocked": "الاسم الموثق والبلد مقفلان. تغييرهما يتطلب مراجعة توثيق جديدة.",
+  "sessionRetentionLabel": "مدة الاحتفاظ بالاقتراعات الخام",
+  "sessionRetention24h": "24 ساعة",
+  "sessionRetention7d": "7 أيام",
+  "sessionRetention30d": "30 يومًا",
+  "sessionRetentionValue": "الاحتفاظ بالاقتراعات الخام: {value}",
+  "@sessionRetentionValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "verifiedResultPrintPdf": "تنزيل PDF",
+  "verifiedResultPdfError": "تعذر تنزيل PDF. حاول مرة أخرى.",
+  "verifiedResultRestrictedTitle": "نتيجة مقيّدة",
+  "verifiedResultRestrictedBody": "هذا الـ Verified Result غير متاح للعامة. سجّل الدخول بحساب منظمة مخول لعرضه.",
+  "verifiedResultPrivateVerificationTitle": "التحقق العام غير متاح",
+  "verifiedResultPrivateVerificationBody": "هذه النتيجة مقيّدة بالمنظم. يبقى معرّف التقرير وSHA-256 وفحص النزاهة متاحًا في التقرير المصرح به.",
+  "organizationAccountSectionTitle": "منظماتك",
+  "organizationManageAction": "إدارة",
+  "organizationViewPublicProfileAction": "عرض الملف",
+  "organizationOfficialWebsiteAction": "الموقع الرسمي",
+  "organizationVerificationIntro": "يشمل التوثيق وجود المنظمة وسلطتك لتمثيلها. ستراجع Social Vote المعلومات المقدمة قبل الموافقة.",
+  "organizationVerificationLegalName": "الاسم القانوني",
+  "organizationVerificationPublicName": "الاسم العام",
+  "organizationVerificationType": "نوع المنظمة",
+  "organizationVerificationCountry": "البلد",
+  "organizationVerificationCountryRequired": "اختر بلد المنظمة.",
+  "organizationVerificationCity": "المدينة",
+  "organizationVerificationWebsite": "الموقع الرسمي",
+  "organizationVerificationRepresentativeRole": "دورك في المنظمة",
+  "organizationVerificationRegistryId": "معرّف السجل / الضريبة / المنظمة",
+  "organizationVerificationAuthorityNote": "كيف يمكننا التحقق من أنك مخول لتمثيلها؟",
+  "organizationVerificationAuthorityHelper": "اذكر بإيجاز دورك أو الدليل الذي يمكن لـ Admin التحقق منه خلال المرحلة التجريبية.",
+  "organizationVerificationRequired": "حقل مطلوب.",
+  "sessionControlRoomTitle": "غرفة تحكم Session",
+  "sessionSectionLive": "مباشر",
+  "sessionSectionQuestions": "الأسئلة",
+  "sessionSectionAccess": "الوصول",
+  "sessionSectionSettings": "الإعدادات",
+  "sessionStageAction": "فتح Stage",
+  "sessionAccessPassesTitle": "Access Passes للمشاركين",
+  "sessionAccessPassesSubtitle": "يفتح كل pass هذه Controlled Anonymous Session دون الحاجة إلى كتابة بيانات الاعتماد الطويلة. لا تخزن Social Vote الـ pass بالنص الصريح.",
+  "sessionAccessPass": "Access Pass",
+  "sessionAccessPassDetected": "تم اكتشاف Access Pass",
+  "sessionAccessPassAutomatic": "الـ pass الشخصي جاهز. تابع للدخول إلى Session بشكل مجهول.",
+  "sessionAccessPassFallback": "أدخل pass يدويًا",
+  "sessionAccessPassInvalid": "هذا الـ Access Pass غير صالح أو لم يعد متاحًا أو أن Session غير مفتوحة.",
+  "sessionAccessPassPrintWarning": "اطبع أو احفظ أو وزع هذه الـ passes الآن. بعد مغادرة هذه الشاشة لن تتمكن Social Vote من إظهارها بالنص الصريح مجددًا.",
+  "sessionExistingPassesHidden": "لأسباب أمنية لا يمكن إظهار الـ passes السابقة بالنص الصريح مرة أخرى. أنشئ Access Passes جديدة للحصول على روابط شخصية أو رموز QR جديدة.",
+  "sessionCopyPassLinks": "نسخ كل الروابط",
+  "sessionCopyPassLink": "نسخ هذا الرابط",
+  "sessionControlledNeedsAccessPass": "قبل فتح Session متحكم بها، أنشئ Access Pass واحدًا على الأقل.",
+  "sessionJoinedParticipants": "بيانات اعتماد الوصول المنضمة",
+  "sessionAccessesUsed": "عمليات الوصول التي صوّتت",
+  "sessionBallotsRecorded": "اقتراعات مسجلة",
+  "sessionQuestionsCompleted": "أسئلة مكتملة",
+  "sessionCurrentQuestion": "السؤال الحالي",
+  "sessionNoOpenQuestionTitle": "لا يوجد سؤال مفتوح",
+  "sessionNoOpenQuestionBody": "المشاركون متصلون وينتظرون. افتح السؤال التالي عندما تكون جاهزًا.",
+  "sessionNotStartedTitle": "Session لم تبدأ بعد",
+  "sessionNotStartedBody": "هذه الـ Session موجودة لكنها غير مفتوحة بعد. أبقِ هذه الصفحة مفتوحة وانتظر أن يبدأها المنظم.",
+  "sessionNoAccountRequired": "لا يلزم حساب Social Vote",
+  "sessionReceiptDetails": "تفاصيل الإيصال",
+  "sessionOpenAccessInstructions": "اعرض أو شارك رمز QR هذا. يمكن لأي شخص لديه الرابط الدخول أثناء فتح Session.",
+  "sessionControlledAccessInstructions": "أنشئ passes وصول شخصية وامنح كل مشارك واحدًا. يحتوي QR في كل pass على بيانات الاعتماد تلقائيًا.",
+  "sessionControlRoomHint": "أدر الوصول والأسئلة وStage المعروض وVerified Result النهائي من مكان واحد.",
+  "sessionPresenterScreenTitle": "Live Stage",
+  "sessionStageWaiting": "بانتظار السؤال التالي",
+  "sessionStageScan": "امسح للانضمام إلى Session",
+  "sessionConfigurationTitle": "إعداد Session",
+  "sessionAccessRecommended": "موصى به للاجتماعات المتحكم بها",
+  "sessionCreateIntroTitle": "إعداد الاجتماع",
+  "sessionCreateIntroBody": "اختر طريقة دخول المشاركين ووقت ظهور النتائج ومدة الاحتفاظ بالاقتراعات الخام. يتم فرض هذه الإعدادات بواسطة الخلفية.",
+  "verifiedCertificateNumber": "رقم الشهادة",
+  "verifiedCertificateStatus": "حالة النزاهة",
+  "verifiedCertificateIntegrityVerified": "تم التحقق من النزاهة",
+  "verifiedCertificateIntegrityFailed": "فشل فحص النزاهة",
+  "verifiedCertificateOrganizationSection": "المنظمة",
+  "verifiedCertificateSessionSection": "Session",
+  "verifiedCertificateParticipationSection": "المشاركة",
+  "verifiedCertificateResultsSection": "نتائج موثقة",
+  "verifiedCertificateIntegritySection": "نزاهة النتيجة",
+  "verifiedCertificateLegalName": "الاسم القانوني",
+  "verifiedCertificateOrganizationType": "نوع المنظمة",
+  "verifiedCertificateLocation": "الموقع",
+  "verifiedCertificateWebsite": "الموقع الإلكتروني",
+  "verifiedCertificateVerification": "التوثيق",
+  "verifiedCertificateIssuedAt": "تاريخ إصدار الشهادة",
+  "verifiedCertificateAlgorithm": "خوارزمية النزاهة",
+  "verifiedCertificateSchema": "مخطط التقرير",
+  "verifiedCertificateJoinedCredentials": "بيانات الاعتماد المنضمة",
+  "verifiedCertificateBallotsTotal": "اقتراعات مسجلة",
+  "verifiedCertificateQuestionsTotal": "الأسئلة",
+  "verifiedCertificatePrivacyModel": "نموذج نتيجة مجهولة",
+  "verifiedCertificatePrivacyText": "تحتوي اللقطة غير القابلة للتغيير على نتائج مجمعة فقط. ولا تحتوي على هوية مشارك أو Access Pass بالنص الصريح أو سر مشارك أو أي ربط بين بيانات اعتماد مشارك واختيار اقتراع.",
+  "verifiedCertificateVerifyQr": "امسح رمز QR هذا للتحقق من التقرير عبر الإنترنت.",
+  "organizationDashboardTitle": "نظرة عامة على المنظمة",
+  "organizationActiveSessions": "Sessions مباشرة",
+  "organizationVerifiedReports": "تقارير موثقة",
+  "organizationTotalSessions": "إجمالي Sessions",
+  "sessionPrivacyPolicyAction": "قراءة سياسة الخصوصية",
+  "@sessionPrivacyPolicyAction": {
+    "description": "Participant Session link to the full Privacy Policy"
+  },
+  "radioMondoTitle": "Radio Mondo",
+  "radioMondoDescription": "ثلاثة مشاهد صوتية أصلية لاستكشاف Social Vote. يبدأ التشغيل فقط عندما تختار مقطعًا.",
+  "radioMondoTrackClassical": "مدار كلاسيكي",
+  "radioMondoTrackRain": "مطر فوق العالم",
+  "radioMondoTrackYoung": "Pulse شبابي",
+  "radioMondoPlaying": "يتم التشغيل الآن",
+  "radioMondoStopped": "تم إيقاف Radio Mondo",
+  "radioMondoStopAction": "إيقاف",
+  "radioMondoPlaybackError": "تعذر تشغيل الصوت",
+  "radioMondoForegroundOnly": "يتوقف التشغيل عند إغلاق Social Vote أو إرساله إلى الخلفية أو إخفاء تبويب المتصفح.",
+  "adminCenterEditorialNavigation": "World Briefs",
+  "worldBriefEditorTitle": "Social Vote World Briefs",
+  "worldBriefEditorDescription": "أعد موجزات قائمة على الأدلة، وأبقِ عدم اليقين ظاهرًا، وحدد ما يظهر في News وعلى Globe.",
+  "worldBriefAllStatuses": "كل الحالات",
+  "worldBriefCreateAction": "إنشاء موجز",
+  "worldBriefDraftSaved": "تم حفظ المسودة",
+  "worldBriefPublished": "تم نشر الموجز",
+  "worldBriefWithdrawn": "تم سحب الموجز",
+  "worldBriefSaveError": "تعذر حفظ الموجز",
+  "worldBriefPublishError": "تعذر نشر الموجز",
+  "worldBriefDraftDeleted": "تم حذف المسودة",
+  "worldBriefDeleteDraft": "حذف المسودة",
+  "worldBriefDeleteDraftConfirm": "حذف هذه المسودة غير المنشورة نهائيًا؟",
+  "worldBriefRetry": "حاول مرة أخرى",
+  "worldBriefStatusDraft": "مسودة",
+  "worldBriefStatusPublished": "منشور",
+  "worldBriefStatusWithdrawn": "مسحوب",
+  "worldBriefSetupRequired": "الخلفية التحريرية غير جاهزة",
+  "worldBriefSetupRequiredBody": "طبّق ترحيل قاعدة بيانات World Brief المرفق قبل استخدام هذا القسم.",
+  "worldBriefEmptyTitle": "لا توجد World Briefs بعد",
+  "worldBriefEmptyBody": "أنشئ مسودة ووثّق مصدرين على الأقل وانشر فقط بعد المراجعة التحريرية.",
+  "worldBriefFeatured": "مميز",
+  "worldBriefOnGlobe": "إظهار على Globe",
+  "worldBriefPriority": "الأولوية",
+  "worldBriefEditAction": "تعديل",
+  "worldBriefPublishAction": "نشر",
+  "worldBriefWithdrawAction": "سحب",
+  "worldBriefSaveDraftAction": "حفظ المسودة",
+  "worldBriefLanguage": "لغة الموجز",
+  "worldBriefTitleField": "العنوان",
+  "worldBriefWhatHappened": "ما الذي حدث",
+  "worldBriefWhyItMatters": "لماذا هذا مهم",
+  "worldBriefWhatIsUncertain": "ما الذي لا يزال غير مؤكد",
+  "worldBriefSources": "روابط المصادر",
+  "worldBriefSourcesHint": "رابط HTTPS واحد في كل سطر؛ مصدران مستقلان على الأقل.",
+  "worldBriefTwoSourcesRequired": "أضف مصدرين على الأقل.",
+  "worldBriefHttpsSourcesRequired": "يجب أن يستخدم كل مصدر HTTPS.",
+  "worldBriefGlobeSection": "الموضع على Globe",
+  "worldBriefGlobeRequiresPoint": "يتطلب الظهور على Globe خط عرض وخط طول صالحين.",
+  "worldBriefCountryCode": "رمز البلد",
+  "worldBriefCityId": "معرّف المدينة",
+  "worldBriefLocationLabel": "تسمية الموقع",
+  "worldBriefLatitude": "خط العرض",
+  "worldBriefLongitude": "خط الطول",
+  "worldBriefBreaking": "تحديث عاجل",
+  "worldBriefExpiry": "فترة المراجعة أو الانتهاء",
+  "worldBriefExpiryDays": "{days, plural, =1{يوم واحد} other{{days} أيام}}",
+  "@worldBriefExpiryDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "worldBriefRequiredField": "هذا الحقل مطلوب.",
+  "worldBriefCoordinatesRequired": "أدخل إحداثيًا صالحًا.",
+  "profileHowItWorksTitle": "كيف تعمل Social Vote",
+  "profileHowItWorksSubtitle": "الأشخاص والمنظمات وVoce وVote وSessions والتوثيق.",
+  "profileMyPostsLoginRequired": "يجب تسجيل الدخول لعرض Voce الخاصة بك.",
+  "profileMyPostsCreatedByYou": "Voce أنشأتها أنت",
+  "profileMyPostsEmpty": "لم تنشئ أي Voce بعد.",
+  "profileMyPollsLoginRequired": "يجب تسجيل الدخول لعرض Vote الخاصة بك.",
+  "profileMyPollsCreatedByYou": "Vote أنشأتها أنت",
+  "profileMyPollsEmpty": "لم تنشئ أي Vote بعد.",
+  "profileMyCommentsLoginRequired": "يجب تسجيل الدخول لعرض تعليقاتك.",
+  "profileMyCommentsEmpty": "لم تكتب أي تعليقات بعد.",
+  "profileFollowedScopesLoginRequired": "يجب تسجيل الدخول.",
+  "profileFollowedScopesEmpty": "أنت لا تتابع أي مناطق بعد.",
+  "profileFollowedScopeWorld": "العالم",
+  "profileFollowedScopeCountry": "البلد: {code}",
+  "@profileFollowedScopeCountry": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeCity": "المدينة: {city}",
+  "@profileFollowedScopeCity": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeArea": "منطقة ({radius} كم)",
+  "@profileFollowedScopeArea": {
+    "placeholders": {
+      "radius": {
+        "type": "double"
+      }
+    }
+  },
+  "publicProfilePollsLoadError": "تعذر تحميل Vote العامة.",
+  "publicProfilePollsEmpty": "لا توجد Vote عامة.",
+  "publicProfilePostsLoadError": "تعذر تحميل Voce العامة.",
+  "publicProfilePostsEmpty": "لا توجد Voce عامة.",
+  "worldBriefSocialVoteView": "وجهة نظر Social Vote",
+  "worldBriefSocialVoteViewHint": "تحليل أو وجهة نظر تحريرية لـ Social Vote. أبقها منفصلة عن الوقائع المبلغ عنها وعدم اليقين.",
+  "worldBriefSocialVoteViewPublicNote": "تحليل تحريري من Social Vote منفصل بوضوح عن الوقائع المذكورة أعلاه.",
+  "worldBriefIndependentSourcesRequired": "يتطلب النشر مصدرين HTTPS على الأقل من نطاقات مختلفة.",
+  "worldBriefPublishConfirmTitle": "فحص نهائي قبل النشر",
+  "worldBriefPublishConfirmSources": "{count, plural, =1{تم إدخال مصدر واحد} other{تم إدخال {count} مصادر}}",
+  "@worldBriefPublishConfirmSources": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldBriefEnterpriseEditorTitle": "محرر تحريري احترافي",
+  "worldBriefEnterpriseEditorHelp": "ابنِ الموجز قسمًا بعد قسم. تتولى Social Vote الموضع التقني على Globe تلقائيًا: اختر بلدًا ومدينة، لا إحداثيات.",
+  "worldBriefEditorialContentSection": "المحتوى التحريري",
+  "worldBriefEditorialContentHelp": "افصل الوقائع والأهمية وعدم اليقين ووجهة نظر Social Vote. هذا يجعل الموجز أسهل في التحقق والقراءة.",
+  "worldBriefSourcesSection": "المصادر والتحقق",
+  "worldBriefSourcesSectionHelp": "أضف مصادر HTTPS قابلة للتحقق. يتطلب النشر نطاقين مستقلين على الأقل.",
+  "worldBriefDistributionSection": "التوزيع",
+  "worldBriefDistributionHelp": "اختر أين يظهر الموجز. النشر يجعله متاحًا في News؛ والموضع على Globe اختياري.",
+  "worldBriefNewsDestination": "النشر في Social Vote News",
+  "worldBriefNewsDestinationHelp": "هذه هي الوجهة الرئيسية لـ World Brief بعد نشره.",
+  "worldBriefGlobeAutomaticHelp": "يضيف علامة على Globe. اختر المكان وستحدد Social Vote الموضع تلقائيًا.",
+  "worldBriefPlacementMode": "موضع العلامة",
+  "worldBriefPlacementCity": "مدينة / مكان",
+  "worldBriefPlacementCountry": "مركز البلد",
+  "worldBriefCountry": "البلد",
+  "worldBriefCity": "مدينة أو مكان",
+  "worldBriefCityHelp": "مثال: طهران. لا تدخل خط العرض أو خط الطول.",
+  "worldBriefResolveLocation": "تحديد الموقع",
+  "worldBriefCoordinatesAutomatic": "تتم إدارة الإحداثيات تلقائيًا ولا ينبغي إدخالها يدويًا.",
+  "worldBriefLocationResolved": "الموقع جاهز: {location}",
+  "worldBriefChooseCountryFirst": "اختر بلدًا أولًا.",
+  "worldBriefChooseCityFirst": "أدخل مدينة أو مكانًا أولًا.",
+  "worldBriefLocationNotResolved": "تعذر تحديد موقع موثوق. تحقق من البلد والمدينة وحاول مرة أخرى.",
+  "worldBriefVisibilitySection": "الظهور والأولوية",
+  "worldBriefVisibilityHelp": "تحكم في البروز التحريري والاستعجال والترتيب والعمر دون تغيير الوقائع المبلغ عنها.",
+  "worldBriefFeaturedHelp": "امنح الموجز بروزًا أكبر على الأسطح التحريرية.",
+  "worldBriefBreakingHelp": "استخدم فقط للأحداث العاجلة فعلًا أو سريعة التطور.",
+  "worldBriefPriorityHelp": "0 = أولوية عادية/منخفضة؛ 100 = أعلى أولوية تحريرية. لا يغير ذلك حالة صدق المحتوى.",
+  "worldBriefExpiryHelp": "بعد هذه الفترة يجب ألا يبقى الموجز نشطًا دون مراجعة تحريرية جديدة.",
+  "@worldBriefLocationResolved": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "profileAppLanguageSpanish": "الإسبانية",
+  "profileAppLanguagePortuguese": "البرتغالية",
+  "homeHeroPurpose": "اكتشف ما يهم، وشارك Voce الخاصة بك وشارك في Vote.",
+  "commentSection_hideComments": "إخفاء التعليقات",
+  "commentSection_viewComments": "عرض التعليقات",
+  "commentSection_hideReplies": "إخفاء الردود",
+  "commentSection_editing": "جارٍ التعديل: {snippet}",
+  "@commentSection_editing": {
+    "placeholders": {
+      "snippet": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_editInputHint": "عدّل تعليقك",
+  "commentSection_replyTo": "الرد على {author}",
+  "@commentSection_replyTo": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_userFallback": "مستخدم",
+  "commentSection_addError": "تعذر إضافة التعليق.",
+  "commentSection_nestedReplyError": "الردود المتداخلة لأكثر من مستوى واحد غير مدعومة.",
+  "commentSection_addReplyError": "تعذر إضافة الرد.",
+  "commentSection_editError": "تعذر تعديل التعليق.",
+  "commentSection_deleteError": "تعذر حذف التعليق.",
+  "commentSection_edited": "تم التعديل",
+  "commentSection_editAction": "تعديل"
+}

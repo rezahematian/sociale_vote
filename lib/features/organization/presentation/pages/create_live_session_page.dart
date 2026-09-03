@@ -4,6 +4,7 @@ import 'package:sociale_vote/domain/organization/entities/live_session_models.da
 import 'package:sociale_vote/domain/organization/repositories/organization_repository.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 
 class CreateLiveSessionPage extends StatefulWidget {
   final OrganizationRepository repository;
@@ -27,7 +28,20 @@ class _CreateLiveSessionPageState extends State<CreateLiveSessionPage> {
   bool _saving = false;
 
   @override
+  void initState() {
+    super.initState();
+    _title.addListener(_refreshEditableDirection);
+  }
+
+  void _refreshEditableDirection() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
   void dispose() {
+    _title.removeListener(_refreshEditableDirection);
     _title.dispose();
     _expected.dispose();
     super.dispose();
@@ -117,6 +131,14 @@ class _CreateLiveSessionPageState extends State<CreateLiveSessionPage> {
                   children: [
                     TextField(
                       controller: _title,
+                      textDirection: socialVoteEditableTextDirection(
+                        context,
+                        _title.text,
+                      ),
+                      textAlign: socialVoteEditableTextAlign(
+                        context,
+                        _title.text,
+                      ),
                       maxLength: 180,
                       decoration: InputDecoration(
                         labelText: l10n.sessionTitleLabel,
@@ -126,6 +148,8 @@ class _CreateLiveSessionPageState extends State<CreateLiveSessionPage> {
                     const SizedBox(height: 6),
                     TextField(
                       controller: _expected,
+                      textDirection: TextDirection.ltr,
+                      textAlign: TextAlign.left,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                         labelText: l10n.sessionExpectedParticipants,

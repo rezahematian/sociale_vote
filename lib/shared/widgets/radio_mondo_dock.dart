@@ -17,7 +17,7 @@ class RadioMondoDock extends StatelessWidget {
 
   const RadioMondoDock({
     super.key,
-    this.visualStyle = RadioVisualStyle.vintageClassic,
+    this.visualStyle = RadioVisualStyle.oldStyle,
     this.size = 44,
   });
 

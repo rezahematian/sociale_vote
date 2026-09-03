@@ -1268,7 +1268,7 @@ class SocialVoteGlobeElement extends HTMLElement {
 
     const style = typeof this._appearance.visualStyle === 'string'
       ? this._appearance.visualStyle
-      : 'classic';
+      : 'bright';
 
     const material = this._earth.material;
     const atmosphereUniforms = this._atmosphere?.material?.uniforms;
@@ -1303,13 +1303,16 @@ class SocialVoteGlobeElement extends HTMLElement {
       atmosphereStrength = 0.12;
       showNightLights = false;
     } else if (style === 'techNeon') {
-      color = 0xaab4ff;
-      emissive = 0x362060;
-      emissiveIntensity = 0.38;
-      shininess = 2.0;
-      specular = 0x714cff;
-      atmosphereColor = 0xb34dff;
-      atmosphereStrength = 0.34;
+      // Keep the tech identity without turning the whole Earth into a dark
+      // purple silhouette. Geography remains readable and distinct from the
+      // dedicated Night Lights preset.
+      color = 0xd9deff;
+      emissive = 0x6258b8;
+      emissiveIntensity = 0.50;
+      shininess = 1.35;
+      specular = 0x806dff;
+      atmosphereColor = 0x9b7cff;
+      atmosphereStrength = 0.22;
     } else if (style === 'minimalDay') {
       color = 0xf2f5e8;
       emissive = 0xffffff;

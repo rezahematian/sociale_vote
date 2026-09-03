@@ -31,6 +31,7 @@ import 'package:sociale_vote/features/profile/presentation/pages/world_appearanc
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/services/biometric_unlock_service.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 
 String _worldAppearanceSettingsTitle(BuildContext context) {
@@ -38,6 +39,11 @@ String _worldAppearanceSettingsTitle(BuildContext context) {
     'it' => 'Aspetto del mondo',
     'de' => 'Welt-Darstellung',
     'fa' => 'ظاهر جهان',
+    'es' => 'Apariencia del mundo',
+    'pt' => 'Aparência do mundo',
+    'fr' => 'Apparence du monde',
+    'ar' => 'مظهر العالم',
+    'ro' => 'Aspectul lumii',
     _ => 'World appearance',
   };
 }
@@ -47,6 +53,11 @@ String _worldAppearanceSettingsSubtitle(BuildContext context) {
     'it' => 'Globe, Radio Mondo e controllo rotazione',
     'de' => 'Globe, Radio Mondo und Rotationssteuerung',
     'fa' => 'Globe، Radio Mondo و کنترل چرخش',
+    'es' => 'Globe, Radio Mondo y control de rotación',
+    'pt' => 'Globe, Radio Mondo e controle de rotação',
+    'fr' => 'Globe, Radio Mondo et contrôle de rotation',
+    'ar' => 'Globe وRadio Mondo والتحكم في الدوران',
+    'ro' => 'Globe, Radio Mondo și controlul rotației',
     _ => 'Globe, Radio Mondo and rotation control',
   };
 }
@@ -203,6 +214,12 @@ class _MyProfileViewState extends State<_MyProfileView> {
         'Der Workspace-Zugriff kann gerade nicht geprüft werden. Tippe zum Wiederholen.',
       'fa' =>
         'در حال حاضر امکان بررسی دسترسی Workspace نیست. برای تلاش دوباره ضربه بزنید.',
+      'fr' =>
+        'Impossible de vérifier l’accès au Workspace pour le moment. Touchez pour réessayer.',
+      'ar' =>
+        'يتعذر التحقق من صلاحية الوصول إلى Workspace الآن. اضغط لإعادة المحاولة.',
+      'ro' =>
+        'Accesul la Workspace nu poate fi verificat acum. Atinge pentru a încerca din nou.',
       _ => 'Workspace access cannot be checked right now. Tap to try again.',
     };
   }
@@ -406,6 +423,12 @@ class _MyProfileViewState extends State<_MyProfileView> {
                     switch (Localizations.localeOf(sheetContext).languageCode) {
                       'it' => 'Scuro + cielo scientifico',
                       'de' => 'Dunkel + wissenschaftlicher Himmel',
+                      'fa' => 'تیره + آسمان علمی',
+                      'es' => 'Oscuro + cielo científico',
+                      'pt' => 'Escuro + céu científico',
+                      'fr' => 'Sombre + ciel scientifique',
+                      'ar' => 'داكن + سماء علمية',
+                      'ro' => 'Întunecat + cer științific',
                       _ => 'Dark + Scientific Sky',
                     },
                   ),
@@ -430,52 +453,141 @@ class _MyProfileViewState extends State<_MyProfileView> {
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (sheetContext) {
-        return SafeArea(
-          child: RadioGroup<String>(
-            groupValue: currentLanguageCode,
-            onChanged: (value) {
-              if (value == null) return;
+        final theme = Theme.of(sheetContext);
+        final maxHeight = MediaQuery.sizeOf(sheetContext).height * 0.82;
 
-              final locale = switch (value) {
-                'it' => const Locale('it'),
-                'en' => const Locale('en'),
-                'de' => const Locale('de'),
-                'fa' => const Locale('fa'),
-                _ => null,
-              };
+        Widget languageTile({
+          required String value,
+          required String label,
+          required String code,
+          TextDirection textDirection = TextDirection.ltr,
+          String? subtitle,
+        }) {
+          return RadioListTile<String>(
+            value: value,
+            controlAffinity: ListTileControlAffinity.leading,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+            title: SizedBox(
+              width: double.infinity,
+              child: Text(
+                label,
+                textDirection: textDirection,
+                textAlign: TextAlign.left,
+              ),
+            ),
+            subtitle: subtitle == null
+                ? null
+                : Text(
+                    subtitle,
+                    textDirection: TextDirection.ltr,
+                    textAlign: TextAlign.left,
+                  ),
+            secondary: SizedBox(
+              width: 44,
+              child: Text(
+                code,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          );
+        }
 
-              unawaited(AppLocaleController.setLocale(locale));
-              Navigator.of(sheetContext).pop();
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                RadioListTile<String>(
-                  value: 'system',
-                  title: Text(l10n.profileAppLanguageSystem),
-                  subtitle: Text(
-                    l10n.profileAppLanguageSystemDescription,
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: SafeArea(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: maxHeight),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: RadioGroup<String>(
+                  groupValue: currentLanguageCode,
+                  onChanged: (value) {
+                    if (value == null) return;
+
+                    final locale = switch (value) {
+                      'it' => const Locale('it'),
+                      'en' => const Locale('en'),
+                      'de' => const Locale('de'),
+                      'fa' => const Locale('fa'),
+                      'es' => const Locale('es'),
+                      'pt' => const Locale('pt'),
+                      'fr' => const Locale('fr'),
+                      'ar' => const Locale('ar'),
+                      'ro' => const Locale('ro'),
+                      _ => null,
+                    };
+
+                    unawaited(AppLocaleController.setLocale(locale));
+                    Navigator.of(sheetContext).pop();
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      languageTile(
+                        value: 'system',
+                        label: l10n.profileAppLanguageSystem,
+                        code: 'AUTO',
+                        subtitle: l10n.profileAppLanguageSystemDescription,
+                      ),
+                      const Divider(height: 1),
+                      languageTile(
+                        value: 'it',
+                        label: 'Italiano',
+                        code: 'IT',
+                      ),
+                      languageTile(
+                        value: 'en',
+                        label: 'English',
+                        code: 'EN',
+                      ),
+                      languageTile(
+                        value: 'de',
+                        label: 'Deutsch',
+                        code: 'DE',
+                      ),
+                      languageTile(
+                        value: 'fa',
+                        label: 'فارسی',
+                        code: 'FA',
+                        textDirection: TextDirection.rtl,
+                      ),
+                      languageTile(
+                        value: 'es',
+                        label: 'Español',
+                        code: 'ES',
+                      ),
+                      languageTile(
+                        value: 'pt',
+                        label: 'Português',
+                        code: 'PT',
+                      ),
+                      languageTile(
+                        value: 'fr',
+                        label: 'Français',
+                        code: 'FR',
+                      ),
+                      languageTile(
+                        value: 'ar',
+                        label: 'العربية',
+                        code: 'AR',
+                        textDirection: TextDirection.rtl,
+                      ),
+                      languageTile(
+                        value: 'ro',
+                        label: 'Română',
+                        code: 'RO',
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                   ),
                 ),
-                RadioListTile<String>(
-                  value: 'it',
-                  title: Text(l10n.profileAppLanguageItalian),
-                ),
-                RadioListTile<String>(
-                  value: 'en',
-                  title: Text(l10n.profileAppLanguageEnglish),
-                ),
-                RadioListTile<String>(
-                  value: 'de',
-                  title: Text(l10n.profileAppLanguageGerman),
-                ),
-                RadioListTile<String>(
-                  value: 'fa',
-                  title: Text(l10n.profileAppLanguagePersian),
-                ),
-                const SizedBox(height: 8),
-              ],
+              ),
             ),
           ),
         );
@@ -1413,8 +1525,16 @@ class _MyProfileViewState extends State<_MyProfileView> {
                   margin: EdgeInsets.zero,
                   child: ListTile(
                     leading: const Icon(Icons.help_outline_rounded),
-                    title: Text(l10n.profileHowItWorksTitle),
-                    subtitle: Text(l10n.profileHowItWorksSubtitle),
+                    title: Text(
+                      l10n.profileHowItWorksTitle,
+                      textDirection: socialVoteLocaleTextDirection(context),
+                      textAlign: socialVoteLocaleTextAlign(context),
+                    ),
+                    subtitle: Text(
+                      l10n.profileHowItWorksSubtitle,
+                      textDirection: socialVoteLocaleTextDirection(context),
+                      textAlign: socialVoteLocaleTextAlign(context),
+                    ),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () =>
                         Navigator.of(context).pushNamed(AppRouter.howItWorks),
@@ -1997,6 +2117,16 @@ class _MyProfileViewState extends State<_MyProfileView> {
         return l10n.profileAppLanguageGerman;
       case 'fa':
         return l10n.profileAppLanguagePersian;
+      case 'es':
+        return l10n.profileAppLanguageSpanish;
+      case 'pt':
+        return l10n.profileAppLanguagePortuguese;
+      case 'fr':
+        return 'Français';
+      case 'ar':
+        return 'العربية';
+      case 'ro':
+        return 'Română';
       default:
         return l10n.profileAppLanguageSystem;
     }
@@ -2038,11 +2168,16 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsetsDirectional.only(start: 4, bottom: 8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+      child: SizedBox(
+        width: double.infinity,
+        child: Text(
+          title,
+          textDirection: socialVoteLocaleTextDirection(context),
+          textAlign: socialVoteLocaleTextAlign(context),
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+        ),
       ),
     );
   }

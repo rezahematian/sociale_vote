@@ -4041,4 +4041,59 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get worldBriefExpiryHelp => 'Nach diesem Zeitraum sollte der Brief ohne erneute redaktionelle Prüfung nicht aktiv bleiben.';
+
+  @override
+  String get profileAppLanguageSpanish => 'Spanisch';
+
+  @override
+  String get profileAppLanguagePortuguese => 'Portugiesisch';
+
+  @override
+  String get homeHeroPurpose => 'Entdecke, was zählt, teile deine Voce und nimm an Vote teil.';
+
+  @override
+  String get commentSection_hideComments => 'Kommentare ausblenden';
+
+  @override
+  String get commentSection_viewComments => 'Kommentare anzeigen';
+
+  @override
+  String get commentSection_hideReplies => 'Antworten ausblenden';
+
+  @override
+  String commentSection_editing(String snippet) {
+    return 'Wird bearbeitet: $snippet';
+  }
+
+  @override
+  String get commentSection_editInputHint => 'Kommentar bearbeiten';
+
+  @override
+  String commentSection_replyTo(String author) {
+    return 'Antwort an $author';
+  }
+
+  @override
+  String get commentSection_userFallback => 'Benutzer';
+
+  @override
+  String get commentSection_addError => 'Der Kommentar konnte nicht hinzugefügt werden.';
+
+  @override
+  String get commentSection_nestedReplyError => 'Verschachtelte Antworten über eine Ebene hinaus werden nicht unterstützt.';
+
+  @override
+  String get commentSection_addReplyError => 'Die Antwort konnte nicht hinzugefügt werden.';
+
+  @override
+  String get commentSection_editError => 'Der Kommentar konnte nicht bearbeitet werden.';
+
+  @override
+  String get commentSection_deleteError => 'Der Kommentar konnte nicht gelöscht werden.';
+
+  @override
+  String get commentSection_edited => 'Bearbeitet';
+
+  @override
+  String get commentSection_editAction => 'Bearbeiten';
 }

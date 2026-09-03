@@ -4041,4 +4041,59 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get worldBriefExpiryHelp => 'Dopo questa finestra il brief non deve restare attivo senza una nuova revisione.';
+
+  @override
+  String get profileAppLanguageSpanish => 'Spagnolo';
+
+  @override
+  String get profileAppLanguagePortuguese => 'Portoghese';
+
+  @override
+  String get homeHeroPurpose => 'Scopri cosa conta, esprimi la tua Voce e partecipa ai Vote.';
+
+  @override
+  String get commentSection_hideComments => 'Chiudi commenti';
+
+  @override
+  String get commentSection_viewComments => 'Visualizza commenti';
+
+  @override
+  String get commentSection_hideReplies => 'Nascondi risposte';
+
+  @override
+  String commentSection_editing(String snippet) {
+    return 'Stai modificando: $snippet';
+  }
+
+  @override
+  String get commentSection_editInputHint => 'Modifica il tuo commento';
+
+  @override
+  String commentSection_replyTo(String author) {
+    return 'Rispondi a $author';
+  }
+
+  @override
+  String get commentSection_userFallback => 'Utente';
+
+  @override
+  String get commentSection_addError => 'Impossibile aggiungere il commento.';
+
+  @override
+  String get commentSection_nestedReplyError => 'Le risposte nidificate oltre un livello non sono supportate.';
+
+  @override
+  String get commentSection_addReplyError => 'Impossibile aggiungere la risposta.';
+
+  @override
+  String get commentSection_editError => 'Impossibile modificare il commento.';
+
+  @override
+  String get commentSection_deleteError => 'Impossibile eliminare il commento.';
+
+  @override
+  String get commentSection_edited => 'Modificato';
+
+  @override
+  String get commentSection_editAction => 'Modifica';
 }

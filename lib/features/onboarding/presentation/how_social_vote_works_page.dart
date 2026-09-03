@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class HowSocialVoteWorksPage extends StatelessWidget {
   const HowSocialVoteWorksPage({super.key});
@@ -14,8 +15,7 @@ class HowSocialVoteWorksPage extends StatelessWidget {
   }) {
     final language = Localizations.localeOf(context).languageCode.toLowerCase();
     if (language == 'it') return it;
-    if (language == 'de') return de;
-    return en;
+    return deOrEnglish(context, english: en, german: de);
   }
 
   void _goHome(BuildContext context) {

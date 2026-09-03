@@ -9,6 +9,7 @@ import 'package:sociale_vote/domain/organization/entities/organization_models.da
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
 import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class CreatePostPage extends StatefulWidget {
@@ -44,7 +45,16 @@ class _CreatePostPageState extends State<CreatePostPage> {
   @override
   void initState() {
     super.initState();
+    _titleController.addListener(_refreshEditableDirection);
+    _contentController.addListener(_refreshEditableDirection);
+    _cityController.addListener(_refreshEditableDirection);
     _loadOrganizationPublishing();
+  }
+
+  void _refreshEditableDirection() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _loadOrganizationPublishing() async {
@@ -74,6 +84,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
   @override
   void dispose() {
+    _titleController.removeListener(_refreshEditableDirection);
+    _contentController.removeListener(_refreshEditableDirection);
+    _cityController.removeListener(_refreshEditableDirection);
     _titleController.dispose();
     _contentController.dispose();
     _cityController.dispose();
@@ -544,6 +557,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 ],
                 TextFormField(
                   controller: _titleController,
+                  textDirection: socialVoteEditableTextDirection(
+                    context,
+                    _titleController.text,
+                  ),
+                  textAlign: socialVoteEditableTextAlign(
+                    context,
+                    _titleController.text,
+                  ),
                   decoration: InputDecoration(
                     labelText: _isItalian
                         ? 'Titolo'
@@ -566,6 +587,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _contentController,
+                  textDirection: socialVoteEditableTextDirection(
+                    context,
+                    _contentController.text,
+                  ),
+                  textAlign: socialVoteEditableTextAlign(
+                    context,
+                    _contentController.text,
+                  ),
                   decoration: InputDecoration(
                     labelText: _isItalian
                         ? 'Contenuto'
@@ -802,6 +831,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
                           const SizedBox(height: 12),
                           TextField(
                             controller: _cityController,
+                            textDirection: socialVoteEditableTextDirection(
+                              context,
+                              _cityController.text,
+                            ),
+                            textAlign: socialVoteEditableTextAlign(
+                              context,
+                              _cityController.text,
+                            ),
                             decoration: InputDecoration(
                               labelText: _isItalian
                                   ? 'Città del contenuto'

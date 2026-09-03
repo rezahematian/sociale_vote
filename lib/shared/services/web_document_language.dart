@@ -1,0 +1,2 @@
+export 'web_document_language_stub.dart'
+    if (dart.library.js_interop) 'web_document_language_web.dart';

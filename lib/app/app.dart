@@ -15,6 +15,7 @@ import 'package:sociale_vote/shared/services/navigation_service.dart';
 import 'package:sociale_vote/shared/services/egress_policy_service.dart';
 import 'package:sociale_vote/shared/services/radio_mondo_service.dart';
 import 'package:sociale_vote/shared/services/social_vote_hud_service.dart';
+import 'package:sociale_vote/shared/services/web_document_language.dart';
 
 enum AppAppearanceMode {
   light,
@@ -159,22 +160,48 @@ class AppThemeModeController {
 class AppLocaleController {
   AppLocaleController._();
 
-  static const String _localePreferenceKey = 'app_locale_preference';
+  static const String _legacyLocalePreferenceKey = 'app_locale_preference';
+  static const String _localePreferenceKeyPrefix = 'app_locale_preference_v2';
+  static const Set<String> _supportedLanguageCodes = <String>{
+    'it',
+    'en',
+    'de',
+    'fa',
+    'es',
+    'pt',
+    'fr',
+    'ar',
+    'ro',
+  };
 
   static final ValueNotifier<Locale?> locale = ValueNotifier<Locale?>(null);
 
-  static bool _isLoaded = false;
+  static String? _activeUserId;
+  static int _loadRequestId = 0;
 
-  /// Mantiene IT/EN/DE/FA e usa esplicitamente EN per qualunque altra lingua.
+  static String _preferenceKeyForUser(String userId) {
+    return '$_localePreferenceKeyPrefix:$userId';
+  }
+
+  static String? _normalizedSupportedLanguageCode(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    if (normalized == null || !_supportedLanguageCodes.contains(normalized)) {
+      return null;
+    }
+    return normalized;
+  }
+
+  /// Uses the first supported platform language and otherwise falls back to EN.
   ///
-  /// L'ordine dei file generati non deve decidere il fallback di prodotto.
+  /// `locale == null` in MaterialApp means "System". The app geometry remains
+  /// physical/LTR; Persian and Arabic affect writing direction only on text surfaces.
   static Locale resolveSystemLocale(
     List<Locale>? platformLocales,
     Iterable<Locale> supportedLocales,
   ) {
     final supportedByLanguage = <String, Locale>{
-      for (final locale in supportedLocales)
-        locale.languageCode.toLowerCase(): locale,
+      for (final supportedLocale in supportedLocales)
+        supportedLocale.languageCode.toLowerCase(): supportedLocale,
     };
 
     for (final platformLocale in platformLocales ?? const <Locale>[]) {
@@ -188,54 +215,87 @@ class AppLocaleController {
     return supportedByLanguage['en'] ?? const Locale('en');
   }
 
-  static Future<void> load() async {
-    if (_isLoaded) {
+  /// Locale preference is account-scoped.
+  ///
+  /// Guest always uses System and never inherits a language selected by a
+  /// previously authenticated account. A legacy global preference is migrated
+  /// once to the active authenticated account only.
+  static Future<void> loadForUser(String? userId) async {
+    final requestId = ++_loadRequestId;
+    _activeUserId = userId;
+
+    if (userId == null) {
+      locale.value = null;
       return;
     }
-    _isLoaded = true;
+
+    String? saved;
 
     try {
-      final languageCode = await AppDI.instance.storageService.readString(
-        _localePreferenceKey,
+      saved = await AppDI.instance.storageService.readString(
+        _preferenceKeyForUser(userId),
       );
 
-      final supportedLanguageCode = switch (languageCode) {
-        'it' => 'it',
-        'en' => 'en',
-        'de' => 'de',
-        'fa' => 'fa',
-        _ => null,
-      };
-
-      if (supportedLanguageCode != null) {
-        locale.value = Locale(supportedLanguageCode);
+      if (_normalizedSupportedLanguageCode(saved) == null) {
+        final legacy = await AppDI.instance.storageService.readString(
+          _legacyLocalePreferenceKey,
+        );
+        final migrated = _normalizedSupportedLanguageCode(legacy);
+        if (migrated != null) {
+          saved = migrated;
+          await AppDI.instance.storageService.writeString(
+            _preferenceKeyForUser(userId),
+            migrated,
+          );
+          await AppDI.instance.storageService.remove(
+            _legacyLocalePreferenceKey,
+          );
+        }
       }
     } catch (_) {
-      // Se la preferenza locale non è disponibile, resta attiva la lingua
-      // del dispositivo.
+      saved = null;
     }
-  }
 
-  static Future<void> setLocale(Locale? value) async {
-    if (locale.value == value) {
+    if (requestId != _loadRequestId || _activeUserId != userId) {
       return;
     }
 
-    locale.value = value;
+    final languageCode = _normalizedSupportedLanguageCode(saved);
+    locale.value = languageCode == null ? null : Locale(languageCode);
+  }
+
+  /// Changes the language for the active authenticated account.
+  ///
+  /// `null` means System. Guest can only remain on System, preventing a stale
+  /// authenticated preference from leaking into guest Home.
+  static Future<void> setLocale(Locale? value) async {
+    final normalized = _normalizedSupportedLanguageCode(value?.languageCode);
+    final nextLocale = normalized == null ? null : Locale(normalized);
+    final userId = _activeUserId;
+
+    if (locale.value != nextLocale) {
+      locale.value = nextLocale;
+    }
+
+    if (userId == null) {
+      return;
+    }
 
     try {
-      if (value == null) {
-        await AppDI.instance.storageService.remove(_localePreferenceKey);
+      if (nextLocale == null) {
+        await AppDI.instance.storageService.remove(
+          _preferenceKeyForUser(userId),
+        );
         return;
       }
 
       await AppDI.instance.storageService.writeString(
-        _localePreferenceKey,
-        value.languageCode,
+        _preferenceKeyForUser(userId),
+        nextLocale.languageCode,
       );
     } catch (_) {
-      // Il cambio resta attivo per la sessione corrente anche se il salvataggio
-      // locale non è temporaneamente disponibile.
+      // The selection stays active for the current session even if persistence
+      // is temporarily unavailable.
     }
   }
 }
@@ -250,12 +310,12 @@ class SocialeVoteApp extends StatefulWidget {
 class _SocialeVoteAppState extends State<SocialeVoteApp> {
   StreamSubscription<AuthState>? _authStateSubscription;
   StreamSubscription<String?>? _appearanceUserSubscription;
+  StreamSubscription<String?>? _localeUserSubscription;
   bool _passwordRecoveryOpened = false;
 
   @override
   void initState() {
     super.initState();
-    unawaited(AppLocaleController.load());
     unawaited(EgressPolicyService.instance.initialize());
     unawaited(RadioMondoService.instance.initialize());
 
@@ -267,6 +327,16 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
     );
     unawaited(
       AppThemeModeController.loadForUser(AppDI.instance.currentUserId),
+    );
+
+    _localeUserSubscription =
+        AppDI.instance.sessionRepository.watchCurrentUserId().listen(
+      (userId) {
+        unawaited(AppLocaleController.loadForUser(userId));
+      },
+    );
+    unawaited(
+      AppLocaleController.loadForUser(AppDI.instance.currentUserId),
     );
 
     _listenAuthRecovery();
@@ -410,6 +480,8 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
     _authStateSubscription = null;
     _appearanceUserSubscription?.cancel();
     _appearanceUserSubscription = null;
+    _localeUserSubscription?.cancel();
+    _localeUserSubscription = null;
     unawaited(RadioMondoService.instance.shutdown());
     SocialVoteHud.dismiss();
     super.dispose();
@@ -444,9 +516,12 @@ class _SocialeVoteAppState extends State<SocialeVoteApp> {
               localeListResolutionCallback:
                   AppLocaleController.resolveSystemLocale,
               builder: (context, child) {
+                updateWebDocumentLanguage(
+                  Localizations.localeOf(context).languageCode,
+                );
                 return Directionality(
                   // Product geometry is physical and stable across locales:
-                  // Persian changes the writing direction of Persian strings,
+                  // Persian/Arabic change the writing direction of their strings,
                   // not the position/order of buttons, navigation or controls.
                   // Authored content keeps its own script direction on content
                   // surfaces via socialVoteContentDirection(...).

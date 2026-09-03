@@ -5,10 +5,15 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_ar.dart';
 import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_es.dart';
 import 'app_localizations_fa.dart';
+import 'app_localizations_fr.dart';
 import 'app_localizations_it.dart';
+import 'app_localizations_pt.dart';
+import 'app_localizations_ro.dart';
 
 // ignore_for_file: type=lint
 
@@ -93,10 +98,15 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('ar'),
     Locale('de'),
     Locale('en'),
+    Locale('es'),
     Locale('fa'),
-    Locale('it')
+    Locale('fr'),
+    Locale('it'),
+    Locale('pt'),
+    Locale('ro')
   ];
 
   /// No description provided for @appTitle.
@@ -7850,6 +7860,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'After this window the brief should not remain active without another editorial review.'**
   String get worldBriefExpiryHelp;
+
+  /// No description provided for @profileAppLanguageSpanish.
+  ///
+  /// In en, this message translates to:
+  /// **'Spanish'**
+  String get profileAppLanguageSpanish;
+
+  /// No description provided for @profileAppLanguagePortuguese.
+  ///
+  /// In en, this message translates to:
+  /// **'Portuguese'**
+  String get profileAppLanguagePortuguese;
+
+  /// No description provided for @homeHeroPurpose.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover what matters, share your Voce and take part in Vote.'**
+  String get homeHeroPurpose;
+
+  /// No description provided for @commentSection_hideComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide comments'**
+  String get commentSection_hideComments;
+
+  /// No description provided for @commentSection_viewComments.
+  ///
+  /// In en, this message translates to:
+  /// **'View comments'**
+  String get commentSection_viewComments;
+
+  /// No description provided for @commentSection_hideReplies.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide replies'**
+  String get commentSection_hideReplies;
+
+  /// No description provided for @commentSection_editing.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing: {snippet}'**
+  String commentSection_editing(String snippet);
+
+  /// No description provided for @commentSection_editInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit your comment'**
+  String get commentSection_editInputHint;
+
+  /// No description provided for @commentSection_replyTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply to {author}'**
+  String commentSection_replyTo(String author);
+
+  /// No description provided for @commentSection_userFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get commentSection_userFallback;
+
+  /// No description provided for @commentSection_addError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to add the comment.'**
+  String get commentSection_addError;
+
+  /// No description provided for @commentSection_nestedReplyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Nested replies beyond one level are not supported.'**
+  String get commentSection_nestedReplyError;
+
+  /// No description provided for @commentSection_addReplyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to add the reply.'**
+  String get commentSection_addReplyError;
+
+  /// No description provided for @commentSection_editError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to edit the comment.'**
+  String get commentSection_editError;
+
+  /// No description provided for @commentSection_deleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to delete the comment.'**
+  String get commentSection_deleteError;
+
+  /// No description provided for @commentSection_edited.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited'**
+  String get commentSection_edited;
+
+  /// No description provided for @commentSection_editAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get commentSection_editAction;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
@@ -7861,7 +7973,7 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['de', 'en', 'fa', 'it'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['ar', 'de', 'en', 'es', 'fa', 'fr', 'it', 'pt', 'ro'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -7872,10 +7984,15 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
 
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'ar': return AppLocalizationsAr();
     case 'de': return AppLocalizationsDe();
     case 'en': return AppLocalizationsEn();
+    case 'es': return AppLocalizationsEs();
     case 'fa': return AppLocalizationsFa();
+    case 'fr': return AppLocalizationsFr();
     case 'it': return AppLocalizationsIt();
+    case 'pt': return AppLocalizationsPt();
+    case 'ro': return AppLocalizationsRo();
   }
 
   throw FlutterError(

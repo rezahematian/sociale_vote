@@ -12,6 +12,7 @@ import 'package:sociale_vote/domain/organization/repositories/organization_repos
 import 'package:sociale_vote/features/organization/presentation/pages/live_session_access_passes_page.dart';
 import 'package:sociale_vote/features/organization/presentation/pages/live_session_stage_page.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 import 'package:sociale_vote/shared/services/egress_policy_service.dart';
 
 class LiveSessionPresenterPage extends StatefulWidget {
@@ -1235,7 +1236,22 @@ class _AddQuestionDialogState extends State<_AddQuestionDialog> {
   LiveQuestionType _type = LiveQuestionType.yesNo;
 
   @override
+  void initState() {
+    super.initState();
+    _title.addListener(_refreshEditableDirection);
+    _options.addListener(_refreshEditableDirection);
+  }
+
+  void _refreshEditableDirection() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
   void dispose() {
+    _title.removeListener(_refreshEditableDirection);
+    _options.removeListener(_refreshEditableDirection);
     _title.dispose();
     _options.dispose();
     _min.dispose();
@@ -1257,6 +1273,14 @@ class _AddQuestionDialogState extends State<_AddQuestionDialog> {
             children: [
               TextField(
                 controller: _title,
+                textDirection: socialVoteEditableTextDirection(
+                  context,
+                  _title.text,
+                ),
+                textAlign: socialVoteEditableTextAlign(
+                  context,
+                  _title.text,
+                ),
                 decoration:
                     InputDecoration(labelText: l10n.sessionQuestionTitle),
               ),
@@ -1285,6 +1309,14 @@ class _AddQuestionDialogState extends State<_AddQuestionDialog> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _options,
+                  textDirection: socialVoteEditableTextDirection(
+                    context,
+                    _options.text,
+                  ),
+                  textAlign: socialVoteEditableTextAlign(
+                    context,
+                    _options.text,
+                  ),
                   minLines: 3,
                   maxLines: 8,
                   decoration: InputDecoration(
@@ -1300,6 +1332,8 @@ class _AddQuestionDialogState extends State<_AddQuestionDialog> {
                     Expanded(
                       child: TextField(
                         controller: _min,
+                        textDirection: TextDirection.ltr,
+                        textAlign: TextAlign.left,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                             labelText: l10n.sessionMinSelections),
@@ -1309,6 +1343,8 @@ class _AddQuestionDialogState extends State<_AddQuestionDialog> {
                     Expanded(
                       child: TextField(
                         controller: _max,
+                        textDirection: TextDirection.ltr,
+                        textAlign: TextAlign.left,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                             labelText: l10n.sessionMaxSelections),

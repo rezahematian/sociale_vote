@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/domain/common/value_objects/entity_id.dart';
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
@@ -56,12 +57,10 @@ String _adminControlText(
   required String de,
   required String fa,
 }) {
-  return switch (Localizations.localeOf(context).languageCode.toLowerCase()) {
-    'it' => it,
-    'de' => de,
-    'fa' => fa,
-    _ => en,
-  };
+  final language = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (language == 'it') return it;
+  if (language == 'fa') return fa;
+  return deOrEnglish(context, english: en, german: de);
 }
 
 typedef AdminCenterSectionBuilder = Widget Function(
@@ -381,6 +380,11 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       'en' => const Locale('en'),
       'de' => const Locale('de'),
       'fa' => const Locale('fa'),
+      'es' => const Locale('es'),
+      'pt' => const Locale('pt'),
+      'fr' => const Locale('fr'),
+      'ar' => const Locale('ar'),
+      'ro' => const Locale('ro'),
       _ => null,
     };
 
@@ -446,6 +450,56 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               Icon(Icons.language),
               SizedBox(width: 12),
               Text('فارسی'),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'es',
+          child: Row(
+            children: [
+              Icon(Icons.language),
+              SizedBox(width: 12),
+              Text('Español'),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'pt',
+          child: Row(
+            children: [
+              Icon(Icons.language),
+              SizedBox(width: 12),
+              Text('Português'),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'fr',
+          child: Row(
+            children: [
+              Icon(Icons.language),
+              SizedBox(width: 12),
+              Text('Français'),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'ar',
+          child: Row(
+            children: [
+              Icon(Icons.language),
+              SizedBox(width: 12),
+              Text('العربية'),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'ro',
+          child: Row(
+            children: [
+              Icon(Icons.language),
+              SizedBox(width: 12),
+              Text('Română'),
             ],
           ),
         ),

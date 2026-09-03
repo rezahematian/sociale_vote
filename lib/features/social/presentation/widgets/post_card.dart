@@ -157,7 +157,7 @@ class PostCard extends StatelessWidget {
                       ),
                       if (hasTitle || hasContent) const SizedBox(height: 12),
                       if (hasTitle) ...[
-                        Text(
+                        SocialVoteDirectionalText(
                           title,
                           style: (isNarrowLayout
                                   ? theme.textTheme.titleMedium
@@ -170,13 +170,11 @@ class PostCard extends StatelessWidget {
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          textDirection: socialVoteContentDirection(title),
-                          textAlign: socialVoteContentTextAlign(title),
                         ),
                         if (hasContent) const SizedBox(height: 9),
                       ],
                       if (hasContent)
-                        Text(
+                        SocialVoteDirectionalText(
                           content,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurface.withValues(
@@ -186,8 +184,6 @@ class PostCard extends StatelessWidget {
                           ),
                           maxLines: hasTitle ? 3 : 4,
                           overflow: TextOverflow.ellipsis,
-                          textDirection: socialVoteContentDirection(content),
-                          textAlign: socialVoteContentTextAlign(content),
                         ),
                       if (hasTitle || hasContent) const SizedBox(height: 14),
                       LayoutBuilder(

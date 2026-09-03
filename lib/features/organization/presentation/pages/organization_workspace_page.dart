@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/app/localization/de_fallback.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/domain/organization/entities/live_session_models.dart';
 import 'package:sociale_vote/domain/organization/entities/organization_models.dart';
@@ -33,8 +34,7 @@ String _tr(
 }) {
   final language = Localizations.localeOf(context).languageCode.toLowerCase();
   if (language == 'it') return it;
-  if (language == 'de') return de;
-  return en;
+  return deOrEnglish(context, english: en, german: de);
 }
 
 class OrganizationWorkspacePage extends StatefulWidget {

@@ -1,0 +1,2726 @@
+{
+  "@@locale": "ro",
+  "appTitle": "Social Vote",
+  "voteButton": "Vote",
+  "createPollPageTitle": "Creează Vote",
+  "createPollPageSubtitle": "Definește un nou vot civic",
+  "createPollBasicInfoTitle": "Informații de bază",
+  "createPollBasicInfoSubtitle": "Definește detaliile principale ale Vote.",
+  "createPollTitleFieldLabel": "Titlu *",
+  "createPollTitleFieldHelper": "O întrebare sau afirmație clară și concisă.",
+  "createPollDescriptionFieldLabel": "Descriere (opțional)",
+  "createPollVotingModelTitle": "Cum funcționează votarea",
+  "createPollVotingModelSubtitle": "Alege dacă fiecare persoană poate selecta un singur răspuns sau mai multe răspunsuri.",
+  "createPollTypeFieldLabel": "Tip Vote",
+  "createPollSelectionRules": "Reguli de selecție: minimum {min}, maximum {max} selecții (ajustate automat în funcție de tipul Vote și de opțiuni).",
+  "@createPollSelectionRules": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "createPollAllowVoteChangeTitle": "Permite alegătorilor să își schimbe votul",
+  "createPollAllowVoteChangeSubtitle": "Până la închiderea Vote.",
+  "createPollOptionsTitle": "Răspunsuri",
+  "createPollOptionsSubtitle": "Introdu cel puțin două răspunsuri dintre care alegătorii să poată alege. Câmpurile marcate cu * sunt obligatorii.",
+  "createPollOptionLabel": "Opțiunea {index}{requiredMarker}",
+  "@createPollOptionLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "requiredMarker": {}
+    }
+  },
+  "createPollRemoveOptionTooltip": "Elimină opțiunea",
+  "createPollAddOptionButton": "Adaugă opțiune",
+  "createPollParticipationPrivacyTitle": "Participare și confidențialitate",
+  "createPollParticipationPrivacySubtitle": "Decide cine poate vota și cât de private trebuie să fie voturile.",
+  "createPollWhoCanVoteLabel": "Cine poate vota?",
+  "createPollParticipationEveryoneSubtitle": "Orice utilizator înregistrat poate participa.",
+  "createPollParticipationGeoScopeSubtitle": "Limitează acest Vote la persoanele dintr-o anumită țară.",
+  "createPollCountryFieldLabel": "Țara pentru acest Vote",
+  "createPollCountryFieldHelper": "Această țară va determina cine are voie să participe la acest Vote (integrare backend viitoare).",
+  "createPollVoteAnonymityTitle": "Anonimatul Vote",
+  "createPollAnonymityAnonymousSubtitle": "Setare implicită recomandată pentru platformele de vot civic.",
+  "createPollAnonymityPublicSubtitle": "Folosește cu atenție: voturile pot fi asociate cu identități (funcție viitoare).",
+  "createPollResultsValidityTitle": "Rezultate și validitate",
+  "createPollResultsValiditySubtitle": "Controlează când sunt vizibile rezultatele și definește un cvorum minim dacă este necesar.",
+  "createPollResultsVisibilityFieldLabel": "Vizibilitatea rezultatelor",
+  "createPollQuorumTitle": "Cvorum (opțional)",
+  "createPollQuorumSubtitle": "Dacă este setat, Vote este considerat valid numai dacă este atins cel puțin acest număr de voturi. Lasă necompletat pentru fără cvorum.",
+  "createPollQuorumMinVotesFieldLabel": "Număr minim de voturi",
+  "createPollTimingTitle": "Programare",
+  "createPollTimingSubtitle": "Definește perioada în care Vote trebuie să fie deschis pentru votare.",
+  "createPollStartDateLabel": "Data de început",
+  "createPollEndDateLabel": "Data de încheiere",
+  "createPollChangeDateButtonLabel": "Schimbă",
+  "createPollTimingStatusInfo": "Starea inițială (deschis/programat/închis) va fi determinată automat pe baza acestor date.",
+  "createPollSuccessMessage": "Vote creat cu succes",
+  "createPollSubmitCreatingLabel": "Se creează...",
+  "createPollSubmitLabel": "Creează Vote",
+  "createPollPollTypeYesNoLabel": "Da / Nu",
+  "createPollPollTypeSingleChoiceLabel": "Un răspuns",
+  "createPollPollTypeMultipleChoiceLabel": "Mai multe răspunsuri",
+  "createPollPollTypeApprovalLabel": "Vot prin aprobare",
+  "createPollPollTypeRankedLabel": "Alegere ordonată",
+  "createPollPollTypeScoreLabel": "Scor / Evaluare",
+  "createPollParticipationScopeEveryoneLabel": "Toată lumea poate vota",
+  "createPollParticipationScopeGeoScopeOnlyLabel": "Doar utilizatorii dintr-o anumită țară",
+  "createPollAnonymityLevelAnonymousLabel": "Voturile sunt anonime",
+  "createPollAnonymityLevelPublicLabel": "Voturile sunt publice (utilizare avansată / restricționată)",
+  "createPollResultsVisibilityAlwaysLabel": "Vizibile întotdeauna (cât timp Vote este deschis)",
+  "createPollResultsVisibilityAfterVoteLabel": "Vizibile numai după votare",
+  "createPollResultsVisibilityAfterCloseLabel": "Vizibile numai după închiderea Vote",
+  "homeLoginButton": "Autentificare",
+  "homeRegisterButton": "Înregistrare",
+  "homeProfileButton": "Profil",
+  "homeLogoutButton": "Deconectare",
+  "homeLogoutMessage": "Deconectare finalizată. Acum folosești aplicația ca oaspete (doar citire).",
+  "homeSearchHint": "Caută orașe, țări, conturi și conținut...",
+  "searchPageTitle": "Căutare",
+  "searchInputHint": "Caută conturi, Vote, News, Voce...",
+  "searchClearTooltip": "Șterge căutarea",
+  "searchTypeAll": "Toate",
+  "searchTypePolls": "Vote",
+  "searchTypeNews": "News",
+  "searchTypePosts": "Voce",
+  "searchTypeAccounts": "Conturi",
+  "searchSortHottest": "Cele mai populare",
+  "searchSortLatest": "Cele mai recente",
+  "searchPollStatusAll": "Toate Vote",
+  "searchPollStatusOpen": "Deschis",
+  "searchPollStatusClosed": "Închis",
+  "searchIdleMessage": "Introdu un termen pentru a începe căutarea.",
+  "searchErrorMessage": "A apărut o problemă în timpul căutării.",
+  "searchRetryButton": "Încearcă din nou",
+  "searchEmptyMessage": "Nu s-au găsit rezultate pentru această căutare.",
+  "searchContentUnavailable": "Conținut indisponibil",
+  "searchResultTypePoll": "Vote",
+  "searchResultTypeNews": "News",
+  "searchResultTypePost": "Voce",
+  "searchResultTypeAccount": "Cont",
+  "searchResultTypeMixed": "Mixt",
+  "homeUserStatusLoggedIn": "Autentificat ca: {userId}",
+  "@homeUserStatusLoggedIn": {
+    "placeholders": {
+      "userId": {}
+    }
+  },
+  "homeUserStatusGuest": "Mod oaspete: poți doar să citești. Autentifică-te sau înregistrează-te pentru a vota, comenta și reacționa.",
+  "homeScopeLabelWorld": "Lume – voturi și știri globale",
+  "homeScopeLabelCountry": "Țară – voturi și știri naționale",
+  "homeScopeLabelCity": "Oraș – voturi și știri locale",
+  "homeScopeShortWorld": "Lume",
+  "homeScopeShortCountry": "Țară",
+  "homeScopeShortCity": "Oraș",
+  "homeScopeChipWorld": "Lume",
+  "homeScopeChipItaly": "Italia",
+  "homeScopeChipTorino": "Torino",
+  "homeScopeChangedWorld": "Zona a fost schimbată la Lume",
+  "homeScopeChangedItaly": "Zona a fost schimbată la Italia",
+  "homeScopeChangedTorino": "Zona a fost schimbată la Torino",
+  "followScopeButtonFollowed": "Urmărită",
+  "followScopeButtonFollow": "Urmărește această zonă",
+  "homeTrendingTitle": "Pulse acum",
+  "homeTrendingError": "Nu s-a putut încărca Pulse acum pentru această zonă.",
+  "homeTrendingEmpty": "Nu există conținut în Pulse acum pentru această zonă în acest moment.",
+  "homeForYouTitle": "Pulse ({scope})",
+  "@homeForYouTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeForYouError": "Nu s-a putut încărca Pulse pentru această zonă.",
+  "homeForYouEmpty": "Nu există conținut sugerat în Pulse pentru această zonă în acest moment.",
+  "homePollsTitle": "Vote în prim-plan ({scope})",
+  "@homePollsTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homePollsEmptyTitle": "Niciun Vote pentru această zonă",
+  "homePollsEmptySubtitle": "Nu există Vote disponibile pentru această zonă.",
+  "homePollsViewAllButton": "Vezi Vote",
+  "homeNewsTitle": "News principale ({scope})",
+  "@homeNewsTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeNewsErrorTitle": "Nu s-au putut încărca News",
+  "homeNewsErrorSubtitle": "A apărut o problemă la încărcarea News pentru această zonă.",
+  "homeNewsEmptyTitle": "Nicio News pentru această zonă",
+  "homeNewsEmptySubtitle": "Nu există elemente News pentru acest domeniu în acest moment.",
+  "homeNewsViewAllButton": "Vezi toate News",
+  "homeNewsBreakingBadge": "ULTIMA ORĂ",
+  "homeSocialTitle": "Voce ({scope})",
+  "@homeSocialTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeSocialErrorTitle": "Nu s-a putut încărca Voce",
+  "homeSocialErrorSubtitle": "A apărut o problemă la încărcarea Voce pentru această zonă.",
+  "homeSocialEmptyTitle": "Nicio Voce pentru această zonă",
+  "homeSocialEmptySubtitle": "Nu există conținut Voce pentru această zonă în acest moment.",
+  "homeSocialViewFeedButton": "Vezi toate Voce",
+  "pollDetail_title": "Detalii Vote",
+  "pollDetail_removeFromFavoritesTooltip": "Elimină din salvate",
+  "pollDetail_addToFavoritesTooltip": "Salvează",
+  "pollDetail_chipAnonymous": "Vote anonim",
+  "pollDetail_chipPublic": "Vote public",
+  "pollDetail_chipRestrictedGeo": "Restricționat la domeniul geografic",
+  "pollDetail_quorumReached": "Cvorum atins ({currentVotes} / {requiredVotes})",
+  "@pollDetail_quorumReached": {
+    "placeholders": {
+      "currentVotes": {
+        "type": "int"
+      },
+      "requiredVotes": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_quorumNotReached": "Cvorum neatins ({currentVotes} / {requiredVotes})",
+  "@pollDetail_quorumNotReached": {
+    "placeholders": {
+      "currentVotes": {
+        "type": "int"
+      },
+      "requiredVotes": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_optionsTitle": "Opțiuni",
+  "pollDetail_statusClosedMessage": "Acest Vote este închis.",
+  "pollDetail_statusScheduledMessage": "Acest Vote nu este încă deschis.",
+  "pollDetail_statusNotAvailableMessage": "Votarea nu este disponibilă.",
+  "pollDetail_voteSubmitted": "Vot trimis cu succes!",
+  "pollDetail_voteButton": "Votează",
+  "pollDetail_resultsTitle": "Rezultate",
+  "pollDetail_outcomePrefix": "Rezultat: {label}",
+  "@pollDetail_outcomePrefix": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "pollDetail_noResults": "Nu există încă rezultate disponibile.",
+  "pollDetail_resultsAfterVote": "Rezultatele vor fi vizibile după ce votezi.",
+  "pollDetail_resultsWhenClosed": "Rezultatele vor fi vizibile când Vote se închide.",
+  "pollType_yesNo": "Da / Nu",
+  "pollType_singleChoice": "Alegere unică",
+  "pollType_multipleChoice": "Alegere multiplă",
+  "pollType_approval": "Aprobare",
+  "pollStatus_draft": "Ciornă",
+  "pollStatus_open": "Deschis",
+  "pollStatus_closed": "Închis",
+  "pollStatus_scheduled": "Programat",
+  "pollGeo_global": "Global",
+  "pollGeo_local": "Local",
+  "pollOutcome_approved": "Aprobat",
+  "pollOutcome_rejected": "Respins",
+  "pollOutcome_tie": "Egalitate",
+  "pollOutcome_noMajority": "Fără majoritate",
+  "pollOutcome_notApplicable": "Nu se aplică",
+  "pollList_title": "Vote",
+  "pollList_scopeWorld": "Lume",
+  "pollList_scopeCountryFallback": "Țară",
+  "pollList_scopeCityFallback": "Oraș",
+  "pollList_scopeDescriptionGlobal": "Se afișează Vote globale.",
+  "pollList_scopeDescriptionCountry": "Se afișează Vote pentru această țară.",
+  "pollList_scopeDescriptionCity": "Se afișează Vote pentru acest oraș.",
+  "pollList_filterStatus_all": "Toate",
+  "pollList_filterStatus_open": "Deschise",
+  "pollList_filterStatus_closed": "Închise",
+  "pollList_sort_latest": "Cele mai recente",
+  "pollList_sort_hottest": "Cele mai populare",
+  "pollList_filterScope_currentArea": "Zona curentă",
+  "pollList_headerTitle": "{scopeLabel} · {count, plural, =0 {niciun Vote găsit} =1 {1 Vote găsit} other {{count} Vote găsite}}",
+  "@pollList_headerTitle": {
+    "placeholders": {
+      "scopeLabel": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollList_createPollButton": "Creează Vote",
+  "pollList_paginationHint": "Derulează pentru a încărca mai multe Vote…",
+  "pollList_emptyMessage": "Niciun Vote care să corespundă acestui filtru pentru această zonă.",
+  "pollType_ranked": "Alegere ordonată",
+  "pollType_score": "Vot prin scor",
+  "pollVisibility_whileOpen": "Rezultate vizibile cât timp este deschis",
+  "pollVisibility_afterVote": "Rezultate vizibile după vot",
+  "pollVisibility_afterClose": "Rezultate vizibile după închidere",
+  "pollCard_countryRestricted": "Restricționat la țară",
+  "pollCard_restrictedToCountry": "Restricționat la {countryName}",
+  "@pollCard_restrictedToCountry": {
+    "placeholders": {
+      "countryName": {}
+    }
+  },
+  "pollCard_quorumLabel": "Cvorum {minVotes}",
+  "@pollCard_quorumLabel": {
+    "placeholders": {
+      "minVotes": {
+        "type": "int"
+      }
+    }
+  },
+  "pollCard_resultsVisibleChip": "Rezultate vizibile",
+  "@pollCard_resultsVisibleChip": {
+    "description": "Compact PollCard label used when results are always visible"
+  },
+  "pollCard_resultsAfterVoteChip": "După vot",
+  "@pollCard_resultsAfterVoteChip": {
+    "description": "Compact PollCard label used when results are visible after voting"
+  },
+  "pollCard_resultsAfterCloseChip": "După închidere",
+  "@pollCard_resultsAfterCloseChip": {
+    "description": "Compact PollCard label used when results are visible after the poll closes"
+  },
+  "pollCard_publicOfficialPublisher": "Oficial public",
+  "@pollCard_publicOfficialPublisher": {
+    "description": "PollCard label for a poll published by a public official"
+  },
+  "pollCard_institutionPublisher": "Instituție",
+  "@pollCard_institutionPublisher": {
+    "description": "PollCard label for a poll published by an institution"
+  },
+  "pollCard_representativePublisher": "Reprezentant",
+  "@pollCard_representativePublisher": {
+    "description": "Fallback PollCard label for representative publishing"
+  },
+  "pollCard_voteCountLabel": "{count, plural, =1 {vot} other {voturi}}",
+  "@pollCard_voteCountLabel": {
+    "description": "Singular or plural label shown below the vote count in PollCard",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollCard_viewDetails": "Vezi detaliile",
+  "pollResult_title": "{count, plural, =0 {Rezultate (fără voturi)} =1 {Rezultate (1 vot)} other {Rezultate ({count} voturi)}}",
+  "@pollResult_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voteError_noSelection": "Selectează cel puțin o opțiune.",
+  "voteError_unauthorized": "Nu ai permisiunea să votezi în acest Vote.",
+  "voteError_generic": "Trimiterea votului a eșuat. Încearcă din nou.",
+  "commentSection_title": "Comentarii",
+  "commentSection_sortLabel": "Sortare:",
+  "commentSection_sortOldest": "Cele mai vechi",
+  "commentSection_sortNewest": "Cele mai noi",
+  "commentSection_errorGeneric": "A apărut o eroare la încărcarea comentariilor.",
+  "commentSection_empty": "Nu există încă comentarii. Fii primul care comentează.",
+  "commentSection_loadMore": "Încarcă mai multe comentarii",
+  "commentSection_replyingTo": "Răspuns la: {snippet}",
+  "@commentSection_replyingTo": {
+    "placeholders": {
+      "snippet": {}
+    }
+  },
+  "commentSection_cancelReply": "Anulează",
+  "commentSection_inputHintRoot": "Adaugă un comentariu...",
+  "commentSection_inputHintReply": "Scrie un răspuns...",
+  "commentSection_deleteAction": "Șterge",
+  "commentSection_replyAction": "Răspunde",
+  "commentSection_youBadge": "Tu",
+  "newsDetail_title": "Detalii News",
+  "newsDetail_breakingBadge": "ULTIMA ORĂ",
+  "newsDetail_removeFromFavoritesTooltip": "Elimină din salvate",
+  "newsDetail_addToFavoritesTooltip": "Salvează",
+  "newsDetail_bodyFallback": "Nu este disponibil niciun text suplimentar pentru această News.",
+  "newsDetail_footerMoreContext": "Mai mult context și mai multe surse vor fi disponibile în curând.",
+  "newsFeed_title": "News",
+  "newsFeed_scopeWorld": "Lume",
+  "newsFeed_scopeCountry": "Țară",
+  "newsFeed_scopeCity": "Oraș",
+  "newsFeed_scopeLabel": "Domeniu: {scope}",
+  "@newsFeed_scopeLabel": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "newsFeed_scopeGlobalDescription": "Se afișează News globale.",
+  "newsFeed_scopeCountryDescription": "Se afișează News pentru această țară.",
+  "newsFeed_scopeCityDescription": "Se afișează News pentru acest oraș.",
+  "newsFeed_emptyTitle": "Nu există News disponibile pentru această zonă.",
+  "newsFeed_emptySubtitle": "Trage pentru reîmprospătare sau încearcă din nou mai târziu.",
+  "newsFeed_itemsFound": "{count} element(e) News găsit(e)",
+  "@newsFeed_itemsFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newsFeed_loadingMoreHint": "Derulează pentru a încărca mai multe News…",
+  "newsFeed_errorTitle": "Nu s-au putut încărca News",
+  "newsFeed_errorGeneric": "A apărut o eroare neașteptată la încărcarea News.",
+  "newsFeed_retryButton": "Reîncearcă",
+  "newsCard_headerTitle": "News",
+  "newsFeed_errorUnauthorized": "Configurația News nu este validă (cheie API).",
+  "newsFeed_errorRateLimited": "Prea multe solicitări. Încearcă din nou în curând.",
+  "newsFeed_errorServerUnavailable": "Serviciul News este temporar indisponibil. Încearcă din nou mai târziu.",
+  "newsFeed_errorTimeout": "Solicitarea durează prea mult. Încearcă din nou.",
+  "newsFeed_errorNetwork": "Fără conexiune. Verifică internetul și încearcă din nou.",
+  "newsFeed_moreTooltip": "Mai multe",
+  "newsFeed_actionCopyTitle": "Copiază titlul",
+  "newsFeed_actionRefreshFeed": "Reîmprospătează fluxul",
+  "newsFeed_copiedTitleToast": "Titlu copiat",
+  "newsFeed_languageTooltip": "Limba News",
+  "newsFeed_languageAuto": "AUTO",
+  "newsFeed_languageIt": "IT",
+  "newsFeed_languageEn": "EN",
+  "newsFeed_languageEs": "ES",
+  "newsFeed_languageFr": "FR",
+  "newsFeed_languageDe": "DE",
+  "newsFeed_languageAr": "AR",
+  "newsFeed_languageFa": "FA",
+  "newsFeed_languageLimitedHint": "Surse limitate în această limbă. Încearcă AUTO.",
+  "newsTopic_all": "Toate",
+  "newsTopic_world": "Lume",
+  "newsTopic_nation": "Național",
+  "newsTopic_business": "Afaceri",
+  "newsTopic_technology": "Tehnologie",
+  "newsTopic_science": "Știință",
+  "newsTopic_health": "Sănătate",
+  "newsTopic_sports": "Sport",
+  "newsTopic_entertainment": "Divertisment",
+  "newsDetail_openSource": "Deschide articolul sursă",
+  "@newsDetail_openSource": {
+    "description": "Button to open the original article from the source website"
+  },
+  "newsDetail_openSourceUnavailable": "Articolul sursă nu poate fi deschis",
+  "@newsDetail_openSourceUnavailable": {
+    "description": "Shown when the source link cannot be opened"
+  },
+  "socialFeedTitle": "Voce",
+  "@socialFeedTitle": {
+    "description": "Title of the main social feed page"
+  },
+  "socialFeedCreatePostButton": "Creează Voce",
+  "@socialFeedCreatePostButton": {
+    "description": "Button that opens the post creation flow"
+  },
+  "commonCancelButton": "Anulează",
+  "@commonCancelButton": {
+    "description": "Generic Cancel button label"
+  },
+  "commonApplyButton": "Aplică",
+  "@commonApplyButton": {
+    "description": "Generic Apply button label"
+  },
+  "homeScopeChooseCountry": "Alege țara",
+  "@homeScopeChooseCountry": {
+    "description": "Title and action for choosing the Home scope country"
+  },
+  "homeScopeCountrySearchHint": "Caută țară sau cod...",
+  "@homeScopeCountrySearchHint": {
+    "description": "Hint shown in the country search field"
+  },
+  "homeScopeChooseCity": "Alege orașul",
+  "@homeScopeChooseCity": {
+    "description": "Title and action for choosing the Home scope city"
+  },
+  "homeScopeCountryWithCode": "Țară: {code}",
+  "@homeScopeCountryWithCode": {
+    "description": "Selected country shown in the city selection dialog",
+    "placeholders": {
+      "code": {
+        "type": "String",
+        "example": "IT"
+      }
+    }
+  },
+  "homeScopeCityFieldLabel": "Oraș",
+  "@homeScopeCityFieldLabel": {
+    "description": "City field label in the Home scope selector"
+  },
+  "homeScopeCityExampleHint": "Introdu un oraș, de ex. Merano",
+  "@homeScopeCityExampleHint": {
+    "description": "Examples shown in the city field"
+  },
+  "homeScopeCityRequiredError": "Introdu un oraș.",
+  "@homeScopeCityRequiredError": {
+    "description": "Error shown when the city field is empty"
+  },
+  "homeScopeCityNotFoundError": "Orașul nu a fost găsit în țara selectată.",
+  "@homeScopeCityNotFoundError": {
+    "description": "Error shown when the city does not belong to the selected country"
+  },
+  "homeScopeCityVerificationError": "Orașul nu a putut fi verificat. Încearcă din nou.",
+  "@homeScopeCityVerificationError": {
+    "description": "Generic error shown while verifying the city"
+  },
+  "homeScopeVerifyingButton": "Se verifică...",
+  "@homeScopeVerifyingButton": {
+    "description": "Label shown while the city is being verified"
+  },
+  "homeMapOpenButton": "Deschide harta",
+  "@homeMapOpenButton": {
+    "description": "Button label that opens the full Civic Map from Home"
+  },
+  "homeHeroHeadline": "Modelați viitorul.\nÎmpreună.",
+  "@homeHeroHeadline": {
+    "description": "Main headline shown in the Home hero"
+  },
+  "homeHeroPollsAction": "Vote",
+  "@homeHeroPollsAction": {
+    "description": "Compact Home dashboard action that opens polls"
+  },
+  "homeHeroNewsAction": "News",
+  "@homeHeroNewsAction": {
+    "description": "Compact Home dashboard action that opens news"
+  },
+  "homeHeroCreateAction": "Creează",
+  "@homeHeroCreateAction": {
+    "description": "Compact Home dashboard action for creating a poll or post"
+  },
+  "homeHeroExploreAction": "Explorează",
+  "@homeHeroExploreAction": {
+    "description": "Compact Home dashboard action that opens the full Civic Map"
+  },
+  "homeAccountMenuLabel": "Cont",
+  "@homeAccountMenuLabel": {
+    "description": "Label and tooltip for the Account entry in the Home top bar"
+  },
+  "homeThemeSystemMenuItem": "Temă: sistem",
+  "@homeThemeSystemMenuItem": {
+    "description": "Account menu item for using the system theme"
+  },
+  "homeThemeLightMenuItem": "Temă: deschisă",
+  "@homeThemeLightMenuItem": {
+    "description": "Account menu item for using the light theme"
+  },
+  "homeThemeDarkMenuItem": "Temă: întunecată",
+  "@homeThemeDarkMenuItem": {
+    "description": "Account menu item for using the dark theme"
+  },
+  "profileAppLanguageTitle": "Limba aplicației",
+  "@profileAppLanguageTitle": {
+    "description": "Title of the app language setting"
+  },
+  "profileAppLanguageSystem": "Sistem",
+  "@profileAppLanguageSystem": {
+    "description": "Option that follows the device language"
+  },
+  "profileAppLanguageSystemDescription": "Folosește limba dispozitivului",
+  "@profileAppLanguageSystemDescription": {
+    "description": "Description of the system language option"
+  },
+  "profileAppLanguageItalian": "Italiană",
+  "@profileAppLanguageItalian": {
+    "description": "Italian app language option"
+  },
+  "profileAppLanguageEnglish": "Engleză",
+  "@profileAppLanguageEnglish": {
+    "description": "English app language option"
+  },
+  "homeNotificationsTooltip": "Notificări",
+  "@homeNotificationsTooltip": {
+    "description": "Tooltip for the notifications button in the Home top bar"
+  },
+  "postCard_authorFallback": "Autor",
+  "@postCard_authorFallback": {
+    "description": "Fallback author name shown in the PostCard when no name is available"
+  },
+  "postCard_globalLocation": "Global",
+  "@postCard_globalLocation": {
+    "description": "Global location label shown in the PostCard"
+  },
+  "commonSaveButton": "Salvează",
+  "@commonSaveButton": {
+    "description": "Generic Save button label"
+  },
+  "commonDeleteButton": "Șterge",
+  "@commonDeleteButton": {
+    "description": "Generic Delete button label"
+  },
+  "contentReport_menuAction": "Raportează conținutul",
+  "@contentReport_menuAction": {
+    "description": "Menu action used to report content"
+  },
+  "contentReport_dialogTitle": "Raportează conținutul",
+  "@contentReport_dialogTitle": {
+    "description": "Content report dialog title"
+  },
+  "contentReport_authenticationRequired": "Trebuie să fii autentificat pentru a raporta conținutul",
+  "@contentReport_authenticationRequired": {
+    "description": "Message shown to a signed-out user"
+  },
+  "contentReport_submittedMessage": "Raport trimis",
+  "@contentReport_submittedMessage": {
+    "description": "Report submission confirmation"
+  },
+  "contentReport_alreadySubmittedMessage": "Ai raportat deja acest conținut",
+  "@contentReport_alreadySubmittedMessage": {
+    "description": "Message shown when the content was already reported"
+  },
+  "contentReport_submitError": "Raportul nu a putut fi trimis",
+  "@contentReport_submitError": {
+    "description": "Generic error while submitting a report"
+  },
+  "contentReport_sendButton": "Trimite",
+  "@contentReport_sendButton": {
+    "description": "Report submission button"
+  },
+  "contentReport_reasonSpam": "Spam",
+  "@contentReport_reasonSpam": {
+    "description": "Spam report reason"
+  },
+  "contentReport_reasonHarassment": "Hărțuire sau abuz",
+  "@contentReport_reasonHarassment": {
+    "description": "Harassment or abuse report reason"
+  },
+  "contentReport_reasonHateSpeech": "Discurs instigator la ură",
+  "@contentReport_reasonHateSpeech": {
+    "description": "Hate speech report reason"
+  },
+  "contentReport_reasonMisinformation": "Dezinformare",
+  "@contentReport_reasonMisinformation": {
+    "description": "Misinformation report reason"
+  },
+  "contentReport_reasonViolence": "Violență",
+  "@contentReport_reasonViolence": {
+    "description": "Violence report reason"
+  },
+  "contentReport_reasonOther": "Altul",
+  "@contentReport_reasonOther": {
+    "description": "Other report reason"
+  },
+  "postDetail_title": "Detalii Voce",
+  "@postDetail_title": {
+    "description": "Post detail page title"
+  },
+  "postDetail_favoriteUpdateError": "Elementele salvate nu au putut fi actualizate",
+  "@postDetail_favoriteUpdateError": {
+    "description": "Favorites update error on the post detail page"
+  },
+  "postDetail_shareMessage": "Deschide Social Vote pentru a vedea această Voce.",
+  "@postDetail_shareMessage": {
+    "description": "Text appended when sharing a post"
+  },
+  "postDetail_shareError": "Voce nu a putut fi distribuită",
+  "@postDetail_shareError": {
+    "description": "Post sharing error"
+  },
+  "postDetail_editDialogTitle": "Editează Voce",
+  "@postDetail_editDialogTitle": {
+    "description": "Edit post dialog title"
+  },
+  "postDetail_editTitleFieldLabel": "Titlu",
+  "@postDetail_editTitleFieldLabel": {
+    "description": "Title field label in the edit post dialog"
+  },
+  "postDetail_editContentFieldLabel": "Conținut",
+  "@postDetail_editContentFieldLabel": {
+    "description": "Content field label in the edit post dialog"
+  },
+  "postDetail_editRequiredError": "Titlul și conținutul sunt obligatorii.",
+  "@postDetail_editRequiredError": {
+    "description": "Required fields error in the edit post dialog"
+  },
+  "postDetail_updateSuccess": "Voce actualizată",
+  "@postDetail_updateSuccess": {
+    "description": "Post update confirmation"
+  },
+  "postDetail_updateError": "Voce nu a putut fi actualizată",
+  "@postDetail_updateError": {
+    "description": "Post update error"
+  },
+  "postDetail_deleteDialogTitle": "Ștergi această Voce?",
+  "@postDetail_deleteDialogTitle": {
+    "description": "Post deletion confirmation title"
+  },
+  "postDetail_deleteDialogMessage": "Această acțiune nu poate fi anulată.",
+  "@postDetail_deleteDialogMessage": {
+    "description": "Post deletion confirmation message"
+  },
+  "postDetail_deleteError": "Voce nu a putut fi ștearsă",
+  "@postDetail_deleteError": {
+    "description": "Post deletion error"
+  },
+  "postDetail_editMenuItem": "Editează Voce",
+  "@postDetail_editMenuItem": {
+    "description": "Edit post menu item"
+  },
+  "postDetail_deleteMenuItem": "Șterge Voce",
+  "@postDetail_deleteMenuItem": {
+    "description": "Delete post menu item"
+  },
+  "postDetail_loadError": "A apărut o eroare la încărcarea Voce.",
+  "@postDetail_loadError": {
+    "description": "Generic post detail loading error"
+  },
+  "postDetail_notFound": "Voce nu a fost găsită.",
+  "@postDetail_notFound": {
+    "description": "Post not found message"
+  },
+  "postDetail_errorTitle": "Eroare",
+  "@postDetail_errorTitle": {
+    "description": "Post detail error state title"
+  },
+  "postDetail_authorFallback": "Autor",
+  "@postDetail_authorFallback": {
+    "description": "Fallback author name on the post detail page"
+  },
+  "postDetail_shareAction": "Distribuie",
+  "@postDetail_shareAction": {
+    "description": "Share action on the post detail page"
+  },
+  "postDetail_saveAction": "Salvează",
+  "@postDetail_saveAction": {
+    "description": "Save action on the post detail page"
+  },
+  "postDetail_addToFavoritesTooltip": "Salvează",
+  "@postDetail_addToFavoritesTooltip": {
+    "description": "Add to favorites tooltip on the post detail page"
+  },
+  "postDetail_removeFromFavoritesTooltip": "Elimină din salvate",
+  "@postDetail_removeFromFavoritesTooltip": {
+    "description": "Remove from favorites tooltip on the post detail page"
+  },
+  "newsDetail_favoriteUpdateError": "Elementele salvate nu au putut fi actualizate",
+  "@newsDetail_favoriteUpdateError": {
+    "description": "Favorites update error on the news detail page"
+  },
+  "newsDetail_shareMessage": "Deschide Social Vote pentru a vedea această News.",
+  "@newsDetail_shareMessage": {
+    "description": "Text appended when sharing a news item"
+  },
+  "newsDetail_shareError": "News nu a putut fi distribuită",
+  "@newsDetail_shareError": {
+    "description": "News sharing error"
+  },
+  "newsDetail_shareTooltip": "Distribuie",
+  "@newsDetail_shareTooltip": {
+    "description": "Share tooltip on the news detail page"
+  },
+  "authLoginPageTitle": "Autentificare",
+  "@authLoginPageTitle": {
+    "description": "Auth UI: authLoginPageTitle"
+  },
+  "authLoginHeadline": "Bine ai revenit",
+  "@authLoginHeadline": {
+    "description": "Auth UI: authLoginHeadline"
+  },
+  "authEmailLabel": "E-mail",
+  "@authEmailLabel": {
+    "description": "Auth UI: authEmailLabel"
+  },
+  "authPasswordLabel": "Parolă",
+  "@authPasswordLabel": {
+    "description": "Auth UI: authPasswordLabel"
+  },
+  "authRememberMeLabel": "Ține-mă minte",
+  "@authRememberMeLabel": {
+    "description": "Auth UI: authRememberMeLabel"
+  },
+  "authForgotPasswordAction": "Ai uitat parola?",
+  "@authForgotPasswordAction": {
+    "description": "Auth UI: authForgotPasswordAction"
+  },
+  "authLoginButton": "Autentificare",
+  "@authLoginButton": {
+    "description": "Auth UI: authLoginButton"
+  },
+  "authRegisterPrompt": "Nu ai un cont?",
+  "@authRegisterPrompt": {
+    "description": "Auth UI: authRegisterPrompt"
+  },
+  "authRegisterAction": "Înregistrează-te",
+  "@authRegisterAction": {
+    "description": "Auth UI: authRegisterAction"
+  },
+  "authRegisterPageTitle": "Înregistrare",
+  "@authRegisterPageTitle": {
+    "description": "Auth UI: authRegisterPageTitle"
+  },
+  "authRegisterHeadline": "Creează un cont",
+  "@authRegisterHeadline": {
+    "description": "Auth UI: authRegisterHeadline"
+  },
+  "authPersonalAccountOwnershipTitle": "Autentificarea aparține întotdeauna unei persoane",
+  "@authPersonalAccountOwnershipTitle": {
+    "description": "Explains that authentication belongs to a person even when representing an organization"
+  },
+  "authPersonalAccountOwnershipBody": "Dacă reprezinți o organizație, creează-ți contul personal. După autentificare, poți solicita o Organizație verificată și o poți gestiona din Workspace.",
+  "@authPersonalAccountOwnershipBody": {
+    "description": "Explains the person-to-organization registration path"
+  },
+  "authOrganizationPathAction": "Cum funcționează pentru organizații",
+  "@authOrganizationPathAction": {
+    "description": "Opens the guide for the organization account path"
+  },
+  "authDisplayNameLabel": "Nume public",
+  "@authDisplayNameLabel": {
+    "description": "Auth UI: authDisplayNameLabel"
+  },
+  "authUsernameLabel": "Nume de utilizator",
+  "@authUsernameLabel": {
+    "description": "Auth UI: authUsernameLabel"
+  },
+  "authCountryOfResidenceLabel": "Țara de reședință",
+  "@authCountryOfResidenceLabel": {
+    "description": "Auth UI: authCountryOfResidenceLabel"
+  },
+  "authCityOfResidenceLabel": "Oraș de reședință (opțional)",
+  "@authCityOfResidenceLabel": {
+    "description": "Auth UI: authCityOfResidenceLabel"
+  },
+  "authConfirmPasswordLabel": "Confirmă parola",
+  "@authConfirmPasswordLabel": {
+    "description": "Auth UI: authConfirmPasswordLabel"
+  },
+  "authLegalConsentPrefix": "Confirm că am cel puțin 18 ani. Accept Termenii și condițiile și confirm că am citit Politica de confidențialitate.",
+  "@authLegalConsentPrefix": {
+    "description": "Auth UI: authLegalConsentPrefix"
+  },
+  "authTermsOfServiceAction": "Termenii și condițiile",
+  "@authTermsOfServiceAction": {
+    "description": "Auth UI: authTermsOfServiceAction"
+  },
+  "authPrivacyPolicyAction": "Politica de confidențialitate",
+  "@authPrivacyPolicyAction": {
+    "description": "Auth UI: authPrivacyPolicyAction"
+  },
+  "authRegisterButton": "Înregistrează-te",
+  "@authRegisterButton": {
+    "description": "Auth UI: authRegisterButton"
+  },
+  "authLoginPrompt": "Ai deja un cont?",
+  "@authLoginPrompt": {
+    "description": "Auth UI: authLoginPrompt"
+  },
+  "authLoginAction": "Autentificare",
+  "@authLoginAction": {
+    "description": "Auth UI: authLoginAction"
+  },
+  "authForgotPasswordDialogTitle": "Resetează parola",
+  "@authForgotPasswordDialogTitle": {
+    "description": "Auth UI: authForgotPasswordDialogTitle"
+  },
+  "authForgotPasswordDialogBody": "Introdu adresa de e-mail asociată contului. Îți vom trimite un link pentru a alege o parolă nouă.",
+  "@authForgotPasswordDialogBody": {
+    "description": "Auth UI: authForgotPasswordDialogBody"
+  },
+  "authForgotPasswordSendButton": "Trimite linkul",
+  "@authForgotPasswordSendButton": {
+    "description": "Auth UI: authForgotPasswordSendButton"
+  },
+  "authPasswordResetEmailSent": "E-mailul pentru resetarea parolei a fost trimis. Verifică inboxul.",
+  "@authPasswordResetEmailSent": {
+    "description": "Auth UI: authPasswordResetEmailSent"
+  },
+  "authResetPasswordPageTitle": "Resetare parolă",
+  "@authResetPasswordPageTitle": {
+    "description": "Auth UI: authResetPasswordPageTitle"
+  },
+  "authResetPasswordHeadline": "Alege o parolă nouă",
+  "@authResetPasswordHeadline": {
+    "description": "Auth UI: authResetPasswordHeadline"
+  },
+  "authNewPasswordLabel": "Parolă nouă",
+  "@authNewPasswordLabel": {
+    "description": "Auth UI: authNewPasswordLabel"
+  },
+  "authConfirmNewPasswordLabel": "Confirmă parola nouă",
+  "@authConfirmNewPasswordLabel": {
+    "description": "Auth UI: authConfirmNewPasswordLabel"
+  },
+  "authUpdatePasswordButton": "Actualizează parola",
+  "@authUpdatePasswordButton": {
+    "description": "Auth UI: authUpdatePasswordButton"
+  },
+  "authPasswordUpdated": "Parola a fost actualizată cu succes.",
+  "@authPasswordUpdated": {
+    "description": "Auth UI: authPasswordUpdated"
+  },
+  "authEmailConfirmationTitle": "Verifică e-mailul",
+  "@authEmailConfirmationTitle": {
+    "description": "Auth UI: authEmailConfirmationTitle"
+  },
+  "authEmailConfirmationIntro": "Am trimis un link de confirmare la:",
+  "@authEmailConfirmationIntro": {
+    "description": "Auth UI: authEmailConfirmationIntro"
+  },
+  "authEmailConfirmationInstructions": "Deschide linkul din mesaj pentru a-ți verifica adresa. După confirmare, revino în aplicație și autentifică-te.",
+  "@authEmailConfirmationInstructions": {
+    "description": "Auth UI: authEmailConfirmationInstructions"
+  },
+  "authBackToLoginButton": "Înapoi la autentificare",
+  "@authBackToLoginButton": {
+    "description": "Auth UI: authBackToLoginButton"
+  },
+  "authUseAnotherEmailButton": "Folosește o altă adresă de e-mail",
+  "@authUseAnotherEmailButton": {
+    "description": "Auth UI: authUseAnotherEmailButton"
+  },
+  "authEmailRequiredError": "Introdu adresa de e-mail.",
+  "@authEmailRequiredError": {
+    "description": "Auth UI: authEmailRequiredError"
+  },
+  "authEmailInvalidError": "Introdu o adresă de e-mail validă.",
+  "@authEmailInvalidError": {
+    "description": "Auth UI: authEmailInvalidError"
+  },
+  "authPasswordRequiredError": "Introdu parola.",
+  "@authPasswordRequiredError": {
+    "description": "Auth UI: authPasswordRequiredError"
+  },
+  "authPasswordTooShortError": "Parola trebuie să aibă cel puțin 8 caractere.",
+  "@authPasswordTooShortError": {
+    "description": "Auth UI: authPasswordTooShortError"
+  },
+  "authDisplayNameRequiredError": "Introdu numele public.",
+  "@authDisplayNameRequiredError": {
+    "description": "Auth UI: authDisplayNameRequiredError"
+  },
+  "authDisplayNameTooShortError": "Numele public este prea scurt.",
+  "@authDisplayNameTooShortError": {
+    "description": "Auth UI: authDisplayNameTooShortError"
+  },
+  "authUsernameRequiredError": "Introdu un nume de utilizator.",
+  "@authUsernameRequiredError": {
+    "description": "Auth UI: authUsernameRequiredError"
+  },
+  "authUsernameInvalidError": "Folosește între 3 și 20 de caractere: litere mici, cifre și underscore.",
+  "@authUsernameInvalidError": {
+    "description": "Auth UI: authUsernameInvalidError"
+  },
+  "authUsernameAlreadyTakenError": "Numele de utilizator este deja folosit.",
+  "@authUsernameAlreadyTakenError": {
+    "description": "Auth UI: username already in use"
+  },
+  "authCountryRequiredError": "Selectează țara de reședință.",
+  "@authCountryRequiredError": {
+    "description": "Auth UI: authCountryRequiredError"
+  },
+  "authCityRequiredError": "Introdu orașul de reședință.",
+  "@authCityRequiredError": {
+    "description": "Auth UI: authCityRequiredError"
+  },
+  "authConfirmPasswordRequiredError": "Confirmă parola.",
+  "@authConfirmPasswordRequiredError": {
+    "description": "Auth UI: authConfirmPasswordRequiredError"
+  },
+  "authPasswordsDoNotMatchError": "Parolele nu coincid.",
+  "@authPasswordsDoNotMatchError": {
+    "description": "Auth UI: authPasswordsDoNotMatchError"
+  },
+  "authLegalConsentRequiredError": "Pentru a te înregistra, confirmă că ai cel puțin 18 ani, acceptă Termenii și condițiile și confirmă că ai citit Politica de confidențialitate.",
+  "@authLegalConsentRequiredError": {
+    "description": "Auth UI: authLegalConsentRequiredError"
+  },
+  "authForgotPasswordEmailRequiredError": "Introdu e-mailul contului pe care vrei să-l recuperezi.",
+  "@authForgotPasswordEmailRequiredError": {
+    "description": "Auth UI: authForgotPasswordEmailRequiredError"
+  },
+  "authInvalidCredentialsError": "E-mailul sau parola nu este validă.",
+  "@authInvalidCredentialsError": {
+    "description": "Auth UI: authInvalidCredentialsError"
+  },
+  "authEmailAlreadyRegisteredError": "Această adresă de e-mail este deja înregistrată.",
+  "@authEmailAlreadyRegisteredError": {
+    "description": "Auth UI: authEmailAlreadyRegisteredError"
+  },
+  "authEmailNotConfirmedError": "E-mail neconfirmat. Verifică inboxul înainte de autentificare.",
+  "@authEmailNotConfirmedError": {
+    "description": "Auth UI: authEmailNotConfirmedError"
+  },
+  "authTooManyAttemptsError": "Prea multe încercări. Așteaptă câteva minute și încearcă din nou.",
+  "@authTooManyAttemptsError": {
+    "description": "Auth UI: authTooManyAttemptsError"
+  },
+  "authNetworkError": "Eroare de rețea. Verifică conexiunea și încearcă din nou.",
+  "@authNetworkError": {
+    "description": "Auth UI: authNetworkError"
+  },
+  "authLoginGenericError": "Autentificarea a eșuat. Încearcă din nou.",
+  "@authLoginGenericError": {
+    "description": "Auth UI: authLoginGenericError"
+  },
+  "authRegisterGenericError": "Înregistrarea a eșuat. Încearcă din nou.",
+  "@authRegisterGenericError": {
+    "description": "Auth UI: authRegisterGenericError"
+  },
+  "authPasswordResetGenericError": "Linkul de resetare nu a putut fi trimis. Încearcă din nou.",
+  "@authPasswordResetGenericError": {
+    "description": "Auth UI: authPasswordResetGenericError"
+  },
+  "authPasswordUpdateGenericError": "Parola nu a putut fi actualizată. Încearcă din nou.",
+  "@authPasswordUpdateGenericError": {
+    "description": "Auth UI: authPasswordUpdateGenericError"
+  },
+  "authShowPasswordTooltip": "Afișează parola",
+  "@authShowPasswordTooltip": {
+    "description": "Auth UI: authShowPasswordTooltip"
+  },
+  "authHidePasswordTooltip": "Ascunde parola",
+  "@authHidePasswordTooltip": {
+    "description": "Auth UI: authHidePasswordTooltip"
+  },
+  "authTermsPageTitle": "Termeni și condiții",
+  "@authTermsPageTitle": {
+    "description": "Auth UI: authTermsPageTitle"
+  },
+  "authPrivacyPageTitle": "Politica de confidențialitate",
+  "@authPrivacyPageTitle": {
+    "description": "Auth UI: authPrivacyPageTitle"
+  },
+  "authCloseButton": "Închide",
+  "@authCloseButton": {
+    "description": "Auth UI: authCloseButton"
+  },
+  "pollDetail_favoriteUpdateError": "Elementele salvate nu au putut fi actualizate",
+  "@pollDetail_favoriteUpdateError": {
+    "description": "Poll detail UI: pollDetail_favoriteUpdateError"
+  },
+  "pollDetail_shareMessage": "Deschide Social Vote pentru a vedea și a vota în acest Vote.",
+  "@pollDetail_shareMessage": {
+    "description": "Poll detail UI: pollDetail_shareMessage"
+  },
+  "pollDetail_shareError": "Vote nu a putut fi distribuit",
+  "@pollDetail_shareError": {
+    "description": "Poll detail UI: pollDetail_shareError"
+  },
+  "pollDetail_editPermissionError": "Poți edita doar propriile Vote fără voturi înregistrate",
+  "@pollDetail_editPermissionError": {
+    "description": "Poll detail UI: pollDetail_editPermissionError"
+  },
+  "pollDetail_editSuccessMessage": "Vote actualizat",
+  "@pollDetail_editSuccessMessage": {
+    "description": "Poll detail UI: pollDetail_editSuccessMessage"
+  },
+  "pollDetail_editMenuItem": "Editează Vote",
+  "@pollDetail_editMenuItem": {
+    "description": "Poll detail UI: pollDetail_editMenuItem"
+  },
+  "pollDetail_editSavingMenuItem": "Se salvează...",
+  "@pollDetail_editSavingMenuItem": {
+    "description": "Poll detail UI: pollDetail_editSavingMenuItem"
+  },
+  "pollDetail_deletePermissionError": "Poți șterge doar propriile Vote",
+  "@pollDetail_deletePermissionError": {
+    "description": "Poll detail UI: pollDetail_deletePermissionError"
+  },
+  "pollDetail_deleteError": "Vote nu a putut fi șters",
+  "@pollDetail_deleteError": {
+    "description": "Poll detail UI: pollDetail_deleteError"
+  },
+  "pollDetail_deleteDialogTitle": "Șterge Vote",
+  "@pollDetail_deleteDialogTitle": {
+    "description": "Poll detail UI: pollDetail_deleteDialogTitle"
+  },
+  "pollDetail_deleteDialogMessage": "Sigur vrei să ștergi „{title}”? Această acțiune nu poate fi anulată.",
+  "@pollDetail_deleteDialogMessage": {
+    "description": "Poll detail UI: pollDetail_deleteDialogMessage",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "pollDetail_deleteMenuItem": "Șterge Vote",
+  "@pollDetail_deleteMenuItem": {
+    "description": "Poll detail UI: pollDetail_deleteMenuItem"
+  },
+  "pollDetail_deleteDeletingMenuItem": "Se șterge...",
+  "@pollDetail_deleteDeletingMenuItem": {
+    "description": "Poll detail UI: pollDetail_deleteDeletingMenuItem"
+  },
+  "pollDetail_publicVotesAvailableTitle": "Voturi publice disponibile",
+  "@pollDetail_publicVotesAvailableTitle": {
+    "description": "Poll detail UI: pollDetail_publicVotesAvailableTitle"
+  },
+  "pollDetail_publicVotesAvailableMessage": "Acest Vote îți permite să vezi cine a votat pentru fiecare opțiune.",
+  "@pollDetail_publicVotesAvailableMessage": {
+    "description": "Poll detail UI: pollDetail_publicVotesAvailableMessage"
+  },
+  "pollDetail_publicVotesAction": "Vezi voturile publice",
+  "@pollDetail_publicVotesAction": {
+    "description": "Poll detail UI: pollDetail_publicVotesAction"
+  },
+  "pollDetail_retryButton": "Încearcă din nou",
+  "@pollDetail_retryButton": {
+    "description": "Poll detail UI: pollDetail_retryButton"
+  },
+  "pollDetail_voteErrorNoOption": "Selectează cel puțin o opțiune",
+  "@pollDetail_voteErrorNoOption": {
+    "description": "Poll detail UI: pollDetail_voteErrorNoOption"
+  },
+  "pollDetail_voteErrorAuthenticationRequired": "Trebuie să fii autentificat pentru a vota",
+  "@pollDetail_voteErrorAuthenticationRequired": {
+    "description": "Poll detail UI: pollDetail_voteErrorAuthenticationRequired"
+  },
+  "pollDetail_voteErrorClosed": "Acest Vote este închis",
+  "@pollDetail_voteErrorClosed": {
+    "description": "Poll detail UI: pollDetail_voteErrorClosed"
+  },
+  "pollDetail_voteErrorAlreadyVoted": "Ai votat deja în acest Vote",
+  "@pollDetail_voteErrorAlreadyVoted": {
+    "description": "Poll detail UI: pollDetail_voteErrorAlreadyVoted"
+  },
+  "pollDetail_voteErrorGeneric": "Votul nu a putut fi trimis",
+  "@pollDetail_voteErrorGeneric": {
+    "description": "Poll detail UI: pollDetail_voteErrorGeneric"
+  },
+  "pollDetail_publicVotesSheetTitle": "Voturi publice",
+  "@pollDetail_publicVotesSheetTitle": {
+    "description": "Poll detail UI: pollDetail_publicVotesSheetTitle"
+  },
+  "pollDetail_publicVotesSheetDescription": "Aici poți vedea cine a votat pentru fiecare opțiune din acest Vote.",
+  "@pollDetail_publicVotesSheetDescription": {
+    "description": "Poll detail UI: pollDetail_publicVotesSheetDescription"
+  },
+  "pollDetail_publicVotesSearchHint": "Caută utilizatori",
+  "@pollDetail_publicVotesSearchHint": {
+    "description": "Poll detail UI: pollDetail_publicVotesSearchHint"
+  },
+  "pollDetail_publicVotesLoadError": "Voturile publice nu au putut fi încărcate",
+  "@pollDetail_publicVotesLoadError": {
+    "description": "Poll detail UI: pollDetail_publicVotesLoadError"
+  },
+  "pollDetail_publicVotesEmpty": "Nu există voturi publice disponibile",
+  "@pollDetail_publicVotesEmpty": {
+    "description": "Poll detail UI: pollDetail_publicVotesEmpty"
+  },
+  "pollDetail_publicVotesSearchEmpty": "Nu s-au găsit utilizatori pentru această căutare",
+  "@pollDetail_publicVotesSearchEmpty": {
+    "description": "Poll detail UI: pollDetail_publicVotesSearchEmpty"
+  },
+  "pollDetail_publicVotesResultsCount": "{count} rezultate încărcate",
+  "@pollDetail_publicVotesResultsCount": {
+    "description": "Poll detail UI: pollDetail_publicVotesResultsCount",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_publicVotesLoadMore": "Încarcă mai multe",
+  "@pollDetail_publicVotesLoadMore": {
+    "description": "Poll detail UI: pollDetail_publicVotesLoadMore"
+  },
+  "pollDetail_publicVotesUserFallback": "Utilizator",
+  "@pollDetail_publicVotesUserFallback": {
+    "description": "Poll detail UI: pollDetail_publicVotesUserFallback"
+  },
+  "pollDetail_editDialogTitle": "Editează Vote",
+  "@pollDetail_editDialogTitle": {
+    "description": "Poll detail UI: pollDetail_editDialogTitle"
+  },
+  "pollDetail_editTitleFieldLabel": "Titlu",
+  "@pollDetail_editTitleFieldLabel": {
+    "description": "Poll detail UI: pollDetail_editTitleFieldLabel"
+  },
+  "pollDetail_editTitleRequired": "Titlul este obligatoriu",
+  "@pollDetail_editTitleRequired": {
+    "description": "Poll detail UI: pollDetail_editTitleRequired"
+  },
+  "pollDetail_editDescriptionFieldLabel": "Descriere",
+  "@pollDetail_editDescriptionFieldLabel": {
+    "description": "Poll detail UI: pollDetail_editDescriptionFieldLabel"
+  },
+  "pollDetail_editError": "Vote nu a putut fi actualizat",
+  "@pollDetail_editError": {
+    "description": "Poll detail UI: pollDetail_editError"
+  },
+  "pollDetail_loadError": "Vote nu a putut fi încărcat",
+  "@pollDetail_loadError": {
+    "description": "Poll detail UI: pollDetail_loadError"
+  },
+  "pollDetail_notFound": "Vote nu a fost găsit",
+  "@pollDetail_notFound": {
+    "description": "Poll detail UI: pollDetail_notFound"
+  },
+  "profileEditPageTitle": "Editează profilul",
+  "@profileEditPageTitle": {
+    "description": "Edit profile UI: profileEditPageTitle"
+  },
+  "profileLoginRequiredMessage": "Trebuie să fii autentificat pentru a-ți edita profilul.",
+  "@profileLoginRequiredMessage": {
+    "description": "Edit profile UI: profileLoginRequiredMessage"
+  },
+  "profileAvatarUploading": "Se încarcă...",
+  "@profileAvatarUploading": {
+    "description": "Edit profile UI: profileAvatarUploading"
+  },
+  "profileUploadAvatarButton": "Încarcă avatar",
+  "@profileUploadAvatarButton": {
+    "description": "Edit profile UI: profileUploadAvatarButton"
+  },
+  "profileDisplayNameLabel": "Nume afișat",
+  "@profileDisplayNameLabel": {
+    "description": "Edit profile UI: profileDisplayNameLabel"
+  },
+  "profileDisplayNameRequiredError": "Numele afișat este obligatoriu.",
+  "@profileDisplayNameRequiredError": {
+    "description": "Edit profile UI: profileDisplayNameRequiredError"
+  },
+  "profileUsernameHint": "ex. mario_roma",
+  "@profileUsernameHint": {
+    "description": "Edit profile UI: profileUsernameHint"
+  },
+  "profileUsernameHelper": "3–20 de caractere: litere mici, cifre și underscore",
+  "@profileUsernameHelper": {
+    "description": "Edit profile UI: profileUsernameHelper"
+  },
+  "profileAvatarUrlLabel": "URL avatar",
+  "@profileAvatarUrlLabel": {
+    "description": "Edit profile UI: profileAvatarUrlLabel"
+  },
+  "profileBioLabel": "Bio",
+  "@profileBioLabel": {
+    "description": "Edit profile UI: profileBioLabel"
+  },
+  "profileClearCountryButton": "Șterge țara",
+  "@profileClearCountryButton": {
+    "description": "Edit profile UI: profileClearCountryButton"
+  },
+  "profileCityResidenceHelper": "Orașul de reședință este verificat în raport cu țara selectată înainte de salvare.",
+  "@profileCityResidenceHelper": {
+    "description": "Edit profile UI: profileCityResidenceHelper"
+  },
+  "profileCityNotFoundError": "Orașul nu a fost găsit în țara selectată.",
+  "@profileCityNotFoundError": {
+    "description": "Edit profile UI: profileCityNotFoundError"
+  },
+  "profileCityVerificationError": "Orașul nu poate fi verificat acum.",
+  "@profileCityVerificationError": {
+    "description": "Edit profile UI: profileCityVerificationError"
+  },
+  "profileAvatarUploadError": "Avatarul nu a putut fi încărcat.",
+  "@profileAvatarUploadError": {
+    "description": "Edit profile UI: profileAvatarUploadError"
+  },
+  "profileAccountSectionTitle": "Cont",
+  "@profileAccountSectionTitle": {
+    "description": "Edit profile UI: profileAccountSectionTitle"
+  },
+  "profileAccountEmailHelper": "Adresa de e-mail a contului nu poate fi schimbată din acest ecran.",
+  "@profileAccountEmailHelper": {
+    "description": "Edit profile UI: profileAccountEmailHelper"
+  },
+  "profileChangePasswordAction": "Schimbă parola",
+  "@profileChangePasswordAction": {
+    "description": "Edit profile UI: profileChangePasswordAction"
+  },
+  "profileChangePasswordDescription": "Setează o parolă nouă pentru acest cont.",
+  "@profileChangePasswordDescription": {
+    "description": "Edit profile UI: profileChangePasswordDescription"
+  },
+  "notificationsPageTitle": "Notificări",
+  "@notificationsPageTitle": {
+    "description": "Notifications UI: notificationsPageTitle"
+  },
+  "notificationsMarkAllReadAction": "Marchează toate ca citite",
+  "@notificationsMarkAllReadAction": {
+    "description": "Notifications UI: notificationsMarkAllReadAction"
+  },
+  "notificationsNoTargetMessage": "Această notificare nu are o destinație disponibilă.",
+  "@notificationsNoTargetMessage": {
+    "description": "Notifications UI: notificationsNoTargetMessage"
+  },
+  "notificationsTargetUnavailableMessage": "Conținutul asociat acestei notificări este indisponibil.",
+  "@notificationsTargetUnavailableMessage": {
+    "description": "Notifications UI: notificationsTargetUnavailableMessage"
+  },
+  "notificationsLoadError": "Notificările nu au putut fi încărcate.",
+  "@notificationsLoadError": {
+    "description": "Notifications UI: notificationsLoadError"
+  },
+  "notificationsRetryButton": "Încearcă din nou",
+  "@notificationsRetryButton": {
+    "description": "Notifications UI: notificationsRetryButton"
+  },
+  "notificationsEmptyMessage": "Nu există notificări disponibile.",
+  "@notificationsEmptyMessage": {
+    "description": "Notifications UI: notificationsEmptyMessage"
+  },
+  "notificationsCommentReplyTitle": "Răspuns nou la comentariul tău",
+  "@notificationsCommentReplyTitle": {
+    "description": "Notifications UI: notificationsCommentReplyTitle"
+  },
+  "notificationsMentionTitle": "Ai fost menționat",
+  "@notificationsMentionTitle": {
+    "description": "Notifications UI: notificationsMentionTitle"
+  },
+  "notificationsPollResultTitle": "Actualizare Vote",
+  "@notificationsPollResultTitle": {
+    "description": "Notifications UI: notificationsPollResultTitle"
+  },
+  "notificationsCommentReplySubtitle": "Utilizatorul {actor} a răspuns în {target}",
+  "@notificationsCommentReplySubtitle": {
+    "description": "Notifications UI: notificationsCommentReplySubtitle",
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsMentionSubtitle": "Utilizatorul {actor} te-a menționat în {target}",
+  "@notificationsMentionSubtitle": {
+    "description": "Notifications UI: notificationsMentionSubtitle",
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsPollResultSubtitle": "Un rezultat nou este disponibil în {target}",
+  "@notificationsPollResultSubtitle": {
+    "description": "Notifications UI: notificationsPollResultSubtitle",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsTargetPost": "o Voce",
+  "@notificationsTargetPost": {
+    "description": "Notifications UI: notificationsTargetPost"
+  },
+  "notificationsTargetNews": "un articol News",
+  "@notificationsTargetNews": {
+    "description": "Notifications UI: notificationsTargetNews"
+  },
+  "notificationsTargetPoll": "un Vote",
+  "@notificationsTargetPoll": {
+    "description": "Notifications UI: notificationsTargetPoll"
+  },
+  "notificationsTargetVideo": "un videoclip",
+  "@notificationsTargetVideo": {
+    "description": "Notifications UI: notificationsTargetVideo"
+  },
+  "notificationsTargetContent": "un conținut",
+  "@notificationsTargetContent": {
+    "description": "Notifications UI: notificationsTargetContent"
+  },
+  "notificationsUserFallback": "utilizator",
+  "@notificationsUserFallback": {
+    "description": "Notifications UI: notificationsUserFallback"
+  },
+  "profileDeleteAccountAction": "Șterge contul",
+  "@profileDeleteAccountAction": {
+    "description": "Account hub: destructive action used to permanently delete the current account"
+  },
+  "profileDeleteAccountDescription": "Șterge definitiv contul și accesul",
+  "@profileDeleteAccountDescription": {
+    "description": "Account hub: short description below the delete-account action"
+  },
+  "profileDeleteAccountDialogTitle": "Șterge contul",
+  "@profileDeleteAccountDialogTitle": {
+    "description": "Delete-account confirmation dialog title"
+  },
+  "profileDeleteAccountDialogMessage": "Această acțiune este permanentă. Contul nu poate fi recuperat. Scrie DELETE pentru confirmare.",
+  "@profileDeleteAccountDialogMessage": {
+    "description": "Delete-account confirmation dialog warning"
+  },
+  "profileDeleteAccountConfirmationLabel": "Confirmarea ștergerii",
+  "@profileDeleteAccountConfirmationLabel": {
+    "description": "Label for the typed delete-account confirmation field"
+  },
+  "profileDeleteAccountConfirmationHint": "Scrie DELETE",
+  "@profileDeleteAccountConfirmationHint": {
+    "description": "Hint for the typed delete-account confirmation field"
+  },
+  "profileDeleteAccountConfirmationError": "Scrie DELETE pentru a continua.",
+  "@profileDeleteAccountConfirmationError": {
+    "description": "Validation error when the delete-account confirmation is incorrect"
+  },
+  "profileDeleteAccountCancelButton": "Anulează",
+  "@profileDeleteAccountCancelButton": {
+    "description": "Cancel button in the delete-account dialog"
+  },
+  "profileDeleteAccountConfirmButton": "Șterge definitiv",
+  "@profileDeleteAccountConfirmButton": {
+    "description": "Destructive confirmation button in the delete-account dialog"
+  },
+  "profileDeleteAccountFailureMessage": "Contul nu a putut fi șters. Încearcă din nou.",
+  "@profileDeleteAccountFailureMessage": {
+    "description": "Fallback message shown when account deletion fails"
+  },
+  "identityActorTypePerson": "Persoană",
+  "@identityActorTypePerson": {
+    "description": "Public identity type label for a personal account"
+  },
+  "identityActorTypePublicOfficial": "Oficial public",
+  "@identityActorTypePublicOfficial": {
+    "description": "Public identity type label for a verified public official"
+  },
+  "identityActorTypePublicInstitution": "Instituție publică",
+  "@identityActorTypePublicInstitution": {
+    "description": "Public identity type label for a verified public institution"
+  },
+  "identityActorTypeVerifiedOrganization": "Organizație verificată",
+  "@identityActorTypeVerifiedOrganization": {
+    "description": "Public identity type label for a verified non-governmental organization"
+  },
+  "identityVerificationNotVerified": "Neverificat",
+  "@identityVerificationNotVerified": {
+    "description": "Verification state label for a personal account without verification"
+  },
+  "identityVerificationLevel1": "Identitate verificată",
+  "@identityVerificationLevel1": {
+    "description": "Public label for personal identity verification level 1"
+  },
+  "identityVerificationLevel2": "Identitate verificată avansată",
+  "@identityVerificationLevel2": {
+    "description": "Public label for personal identity verification level 2"
+  },
+  "identityBadgeLevel1": "Identitate verificată",
+  "@identityBadgeLevel1": {
+    "description": "Tooltip and badge label for personal verification level 1"
+  },
+  "identityBadgeLevel2": "Identitate verificată avansată",
+  "@identityBadgeLevel2": {
+    "description": "Tooltip and badge label for personal verification level 2"
+  },
+  "identityBadgePublicOfficial": "Oficial public",
+  "@identityBadgePublicOfficial": {
+    "description": "Tooltip and badge label for a verified public official"
+  },
+  "identityBadgePublicInstitution": "Instituție publică",
+  "@identityBadgePublicInstitution": {
+    "description": "Tooltip and badge label for a verified public institution"
+  },
+  "identityBadgeVerifiedOrganization": "Organizație verificată",
+  "@identityBadgeVerifiedOrganization": {
+    "description": "Tooltip and badge label for a verified organization"
+  },
+  "identityOrganizationNameLabel": "Numele organizației",
+  "@identityOrganizationNameLabel": {
+    "description": "Field label for the verified organization name"
+  },
+  "identityOrganizationNameRequired": "Introdu numele organizației.",
+  "@identityOrganizationNameRequired": {
+    "description": "Validation error when the organization name is missing"
+  },
+  "identityInstitutionLevelMunicipality": "Municipal",
+  "@identityInstitutionLevelMunicipality": {
+    "description": "Institution level label for a municipality"
+  },
+  "identityInstitutionLevelProvince": "Provincial",
+  "@identityInstitutionLevelProvince": {
+    "description": "Institution level label for a province"
+  },
+  "identityInstitutionLevelRegion": "Regional",
+  "@identityInstitutionLevelRegion": {
+    "description": "Institution level label for a region"
+  },
+  "identityInstitutionLevelMinistry": "Minister",
+  "@identityInstitutionLevelMinistry": {
+    "description": "Institution level label for a ministry"
+  },
+  "identityInstitutionLevelGovernment": "Guvern",
+  "@identityInstitutionLevelGovernment": {
+    "description": "Institution level label for a government"
+  },
+  "identityInstitutionLevelPublicAgency": "Agenție publică",
+  "@identityInstitutionLevelPublicAgency": {
+    "description": "Institution level label for a public agency"
+  },
+  "identityInstitutionLevelOtherPublicBody": "Alt organism public",
+  "@identityInstitutionLevelOtherPublicBody": {
+    "description": "Institution level label for another public body"
+  },
+  "verificationRequestPersonLevel1": "Verificare persoană — Nivel 1",
+  "@verificationRequestPersonLevel1": {
+    "description": "Verification request type label for personal verification level 1"
+  },
+  "verificationRequestPersonLevel2": "Verificare persoană — Nivel 2",
+  "@verificationRequestPersonLevel2": {
+    "description": "Verification request type label for personal verification level 2"
+  },
+  "verificationRequestPublicOfficial": "Verificare oficial public",
+  "@verificationRequestPublicOfficial": {
+    "description": "Verification request type label for a public official"
+  },
+  "verificationRequestPublicInstitution": "Verificare instituție publică",
+  "@verificationRequestPublicInstitution": {
+    "description": "Verification request type label for a public institution"
+  },
+  "verificationRequestVerifiedOrganization": "Verificare organizație",
+  "@verificationRequestVerifiedOrganization": {
+    "description": "Verification request type label for a verified organization"
+  },
+  "verificationCenterTitle": "Verificare și tip de cont",
+  "@verificationCenterTitle": {
+    "description": "Title of the verification and account type bottom sheet"
+  },
+  "verificationCurrentAccountSection": "Cont curent",
+  "@verificationCurrentAccountSection": {
+    "description": "Section title for the current verified identity state"
+  },
+  "verificationAccountTypeValue": "Tip cont: {accountType}",
+  "@verificationAccountTypeValue": {
+    "description": "Current public account type row",
+    "placeholders": {
+      "accountType": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationLevelValue": "Nivel de verificare: {level}",
+  "@verificationLevelValue": {
+    "description": "Current personal verification level row",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationOfficialTitleValue": "Titlu oficial: {title}",
+  "@verificationOfficialTitleValue": {
+    "description": "Current official title row",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationInstitutionNameValue": "Instituție: {name}",
+  "@verificationInstitutionNameValue": {
+    "description": "Current public institution name row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationOrganizationNameValue": "Organizație: {name}",
+  "@verificationOrganizationNameValue": {
+    "description": "Current verified organization name row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationInstitutionLevelValue": "Nivel instituție: {level}",
+  "@verificationInstitutionLevelValue": {
+    "description": "Current institution level row",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationActiveRequestSection": "Cerere activă",
+  "@verificationActiveRequestSection": {
+    "description": "Section title for an active verification request"
+  },
+  "verificationProfileUnchangedUntilApproval": "Profilul tău actual nu se va modifica până când cererea nu este aprobată.",
+  "@verificationProfileUnchangedUntilApproval": {
+    "description": "Explanation shown while a verification request is pending"
+  },
+  "verificationCancelPendingAction": "Anulează cererea în așteptare",
+  "@verificationCancelPendingAction": {
+    "description": "Button label to cancel a pending verification request"
+  },
+  "verificationPendingBlocksNewRequests": "Nu poți trimite o cerere nouă cât timp există o altă cerere în așteptare.",
+  "@verificationPendingBlocksNewRequests": {
+    "description": "Message explaining that only one pending request is allowed"
+  },
+  "verificationNoActiveRequestSection": "Nicio cerere activă",
+  "@verificationNoActiveRequestSection": {
+    "description": "Section title when there is no active verification request"
+  },
+  "verificationNoActiveRequestDescription": "În prezent nu ai nicio cerere în curs de examinare.",
+  "@verificationNoActiveRequestDescription": {
+    "description": "Message shown when there is no active verification request"
+  },
+  "verificationLastRejectedSection": "Ultima cerere respinsă",
+  "@verificationLastRejectedSection": {
+    "description": "Section title for the most recently rejected request"
+  },
+  "verificationLastRejectedDescription": "Ultima ta cerere a fost respinsă.",
+  "@verificationLastRejectedDescription": {
+    "description": "Message shown after a rejected verification request"
+  },
+  "verificationRejectedCanResubmit": "Profilul tău actual nu s-a schimbat. Poți corecta informațiile și trimite o cerere nouă.",
+  "@verificationRejectedCanResubmit": {
+    "description": "Explanation shown after a rejected request"
+  },
+  "verificationAvailableRequestsSection": "Cereri disponibile",
+  "@verificationAvailableRequestsSection": {
+    "description": "Section title for verification request actions"
+  },
+  "verificationRequestLevel1Title": "Solicită verificarea persoanei — Nivel 1",
+  "@verificationRequestLevel1Title": {
+    "description": "Action title for personal verification level 1"
+  },
+  "verificationRequestLevel1Subtitle": "Verificare de bază a identității personale",
+  "@verificationRequestLevel1Subtitle": {
+    "description": "Action subtitle for personal verification level 1"
+  },
+  "verificationRequestLevel2Title": "Solicită verificarea persoanei — Nivel 2",
+  "@verificationRequestLevel2Title": {
+    "description": "Action title for personal verification level 2"
+  },
+  "verificationRequestLevel2Subtitle": "Verificare avansată a identității personale",
+  "@verificationRequestLevel2Subtitle": {
+    "description": "Action subtitle for personal verification level 2"
+  },
+  "verificationRequestPublicOfficialTitle": "Solicită un cont de Oficial public",
+  "@verificationRequestPublicOfficialTitle": {
+    "description": "Action title for public official verification"
+  },
+  "verificationRequestPublicOfficialSubtitle": "Necesită un titlu oficial și verificare",
+  "@verificationRequestPublicOfficialSubtitle": {
+    "description": "Action subtitle for public official verification"
+  },
+  "verificationRequestPublicInstitutionTitle": "Solicită un cont de Instituție publică",
+  "@verificationRequestPublicInstitutionTitle": {
+    "description": "Action title for public institution verification"
+  },
+  "verificationRequestPublicInstitutionSubtitle": "Necesită numele instituției, nivelul instituției și verificare",
+  "@verificationRequestPublicInstitutionSubtitle": {
+    "description": "Action subtitle for public institution verification"
+  },
+  "verificationRequestOrganizationTitle": "Solicită un cont de Organizație verificată",
+  "@verificationRequestOrganizationTitle": {
+    "description": "Action title for verified organization verification"
+  },
+  "verificationRequestOrganizationSubtitle": "Necesită detalii despre organizație, rolul reprezentantului și verificare Admin",
+  "@verificationRequestOrganizationSubtitle": {
+    "description": "Action subtitle for verified organization verification"
+  },
+  "verificationNoSelfServiceUpgrade": "Nu există opțiuni de verificare disponibile pentru starea actuală a contului tău.",
+  "@verificationNoSelfServiceUpgrade": {
+    "description": "Message when no self-service verification action is available"
+  },
+  "verificationRequestSubmitSuccess": "Cererea a fost trimisă cu succes.",
+  "@verificationRequestSubmitSuccess": {
+    "description": "Success message after submitting a verification request"
+  },
+  "verificationRequestSubmitFailure": "Cererea nu a putut fi trimisă.",
+  "@verificationRequestSubmitFailure": {
+    "description": "Fallback error message after submitting a verification request"
+  },
+  "verificationOfficialTitleDialogTitle": "Verificare oficial public",
+  "@verificationOfficialTitleDialogTitle": {
+    "description": "Dialog title for a public official verification request"
+  },
+  "verificationOfficialTitleLabel": "Titlu oficial",
+  "@verificationOfficialTitleLabel": {
+    "description": "Field label for a public official title"
+  },
+  "verificationOfficialTitleHint": "ex. Primar, Consilier, Ministru",
+  "@verificationOfficialTitleHint": {
+    "description": "Hint for the public official title field"
+  },
+  "verificationInstitutionDialogTitle": "Verificare instituție publică",
+  "@verificationInstitutionDialogTitle": {
+    "description": "Dialog title for a public institution verification request"
+  },
+  "verificationInstitutionNameLabel": "Numele instituției",
+  "@verificationInstitutionNameLabel": {
+    "description": "Field label for the public institution name"
+  },
+  "verificationInstitutionNameHint": "ex. Primăria Romei",
+  "@verificationInstitutionNameHint": {
+    "description": "Hint for the public institution name field"
+  },
+  "verificationInstitutionLevelLabel": "Nivelul instituției",
+  "@verificationInstitutionLevelLabel": {
+    "description": "Field label for the public institution level"
+  },
+  "verificationOrganizationDialogTitle": "Verificare organizație",
+  "@verificationOrganizationDialogTitle": {
+    "description": "Dialog title for a verified organization request"
+  },
+  "verificationOrganizationNameHint": "ex. Asociația Mediu Italia",
+  "@verificationOrganizationNameHint": {
+    "description": "Hint for the verified organization name field"
+  },
+  "verificationSubmitRequestAction": "Trimite cererea",
+  "@verificationSubmitRequestAction": {
+    "description": "Button label to submit a verification request"
+  },
+  "verificationCancelDialogTitle": "Anulează cererea",
+  "@verificationCancelDialogTitle": {
+    "description": "Title of the pending verification cancellation dialog"
+  },
+  "verificationCancelDialogBody": "Sigur vrei să anulezi cererea de verificare în așteptare?",
+  "@verificationCancelDialogBody": {
+    "description": "Confirmation message for cancelling a pending verification request"
+  },
+  "verificationCancelSuccess": "Cerere anulată.",
+  "@verificationCancelSuccess": {
+    "description": "Success message after cancelling a verification request"
+  },
+  "verificationCancelFailure": "Cererea nu a putut fi anulată.",
+  "@verificationCancelFailure": {
+    "description": "Fallback error after cancelling a verification request"
+  },
+  "verificationStatusPendingSuffix": "cerere în curs de examinare",
+  "@verificationStatusPendingSuffix": {
+    "description": "Status suffix shown when a verification request is pending"
+  },
+  "verificationStatusRejectedSuffix": "ultima cerere respinsă",
+  "@verificationStatusRejectedSuffix": {
+    "description": "Status suffix shown when the last verification request was rejected"
+  },
+  "verificationReviewPageTitle": "Revizuire verificări",
+  "@verificationReviewPageTitle": {
+    "description": "Title of the administrator verification review page"
+  },
+  "verificationReviewLoginRequired": "Trebuie să te autentifici pentru a revizui cererile de verificare.",
+  "@verificationReviewLoginRequired": {
+    "description": "Message shown when the reviewer is not logged in"
+  },
+  "verificationReviewPendingCount": "Cereri în așteptare: {count}",
+  "@verificationReviewPendingCount": {
+    "description": "Number of pending verification requests",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "verificationReviewNoPendingRequests": "Nu există cereri de verificare în așteptare.",
+  "@verificationReviewNoPendingRequests": {
+    "description": "Message shown when there are no pending verification requests"
+  },
+  "verificationReviewUserIdLabel": "ID utilizator",
+  "@verificationReviewUserIdLabel": {
+    "description": "Label for the user identifier in a verification review card"
+  },
+  "verificationReviewSubmittedLabel": "Trimisă",
+  "@verificationReviewSubmittedLabel": {
+    "description": "Label for the submission date of a verification request"
+  },
+  "verificationReviewOfficialTitleLabel": "Titlu oficial",
+  "@verificationReviewOfficialTitleLabel": {
+    "description": "Label for the public official title in a review card"
+  },
+  "verificationReviewInstitutionLabel": "Instituție",
+  "@verificationReviewInstitutionLabel": {
+    "description": "Label for the institution name in a review card"
+  },
+  "verificationReviewOrganizationLabel": "Organizație",
+  "@verificationReviewOrganizationLabel": {
+    "description": "Label for the organization name in a review card"
+  },
+  "verificationReviewNoteLabel": "Notă de revizuire",
+  "@verificationReviewNoteLabel": {
+    "description": "Label for an existing review note"
+  },
+  "verificationReviewRejectAction": "Respinge",
+  "@verificationReviewRejectAction": {
+    "description": "Button label to reject a verification request"
+  },
+  "verificationReviewApproveAction": "Aprobă",
+  "@verificationReviewApproveAction": {
+    "description": "Button label to approve a verification request"
+  },
+  "verificationReviewApproveDialogTitle": "Aprobă cererea",
+  "@verificationReviewApproveDialogTitle": {
+    "description": "Title of the approve verification request dialog"
+  },
+  "verificationReviewRejectDialogTitle": "Respinge cererea",
+  "@verificationReviewRejectDialogTitle": {
+    "description": "Title of the reject verification request dialog"
+  },
+  "verificationReviewApproveConfirmation": "Confirmi aprobarea acestei cereri?",
+  "@verificationReviewApproveConfirmation": {
+    "description": "Confirmation message before approving a verification request"
+  },
+  "verificationReviewRejectConfirmation": "Confirmi respingerea acestei cereri?",
+  "@verificationReviewRejectConfirmation": {
+    "description": "Confirmation message before rejecting a verification request"
+  },
+  "verificationReviewOptionalNoteLabel": "Notă opțională de revizuire",
+  "@verificationReviewOptionalNoteLabel": {
+    "description": "Field label for an optional review note"
+  },
+  "verificationReviewRequiredNoteLabel": "Motivul respingerii",
+  "@verificationReviewRequiredNoteLabel": {
+    "description": "Field label for the required rejection reason"
+  },
+  "verificationReviewOptionalHelper": "Opțional",
+  "@verificationReviewOptionalHelper": {
+    "description": "Helper text for an optional review note"
+  },
+  "verificationReviewRequiredHelper": "Obligatoriu la respingere",
+  "@verificationReviewRequiredHelper": {
+    "description": "Helper text for the required rejection reason"
+  },
+  "verificationReviewRequiredNoteError": "Introdu motivul respingerii.",
+  "@verificationReviewRequiredNoteError": {
+    "description": "Validation error when the rejection reason is missing"
+  },
+  "verificationReviewApprovedSuccess": "Cerere aprobată.",
+  "@verificationReviewApprovedSuccess": {
+    "description": "Success message after approving a verification request"
+  },
+  "verificationReviewRejectedSuccess": "Cerere respinsă.",
+  "@verificationReviewRejectedSuccess": {
+    "description": "Success message after rejecting a verification request"
+  },
+  "verificationReviewOperationFailure": "Operațiunea a eșuat.",
+  "@verificationReviewOperationFailure": {
+    "description": "Fallback error message for a failed review operation"
+  },
+  "adminCenterTitle": "Centru Admin",
+  "adminCenterDashboardNavigation": "Panou de control",
+  "adminCenterUsersNavigation": "Utilizatori",
+  "adminCenterVerificationNavigation": "Verificare",
+  "adminCenterReportsNavigation": "Raportări",
+  "adminCenterAuditNavigation": "Audit",
+  "adminCenterAccountDetailsTitle": "Detalii cont",
+  "adminCenterTryAgainAction": "Încearcă din nou",
+  "adminCenterRetryAction": "Reîncearcă",
+  "adminCenterClearAction": "Șterge",
+  "adminCenterApplyFiltersAction": "Aplică filtrele",
+  "adminCenterAllDates": "Toate datele",
+  "adminCenterAuditDateFilterHelp": "Filtrează auditul după dată",
+  "adminCenterActorUserIdLabel": "ID utilizator actor",
+  "adminCenterActionLabel": "Acțiune",
+  "adminCenterAuditActionHint": "resolve_escalated_report",
+  "adminCenterTargetIdLabel": "ID țintă",
+  "adminCenterOutcomeLabel": "Rezultat",
+  "adminCenterAllOutcomes": "Toate rezultatele",
+  "adminCenterOutcomeSuccess": "Succes",
+  "adminCenterOutcomeFailure": "Eșec",
+  "adminCenterOutcomeDenied": "Refuzat",
+  "adminCenterOutcomeNoChange": "Fără modificări",
+  "adminCenterOutcomeUnknown": "Necunoscut",
+  "adminCenterAuditUnavailableTitle": "Audit indisponibil",
+  "adminCenterAuditUnavailableMessage": "Verifică conexiunea și permisiunile, apoi încearcă din nou.",
+  "adminCenterNoAuditEntriesTitle": "Nicio înregistrare de audit",
+  "adminCenterNoAuditEntriesMessage": "Nu există înregistrări care să corespundă filtrelor selectate.",
+  "adminCenterAuditIdLabel": "ID audit",
+  "adminCenterActorLabel": "Actor",
+  "adminCenterReasonLabel": "Motiv",
+  "adminCenterTimestampLabel": "Marcaj temporal",
+  "adminCenterErrorLabel": "Eroare",
+  "adminCenterRecordedValuesTitle": "Valori înregistrate",
+  "adminCenterPreviousValueLabel": "Anterior",
+  "adminCenterNewValueLabel": "Nou",
+  "adminCenterContentTypeLabel": "Tip de conținut",
+  "adminCenterAllContent": "Tot conținutul",
+  "adminCenterPolls": "Vote",
+  "adminCenterPosts": "Voce",
+  "adminCenterNews": "News",
+  "adminCenterAwaitingAdminDecision": "În așteptarea unei decizii Admin",
+  "adminCenterStatusLabel": "Stare",
+  "adminCenterAllStatuses": "Toate stările",
+  "adminCenterStatusOpen": "Deschis",
+  "adminCenterStatusInReview": "În curs de examinare",
+  "adminCenterStatusResolved": "Rezolvat",
+  "adminCenterStatusDismissed": "Respins",
+  "adminCenterAdminQueueUnavailableTitle": "Coada de escaladare Admin este indisponibilă",
+  "adminCenterReportsUnavailableTitle": "Raportări indisponibile",
+  "adminCenterConnectionTryAgainMessage": "Verifică conexiunea și încearcă din nou.",
+  "adminCenterNoAdminReportsTitle": "Nicio raportare în așteptarea deciziei Admin",
+  "adminCenterNoReportsTitle": "Nicio raportare",
+  "adminCenterNoAdminReportsMessage": "Nu există raportări escaladate care necesită examinarea unui administrator.",
+  "adminCenterNoReportsMessage": "Nu există raportări care să corespundă filtrelor selectate.",
+  "adminCenterSearchUsersHint": "Caută după nume, nume de utilizator, e-mail sau ID",
+  "adminCenterClearSearchTooltip": "Șterge căutarea",
+  "adminCenterUsersUnavailableTitle": "Utilizatori indisponibili",
+  "adminCenterNoUsersFoundTitle": "Nu s-au găsit utilizatori",
+  "adminCenterNoUsersTitle": "Niciun utilizator",
+  "adminCenterNoUsersFoundMessage": "Încearcă un alt nume, nume de utilizator, e-mail sau ID.",
+  "adminCenterNoUsersMessage": "Nu există conturi de afișat.",
+  "adminCenterAccountUnavailableTitle": "Cont indisponibil",
+  "adminCenterBackToUsersAction": "Înapoi la utilizatori",
+  "adminCenterPublicIdentitySection": "Identitate publică",
+  "adminCenterDisplayNameLabel": "Nume afișat",
+  "adminCenterNotProvided": "Nefurnizat",
+  "adminCenterUsernameLabel": "Nume de utilizator",
+  "adminCenterUserIdLabel": "ID utilizator",
+  "adminCenterIdentityTypeLabel": "Tip de identitate",
+  "adminCenterAccountSection": "Cont",
+  "adminCenterTechnicalRoleLabel": "Rol tehnic",
+  "adminCenterRoleMirrorLabel": "Oglindire rol profil",
+  "adminCenterRoleSynchronizationLabel": "Sincronizare roluri",
+  "adminCenterSynchronized": "Sincronizat",
+  "adminCenterNotSynchronized": "Nesincronizat",
+  "adminCenterRoleNotSynchronized": "Rol nesincronizat",
+  "adminCenterAccountStatusLabel": "Starea contului",
+  "adminCenterSuspendedUntilLabel": "Suspendat până la",
+  "adminCenterAccountManagementSection": "Administrarea contului",
+  "adminCenterDangerZoneSection": "Zonă periculoasă",
+  "adminCenterRoleManagementSection": "Gestionarea rolurilor",
+  "adminCenterVerificationLevelLabel": "Nivel de verificare",
+  "adminCenterVerificationStatusLabel": "Starea verificării",
+  "adminCenterAccessInformationSection": "Informații de acces",
+  "adminCenterEmailLabel": "E-mail",
+  "adminCenterNotAvailable": "Indisponibil",
+  "adminCenterEmailConfirmationLabel": "Confirmare e-mail",
+  "adminCenterNotConfirmed": "Neconfirmat",
+  "adminCenterRegisteredLabel": "Înregistrat",
+  "adminCenterLastAccessLabel": "Ultimul acces",
+  "adminCenterLoadingDashboardTitle": "Se încarcă panoul de control",
+  "adminCenterLoadingDashboardMessage": "Se preiau cei mai recenți indicatori.",
+  "adminCenterDashboardUnavailableTitle": "Panou de control indisponibil",
+  "adminCenterIndicatorsUnavailableMessage": "Indicatorii nu au putut fi încărcați.",
+  "adminCenterVerificationPendingIndicator": "Verificări în așteptare",
+  "adminCenterOpenReportsIndicator": "Raportări deschise",
+  "adminCenterSuspendedAccountsIndicator": "Conturi suspendate",
+  "adminCenterStaffIndicator": "Personal",
+  "adminCenterNoPendingWorkTitle": "Nicio activitate în așteptare",
+  "adminCenterNoPendingWorkMessage": "Verificările, raportările și conturile suspendate sunt la zi.",
+  "adminCenterCouldNotUpdateUsers": "Lista utilizatorilor nu a putut fi actualizată.",
+  "adminCenterCouldNotUpdateReports": "Coada de raportări nu a putut fi actualizată.",
+  "adminCenterUnnamedUser": "Utilizator fără nume",
+  "adminCenterTemporarySuspensionTitle": "Suspendare temporară",
+  "adminCenterReactivateDescription": "Elimină imediat suspendarea și permite o nouă autentificare.",
+  "adminCenterSuspendDescription": "Blochează accesul pentru o perioadă limitată și încheie toate sesiunile curente.",
+  "adminCenterSuspensionUnavailableDescription": "Suspendarea necesită un cont sincronizat care nu este Admin.",
+  "adminCenterReactivateAccountAction": "Reactivează contul",
+  "adminCenterSuspendAccountAction": "Suspendă contul",
+  "adminCenterForceLogoutAction": "Forțează deconectarea",
+  "adminCenterSuspendedForceLogoutDescription": "Suspendarea a încheiat deja sesiunile curente. Reactivează contul înainte de a testa o deconectare separată.",
+  "adminCenterForceLogoutDescription": "Încheie toate sesiunile curente fără a suspenda contul.",
+  "adminCenterForceLogoutUnavailableDescription": "Deconectarea forțată necesită un cont sincronizat care nu este Admin.",
+  "adminCenterPermanentDeletionTitle": "Ștergere permanentă a contului",
+  "adminCenterPermanentDeletionDescription": "Șterge datele de autentificare, încheie toate sesiunile și anonimizează înregistrarea publică păstrată.",
+  "adminCenterDeletionUnavailableDescription": "Ștergerea necesită un cont sincronizat care nu este Admin.",
+  "adminCenterDeleteAccountPermanentlyAction": "Șterge definitiv contul",
+  "adminCenterDurationOneHour": "1 oră",
+  "adminCenterDurationOneDay": "24 de ore",
+  "adminCenterDurationSevenDays": "7 zile",
+  "adminCenterDurationThirtyDays": "30 de zile",
+  "adminCenterSuspendImmediateEffect": "Contul va pierde accesul imediat și toate sesiunile curente vor fi încheiate.",
+  "adminCenterDurationLabel": "Durată",
+  "adminCenterSuspendReasonHint": "Explică de ce trebuie suspendat acest cont",
+  "adminCenterReactivateReasonHint": "Explică de ce poate fi reactivat acest cont",
+  "adminCenterReactivateConfirmation": "Confirm că acest cont poate redobândi accesul.",
+  "adminCenterReactivateFailure": "Contul nu a putut fi reactivat. Verifică rolul și starea, apoi încearcă din nou.",
+  "adminCenterReactivateSuccess": "Cont reactivat. O nouă autentificare este acum permisă.",
+  "adminCenterForceLogoutFullDescription": "Încheie toate sesiunile curente ale acestui cont. Contul rămâne activ și se poate autentifica din nou.",
+  "adminCenterForceLogoutReasonHint": "Explică de ce trebuie încheiate sesiunile curente",
+  "adminCenterForceLogoutConfirmation": "Confirm încheierea imediată a tuturor sesiunilor curente pentru acest cont.",
+  "adminCenterForceLogoutFailure": "Contul nu a putut fi deconectat. Verifică rolul și starea, apoi încearcă din nou.",
+  "adminCenterForceLogoutSuccess": "Sesiunile curente au fost încheiate. Contul se poate autentifica din nou.",
+  "adminCenterSuspendFailure": "Contul nu a putut fi suspendat. Verifică rolul și starea, apoi încearcă din nou.",
+  "adminCenterDeleteReasonHint": "Explică de ce trebuie șters acest cont",
+  "adminCenterTypeDeleteLabel": "Scrie DELETE",
+  "adminCenterTypeAccountIdLabel": "Scrie ID-ul complet al contului",
+  "adminCenterDeletePermanentlyAction": "Șterge definitiv",
+  "adminCenterDeleteIrreversibleWarning": "Această acțiune este ireversibilă. Datele de autentificare și sesiunile curente vor fi eliminate, avatarul va fi șters, iar înregistrarea publică păstrată va fi anonimizată. Jurnalul de audit va rămâne.",
+  "adminCenterDeleteFailure": "Contul nu a putut fi șters. Verifică rolul, starea și valorile de confirmare, apoi încearcă din nou.",
+  "adminCenterDeleteSuccess": "Cont șters definitiv, iar datele personale au fost anonimizate.",
+  "adminCenterChangeTechnicalRoleTitle": "Schimbă rolul tehnic",
+  "adminCenterChangeRoleDescription": "Verifică rolul curent și rolul solicitat înainte de confirmare.",
+  "adminCenterChangeRoleUnavailableDescription": "Schimbările de rol necesită un cont sincronizat și neșters.",
+  "adminCenterChangeRoleAction": "Schimbă rolul",
+  "adminCenterChangePublicIdentityTitle": "Schimbă identitatea publică",
+  "adminCenterChangeIdentityDescription": "Actualizează tipul de cont public și nivelul de verificare.",
+  "adminCenterChangeIdentityUnavailableDescription": "Schimbările de identitate necesită un cont sincronizat care nu este Admin.",
+  "adminCenterChangeIdentityAction": "Schimbă identitatea",
+  "adminCenterChoosePublicIdentityMessage": "Alege tipul de cont public și starea sa de verificare.",
+  "adminCenterPublicAccountTypeLabel": "Tip de cont public",
+  "adminCenterPersonVerificationHelper": "Nivelurile 1 și 2 sunt disponibile numai pentru Persona.",
+  "adminCenterNonPersonVerificationHelper": "Conturile non-Persona nu folosesc Nivelul 1 sau Nivelul 2.",
+  "adminCenterBeforeLabel": "Înainte",
+  "adminCenterAfterLabel": "După",
+  "adminCenterIdentityReasonHint": "Explică de ce trebuie schimbată identitatea publică",
+  "adminCenterIdentityConfirmation": "Confirm identitatea publică și nivelul de verificare afișate mai sus.",
+  "adminCenterIdentityChangeFailure": "Identitatea publică nu a putut fi schimbată. Verifică starea contului și încearcă din nou.",
+  "adminCenterChooseTechnicalRoleMessage": "Alege noul rol tehnic și notează de ce este necesară această schimbare.",
+  "adminCenterNewTechnicalRoleLabel": "Rol tehnic nou",
+  "adminCenterSelectRole": "Selectează un rol",
+  "adminCenterRoleSessionWarning": "Această schimbare încheie sesiunea activă a destinatarului. Va trebui să se autentifice din nou înainte de a continua să folosească contul.",
+  "adminCenterRoleReasonHint": "Explică de ce trebuie schimbat rolul tehnic",
+  "adminCenterRoleConfirmation": "Confirm rolul afișat mai sus și înțeleg că destinatarul trebuie să se autentifice din nou.",
+  "adminCenterRoleChangeFailure": "Schimbarea rolului nu a putut fi finalizată. Verifică starea contului și încearcă din nou.",
+  "adminCenterChangingRole": "Se schimbă rolul",
+  "adminCenterConfirmRoleChange": "Confirmă schimbarea rolului",
+  "adminCenterRoleUser": "Utilizator",
+  "adminCenterRoleModerator": "Moderator",
+  "adminCenterRoleAdmin": "Admin",
+  "adminCenterAccountStatusActive": "Activ",
+  "adminCenterAccountStatusSuspended": "Suspendat",
+  "adminCenterAccountStatusDeleted": "Șters",
+  "adminCenterVerificationStatusNone": "Niciuna",
+  "adminCenterVerificationStatusPending": "În așteptare",
+  "adminCenterVerificationStatusRejected": "Respins",
+  "adminCenterVerificationNotVerified": "Neverificat",
+  "adminCenterVerificationLevel1": "Nivel 1",
+  "adminCenterVerificationLevel2": "Nivel 2",
+  "adminCenterReportSingular": "raportare",
+  "adminCenterReportPlural": "raportări",
+  "adminCenterUserSingular": "utilizator",
+  "adminCenterUserPlural": "utilizatori",
+  "adminCenterPoll": "Vote",
+  "adminCenterPost": "Voce",
+  "adminCenterUnknown": "Necunoscut",
+  "adminCenterContentHidden": "Conținut ascuns",
+  "adminCenterContentVisible": "Conținut vizibil",
+  "adminCenterReportedByLabel": "Raportat de",
+  "adminCenterContentOwnerLabel": "Proprietarul conținutului",
+  "adminCenterReviewReportAction": "Revizuiește raportarea",
+  "adminCenterAdminDecisionAction": "Decizie Admin",
+  "adminCenterRestoreContentAction": "Restaurează conținutul",
+  "adminCenterHideContentAction": "Ascunde conținutul",
+  "adminCenterOpenProfileAction": "Deschide profilul",
+  "adminCenterOpenContentAction": "Deschide conținutul",
+  "adminCenterDecisionNoViolation": "Nicio încălcare",
+  "adminCenterDecisionViolationConfirmed": "Încălcare confirmată",
+  "adminCenterDecisionEscalateToAdmin": "Escaladează către Admin",
+  "adminCenterResolutionNoAccountAction": "Nicio acțiune asupra contului",
+  "adminCenterResolutionAccountSuspended": "Cont suspendat",
+  "adminCenterResolutionLogoutForced": "Deconectare forțată",
+  "adminCenterResolutionAccountDeleted": "Cont șters",
+  "adminCenterReviewerLabel": "Evaluator",
+  "adminCenterDecisionDescriptionNoViolation": "Respinge raportarea deoarece conținutul nu încalcă regulile actuale.",
+  "adminCenterDecisionDescriptionViolation": "Confirmă o încălcare și menține cazul în examinare pentru acțiunea asupra conținutului gestionată în AC8.5.",
+  "adminCenterDecisionDescriptionEscalation": "Escaladează cazul pentru o revizuire la nivel de cont de către un administrator.",
+  "adminCenterChooseModerationOutcome": "Alege rezultatul moderării pentru această raportare.",
+  "adminCenterDecisionAlreadyRecordedFailure": "Decizia nu a putut fi înregistrată. Raportarea poate fi deja revizuită. Reîmprospătează coada și încearcă din nou.",
+  "adminCenterDecisionLabel": "Decizie",
+  "adminCenterReportReasonLabel": "Motivul raportării",
+  "adminCenterReviewNoteLabel": "Notă de revizuire",
+  "adminCenterReviewNoteHint": "Explică dovezile și decizia de moderare",
+  "adminCenterRecordingDecision": "Se înregistrează decizia",
+  "adminCenterConfirmDecision": "Confirmă decizia",
+  "adminCenterAdministratorDecisionTitle": "Decizia administratorului",
+  "adminCenterResolutionDescriptionNoAction": "Închide raportarea escaladată fără a modifica contul.",
+  "adminCenterResolutionDescriptionSuspended": "Închide raportarea după ce o suspendare reușită a contului a fost deja înregistrată în jurnalul de audit.",
+  "adminCenterResolutionDescriptionLogout": "Închide raportarea după ce o deconectare forțată reușită a fost deja înregistrată în jurnalul de audit.",
+  "adminCenterResolutionDescriptionDeleted": "Închide raportarea după ce o ștergere reușită a contului a fost deja înregistrată în jurnalul de audit.",
+  "adminCenterChooseFinalOutcome": "Alege rezultatul final al administratorului pentru această escaladare.",
+  "adminCenterAdminResolutionFailure": "Decizia administratorului nu a putut fi înregistrată. Reîmprospătează coada și încearcă din nou.",
+  "adminCenterAdminResolutionRequiresAction": "Finalizează mai întâi acțiunea corespunzătoare asupra contului, apoi revino la această raportare și înregistrează decizia finală a administratorului.",
+  "adminCenterEscalationNoteLabel": "Notă de escaladare",
+  "adminCenterFinalOutcomeLabel": "Rezultat final",
+  "adminCenterAdministratorNoteLabel": "Nota administratorului",
+  "adminCenterAdministratorNoteHint": "Explică decizia finală la nivelul contului",
+  "adminCenterHideContentFailure": "Conținutul nu a putut fi ascuns. Reîmprospătează coada de raportări și încearcă din nou.",
+  "adminCenterRestoreContentFailure": "Conținutul nu a putut fi restaurat. Reîmprospătează coada de raportări și încearcă din nou.",
+  "adminCenterHideContentWarning": "Aceasta elimină conținutul raportat din accesul public. Acțiunea poate fi inversată ulterior din filtrul raportărilor rezolvate.",
+  "adminCenterRestoreContentWarning": "Aceasta face din nou conținutul raportat disponibil public.",
+  "adminCenterActionReasonLabel": "Motivul acțiunii",
+  "adminCenterHideContentReasonHint": "Explică de ce trebuie ascuns conținutul",
+  "adminCenterRestoreContentReasonHint": "Explică de ce poate fi restaurat conținutul",
+  "adminCenterHidingContent": "Se ascunde conținutul",
+  "adminCenterRestoringContent": "Se restaurează conținutul",
+  "adminCenterReportedProfileTitle": "Profil raportat",
+  "adminCenterReportedProfileNotice": "Acest context de profil provine din coada protejată de raportări. Acțiunile administrative asupra contului rămân separate.",
+  "adminCenterCouldNotRefreshIndicators": "Indicatorii nu au putut fi reîmprospătați.",
+  "adminCenterCouldNotRefreshAccount": "Detaliile contului nu au putut fi reîmprospătate.",
+  "adminCenterReportAlreadyReviewed": "Această raportare a fost deja revizuită sau nu mai este în așteptare.",
+  "adminCenterReportNotAwaitingAdmin": "Această raportare nu așteaptă o decizie a administratorului.",
+  "adminCenterConfirmedViolationRequired": "Este necesară o încălcare confirmată înainte de a modifica vizibilitatea conținutului.",
+  "adminCenterContentHiddenSuccess": "Conținutul raportat a fost ascuns.",
+  "adminCenterContentRestoredSuccess": "Conținutul raportat a fost restaurat.",
+  "adminCenterMissingContentId": "Identificatorul conținutului original lipsește.",
+  "adminCenterUnsupportedTargetType": "Această raportare are un tip de țintă nesuportat.",
+  "adminCenterOriginalContentUnavailable": "Conținutul original nu mai este disponibil.",
+  "adminCenterNoReportedProfile": "Niciun profil raportat nu este asociat cu acest conținut.",
+  "adminCenterRoleChangedSuccess": "Rolul tehnic a fost schimbat din {previousRole} în {newRole}. Destinatarul a fost deconectat și trebuie să se autentifice din nou.",
+  "@adminCenterRoleChangedSuccess": {
+    "placeholders": {
+      "previousRole": {
+        "type": "String"
+      },
+      "newRole": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterIdentityChangedSuccess": "Identitatea publică a fost schimbată în {actorType} cu {verificationLevel}.",
+  "@adminCenterIdentityChangedSuccess": {
+    "placeholders": {
+      "actorType": {
+        "type": "String"
+      },
+      "verificationLevel": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAccountSuspendedSuccess": "Cont suspendat până la {dateTime}. Destinatarul a fost deconectat.",
+  "@adminCenterAccountSuspendedSuccess": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterReportDecisionRecorded": "Decizia raportării a fost înregistrată: {decision}.",
+  "@adminCenterReportDecisionRecorded": {
+    "placeholders": {
+      "decision": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAdministratorDecisionRecorded": "Decizia administratorului a fost înregistrată: {decision}.",
+  "@adminCenterAdministratorDecisionRecorded": {
+    "placeholders": {
+      "decision": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterUsersCount": "{count, plural, =1 {{count} utilizator} other {{count} utilizatori}}",
+  "@adminCenterUsersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterReportsCount": "{count, plural, =1 {{count} raportare} other {{count} raportări}}",
+  "@adminCenterReportsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterAccountValue": "Cont: {account}",
+  "@adminCenterAccountValue": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterSuspendedUntilValue": "Suspendat până la: {dateTime}",
+  "@adminCenterSuspendedUntilValue": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterSuspendConfirmation": "Confirm suspendarea până la {dateTime} și încheierea imediată a sesiunilor curente.",
+  "@adminCenterSuspendConfirmation": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAccountIdValue": "ID cont: {accountId}",
+  "@adminCenterAccountIdValue": {
+    "placeholders": {
+      "accountId": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterCurrentRoleValue": "Curent: {role}",
+  "@adminCenterCurrentRoleValue": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterTargetFallback": "{targetType} {targetId}",
+  "@adminCenterTargetFallback": {
+    "placeholders": {
+      "targetType": {
+        "type": "String"
+      },
+      "targetId": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterMinimumCharactersRequired": "Este necesară o notă de cel puțin {count} caractere.",
+  "@adminCenterMinimumCharactersRequired": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterMinimumReasonCharactersRequired": "Este necesar un motiv de cel puțin {count} caractere.",
+  "@adminCenterMinimumReasonCharactersRequired": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterPageOf": "Pagina {currentPage} din {totalPages}",
+  "@adminCenterPageOf": {
+    "placeholders": {
+      "currentPage": {
+        "type": "int"
+      },
+      "totalPages": {
+        "type": "int"
+      }
+    }
+  },
+  "profilePublicProfileSectionTitle": "Profil public",
+  "profileIdentityVerificationSectionTitle": "Identitate și verificare",
+  "profilePreferencesSectionTitle": "Preferințe",
+  "profileNotificationsSectionTitle": "Notificări",
+  "profileActivitySectionTitle": "Activitate personală",
+  "profileSecurityAccountSectionTitle": "Securitate și cont",
+  "profileThemeTitle": "Temă",
+  "profileThemeSystem": "Sistem",
+  "profileThemeSystemDescription": "Urmează tema dispozitivului",
+  "profileThemeLight": "Deschis",
+  "profileThemeDark": "Întunecat",
+  "profileMyPollsTitle": "Vote",
+  "profileMyPostsTitle": "Voce",
+  "profileMyCommentsTitle": "Comentariile mele",
+  "profileMyFavoritesTitle": "Elementele mele salvate",
+  "profileAccountConnectionsTitle": "Urmăriri și urmăritori",
+  "accountConnectionsFollowingTab": "Urmărești",
+  "accountConnectionsFollowersTab": "Urmăritori",
+  "accountConnectionsEmptyFollowing": "Nu urmărești încă niciun cont.",
+  "accountConnectionsEmptyFollowers": "Nu ai încă urmăritori.",
+  "accountConnectionsLoadError": "Conturile nu au putut fi încărcate. Încearcă din nou.",
+  "profileMyFollowedScopesTitle": "Zonele mele urmărite",
+  "profileLogoutAction": "Deconectare",
+  "profileLogoutDescription": "Ieși din contul curent",
+  "profileLogoutDialogTitle": "Deconectare",
+  "profileLogoutDialogMessage": "Sigur vrei să te deconectezi din cont?",
+  "profileLogoutCancelButton": "Anulează",
+  "profileLogoutConfirmButton": "Deconectare",
+  "publicProfilePageTitle": "Profil public",
+  "publicProfileUserFallback": "Utilizator",
+  "publicProfileNoBio": "Nicio biografie disponibilă.",
+  "publicProfileResidenceLabel": "Reședință",
+  "publicProfileResidenceUnknown": "Nespecificat",
+  "publicProfileMemberSinceLabel": "Membru din",
+  "publicProfileContentSectionTitle": "Conținut public",
+  "publicProfilePollsAction": "Vote",
+  "publicProfilePostsAction": "Voce",
+  "publicProfileBlockUserAction": "Blochează utilizatorul",
+  "publicProfileLoadError": "Profilul nu a putut fi încărcat.",
+  "publicProfileNotFound": "Profil indisponibil.",
+  "publicProfileUnblockUserAction": "Deblochează utilizatorul",
+  "publicProfileBlockDialogTitle": "Blochezi acest utilizator?",
+  "publicProfileBlockDialogMessage": "Îl poți debloca ulterior din profilul său public.",
+  "publicProfileUnblockDialogTitle": "Deblochezi acest utilizator?",
+  "publicProfileUnblockDialogMessage": "Utilizatorul nu va mai fi în lista ta de blocare.",
+  "publicProfileBlockSuccess": "Utilizator blocat.",
+  "publicProfileUnblockSuccess": "Utilizator deblocat.",
+  "publicProfileBlockError": "Blocarea nu a putut fi actualizată. Încearcă din nou.",
+  "publicProfileFollowersLabel": "urmăritori",
+  "publicProfileFollowingLabel": "urmăriri",
+  "publicProfileFollowAction": "Urmărește",
+  "publicProfileUnfollowAction": "Nu mai urmări",
+  "publicProfileFollowSuccess": "Cont urmărit.",
+  "publicProfileUnfollowSuccess": "Urmărirea contului a fost oprită.",
+  "publicProfileFollowError": "Urmărirea nu a putut fi actualizată. Încearcă din nou.",
+  "publicProfileFollowRetry": "Reîncarcă informațiile despre urmărire",
+  "contentLanguageFieldLabel": "Limba conținutului",
+  "contentLanguageFieldHelper": "Selectează limba în care ai scris conținutul.",
+  "contentLanguageUndetermined": "Nespecificat",
+  "createPollAdvancedOptionsTitle": "Opțiuni avansate",
+  "createPollAdvancedOptionsSubtitle": "Anonimat, vizibilitatea rezultatelor, schimbarea votului și cvorum.",
+  "onboardingSkipButton": "Omite",
+  "onboardingNextButton": "Următorul",
+  "onboardingStartButton": "Începe",
+  "onboardingPollTitle": "Vote",
+  "onboardingPollDescription": "Participă la un Vote pe teme care te interesează sau creează unul pentru a colecta opinia comunității.",
+  "onboardingHeatIceTitle": "Heat și Ice",
+  "onboardingHeatIceDescription": "Folosește Heat și Ice pentru a arăta cât de puternic îți atrage atenția un conținut.",
+  "onboardingCivicMapTitle": "Civic Map",
+  "onboardingCivicMapDescription": "Explorează Vote, Voce și News pe hartă și descoperă ce se întâmplă în diferite zone.",
+  "onboardingGeoScopeTitle": "GeoScope",
+  "onboardingGeoScopeDescription": "Alege nivelul geografic pe care vrei să-l urmărești: lume, țară sau oraș.",
+  "onboardingVerificationTitle": "Verificarea identității",
+  "onboardingVerificationDescription": "Unele Vote pot necesita un nivel de verificare pentru a proteja integritatea votării.",
+  "pollDetail_voteReceiptButton": "Dovadă de vot",
+  "pollDetail_voteReceiptTitle": "Dovadă de vot",
+  "pollDetail_voteReceiptIdLabel": "ID dovadă",
+  "pollDetail_voteReceiptDateLabel": "Înregistrat",
+  "pollDetail_voteReceiptPrivacy": "Această dovadă confirmă că votul tău a fost înregistrat fără a arăta alegerea făcută.",
+  "pollDetail_voteReceiptCloseButton": "Închide",
+  "profileBiometricUnlockTitle": "Deblocare biometrică",
+  "profileBiometricUnlockDescription": "Protejează sesiunea memorată cu amprenta sau recunoașterea biometrică a dispozitivului.",
+  "profileBiometricRequiresRememberMe": "Necesită activarea opțiunii Ține-mă minte.",
+  "profileBiometricUnavailable": "Biometria este indisponibilă sau neconfigurată pe acest dispozitiv.",
+  "profileBiometricEnableReason": "Confirmă biometria pentru a activa deblocarea Social Vote.",
+  "profileBiometricEnabledMessage": "Deblocarea biometrică a fost activată.",
+  "profileBiometricDisabledMessage": "Deblocarea biometrică a fost dezactivată.",
+  "profileBiometricAuthFailedMessage": "Autentificarea biometrică nu a fost finalizată.",
+  "biometricLockTitle": "Social Vote este blocat",
+  "biometricLockMessage": "Folosește biometria dispozitivului pentru a debloca sesiunea memorată.",
+  "biometricUnlockButton": "Deblochează",
+  "biometricUsePasswordButton": "Folosește parola",
+  "biometricUnlockReason": "Deblochează sesiunea Social Vote.",
+  "biometricUnlockFailedMessage": "Deblocarea a eșuat. Încearcă din nou sau folosește parola.",
+  "adminCenterOperationalActivityTitle": "Activitate operațională",
+  "adminCenterOperationalActivitySubtitle": "Contori agregați. Fără urmărirea în timp real a prezenței online.",
+  "adminCenterLast24HoursLabel": "24 de ore",
+  "adminCenterLast7DaysLabel": "7 zile",
+  "adminCenterNewUsersMetric": "Înregistrări noi",
+  "adminCenterRecentSignInsMetric": "Autentificări recente",
+  "adminCenterPollsCreatedMetric": "Vote create",
+  "adminCenterPostsCreatedMetric": "Voce create",
+  "adminCenterAdminActionsMetric": "Acțiuni Admin",
+  "authPublicNameHelper": "Acesta este numele pe care îl vor vedea ceilalți utilizatori. Numele de utilizator este creat automat.",
+  "@authPublicNameHelper": {
+    "description": "Auth UI: explains public name and automatic username generation"
+  },
+  "adminCenterRefreshMarkersTooltip": "Reîmprospătează marcajele Globe",
+  "adminCenterMarkerDensityTitle": "Densitatea marcajelor lumii",
+  "adminCenterMarkerDensitySubtitle": "Controlează bugetul vizual de marcaje al Home Globe fără a modifica coordonatele reale sau clasarea conținutului.",
+  "adminCenterMarkerDensityEmpty": "Gol",
+  "adminCenterMarkerDensityFull": "Complet",
+  "adminCenterMarkerDensityBudget": "Buget Home: {count} marcaje",
+  "@adminCenterMarkerDensityBudget": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterMarkerDensitySaveError": "Densitatea marcajelor lumii nu a putut fi salvată.",
+  "adminCenterMarkerDensityBackendUnavailable": "Setările backend pentru marcajele lumii nu sunt încă disponibile.",
+  "adminCenterQuickActionsTitle": "Acțiuni rapide pentru cont",
+  "adminCenterModerationSnapshotTitle": "Instantaneu moderare și activitate",
+  "adminCenterReportsReceivedMetric": "Raportări primite",
+  "adminCenterPendingReportsMetric": "Raportări în așteptare",
+  "adminCenterConfirmedViolationsMetric": "Încălcări confirmate",
+  "adminCenterReportsFiledMetric": "Raportări depuse",
+  "adminCenterCommentsCreatedMetric": "Comentarii create",
+  "adminCenterAdminActionsOnAccountMetric": "Acțiuni Admin asupra contului",
+  "adminCenterLastReportReceivedLabel": "Ultima raportare primită",
+  "adminCenterOpenFullAccountAction": "Deschide toate controalele contului",
+  "profileAppLanguageGerman": "Germană",
+  "profileAppLanguagePersian": "Persană",
+  "@profileAppLanguageGerman": {
+    "description": "Label for the German app language option"
+  },
+  "discoveryPageTitle": "Explorează",
+  "@discoveryPageTitle": {
+    "description": "Title of the Discovery section"
+  },
+  "organizationWorkspaceTitle": "Workspace organizației",
+  "organizationPilotBannerTitle": "Pilot gratuit",
+  "organizationPilotBannerBody": "Sessions sunt gratuite în perioada pilot. Unele funcții profesionale pot deveni cu plată în viitor; facturarea nu este activă acum.",
+  "organizationVerifiedLabel": "Organizație verificată",
+  "organizationEditProfile": "Editează profilul organizației",
+  "organizationCreateSession": "Session nouă",
+  "organizationNoSessions": "Nu există încă Sessions. Creează prima pentru o întâlnire, atelier sau eveniment.",
+  "organizationSessionsTitle": "Sessions live",
+  "organizationRequiresVerificationTitle": "Este necesară o organizație verificată",
+  "organizationRequiresVerificationBody": "Acest Workspace este disponibil doar conturilor aprobate de Social Vote ca organizație verificată.",
+  "organizationProfileEditorTitle": "Profilul organizației",
+  "organizationLegalName": "Denumire legală",
+  "organizationPublicName": "Nume public",
+  "organizationType": "Tip organizație",
+  "organizationCountryCode": "Cod țară",
+  "organizationCity": "Oraș",
+  "organizationWebsite": "Site oficial",
+  "organizationDescription": "Descriere",
+  "organizationUploadCover": "Schimbă coperta",
+  "organizationUploadLogo": "Schimbă logo-ul",
+  "organizationMediaUpdated": "Imaginea organizației a fost actualizată.",
+  "organizationNamesRequired": "Denumirea legală și numele public sunt obligatorii.",
+  "organizationTypeAssociation": "Asociație",
+  "organizationTypeNonprofit": "Organizație nonprofit",
+  "organizationTypeCompany": "Companie",
+  "organizationTypeCooperative": "Cooperativă",
+  "organizationTypeSports": "Organizație sportivă",
+  "organizationTypePublicBody": "Organism public",
+  "organizationTypeCommittee": "Comitet / grup",
+  "organizationTypeOther": "Altul",
+  "sessionCreateTitle": "Creează Live Session",
+  "sessionTitleLabel": "Titlul Session",
+  "sessionExpectedParticipants": "Participanți estimați",
+  "sessionAccessMode": "Acces participanți",
+  "sessionAccessOpen": "Anonim deschis",
+  "sessionAccessOpenHint": "Oricine are linkul/codul se poate alătura. Prevenirea duplicatelor este de tip best-effort; acest mod nu garantează o persoană = un vot.",
+  "sessionAccessControlled": "Anonim controlat",
+  "sessionAccessControlledHint": "Folosește Access Passes anonime de unică folosință. Social Vote stochează doar hash-ul Access Pass și nu leagă alegerile din buletin de credențialele participantului.",
+  "sessionResultsVisibility": "Vizibilitatea rezultatelor",
+  "sessionResultsLive": "Live",
+  "sessionResultsAfterVote": "După votul participantului",
+  "sessionResultsAfterClose": "După închiderea întrebării",
+  "sessionResultsOrganizerOnly": "Doar organizatorul",
+  "sessionCreateAction": "Creează Session",
+  "sessionPilotLimit": "Limită pilot: între 1 și 250 de participanți per Session.",
+  "sessionStatusDraft": "Ciornă",
+  "sessionStatusOpen": "Deschisă",
+  "sessionStatusClosed": "Închisă",
+  "sessionJoinCode": "Cod de acces",
+  "sessionShareJoin": "Distribuie linkul de acces",
+  "sessionCopyJoinLink": "Copiază linkul",
+  "sessionGenerateTokens": "Generează Access Passes",
+  "sessionGenerateTokensCount": "Număr de Access Passes",
+  "sessionTokensOneTimeTitle": "Salvează aceste credențiale acum",
+  "sessionTokensOneTimeBody": "Access Passes în clar sunt afișate doar în rezultatul acestui lot. Social Vote stochează doar hash-urile lor. Copiază-le și distribuie-le în siguranță.",
+  "sessionCopyTokens": "Copiază toate linkurile",
+  "sessionTokensSavedAction": "Le-am salvat",
+  "sessionOpenAction": "Deschide Session",
+  "sessionCloseAction": "Închide Session",
+  "sessionCloseConfirm": "Închizi votarea și creezi instantaneul imuabil Verified Result?",
+  "sessionQuestionsTitle": "Întrebări",
+  "sessionAddQuestion": "Adaugă întrebare",
+  "sessionQuestionTitle": "Întrebare",
+  "sessionQuestionType": "Tip întrebare",
+  "sessionTypeYesNo": "Da / Nu",
+  "sessionTypeSingle": "Alegere unică",
+  "sessionTypeMultiple": "Alegere multiplă",
+  "sessionOptions": "Opțiuni",
+  "sessionOptionHint": "O opțiune pe fiecare rând.",
+  "sessionMinSelections": "Selecții minime",
+  "sessionMaxSelections": "Selecții maxime",
+  "sessionAddAction": "Adaugă",
+  "sessionOpenQuestion": "Deschide întrebarea",
+  "sessionCloseQuestion": "Închide întrebarea",
+  "sessionNoQuestions": "Nu există încă întrebări.",
+  "sessionPresenterTitle": "Prezentator",
+  "sessionParticipantTitle": "Social Vote Live",
+  "sessionJoinAction": "Alătură-te Session",
+  "sessionTokenLabel": "Token participant",
+  "sessionTokenHint": "SV-…",
+  "sessionWaitingQuestion": "Se așteaptă ca organizatorul să deschidă o întrebare…",
+  "sessionVoteAction": "Trimite votul",
+  "sessionVoteReceived": "Vot primit",
+  "sessionResultsUnavailable": "Rezultatele nu sunt încă vizibile conform politicii acestei Session.",
+  "sessionPrivacyNotice": "Organizatorul definește scopul operațional și întrebările Session. Social Vote prelucrează datele tehnice necesare pentru furnizarea și protejarea serviciului. Modurile anonime nu expun organizatorului legătura dintre credențialele unui participant și o alegere. Rolurile privind confidențialitatea pot depinde de context și de acordurile aplicabile.",
+  "sessionNonBindingNotice": "Sessions pilot sunt pentru consultare și participare. Ele nu reprezintă alegeri legale, voturi statutare ale unei adunări sau certificări cu caracter juridic obligatoriu.",
+  "sessionOptionYes": "Da",
+  "sessionOptionNo": "Nu",
+  "verifiedResultTitle": "Verified Result",
+  "verifiedResultValid": "Verificarea integrității a reușit",
+  "verifiedResultInvalid": "Verificarea integrității a eșuat",
+  "verifiedResultReportId": "ID raport",
+  "verifiedResultHash": "Hash SHA-256 al rezultatului",
+  "verifiedResultGeneratedBy": "Generat și sigilat pentru integritate de Social Vote",
+  "verifiedResultNotLegalCertificate": "Acesta este un raport verificabil de rezultat agregat, nu un certificat legal și nici o certificare a unor alegeri cu caracter juridic obligatoriu.",
+  "verifiedResultShare": "Distribuie linkul de verificare",
+  "sessionResponses": "{count} răspunsuri",
+  "@sessionResponses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionResultVotes": "{count} voturi",
+  "@sessionResultVotes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "organizationVerifiedIdentityLocked": "Numele și țara fac parte din identitatea verificată a organizației. Schimbarea lor va necesita o nouă verificare. Poți modifica liber coperta, logo-ul, tipul, orașul, site-ul și descrierea.",
+  "verifiedResultOpenedAt": "Session deschisă",
+  "verifiedResultEligibleCredentials": "Credențiale eligibile",
+  "verifiedResultIntegritySeal": "Sigiliu de integritate Social Vote",
+  "organizationVerifiedNameLocked": "Numele verificat și țara sunt blocate. Schimbarea lor necesită o nouă revizuire de verificare.",
+  "sessionRetentionLabel": "Păstrarea buletinelor brute",
+  "sessionRetention24h": "24 de ore",
+  "sessionRetention7d": "7 zile",
+  "sessionRetention30d": "30 de zile",
+  "sessionRetentionValue": "Păstrarea buletinelor brute: {value}",
+  "@sessionRetentionValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "verifiedResultPrintPdf": "Descarcă PDF",
+  "verifiedResultPdfError": "PDF-ul nu a putut fi descărcat. Încearcă din nou.",
+  "verifiedResultRestrictedTitle": "Rezultat restricționat",
+  "verifiedResultRestrictedBody": "Acest Verified Result nu este disponibil public. Autentifică-te cu un cont de organizație autorizat pentru a-l vedea.",
+  "verifiedResultPrivateVerificationTitle": "Verificare publică indisponibilă",
+  "verifiedResultPrivateVerificationBody": "Acest rezultat este restricționat organizatorului. ID-ul raportului, SHA-256 și verificarea integrității rămân disponibile în raportul autorizat.",
+  "organizationAccountSectionTitle": "Organizațiile tale",
+  "organizationManageAction": "Gestionează",
+  "organizationViewPublicProfileAction": "Vezi profilul",
+  "organizationOfficialWebsiteAction": "Site oficial",
+  "organizationVerificationIntro": "Verificarea acoperă atât existența organizației, cât și autoritatea ta de a o reprezenta. Social Vote va revizui informațiile trimise înainte de aprobare.",
+  "organizationVerificationLegalName": "Denumire legală",
+  "organizationVerificationPublicName": "Nume public",
+  "organizationVerificationType": "Tip organizație",
+  "organizationVerificationCountry": "Țară",
+  "organizationVerificationCountryRequired": "Selectează țara organizației.",
+  "organizationVerificationCity": "Oraș",
+  "organizationVerificationWebsite": "Site oficial",
+  "organizationVerificationRepresentativeRole": "Rolul tău în organizație",
+  "organizationVerificationRegistryId": "Identificator registru / fiscal / organizație",
+  "organizationVerificationAuthorityNote": "Cum putem verifica faptul că o poți reprezenta?",
+  "organizationVerificationAuthorityHelper": "Descrie pe scurt rolul tău sau dovada pe care un Admin o poate verifica în perioada pilot.",
+  "organizationVerificationRequired": "Câmp obligatoriu.",
+  "sessionControlRoomTitle": "Camera de control Session",
+  "sessionSectionLive": "Live",
+  "sessionSectionQuestions": "Întrebări",
+  "sessionSectionAccess": "Acces",
+  "sessionSectionSettings": "Setări",
+  "sessionStageAction": "Deschide Stage",
+  "sessionAccessPassesTitle": "Access Passes pentru participanți",
+  "sessionAccessPassesSubtitle": "Fiecare pass deschide această Controlled Anonymous Session fără ca participantul să introducă credențiala lungă. Pass-ul în clar nu este stocat de Social Vote.",
+  "sessionAccessPass": "Access Pass",
+  "sessionAccessPassDetected": "Access Pass detectat",
+  "sessionAccessPassAutomatic": "Pass-ul tău personal este gata. Continuă pentru a intra anonim în Session.",
+  "sessionAccessPassFallback": "Introdu pass-ul manual",
+  "sessionAccessPassInvalid": "Acest Access Pass este invalid, nu mai este disponibil sau Session nu este deschisă.",
+  "sessionAccessPassPrintWarning": "Tipărește, salvează sau distribuie aceste passes acum. După ce părăsești acest ecran, Social Vote nu le va mai putea afișa în clar.",
+  "sessionExistingPassesHidden": "Din motive de securitate, passes generate anterior nu mai pot fi afișate în clar. Generează Access Passes noi pentru a obține linkuri personale sau coduri QR noi.",
+  "sessionCopyPassLinks": "Copiază toate linkurile",
+  "sessionCopyPassLink": "Copiază acest link",
+  "sessionControlledNeedsAccessPass": "Înainte de a deschide o Session controlată, generează cel puțin un Access Pass.",
+  "sessionJoinedParticipants": "Credențiale de acces conectate",
+  "sessionAccessesUsed": "Accesări care au votat",
+  "sessionBallotsRecorded": "Buletine înregistrate",
+  "sessionQuestionsCompleted": "Întrebări finalizate",
+  "sessionCurrentQuestion": "Întrebarea curentă",
+  "sessionNoOpenQuestionTitle": "Nicio întrebare nu este deschisă",
+  "sessionNoOpenQuestionBody": "Participanții sunt conectați și așteaptă. Deschide următoarea întrebare când ești gata.",
+  "sessionNotStartedTitle": "Session nu a început încă",
+  "sessionNotStartedBody": "Această Session există, dar nu este încă deschisă. Păstrează această pagină deschisă și așteaptă ca organizatorul să o pornească.",
+  "sessionNoAccountRequired": "Nu este necesar un cont Social Vote",
+  "sessionReceiptDetails": "Detalii dovadă",
+  "sessionOpenAccessInstructions": "Afișează sau distribuie acest QR. Oricine are linkul poate intra cât timp Session este deschisă.",
+  "sessionControlledAccessInstructions": "Creează passes de acces personale și oferă câte unul fiecărui participant. QR-ul din fiecare pass conține automat credențiala.",
+  "sessionControlRoomHint": "Gestionează accesul, întrebările, Stage proiectat și Verified Result final dintr-un singur loc.",
+  "sessionPresenterScreenTitle": "Live Stage",
+  "sessionStageWaiting": "Se așteaptă următoarea întrebare",
+  "sessionStageScan": "Scanează pentru a te alătura Session",
+  "sessionConfigurationTitle": "Configurarea Session",
+  "sessionAccessRecommended": "Recomandat pentru întâlniri controlate",
+  "sessionCreateIntroTitle": "Configurează întâlnirea",
+  "sessionCreateIntroBody": "Alege cum intră participanții, când devin vizibile rezultatele și cât timp sunt păstrate buletinele brute. Aceste setări sunt impuse de backend.",
+  "verifiedCertificateNumber": "Număr certificat",
+  "verifiedCertificateStatus": "Stare integritate",
+  "verifiedCertificateIntegrityVerified": "INTEGRITATE VERIFICATĂ",
+  "verifiedCertificateIntegrityFailed": "VERIFICAREA INTEGRITĂȚII A EȘUAT",
+  "verifiedCertificateOrganizationSection": "Organizație",
+  "verifiedCertificateSessionSection": "Session",
+  "verifiedCertificateParticipationSection": "Participare",
+  "verifiedCertificateResultsSection": "Rezultate verificate",
+  "verifiedCertificateIntegritySection": "Integritatea rezultatului",
+  "verifiedCertificateLegalName": "Denumire legală",
+  "verifiedCertificateOrganizationType": "Tip organizație",
+  "verifiedCertificateLocation": "Locație",
+  "verifiedCertificateWebsite": "Site web",
+  "verifiedCertificateVerification": "Verificare",
+  "verifiedCertificateIssuedAt": "Certificat emis",
+  "verifiedCertificateAlgorithm": "Algoritm de integritate",
+  "verifiedCertificateSchema": "Schema raportului",
+  "verifiedCertificateJoinedCredentials": "Credențiale conectate",
+  "verifiedCertificateBallotsTotal": "Buletine înregistrate",
+  "verifiedCertificateQuestionsTotal": "Întrebări",
+  "verifiedCertificatePrivacyModel": "Model de rezultat anonim",
+  "verifiedCertificatePrivacyText": "Instantaneul imuabil conține doar rezultate agregate. Nu conține identitatea participantului, Access Pass în clar, secretul participantului sau vreo mapare între credențialele participantului și alegerea din buletin.",
+  "verifiedCertificateVerifyQr": "Scanează acest QR pentru a verifica raportul online.",
+  "organizationDashboardTitle": "Prezentare generală a organizației",
+  "organizationActiveSessions": "Sessions live",
+  "organizationVerifiedReports": "Rapoarte verificate",
+  "organizationTotalSessions": "Total Sessions",
+  "sessionPrivacyPolicyAction": "Citește Politica de confidențialitate",
+  "@sessionPrivacyPolicyAction": {
+    "description": "Participant Session link to the full Privacy Policy"
+  },
+  "radioMondoTitle": "Radio Mondo",
+  "radioMondoDescription": "Trei peisaje sonore originale pentru explorarea Social Vote. Redarea începe doar când alegi o piesă.",
+  "radioMondoTrackClassical": "Orbită clasică",
+  "radioMondoTrackRain": "Ploaie peste lume",
+  "radioMondoTrackYoung": "Pulse tânăr",
+  "radioMondoPlaying": "Se redă acum",
+  "radioMondoStopped": "Radio Mondo oprită",
+  "radioMondoStopAction": "Oprește",
+  "radioMondoPlaybackError": "Sunetul nu a putut fi redat",
+  "radioMondoForegroundOnly": "Redarea se oprește când Social Vote este închis, trimis în fundal sau fila browserului este ascunsă.",
+  "adminCenterEditorialNavigation": "World Briefs",
+  "worldBriefEditorTitle": "Social Vote World Briefs",
+  "worldBriefEditorDescription": "Pregătește sinteze bazate pe dovezi, păstrează incertitudinea vizibilă și decide ce apare în News și pe Globe.",
+  "worldBriefAllStatuses": "Toate stările",
+  "worldBriefCreateAction": "Creează un brief",
+  "worldBriefDraftSaved": "Ciornă salvată",
+  "worldBriefPublished": "Brief publicat",
+  "worldBriefWithdrawn": "Brief retras",
+  "worldBriefSaveError": "Brief-ul nu a putut fi salvat",
+  "worldBriefPublishError": "Brief-ul nu a putut fi publicat",
+  "worldBriefDraftDeleted": "Ciornă ștearsă",
+  "worldBriefDeleteDraft": "Șterge ciorna",
+  "worldBriefDeleteDraftConfirm": "Ștergi definitiv această ciornă nepublicată?",
+  "worldBriefRetry": "Încearcă din nou",
+  "worldBriefStatusDraft": "Ciornă",
+  "worldBriefStatusPublished": "Publicat",
+  "worldBriefStatusWithdrawn": "Retras",
+  "worldBriefSetupRequired": "Backend editorial nepregătit",
+  "worldBriefSetupRequiredBody": "Aplică migrarea de bază de date World Brief inclusă înainte de a folosi această secțiune.",
+  "worldBriefEmptyTitle": "Niciun World Brief încă",
+  "worldBriefEmptyBody": "Creează o ciornă, documentează cel puțin două surse și publică numai după revizuirea editorială.",
+  "worldBriefFeatured": "Recomandat",
+  "worldBriefOnGlobe": "Afișează pe Globe",
+  "worldBriefPriority": "Prioritate",
+  "worldBriefEditAction": "Editează",
+  "worldBriefPublishAction": "Publică",
+  "worldBriefWithdrawAction": "Retrage",
+  "worldBriefSaveDraftAction": "Salvează ciorna",
+  "worldBriefLanguage": "Limba brief-ului",
+  "worldBriefTitleField": "Titlu",
+  "worldBriefWhatHappened": "Ce s-a întâmplat",
+  "worldBriefWhyItMatters": "De ce contează",
+  "worldBriefWhatIsUncertain": "Ce este încă incert",
+  "worldBriefSources": "URL-uri surse",
+  "worldBriefSourcesHint": "Un URL HTTPS pe fiecare rând; cel puțin două surse independente.",
+  "worldBriefTwoSourcesRequired": "Adaugă cel puțin două surse.",
+  "worldBriefHttpsSourcesRequired": "Fiecare sursă trebuie să folosească HTTPS.",
+  "worldBriefGlobeSection": "Plasare pe Globe",
+  "worldBriefGlobeRequiresPoint": "Vizibilitatea pe Globe necesită latitudine și longitudine valide.",
+  "worldBriefCountryCode": "Cod țară",
+  "worldBriefCityId": "ID oraș",
+  "worldBriefLocationLabel": "Etichetă locație",
+  "worldBriefLatitude": "Latitudine",
+  "worldBriefLongitude": "Longitudine",
+  "worldBriefBreaking": "Actualizare urgentă",
+  "worldBriefExpiry": "Fereastră de revizuire sau expirare",
+  "worldBriefExpiryDays": "{days, plural, =1{1 zi} other{{days} zile}}",
+  "@worldBriefExpiryDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "worldBriefRequiredField": "Acest câmp este obligatoriu.",
+  "worldBriefCoordinatesRequired": "Introdu o coordonată validă.",
+  "profileHowItWorksTitle": "Cum funcționează Social Vote",
+  "profileHowItWorksSubtitle": "Persoane, Organizații, Voce, Vote, Sessions și verificare.",
+  "profileMyPostsLoginRequired": "Trebuie să fii autentificat pentru a vedea Voce create de tine.",
+  "profileMyPostsCreatedByYou": "Voce create de tine",
+  "profileMyPostsEmpty": "Nu ai creat încă nicio Voce.",
+  "profileMyPollsLoginRequired": "Trebuie să fii autentificat pentru a vedea Vote create de tine.",
+  "profileMyPollsCreatedByYou": "Vote create de tine",
+  "profileMyPollsEmpty": "Nu ai creat încă niciun Vote.",
+  "profileMyCommentsLoginRequired": "Trebuie să fii autentificat pentru a-ți vedea comentariile.",
+  "profileMyCommentsEmpty": "Nu ai scris încă niciun comentariu.",
+  "profileFollowedScopesLoginRequired": "Trebuie să fii autentificat.",
+  "profileFollowedScopesEmpty": "Nu urmărești încă nicio zonă.",
+  "profileFollowedScopeWorld": "Lume",
+  "profileFollowedScopeCountry": "Țară: {code}",
+  "@profileFollowedScopeCountry": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeCity": "Oraș: {city}",
+  "@profileFollowedScopeCity": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeArea": "Zonă ({radius} km)",
+  "@profileFollowedScopeArea": {
+    "placeholders": {
+      "radius": {
+        "type": "double"
+      }
+    }
+  },
+  "publicProfilePollsLoadError": "Vote publice nu au putut fi încărcate.",
+  "publicProfilePollsEmpty": "Niciun Vote public.",
+  "publicProfilePostsLoadError": "Voce publice nu au putut fi încărcate.",
+  "publicProfilePostsEmpty": "Nicio Voce publică.",
+  "worldBriefSocialVoteView": "Perspectiva Social Vote",
+  "worldBriefSocialVoteViewHint": "Analiză sau perspectivă editorială Social Vote. Păstreaz-o separată de faptele raportate și de incertitudine.",
+  "worldBriefSocialVoteViewPublicNote": "Analiză editorială Social Vote, clar separată de faptele raportate mai sus.",
+  "worldBriefIndependentSourcesRequired": "Publicarea necesită cel puțin două surse HTTPS din domenii diferite.",
+  "worldBriefPublishConfirmTitle": "Verificare finală înainte de publicare",
+  "worldBriefPublishConfirmSources": "{count, plural, =1{1 sursă introdusă} other{{count} surse introduse}}",
+  "@worldBriefPublishConfirmSources": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldBriefEnterpriseEditorTitle": "Editor editorial profesional",
+  "worldBriefEnterpriseEditorHelp": "Construiește brief-ul pe secțiuni. Social Vote gestionează automat plasarea tehnică pe Globe: alege o țară și un oraș, nu coordonate.",
+  "worldBriefEditorialContentSection": "Conținut editorial",
+  "worldBriefEditorialContentHelp": "Păstrează separate faptele, importanța, incertitudinea și perspectiva Social Vote. Astfel brief-ul este mai ușor de verificat și citit.",
+  "worldBriefSourcesSection": "Surse și verificare",
+  "worldBriefSourcesSectionHelp": "Adaugă surse HTTPS verificabile. Publicarea necesită cel puțin două domenii independente.",
+  "worldBriefDistributionSection": "Distribuție",
+  "worldBriefDistributionHelp": "Alege unde apare brief-ul. Publicarea îl face disponibil în News; plasarea pe Globe este opțională.",
+  "worldBriefNewsDestination": "Publică în Social Vote News",
+  "worldBriefNewsDestinationHelp": "Aceasta este destinația principală a unui World Brief după publicare.",
+  "worldBriefGlobeAutomaticHelp": "Adaugă un marcaj pe Globe. Alege locul, iar Social Vote rezolvă automat poziția.",
+  "worldBriefPlacementMode": "Plasarea marcajului",
+  "worldBriefPlacementCity": "Oraș / loc",
+  "worldBriefPlacementCountry": "Centrul țării",
+  "worldBriefCountry": "Țară",
+  "worldBriefCity": "Oraș sau loc",
+  "worldBriefCityHelp": "Exemplu: Teheran. Nu introduce latitudine sau longitudine.",
+  "worldBriefResolveLocation": "Rezolvă locația",
+  "worldBriefCoordinatesAutomatic": "Coordonatele sunt gestionate automat și nu trebuie introduse manual.",
+  "worldBriefLocationResolved": "Locație pregătită: {location}",
+  "worldBriefChooseCountryFirst": "Alege mai întâi o țară.",
+  "worldBriefChooseCityFirst": "Introdu mai întâi un oraș sau un loc.",
+  "worldBriefLocationNotResolved": "Nu a putut fi determinată o locație de încredere. Verifică țara și orașul și încearcă din nou.",
+  "worldBriefVisibilitySection": "Vizibilitate și prioritate",
+  "worldBriefVisibilityHelp": "Controlează proeminența editorială, urgența, ordinea și durata fără a modifica faptele raportate.",
+  "worldBriefFeaturedHelp": "Oferă brief-ului mai multă vizibilitate pe suprafețele editoriale.",
+  "worldBriefBreakingHelp": "Folosește numai pentru evenimente cu adevărat urgente sau în evoluție rapidă.",
+  "worldBriefPriorityHelp": "0 = prioritate normală/scăzută; 100 = cea mai mare prioritate editorială. Nu schimbă statutul de adevăr al conținutului.",
+  "worldBriefExpiryHelp": "După această perioadă, brief-ul nu trebuie să rămână activ fără o nouă revizuire editorială.",
+  "@worldBriefLocationResolved": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "profileAppLanguageSpanish": "Spaniolă",
+  "profileAppLanguagePortuguese": "Portugheză",
+  "homeHeroPurpose": "Descoperă ce contează, împărtășește Voce și participă la Vote.",
+  "commentSection_hideComments": "Ascunde comentariile",
+  "commentSection_viewComments": "Vezi comentariile",
+  "commentSection_hideReplies": "Ascunde răspunsurile",
+  "commentSection_editing": "Se editează: {snippet}",
+  "@commentSection_editing": {
+    "placeholders": {
+      "snippet": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_editInputHint": "Editează comentariul",
+  "commentSection_replyTo": "Răspunde lui {author}",
+  "@commentSection_replyTo": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_userFallback": "Utilizator",
+  "commentSection_addError": "Comentariul nu a putut fi adăugat.",
+  "commentSection_nestedReplyError": "Răspunsurile imbricate dincolo de un singur nivel nu sunt acceptate.",
+  "commentSection_addReplyError": "Răspunsul nu a putut fi adăugat.",
+  "commentSection_editError": "Comentariul nu a putut fi editat.",
+  "commentSection_deleteError": "Comentariul nu a putut fi șters.",
+  "commentSection_edited": "Editat",
+  "commentSection_editAction": "Editează"
+}

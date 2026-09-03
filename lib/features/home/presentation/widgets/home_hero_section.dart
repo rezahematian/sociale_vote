@@ -26,20 +26,6 @@ class HomeHeroSection extends StatelessWidget {
     this.desktopCompact = false,
   });
 
-  String _purposeText(BuildContext context) {
-    final language = Localizations.localeOf(context).languageCode.toLowerCase();
-    if (language == 'it') {
-      return 'Scopri cosa conta, esprimi la tua Voce e partecipa ai Vote.';
-    }
-    if (language == 'de') {
-      return 'Entdecke, was zählt, teile deine Voce und nimm an Vote teil.';
-    }
-    if (language == 'fa') {
-      return 'آنچه اهمیت دارد را کشف کنید، دیدگاه خود را بیان کنید و در رأی‌گیری‌ها شرکت کنید.';
-    }
-    return 'Discover what matters, share your Voce and take part in Vote.';
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -233,7 +219,7 @@ class HomeHeroSection extends StatelessWidget {
                       ),
                       SizedBox(height: desktopCompact ? 6 : 8),
                       Text(
-                        _purposeText(context),
+                        l10n.homeHeroPurpose,
                         maxLines: desktopCompact ? 2 : 3,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodyMedium?.copyWith(

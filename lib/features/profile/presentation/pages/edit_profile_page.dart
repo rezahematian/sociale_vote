@@ -9,6 +9,7 @@ import 'package:sociale_vote/domain/geo/value_objects/content_location_source.da
 import 'package:sociale_vote/features/profile/application/profile_controller.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/data/countries.dart' as data;
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -151,7 +152,24 @@ class _EditProfileViewState extends State<_EditProfileView> {
   String? _locationError;
 
   @override
+  void initState() {
+    super.initState();
+    _displayNameController.addListener(_refreshEditableDirection);
+    _bioController.addListener(_refreshEditableDirection);
+    _cityController.addListener(_refreshEditableDirection);
+  }
+
+  void _refreshEditableDirection() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
   void dispose() {
+    _displayNameController.removeListener(_refreshEditableDirection);
+    _bioController.removeListener(_refreshEditableDirection);
+    _cityController.removeListener(_refreshEditableDirection);
     _displayNameController.dispose();
     _usernameController.dispose();
     _avatarUrlController.dispose();
@@ -295,6 +313,14 @@ class _EditProfileViewState extends State<_EditProfileView> {
                                   const SizedBox(height: 20),
                                   TextField(
                                     controller: _displayNameController,
+                                    textDirection: socialVoteEditableTextDirection(
+                                      context,
+                                      _displayNameController.text,
+                                    ),
+                                    textAlign: socialVoteEditableTextAlign(
+                                      context,
+                                      _displayNameController.text,
+                                    ),
                                     textInputAction: TextInputAction.next,
                                     onChanged: (_) {
                                       if (_displayNameError == null) return;
@@ -327,6 +353,14 @@ class _EditProfileViewState extends State<_EditProfileView> {
                                   const SizedBox(height: 14),
                                   TextField(
                                     controller: _bioController,
+                                    textDirection: socialVoteEditableTextDirection(
+                                      context,
+                                      _bioController.text,
+                                    ),
+                                    textAlign: socialVoteEditableTextAlign(
+                                      context,
+                                      _bioController.text,
+                                    ),
                                     minLines: 3,
                                     maxLines: 5,
                                     textInputAction: TextInputAction.newline,
@@ -420,6 +454,14 @@ class _EditProfileViewState extends State<_EditProfileView> {
                                   const SizedBox(height: 8),
                                   TextField(
                                     controller: _cityController,
+                                    textDirection: socialVoteEditableTextDirection(
+                                      context,
+                                      _cityController.text,
+                                    ),
+                                    textAlign: socialVoteEditableTextAlign(
+                                      context,
+                                      _cityController.text,
+                                    ),
                                     textInputAction: TextInputAction.done,
                                     onChanged: (_) {
                                       if (_cityError == null &&

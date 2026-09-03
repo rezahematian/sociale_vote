@@ -2691,5 +2691,36 @@
         "type": "String"
       }
     }
-  }
+  },
+  "profileAppLanguageSpanish": "Spagnolo",
+  "profileAppLanguagePortuguese": "Portoghese",
+  "homeHeroPurpose": "Scopri cosa conta, esprimi la tua Voce e partecipa ai Vote.",
+  "commentSection_hideComments": "Chiudi commenti",
+  "commentSection_viewComments": "Visualizza commenti",
+  "commentSection_hideReplies": "Nascondi risposte",
+  "commentSection_editing": "Stai modificando: {snippet}",
+  "@commentSection_editing": {
+    "placeholders": {
+      "snippet": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_editInputHint": "Modifica il tuo commento",
+  "commentSection_replyTo": "Rispondi a {author}",
+  "@commentSection_replyTo": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_userFallback": "Utente",
+  "commentSection_addError": "Impossibile aggiungere il commento.",
+  "commentSection_nestedReplyError": "Le risposte nidificate oltre un livello non sono supportate.",
+  "commentSection_addReplyError": "Impossibile aggiungere la risposta.",
+  "commentSection_editError": "Impossibile modificare il commento.",
+  "commentSection_deleteError": "Impossibile eliminare il commento.",
+  "commentSection_edited": "Modificato",
+  "commentSection_editAction": "Modifica"
 }

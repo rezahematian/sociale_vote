@@ -19,6 +19,7 @@ import 'package:sociale_vote/features/social/application/post_detail_controller.
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 /// Pagina di dettaglio per un singolo post del social feed.
@@ -220,7 +221,16 @@ class _PostDetailViewState extends State<_PostDetailView> {
                     children: [
                       TextField(
                         controller: titleController,
+                        textDirection: socialVoteEditableTextDirection(
+                          dialogContext,
+                          titleController.text,
+                        ),
+                        textAlign: socialVoteEditableTextAlign(
+                          dialogContext,
+                          titleController.text,
+                        ),
                         textInputAction: TextInputAction.next,
+                        onChanged: (_) => setDialogState(() {}),
                         decoration: InputDecoration(
                           labelText: AppLocalizations.of(dialogContext)!
                               .postDetail_editTitleFieldLabel,
@@ -229,8 +239,17 @@ class _PostDetailViewState extends State<_PostDetailView> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: contentController,
+                        textDirection: socialVoteEditableTextDirection(
+                          dialogContext,
+                          contentController.text,
+                        ),
+                        textAlign: socialVoteEditableTextAlign(
+                          dialogContext,
+                          contentController.text,
+                        ),
                         minLines: 4,
                         maxLines: 8,
+                        onChanged: (_) => setDialogState(() {}),
                         decoration: InputDecoration(
                           labelText: AppLocalizations.of(dialogContext)!
                               .postDetail_editContentFieldLabel,
@@ -924,7 +943,7 @@ class _PostDetailHeroCard extends StatelessWidget {
                     ),
                     if (title.isNotEmpty) ...[
                       const SizedBox(height: 16),
-                      Text(
+                      SocialVoteDirectionalText(
                         title,
                         style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w800,
@@ -935,7 +954,7 @@ class _PostDetailHeroCard extends StatelessWidget {
                     ],
                     if (content.isNotEmpty) ...[
                       const SizedBox(height: 14),
-                      Text(
+                      SocialVoteDirectionalText(
                         content,
                         style: theme.textTheme.bodyLarge?.copyWith(
                           height: 1.56,

@@ -19,6 +19,7 @@ import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
 
@@ -1282,6 +1283,14 @@ class _CreatePollViewState extends State<_CreatePollView> {
             TextField(
               controller: _contentCityController,
               enabled: !isSubmitting,
+              textDirection: socialVoteEditableTextDirection(
+                context,
+                _contentCityController.text,
+              ),
+              textAlign: socialVoteEditableTextAlign(
+                context,
+                _contentCityController.text,
+              ),
               decoration: InputDecoration(
                 labelText: _isItalian
                     ? 'Città del contenuto'
@@ -1402,6 +1411,15 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 const SizedBox(height: 16),
                                 TextField(
                                   enabled: !isSubmitting,
+                                  textDirection:
+                                      socialVoteEditableTextDirection(
+                                    context,
+                                    controller.title,
+                                  ),
+                                  textAlign: socialVoteEditableTextAlign(
+                                    context,
+                                    controller.title,
+                                  ),
                                   decoration: InputDecoration(
                                     labelText: l10n.createPollTitleFieldLabel,
                                     border: const OutlineInputBorder(),
@@ -1412,6 +1430,15 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 const SizedBox(height: 12),
                                 TextField(
                                   enabled: !isSubmitting,
+                                  textDirection:
+                                      socialVoteEditableTextDirection(
+                                    context,
+                                    controller.description,
+                                  ),
+                                  textAlign: socialVoteEditableTextAlign(
+                                    context,
+                                    controller.description,
+                                  ),
                                   decoration: InputDecoration(
                                     labelText:
                                         l10n.createPollDescriptionFieldLabel,
@@ -1647,6 +1674,16 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                               Expanded(
                                                 child: TextField(
                                                   enabled: !isSubmitting,
+                                                  textDirection:
+                                                      socialVoteEditableTextDirection(
+                                                    context,
+                                                    controller.options[index],
+                                                  ),
+                                                  textAlign:
+                                                      socialVoteEditableTextAlign(
+                                                    context,
+                                                    controller.options[index],
+                                                  ),
                                                   decoration: InputDecoration(
                                                     labelText: optionLabel,
                                                     border:

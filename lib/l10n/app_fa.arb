@@ -2691,5 +2691,36 @@
         "type": "String"
       }
     }
-  }
+  },
+  "profileAppLanguageSpanish": "اسپانیایی",
+  "profileAppLanguagePortuguese": "پرتغالی",
+  "homeHeroPurpose": "آنچه اهمیت دارد را کشف کنید، Voce خود را به اشتراک بگذارید و در Vote شرکت کنید.",
+  "commentSection_hideComments": "بستن دیدگاه‌ها",
+  "commentSection_viewComments": "مشاهده دیدگاه‌ها",
+  "commentSection_hideReplies": "پنهان کردن پاسخ‌ها",
+  "commentSection_editing": "در حال ویرایش: {snippet}",
+  "@commentSection_editing": {
+    "placeholders": {
+      "snippet": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_editInputHint": "دیدگاه خود را ویرایش کنید",
+  "commentSection_replyTo": "پاسخ به {author}",
+  "@commentSection_replyTo": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_userFallback": "کاربر",
+  "commentSection_addError": "افزودن دیدگاه ممکن نشد.",
+  "commentSection_nestedReplyError": "پاسخ‌های تو‌در‌تو بیش از یک سطح پشتیبانی نمی‌شوند.",
+  "commentSection_addReplyError": "افزودن پاسخ ممکن نشد.",
+  "commentSection_editError": "ویرایش دیدگاه ممکن نشد.",
+  "commentSection_deleteError": "حذف دیدگاه ممکن نشد.",
+  "commentSection_edited": "ویرایش‌شده",
+  "commentSection_editAction": "ویرایش"
 }

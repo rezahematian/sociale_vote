@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/shared/services/world_appearance_service.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 import 'package:sociale_vote/shared/widgets/world_control_visuals.dart';
 
 class WorldAppearanceSettingsPage extends StatefulWidget {
@@ -30,12 +31,20 @@ class _WorldAppearanceSettingsPageState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(copy.title),
+        title: Text(
+          copy.title,
+          textDirection: socialVoteLocaleTextDirection(context),
+          textAlign: socialVoteLocaleTextAlign(context),
+        ),
         actions: [
           TextButton.icon(
             onPressed: () => _appearance.reset(),
             icon: const Icon(Icons.restart_alt_rounded),
-            label: Text(copy.reset),
+            label: Text(
+              copy.reset,
+              textDirection: socialVoteLocaleTextDirection(context),
+              textAlign: socialVoteLocaleTextAlign(context),
+            ),
           ),
           const SizedBox(width: 8),
         ],
@@ -48,83 +57,92 @@ class _WorldAppearanceSettingsPageState
             children: [
               Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1320),
+                  constraints: const BoxConstraints(maxWidth: 1120),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         copy.subtitle,
-                        style: theme.textTheme.bodyLarge?.copyWith(
+                        textDirection: socialVoteLocaleTextDirection(context),
+                        textAlign: socialVoteLocaleTextAlign(context),
+                        style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 14),
                       _LiveWorldPreview(
                         globeStyle: _appearance.globeStyle,
                         radioStyle: _appearance.radioStyle,
                         rotationStyle: _appearance.rotationStyle,
+                        globeLabel: copy.globeLabel(_appearance.globeStyle),
+                        radioLabel: copy.radioLabel(_appearance.radioStyle),
+                        rotationLabel:
+                            copy.rotationLabel(_appearance.rotationStyle),
                       ),
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 22),
                       _AppearanceSection(
                         title: copy.globeTitle,
                         subtitle: copy.globeSubtitle,
-                        minCardWidth: 285,
-                        maxColumns: 3,
+                        minCardWidth: 175,
+                        maxColumns: 5,
                         children: [
-                          for (final style in GlobeVisualStyle.values)
+                          for (final style
+                              in WorldAppearanceService.selectableGlobeStyles)
                             _AppearanceChoice(
                               selected: _appearance.globeStyle == style,
                               label: copy.globeLabel(style),
-                              previewHeight: 182,
+                              previewHeight: 112,
                               preview: PremiumGlobePreview(
                                 style: style,
-                                size: 156,
+                                size: 94,
                               ),
                               onTap: () => _appearance.setGlobeStyle(style),
                             ),
                         ],
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 22),
                       _AppearanceSection(
                         title: copy.radioTitle,
                         subtitle: copy.radioSubtitle,
-                        minCardWidth: 220,
+                        minCardWidth: 175,
                         maxColumns: 4,
                         children: [
-                          for (final style in RadioVisualStyle.values)
+                          for (final style
+                              in WorldAppearanceService.selectableRadioStyles)
                             _AppearanceChoice(
                               selected: _appearance.radioStyle == style,
                               label: copy.radioLabel(style),
-                              previewHeight: 92,
+                              previewHeight: 62,
                               preview: PremiumRadioControlVisual(
                                 style: style,
-                                size: 64,
+                                size: 48,
                               ),
                               onTap: () => _appearance.setRadioStyle(style),
                             ),
                         ],
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 22),
                       _AppearanceSection(
                         title: copy.rotationTitle,
                         subtitle: copy.rotationSubtitle,
-                        minCardWidth: 180,
+                        minCardWidth: 175,
                         maxColumns: 4,
                         children: [
-                          for (final style in GlobeRotationVisualStyle.values)
+                          for (final style
+                              in WorldAppearanceService.selectableRotationStyles)
                             _AppearanceChoice(
                               selected: _appearance.rotationStyle == style,
                               label: copy.rotationLabel(style),
-                              previewHeight: 92,
+                              previewHeight: 62,
                               preview: PremiumRotationPreview(
                                 style: style,
-                                size: 62,
+                                size: 48,
                               ),
                               onTap: () => _appearance.setRotationStyle(style),
                             ),
                         ],
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 18),
                       _LocalPreferenceNotice(text: copy.localOnly),
                     ],
                   ),
@@ -142,120 +160,221 @@ class _LiveWorldPreview extends StatelessWidget {
   final GlobeVisualStyle globeStyle;
   final RadioVisualStyle radioStyle;
   final GlobeRotationVisualStyle rotationStyle;
+  final String globeLabel;
+  final String radioLabel;
+  final String rotationLabel;
 
   const _LiveWorldPreview({
     required this.globeStyle,
     required this.radioStyle,
     required this.rotationStyle,
+    required this.globeLabel,
+    required this.radioLabel,
+    required this.rotationLabel,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final languageCode = Localizations.localeOf(context).languageCode;
+
+    final title = switch (languageCode) {
+      'it' => 'Anteprima live',
+      'de' => 'Live-Vorschau',
+      'fa' => 'پیش‌نمایش زنده',
+      'es' => 'Vista previa',
+      'pt' => 'Prévia ao vivo',
+      'fr' => 'Aperçu en direct',
+      'ar' => 'معاينة مباشرة',
+      'ro' => 'Previzualizare live',
+      _ => 'Live preview',
+    };
+    final subtitle = switch (languageCode) {
+      'it' => 'Le tre scelte qui sotto cambiano solo l’aspetto del World.',
+      'de' => 'Die drei Optionen ändern nur die Darstellung der World-Ansicht.',
+      'fa' => 'این سه انتخاب فقط ظاهر بخش World را تغییر می‌دهند.',
+      'es' => 'Las tres opciones solo cambian la apariencia de World.',
+      'pt' => 'As três opções alteram apenas a aparência de World.',
+      'fr' => 'Les trois choix ci-dessous modifient uniquement l’apparence de World.',
+      'ar' => 'تغيّر الخيارات الثلاثة أدناه مظهر World فقط.',
+      'ro' => 'Cele trei opțiuni de mai jos modifică doar aspectul World.',
+      _ => 'The three choices below change only the World appearance.',
+    };
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compact = constraints.maxWidth < 760;
-        final globeSize = compact ? 220.0 : 270.0;
+        final compact = constraints.maxWidth < 700;
+        final globeSize = compact ? 148.0 : 174.0;
+        final controlSize = compact ? 44.0 : 48.0;
+
+        final info = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.visibility_outlined,
+                  size: 19,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  textDirection: socialVoteLocaleTextDirection(context),
+                  textAlign: socialVoteLocaleTextAlign(context),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              textDirection: socialVoteLocaleTextDirection(context),
+              textAlign: socialVoteLocaleTextAlign(context),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _SelectionPill(
+                  icon: Icons.public_rounded,
+                  label: globeLabel,
+                ),
+                _SelectionPill(
+                  icon: Icons.radio_rounded,
+                  label: radioLabel,
+                ),
+                _SelectionPill(
+                  icon: Icons.rotate_right_rounded,
+                  label: rotationLabel,
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final visual = SizedBox(
+          width: compact ? 250 : 300,
+          height: compact ? 170 : 196,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              PremiumGlobePreview(style: globeStyle, size: globeSize),
+              Positioned(
+                left: 8,
+                bottom: 12,
+                child: PremiumRadioControlVisual(
+                  style: radioStyle,
+                  size: controlSize,
+                ),
+              ),
+              Positioned(
+                right: 8,
+                bottom: 12,
+                child: PremiumRotationPreview(
+                  style: rotationStyle,
+                  size: controlSize,
+                ),
+              ),
+            ],
+          ),
+        );
 
         return Container(
           width: double.infinity,
-          padding: EdgeInsets.all(compact ? 18 : 24),
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 16 : 20,
+            vertical: compact ? 14 : 16,
+          ),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(26),
+            borderRadius: BorderRadius.circular(20),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: isDark
                   ? const [Color(0xFF0E1622), Color(0xFF101B2A)]
-                  : const [Color(0xFFF7FAFF), Color(0xFFEDF3FB)],
+                  : const [Color(0xFFF8FAFE), Color(0xFFF0F4FA)],
             ),
             border: Border.all(
               color: theme.colorScheme.outlineVariant.withValues(alpha: 0.70),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.08),
-                blurRadius: 26,
-                offset: const Offset(0, 10),
+                color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.055),
+                blurRadius: 18,
+                offset: const Offset(0, 7),
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.visibility_outlined,
-                    size: 20,
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    switch (Localizations.localeOf(context).languageCode) {
-                      'it' => 'Anteprima in tempo reale',
-                      'de' => 'Live-Vorschau',
-                      'fa' => 'پیش‌نمایش زنده',
-                      _ => 'Live preview',
-                    },
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                switch (Localizations.localeOf(context).languageCode) {
-                  'it' =>
-                    'Quello che scegli qui è lo stesso linguaggio visivo usato accanto al Globe.',
-                  'de' =>
-                    'Die Auswahl hier entspricht der Darstellung direkt am Globe.',
-                  'fa' =>
-                    'انتخاب‌های این بخش همان ظاهر استفاده‌شده کنار Globe هستند.',
-                  _ =>
-                    'Your choices here use the same visual language shown beside the Globe.',
-                },
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+          child: compact
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    info,
+                    const SizedBox(height: 8),
+                    Center(child: visual),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(child: info),
+                    const SizedBox(width: 18),
+                    visual,
+                  ],
                 ),
-              ),
-              const SizedBox(height: 18),
-              Center(
-                child: SizedBox(
-                  width: compact ? 330 : 430,
-                  height: compact ? 260 : 310,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    alignment: Alignment.center,
-                    children: [
-                      PremiumGlobePreview(style: globeStyle, size: globeSize),
-                      Positioned(
-                        left: compact ? 5 : 12,
-                        bottom: compact ? 16 : 22,
-                        child: PremiumRadioControlVisual(
-                          style: radioStyle,
-                          size: compact ? 56 : 64,
-                        ),
-                      ),
-                      Positioned(
-                        right: compact ? 5 : 12,
-                        bottom: compact ? 16 : 22,
-                        child: PremiumRotationPreview(
-                          style: rotationStyle,
-                          size: compact ? 56 : 64,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
         );
       },
+    );
+  }
+}
+
+class _SelectionPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _SelectionPill({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 250),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: theme.colorScheme.surface.withValues(alpha: 0.82),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.70),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: theme.colorScheme.primary),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              textDirection: socialVoteContentDirection(label),
+              textAlign: socialVoteContentTextAlign(label),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -284,21 +403,25 @@ class _AppearanceSection extends StatelessWidget {
       children: [
         Text(
           title,
-          style: theme.textTheme.titleLarge?.copyWith(
+          textDirection: socialVoteLocaleTextDirection(context),
+          textAlign: socialVoteLocaleTextAlign(context),
+          style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 3),
         Text(
           subtitle,
+          textDirection: socialVoteLocaleTextDirection(context),
+          textAlign: socialVoteLocaleTextAlign(context),
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 10),
         LayoutBuilder(
           builder: (context, constraints) {
-            const spacing = 14.0;
+            const spacing = 10.0;
             final naturalColumns = (constraints.maxWidth / minCardWidth)
                 .floor()
                 .clamp(1, maxColumns)
@@ -349,14 +472,14 @@ class _AppearanceChoice extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(16),
           onTap: onTap,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOut,
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 13),
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 9),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(16),
               color: selected
                   ? colors.primaryContainer.withValues(alpha: 0.15)
                   : colors.surfaceContainerLow,
@@ -370,8 +493,8 @@ class _AppearanceChoice extends StatelessWidget {
                   ? [
                       BoxShadow(
                         color: colors.primary.withValues(alpha: 0.12),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
                     ]
                   : const [],
@@ -385,11 +508,13 @@ class _AppearanceChoice extends StatelessWidget {
                       height: previewHeight,
                       child: Center(child: preview),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 7),
                     Align(
                       alignment: AlignmentDirectional.centerStart,
                       child: Text(
                         label,
+                        textDirection: socialVoteContentDirection(label),
+                        textAlign: socialVoteContentTextAlign(label),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.labelLarge?.copyWith(
@@ -404,8 +529,8 @@ class _AppearanceChoice extends StatelessWidget {
                     top: 0,
                     end: 0,
                     child: Container(
-                      width: 27,
-                      height: 27,
+                      width: 24,
+                      height: 24,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: colors.primary,
@@ -418,7 +543,7 @@ class _AppearanceChoice extends StatelessWidget {
                       ),
                       child: Icon(
                         Icons.check_rounded,
-                        size: 17,
+                        size: 15,
                         color: colors.onPrimary,
                       ),
                     ),
@@ -440,9 +565,9 @@ class _LocalPreferenceNotice extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         color: theme.colorScheme.surfaceContainerLow,
         border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
@@ -451,7 +576,14 @@ class _LocalPreferenceNotice extends StatelessWidget {
         children: [
           Icon(Icons.shield_outlined, color: theme.colorScheme.primary),
           const SizedBox(width: 11),
-          Expanded(child: Text(text, style: theme.textTheme.bodySmall)),
+          Expanded(
+            child: Text(
+              text,
+              textDirection: socialVoteLocaleTextDirection(context),
+              textAlign: socialVoteLocaleTextAlign(context),
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
         ],
       ),
     );
@@ -467,228 +599,148 @@ class _WorldAppearanceCopy {
     return _WorldAppearanceCopy(Localizations.localeOf(context).languageCode);
   }
 
-  bool get _it => languageCode == 'it';
-  bool get _de => languageCode == 'de';
-  bool get _fa => languageCode == 'fa';
-
-  String get title => _fa
-      ? 'ظاهر جهان'
-      : _de
-          ? 'Welt-Darstellung'
-          : _it
-              ? 'Aspetto del mondo'
-              : 'World appearance';
-
-  String get subtitle => _fa
-      ? 'ظاهر Globe، Radio Mondo و کنترل چرخش را جداگانه انتخاب کنید.'
-      : _de
-          ? 'Wähle Globe, Radio Mondo und Rotationssteuerung unabhängig voneinander.'
-          : _it
-              ? 'Scegli separatamente Globe, Radio Mondo e controllo rotazione.'
-              : 'Choose Globe, Radio Mondo and rotation control independently.';
-
-  String get globeTitle => _fa
-      ? 'سبک Globe'
-      : _de
-          ? 'Globe-Stil'
-          : _it
-              ? 'Stile Globe'
-              : 'Globe style';
-
-  String get globeSubtitle => _fa
-      ? 'ظاهر زمین را انتخاب کنید. داده‌ها و نشانگرها تغییر نمی‌کنند.'
-      : _de
-          ? 'Ändert nur die Darstellung. Daten und Marker bleiben unverändert.'
-          : _it
-              ? 'Cambia solo l’aspetto. Dati e marker restano invariati.'
-              : 'Changes appearance only. Data and markers stay unchanged.';
-
-  String get radioTitle => 'Radio Mondo';
-
-  String get radioSubtitle => _fa
-      ? 'سبک دکمه Radio Mondo کنار Globe را انتخاب کنید.'
-      : _de
-          ? 'Wähle den Stil der Radio-Mondo-Taste neben dem Globe.'
-          : _it
-              ? 'Scegli lo stile del pulsante Radio Mondo vicino al Globe.'
-              : 'Choose the Radio Mondo button style beside the Globe.';
-
-  String get rotationTitle => _fa
-      ? 'کنترل چرخش'
-      : _de
-          ? 'Rotationssteuerung'
-          : _it
-              ? 'Controllo rotazione'
-              : 'Rotation control';
-
-  String get rotationSubtitle => _fa
-      ? 'ظاهر دکمه شروع و توقف چرخش Globe را انتخاب کنید.'
-      : _de
-          ? 'Wähle den Stil der Start/Stopp-Rotationstaste.'
-          : _it
-              ? 'Scegli lo stile del pulsante che avvia o ferma il Globe.'
-              : 'Choose the style of the Globe start/stop rotation button.';
-
-  String get reset => _fa
-      ? 'بازنشانی'
-      : _de
-          ? 'Zurücksetzen'
-          : _it
-              ? 'Ripristina'
-              : 'Reset';
-
-  String get localOnly => _fa
-      ? 'این انتخاب‌ها فقط روی این دستگاه ذخیره می‌شوند و GeoScope، محتوا یا نشانگرهای زنده را تغییر نمی‌دهند.'
-      : _de
-          ? 'Diese Einstellungen bleiben lokal auf diesem Gerät und verändern weder GeoScope noch Inhalte oder Live-Marker.'
-          : _it
-              ? 'Queste preferenze restano locali sul dispositivo e non modificano GeoScope, contenuti o marker live.'
-              : 'These preferences stay local on this device and never change GeoScope, content or live markers.';
-
-  String globeLabel(GlobeVisualStyle style) {
-    return switch (style) {
-      GlobeVisualStyle.classic => _localized(
-          it: 'A · Classico e pulito',
-          en: 'A · Classic clean',
-          de: 'A · Klassisch klar',
-          fa: 'A · کلاسیک و تمیز',
-        ),
-      GlobeVisualStyle.realistic => _localized(
-          it: 'B · Realistico e profondo',
-          en: 'B · Realistic deep',
-          de: 'B · Realistisch tief',
-          fa: 'B · واقع‌گرای عمیق',
-        ),
-      GlobeVisualStyle.bright => _localized(
-          it: 'C · Moderno e luminoso',
-          en: 'C · Modern bright',
-          de: 'C · Modern hell',
-          fa: 'C · مدرن و روشن',
-        ),
-      GlobeVisualStyle.nightLights => _localized(
-          it: 'D · Night Lights',
-          en: 'D · Night Lights',
-          de: 'D · Nachtlichter',
-          fa: 'D · چراغ‌های شب',
-        ),
-      GlobeVisualStyle.techNeon => _localized(
-          it: 'E · Tech & Neon',
-          en: 'E · Tech & Neon',
-          de: 'E · Tech & Neon',
-          fa: 'E · فناوری و نئون',
-        ),
-      GlobeVisualStyle.minimalDay => _localized(
-          it: 'F · Minimal Day',
-          en: 'F · Minimal Day',
-          de: 'F · Minimaler Tag',
-          fa: 'F · روز مینیمال',
-        ),
-    };
-  }
-
-  String radioLabel(RadioVisualStyle style) {
-    return switch (style) {
-      RadioVisualStyle.vintageClassic => _localized(
-          it: '1 · Nota',
-          en: '1 · Note',
-          de: '1 · Note',
-          fa: '1 · نت موسیقی',
-        ),
-      RadioVisualStyle.oldStyle => _localized(
-          it: '2 · Radio',
-          en: '2 · Radio',
-          de: '2 · Radio',
-          fa: '2 · رادیو',
-        ),
-      RadioVisualStyle.retroElegant => _localized(
-          it: '3 · Equalizer',
-          en: '3 · Equalizer',
-          de: '3 · Equalizer',
-          fa: '3 · اکولایزر',
-        ),
-      RadioVisualStyle.woodMinimal => _localized(
-          it: '4 · Onda',
-          en: '4 · Wave',
-          de: '4 · Welle',
-          fa: '4 · موج',
-        ),
-      RadioVisualStyle.modernVintage => _localized(
-          it: '5 · Cuffie',
-          en: '5 · Headphones',
-          de: '5 · Kopfhörer',
-          fa: '5 · هدفون',
-        ),
-      RadioVisualStyle.steampunk => _localized(
-          it: '6 · Disco',
-          en: '6 · Disc',
-          de: '6 · Platte',
-          fa: '6 · دیسک',
-        ),
-      RadioVisualStyle.minimalChic => _localized(
-          it: '7 · Pulse',
-          en: '7 · Pulse',
-          de: '7 · Pulse',
-          fa: '7 · پالس',
-        ),
-    };
-  }
-
-  String rotationLabel(GlobeRotationVisualStyle style) {
-    return switch (style) {
-      GlobeRotationVisualStyle.classic => _localized(
-          it: '1 · Classico',
-          en: '1 · Classic',
-          de: '1 · Klassisch',
-          fa: '1 · کلاسیک',
-        ),
-      GlobeRotationVisualStyle.minimal => _localized(
-          it: '2 · Minimal',
-          en: '2 · Minimal',
-          de: '2 · Minimal',
-          fa: '2 · مینیمال',
-        ),
-      GlobeRotationVisualStyle.subtle => _localized(
-          it: '3 · Sottile',
-          en: '3 · Subtle',
-          de: '3 · Dezent',
-          fa: '3 · ظریف',
-        ),
-      GlobeRotationVisualStyle.neon => _localized(
-          it: '4 · Neon',
-          en: '4 · Neon',
-          de: '4 · Neon',
-          fa: '4 · نئون',
-        ),
-      GlobeRotationVisualStyle.filled => _localized(
-          it: '5 · Pieno',
-          en: '5 · Filled',
-          de: '5 · Gefüllt',
-          fa: '5 · پر',
-        ),
-      GlobeRotationVisualStyle.glass => _localized(
-          it: '6 · Glass',
-          en: '6 · Glass',
-          de: '6 · Glas',
-          fa: '6 · شیشه‌ای',
-        ),
-      GlobeRotationVisualStyle.premium => _localized(
-          it: '7 · Premium',
-          en: '7 · Premium',
-          de: '7 · Premium',
-          fa: '7 · پریمیوم',
-        ),
-    };
-  }
-
   String _localized({
     required String it,
     required String en,
     required String de,
     required String fa,
+    required String es,
+    required String pt,
+    String? fr,
+    String? ar,
+    String? ro,
   }) {
-    if (_fa) return fa;
-    if (_de) return de;
-    if (_it) return it;
-    return en;
+    return switch (languageCode) {
+      'it' => it,
+      'de' => de,
+      'fa' => fa,
+      'es' => es,
+      'pt' => pt,
+      'fr' => fr ?? en,
+      'ar' => ar ?? en,
+      'ro' => ro ?? en,
+      _ => en,
+    };
+  }
+
+  String get title => _localized(
+        it: 'Aspetto del mondo',
+        en: 'World appearance',
+        de: 'Welt-Darstellung',
+        fa: 'ظاهر جهان',
+        es: 'Apariencia del mundo',
+        pt: 'Aparência do mundo',
+        fr: 'Apparence du monde',
+        ar: 'مظهر العالم',
+        ro: 'Aspectul lumii',
+      );
+
+  String get subtitle => _localized(
+        it: 'Scegli separatamente Globe, Radio Mondo e controllo rotazione.',
+        en: 'Choose Globe, Radio Mondo and rotation control independently.',
+        de: 'Wähle Globe, Radio Mondo und Rotationssteuerung unabhängig voneinander.',
+        fa: 'ظاهر Globe، Radio Mondo و کنترل چرخش را جداگانه انتخاب کنید.',
+        es: 'Elige por separado Globe, Radio Mondo y el control de rotación.',
+        pt: 'Escolha separadamente Globe, Radio Mondo e o controle de rotação.',
+        fr: 'Choisissez séparément Globe, Radio Mondo et le contrôle de rotation.',
+        ar: 'اختر Globe وRadio Mondo والتحكم في الدوران بشكل مستقل.',
+        ro: 'Alege separat Globe, Radio Mondo și controlul rotației.',
+      );
+
+  String get globeTitle => _localized(
+        it: 'Stile Globe', en: 'Globe style', de: 'Globe-Stil', fa: 'سبک Globe',
+        es: 'Estilo de Globe', pt: 'Estilo do Globe', fr: 'Style du Globe', ar: 'نمط Globe', ro: 'Stil Globe');
+
+  String get globeSubtitle => _localized(
+        it: 'Cambia solo l’aspetto. Dati e marker restano invariati.',
+        en: 'Changes appearance only. Data and markers stay unchanged.',
+        de: 'Ändert nur die Darstellung. Daten und Marker bleiben unverändert.',
+        fa: 'ظاهر زمین را انتخاب کنید. داده‌ها و نشانگرها تغییر نمی‌کنند.',
+        es: 'Solo cambia la apariencia. Los datos y marcadores no cambian.',
+        pt: 'Altera apenas a aparência. Dados e marcadores permanecem iguais.',
+        fr: 'Modifie uniquement l’apparence. Les données et les marqueurs restent inchangés.',
+        ar: 'يغيّر المظهر فقط. تبقى البيانات والعلامات دون تغيير.',
+        ro: 'Modifică doar aspectul. Datele și marker-ele rămân neschimbate.',
+      );
+
+  String get radioTitle => 'Radio Mondo';
+
+  String get radioSubtitle => _localized(
+        it: 'Scegli lo stile del pulsante Radio Mondo vicino al Globe.',
+        en: 'Choose the Radio Mondo button style beside the Globe.',
+        de: 'Wähle den Stil der Radio-Mondo-Taste neben dem Globe.',
+        fa: 'سبک دکمه Radio Mondo کنار Globe را انتخاب کنید.',
+        es: 'Elige el estilo del botón Radio Mondo junto al Globe.',
+        pt: 'Escolha o estilo do botão Radio Mondo ao lado do Globe.',
+        fr: 'Choisissez le style du bouton Radio Mondo à côté du Globe.',
+        ar: 'اختر نمط زر Radio Mondo بجوار Globe.',
+        ro: 'Alege stilul butonului Radio Mondo de lângă Globe.',
+      );
+
+  String get rotationTitle => _localized(
+        it: 'Controllo rotazione', en: 'Rotation control', de: 'Rotationssteuerung',
+        fa: 'کنترل چرخش', es: 'Control de rotación', pt: 'Controle de rotação', fr: 'Contrôle de rotation', ar: 'التحكم في الدوران', ro: 'Controlul rotației');
+
+  String get rotationSubtitle => _localized(
+        it: 'Scegli lo stile del pulsante che avvia o ferma il Globe.',
+        en: 'Choose the style of the Globe start/stop rotation button.',
+        de: 'Wähle den Stil der Start/Stopp-Rotationstaste.',
+        fa: 'ظاهر دکمه شروع و توقف چرخش Globe را انتخاب کنید.',
+        es: 'Elige el estilo del botón que inicia o detiene la rotación del Globe.',
+        pt: 'Escolha o estilo do botão que inicia ou interrompe a rotação do Globe.',
+        fr: 'Choisissez le style du bouton qui démarre ou arrête la rotation du Globe.',
+        ar: 'اختر نمط الزر الذي يبدأ أو يوقف دوران Globe.',
+        ro: 'Alege stilul butonului care pornește sau oprește rotația Globe.',
+      );
+
+  String get reset => _localized(
+        it: 'Ripristina', en: 'Reset', de: 'Zurücksetzen', fa: 'بازنشانی',
+        es: 'Restablecer', pt: 'Redefinir', fr: 'Réinitialiser', ar: 'إعادة الضبط', ro: 'Resetează');
+
+  String get localOnly => _localized(
+        it: 'Queste preferenze restano locali sul dispositivo e non modificano GeoScope, contenuti o marker live.',
+        en: 'These preferences stay local on this device and never change GeoScope, content or live markers.',
+        de: 'Diese Einstellungen bleiben lokal auf diesem Gerät und verändern weder GeoScope noch Inhalte oder Live-Marker.',
+        fa: 'این انتخاب‌ها فقط روی این دستگاه ذخیره می‌شوند و GeoScope، محتوا یا نشانگرهای زنده را تغییر نمی‌دهند.',
+        es: 'Estas preferencias permanecen en este dispositivo y no cambian GeoScope, el contenido ni los marcadores en vivo.',
+        pt: 'Essas preferências permanecem neste dispositivo e não alteram GeoScope, conteúdo ou marcadores ao vivo.',
+        fr: 'Ces préférences restent sur cet appareil et ne modifient jamais GeoScope, le contenu ni les marqueurs en direct.',
+        ar: 'تبقى هذه التفضيلات على هذا الجهاز ولا تغيّر GeoScope أو المحتوى أو العلامات المباشرة.',
+        ro: 'Aceste preferințe rămân pe acest dispozitiv și nu modifică GeoScope, conținutul sau marker-ele live.',
+      );
+
+  String globeLabel(GlobeVisualStyle style) {
+    return switch (style) {
+      GlobeVisualStyle.classic => _localized(it:'A · Classico e pulito', en:'A · Classic clean', de:'A · Klassisch klar', fa:'A · کلاسیک و تمیز', es:'A · Clásico y limpio', pt:'A · Clássico e limpo', fr:'A · Classique et épuré', ar:'A · كلاسيكي ونظيف', ro:'A · Clasic și curat'),
+      GlobeVisualStyle.realistic => _localized(it:'B · Realistico e profondo', en:'B · Realistic deep', de:'B · Realistisch tief', fa:'B · واقع‌گرای عمیق', es:'B · Realista y profundo', pt:'B · Realista e profundo', fr:'B · Réaliste et profond', ar:'B · واقعي وعميق', ro:'B · Realist și profund'),
+      GlobeVisualStyle.bright => _localized(it:'C · Moderno e luminoso', en:'C · Modern bright', de:'C · Modern hell', fa:'C · مدرن و روشن', es:'C · Moderno y luminoso', pt:'C · Moderno e luminoso', fr:'C · Moderne et lumineux', ar:'C · حديث ومضيء', ro:'C · Modern și luminos'),
+      GlobeVisualStyle.nightLights => _localized(it:'D · Notte con luci', en:'D · Night lights', de:'D · Nachtlichter', fa:'D · چراغ‌های شب', es:'D · Luces nocturnas', pt:'D · Luzes noturnas', fr:'D · Lumières nocturnes', ar:'D · أضواء ليلية', ro:'D · Lumini de noapte'),
+      GlobeVisualStyle.techNeon => _localized(it:'E · Tech Neon', en:'E · Tech Neon', de:'E · Tech Neon', fa:'E · فناوری نئون', es:'E · Tech Neon', pt:'E · Tech Neon', fr:'E · Tech Neon', ar:'E · تقنية نيون', ro:'E · Tech Neon'),
+      GlobeVisualStyle.minimalDay => _localized(it:'F · Minimal Day', en:'F · Minimal Day', de:'F · Minimaler Tag', fa:'F · روز مینیمال', es:'F · Día minimalista', pt:'F · Dia minimalista', fr:'F · Jour minimal', ar:'F · نهار بسيط', ro:'F · Zi minimalistă'),
+    };
+  }
+
+  String radioLabel(RadioVisualStyle style) {
+    return switch (style) {
+      RadioVisualStyle.vintageClassic => _localized(it:'1 · Nota', en:'1 · Note', de:'1 · Note', fa:'1 · نت موسیقی', es:'1 · Nota', pt:'1 · Nota', fr:'1 · Note', ar:'1 · نغمة', ro:'1 · Notă'),
+      RadioVisualStyle.oldStyle => _localized(it:'2 · Radio', en:'2 · Radio', de:'2 · Radio', fa:'2 · رادیو', es:'2 · Radio', pt:'2 · Rádio', fr:'2 · Radio', ar:'2 · راديو', ro:'2 · Radio'),
+      RadioVisualStyle.retroElegant => _localized(it:'3 · Equalizer', en:'3 · Equalizer', de:'3 · Equalizer', fa:'3 · اکولایزر', es:'3 · Ecualizador', pt:'3 · Equalizador', fr:'3 · Égaliseur', ar:'3 · معادل صوتي', ro:'3 · Egalizator'),
+      RadioVisualStyle.woodMinimal => _localized(it:'4 · Onda', en:'4 · Wave', de:'4 · Welle', fa:'4 · موج', es:'4 · Onda', pt:'4 · Onda', fr:'4 · Onde', ar:'4 · موجة', ro:'4 · Undă'),
+      RadioVisualStyle.modernVintage => _localized(it:'5 · Cuffie', en:'5 · Headphones', de:'5 · Kopfhörer', fa:'5 · هدفون', es:'5 · Auriculares', pt:'5 · Fones', fr:'5 · Casque', ar:'5 · سماعات', ro:'5 · Căști'),
+      RadioVisualStyle.steampunk => _localized(it:'6 · Disco', en:'6 · Disc', de:'6 · Platte', fa:'6 · دیسک', es:'6 · Disco', pt:'6 · Disco', fr:'6 · Disque', ar:'6 · قرص', ro:'6 · Disc'),
+      RadioVisualStyle.minimalChic => _localized(it:'7 · Pulse', en:'7 · Pulse', de:'7 · Pulse', fa:'7 · پالس', es:'7 · Pulso', pt:'7 · Pulso', fr:'7 · Pulse', ar:'7 · نبض', ro:'7 · Puls'),
+    };
+  }
+
+  String rotationLabel(GlobeRotationVisualStyle style) {
+    return switch (style) {
+      GlobeRotationVisualStyle.classic => _localized(it:'1 · Classico', en:'1 · Classic', de:'1 · Klassisch', fa:'1 · کلاسیک', es:'1 · Clásico', pt:'1 · Clássico', fr:'1 · Classique', ar:'1 · كلاسيكي', ro:'1 · Clasic'),
+      GlobeRotationVisualStyle.minimal => _localized(it:'2 · Minimal', en:'2 · Minimal', de:'2 · Minimal', fa:'2 · مینیمال', es:'2 · Minimal', pt:'2 · Minimal', fr:'2 · Minimal', ar:'2 · بسيط', ro:'2 · Minimal'),
+      GlobeRotationVisualStyle.subtle => _localized(it:'3 · Sottile', en:'3 · Subtle', de:'3 · Dezent', fa:'3 · ظریف', es:'3 · Sutil', pt:'3 · Sutil', fr:'3 · Subtil', ar:'3 · خفيف', ro:'3 · Subtil'),
+      GlobeRotationVisualStyle.neon => _localized(it:'4 · Neon', en:'4 · Neon', de:'4 · Neon', fa:'4 · نئون', es:'4 · Neón', pt:'4 · Neon', fr:'4 · Néon', ar:'4 · نيون', ro:'4 · Neon'),
+      GlobeRotationVisualStyle.filled => _localized(it:'5 · Pieno', en:'5 · Filled', de:'5 · Gefüllt', fa:'5 · پر', es:'5 · Lleno', pt:'5 · Preenchido', fr:'5 · Plein', ar:'5 · ممتلئ', ro:'5 · Plin'),
+      GlobeRotationVisualStyle.glass => _localized(it:'6 · Glass', en:'6 · Glass', de:'6 · Glas', fa:'6 · شیشه‌ای', es:'6 · Cristal', pt:'6 · Vidro', fr:'6 · Verre', ar:'6 · زجاج', ro:'6 · Sticlă'),
+      GlobeRotationVisualStyle.premium => _localized(it:'7 · Premium', en:'7 · Premium', de:'7 · Premium', fa:'7 · پریمیوم', es:'7 · Premium', pt:'7 · Premium', fr:'7 · Premium', ar:'7 · مميز', ro:'7 · Premium'),
+    };
   }
 }
