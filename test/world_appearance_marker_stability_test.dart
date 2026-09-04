@@ -10,7 +10,7 @@ import 'package:sociale_vote/shared/services/world_appearance_service.dart';
 void main() {
   group('world appearance', () {
     test('exposes the approved independent style counts', () {
-      expect(GlobeVisualStyle.values, hasLength(6));
+      expect(GlobeVisualStyle.values, hasLength(7));
       expect(RadioVisualStyle.values, hasLength(7));
       expect(GlobeRotationVisualStyle.values, hasLength(7));
     });

@@ -7,6 +7,7 @@ enum GlobeVisualStyle {
   bright,
   nightLights,
   techNeon,
+  terrainRelief,
   minimalDay,
 }
 
@@ -46,7 +47,7 @@ class WorldAppearanceService extends ChangeNotifier {
   static const GlobeVisualStyle defaultGlobeStyle = GlobeVisualStyle.bright;
   static const RadioVisualStyle defaultRadioStyle = RadioVisualStyle.oldStyle;
   static const GlobeRotationVisualStyle defaultRotationStyle =
-      GlobeRotationVisualStyle.minimal;
+      GlobeRotationVisualStyle.classic;
 
   /// Curated release choices. Legacy enum values remain defined so older local
   /// preferences can be migrated safely without widening the public settings UI.
@@ -57,6 +58,7 @@ class WorldAppearanceService extends ChangeNotifier {
     GlobeVisualStyle.bright,
     GlobeVisualStyle.nightLights,
     GlobeVisualStyle.techNeon,
+    GlobeVisualStyle.terrainRelief,
   ];
 
   static const List<RadioVisualStyle> selectableRadioStyles =

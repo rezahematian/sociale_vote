@@ -121,6 +121,15 @@ flutter:
   generate: true
   uses-material-design: true
   assets:
+    - assets/vision/social_vote_regole_del_gioco_33.png
+    - assets/vision/social_vote_rules_vision_en.jpg
+    - assets/vision/social_vote_rules_vision_de.jpg
+    - assets/vision/social_vote_rules_vision_fa.jpg
+    - assets/vision/social_vote_rules_vision_es.jpg
+    - assets/vision/social_vote_rules_vision_pt.jpg
+    - assets/vision/social_vote_rules_vision_fr.jpg
+    - assets/vision/social_vote_rules_vision_ar.jpg
+    - assets/vision/social_vote_rules_vision_ro.jpg
     - assets/globe/earth_day_nasa_blue_marble_2048.png
     - assets/globe/earth_day_nasa_bmng_august_4096.jpg
     - assets/globe/earth_night_nasa_black_marble_2016_3600.jpg

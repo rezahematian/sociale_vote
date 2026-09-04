@@ -104,10 +104,13 @@ class EgressPolicyService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   static Duration newsMemoryCacheTtlFor(EgressMode mode) {
+    // News provider caches are refreshed on the backend at a much slower cadence
+    // than the previous 5/15 minute client TTLs. Keeping payloads in memory longer
+    // prevents every scope/view from downloading the same large JSON feed again.
     return switch (mode) {
-      EgressMode.normal => const Duration(minutes: 5),
-      EgressMode.conservative => const Duration(minutes: 15),
-      EgressMode.emergency => const Duration(hours: 1),
+      EgressMode.normal => const Duration(minutes: 30),
+      EgressMode.conservative => const Duration(hours: 2),
+      EgressMode.emergency => const Duration(hours: 6),
     };
   }
 

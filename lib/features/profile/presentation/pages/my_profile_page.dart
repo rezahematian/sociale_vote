@@ -30,9 +30,11 @@ import 'package:sociale_vote/features/profile/presentation/pages/public_user_pro
 import 'package:sociale_vote/features/profile/presentation/pages/world_appearance_settings_page.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/services/biometric_unlock_service.dart';
+import 'package:sociale_vote/shared/services/world_appearance_service.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
+import 'package:sociale_vote/shared/widgets/world_control_visuals.dart';
 
 String _worldAppearanceSettingsTitle(BuildContext context) {
   return switch (Localizations.localeOf(context).languageCode) {
@@ -59,6 +61,145 @@ String _worldAppearanceSettingsSubtitle(BuildContext context) {
     'ar' => 'Globe وRadio Mondo والتحكم في الدوران',
     'ro' => 'Globe, Radio Mondo și controlul rotației',
     _ => 'Globe, Radio Mondo and rotation control',
+  };
+}
+
+String _quickSettingsSectionTitle(BuildContext context) {
+  return switch (Localizations.localeOf(context).languageCode) {
+    'it' => 'Accesso rapido',
+    'de' => 'Schnellzugriff',
+    'fa' => 'دسترسی سریع',
+    'es' => 'Acceso rápido',
+    'pt' => 'Acesso rápido',
+    'fr' => 'Accès rapide',
+    'ar' => 'وصول سريع',
+    'ro' => 'Acces rapid',
+    _ => 'Quick settings',
+  };
+}
+
+String _accountSectionsTitle(BuildContext context) {
+  return switch (Localizations.localeOf(context).languageCode) {
+    'it' => 'Sezioni account',
+    'de' => 'Kontobereiche',
+    'fa' => 'بخش‌های حساب',
+    'es' => 'Secciones de la cuenta',
+    'pt' => 'Seções da conta',
+    'fr' => 'Sections du compte',
+    'ar' => 'أقسام الحساب',
+    'ro' => 'Secțiuni cont',
+    _ => 'Account sections',
+  };
+}
+
+String _globeStyleLabel(
+  BuildContext context,
+  GlobeVisualStyle style,
+) {
+  final languageCode = Localizations.localeOf(context).languageCode;
+
+  String localized({
+    required String en,
+    required String it,
+    required String de,
+    required String fa,
+    required String es,
+    required String pt,
+    required String fr,
+    required String ar,
+    required String ro,
+  }) {
+    return switch (languageCode) {
+      'it' => it,
+      'de' => de,
+      'fa' => fa,
+      'es' => es,
+      'pt' => pt,
+      'fr' => fr,
+      'ar' => ar,
+      'ro' => ro,
+      _ => en,
+    };
+  }
+
+  return switch (style) {
+    GlobeVisualStyle.classic => localized(
+        en: 'A · Classic clean',
+        it: 'A · Classico e pulito',
+        de: 'A · Klassisch klar',
+        fa: 'A · کلاسیک و تمیز',
+        es: 'A · Clásico y limpio',
+        pt: 'A · Clássico e limpo',
+        fr: 'A · Classique et épuré',
+        ar: 'A · كلاسيكي ونظيف',
+        ro: 'A · Clasic și curat',
+      ),
+    GlobeVisualStyle.realistic => localized(
+        en: 'B · Realistic deep',
+        it: 'B · Realistico e profondo',
+        de: 'B · Realistisch tief',
+        fa: 'B · واقع‌گرای عمیق',
+        es: 'B · Realista y profundo',
+        pt: 'B · Realista e profundo',
+        fr: 'B · Réaliste et profond',
+        ar: 'B · واقعي وعميق',
+        ro: 'B · Realist și profund',
+      ),
+    GlobeVisualStyle.bright => localized(
+        en: 'C · Modern bright',
+        it: 'C · Moderno e luminoso',
+        de: 'C · Modern hell',
+        fa: 'C · مدرن و روشن',
+        es: 'C · Moderno y luminoso',
+        pt: 'C · Moderno e luminoso',
+        fr: 'C · Moderne et lumineux',
+        ar: 'C · حديث ومضيء',
+        ro: 'C · Modern și luminos',
+      ),
+    GlobeVisualStyle.nightLights => localized(
+        en: 'D · Night lights',
+        it: 'D · Notte con luci',
+        de: 'D · Nachtlichter',
+        fa: 'D · چراغ‌های شب',
+        es: 'D · Luces nocturnas',
+        pt: 'D · Luzes noturnas',
+        fr: 'D · Lumières nocturnes',
+        ar: 'D · أضواء ليلية',
+        ro: 'D · Lumini de noapte',
+      ),
+    GlobeVisualStyle.techNeon => localized(
+        en: 'E · Tech Neon',
+        it: 'E · Tech Neon',
+        de: 'E · Tech Neon',
+        fa: 'E · فناوری نئون',
+        es: 'E · Tech Neon',
+        pt: 'E · Tech Neon',
+        fr: 'E · Tech Neon',
+        ar: 'E · تقنية نيون',
+        ro: 'E · Tech Neon',
+      ),
+    GlobeVisualStyle.terrainRelief => localized(
+        en: 'F · Terrain relief',
+        it: 'F · Rilievo geografico',
+        de: 'F · Reliefkarte',
+        fa: 'F · برجستگی زمین',
+        es: 'F · Relieve geográfico',
+        pt: 'F · Relevo geográfico',
+        fr: 'F · Relief géographique',
+        ar: 'F · تضاريس جغرافية',
+        ro: 'F · Relief geografic',
+      ),
+    GlobeVisualStyle.minimalDay => localized(
+        en: 'G · Minimal Day',
+        it: 'G · Minimal Day',
+        de: 'G · Minimaler Tag',
+        fa: 'G · روز مینیمال',
+        es: 'G · Día minimalista',
+        pt: 'G · Dia minimalista',
+        fr: 'G · Jour minimal',
+        ar: 'G · نهار بسيط',
+        ro: 'G · Zi minimalistă',
+      ),
   };
 }
 
@@ -176,6 +317,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
     super.initState();
     _unreadNotificationsFuture = _loadUnreadNotificationsCount();
     _organizationContextFuture = _loadOrganizationContext();
+    unawaited(WorldAppearanceService.instance.ensureLoaded());
     unawaited(_loadBiometricState());
   }
 
@@ -376,19 +518,21 @@ class _MyProfileViewState extends State<_MyProfileView> {
     }
   }
 
-  Future<void> _openNotifications() async {
-    await Navigator.of(context).pushNamed(AppRouter.notifications);
+  Future<void> _openNotifications([BuildContext? sourceContext]) async {
+    final hostContext = sourceContext ?? context;
+    await Navigator.of(hostContext).pushNamed(AppRouter.notifications);
 
     if (!mounted) return;
     _refreshUnreadNotificationsCount();
   }
 
-  Future<void> _showAppearanceModeSheet() async {
-    final l10n = AppLocalizations.of(context)!;
+  Future<void> _showAppearanceModeSheet([BuildContext? sourceContext]) async {
+    final hostContext = sourceContext ?? context;
+    final l10n = AppLocalizations.of(hostContext)!;
     final currentMode = AppThemeModeController.appearanceMode.value;
 
     await showModalBottomSheet<void>(
-      context: context,
+      context: hostContext,
       showDragHandle: true,
       builder: (sheetContext) {
         return SafeArea(
@@ -445,13 +589,14 @@ class _MyProfileViewState extends State<_MyProfileView> {
     setState(() {});
   }
 
-  Future<void> _showAppLanguageSheet() async {
-    final l10n = AppLocalizations.of(context)!;
+  Future<void> _showAppLanguageSheet([BuildContext? sourceContext]) async {
+    final hostContext = sourceContext ?? context;
+    final l10n = AppLocalizations.of(hostContext)!;
     final currentLanguageCode =
         AppLocaleController.locale.value?.languageCode ?? 'system';
 
     await showModalBottomSheet<void>(
-      context: context,
+      context: hostContext,
       showDragHandle: true,
       isScrollControlled: true,
       builder: (sheetContext) {
@@ -592,6 +737,435 @@ class _MyProfileViewState extends State<_MyProfileView> {
           ),
         );
       },
+    );
+  }
+
+  Future<void> _showGlobeStyleSheet() async {
+    final appearance = WorldAppearanceService.instance;
+    await appearance.ensureLoaded();
+
+    if (!mounted) return;
+
+    final currentStyle = appearance.globeStyle;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        final maxHeight = MediaQuery.sizeOf(sheetContext).height * 0.78;
+        return SafeArea(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxHeight),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: RadioGroup<GlobeVisualStyle>(
+                groupValue: currentStyle,
+                onChanged: (value) {
+                  if (value == null) return;
+                  unawaited(appearance.setGlobeStyle(value));
+                  Navigator.of(sheetContext).pop();
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final style
+                        in WorldAppearanceService.selectableGlobeStyles)
+                      RadioListTile<GlobeVisualStyle>(
+                        value: style,
+                        title: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _globeStyleLabel(sheetContext, style),
+                                textDirection:
+                                    socialVoteLocaleTextDirection(sheetContext),
+                                textAlign:
+                                    socialVoteLocaleTextAlign(sheetContext),
+                              ),
+                            ),
+                            if (style ==
+                                WorldAppearanceService.defaultGlobeStyle)
+                              Padding(
+                                padding: const EdgeInsetsDirectional.only(
+                                  start: 8,
+                                ),
+                                child: Icon(
+                                  Icons.auto_awesome_rounded,
+                                  size: 18,
+                                  color: Theme.of(sheetContext)
+                                      .colorScheme
+                                      .primary,
+                                ),
+                              ),
+                          ],
+                        ),
+                        secondary: SizedBox(
+                          width: 64,
+                          height: 64,
+                          child: Center(
+                            child: PremiumGlobePreview(
+                              style: style,
+                              size: 54,
+                            ),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  Future<void> _openAccountSection({
+    required String title,
+    required WidgetBuilder contentBuilder,
+  }) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (sectionContext) => _AccountSectionPage(
+          title: title,
+          child: contentBuilder(sectionContext),
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  void _openActivitySection() {
+    final l10n = AppLocalizations.of(context)!;
+    unawaited(
+      _openAccountSection(
+        title: l10n.profileActivitySectionTitle,
+        contentBuilder: (sectionContext) => _SettingsGroup(
+          children: [
+            _SettingsTile(
+              title: l10n.profileAccountConnectionsTitle,
+              icon: Icons.people_alt_outlined,
+              onTap: () {
+                Navigator.of(sectionContext).push(
+                  MaterialPageRoute(
+                    builder: (_) => const MyAccountConnectionsPage(),
+                  ),
+                );
+              },
+            ),
+            const Divider(height: 1),
+            _SettingsTile(
+              title: l10n.profileMyPollsTitle,
+              icon: Icons.how_to_vote,
+              onTap: () {
+                Navigator.of(sectionContext).push(
+                  MaterialPageRoute(builder: (_) => const MyPollsPage()),
+                );
+              },
+            ),
+            const Divider(height: 1),
+            _SettingsTile(
+              title: l10n.profileMyPostsTitle,
+              icon: Icons.forum_outlined,
+              onTap: () {
+                Navigator.of(sectionContext).push(
+                  MaterialPageRoute(builder: (_) => const MyPostsPage()),
+                );
+              },
+            ),
+            const Divider(height: 1),
+            _SettingsTile(
+              title: l10n.profileMyCommentsTitle,
+              icon: Icons.comment_outlined,
+              onTap: () {
+                Navigator.of(sectionContext).push(
+                  MaterialPageRoute(builder: (_) => const MyCommentsPage()),
+                );
+              },
+            ),
+            const Divider(height: 1),
+            _SettingsTile(
+              title: l10n.profileMyFavoritesTitle,
+              icon: Icons.star_border_rounded,
+              onTap: () {
+                Navigator.of(sectionContext).push(
+                  MaterialPageRoute(builder: (_) => const MyFavoritesPage()),
+                );
+              },
+            ),
+            const Divider(height: 1),
+            _SettingsTile(
+              title: l10n.profileMyFollowedScopesTitle,
+              icon: Icons.public,
+              onTap: () {
+                Navigator.of(sectionContext).push(
+                  MaterialPageRoute(
+                    builder: (_) => const MyFollowedScopesPage(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openVerificationSection({
+    required UserProfile? profile,
+    required VerificationRequest? pendingRequest,
+    required VerificationRequest? latestRejectedRequest,
+    required String verificationTileSubtitle,
+    required bool isLoading,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    unawaited(
+      _openAccountSection(
+        title: l10n.profileIdentityVerificationSectionTitle,
+        contentBuilder: (_) => _SettingsGroup(
+          children: [
+            _SettingsTile(
+              title: l10n.verificationCenterTitle,
+              subtitle: verificationTileSubtitle,
+              icon: Icons.verified_user_outlined,
+              trailing: isLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : null,
+              onTap: () => _showVerificationCenter(
+                profile: profile,
+                pendingRequest: pendingRequest,
+                latestRejectedRequest: latestRejectedRequest,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openPreferencesSection() {
+    final l10n = AppLocalizations.of(context)!;
+    unawaited(
+      _openAccountSection(
+        title: l10n.profilePreferencesSectionTitle,
+        contentBuilder: (sectionContext) =>
+            ValueListenableBuilder<AppAppearanceMode>(
+          valueListenable: AppThemeModeController.appearanceMode,
+          builder: (context, mode, _) {
+            return _SettingsGroup(
+              children: [
+                _SettingsTile(
+                  title: l10n.profileThemeTitle,
+                  subtitle: _appearanceModeLabel(l10n, mode),
+                  icon: Icons.palette_outlined,
+                  onTap: () => _showAppearanceModeSheet(sectionContext),
+                ),
+                const Divider(height: 1),
+                _SettingsTile(
+                  title: _worldAppearanceSettingsTitle(sectionContext),
+                  subtitle: _worldAppearanceSettingsSubtitle(sectionContext),
+                  icon: Icons.public_rounded,
+                  onTap: () {
+                    Navigator.of(sectionContext).push(
+                      MaterialPageRoute(
+                        builder: (_) => const WorldAppearanceSettingsPage(),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                ValueListenableBuilder<Locale?>(
+                  valueListenable: AppLocaleController.locale,
+                  builder: (context, locale, _) {
+                    final currentL10n = AppLocalizations.of(context)!;
+                    return _SettingsTile(
+                      title: currentL10n.profileAppLanguageTitle,
+                      subtitle: _appLocaleLabel(currentL10n, locale),
+                      icon: Icons.language_outlined,
+                      onTap: () => _showAppLanguageSheet(sectionContext),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  void _openNotificationsSection() {
+    final l10n = AppLocalizations.of(context)!;
+    unawaited(
+      _openAccountSection(
+        title: l10n.profileNotificationsSectionTitle,
+        contentBuilder: (sectionContext) => FutureBuilder<int>(
+          future: _unreadNotificationsFuture,
+          builder: (context, snapshot) {
+            final unreadCount = snapshot.data ?? 0;
+            return _SettingsGroup(
+              children: [
+                _SettingsTile(
+                  title: l10n.notificationsPageTitle,
+                  icon: Icons.notifications_none,
+                  trailing: _NotificationsTrailingBadge(
+                    unreadCount: unreadCount,
+                  ),
+                  onTap: () => _openNotifications(sectionContext),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  void _openSecuritySection(String accountEmail) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
+    unawaited(
+      _openAccountSection(
+        title: l10n.profileSecurityAccountSectionTitle,
+        contentBuilder: (sectionContext) => StatefulBuilder(
+          builder: (localContext, refreshSection) {
+            Future<void> refreshAfter(Future<void> Function() action) async {
+              await action();
+              if (localContext.mounted) {
+                refreshSection(() {});
+              }
+            }
+
+            return _SettingsGroup(
+              children: [
+                _SettingsTile(
+                  title: accountEmail.isNotEmpty
+                      ? accountEmail
+                      : l10n.authEmailLabel,
+                  subtitle: l10n.profileAccountEmailHelper,
+                  icon: Icons.email_outlined,
+                ),
+                const Divider(height: 1),
+                _SettingsTile(
+                  title: l10n.profileChangePasswordAction,
+                  subtitle: l10n.profileChangePasswordDescription,
+                  icon: Icons.lock_reset_outlined,
+                  onTap: _isDeletingAccount
+                      ? null
+                      : () {
+                          Navigator.of(sectionContext).pushNamed(
+                            AppRouter.resetPassword,
+                          );
+                        },
+                ),
+                const Divider(height: 1),
+                _SettingsTile(
+                  title: l10n.profileBiometricUnlockTitle,
+                  subtitle: _biometricLoading
+                      ? l10n.profileBiometricUnlockDescription
+                      : !_rememberMeEnabled
+                          ? l10n.profileBiometricRequiresRememberMe
+                          : !_biometricAvailable
+                              ? l10n.profileBiometricUnavailable
+                              : l10n.profileBiometricUnlockDescription,
+                  icon: Icons.fingerprint_rounded,
+                  trailing: _biometricLoading || _biometricBusy
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Switch.adaptive(
+                          value: _biometricEnabled,
+                          onChanged: !_rememberMeEnabled || !_biometricAvailable
+                              ? null
+                              : (value) {
+                                  unawaited(
+                                    refreshAfter(
+                                      () => _setBiometricEnabled(value),
+                                    ),
+                                  );
+                                },
+                        ),
+                  onTap: _biometricLoading || _biometricBusy
+                      ? null
+                      : () {
+                          if (!_rememberMeEnabled) {
+                            ScaffoldMessenger.of(localContext).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  l10n.profileBiometricRequiresRememberMe,
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          if (!_biometricAvailable) {
+                            ScaffoldMessenger.of(localContext).showSnackBar(
+                              SnackBar(
+                                content: Text(l10n.profileBiometricUnavailable),
+                              ),
+                            );
+                            return;
+                          }
+
+                          unawaited(
+                            refreshAfter(
+                              () => _setBiometricEnabled(!_biometricEnabled),
+                            ),
+                          );
+                        },
+                ),
+                const Divider(height: 1),
+                _SettingsTile(
+                  title: l10n.profileLogoutAction,
+                  subtitle: l10n.profileLogoutDescription,
+                  icon: Icons.logout_rounded,
+                  iconColor: theme.colorScheme.error,
+                  textColor: theme.colorScheme.error,
+                  onTap: _isDeletingAccount
+                      ? null
+                      : () => unawaited(
+                            refreshAfter(_confirmLogout),
+                          ),
+                ),
+                const Divider(height: 1),
+                _SettingsTile(
+                  title: l10n.profileDeleteAccountAction,
+                  subtitle: l10n.profileDeleteAccountDescription,
+                  icon: Icons.delete_forever_outlined,
+                  iconColor: theme.colorScheme.error,
+                  textColor: theme.colorScheme.error,
+                  trailing: _isDeletingAccount
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.chevron_right),
+                  onTap: _isDeletingAccount
+                      ? null
+                      : () => unawaited(
+                            refreshAfter(_confirmDeleteAccount),
+                          ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -1361,6 +1935,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                         : Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // ACCOUNT_PROFILE_COMPACT_HEADER_V1_0_1
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -1376,10 +1951,10 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                         profile?.verificationLevel ??
                                             VerificationLevel.none,
                                     institutionLevel: profile?.institutionLevel,
-                                    size: 64,
+                                    size: 60,
                                     showTooltip: false,
                                   ),
-                                  const SizedBox(width: 16),
+                                  const SizedBox(width: 14),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
@@ -1420,7 +1995,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                           ],
                                         ),
                                         if (username.isNotEmpty) ...[
-                                          const SizedBox(height: 4),
+                                          const SizedBox(height: 3),
                                           Text(
                                             '@$username',
                                             textDirection: TextDirection.ltr,
@@ -1434,7 +2009,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                         if (identityDetailLabel != null &&
                                             identityDetailLabel.trim() !=
                                                 displayName.trim()) ...[
-                                          const SizedBox(height: 4),
+                                          const SizedBox(height: 3),
                                           Text(
                                             identityDetailLabel,
                                             textDirection:
@@ -1448,43 +2023,60 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                             ),
                                           ),
                                         ],
-                                        const SizedBox(height: 8),
-                                        Wrap(
-                                          spacing: 8,
-                                          runSpacing: 8,
-                                          children: [
-                                            if (primaryIdentityBadgeLabel !=
-                                                null)
-                                              _IdentityBadgeChip(
-                                                label:
-                                                    primaryIdentityBadgeLabel,
-                                                isPrimary: true,
-                                              ),
-                                            if (secondaryIdentityBadgeLabel !=
-                                                null)
-                                              _IdentityBadgeChip(
-                                                label:
-                                                    secondaryIdentityBadgeLabel,
-                                              ),
-                                            if (!hasIdentityBadges)
-                                              _StatusChip(
-                                                icon: Icons.shield_outlined,
-                                                label: accountStatusLabel,
-                                              ),
-                                            if (locationLabel != null)
-                                              _StatusChip(
-                                                icon:
-                                                    Icons.location_on_outlined,
-                                                label: locationLabel,
-                                              ),
-                                          ],
-                                        ),
                                       ],
                                     ),
                                   ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    tooltip: l10n.profileEditPageTitle,
+                                    onPressed: controller.isSaving
+                                        ? null
+                                        : _openEditProfile,
+                                    icon: controller.isSaving
+                                        ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : const Icon(Icons.edit_outlined),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  if (primaryIdentityBadgeLabel != null)
+                                    _IdentityBadgeChip(
+                                      label: primaryIdentityBadgeLabel,
+                                      isPrimary: true,
+                                    ),
+                                  if (secondaryIdentityBadgeLabel != null)
+                                    _IdentityBadgeChip(
+                                      label: secondaryIdentityBadgeLabel,
+                                    ),
+                                  if (!hasIdentityBadges)
+                                    _StatusChip(
+                                      icon: Icons.shield_outlined,
+                                      label: accountStatusLabel,
+                                    ),
+                                  if (locationLabel != null)
+                                    _StatusChip(
+                                      icon: Icons.location_on_outlined,
+                                      label: locationLabel,
+                                    ),
                                 ],
                               ),
                               if (bio.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                Divider(
+                                  height: 1,
+                                  color: theme.colorScheme.outlineVariant
+                                      .withValues(alpha: 0.55),
+                                ),
                                 const SizedBox(height: 12),
                                 Text(
                                   bio,
@@ -1494,50 +2086,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
                                   style: theme.textTheme.bodyMedium,
                                 ),
                               ],
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      onPressed: controller.isSaving
-                                          ? null
-                                          : _openEditProfile,
-                                      icon: controller.isSaving
-                                          ? const SizedBox(
-                                              width: 16,
-                                              height: 16,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                              ),
-                                            )
-                                          : const Icon(Icons.edit_outlined),
-                                      label: Text(l10n.profileEditPageTitle),
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ],
                           ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Card(
-                  margin: EdgeInsets.zero,
-                  child: ListTile(
-                    leading: const Icon(Icons.help_outline_rounded),
-                    title: Text(
-                      l10n.profileHowItWorksTitle,
-                      textDirection: socialVoteLocaleTextDirection(context),
-                      textAlign: socialVoteLocaleTextAlign(context),
-                    ),
-                    subtitle: Text(
-                      l10n.profileHowItWorksSubtitle,
-                      textDirection: socialVoteLocaleTextDirection(context),
-                      textAlign: socialVoteLocaleTextAlign(context),
-                    ),
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () =>
-                        Navigator.of(context).pushNamed(AppRouter.howItWorks),
                   ),
                 ),
                 if (profile != null)
@@ -1679,275 +2229,107 @@ class _MyProfileViewState extends State<_MyProfileView> {
                   ),
                 ],
                 const SizedBox(height: 18),
-                _SectionTitle(l10n.profileActivitySectionTitle),
+                _SectionTitle(_quickSettingsSectionTitle(context)),
                 _SettingsGroup(
                   children: [
-                    _SettingsTile(
-                      title: l10n.profileAccountConnectionsTitle,
-                      icon: Icons.people_alt_outlined,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const MyAccountConnectionsPage(),
-                          ),
+                    ValueListenableBuilder<Locale?>(
+                      valueListenable: AppLocaleController.locale,
+                      builder: (context, locale, _) {
+                        final currentL10n = AppLocalizations.of(context)!;
+                        return _SettingsTile(
+                          title: currentL10n.profileAppLanguageTitle,
+                          subtitle: _appLocaleLabel(currentL10n, locale),
+                          icon: Icons.language_outlined,
+                          onTap: () => _showAppLanguageSheet(),
                         );
                       },
                     ),
                     const Divider(height: 1),
-                    _SettingsTile(
-                      title: l10n.profileMyPollsTitle,
-                      icon: Icons.how_to_vote,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const MyPollsPage(),
+                    AnimatedBuilder(
+                      animation: WorldAppearanceService.instance,
+                      builder: (context, _) {
+                        final appearance = WorldAppearanceService.instance;
+                        return _SettingsTile(
+                          title: 'Globe',
+                          subtitle: _globeStyleLabel(
+                            context,
+                            appearance.globeStyle,
                           ),
-                        );
-                      },
-                    ),
-                    const Divider(height: 1),
-                    _SettingsTile(
-                      title: l10n.profileMyPostsTitle,
-                      icon: Icons.forum_outlined,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const MyPostsPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    const Divider(height: 1),
-                    _SettingsTile(
-                      title: l10n.profileMyCommentsTitle,
-                      icon: Icons.comment_outlined,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const MyCommentsPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    const Divider(height: 1),
-                    _SettingsTile(
-                      title: l10n.profileMyFavoritesTitle,
-                      icon: Icons.star_border_rounded,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const MyFavoritesPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    const Divider(height: 1),
-                    _SettingsTile(
-                      title: l10n.profileMyFollowedScopesTitle,
-                      icon: Icons.public,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const MyFollowedScopesPage(),
-                          ),
+                          icon: Icons.public_rounded,
+                          onTap: () => _showGlobeStyleSheet(),
                         );
                       },
                     ),
                   ],
                 ),
                 const SizedBox(height: 18),
-                _SectionTitle(l10n.profileIdentityVerificationSectionTitle),
+                _SectionTitle(_accountSectionsTitle(context)),
                 _SettingsGroup(
                   children: [
                     _SettingsTile(
-                      title: l10n.verificationCenterTitle,
-                      subtitle: verificationTileSubtitle,
+                      title: l10n.profileActivitySectionTitle,
+                      icon: Icons.history_rounded,
+                      onTap: _openActivitySection,
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
+                      title: l10n.profileIdentityVerificationSectionTitle,
                       icon: Icons.verified_user_outlined,
-                      trailing: verificationController.isLoading
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : null,
-                      onTap: () => _showVerificationCenter(
+                      onTap: () => _openVerificationSection(
                         profile: profile,
                         pendingRequest: pendingRequest,
                         latestRejectedRequest: latestRejectedRequest,
+                        verificationTileSubtitle: verificationTileSubtitle,
+                        isLoading: verificationController.isLoading,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                _SectionTitle(l10n.profilePreferencesSectionTitle),
-                ValueListenableBuilder<AppAppearanceMode>(
-                  valueListenable: AppThemeModeController.appearanceMode,
-                  builder: (context, mode, _) {
-                    return _SettingsGroup(
-                      children: [
-                        _SettingsTile(
-                          title: l10n.profileThemeTitle,
-                          subtitle: _appearanceModeLabel(l10n, mode),
-                          icon: Icons.palette_outlined,
-                          onTap: _showAppearanceModeSheet,
-                        ),
-                        const Divider(height: 1),
-                        _SettingsTile(
-                          title: _worldAppearanceSettingsTitle(context),
-                          subtitle: _worldAppearanceSettingsSubtitle(context),
-                          icon: Icons.public_rounded,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    const WorldAppearanceSettingsPage(),
-                              ),
-                            );
-                          },
-                        ),
-                        const Divider(height: 1),
-                        ValueListenableBuilder<Locale?>(
-                          valueListenable: AppLocaleController.locale,
-                          builder: (context, locale, _) {
-                            return _SettingsTile(
-                              title: l10n.profileAppLanguageTitle,
-                              subtitle: _appLocaleLabel(l10n, locale),
-                              icon: Icons.language_outlined,
-                              onTap: _showAppLanguageSheet,
-                            );
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 18),
-                _SectionTitle(l10n.profileNotificationsSectionTitle),
-                FutureBuilder<int>(
-                  future: _unreadNotificationsFuture,
-                  builder: (context, snapshot) {
-                    final unreadCount = snapshot.data ?? 0;
-
-                    return _SettingsGroup(
-                      children: [
-                        _SettingsTile(
-                          title: l10n.notificationsPageTitle,
+                    const Divider(height: 1),
+                    _SettingsTile(
+                      title: l10n.profilePreferencesSectionTitle,
+                      icon: Icons.tune_rounded,
+                      onTap: _openPreferencesSection,
+                    ),
+                    const Divider(height: 1),
+                    FutureBuilder<int>(
+                      future: _unreadNotificationsFuture,
+                      builder: (context, snapshot) {
+                        return _SettingsTile(
+                          title: l10n.profileNotificationsSectionTitle,
                           icon: Icons.notifications_none,
                           trailing: _NotificationsTrailingBadge(
-                            unreadCount: unreadCount,
+                            unreadCount: snapshot.data ?? 0,
                           ),
-                          onTap: _openNotifications,
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 18),
-                _SectionTitle(l10n.profileSecurityAccountSectionTitle),
-                _SettingsGroup(
-                  children: [
-                    _SettingsTile(
-                      title: accountEmail.isNotEmpty
-                          ? accountEmail
-                          : l10n.authEmailLabel,
-                      subtitle: l10n.profileAccountEmailHelper,
-                      icon: Icons.email_outlined,
+                          onTap: _openNotificationsSection,
+                        );
+                      },
                     ),
                     const Divider(height: 1),
                     _SettingsTile(
-                      title: l10n.profileChangePasswordAction,
-                      subtitle: l10n.profileChangePasswordDescription,
-                      icon: Icons.lock_reset_outlined,
-                      onTap: _isDeletingAccount
-                          ? null
-                          : () {
-                              Navigator.of(context).pushNamed(
-                                AppRouter.resetPassword,
-                              );
-                            },
-                    ),
-                    const Divider(height: 1),
-                    _SettingsTile(
-                      title: l10n.profileBiometricUnlockTitle,
-                      subtitle: _biometricLoading
-                          ? l10n.profileBiometricUnlockDescription
-                          : !_rememberMeEnabled
-                              ? l10n.profileBiometricRequiresRememberMe
-                              : !_biometricAvailable
-                                  ? l10n.profileBiometricUnavailable
-                                  : l10n.profileBiometricUnlockDescription,
-                      icon: Icons.fingerprint_rounded,
-                      trailing: _biometricLoading || _biometricBusy
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Switch.adaptive(
-                              value: _biometricEnabled,
-                              onChanged:
-                                  !_rememberMeEnabled || !_biometricAvailable
-                                      ? null
-                                      : _setBiometricEnabled,
-                            ),
-                      onTap: _biometricLoading || _biometricBusy
-                          ? null
-                          : () {
-                              if (!_rememberMeEnabled) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      l10n.profileBiometricRequiresRememberMe,
-                                    ),
-                                  ),
-                                );
-                                return;
-                              }
-
-                              if (!_biometricAvailable) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      l10n.profileBiometricUnavailable,
-                                    ),
-                                  ),
-                                );
-                                return;
-                              }
-
-                              unawaited(
-                                _setBiometricEnabled(!_biometricEnabled),
-                              );
-                            },
-                    ),
-                    const Divider(height: 1),
-                    _SettingsTile(
-                      title: l10n.profileLogoutAction,
-                      subtitle: l10n.profileLogoutDescription,
-                      icon: Icons.logout_rounded,
-                      iconColor: theme.colorScheme.error,
-                      textColor: theme.colorScheme.error,
-                      onTap: _isDeletingAccount ? null : _confirmLogout,
-                    ),
-                    const Divider(height: 1),
-                    _SettingsTile(
-                      title: l10n.profileDeleteAccountAction,
-                      subtitle: l10n.profileDeleteAccountDescription,
-                      icon: Icons.delete_forever_outlined,
-                      iconColor: theme.colorScheme.error,
-                      textColor: theme.colorScheme.error,
-                      trailing: _isDeletingAccount
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.chevron_right),
-                      onTap: _isDeletingAccount ? null : _confirmDeleteAccount,
+                      title: l10n.profileSecurityAccountSectionTitle,
+                      icon: Icons.shield_outlined,
+                      onTap: () => _openSecuritySection(accountEmail),
                     ),
                   ],
+                ),
+                const SizedBox(height: 18),
+                Card(
+                  margin: EdgeInsets.zero,
+                  child: ListTile(
+                    leading: const Icon(Icons.help_outline_rounded),
+                    title: Text(
+                      l10n.profileHowItWorksTitle,
+                      textDirection: socialVoteLocaleTextDirection(context),
+                      textAlign: socialVoteLocaleTextAlign(context),
+                    ),
+                    subtitle: Text(
+                      l10n.profileHowItWorksSubtitle,
+                      textDirection: socialVoteLocaleTextDirection(context),
+                      textAlign: socialVoteLocaleTextAlign(context),
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(AppRouter.howItWorks),
+                  ),
                 ),
               ],
             ),
@@ -2146,6 +2528,39 @@ class _MyProfileViewState extends State<_MyProfileView> {
       return country;
     }
     return null;
+  }
+}
+
+class _AccountSectionPage extends StatelessWidget {
+  final String title;
+  final Widget child;
+
+  const _AccountSectionPage({
+    required this.title,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          title,
+          textDirection: socialVoteLocaleTextDirection(context),
+          textAlign: socialVoteLocaleTextAlign(context),
+        ),
+      ),
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 840),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+            children: [child],
+          ),
+        ),
+      ),
+    );
   }
 }
 

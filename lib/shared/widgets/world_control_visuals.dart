@@ -849,10 +849,17 @@ class _GlobePreviewConfig {
         ),
       GlobeVisualStyle.techNeon => const _GlobePreviewConfig(
           asset: day,
-          glow: Color(0xFF9B6BFF),
-          rim: Color(0xFFA989FF),
-          fallback: [Color(0xFF7EA4FF), Color(0xFF2B316B)],
-          colorFilter: ColorFilter.mode(Color(0x334F45D9), BlendMode.screen),
+          glow: Color(0xFFA06EFF),
+          rim: Color(0xFFB39BFF),
+          fallback: [Color(0xFF93B7FF), Color(0xFF3E4A86)],
+          colorFilter: ColorFilter.mode(Color(0x264A64FF), BlendMode.screen),
+        ),
+      GlobeVisualStyle.terrainRelief => const _GlobePreviewConfig(
+          asset: realistic,
+          glow: Color(0xFF4AA7CF),
+          rim: Color(0xFF7BC9E6),
+          fallback: [Color(0xFF8D7A4D), Color(0xFF22577A)],
+          colorFilter: ColorFilter.mode(Color(0x1E4EC3FF), BlendMode.softLight),
         ),
       GlobeVisualStyle.minimalDay => const _GlobePreviewConfig(
           asset: day,

@@ -16,7 +16,7 @@ type CacheRow = {
   provider_signatures: Json | null;
   languages_present: Json | null;
   payload_version: number | null;
-  payload: Json | null;
+  payload?: Json | null;
 };
 
 type RefreshRequest = {
@@ -312,6 +312,35 @@ function buildCandidate(row: CacheRow): Candidate {
     languagesPresent: normalizeStringArray(row.languages_present),
     payloadVersion: row.payload_version ?? null,
     previousItems: normalizePayloadArray(row.payload),
+  };
+}
+
+async function hydrateCandidatePayload(
+  supabase: SupabaseCacheClient,
+  candidate: Candidate,
+): Promise<Candidate> {
+  // NEWS_EGRESS_V1_SELECTED_PAYLOAD_HYDRATION
+  // The scheduler scans only metadata. Fetch the large payload for the one
+  // selected cache row immediately before refresh so previous-item preservation
+  // still works without exporting every cache payload on every cron execution.
+  const { data, error } = await supabase
+    .from(CACHE_TABLE)
+    .select('payload,payload_version')
+    .eq('cache_key', candidate.cacheKey)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`selected_cache_payload_read_failed: ${error.message}`);
+  }
+
+  if (!data) {
+    return candidate;
+  }
+
+  return {
+    ...candidate,
+    payloadVersion: data.payload_version ?? candidate.payloadVersion,
+    previousItems: normalizePayloadArray(data.payload),
   };
 }
 
@@ -2503,6 +2532,9 @@ Deno.serve(async (req) => {
   const dryRun = body.dryRun ?? true;
   const limit = toPositiveInt(body.limit, DEFAULT_LIMIT, MAX_LIMIT);
 
+  // NEWS_EGRESS_V1_METADATA_SCAN_START
+  // Candidate selection must never export every cached article payload. The
+  // payload for the selected cache key is hydrated separately before refresh.
   const { data, error } = await supabase
     .from(CACHE_TABLE)
     .select(
@@ -2517,12 +2549,12 @@ Deno.serve(async (req) => {
       resolved_location_count,
       provider_signatures,
       languages_present,
-      payload_version,
-      payload
+      payload_version
     `,
     )
     .order("refreshed_at", { ascending: true, nullsFirst: true })
     .limit(CACHE_SCAN_LIMIT);
+  // NEWS_EGRESS_V1_METADATA_SCAN_END
 
   if (error) {
     return json(
@@ -2581,9 +2613,13 @@ Deno.serve(async (req) => {
 
   for (const candidate of filteredCandidates) {
     try {
-      const result = await refreshSingleCandidate(
+      const hydratedCandidate = await hydrateCandidatePayload(
         supabase,
         candidate,
+      );
+      const result = await refreshSingleCandidate(
+        supabase,
+        hydratedCandidate,
         locationCatalog,
       );
       results.push(result);

@@ -942,41 +942,56 @@ class NewsRepositoryImpl implements NewsRepository {
     required String? requestedLanguage,
   }) async {
     try {
-      final rows = await AppSupabase.client
-          .from(_cacheTable)
-          .select(
+      // NEWS_EGRESS_V1_METADATA_SCAN_START
+      // Rank fallbacks using metadata only. The previous implementation loaded
+      // multiple full payload JSON arrays just to decide which cache row to use.
+      // Country/city views now resolve a lightweight descriptor first and then
+      // reuse the exact worldwide payload cache for the selected row.
+      final baseQuery = AppSupabase.client.from(_cacheTable).select(
             'cache_key, country_code, city_id, topic, language, '
-            'payload, refreshed_at, item_count, '
-            'resolved_location_count, provider_signatures, '
-            'languages_present, payload_version',
-          )
-          .order('refreshed_at', ascending: false)
-          .limit(EgressPolicyService.instance.newsFallbackScanLimit);
+            'refreshed_at, item_count, resolved_location_count',
+          );
 
-      _CachedNewsFeed? bestCache;
+      final rows = requestedLanguage == null
+          ? await baseQuery
+              .order('refreshed_at', ascending: false)
+              .limit(EgressPolicyService.instance.newsFallbackScanLimit)
+          : await baseQuery
+              .eq('language', requestedLanguage)
+              .order('refreshed_at', ascending: false)
+              .limit(EgressPolicyService.instance.newsFallbackScanLimit);
+      // NEWS_EGRESS_V1_METADATA_SCAN_END
+
+      Map<String, dynamic>? bestRow;
       var bestScore = -1;
 
-      for (final row in rows) {
-        final cache = _buildCachedNewsFeedFromRow(
-          row,
-          requestedLanguage: requestedLanguage,
-        );
-        if (cache == null || cache.items.isEmpty) {
-          continue;
-        }
-
-        final score = _scoreFallbackCache(
+      for (final rawRow in rows) {
+        final row = Map<String, dynamic>.from(rawRow);
+        final score = _scoreFallbackCacheMetadata(
           candidate: candidate,
-          cache: cache,
+          row: row,
         );
-
         if (score > bestScore) {
           bestScore = score;
-          bestCache = cache;
+          bestRow = row;
         }
       }
 
-      return bestCache;
+      if (bestRow == null || bestScore < 0) {
+        return null;
+      }
+
+      final selectedCacheKey = bestRow['cache_key']?.toString().trim() ?? '';
+      if (selectedCacheKey.isEmpty) {
+        return null;
+      }
+
+      // The exact-cache layer deduplicates concurrent reads and shares the
+      // selected worldwide payload across Home, News and Civic Map scopes.
+      return _readExactCache(
+        cacheKey: selectedCacheKey,
+        requestedLanguage: requestedLanguage,
+      );
     } catch (e, st) {
       if (kDebugMode) {
         debugPrint('NewsRepositoryImpl fallback cache read failed: $e');
@@ -1030,64 +1045,69 @@ class NewsRepositoryImpl implements NewsRepository {
     );
   }
 
-  int _scoreFallbackCache({
+  int _scoreFallbackCacheMetadata({
     required _NewsFeedCandidate candidate,
-    required _CachedNewsFeed cache,
+    required Map<String, dynamic> row,
   }) {
+    final language = _normalizeLanguageCode(row['language']?.toString());
+    final countryCode = _normalize(row['country_code']?.toString());
+    final cityId = _normalize(row['city_id']?.toString());
+    final topic = _normalize(row['topic']?.toString());
+
     if (candidate.language != null &&
-        cache.language != null &&
-        cache.language != candidate.language) {
+        language != null &&
+        language != candidate.language) {
       return -1;
     }
 
     if (candidate.countryCode != null &&
-        cache.countryCode != null &&
-        cache.countryCode != candidate.countryCode) {
+        countryCode != null &&
+        countryCode != candidate.countryCode) {
       return -1;
     }
 
     if (candidate.cityId != null &&
-        cache.cityId != null &&
-        cache.cityId != candidate.cityId) {
+        cityId != null &&
+        cityId != candidate.cityId) {
       return -1;
     }
 
-    if (candidate.topic != null &&
-        cache.topic != null &&
-        cache.topic != candidate.topic) {
+    if (candidate.topic != null && topic != null && topic != candidate.topic) {
       return -1;
     }
 
     var score = 0;
 
-    if (candidate.language != null && cache.language == candidate.language) {
+    if (candidate.language != null && language == candidate.language) {
       score += 200;
     }
 
     if (candidate.countryCode != null) {
-      score += cache.countryCode == candidate.countryCode ? 80 : 20;
-    } else if (cache.countryCode == null) {
+      score += countryCode == candidate.countryCode ? 80 : 20;
+    } else if (countryCode == null) {
       score += 10;
     }
 
     if (candidate.cityId != null) {
-      score += cache.cityId == candidate.cityId ? 160 : 10;
-    } else if (cache.cityId == null) {
+      score += cityId == candidate.cityId ? 160 : 10;
+    } else if (cityId == null) {
       score += 10;
     }
 
     if (candidate.topic != null) {
-      score += cache.topic == candidate.topic ? 60 : 10;
-    } else if (cache.topic == null) {
+      score += topic == candidate.topic ? 60 : 10;
+    } else if (topic == null) {
       score += 10;
     }
 
-    if (!_isCacheExpired(cache)) {
+    final refreshedAt = _parseDateTime(row['refreshed_at']);
+    if (refreshedAt != null &&
+        DateTime.now().toUtc().difference(refreshedAt) <= _cacheTtl) {
       score += 40;
     }
 
-    score += cache.items.length.clamp(0, 25);
-    score += cache.metadata.resolvedLocationCount.clamp(0, 10);
+    score += (_readInt(row['item_count']) ?? 0).clamp(0, 25);
+    score += (_readInt(row['resolved_location_count']) ?? 0).clamp(0, 10);
 
     return score;
   }

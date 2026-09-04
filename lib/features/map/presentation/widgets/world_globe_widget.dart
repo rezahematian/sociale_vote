@@ -1572,6 +1572,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
     return switch (style) {
       GlobeVisualStyle.realistic => _earthTextureRealisticAsset,
       GlobeVisualStyle.nightLights => _earthTextureNightAsset,
+      GlobeVisualStyle.terrainRelief => _earthTextureRealisticAsset,
       _ => _earthTextureClassicAsset,
     };
   }
@@ -1637,13 +1638,25 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
         _globeController
           ..surfaceLightingEnabled = true
           ..lightAngle = -20
-          ..lightIntensity = 1.02
-          ..ambientLight = 0.84
+          ..lightIntensity = 1.08
+          ..ambientLight = 0.92
           ..showAtmosphere = true
-          ..atmosphereColor = const Color(0xFF9B7CFF)
-          ..atmosphereBlur = 20
+          ..atmosphereColor = const Color(0xFFA78CFF)
+          ..atmosphereBlur = 19
           ..atmosphereThickness = 0.011
-          ..atmosphereOpacity = 0.24;
+          ..atmosphereOpacity = 0.21;
+        break;
+      case GlobeVisualStyle.terrainRelief:
+        _globeController
+          ..surfaceLightingEnabled = true
+          ..lightAngle = -38
+          ..lightIntensity = 1.42
+          ..ambientLight = 0.56
+          ..showAtmosphere = true
+          ..atmosphereColor = const Color(0xFF64B7E8)
+          ..atmosphereBlur = 16
+          ..atmosphereThickness = 0.009
+          ..atmosphereOpacity = 0.15;
         break;
       case GlobeVisualStyle.minimalDay:
         _globeController

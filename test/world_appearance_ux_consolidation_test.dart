@@ -18,9 +18,10 @@ void main() {
         GlobeVisualStyle.bright,
         GlobeVisualStyle.nightLights,
         GlobeVisualStyle.techNeon,
+        GlobeVisualStyle.terrainRelief,
       ]),
     );
-    expect(WorldAppearanceService.selectableGlobeStyles, hasLength(5));
+    expect(WorldAppearanceService.selectableGlobeStyles, hasLength(6));
     expect(WorldAppearanceService.selectableRadioStyles, hasLength(4));
     expect(WorldAppearanceService.selectableRotationStyles, hasLength(4));
 
@@ -34,7 +35,7 @@ void main() {
     );
     expect(
       WorldAppearanceService.defaultRotationStyle,
-      GlobeRotationVisualStyle.minimal,
+      GlobeRotationVisualStyle.classic,
     );
 
     expect(
@@ -72,13 +73,13 @@ void main() {
     await appearance.reset();
     expect(appearance.globeStyle, GlobeVisualStyle.bright);
     expect(appearance.radioStyle, RadioVisualStyle.oldStyle);
-    expect(appearance.rotationStyle, GlobeRotationVisualStyle.minimal);
+    expect(appearance.rotationStyle, GlobeRotationVisualStyle.classic);
     expect(prefs.getString('world_appearance_globe_v1'), isNull);
     expect(prefs.getString('world_appearance_radio_v1'), isNull);
     expect(prefs.getString('world_appearance_rotation_v1'), isNull);
   });
 
-  testWidgets('settings page is compacted to five globe and four control choices',
+  testWidgets('settings page is compacted to six globe and four control choices',
       (tester) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
 
@@ -90,7 +91,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // One live preview plus the selectable cards.
-    expect(find.byType(PremiumGlobePreview), findsNWidgets(6));
+    expect(find.byType(PremiumGlobePreview), findsNWidgets(7));
     expect(find.byType(PremiumRadioControlVisual), findsNWidgets(5));
     expect(find.byType(PremiumRotationPreview), findsNWidgets(5));
 

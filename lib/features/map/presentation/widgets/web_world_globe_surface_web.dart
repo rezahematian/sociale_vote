@@ -643,6 +643,8 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
   Map<String, Object?> _buildAppearance() {
     final textureUrl = switch (widget.visualStyle) {
       'realistic' => 'assets/assets/globe/earth_day_nasa_bmng_august_4096.jpg',
+      'terrainRelief' =>
+        'assets/assets/globe/earth_day_nasa_bmng_august_4096.jpg',
       'nightLights' => _nightTextureUrl,
       _ => _earthTextureUrl,
     };

@@ -1306,13 +1306,21 @@ class SocialVoteGlobeElement extends HTMLElement {
       // Keep the tech identity without turning the whole Earth into a dark
       // purple silhouette. Geography remains readable and distinct from the
       // dedicated Night Lights preset.
-      color = 0xd9deff;
-      emissive = 0x6258b8;
-      emissiveIntensity = 0.50;
-      shininess = 1.35;
-      specular = 0x806dff;
-      atmosphereColor = 0x9b7cff;
-      atmosphereStrength = 0.22;
+      color = 0xe5e9ff;
+      emissive = 0x7264cc;
+      emissiveIntensity = 0.44;
+      shininess = 1.15;
+      specular = 0x8f83ff;
+      atmosphereColor = 0xa78cff;
+      atmosphereStrength = 0.18;
+    } else if (style === 'terrainRelief') {
+      color = 0xf3f8ff;
+      emissive = 0x3a5363;
+      emissiveIntensity = 0.12;
+      shininess = 1.65;
+      specular = 0x13222c;
+      atmosphereColor = 0x64b7e8;
+      atmosphereStrength = 0.10;
     } else if (style === 'minimalDay') {
       color = 0xf2f5e8;
       emissive = 0xffffff;

@@ -53,11 +53,11 @@ class _WorldAppearanceSettingsPageState
         animation: _appearance,
         builder: (context, _) {
           return ListView(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 36),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 30),
             children: [
               Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1120),
+                  constraints: const BoxConstraints(maxWidth: 980),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -79,28 +79,28 @@ class _WorldAppearanceSettingsPageState
                         rotationLabel:
                             copy.rotationLabel(_appearance.rotationStyle),
                       ),
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 18),
                       _AppearanceSection(
                         title: copy.globeTitle,
                         subtitle: copy.globeSubtitle,
-                        minCardWidth: 175,
-                        maxColumns: 5,
+                        minCardWidth: 168,
+                        maxColumns: 3,
                         children: [
                           for (final style
                               in WorldAppearanceService.selectableGlobeStyles)
                             _AppearanceChoice(
                               selected: _appearance.globeStyle == style,
                               label: copy.globeLabel(style),
-                              previewHeight: 112,
+                              previewHeight: 96,
                               preview: PremiumGlobePreview(
                                 style: style,
-                                size: 94,
+                                size: 82,
                               ),
                               onTap: () => _appearance.setGlobeStyle(style),
                             ),
                         ],
                       ),
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 18),
                       _AppearanceSection(
                         title: copy.radioTitle,
                         subtitle: copy.radioSubtitle,
@@ -112,31 +112,31 @@ class _WorldAppearanceSettingsPageState
                             _AppearanceChoice(
                               selected: _appearance.radioStyle == style,
                               label: copy.radioLabel(style),
-                              previewHeight: 62,
+                              previewHeight: 56,
                               preview: PremiumRadioControlVisual(
                                 style: style,
-                                size: 48,
+                                size: 44,
                               ),
                               onTap: () => _appearance.setRadioStyle(style),
                             ),
                         ],
                       ),
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 18),
                       _AppearanceSection(
                         title: copy.rotationTitle,
                         subtitle: copy.rotationSubtitle,
                         minCardWidth: 175,
                         maxColumns: 4,
                         children: [
-                          for (final style
-                              in WorldAppearanceService.selectableRotationStyles)
+                          for (final style in WorldAppearanceService
+                              .selectableRotationStyles)
                             _AppearanceChoice(
                               selected: _appearance.rotationStyle == style,
                               label: copy.rotationLabel(style),
-                              previewHeight: 62,
+                              previewHeight: 56,
                               preview: PremiumRotationPreview(
                                 style: style,
-                                size: 48,
+                                size: 44,
                               ),
                               onTap: () => _appearance.setRotationStyle(style),
                             ),
@@ -196,7 +196,8 @@ class _LiveWorldPreview extends StatelessWidget {
       'fa' => 'این سه انتخاب فقط ظاهر بخش World را تغییر می‌دهند.',
       'es' => 'Las tres opciones solo cambian la apariencia de World.',
       'pt' => 'As três opções alteram apenas a aparência de World.',
-      'fr' => 'Les trois choix ci-dessous modifient uniquement l’apparence de World.',
+      'fr' =>
+        'Les trois choix ci-dessous modifient uniquement l’apparence de World.',
       'ar' => 'تغيّر الخيارات الثلاثة أدناه مظهر World فقط.',
       'ro' => 'Cele trei opțiuni de mai jos modifică doar aspectul World.',
       _ => 'The three choices below change only the World appearance.',
@@ -205,8 +206,8 @@ class _LiveWorldPreview extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 700;
-        final globeSize = compact ? 148.0 : 174.0;
-        final controlSize = compact ? 44.0 : 48.0;
+        final globeSize = compact ? 140.0 : 164.0;
+        final controlSize = compact ? 40.0 : 44.0;
 
         final info = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -262,8 +263,8 @@ class _LiveWorldPreview extends StatelessWidget {
         );
 
         final visual = SizedBox(
-          width: compact ? 250 : 300,
-          height: compact ? 170 : 196,
+          width: compact ? 232 : 272,
+          height: compact ? 156 : 182,
           child: Stack(
             clipBehavior: Clip.none,
             alignment: Alignment.center,
@@ -421,7 +422,7 @@ class _AppearanceSection extends StatelessWidget {
         const SizedBox(height: 10),
         LayoutBuilder(
           builder: (context, constraints) {
-            const spacing = 10.0;
+            const spacing = 8.0;
             final naturalColumns = (constraints.maxWidth / minCardWidth)
                 .floor()
                 .clamp(1, maxColumns)
@@ -472,14 +473,14 @@ class _AppearanceChoice extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           onTap: onTap,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOut,
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 9),
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14),
               color: selected
                   ? colors.primaryContainer.withValues(alpha: 0.15)
                   : colors.surfaceContainerLow,
@@ -508,7 +509,7 @@ class _AppearanceChoice extends StatelessWidget {
                       height: previewHeight,
                       child: Center(child: preview),
                     ),
-                    const SizedBox(height: 7),
+                    const SizedBox(height: 6),
                     Align(
                       alignment: AlignmentDirectional.centerStart,
                       child: Text(
@@ -648,8 +649,15 @@ class _WorldAppearanceCopy {
       );
 
   String get globeTitle => _localized(
-        it: 'Stile Globe', en: 'Globe style', de: 'Globe-Stil', fa: 'سبک Globe',
-        es: 'Estilo de Globe', pt: 'Estilo do Globe', fr: 'Style du Globe', ar: 'نمط Globe', ro: 'Stil Globe');
+      it: 'Stile Globe',
+      en: 'Globe style',
+      de: 'Globe-Stil',
+      fa: 'سبک Globe',
+      es: 'Estilo de Globe',
+      pt: 'Estilo do Globe',
+      fr: 'Style du Globe',
+      ar: 'نمط Globe',
+      ro: 'Stil Globe');
 
   String get globeSubtitle => _localized(
         it: 'Cambia solo l’aspetto. Dati e marker restano invariati.',
@@ -678,8 +686,15 @@ class _WorldAppearanceCopy {
       );
 
   String get rotationTitle => _localized(
-        it: 'Controllo rotazione', en: 'Rotation control', de: 'Rotationssteuerung',
-        fa: 'کنترل چرخش', es: 'Control de rotación', pt: 'Controle de rotação', fr: 'Contrôle de rotation', ar: 'التحكم في الدوران', ro: 'Controlul rotației');
+      it: 'Controllo rotazione',
+      en: 'Rotation control',
+      de: 'Rotationssteuerung',
+      fa: 'کنترل چرخش',
+      es: 'Control de rotación',
+      pt: 'Controle de rotação',
+      fr: 'Contrôle de rotation',
+      ar: 'التحكم في الدوران',
+      ro: 'Controlul rotației');
 
   String get rotationSubtitle => _localized(
         it: 'Scegli lo stile del pulsante che avvia o ferma il Globe.',
@@ -694,8 +709,15 @@ class _WorldAppearanceCopy {
       );
 
   String get reset => _localized(
-        it: 'Ripristina', en: 'Reset', de: 'Zurücksetzen', fa: 'بازنشانی',
-        es: 'Restablecer', pt: 'Redefinir', fr: 'Réinitialiser', ar: 'إعادة الضبط', ro: 'Resetează');
+      it: 'Ripristina',
+      en: 'Reset',
+      de: 'Zurücksetzen',
+      fa: 'بازنشانی',
+      es: 'Restablecer',
+      pt: 'Redefinir',
+      fr: 'Réinitialiser',
+      ar: 'إعادة الضبط',
+      ro: 'Resetează');
 
   String get localOnly => _localized(
         it: 'Queste preferenze restano locali sul dispositivo e non modificano GeoScope, contenuti o marker live.',
@@ -711,36 +733,226 @@ class _WorldAppearanceCopy {
 
   String globeLabel(GlobeVisualStyle style) {
     return switch (style) {
-      GlobeVisualStyle.classic => _localized(it:'A · Classico e pulito', en:'A · Classic clean', de:'A · Klassisch klar', fa:'A · کلاسیک و تمیز', es:'A · Clásico y limpio', pt:'A · Clássico e limpo', fr:'A · Classique et épuré', ar:'A · كلاسيكي ونظيف', ro:'A · Clasic și curat'),
-      GlobeVisualStyle.realistic => _localized(it:'B · Realistico e profondo', en:'B · Realistic deep', de:'B · Realistisch tief', fa:'B · واقع‌گرای عمیق', es:'B · Realista y profundo', pt:'B · Realista e profundo', fr:'B · Réaliste et profond', ar:'B · واقعي وعميق', ro:'B · Realist și profund'),
-      GlobeVisualStyle.bright => _localized(it:'C · Moderno e luminoso', en:'C · Modern bright', de:'C · Modern hell', fa:'C · مدرن و روشن', es:'C · Moderno y luminoso', pt:'C · Moderno e luminoso', fr:'C · Moderne et lumineux', ar:'C · حديث ومضيء', ro:'C · Modern și luminos'),
-      GlobeVisualStyle.nightLights => _localized(it:'D · Notte con luci', en:'D · Night lights', de:'D · Nachtlichter', fa:'D · چراغ‌های شب', es:'D · Luces nocturnas', pt:'D · Luzes noturnas', fr:'D · Lumières nocturnes', ar:'D · أضواء ليلية', ro:'D · Lumini de noapte'),
-      GlobeVisualStyle.techNeon => _localized(it:'E · Tech Neon', en:'E · Tech Neon', de:'E · Tech Neon', fa:'E · فناوری نئون', es:'E · Tech Neon', pt:'E · Tech Neon', fr:'E · Tech Neon', ar:'E · تقنية نيون', ro:'E · Tech Neon'),
-      GlobeVisualStyle.minimalDay => _localized(it:'F · Minimal Day', en:'F · Minimal Day', de:'F · Minimaler Tag', fa:'F · روز مینیمال', es:'F · Día minimalista', pt:'F · Dia minimalista', fr:'F · Jour minimal', ar:'F · نهار بسيط', ro:'F · Zi minimalistă'),
+      GlobeVisualStyle.classic => _localized(
+          it: 'A · Classico e pulito',
+          en: 'A · Classic clean',
+          de: 'A · Klassisch klar',
+          fa: 'A · کلاسیک و تمیز',
+          es: 'A · Clásico y limpio',
+          pt: 'A · Clássico e limpo',
+          fr: 'A · Classique et épuré',
+          ar: 'A · كلاسيكي ونظيف',
+          ro: 'A · Clasic și curat'),
+      GlobeVisualStyle.realistic => _localized(
+          it: 'B · Realistico e profondo',
+          en: 'B · Realistic deep',
+          de: 'B · Realistisch tief',
+          fa: 'B · واقع‌گرای عمیق',
+          es: 'B · Realista y profundo',
+          pt: 'B · Realista e profundo',
+          fr: 'B · Réaliste et profond',
+          ar: 'B · واقعي وعميق',
+          ro: 'B · Realist și profund'),
+      GlobeVisualStyle.bright => _localized(
+          it: 'C · Moderno e luminoso',
+          en: 'C · Modern bright',
+          de: 'C · Modern hell',
+          fa: 'C · مدرن و روشن',
+          es: 'C · Moderno y luminoso',
+          pt: 'C · Moderno e luminoso',
+          fr: 'C · Moderne et lumineux',
+          ar: 'C · حديث ومضيء',
+          ro: 'C · Modern și luminos'),
+      GlobeVisualStyle.nightLights => _localized(
+          it: 'D · Notte con luci',
+          en: 'D · Night lights',
+          de: 'D · Nachtlichter',
+          fa: 'D · چراغ‌های شب',
+          es: 'D · Luces nocturnas',
+          pt: 'D · Luzes noturnas',
+          fr: 'D · Lumières nocturnes',
+          ar: 'D · أضواء ليلية',
+          ro: 'D · Lumini de noapte'),
+      GlobeVisualStyle.techNeon => _localized(
+          it: 'E · Tech Neon',
+          en: 'E · Tech Neon',
+          de: 'E · Tech Neon',
+          fa: 'E · فناوری نئون',
+          es: 'E · Tech Neon',
+          pt: 'E · Tech Neon',
+          fr: 'E · Tech Neon',
+          ar: 'E · تقنية نيون',
+          ro: 'E · Tech Neon'),
+      GlobeVisualStyle.terrainRelief => _localized(
+          it: 'F · Rilievo geografico',
+          en: 'F · Terrain relief',
+          de: 'F · Reliefkarte',
+          fa: 'F · برجستگی زمین',
+          es: 'F · Relieve geográfico',
+          pt: 'F · Relevo geográfico',
+          fr: 'F · Relief géographique',
+          ar: 'F · تضاريس جغرافية',
+          ro: 'F · Relief geografic'),
+      GlobeVisualStyle.minimalDay => _localized(
+          it: 'G · Minimal Day',
+          en: 'G · Minimal Day',
+          de: 'G · Minimaler Tag',
+          fa: 'G · روز مینیمال',
+          es: 'G · Día minimalista',
+          pt: 'G · Dia minimalista',
+          fr: 'G · Jour minimal',
+          ar: 'G · نهار بسيط',
+          ro: 'G · Zi minimalistă'),
     };
   }
 
   String radioLabel(RadioVisualStyle style) {
     return switch (style) {
-      RadioVisualStyle.vintageClassic => _localized(it:'1 · Nota', en:'1 · Note', de:'1 · Note', fa:'1 · نت موسیقی', es:'1 · Nota', pt:'1 · Nota', fr:'1 · Note', ar:'1 · نغمة', ro:'1 · Notă'),
-      RadioVisualStyle.oldStyle => _localized(it:'2 · Radio', en:'2 · Radio', de:'2 · Radio', fa:'2 · رادیو', es:'2 · Radio', pt:'2 · Rádio', fr:'2 · Radio', ar:'2 · راديو', ro:'2 · Radio'),
-      RadioVisualStyle.retroElegant => _localized(it:'3 · Equalizer', en:'3 · Equalizer', de:'3 · Equalizer', fa:'3 · اکولایزر', es:'3 · Ecualizador', pt:'3 · Equalizador', fr:'3 · Égaliseur', ar:'3 · معادل صوتي', ro:'3 · Egalizator'),
-      RadioVisualStyle.woodMinimal => _localized(it:'4 · Onda', en:'4 · Wave', de:'4 · Welle', fa:'4 · موج', es:'4 · Onda', pt:'4 · Onda', fr:'4 · Onde', ar:'4 · موجة', ro:'4 · Undă'),
-      RadioVisualStyle.modernVintage => _localized(it:'5 · Cuffie', en:'5 · Headphones', de:'5 · Kopfhörer', fa:'5 · هدفون', es:'5 · Auriculares', pt:'5 · Fones', fr:'5 · Casque', ar:'5 · سماعات', ro:'5 · Căști'),
-      RadioVisualStyle.steampunk => _localized(it:'6 · Disco', en:'6 · Disc', de:'6 · Platte', fa:'6 · دیسک', es:'6 · Disco', pt:'6 · Disco', fr:'6 · Disque', ar:'6 · قرص', ro:'6 · Disc'),
-      RadioVisualStyle.minimalChic => _localized(it:'7 · Pulse', en:'7 · Pulse', de:'7 · Pulse', fa:'7 · پالس', es:'7 · Pulso', pt:'7 · Pulso', fr:'7 · Pulse', ar:'7 · نبض', ro:'7 · Puls'),
+      RadioVisualStyle.vintageClassic => _localized(
+          it: '1 · Nota',
+          en: '1 · Note',
+          de: '1 · Note',
+          fa: '1 · نت موسیقی',
+          es: '1 · Nota',
+          pt: '1 · Nota',
+          fr: '1 · Note',
+          ar: '1 · نغمة',
+          ro: '1 · Notă'),
+      RadioVisualStyle.oldStyle => _localized(
+          it: '2 · Radio',
+          en: '2 · Radio',
+          de: '2 · Radio',
+          fa: '2 · رادیو',
+          es: '2 · Radio',
+          pt: '2 · Rádio',
+          fr: '2 · Radio',
+          ar: '2 · راديو',
+          ro: '2 · Radio'),
+      RadioVisualStyle.retroElegant => _localized(
+          it: '3 · Equalizer',
+          en: '3 · Equalizer',
+          de: '3 · Equalizer',
+          fa: '3 · اکولایزر',
+          es: '3 · Ecualizador',
+          pt: '3 · Equalizador',
+          fr: '3 · Égaliseur',
+          ar: '3 · معادل صوتي',
+          ro: '3 · Egalizator'),
+      RadioVisualStyle.woodMinimal => _localized(
+          it: '4 · Onda',
+          en: '4 · Wave',
+          de: '4 · Welle',
+          fa: '4 · موج',
+          es: '4 · Onda',
+          pt: '4 · Onda',
+          fr: '4 · Onde',
+          ar: '4 · موجة',
+          ro: '4 · Undă'),
+      RadioVisualStyle.modernVintage => _localized(
+          it: '5 · Cuffie',
+          en: '5 · Headphones',
+          de: '5 · Kopfhörer',
+          fa: '5 · هدفون',
+          es: '5 · Auriculares',
+          pt: '5 · Fones',
+          fr: '5 · Casque',
+          ar: '5 · سماعات',
+          ro: '5 · Căști'),
+      RadioVisualStyle.steampunk => _localized(
+          it: '6 · Disco',
+          en: '6 · Disc',
+          de: '6 · Platte',
+          fa: '6 · دیسک',
+          es: '6 · Disco',
+          pt: '6 · Disco',
+          fr: '6 · Disque',
+          ar: '6 · قرص',
+          ro: '6 · Disc'),
+      RadioVisualStyle.minimalChic => _localized(
+          it: '7 · Pulse',
+          en: '7 · Pulse',
+          de: '7 · Pulse',
+          fa: '7 · پالس',
+          es: '7 · Pulso',
+          pt: '7 · Pulso',
+          fr: '7 · Pulse',
+          ar: '7 · نبض',
+          ro: '7 · Puls'),
     };
   }
 
   String rotationLabel(GlobeRotationVisualStyle style) {
     return switch (style) {
-      GlobeRotationVisualStyle.classic => _localized(it:'1 · Classico', en:'1 · Classic', de:'1 · Klassisch', fa:'1 · کلاسیک', es:'1 · Clásico', pt:'1 · Clássico', fr:'1 · Classique', ar:'1 · كلاسيكي', ro:'1 · Clasic'),
-      GlobeRotationVisualStyle.minimal => _localized(it:'2 · Minimal', en:'2 · Minimal', de:'2 · Minimal', fa:'2 · مینیمال', es:'2 · Minimal', pt:'2 · Minimal', fr:'2 · Minimal', ar:'2 · بسيط', ro:'2 · Minimal'),
-      GlobeRotationVisualStyle.subtle => _localized(it:'3 · Sottile', en:'3 · Subtle', de:'3 · Dezent', fa:'3 · ظریف', es:'3 · Sutil', pt:'3 · Sutil', fr:'3 · Subtil', ar:'3 · خفيف', ro:'3 · Subtil'),
-      GlobeRotationVisualStyle.neon => _localized(it:'4 · Neon', en:'4 · Neon', de:'4 · Neon', fa:'4 · نئون', es:'4 · Neón', pt:'4 · Neon', fr:'4 · Néon', ar:'4 · نيون', ro:'4 · Neon'),
-      GlobeRotationVisualStyle.filled => _localized(it:'5 · Pieno', en:'5 · Filled', de:'5 · Gefüllt', fa:'5 · پر', es:'5 · Lleno', pt:'5 · Preenchido', fr:'5 · Plein', ar:'5 · ممتلئ', ro:'5 · Plin'),
-      GlobeRotationVisualStyle.glass => _localized(it:'6 · Glass', en:'6 · Glass', de:'6 · Glas', fa:'6 · شیشه‌ای', es:'6 · Cristal', pt:'6 · Vidro', fr:'6 · Verre', ar:'6 · زجاج', ro:'6 · Sticlă'),
-      GlobeRotationVisualStyle.premium => _localized(it:'7 · Premium', en:'7 · Premium', de:'7 · Premium', fa:'7 · پریمیوم', es:'7 · Premium', pt:'7 · Premium', fr:'7 · Premium', ar:'7 · مميز', ro:'7 · Premium'),
+      GlobeRotationVisualStyle.classic => _localized(
+          it: '1 · Classico',
+          en: '1 · Classic',
+          de: '1 · Klassisch',
+          fa: '1 · کلاسیک',
+          es: '1 · Clásico',
+          pt: '1 · Clássico',
+          fr: '1 · Classique',
+          ar: '1 · كلاسيكي',
+          ro: '1 · Clasic'),
+      GlobeRotationVisualStyle.minimal => _localized(
+          it: '2 · Minimal',
+          en: '2 · Minimal',
+          de: '2 · Minimal',
+          fa: '2 · مینیمال',
+          es: '2 · Minimal',
+          pt: '2 · Minimal',
+          fr: '2 · Minimal',
+          ar: '2 · بسيط',
+          ro: '2 · Minimal'),
+      GlobeRotationVisualStyle.subtle => _localized(
+          it: '3 · Sottile',
+          en: '3 · Subtle',
+          de: '3 · Dezent',
+          fa: '3 · ظریف',
+          es: '3 · Sutil',
+          pt: '3 · Sutil',
+          fr: '3 · Subtil',
+          ar: '3 · خفيف',
+          ro: '3 · Subtil'),
+      GlobeRotationVisualStyle.neon => _localized(
+          it: '4 · Neon',
+          en: '4 · Neon',
+          de: '4 · Neon',
+          fa: '4 · نئون',
+          es: '4 · Neón',
+          pt: '4 · Neon',
+          fr: '4 · Néon',
+          ar: '4 · نيون',
+          ro: '4 · Neon'),
+      GlobeRotationVisualStyle.filled => _localized(
+          it: '5 · Pieno',
+          en: '5 · Filled',
+          de: '5 · Gefüllt',
+          fa: '5 · پر',
+          es: '5 · Lleno',
+          pt: '5 · Preenchido',
+          fr: '5 · Plein',
+          ar: '5 · ممتلئ',
+          ro: '5 · Plin'),
+      GlobeRotationVisualStyle.glass => _localized(
+          it: '6 · Glass',
+          en: '6 · Glass',
+          de: '6 · Glas',
+          fa: '6 · شیشه‌ای',
+          es: '6 · Cristal',
+          pt: '6 · Vidro',
+          fr: '6 · Verre',
+          ar: '6 · زجاج',
+          ro: '6 · Sticlă'),
+      GlobeRotationVisualStyle.premium => _localized(
+          it: '7 · Premium',
+          en: '7 · Premium',
+          de: '7 · Premium',
+          fa: '7 · پریمیوم',
+          es: '7 · Premium',
+          pt: '7 · Premium',
+          fr: '7 · Premium',
+          ar: '7 · مميز',
+          ro: '7 · Premium'),
     };
   }
 }
