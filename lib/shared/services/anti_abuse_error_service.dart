@@ -35,6 +35,10 @@ String antiAbuseRateLimitMessageForLanguageCode(String languageCode) {
       return 'لقد أجريت عددًا كبيرًا من الإجراءات خلال وقت قصير. انتظر قليلًا ثم حاول مرة أخرى.';
     case 'ro':
       return 'Ai efectuat prea multe acțiuni într-un timp scurt. Așteaptă puțin și încearcă din nou.';
+    case 'ru':
+      return 'Вы выполнили слишком много действий за короткое время. Немного подождите и попробуйте снова.';
+    case 'zh':
+      return '你在短时间内执行了过多操作。请稍等片刻后重试。';
     default:
       return 'You’ve made too many actions in a short time. Please wait a little and try again.';
   }

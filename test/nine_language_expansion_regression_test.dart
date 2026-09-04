@@ -14,14 +14,14 @@ import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 import 'package:sociale_vote/shared/widgets/content_language_field.dart';
 
 void main() {
-  test('FR AR RO are first-class app locales', () {
+  test('FR AR RO RU ZH are first-class app locales', () {
     final codes = AppLocalizations.supportedLocales
         .map((locale) => locale.languageCode)
         .toSet();
-    expect(codes.length, 9);
-    expect(codes, containsAll(<String>{'fr', 'ar', 'ro'}));
+    expect(codes.length, 11);
+    expect(codes, containsAll(<String>{'fr', 'ar', 'ro', 'ru', 'zh'}));
 
-    for (final code in <String>['fr', 'ar', 'ro']) {
+    for (final code in <String>['fr', 'ar', 'ro', 'ru', 'zh']) {
       expect(
         AppLocaleController.resolveSystemLocale(
           <Locale>[Locale(code)],
@@ -32,7 +32,7 @@ void main() {
     }
   });
 
-  for (final code in <String>['fr', 'ar', 'ro']) {
+  for (final code in <String>['fr', 'ar', 'ro', 'ru', 'zh']) {
     testWidgets('$code loads generated AppLocalizations', (tester) async {
       late String title;
       await tester.pumpWidget(
@@ -59,7 +59,7 @@ void main() {
     });
   }
 
-  testWidgets('Arabic is text-only RTL while French and Romanian stay LTR',
+  testWidgets('Arabic is text-only RTL while French Romanian Russian Chinese stay LTR',
       (tester) async {
     Future<TextDirection> directionFor(String code) async {
       late TextDirection direction;
@@ -88,12 +88,14 @@ void main() {
     expect(await directionFor('ar'), TextDirection.rtl);
     expect(await directionFor('fr'), TextDirection.ltr);
     expect(await directionFor('ro'), TextDirection.ltr);
+    expect(await directionFor('ru'), TextDirection.ltr);
+    expect(await directionFor('zh'), TextDirection.ltr);
     expect(socialVoteContentDirection('مرحبا 99999'), TextDirection.rtl);
     expect(socialVoteContentDirection('Bonjour 99999'), TextDirection.ltr);
     expect(socialVoteContentDirection('Salut 99999'), TextDirection.ltr);
   });
 
-  testWidgets('legacy fallback is translated for FR AR RO', (tester) async {
+  testWidgets('legacy fallback is translated for FR AR RO RU ZH', (tester) async {
     Future<String> read(String code, String english) async {
       late String value;
       await tester.pumpWidget(
@@ -125,9 +127,11 @@ void main() {
     expect(await read('fr', 'Discover what matters'), 'Découvrez ce qui compte');
     expect(await read('ar', 'Discover what matters'), 'اكتشف ما يهم');
     expect(await read('ro', 'Discover what matters'), 'Descoperă ce contează');
+    expect(await read('ru', 'Discover what matters'), isNot('Discover what matters'));
+    expect(await read('zh', 'Discover what matters'), isNot('Discover what matters'));
   });
 
-  test('legacy FR AR RO maps cover the complete Spanish legacy key set', () {
+  test('legacy FR AR RO RU ZH maps cover the complete Spanish legacy key set', () {
     final source = File(
       'lib/app/localization/de_fallback.dart',
     ).readAsStringSync();
@@ -145,29 +149,31 @@ void main() {
 
     final reference = mapKeys('Es');
     expect(reference.length, 348);
-    for (final name in <String>['Pt', 'Fr', 'Ar', 'Ro']) {
+    for (final name in <String>['Pt', 'Fr', 'Ar', 'Ro', 'Ru', 'Zh']) {
       expect(mapKeys(name), reference, reason: name);
     }
   });
 
-  test('country labels and anti-abuse messages cover FR AR RO', () {
+  test('country labels and anti-abuse messages cover FR AR RO RU ZH', () {
     expect(Countries.nameForCode('DE', languageCode: 'fr'), isNot('Germany'));
     expect(Countries.nameForCode('DE', languageCode: 'ar'), isNot('Germany'));
     expect(Countries.nameForCode('DE', languageCode: 'ro'), isNot('Germany'));
+    expect(Countries.nameForCode('DE', languageCode: 'ru'), isNot('Germany'));
+    expect(Countries.nameForCode('DE', languageCode: 'zh'), isNot('Germany'));
 
-    for (final code in <String>['fr', 'ar', 'ro']) {
+    for (final code in <String>['fr', 'ar', 'ro', 'ru', 'zh']) {
       final message = antiAbuseRateLimitMessageForLanguageCode(code);
       expect(message, isNot(contains('too many actions')));
       expect(message.trim(), isNotEmpty);
     }
   });
 
-  test('content language list includes Romanian with existing French and Arabic', () {
+  test('content language list includes FR AR RO RU ZH', () {
     final codes = supportedContentLanguages.map((item) => item.code).toSet();
-    expect(codes, containsAll(<String>{'fr', 'ar', 'ro'}));
+    expect(codes, containsAll(<String>{'fr', 'ar', 'ro', 'ru', 'zh'}));
   });
 
-  test('account language selector and world appearance source include FR AR RO', () {
+  test('account language selector and world appearance source include FR AR RO RU ZH', () {
     final profileSource = File(
       'lib/features/profile/presentation/pages/my_profile_page.dart',
     ).readAsStringSync();
@@ -175,7 +181,7 @@ void main() {
       'lib/features/profile/presentation/pages/world_appearance_settings_page.dart',
     ).readAsStringSync();
 
-    for (final code in <String>['fr', 'ar', 'ro']) {
+    for (final code in <String>['fr', 'ar', 'ro', 'ru', 'zh']) {
       expect(profileSource, contains("value: '$code'"), reason: code);
       expect(appearanceSource, contains("'$code' =>"), reason: code);
     }
@@ -195,7 +201,7 @@ void main() {
     expect(webSource, isNot(contains("setAttribute('dir'")));
   });
 
-  test('target pages compile with nine-language expansion', () {
+  test('target pages compile with eleven-language expansion', () {
     expect(MyProfilePage, isNotNull);
     expect(WorldAppearanceSettingsPage, isNotNull);
   });

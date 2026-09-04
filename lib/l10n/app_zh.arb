@@ -1,0 +1,2726 @@
+{
+  "@@locale": "zh",
+  "appTitle": "Social Vote",
+  "voteButton": "投票",
+  "createPollPageTitle": "创建 Vote",
+  "createPollPageSubtitle": "创建新的公民投票",
+  "createPollBasicInfoTitle": "基本信息",
+  "createPollBasicInfoSubtitle": "填写 Vote 的主要信息。",
+  "createPollTitleFieldLabel": "标题 *",
+  "createPollTitleFieldHelper": "清晰简洁的问题或陈述。",
+  "createPollDescriptionFieldLabel": "描述（可选）",
+  "createPollVotingModelTitle": "投票方式",
+  "createPollVotingModelSubtitle": "选择每个人可以选择一个答案还是多个答案。",
+  "createPollTypeFieldLabel": "Vote 类型",
+  "createPollSelectionRules": "选择规则：最少 {min} 个，最多 {max} 个选项（会根据 Vote 类型和选项自动调整）。",
+  "@createPollSelectionRules": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "createPollAllowVoteChangeTitle": "允许投票者更改投票",
+  "createPollAllowVoteChangeSubtitle": "在 Vote 关闭之前。",
+  "createPollOptionsTitle": "答案",
+  "createPollOptionsSubtitle": "至少输入两个供投票者选择的答案。标有 * 的字段为必填项。",
+  "createPollOptionLabel": "选项 {index}{requiredMarker}",
+  "@createPollOptionLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "requiredMarker": {}
+    }
+  },
+  "createPollRemoveOptionTooltip": "删除选项",
+  "createPollAddOptionButton": "添加选项",
+  "createPollParticipationPrivacyTitle": "参与和隐私",
+  "createPollParticipationPrivacySubtitle": "决定谁可以投票，以及投票应保持何种程度的隐私。",
+  "createPollWhoCanVoteLabel": "谁可以投票？",
+  "createPollParticipationEveryoneSubtitle": "任何已注册用户都可以参与。",
+  "createPollParticipationGeoScopeSubtitle": "将此 Vote 限制为特定国家的用户。",
+  "createPollCountryFieldLabel": "此 Vote 的国家",
+  "createPollCountryFieldHelper": "该国家将决定谁可以参与此 Vote（未来后端集成）。",
+  "createPollVoteAnonymityTitle": "投票匿名性",
+  "createPollAnonymityAnonymousSubtitle": "公民投票平台的推荐默认设置。",
+  "createPollAnonymityPublicSubtitle": "请谨慎使用：投票可能与身份关联（未来功能）。",
+  "createPollResultsValidityTitle": "结果和有效性",
+  "createPollResultsValiditySubtitle": "控制结果何时可见，并在需要时设置最低法定人数。",
+  "createPollResultsVisibilityFieldLabel": "结果可见性",
+  "createPollQuorumTitle": "法定人数（可选）",
+  "createPollQuorumSubtitle": "如已设置，只有达到至少该票数时 Vote 才被视为有效。如无需法定人数，请留空。",
+  "createPollQuorumMinVotesFieldLabel": "最低票数",
+  "createPollTimingTitle": "时间安排",
+  "createPollTimingSubtitle": "设置 Vote 开放投票的时间。",
+  "createPollStartDateLabel": "开始日期",
+  "createPollEndDateLabel": "结束日期",
+  "createPollChangeDateButtonLabel": "更改",
+  "createPollTimingStatusInfo": "初始状态（开放/已安排/已关闭）将根据这些日期自动确定。",
+  "createPollSuccessMessage": "Vote 创建成功",
+  "createPollSubmitCreatingLabel": "正在创建...",
+  "createPollSubmitLabel": "创建 Vote",
+  "createPollPollTypeYesNoLabel": "是 / 否",
+  "createPollPollTypeSingleChoiceLabel": "一个答案",
+  "createPollPollTypeMultipleChoiceLabel": "多个答案",
+  "createPollPollTypeApprovalLabel": "赞成投票",
+  "createPollPollTypeRankedLabel": "排序选择",
+  "createPollPollTypeScoreLabel": "评分 / 评级",
+  "createPollParticipationScopeEveryoneLabel": "所有人都可以投票",
+  "createPollParticipationScopeGeoScopeOnlyLabel": "仅限特定国家的用户",
+  "createPollAnonymityLevelAnonymousLabel": "投票匿名",
+  "createPollAnonymityLevelPublicLabel": "投票公开（高级 / 限制用途）",
+  "createPollResultsVisibilityAlwaysLabel": "始终可见（Vote 开放期间）",
+  "createPollResultsVisibilityAfterVoteLabel": "仅在投票后可见",
+  "createPollResultsVisibilityAfterCloseLabel": "仅在 Vote 关闭后可见",
+  "homeLoginButton": "登录",
+  "homeRegisterButton": "注册",
+  "homeProfileButton": "个人资料",
+  "homeLogoutButton": "退出登录",
+  "homeLogoutMessage": "已退出登录。你现在以访客模式使用应用（只读）。",
+  "homeSearchHint": "搜索城市、国家、账户和内容...",
+  "searchPageTitle": "搜索",
+  "searchInputHint": "搜索账户、Vote、News、Voce...",
+  "searchClearTooltip": "清除搜索",
+  "searchTypeAll": "全部",
+  "searchTypePolls": "Vote",
+  "searchTypeNews": "News",
+  "searchTypePosts": "Voce",
+  "searchTypeAccounts": "账户",
+  "searchSortHottest": "最热",
+  "searchSortLatest": "最新",
+  "searchPollStatusAll": "所有 Vote",
+  "searchPollStatusOpen": "开放",
+  "searchPollStatusClosed": "已关闭",
+  "searchIdleMessage": "输入关键词开始搜索。",
+  "searchErrorMessage": "搜索时出现问题。",
+  "searchRetryButton": "重试",
+  "searchEmptyMessage": "未找到相关结果。",
+  "searchContentUnavailable": "内容不可用",
+  "searchResultTypePoll": "Vote",
+  "searchResultTypeNews": "News",
+  "searchResultTypePost": "Voce",
+  "searchResultTypeAccount": "账户",
+  "searchResultTypeMixed": "混合",
+  "homeUserStatusLoggedIn": "已登录为：{userId}",
+  "@homeUserStatusLoggedIn": {
+    "placeholders": {
+      "userId": {}
+    }
+  },
+  "homeUserStatusGuest": "访客模式：你只能阅读。登录或注册后即可投票、评论和互动。",
+  "homeScopeLabelWorld": "世界 — 全球投票和新闻",
+  "homeScopeLabelCountry": "国家 — 全国投票和新闻",
+  "homeScopeLabelCity": "城市 — 本地城市投票和新闻",
+  "homeScopeShortWorld": "世界",
+  "homeScopeShortCountry": "国家",
+  "homeScopeShortCity": "城市",
+  "homeScopeChipWorld": "世界",
+  "homeScopeChipItaly": "意大利",
+  "homeScopeChipTorino": "都灵",
+  "homeScopeChangedWorld": "范围已切换为世界",
+  "homeScopeChangedItaly": "范围已切换为意大利",
+  "homeScopeChangedTorino": "范围已切换为都灵",
+  "followScopeButtonFollowed": "已关注",
+  "followScopeButtonFollow": "关注此地区",
+  "homeTrendingTitle": "实时脉搏",
+  "homeTrendingError": "无法加载此地区的实时脉搏。",
+  "homeTrendingEmpty": "此地区目前没有实时脉搏内容。",
+  "homeForYouTitle": "脉搏（{scope}）",
+  "@homeForYouTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeForYouError": "无法加载此地区的脉搏。",
+  "homeForYouEmpty": "此地区目前没有脉搏推荐内容。",
+  "homePollsTitle": "焦点 Vote（{scope}）",
+  "@homePollsTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homePollsEmptyTitle": "此地区没有 Vote",
+  "homePollsEmptySubtitle": "此地区目前没有可用的 Vote。",
+  "homePollsViewAllButton": "查看 Vote",
+  "homeNewsTitle": "头条 News（{scope}）",
+  "@homeNewsTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeNewsErrorTitle": "无法加载新闻",
+  "homeNewsErrorSubtitle": "加载此地区新闻时出现问题。",
+  "homeNewsEmptyTitle": "此地区没有新闻",
+  "homeNewsEmptySubtitle": "此范围目前没有新闻内容。",
+  "homeNewsViewAllButton": "查看所有新闻",
+  "homeNewsBreakingBadge": "突发",
+  "homeSocialTitle": "Voce（{scope}）",
+  "@homeSocialTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeSocialErrorTitle": "无法加载 Voce",
+  "homeSocialErrorSubtitle": "加载此地区的 Voce 时出现问题。",
+  "homeSocialEmptyTitle": "此地区没有 Voce",
+  "homeSocialEmptySubtitle": "此地区目前没有 Voce 内容。",
+  "homeSocialViewFeedButton": "查看所有 Voce",
+  "pollDetail_title": "Vote 详情",
+  "pollDetail_removeFromFavoritesTooltip": "从已保存中移除",
+  "pollDetail_addToFavoritesTooltip": "保存",
+  "pollDetail_chipAnonymous": "匿名投票",
+  "pollDetail_chipPublic": "公开投票",
+  "pollDetail_chipRestrictedGeo": "受地理范围限制",
+  "pollDetail_quorumReached": "已达到法定人数（{currentVotes} / {requiredVotes}）",
+  "@pollDetail_quorumReached": {
+    "placeholders": {
+      "currentVotes": {
+        "type": "int"
+      },
+      "requiredVotes": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_quorumNotReached": "未达到法定人数（{currentVotes} / {requiredVotes}）",
+  "@pollDetail_quorumNotReached": {
+    "placeholders": {
+      "currentVotes": {
+        "type": "int"
+      },
+      "requiredVotes": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_optionsTitle": "选项",
+  "pollDetail_statusClosedMessage": "此 Vote 已关闭。",
+  "pollDetail_statusScheduledMessage": "此 Vote 尚未开放。",
+  "pollDetail_statusNotAvailableMessage": "当前无法投票。",
+  "pollDetail_voteSubmitted": "投票提交成功！",
+  "pollDetail_voteButton": "投票",
+  "pollDetail_resultsTitle": "结果",
+  "pollDetail_outcomePrefix": "结果：{label}",
+  "@pollDetail_outcomePrefix": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "pollDetail_noResults": "暂无结果。",
+  "pollDetail_resultsAfterVote": "投票后可查看结果。",
+  "pollDetail_resultsWhenClosed": "Vote 关闭后可查看结果。",
+  "pollType_yesNo": "是 / 否",
+  "pollType_singleChoice": "单选",
+  "pollType_multipleChoice": "多选",
+  "pollType_approval": "赞成",
+  "pollStatus_draft": "草稿",
+  "pollStatus_open": "开放",
+  "pollStatus_closed": "已关闭",
+  "pollStatus_scheduled": "已安排",
+  "pollGeo_global": "全球",
+  "pollGeo_local": "本地",
+  "pollOutcome_approved": "已通过",
+  "pollOutcome_rejected": "已否决",
+  "pollOutcome_tie": "平局",
+  "pollOutcome_noMajority": "无多数",
+  "pollOutcome_notApplicable": "不适用",
+  "pollList_title": "Vote",
+  "pollList_scopeWorld": "世界",
+  "pollList_scopeCountryFallback": "国家",
+  "pollList_scopeCityFallback": "城市",
+  "pollList_scopeDescriptionGlobal": "显示全球 Vote。",
+  "pollList_scopeDescriptionCountry": "显示此国家的 Vote。",
+  "pollList_scopeDescriptionCity": "显示此城市的 Vote。",
+  "pollList_filterStatus_all": "全部",
+  "pollList_filterStatus_open": "开放",
+  "pollList_filterStatus_closed": "已关闭",
+  "pollList_sort_latest": "最新",
+  "pollList_sort_hottest": "最热",
+  "pollList_filterScope_currentArea": "当前地区",
+  "pollList_headerTitle": "{scopeLabel} · {count, plural, =0 {未找到 Vote} =1 {找到 1 个 Vote} other {找到 {count} 个 Vote}}",
+  "@pollList_headerTitle": {
+    "placeholders": {
+      "scopeLabel": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollList_createPollButton": "创建 Vote",
+  "pollList_paginationHint": "滚动加载更多 Vote…",
+  "pollList_emptyMessage": "此地区没有符合筛选条件的 Vote。",
+  "pollType_ranked": "排序选择",
+  "pollType_score": "评分投票",
+  "pollVisibility_whileOpen": "Vote 开放时可见结果",
+  "pollVisibility_afterVote": "投票后可见结果",
+  "pollVisibility_afterClose": "关闭后可见结果",
+  "pollCard_countryRestricted": "国家限制",
+  "pollCard_restrictedToCountry": "仅限 {countryName}",
+  "@pollCard_restrictedToCountry": {
+    "placeholders": {
+      "countryName": {}
+    }
+  },
+  "pollCard_quorumLabel": "法定人数 {minVotes}",
+  "@pollCard_quorumLabel": {
+    "placeholders": {
+      "minVotes": {
+        "type": "int"
+      }
+    }
+  },
+  "pollCard_resultsVisibleChip": "结果可见",
+  "@pollCard_resultsVisibleChip": {
+    "description": "Compact PollCard label used when results are always visible"
+  },
+  "pollCard_resultsAfterVoteChip": "投票后",
+  "@pollCard_resultsAfterVoteChip": {
+    "description": "Compact PollCard label used when results are visible after voting"
+  },
+  "pollCard_resultsAfterCloseChip": "关闭后",
+  "@pollCard_resultsAfterCloseChip": {
+    "description": "Compact PollCard label used when results are visible after the poll closes"
+  },
+  "pollCard_publicOfficialPublisher": "公职人员",
+  "@pollCard_publicOfficialPublisher": {
+    "description": "PollCard label for a poll published by a public official"
+  },
+  "pollCard_institutionPublisher": "机构",
+  "@pollCard_institutionPublisher": {
+    "description": "PollCard label for a poll published by an institution"
+  },
+  "pollCard_representativePublisher": "代表",
+  "@pollCard_representativePublisher": {
+    "description": "Fallback PollCard label for representative publishing"
+  },
+  "pollCard_voteCountLabel": "{count, plural, =1 {票} other {票}}",
+  "@pollCard_voteCountLabel": {
+    "description": "Singular or plural label shown below the vote count in PollCard",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollCard_viewDetails": "查看详情",
+  "pollResult_title": "{count, plural, =0 {结果（暂无投票）} =1 {结果（1 票）} other {结果（{count} 票）}}",
+  "@pollResult_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voteError_noSelection": "请至少选择一个选项。",
+  "voteError_unauthorized": "你无权参与此 Vote。",
+  "voteError_generic": "提交投票失败，请重试。",
+  "commentSection_title": "评论",
+  "commentSection_sortLabel": "排序：",
+  "commentSection_sortOldest": "最早",
+  "commentSection_sortNewest": "最新",
+  "commentSection_errorGeneric": "加载评论时发生错误。",
+  "commentSection_empty": "暂无评论。成为第一个评论的人。",
+  "commentSection_loadMore": "加载更多评论",
+  "commentSection_replyingTo": "回复：{snippet}",
+  "@commentSection_replyingTo": {
+    "placeholders": {
+      "snippet": {}
+    }
+  },
+  "commentSection_cancelReply": "取消",
+  "commentSection_inputHintRoot": "添加评论...",
+  "commentSection_inputHintReply": "写回复...",
+  "commentSection_deleteAction": "删除",
+  "commentSection_replyAction": "回复",
+  "commentSection_youBadge": "你",
+  "newsDetail_title": "News 详情",
+  "newsDetail_breakingBadge": "突发",
+  "newsDetail_removeFromFavoritesTooltip": "从已保存中移除",
+  "newsDetail_addToFavoritesTooltip": "保存",
+  "newsDetail_bodyFallback": "此新闻暂无更多正文内容。",
+  "newsDetail_footerMoreContext": "更多背景和来源即将提供。",
+  "newsFeed_title": "News",
+  "newsFeed_scopeWorld": "世界",
+  "newsFeed_scopeCountry": "国家",
+  "newsFeed_scopeCity": "城市",
+  "newsFeed_scopeLabel": "范围：{scope}",
+  "@newsFeed_scopeLabel": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "newsFeed_scopeGlobalDescription": "显示全球新闻。",
+  "newsFeed_scopeCountryDescription": "显示此国家的新闻。",
+  "newsFeed_scopeCityDescription": "显示此城市的新闻。",
+  "newsFeed_emptyTitle": "此地区暂无新闻。",
+  "newsFeed_emptySubtitle": "下拉刷新或稍后重试。",
+  "newsFeed_itemsFound": "找到 {count} 条新闻",
+  "@newsFeed_itemsFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newsFeed_loadingMoreHint": "滚动加载更多新闻…",
+  "newsFeed_errorTitle": "无法加载新闻",
+  "newsFeed_errorGeneric": "加载新闻时发生意外错误。",
+  "newsFeed_retryButton": "重试",
+  "newsCard_headerTitle": "News",
+  "newsFeed_errorUnauthorized": "News 配置无效（API 密钥）。",
+  "newsFeed_errorRateLimited": "请求过多，请稍后重试。",
+  "newsFeed_errorServerUnavailable": "News 服务暂时不可用，请稍后重试。",
+  "newsFeed_errorTimeout": "请求耗时过长，请重试。",
+  "newsFeed_errorNetwork": "无网络连接。请检查网络后重试。",
+  "newsFeed_moreTooltip": "更多",
+  "newsFeed_actionCopyTitle": "复制标题",
+  "newsFeed_actionRefreshFeed": "刷新信息流",
+  "newsFeed_copiedTitleToast": "标题已复制",
+  "newsFeed_languageTooltip": "News 语言",
+  "newsFeed_languageAuto": "自动",
+  "newsFeed_languageIt": "IT",
+  "newsFeed_languageEn": "EN",
+  "newsFeed_languageEs": "ES",
+  "newsFeed_languageFr": "FR",
+  "newsFeed_languageDe": "DE",
+  "newsFeed_languageAr": "AR",
+  "newsFeed_languageFa": "FA",
+  "newsFeed_languageLimitedHint": "此语言的来源有限。请尝试“自动”。",
+  "newsTopic_all": "全部",
+  "newsTopic_world": "世界",
+  "newsTopic_nation": "国家",
+  "newsTopic_business": "商业",
+  "newsTopic_technology": "科技",
+  "newsTopic_science": "科学",
+  "newsTopic_health": "健康",
+  "newsTopic_sports": "体育",
+  "newsTopic_entertainment": "娱乐",
+  "newsDetail_openSource": "打开来源文章",
+  "@newsDetail_openSource": {
+    "description": "Button to open the original article from the source website"
+  },
+  "newsDetail_openSourceUnavailable": "无法打开来源文章",
+  "@newsDetail_openSourceUnavailable": {
+    "description": "Shown when the source link cannot be opened"
+  },
+  "socialFeedTitle": "Voce",
+  "@socialFeedTitle": {
+    "description": "Title of the main social feed page"
+  },
+  "socialFeedCreatePostButton": "创建 Voce",
+  "@socialFeedCreatePostButton": {
+    "description": "Button that opens the post creation flow"
+  },
+  "commonCancelButton": "取消",
+  "@commonCancelButton": {
+    "description": "Generic Cancel button label"
+  },
+  "commonApplyButton": "应用",
+  "@commonApplyButton": {
+    "description": "Generic Apply button label"
+  },
+  "homeScopeChooseCountry": "选择国家",
+  "@homeScopeChooseCountry": {
+    "description": "Title and action for choosing the Home scope country"
+  },
+  "homeScopeCountrySearchHint": "搜索国家或代码...",
+  "@homeScopeCountrySearchHint": {
+    "description": "Hint shown in the country search field"
+  },
+  "homeScopeChooseCity": "选择城市",
+  "@homeScopeChooseCity": {
+    "description": "Title and action for choosing the Home scope city"
+  },
+  "homeScopeCountryWithCode": "国家：{code}",
+  "@homeScopeCountryWithCode": {
+    "description": "Selected country shown in the city selection dialog",
+    "placeholders": {
+      "code": {
+        "type": "String",
+        "example": "IT"
+      }
+    }
+  },
+  "homeScopeCityFieldLabel": "城市",
+  "@homeScopeCityFieldLabel": {
+    "description": "City field label in the Home scope selector"
+  },
+  "homeScopeCityExampleHint": "输入城市，例如 Merano",
+  "@homeScopeCityExampleHint": {
+    "description": "Examples shown in the city field"
+  },
+  "homeScopeCityRequiredError": "请输入城市。",
+  "@homeScopeCityRequiredError": {
+    "description": "Error shown when the city field is empty"
+  },
+  "homeScopeCityNotFoundError": "在所选国家中未找到该城市。",
+  "@homeScopeCityNotFoundError": {
+    "description": "Error shown when the city does not belong to the selected country"
+  },
+  "homeScopeCityVerificationError": "无法验证城市。请重试。",
+  "@homeScopeCityVerificationError": {
+    "description": "Generic error shown while verifying the city"
+  },
+  "homeScopeVerifyingButton": "正在验证...",
+  "@homeScopeVerifyingButton": {
+    "description": "Label shown while the city is being verified"
+  },
+  "homeMapOpenButton": "打开地图",
+  "@homeMapOpenButton": {
+    "description": "Button label that opens the full Civic Map from Home"
+  },
+  "homeHeroHeadline": "塑造未来。\\n一起。",
+  "@homeHeroHeadline": {
+    "description": "Main headline shown in the Home hero"
+  },
+  "homeHeroPollsAction": "Vote",
+  "@homeHeroPollsAction": {
+    "description": "Compact Home dashboard action that opens polls"
+  },
+  "homeHeroNewsAction": "News",
+  "@homeHeroNewsAction": {
+    "description": "Compact Home dashboard action that opens news"
+  },
+  "homeHeroCreateAction": "创建",
+  "@homeHeroCreateAction": {
+    "description": "Compact Home dashboard action for creating a poll or post"
+  },
+  "homeHeroExploreAction": "探索",
+  "@homeHeroExploreAction": {
+    "description": "Compact Home dashboard action that opens the full Civic Map"
+  },
+  "homeAccountMenuLabel": "账户",
+  "@homeAccountMenuLabel": {
+    "description": "Label and tooltip for the Account entry in the Home top bar"
+  },
+  "homeThemeSystemMenuItem": "主题：跟随系统",
+  "@homeThemeSystemMenuItem": {
+    "description": "Account menu item for using the system theme"
+  },
+  "homeThemeLightMenuItem": "主题：浅色",
+  "@homeThemeLightMenuItem": {
+    "description": "Account menu item for using the light theme"
+  },
+  "homeThemeDarkMenuItem": "主题：深色",
+  "@homeThemeDarkMenuItem": {
+    "description": "Account menu item for using the dark theme"
+  },
+  "profileAppLanguageTitle": "应用语言",
+  "@profileAppLanguageTitle": {
+    "description": "Title of the app language setting"
+  },
+  "profileAppLanguageSystem": "系统",
+  "@profileAppLanguageSystem": {
+    "description": "Option that follows the device language"
+  },
+  "profileAppLanguageSystemDescription": "使用设备语言",
+  "@profileAppLanguageSystemDescription": {
+    "description": "Description of the system language option"
+  },
+  "profileAppLanguageItalian": "意大利语",
+  "@profileAppLanguageItalian": {
+    "description": "Italian app language option"
+  },
+  "profileAppLanguageEnglish": "英语",
+  "@profileAppLanguageEnglish": {
+    "description": "English app language option"
+  },
+  "homeNotificationsTooltip": "通知",
+  "@homeNotificationsTooltip": {
+    "description": "Tooltip for the notifications button in the Home top bar"
+  },
+  "postCard_authorFallback": "作者",
+  "@postCard_authorFallback": {
+    "description": "Fallback author name shown in the PostCard when no name is available"
+  },
+  "postCard_globalLocation": "全球",
+  "@postCard_globalLocation": {
+    "description": "Global location label shown in the PostCard"
+  },
+  "commonSaveButton": "保存",
+  "@commonSaveButton": {
+    "description": "Generic Save button label"
+  },
+  "commonDeleteButton": "删除",
+  "@commonDeleteButton": {
+    "description": "Generic Delete button label"
+  },
+  "contentReport_menuAction": "举报内容",
+  "@contentReport_menuAction": {
+    "description": "Menu action used to report content"
+  },
+  "contentReport_dialogTitle": "举报内容",
+  "@contentReport_dialogTitle": {
+    "description": "Content report dialog title"
+  },
+  "contentReport_authenticationRequired": "你必须登录后才能举报内容",
+  "@contentReport_authenticationRequired": {
+    "description": "Message shown to a signed-out user"
+  },
+  "contentReport_submittedMessage": "举报已提交",
+  "@contentReport_submittedMessage": {
+    "description": "Report submission confirmation"
+  },
+  "contentReport_alreadySubmittedMessage": "你已经举报过此内容",
+  "@contentReport_alreadySubmittedMessage": {
+    "description": "Message shown when the content was already reported"
+  },
+  "contentReport_submitError": "无法提交举报",
+  "@contentReport_submitError": {
+    "description": "Generic error while submitting a report"
+  },
+  "contentReport_sendButton": "提交",
+  "@contentReport_sendButton": {
+    "description": "Report submission button"
+  },
+  "contentReport_reasonSpam": "垃圾信息",
+  "@contentReport_reasonSpam": {
+    "description": "Spam report reason"
+  },
+  "contentReport_reasonHarassment": "骚扰或辱骂",
+  "@contentReport_reasonHarassment": {
+    "description": "Harassment or abuse report reason"
+  },
+  "contentReport_reasonHateSpeech": "仇恨言论",
+  "@contentReport_reasonHateSpeech": {
+    "description": "Hate speech report reason"
+  },
+  "contentReport_reasonMisinformation": "虚假信息",
+  "@contentReport_reasonMisinformation": {
+    "description": "Misinformation report reason"
+  },
+  "contentReport_reasonViolence": "暴力",
+  "@contentReport_reasonViolence": {
+    "description": "Violence report reason"
+  },
+  "contentReport_reasonOther": "其他",
+  "@contentReport_reasonOther": {
+    "description": "Other report reason"
+  },
+  "postDetail_title": "Voce 详情",
+  "@postDetail_title": {
+    "description": "Post detail page title"
+  },
+  "postDetail_favoriteUpdateError": "无法更新已保存内容",
+  "@postDetail_favoriteUpdateError": {
+    "description": "Favorites update error on the post detail page"
+  },
+  "postDetail_shareMessage": "打开 Social Vote 查看此 Voce。",
+  "@postDetail_shareMessage": {
+    "description": "Text appended when sharing a post"
+  },
+  "postDetail_shareError": "无法分享 Voce",
+  "@postDetail_shareError": {
+    "description": "Post sharing error"
+  },
+  "postDetail_editDialogTitle": "编辑 Voce",
+  "@postDetail_editDialogTitle": {
+    "description": "Edit post dialog title"
+  },
+  "postDetail_editTitleFieldLabel": "标题",
+  "@postDetail_editTitleFieldLabel": {
+    "description": "Title field label in the edit post dialog"
+  },
+  "postDetail_editContentFieldLabel": "内容",
+  "@postDetail_editContentFieldLabel": {
+    "description": "Content field label in the edit post dialog"
+  },
+  "postDetail_editRequiredError": "标题和内容为必填项。",
+  "@postDetail_editRequiredError": {
+    "description": "Required fields error in the edit post dialog"
+  },
+  "postDetail_updateSuccess": "Voce 已更新",
+  "@postDetail_updateSuccess": {
+    "description": "Post update confirmation"
+  },
+  "postDetail_updateError": "无法更新 Voce",
+  "@postDetail_updateError": {
+    "description": "Post update error"
+  },
+  "postDetail_deleteDialogTitle": "删除此 Voce？",
+  "@postDetail_deleteDialogTitle": {
+    "description": "Post deletion confirmation title"
+  },
+  "postDetail_deleteDialogMessage": "此操作无法撤销。",
+  "@postDetail_deleteDialogMessage": {
+    "description": "Post deletion confirmation message"
+  },
+  "postDetail_deleteError": "无法删除 Voce",
+  "@postDetail_deleteError": {
+    "description": "Post deletion error"
+  },
+  "postDetail_editMenuItem": "编辑 Voce",
+  "@postDetail_editMenuItem": {
+    "description": "Edit post menu item"
+  },
+  "postDetail_deleteMenuItem": "删除 Voce",
+  "@postDetail_deleteMenuItem": {
+    "description": "Delete post menu item"
+  },
+  "postDetail_loadError": "加载 Voce 时发生错误。",
+  "@postDetail_loadError": {
+    "description": "Generic post detail loading error"
+  },
+  "postDetail_notFound": "未找到 Voce。",
+  "@postDetail_notFound": {
+    "description": "Post not found message"
+  },
+  "postDetail_errorTitle": "错误",
+  "@postDetail_errorTitle": {
+    "description": "Post detail error state title"
+  },
+  "postDetail_authorFallback": "作者",
+  "@postDetail_authorFallback": {
+    "description": "Fallback author name on the post detail page"
+  },
+  "postDetail_shareAction": "分享",
+  "@postDetail_shareAction": {
+    "description": "Share action on the post detail page"
+  },
+  "postDetail_saveAction": "保存",
+  "@postDetail_saveAction": {
+    "description": "Save action on the post detail page"
+  },
+  "postDetail_addToFavoritesTooltip": "保存",
+  "@postDetail_addToFavoritesTooltip": {
+    "description": "Add to favorites tooltip on the post detail page"
+  },
+  "postDetail_removeFromFavoritesTooltip": "从已保存中移除",
+  "@postDetail_removeFromFavoritesTooltip": {
+    "description": "Remove from favorites tooltip on the post detail page"
+  },
+  "newsDetail_favoriteUpdateError": "无法更新已保存内容",
+  "@newsDetail_favoriteUpdateError": {
+    "description": "Favorites update error on the news detail page"
+  },
+  "newsDetail_shareMessage": "打开 Social Vote 查看此新闻。",
+  "@newsDetail_shareMessage": {
+    "description": "Text appended when sharing a news item"
+  },
+  "newsDetail_shareError": "无法分享新闻",
+  "@newsDetail_shareError": {
+    "description": "News sharing error"
+  },
+  "newsDetail_shareTooltip": "分享",
+  "@newsDetail_shareTooltip": {
+    "description": "Share tooltip on the news detail page"
+  },
+  "authLoginPageTitle": "登录",
+  "@authLoginPageTitle": {
+    "description": "Auth UI: authLoginPageTitle"
+  },
+  "authLoginHeadline": "欢迎回来",
+  "@authLoginHeadline": {
+    "description": "Auth UI: authLoginHeadline"
+  },
+  "authEmailLabel": "电子邮箱",
+  "@authEmailLabel": {
+    "description": "Auth UI: authEmailLabel"
+  },
+  "authPasswordLabel": "密码",
+  "@authPasswordLabel": {
+    "description": "Auth UI: authPasswordLabel"
+  },
+  "authRememberMeLabel": "记住我",
+  "@authRememberMeLabel": {
+    "description": "Auth UI: authRememberMeLabel"
+  },
+  "authForgotPasswordAction": "忘记密码？",
+  "@authForgotPasswordAction": {
+    "description": "Auth UI: authForgotPasswordAction"
+  },
+  "authLoginButton": "登录",
+  "@authLoginButton": {
+    "description": "Auth UI: authLoginButton"
+  },
+  "authRegisterPrompt": "还没有账户？",
+  "@authRegisterPrompt": {
+    "description": "Auth UI: authRegisterPrompt"
+  },
+  "authRegisterAction": "注册",
+  "@authRegisterAction": {
+    "description": "Auth UI: authRegisterAction"
+  },
+  "authRegisterPageTitle": "注册",
+  "@authRegisterPageTitle": {
+    "description": "Auth UI: authRegisterPageTitle"
+  },
+  "authRegisterHeadline": "创建账户",
+  "@authRegisterHeadline": {
+    "description": "Auth UI: authRegisterHeadline"
+  },
+  "authPersonalAccountOwnershipTitle": "登录账户始终属于个人",
+  "@authPersonalAccountOwnershipTitle": {
+    "description": "Explains that authentication belongs to a person even when representing an organization"
+  },
+  "authPersonalAccountOwnershipBody": "如果你代表某个组织，请先创建个人账户。登录后，你可以申请 Verified Organization，并在 Workspace 中管理它。",
+  "@authPersonalAccountOwnershipBody": {
+    "description": "Explains the person-to-organization registration path"
+  },
+  "authOrganizationPathAction": "组织如何使用",
+  "@authOrganizationPathAction": {
+    "description": "Opens the guide for the organization account path"
+  },
+  "authDisplayNameLabel": "公开名称",
+  "@authDisplayNameLabel": {
+    "description": "Auth UI: authDisplayNameLabel"
+  },
+  "authUsernameLabel": "用户名",
+  "@authUsernameLabel": {
+    "description": "Auth UI: authUsernameLabel"
+  },
+  "authCountryOfResidenceLabel": "居住国家",
+  "@authCountryOfResidenceLabel": {
+    "description": "Auth UI: authCountryOfResidenceLabel"
+  },
+  "authCityOfResidenceLabel": "居住城市（可选）",
+  "@authCityOfResidenceLabel": {
+    "description": "Auth UI: authCityOfResidenceLabel"
+  },
+  "authConfirmPasswordLabel": "确认密码",
+  "@authConfirmPasswordLabel": {
+    "description": "Auth UI: authConfirmPasswordLabel"
+  },
+  "authLegalConsentPrefix": "我确认已年满 18 岁。我接受服务条款，并确认已阅读隐私政策。",
+  "@authLegalConsentPrefix": {
+    "description": "Auth UI: authLegalConsentPrefix"
+  },
+  "authTermsOfServiceAction": "服务条款",
+  "@authTermsOfServiceAction": {
+    "description": "Auth UI: authTermsOfServiceAction"
+  },
+  "authPrivacyPolicyAction": "隐私政策",
+  "@authPrivacyPolicyAction": {
+    "description": "Auth UI: authPrivacyPolicyAction"
+  },
+  "authRegisterButton": "注册",
+  "@authRegisterButton": {
+    "description": "Auth UI: authRegisterButton"
+  },
+  "authLoginPrompt": "已有账户？",
+  "@authLoginPrompt": {
+    "description": "Auth UI: authLoginPrompt"
+  },
+  "authLoginAction": "登录",
+  "@authLoginAction": {
+    "description": "Auth UI: authLoginAction"
+  },
+  "authForgotPasswordDialogTitle": "重置密码",
+  "@authForgotPasswordDialogTitle": {
+    "description": "Auth UI: authForgotPasswordDialogTitle"
+  },
+  "authForgotPasswordDialogBody": "输入与你的账户关联的电子邮箱地址。我们会发送一个用于设置新密码的链接。",
+  "@authForgotPasswordDialogBody": {
+    "description": "Auth UI: authForgotPasswordDialogBody"
+  },
+  "authForgotPasswordSendButton": "发送链接",
+  "@authForgotPasswordSendButton": {
+    "description": "Auth UI: authForgotPasswordSendButton"
+  },
+  "authPasswordResetEmailSent": "密码重置邮件已发送。请查看收件箱。",
+  "@authPasswordResetEmailSent": {
+    "description": "Auth UI: authPasswordResetEmailSent"
+  },
+  "authResetPasswordPageTitle": "重置密码",
+  "@authResetPasswordPageTitle": {
+    "description": "Auth UI: authResetPasswordPageTitle"
+  },
+  "authResetPasswordHeadline": "设置新密码",
+  "@authResetPasswordHeadline": {
+    "description": "Auth UI: authResetPasswordHeadline"
+  },
+  "authNewPasswordLabel": "新密码",
+  "@authNewPasswordLabel": {
+    "description": "Auth UI: authNewPasswordLabel"
+  },
+  "authConfirmNewPasswordLabel": "确认新密码",
+  "@authConfirmNewPasswordLabel": {
+    "description": "Auth UI: authConfirmNewPasswordLabel"
+  },
+  "authUpdatePasswordButton": "更新密码",
+  "@authUpdatePasswordButton": {
+    "description": "Auth UI: authUpdatePasswordButton"
+  },
+  "authPasswordUpdated": "密码已成功更新。",
+  "@authPasswordUpdated": {
+    "description": "Auth UI: authPasswordUpdated"
+  },
+  "authEmailConfirmationTitle": "检查邮箱",
+  "@authEmailConfirmationTitle": {
+    "description": "Auth UI: authEmailConfirmationTitle"
+  },
+  "authEmailConfirmationIntro": "我们已向以下地址发送确认链接：",
+  "@authEmailConfirmationIntro": {
+    "description": "Auth UI: authEmailConfirmationIntro"
+  },
+  "authEmailConfirmationInstructions": "打开邮件中的链接以验证你的地址。确认后，返回应用并登录。",
+  "@authEmailConfirmationInstructions": {
+    "description": "Auth UI: authEmailConfirmationInstructions"
+  },
+  "authBackToLoginButton": "返回登录",
+  "@authBackToLoginButton": {
+    "description": "Auth UI: authBackToLoginButton"
+  },
+  "authUseAnotherEmailButton": "使用其他邮箱地址",
+  "@authUseAnotherEmailButton": {
+    "description": "Auth UI: authUseAnotherEmailButton"
+  },
+  "authEmailRequiredError": "请输入电子邮箱。",
+  "@authEmailRequiredError": {
+    "description": "Auth UI: authEmailRequiredError"
+  },
+  "authEmailInvalidError": "请输入有效的电子邮箱地址。",
+  "@authEmailInvalidError": {
+    "description": "Auth UI: authEmailInvalidError"
+  },
+  "authPasswordRequiredError": "请输入密码。",
+  "@authPasswordRequiredError": {
+    "description": "Auth UI: authPasswordRequiredError"
+  },
+  "authPasswordTooShortError": "密码必须至少包含 8 个字符。",
+  "@authPasswordTooShortError": {
+    "description": "Auth UI: authPasswordTooShortError"
+  },
+  "authDisplayNameRequiredError": "请输入公开名称。",
+  "@authDisplayNameRequiredError": {
+    "description": "Auth UI: authDisplayNameRequiredError"
+  },
+  "authDisplayNameTooShortError": "公开名称太短。",
+  "@authDisplayNameTooShortError": {
+    "description": "Auth UI: authDisplayNameTooShortError"
+  },
+  "authUsernameRequiredError": "请输入用户名。",
+  "@authUsernameRequiredError": {
+    "description": "Auth UI: authUsernameRequiredError"
+  },
+  "authUsernameInvalidError": "使用 3 到 20 个字符：小写字母、数字和下划线。",
+  "@authUsernameInvalidError": {
+    "description": "Auth UI: authUsernameInvalidError"
+  },
+  "authUsernameAlreadyTakenError": "该用户名已被使用。",
+  "@authUsernameAlreadyTakenError": {
+    "description": "Auth UI: username already in use"
+  },
+  "authCountryRequiredError": "请选择居住国家。",
+  "@authCountryRequiredError": {
+    "description": "Auth UI: authCountryRequiredError"
+  },
+  "authCityRequiredError": "请输入居住城市。",
+  "@authCityRequiredError": {
+    "description": "Auth UI: authCityRequiredError"
+  },
+  "authConfirmPasswordRequiredError": "请确认密码。",
+  "@authConfirmPasswordRequiredError": {
+    "description": "Auth UI: authConfirmPasswordRequiredError"
+  },
+  "authPasswordsDoNotMatchError": "两次输入的密码不一致。",
+  "@authPasswordsDoNotMatchError": {
+    "description": "Auth UI: authPasswordsDoNotMatchError"
+  },
+  "authLegalConsentRequiredError": "注册前，请确认你已年满 18 岁、接受服务条款，并确认已阅读隐私政策。",
+  "@authLegalConsentRequiredError": {
+    "description": "Auth UI: authLegalConsentRequiredError"
+  },
+  "authForgotPasswordEmailRequiredError": "请输入你要恢复的账户邮箱。",
+  "@authForgotPasswordEmailRequiredError": {
+    "description": "Auth UI: authForgotPasswordEmailRequiredError"
+  },
+  "authInvalidCredentialsError": "电子邮箱或密码无效。",
+  "@authInvalidCredentialsError": {
+    "description": "Auth UI: authInvalidCredentialsError"
+  },
+  "authEmailAlreadyRegisteredError": "此电子邮箱已注册。",
+  "@authEmailAlreadyRegisteredError": {
+    "description": "Auth UI: authEmailAlreadyRegisteredError"
+  },
+  "authEmailNotConfirmedError": "电子邮箱尚未确认。登录前请查看收件箱。",
+  "@authEmailNotConfirmedError": {
+    "description": "Auth UI: authEmailNotConfirmedError"
+  },
+  "authTooManyAttemptsError": "尝试次数过多。请等待几分钟后重试。",
+  "@authTooManyAttemptsError": {
+    "description": "Auth UI: authTooManyAttemptsError"
+  },
+  "authNetworkError": "网络错误。请检查连接后重试。",
+  "@authNetworkError": {
+    "description": "Auth UI: authNetworkError"
+  },
+  "authLoginGenericError": "登录失败。请重试。",
+  "@authLoginGenericError": {
+    "description": "Auth UI: authLoginGenericError"
+  },
+  "authRegisterGenericError": "注册失败。请重试。",
+  "@authRegisterGenericError": {
+    "description": "Auth UI: authRegisterGenericError"
+  },
+  "authPasswordResetGenericError": "无法发送重置链接。请重试。",
+  "@authPasswordResetGenericError": {
+    "description": "Auth UI: authPasswordResetGenericError"
+  },
+  "authPasswordUpdateGenericError": "无法更新密码。请重试。",
+  "@authPasswordUpdateGenericError": {
+    "description": "Auth UI: authPasswordUpdateGenericError"
+  },
+  "authShowPasswordTooltip": "显示密码",
+  "@authShowPasswordTooltip": {
+    "description": "Auth UI: authShowPasswordTooltip"
+  },
+  "authHidePasswordTooltip": "隐藏密码",
+  "@authHidePasswordTooltip": {
+    "description": "Auth UI: authHidePasswordTooltip"
+  },
+  "authTermsPageTitle": "服务条款",
+  "@authTermsPageTitle": {
+    "description": "Auth UI: authTermsPageTitle"
+  },
+  "authPrivacyPageTitle": "隐私政策",
+  "@authPrivacyPageTitle": {
+    "description": "Auth UI: authPrivacyPageTitle"
+  },
+  "authCloseButton": "关闭",
+  "@authCloseButton": {
+    "description": "Auth UI: authCloseButton"
+  },
+  "pollDetail_favoriteUpdateError": "无法更新已保存内容",
+  "@pollDetail_favoriteUpdateError": {
+    "description": "Poll detail UI: pollDetail_favoriteUpdateError"
+  },
+  "pollDetail_shareMessage": "打开 Social Vote 查看并参与此 Vote。",
+  "@pollDetail_shareMessage": {
+    "description": "Poll detail UI: pollDetail_shareMessage"
+  },
+  "pollDetail_shareError": "无法分享 Vote",
+  "@pollDetail_shareError": {
+    "description": "Poll detail UI: pollDetail_shareError"
+  },
+  "pollDetail_editPermissionError": "你只能编辑自己创建且尚无投票记录的 Vote",
+  "@pollDetail_editPermissionError": {
+    "description": "Poll detail UI: pollDetail_editPermissionError"
+  },
+  "pollDetail_editSuccessMessage": "Vote 已更新",
+  "@pollDetail_editSuccessMessage": {
+    "description": "Poll detail UI: pollDetail_editSuccessMessage"
+  },
+  "pollDetail_editMenuItem": "编辑 Vote",
+  "@pollDetail_editMenuItem": {
+    "description": "Poll detail UI: pollDetail_editMenuItem"
+  },
+  "pollDetail_editSavingMenuItem": "正在保存...",
+  "@pollDetail_editSavingMenuItem": {
+    "description": "Poll detail UI: pollDetail_editSavingMenuItem"
+  },
+  "pollDetail_deletePermissionError": "你只能删除自己创建的 Vote",
+  "@pollDetail_deletePermissionError": {
+    "description": "Poll detail UI: pollDetail_deletePermissionError"
+  },
+  "pollDetail_deleteError": "无法删除 Vote",
+  "@pollDetail_deleteError": {
+    "description": "Poll detail UI: pollDetail_deleteError"
+  },
+  "pollDetail_deleteDialogTitle": "删除 Vote",
+  "@pollDetail_deleteDialogTitle": {
+    "description": "Poll detail UI: pollDetail_deleteDialogTitle"
+  },
+  "pollDetail_deleteDialogMessage": "你确定要删除“{title}”吗？此操作无法撤销。",
+  "@pollDetail_deleteDialogMessage": {
+    "description": "Poll detail UI: pollDetail_deleteDialogMessage",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "pollDetail_deleteMenuItem": "删除 Vote",
+  "@pollDetail_deleteMenuItem": {
+    "description": "Poll detail UI: pollDetail_deleteMenuItem"
+  },
+  "pollDetail_deleteDeletingMenuItem": "正在删除...",
+  "@pollDetail_deleteDeletingMenuItem": {
+    "description": "Poll detail UI: pollDetail_deleteDeletingMenuItem"
+  },
+  "pollDetail_publicVotesAvailableTitle": "可查看公开投票",
+  "@pollDetail_publicVotesAvailableTitle": {
+    "description": "Poll detail UI: pollDetail_publicVotesAvailableTitle"
+  },
+  "pollDetail_publicVotesAvailableMessage": "此 Vote 允许查看每个选项的投票者。",
+  "@pollDetail_publicVotesAvailableMessage": {
+    "description": "Poll detail UI: pollDetail_publicVotesAvailableMessage"
+  },
+  "pollDetail_publicVotesAction": "查看公开投票",
+  "@pollDetail_publicVotesAction": {
+    "description": "Poll detail UI: pollDetail_publicVotesAction"
+  },
+  "pollDetail_retryButton": "重试",
+  "@pollDetail_retryButton": {
+    "description": "Poll detail UI: pollDetail_retryButton"
+  },
+  "pollDetail_voteErrorNoOption": "请至少选择一个选项",
+  "@pollDetail_voteErrorNoOption": {
+    "description": "Poll detail UI: pollDetail_voteErrorNoOption"
+  },
+  "pollDetail_voteErrorAuthenticationRequired": "你必须登录后才能投票",
+  "@pollDetail_voteErrorAuthenticationRequired": {
+    "description": "Poll detail UI: pollDetail_voteErrorAuthenticationRequired"
+  },
+  "pollDetail_voteErrorClosed": "此 Vote 已关闭",
+  "@pollDetail_voteErrorClosed": {
+    "description": "Poll detail UI: pollDetail_voteErrorClosed"
+  },
+  "pollDetail_voteErrorAlreadyVoted": "你已经参与过此 Vote",
+  "@pollDetail_voteErrorAlreadyVoted": {
+    "description": "Poll detail UI: pollDetail_voteErrorAlreadyVoted"
+  },
+  "pollDetail_voteErrorGeneric": "无法提交投票",
+  "@pollDetail_voteErrorGeneric": {
+    "description": "Poll detail UI: pollDetail_voteErrorGeneric"
+  },
+  "pollDetail_publicVotesSheetTitle": "公开投票",
+  "@pollDetail_publicVotesSheetTitle": {
+    "description": "Poll detail UI: pollDetail_publicVotesSheetTitle"
+  },
+  "pollDetail_publicVotesSheetDescription": "这里可以查看此 Vote 中每个选项的投票者。",
+  "@pollDetail_publicVotesSheetDescription": {
+    "description": "Poll detail UI: pollDetail_publicVotesSheetDescription"
+  },
+  "pollDetail_publicVotesSearchHint": "搜索用户",
+  "@pollDetail_publicVotesSearchHint": {
+    "description": "Poll detail UI: pollDetail_publicVotesSearchHint"
+  },
+  "pollDetail_publicVotesLoadError": "无法加载公开投票",
+  "@pollDetail_publicVotesLoadError": {
+    "description": "Poll detail UI: pollDetail_publicVotesLoadError"
+  },
+  "pollDetail_publicVotesEmpty": "暂无公开投票",
+  "@pollDetail_publicVotesEmpty": {
+    "description": "Poll detail UI: pollDetail_publicVotesEmpty"
+  },
+  "pollDetail_publicVotesSearchEmpty": "未找到相关用户",
+  "@pollDetail_publicVotesSearchEmpty": {
+    "description": "Poll detail UI: pollDetail_publicVotesSearchEmpty"
+  },
+  "pollDetail_publicVotesResultsCount": "已加载 {count} 条结果",
+  "@pollDetail_publicVotesResultsCount": {
+    "description": "Poll detail UI: pollDetail_publicVotesResultsCount",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_publicVotesLoadMore": "加载更多",
+  "@pollDetail_publicVotesLoadMore": {
+    "description": "Poll detail UI: pollDetail_publicVotesLoadMore"
+  },
+  "pollDetail_publicVotesUserFallback": "用户",
+  "@pollDetail_publicVotesUserFallback": {
+    "description": "Poll detail UI: pollDetail_publicVotesUserFallback"
+  },
+  "pollDetail_editDialogTitle": "编辑 Vote",
+  "@pollDetail_editDialogTitle": {
+    "description": "Poll detail UI: pollDetail_editDialogTitle"
+  },
+  "pollDetail_editTitleFieldLabel": "标题",
+  "@pollDetail_editTitleFieldLabel": {
+    "description": "Poll detail UI: pollDetail_editTitleFieldLabel"
+  },
+  "pollDetail_editTitleRequired": "标题为必填项",
+  "@pollDetail_editTitleRequired": {
+    "description": "Poll detail UI: pollDetail_editTitleRequired"
+  },
+  "pollDetail_editDescriptionFieldLabel": "描述",
+  "@pollDetail_editDescriptionFieldLabel": {
+    "description": "Poll detail UI: pollDetail_editDescriptionFieldLabel"
+  },
+  "pollDetail_editError": "无法更新 Vote",
+  "@pollDetail_editError": {
+    "description": "Poll detail UI: pollDetail_editError"
+  },
+  "pollDetail_loadError": "无法加载 Vote",
+  "@pollDetail_loadError": {
+    "description": "Poll detail UI: pollDetail_loadError"
+  },
+  "pollDetail_notFound": "未找到 Vote",
+  "@pollDetail_notFound": {
+    "description": "Poll detail UI: pollDetail_notFound"
+  },
+  "profileEditPageTitle": "编辑个人资料",
+  "@profileEditPageTitle": {
+    "description": "Edit profile UI: profileEditPageTitle"
+  },
+  "profileLoginRequiredMessage": "你必须登录后才能编辑个人资料。",
+  "@profileLoginRequiredMessage": {
+    "description": "Edit profile UI: profileLoginRequiredMessage"
+  },
+  "profileAvatarUploading": "正在上传...",
+  "@profileAvatarUploading": {
+    "description": "Edit profile UI: profileAvatarUploading"
+  },
+  "profileUploadAvatarButton": "上传头像",
+  "@profileUploadAvatarButton": {
+    "description": "Edit profile UI: profileUploadAvatarButton"
+  },
+  "profileDisplayNameLabel": "显示名称",
+  "@profileDisplayNameLabel": {
+    "description": "Edit profile UI: profileDisplayNameLabel"
+  },
+  "profileDisplayNameRequiredError": "显示名称为必填项。",
+  "@profileDisplayNameRequiredError": {
+    "description": "Edit profile UI: profileDisplayNameRequiredError"
+  },
+  "profileUsernameHint": "例如 mario_roma",
+  "@profileUsernameHint": {
+    "description": "Edit profile UI: profileUsernameHint"
+  },
+  "profileUsernameHelper": "3–20 个字符：小写字母、数字和下划线",
+  "@profileUsernameHelper": {
+    "description": "Edit profile UI: profileUsernameHelper"
+  },
+  "profileAvatarUrlLabel": "头像 URL",
+  "@profileAvatarUrlLabel": {
+    "description": "Edit profile UI: profileAvatarUrlLabel"
+  },
+  "profileBioLabel": "简介",
+  "@profileBioLabel": {
+    "description": "Edit profile UI: profileBioLabel"
+  },
+  "profileClearCountryButton": "清除国家",
+  "@profileClearCountryButton": {
+    "description": "Edit profile UI: profileClearCountryButton"
+  },
+  "profileCityResidenceHelper": "保存前会根据所选国家验证居住城市。",
+  "@profileCityResidenceHelper": {
+    "description": "Edit profile UI: profileCityResidenceHelper"
+  },
+  "profileCityNotFoundError": "在所选国家中未找到该城市。",
+  "@profileCityNotFoundError": {
+    "description": "Edit profile UI: profileCityNotFoundError"
+  },
+  "profileCityVerificationError": "目前无法验证城市。",
+  "@profileCityVerificationError": {
+    "description": "Edit profile UI: profileCityVerificationError"
+  },
+  "profileAvatarUploadError": "无法上传头像。",
+  "@profileAvatarUploadError": {
+    "description": "Edit profile UI: profileAvatarUploadError"
+  },
+  "profileAccountSectionTitle": "账户",
+  "@profileAccountSectionTitle": {
+    "description": "Edit profile UI: profileAccountSectionTitle"
+  },
+  "profileAccountEmailHelper": "无法在此页面更改账户邮箱地址。",
+  "@profileAccountEmailHelper": {
+    "description": "Edit profile UI: profileAccountEmailHelper"
+  },
+  "profileChangePasswordAction": "更改密码",
+  "@profileChangePasswordAction": {
+    "description": "Edit profile UI: profileChangePasswordAction"
+  },
+  "profileChangePasswordDescription": "为此账户设置新密码。",
+  "@profileChangePasswordDescription": {
+    "description": "Edit profile UI: profileChangePasswordDescription"
+  },
+  "notificationsPageTitle": "通知",
+  "@notificationsPageTitle": {
+    "description": "Notifications UI: notificationsPageTitle"
+  },
+  "notificationsMarkAllReadAction": "全部标为已读",
+  "@notificationsMarkAllReadAction": {
+    "description": "Notifications UI: notificationsMarkAllReadAction"
+  },
+  "notificationsNoTargetMessage": "此通知没有可用的目标页面。",
+  "@notificationsNoTargetMessage": {
+    "description": "Notifications UI: notificationsNoTargetMessage"
+  },
+  "notificationsTargetUnavailableMessage": "与此通知关联的内容不可用。",
+  "@notificationsTargetUnavailableMessage": {
+    "description": "Notifications UI: notificationsTargetUnavailableMessage"
+  },
+  "notificationsLoadError": "无法加载通知。",
+  "@notificationsLoadError": {
+    "description": "Notifications UI: notificationsLoadError"
+  },
+  "notificationsRetryButton": "重试",
+  "@notificationsRetryButton": {
+    "description": "Notifications UI: notificationsRetryButton"
+  },
+  "notificationsEmptyMessage": "暂无通知。",
+  "@notificationsEmptyMessage": {
+    "description": "Notifications UI: notificationsEmptyMessage"
+  },
+  "notificationsCommentReplyTitle": "你的评论有新回复",
+  "@notificationsCommentReplyTitle": {
+    "description": "Notifications UI: notificationsCommentReplyTitle"
+  },
+  "notificationsMentionTitle": "有人提到了你",
+  "@notificationsMentionTitle": {
+    "description": "Notifications UI: notificationsMentionTitle"
+  },
+  "notificationsPollResultTitle": "Vote 更新",
+  "@notificationsPollResultTitle": {
+    "description": "Notifications UI: notificationsPollResultTitle"
+  },
+  "notificationsCommentReplySubtitle": "用户 {actor} 在 {target} 中回复了你",
+  "@notificationsCommentReplySubtitle": {
+    "description": "Notifications UI: notificationsCommentReplySubtitle",
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsMentionSubtitle": "用户 {actor} 在 {target} 中提到了你",
+  "@notificationsMentionSubtitle": {
+    "description": "Notifications UI: notificationsMentionSubtitle",
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsPollResultSubtitle": "{target} 中有新的结果",
+  "@notificationsPollResultSubtitle": {
+    "description": "Notifications UI: notificationsPollResultSubtitle",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsTargetPost": "一条 Voce",
+  "@notificationsTargetPost": {
+    "description": "Notifications UI: notificationsTargetPost"
+  },
+  "notificationsTargetNews": "一篇新闻",
+  "@notificationsTargetNews": {
+    "description": "Notifications UI: notificationsTargetNews"
+  },
+  "notificationsTargetPoll": "一个 Vote",
+  "@notificationsTargetPoll": {
+    "description": "Notifications UI: notificationsTargetPoll"
+  },
+  "notificationsTargetVideo": "一个视频",
+  "@notificationsTargetVideo": {
+    "description": "Notifications UI: notificationsTargetVideo"
+  },
+  "notificationsTargetContent": "某些内容",
+  "@notificationsTargetContent": {
+    "description": "Notifications UI: notificationsTargetContent"
+  },
+  "notificationsUserFallback": "用户",
+  "@notificationsUserFallback": {
+    "description": "Notifications UI: notificationsUserFallback"
+  },
+  "profileDeleteAccountAction": "删除账户",
+  "@profileDeleteAccountAction": {
+    "description": "Account hub: destructive action used to permanently delete the current account"
+  },
+  "profileDeleteAccountDescription": "永久删除账户及访问权限",
+  "@profileDeleteAccountDescription": {
+    "description": "Account hub: short description below the delete-account action"
+  },
+  "profileDeleteAccountDialogTitle": "删除账户",
+  "@profileDeleteAccountDialogTitle": {
+    "description": "Delete-account confirmation dialog title"
+  },
+  "profileDeleteAccountDialogMessage": "此操作为永久性操作，账户无法恢复。输入 DELETE 以确认。",
+  "@profileDeleteAccountDialogMessage": {
+    "description": "Delete-account confirmation dialog warning"
+  },
+  "profileDeleteAccountConfirmationLabel": "删除确认",
+  "@profileDeleteAccountConfirmationLabel": {
+    "description": "Label for the typed delete-account confirmation field"
+  },
+  "profileDeleteAccountConfirmationHint": "输入 DELETE",
+  "@profileDeleteAccountConfirmationHint": {
+    "description": "Hint for the typed delete-account confirmation field"
+  },
+  "profileDeleteAccountConfirmationError": "输入 DELETE 以继续。",
+  "@profileDeleteAccountConfirmationError": {
+    "description": "Validation error when the delete-account confirmation is incorrect"
+  },
+  "profileDeleteAccountCancelButton": "取消",
+  "@profileDeleteAccountCancelButton": {
+    "description": "Cancel button in the delete-account dialog"
+  },
+  "profileDeleteAccountConfirmButton": "永久删除",
+  "@profileDeleteAccountConfirmButton": {
+    "description": "Destructive confirmation button in the delete-account dialog"
+  },
+  "profileDeleteAccountFailureMessage": "无法删除账户。请重试。",
+  "@profileDeleteAccountFailureMessage": {
+    "description": "Fallback message shown when account deletion fails"
+  },
+  "identityActorTypePerson": "个人",
+  "@identityActorTypePerson": {
+    "description": "Public identity type label for a personal account"
+  },
+  "identityActorTypePublicOfficial": "公职人员",
+  "@identityActorTypePublicOfficial": {
+    "description": "Public identity type label for a verified public official"
+  },
+  "identityActorTypePublicInstitution": "公共机构",
+  "@identityActorTypePublicInstitution": {
+    "description": "Public identity type label for a verified public institution"
+  },
+  "identityActorTypeVerifiedOrganization": "已验证组织",
+  "@identityActorTypeVerifiedOrganization": {
+    "description": "Public identity type label for a verified non-governmental organization"
+  },
+  "identityVerificationNotVerified": "未验证",
+  "@identityVerificationNotVerified": {
+    "description": "Verification state label for a personal account without verification"
+  },
+  "identityVerificationLevel1": "已验证身份",
+  "@identityVerificationLevel1": {
+    "description": "Public label for personal identity verification level 1"
+  },
+  "identityVerificationLevel2": "高级已验证身份",
+  "@identityVerificationLevel2": {
+    "description": "Public label for personal identity verification level 2"
+  },
+  "identityBadgeLevel1": "已验证身份",
+  "@identityBadgeLevel1": {
+    "description": "Tooltip and badge label for personal verification level 1"
+  },
+  "identityBadgeLevel2": "高级已验证身份",
+  "@identityBadgeLevel2": {
+    "description": "Tooltip and badge label for personal verification level 2"
+  },
+  "identityBadgePublicOfficial": "公职人员",
+  "@identityBadgePublicOfficial": {
+    "description": "Tooltip and badge label for a verified public official"
+  },
+  "identityBadgePublicInstitution": "公共机构",
+  "@identityBadgePublicInstitution": {
+    "description": "Tooltip and badge label for a verified public institution"
+  },
+  "identityBadgeVerifiedOrganization": "已验证组织",
+  "@identityBadgeVerifiedOrganization": {
+    "description": "Tooltip and badge label for a verified organization"
+  },
+  "identityOrganizationNameLabel": "组织名称",
+  "@identityOrganizationNameLabel": {
+    "description": "Field label for the verified organization name"
+  },
+  "identityOrganizationNameRequired": "请输入组织名称。",
+  "@identityOrganizationNameRequired": {
+    "description": "Validation error when the organization name is missing"
+  },
+  "identityInstitutionLevelMunicipality": "市级",
+  "@identityInstitutionLevelMunicipality": {
+    "description": "Institution level label for a municipality"
+  },
+  "identityInstitutionLevelProvince": "省级",
+  "@identityInstitutionLevelProvince": {
+    "description": "Institution level label for a province"
+  },
+  "identityInstitutionLevelRegion": "地区级",
+  "@identityInstitutionLevelRegion": {
+    "description": "Institution level label for a region"
+  },
+  "identityInstitutionLevelMinistry": "部委",
+  "@identityInstitutionLevelMinistry": {
+    "description": "Institution level label for a ministry"
+  },
+  "identityInstitutionLevelGovernment": "政府",
+  "@identityInstitutionLevelGovernment": {
+    "description": "Institution level label for a government"
+  },
+  "identityInstitutionLevelPublicAgency": "公共机构",
+  "@identityInstitutionLevelPublicAgency": {
+    "description": "Institution level label for a public agency"
+  },
+  "identityInstitutionLevelOtherPublicBody": "其他公共机构",
+  "@identityInstitutionLevelOtherPublicBody": {
+    "description": "Institution level label for another public body"
+  },
+  "verificationRequestPersonLevel1": "个人验证 — 1 级",
+  "@verificationRequestPersonLevel1": {
+    "description": "Verification request type label for personal verification level 1"
+  },
+  "verificationRequestPersonLevel2": "个人验证 — 2 级",
+  "@verificationRequestPersonLevel2": {
+    "description": "Verification request type label for personal verification level 2"
+  },
+  "verificationRequestPublicOfficial": "公职人员验证",
+  "@verificationRequestPublicOfficial": {
+    "description": "Verification request type label for a public official"
+  },
+  "verificationRequestPublicInstitution": "公共机构验证",
+  "@verificationRequestPublicInstitution": {
+    "description": "Verification request type label for a public institution"
+  },
+  "verificationRequestVerifiedOrganization": "组织验证",
+  "@verificationRequestVerifiedOrganization": {
+    "description": "Verification request type label for a verified organization"
+  },
+  "verificationCenterTitle": "验证与账户类型",
+  "@verificationCenterTitle": {
+    "description": "Title of the verification and account type bottom sheet"
+  },
+  "verificationCurrentAccountSection": "当前账户",
+  "@verificationCurrentAccountSection": {
+    "description": "Section title for the current verified identity state"
+  },
+  "verificationAccountTypeValue": "账户类型：{accountType}",
+  "@verificationAccountTypeValue": {
+    "description": "Current public account type row",
+    "placeholders": {
+      "accountType": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationLevelValue": "验证级别：{level}",
+  "@verificationLevelValue": {
+    "description": "Current personal verification level row",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationOfficialTitleValue": "正式职务：{title}",
+  "@verificationOfficialTitleValue": {
+    "description": "Current official title row",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationInstitutionNameValue": "机构：{name}",
+  "@verificationInstitutionNameValue": {
+    "description": "Current public institution name row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationOrganizationNameValue": "组织：{name}",
+  "@verificationOrganizationNameValue": {
+    "description": "Current verified organization name row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationInstitutionLevelValue": "机构级别：{level}",
+  "@verificationInstitutionLevelValue": {
+    "description": "Current institution level row",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationActiveRequestSection": "进行中的申请",
+  "@verificationActiveRequestSection": {
+    "description": "Section title for an active verification request"
+  },
+  "verificationProfileUnchangedUntilApproval": "在申请获批前，你当前的个人资料不会更改。",
+  "@verificationProfileUnchangedUntilApproval": {
+    "description": "Explanation shown while a verification request is pending"
+  },
+  "verificationCancelPendingAction": "取消待处理申请",
+  "@verificationCancelPendingAction": {
+    "description": "Button label to cancel a pending verification request"
+  },
+  "verificationPendingBlocksNewRequests": "已有申请待处理时，无法提交新的申请。",
+  "@verificationPendingBlocksNewRequests": {
+    "description": "Message explaining that only one pending request is allowed"
+  },
+  "verificationNoActiveRequestSection": "没有进行中的申请",
+  "@verificationNoActiveRequestSection": {
+    "description": "Section title when there is no active verification request"
+  },
+  "verificationNoActiveRequestDescription": "你目前没有正在审核的申请。",
+  "@verificationNoActiveRequestDescription": {
+    "description": "Message shown when there is no active verification request"
+  },
+  "verificationLastRejectedSection": "最近一次被拒申请",
+  "@verificationLastRejectedSection": {
+    "description": "Section title for the most recently rejected request"
+  },
+  "verificationLastRejectedDescription": "你最近一次申请已被拒绝。",
+  "@verificationLastRejectedDescription": {
+    "description": "Message shown after a rejected verification request"
+  },
+  "verificationRejectedCanResubmit": "你当前的个人资料未发生变化。可以更正信息后重新提交申请。",
+  "@verificationRejectedCanResubmit": {
+    "description": "Explanation shown after a rejected request"
+  },
+  "verificationAvailableRequestsSection": "可申请项目",
+  "@verificationAvailableRequestsSection": {
+    "description": "Section title for verification request actions"
+  },
+  "verificationRequestLevel1Title": "申请个人验证 — 1 级",
+  "@verificationRequestLevel1Title": {
+    "description": "Action title for personal verification level 1"
+  },
+  "verificationRequestLevel1Subtitle": "基础个人身份验证",
+  "@verificationRequestLevel1Subtitle": {
+    "description": "Action subtitle for personal verification level 1"
+  },
+  "verificationRequestLevel2Title": "申请个人验证 — 2 级",
+  "@verificationRequestLevel2Title": {
+    "description": "Action title for personal verification level 2"
+  },
+  "verificationRequestLevel2Subtitle": "高级个人身份验证",
+  "@verificationRequestLevel2Subtitle": {
+    "description": "Action subtitle for personal verification level 2"
+  },
+  "verificationRequestPublicOfficialTitle": "申请公职人员账户",
+  "@verificationRequestPublicOfficialTitle": {
+    "description": "Action title for public official verification"
+  },
+  "verificationRequestPublicOfficialSubtitle": "需要正式职务并接受审核",
+  "@verificationRequestPublicOfficialSubtitle": {
+    "description": "Action subtitle for public official verification"
+  },
+  "verificationRequestPublicInstitutionTitle": "申请公共机构账户",
+  "@verificationRequestPublicInstitutionTitle": {
+    "description": "Action title for public institution verification"
+  },
+  "verificationRequestPublicInstitutionSubtitle": "需要机构名称、机构级别并接受审核",
+  "@verificationRequestPublicInstitutionSubtitle": {
+    "description": "Action subtitle for public institution verification"
+  },
+  "verificationRequestOrganizationTitle": "申请已验证组织账户",
+  "@verificationRequestOrganizationTitle": {
+    "description": "Action title for verified organization verification"
+  },
+  "verificationRequestOrganizationSubtitle": "需要组织信息、代表角色和 Admin 审核",
+  "@verificationRequestOrganizationSubtitle": {
+    "description": "Action subtitle for verified organization verification"
+  },
+  "verificationNoSelfServiceUpgrade": "当前账户状态没有可用的自助验证选项。",
+  "@verificationNoSelfServiceUpgrade": {
+    "description": "Message when no self-service verification action is available"
+  },
+  "verificationRequestSubmitSuccess": "申请提交成功。",
+  "@verificationRequestSubmitSuccess": {
+    "description": "Success message after submitting a verification request"
+  },
+  "verificationRequestSubmitFailure": "无法提交申请。",
+  "@verificationRequestSubmitFailure": {
+    "description": "Fallback error message after submitting a verification request"
+  },
+  "verificationOfficialTitleDialogTitle": "公职人员验证",
+  "@verificationOfficialTitleDialogTitle": {
+    "description": "Dialog title for a public official verification request"
+  },
+  "verificationOfficialTitleLabel": "正式职务",
+  "@verificationOfficialTitleLabel": {
+    "description": "Field label for a public official title"
+  },
+  "verificationOfficialTitleHint": "例如 市长、议员、部长",
+  "@verificationOfficialTitleHint": {
+    "description": "Hint for the public official title field"
+  },
+  "verificationInstitutionDialogTitle": "公共机构验证",
+  "@verificationInstitutionDialogTitle": {
+    "description": "Dialog title for a public institution verification request"
+  },
+  "verificationInstitutionNameLabel": "机构名称",
+  "@verificationInstitutionNameLabel": {
+    "description": "Field label for the public institution name"
+  },
+  "verificationInstitutionNameHint": "例如 罗马市政府",
+  "@verificationInstitutionNameHint": {
+    "description": "Hint for the public institution name field"
+  },
+  "verificationInstitutionLevelLabel": "机构级别",
+  "@verificationInstitutionLevelLabel": {
+    "description": "Field label for the public institution level"
+  },
+  "verificationOrganizationDialogTitle": "组织验证",
+  "@verificationOrganizationDialogTitle": {
+    "description": "Dialog title for a verified organization request"
+  },
+  "verificationOrganizationNameHint": "例如 意大利环境协会",
+  "@verificationOrganizationNameHint": {
+    "description": "Hint for the verified organization name field"
+  },
+  "verificationSubmitRequestAction": "提交申请",
+  "@verificationSubmitRequestAction": {
+    "description": "Button label to submit a verification request"
+  },
+  "verificationCancelDialogTitle": "取消申请",
+  "@verificationCancelDialogTitle": {
+    "description": "Title of the pending verification cancellation dialog"
+  },
+  "verificationCancelDialogBody": "确定要取消待处理的验证申请吗？",
+  "@verificationCancelDialogBody": {
+    "description": "Confirmation message for cancelling a pending verification request"
+  },
+  "verificationCancelSuccess": "申请已取消。",
+  "@verificationCancelSuccess": {
+    "description": "Success message after cancelling a verification request"
+  },
+  "verificationCancelFailure": "无法取消申请。",
+  "@verificationCancelFailure": {
+    "description": "Fallback error after cancelling a verification request"
+  },
+  "verificationStatusPendingSuffix": "申请审核中",
+  "@verificationStatusPendingSuffix": {
+    "description": "Status suffix shown when a verification request is pending"
+  },
+  "verificationStatusRejectedSuffix": "最近一次申请被拒",
+  "@verificationStatusRejectedSuffix": {
+    "description": "Status suffix shown when the last verification request was rejected"
+  },
+  "verificationReviewPageTitle": "验证审核",
+  "@verificationReviewPageTitle": {
+    "description": "Title of the administrator verification review page"
+  },
+  "verificationReviewLoginRequired": "你必须登录后才能审核验证申请。",
+  "@verificationReviewLoginRequired": {
+    "description": "Message shown when the reviewer is not logged in"
+  },
+  "verificationReviewPendingCount": "待处理申请：{count}",
+  "@verificationReviewPendingCount": {
+    "description": "Number of pending verification requests",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "verificationReviewNoPendingRequests": "没有待处理的验证申请。",
+  "@verificationReviewNoPendingRequests": {
+    "description": "Message shown when there are no pending verification requests"
+  },
+  "verificationReviewUserIdLabel": "用户 ID",
+  "@verificationReviewUserIdLabel": {
+    "description": "Label for the user identifier in a verification review card"
+  },
+  "verificationReviewSubmittedLabel": "提交时间",
+  "@verificationReviewSubmittedLabel": {
+    "description": "Label for the submission date of a verification request"
+  },
+  "verificationReviewOfficialTitleLabel": "正式职务",
+  "@verificationReviewOfficialTitleLabel": {
+    "description": "Label for the public official title in a review card"
+  },
+  "verificationReviewInstitutionLabel": "机构",
+  "@verificationReviewInstitutionLabel": {
+    "description": "Label for the institution name in a review card"
+  },
+  "verificationReviewOrganizationLabel": "组织",
+  "@verificationReviewOrganizationLabel": {
+    "description": "Label for the organization name in a review card"
+  },
+  "verificationReviewNoteLabel": "审核备注",
+  "@verificationReviewNoteLabel": {
+    "description": "Label for an existing review note"
+  },
+  "verificationReviewRejectAction": "拒绝",
+  "@verificationReviewRejectAction": {
+    "description": "Button label to reject a verification request"
+  },
+  "verificationReviewApproveAction": "批准",
+  "@verificationReviewApproveAction": {
+    "description": "Button label to approve a verification request"
+  },
+  "verificationReviewApproveDialogTitle": "批准申请",
+  "@verificationReviewApproveDialogTitle": {
+    "description": "Title of the approve verification request dialog"
+  },
+  "verificationReviewRejectDialogTitle": "拒绝申请",
+  "@verificationReviewRejectDialogTitle": {
+    "description": "Title of the reject verification request dialog"
+  },
+  "verificationReviewApproveConfirmation": "确认批准此申请？",
+  "@verificationReviewApproveConfirmation": {
+    "description": "Confirmation message before approving a verification request"
+  },
+  "verificationReviewRejectConfirmation": "确认拒绝此申请？",
+  "@verificationReviewRejectConfirmation": {
+    "description": "Confirmation message before rejecting a verification request"
+  },
+  "verificationReviewOptionalNoteLabel": "可选审核备注",
+  "@verificationReviewOptionalNoteLabel": {
+    "description": "Field label for an optional review note"
+  },
+  "verificationReviewRequiredNoteLabel": "拒绝原因",
+  "@verificationReviewRequiredNoteLabel": {
+    "description": "Field label for the required rejection reason"
+  },
+  "verificationReviewOptionalHelper": "可选",
+  "@verificationReviewOptionalHelper": {
+    "description": "Helper text for an optional review note"
+  },
+  "verificationReviewRequiredHelper": "拒绝时必填",
+  "@verificationReviewRequiredHelper": {
+    "description": "Helper text for the required rejection reason"
+  },
+  "verificationReviewRequiredNoteError": "请输入拒绝原因。",
+  "@verificationReviewRequiredNoteError": {
+    "description": "Validation error when the rejection reason is missing"
+  },
+  "verificationReviewApprovedSuccess": "申请已批准。",
+  "@verificationReviewApprovedSuccess": {
+    "description": "Success message after approving a verification request"
+  },
+  "verificationReviewRejectedSuccess": "申请已拒绝。",
+  "@verificationReviewRejectedSuccess": {
+    "description": "Success message after rejecting a verification request"
+  },
+  "verificationReviewOperationFailure": "操作失败。",
+  "@verificationReviewOperationFailure": {
+    "description": "Fallback error message for a failed review operation"
+  },
+  "adminCenterTitle": "Admin Center",
+  "adminCenterDashboardNavigation": "仪表盘",
+  "adminCenterUsersNavigation": "用户",
+  "adminCenterVerificationNavigation": "验证",
+  "adminCenterReportsNavigation": "举报",
+  "adminCenterAuditNavigation": "审计",
+  "adminCenterAccountDetailsTitle": "账户详情",
+  "adminCenterTryAgainAction": "重试",
+  "adminCenterRetryAction": "重试",
+  "adminCenterClearAction": "清除",
+  "adminCenterApplyFiltersAction": "应用筛选",
+  "adminCenterAllDates": "所有日期",
+  "adminCenterAuditDateFilterHelp": "按日期筛选审计记录",
+  "adminCenterActorUserIdLabel": "操作人用户 ID",
+  "adminCenterActionLabel": "操作",
+  "adminCenterAuditActionHint": "resolve_escalated_report",
+  "adminCenterTargetIdLabel": "目标 ID",
+  "adminCenterOutcomeLabel": "结果",
+  "adminCenterAllOutcomes": "所有结果",
+  "adminCenterOutcomeSuccess": "成功",
+  "adminCenterOutcomeFailure": "失败",
+  "adminCenterOutcomeDenied": "已拒绝",
+  "adminCenterOutcomeNoChange": "无变化",
+  "adminCenterOutcomeUnknown": "未知",
+  "adminCenterAuditUnavailableTitle": "审计不可用",
+  "adminCenterAuditUnavailableMessage": "请检查网络连接和权限后重试。",
+  "adminCenterNoAuditEntriesTitle": "没有审计记录",
+  "adminCenterNoAuditEntriesMessage": "没有符合所选筛选条件的记录。",
+  "adminCenterAuditIdLabel": "审计 ID",
+  "adminCenterActorLabel": "操作人",
+  "adminCenterReasonLabel": "原因",
+  "adminCenterTimestampLabel": "时间戳",
+  "adminCenterErrorLabel": "错误",
+  "adminCenterRecordedValuesTitle": "已记录值",
+  "adminCenterPreviousValueLabel": "之前",
+  "adminCenterNewValueLabel": "之后",
+  "adminCenterContentTypeLabel": "内容类型",
+  "adminCenterAllContent": "所有内容",
+  "adminCenterPolls": "Vote",
+  "adminCenterPosts": "Voce",
+  "adminCenterNews": "News",
+  "adminCenterAwaitingAdminDecision": "等待 Admin 决策",
+  "adminCenterStatusLabel": "状态",
+  "adminCenterAllStatuses": "所有状态",
+  "adminCenterStatusOpen": "开放",
+  "adminCenterStatusInReview": "审核中",
+  "adminCenterStatusResolved": "已解决",
+  "adminCenterStatusDismissed": "已驳回",
+  "adminCenterAdminQueueUnavailableTitle": "Admin 升级队列不可用",
+  "adminCenterReportsUnavailableTitle": "举报不可用",
+  "adminCenterConnectionTryAgainMessage": "请检查网络连接后重试。",
+  "adminCenterNoAdminReportsTitle": "没有等待 Admin 决策的举报",
+  "adminCenterNoReportsTitle": "没有举报",
+  "adminCenterNoAdminReportsMessage": "没有需要管理员审核的升级举报。",
+  "adminCenterNoReportsMessage": "没有符合所选筛选条件的举报。",
+  "adminCenterSearchUsersHint": "按名称、用户名、电子邮箱或 ID 搜索",
+  "adminCenterClearSearchTooltip": "清除搜索",
+  "adminCenterUsersUnavailableTitle": "用户不可用",
+  "adminCenterNoUsersFoundTitle": "未找到用户",
+  "adminCenterNoUsersTitle": "没有用户",
+  "adminCenterNoUsersFoundMessage": "请尝试其他名称、用户名、电子邮箱或 ID。",
+  "adminCenterNoUsersMessage": "没有可显示的账户。",
+  "adminCenterAccountUnavailableTitle": "账户不可用",
+  "adminCenterBackToUsersAction": "返回用户列表",
+  "adminCenterPublicIdentitySection": "公开身份",
+  "adminCenterDisplayNameLabel": "显示名称",
+  "adminCenterNotProvided": "未提供",
+  "adminCenterUsernameLabel": "用户名",
+  "adminCenterUserIdLabel": "用户 ID",
+  "adminCenterIdentityTypeLabel": "身份类型",
+  "adminCenterAccountSection": "账户",
+  "adminCenterTechnicalRoleLabel": "技术角色",
+  "adminCenterRoleMirrorLabel": "资料角色镜像",
+  "adminCenterRoleSynchronizationLabel": "角色同步",
+  "adminCenterSynchronized": "已同步",
+  "adminCenterNotSynchronized": "未同步",
+  "adminCenterRoleNotSynchronized": "角色未同步",
+  "adminCenterAccountStatusLabel": "账户状态",
+  "adminCenterSuspendedUntilLabel": "暂停至",
+  "adminCenterAccountManagementSection": "账户管理",
+  "adminCenterDangerZoneSection": "危险区域",
+  "adminCenterRoleManagementSection": "角色管理",
+  "adminCenterVerificationLevelLabel": "验证级别",
+  "adminCenterVerificationStatusLabel": "验证状态",
+  "adminCenterAccessInformationSection": "访问信息",
+  "adminCenterEmailLabel": "电子邮箱",
+  "adminCenterNotAvailable": "不可用",
+  "adminCenterEmailConfirmationLabel": "邮箱确认",
+  "adminCenterNotConfirmed": "未确认",
+  "adminCenterRegisteredLabel": "注册时间",
+  "adminCenterLastAccessLabel": "最后访问",
+  "adminCenterLoadingDashboardTitle": "正在加载仪表盘",
+  "adminCenterLoadingDashboardMessage": "正在获取最新指标。",
+  "adminCenterDashboardUnavailableTitle": "仪表盘不可用",
+  "adminCenterIndicatorsUnavailableMessage": "无法加载指标。",
+  "adminCenterVerificationPendingIndicator": "待验证",
+  "adminCenterOpenReportsIndicator": "未处理举报",
+  "adminCenterSuspendedAccountsIndicator": "已暂停账户",
+  "adminCenterStaffIndicator": "工作人员",
+  "adminCenterNoPendingWorkTitle": "没有待处理工作",
+  "adminCenterNoPendingWorkMessage": "验证、举报和暂停账户均已处理完毕。",
+  "adminCenterCouldNotUpdateUsers": "无法更新用户列表。",
+  "adminCenterCouldNotUpdateReports": "无法更新举报队列。",
+  "adminCenterUnnamedUser": "未命名用户",
+  "adminCenterTemporarySuspensionTitle": "临时暂停",
+  "adminCenterReactivateDescription": "立即解除暂停并允许重新登录。",
+  "adminCenterSuspendDescription": "在限定时间内阻止访问并结束所有当前会话。",
+  "adminCenterSuspensionUnavailableDescription": "暂停操作要求账户已同步且不是 admin 账户。",
+  "adminCenterReactivateAccountAction": "重新激活账户",
+  "adminCenterSuspendAccountAction": "暂停账户",
+  "adminCenterForceLogoutAction": "强制退出",
+  "adminCenterSuspendedForceLogoutDescription": "暂停操作已结束当前会话。测试单独退出前，请先重新激活账户。",
+  "adminCenterForceLogoutDescription": "结束所有当前会话，但不暂停账户。",
+  "adminCenterForceLogoutUnavailableDescription": "强制退出要求账户已同步且不是 admin 账户。",
+  "adminCenterPermanentDeletionTitle": "永久删除账户",
+  "adminCenterPermanentDeletionDescription": "删除认证数据、结束所有会话，并匿名化保留的公开记录。",
+  "adminCenterDeletionUnavailableDescription": "删除操作要求账户已同步且不是 admin 账户。",
+  "adminCenterDeleteAccountPermanentlyAction": "永久删除账户",
+  "adminCenterDurationOneHour": "1 小时",
+  "adminCenterDurationOneDay": "24 小时",
+  "adminCenterDurationSevenDays": "7 天",
+  "adminCenterDurationThirtyDays": "30 天",
+  "adminCenterSuspendImmediateEffect": "账户将立即失去访问权限，所有当前会话都会结束。",
+  "adminCenterDurationLabel": "时长",
+  "adminCenterSuspendReasonHint": "说明为何必须暂停此账户",
+  "adminCenterReactivateReasonHint": "说明为何可以重新激活此账户",
+  "adminCenterReactivateConfirmation": "我确认此账户可以恢复访问权限。",
+  "adminCenterReactivateFailure": "无法重新激活账户。请检查其角色和状态后重试。",
+  "adminCenterReactivateSuccess": "账户已重新激活，现在允许重新登录。",
+  "adminCenterForceLogoutFullDescription": "结束此账户的所有当前会话。账户仍保持有效，可以再次登录。",
+  "adminCenterForceLogoutReasonHint": "说明为何必须结束当前会话",
+  "adminCenterForceLogoutConfirmation": "我确认立即结束此账户的所有当前会话。",
+  "adminCenterForceLogoutFailure": "无法使账户退出。请检查其角色和状态后重试。",
+  "adminCenterForceLogoutSuccess": "当前会话已结束。账户可以再次登录。",
+  "adminCenterSuspendFailure": "无法暂停账户。请检查其角色和状态后重试。",
+  "adminCenterDeleteReasonHint": "说明为何必须删除此账户",
+  "adminCenterTypeDeleteLabel": "输入 DELETE",
+  "adminCenterTypeAccountIdLabel": "输入完整的账户 ID",
+  "adminCenterDeletePermanentlyAction": "永久删除",
+  "adminCenterDeleteIrreversibleWarning": "此操作不可逆。认证数据和当前会话将被删除，头像会被删除，保留的公开记录将被匿名化。审计记录将保留。",
+  "adminCenterDeleteFailure": "无法删除账户。请检查其角色、状态和确认信息后重试。",
+  "adminCenterDeleteSuccess": "账户已永久删除，个人数据已匿名化。",
+  "adminCenterChangeTechnicalRoleTitle": "更改技术角色",
+  "adminCenterChangeRoleDescription": "确认前请核对当前角色和目标角色。",
+  "adminCenterChangeRoleUnavailableDescription": "角色更改要求账户已同步且未删除。",
+  "adminCenterChangeRoleAction": "更改角色",
+  "adminCenterChangePublicIdentityTitle": "更改公开身份",
+  "adminCenterChangeIdentityDescription": "更新公开账户类型和验证级别。",
+  "adminCenterChangeIdentityUnavailableDescription": "身份更改要求账户已同步且不是 admin 账户。",
+  "adminCenterChangeIdentityAction": "更改身份",
+  "adminCenterChoosePublicIdentityMessage": "选择公开账户类型及其验证状态。",
+  "adminCenterPublicAccountTypeLabel": "公开账户类型",
+  "adminCenterPersonVerificationHelper": "1 级和 2 级仅适用于 Persona。",
+  "adminCenterNonPersonVerificationHelper": "非 Persona 账户不使用 1 级或 2 级验证。",
+  "adminCenterBeforeLabel": "之前",
+  "adminCenterAfterLabel": "之后",
+  "adminCenterIdentityReasonHint": "说明为何必须更改公开身份",
+  "adminCenterIdentityConfirmation": "我确认上方显示的公开身份和验证级别。",
+  "adminCenterIdentityChangeFailure": "无法更改公开身份。请检查账户状态后重试。",
+  "adminCenterChooseTechnicalRoleMessage": "选择新的技术角色，并记录为何需要此更改。",
+  "adminCenterNewTechnicalRoleLabel": "新的技术角色",
+  "adminCenterSelectRole": "选择角色",
+  "adminCenterRoleSessionWarning": "此更改会结束目标用户的当前会话。对方必须重新登录后才能继续使用账户。",
+  "adminCenterRoleReasonHint": "说明为何必须更改技术角色",
+  "adminCenterRoleConfirmation": "我确认上方显示的角色，并理解目标用户必须重新登录。",
+  "adminCenterRoleChangeFailure": "无法完成角色更改。请检查账户状态后重试。",
+  "adminCenterChangingRole": "正在更改角色",
+  "adminCenterConfirmRoleChange": "确认角色更改",
+  "adminCenterRoleUser": "用户",
+  "adminCenterRoleModerator": "版主",
+  "adminCenterRoleAdmin": "Admin",
+  "adminCenterAccountStatusActive": "有效",
+  "adminCenterAccountStatusSuspended": "已暂停",
+  "adminCenterAccountStatusDeleted": "已删除",
+  "adminCenterVerificationStatusNone": "无",
+  "adminCenterVerificationStatusPending": "待处理",
+  "adminCenterVerificationStatusRejected": "已拒绝",
+  "adminCenterVerificationNotVerified": "未验证",
+  "adminCenterVerificationLevel1": "1 级",
+  "adminCenterVerificationLevel2": "2 级",
+  "adminCenterReportSingular": "举报",
+  "adminCenterReportPlural": "举报",
+  "adminCenterUserSingular": "用户",
+  "adminCenterUserPlural": "用户",
+  "adminCenterPoll": "Vote",
+  "adminCenterPost": "Voce",
+  "adminCenterUnknown": "未知",
+  "adminCenterContentHidden": "内容已隐藏",
+  "adminCenterContentVisible": "内容可见",
+  "adminCenterReportedByLabel": "举报者",
+  "adminCenterContentOwnerLabel": "内容所有者",
+  "adminCenterReviewReportAction": "审核举报",
+  "adminCenterAdminDecisionAction": "Admin 决策",
+  "adminCenterRestoreContentAction": "恢复内容",
+  "adminCenterHideContentAction": "隐藏内容",
+  "adminCenterOpenProfileAction": "打开个人资料",
+  "adminCenterOpenContentAction": "打开内容",
+  "adminCenterDecisionNoViolation": "无违规",
+  "adminCenterDecisionViolationConfirmed": "违规已确认",
+  "adminCenterDecisionEscalateToAdmin": "升级给 Admin",
+  "adminCenterResolutionNoAccountAction": "不对账户采取操作",
+  "adminCenterResolutionAccountSuspended": "账户已暂停",
+  "adminCenterResolutionLogoutForced": "已强制退出",
+  "adminCenterResolutionAccountDeleted": "账户已删除",
+  "adminCenterReviewerLabel": "审核人",
+  "adminCenterDecisionDescriptionNoViolation": "因内容未违反现行规则而驳回举报。",
+  "adminCenterDecisionDescriptionViolation": "确认存在违规，并将案件保留在审核中，以执行 AC8.5 中的内容处理操作。",
+  "adminCenterDecisionDescriptionEscalation": "将案件升级给管理员进行账户级审核。",
+  "adminCenterChooseModerationOutcome": "为此举报选择审核结果。",
+  "adminCenterDecisionAlreadyRecordedFailure": "无法记录决定。该举报可能已被审核。请刷新队列后重试。",
+  "adminCenterDecisionLabel": "决定",
+  "adminCenterReportReasonLabel": "举报原因",
+  "adminCenterReviewNoteLabel": "审核备注",
+  "adminCenterReviewNoteHint": "说明证据和审核决定",
+  "adminCenterRecordingDecision": "正在记录决定",
+  "adminCenterConfirmDecision": "确认决定",
+  "adminCenterAdministratorDecisionTitle": "管理员决定",
+  "adminCenterResolutionDescriptionNoAction": "关闭已升级举报，不对账户进行更改。",
+  "adminCenterResolutionDescriptionSuspended": "在账户暂停操作已成功并记录于审计日志后关闭举报。",
+  "adminCenterResolutionDescriptionLogout": "在强制退出操作已成功并记录于审计日志后关闭举报。",
+  "adminCenterResolutionDescriptionDeleted": "在账户删除操作已成功并记录于审计日志后关闭举报。",
+  "adminCenterChooseFinalOutcome": "为此次升级选择最终管理员处理结果。",
+  "adminCenterAdminResolutionFailure": "无法记录管理员决定。请刷新队列后重试。",
+  "adminCenterAdminResolutionRequiresAction": "请先完成对应的账户操作，然后返回此举报并记录最终管理员决定。",
+  "adminCenterEscalationNoteLabel": "升级备注",
+  "adminCenterFinalOutcomeLabel": "最终结果",
+  "adminCenterAdministratorNoteLabel": "管理员备注",
+  "adminCenterAdministratorNoteHint": "说明最终的账户级决定",
+  "adminCenterHideContentFailure": "无法隐藏内容。请刷新举报队列后重试。",
+  "adminCenterRestoreContentFailure": "无法恢复内容。请刷新举报队列后重试。",
+  "adminCenterHideContentWarning": "这会将被举报内容从公开访问中移除。之后可在“已解决举报”筛选中恢复。",
+  "adminCenterRestoreContentWarning": "这会让被举报内容重新公开可见。",
+  "adminCenterActionReasonLabel": "操作原因",
+  "adminCenterHideContentReasonHint": "说明为何必须隐藏内容",
+  "adminCenterRestoreContentReasonHint": "说明为何可以恢复内容",
+  "adminCenterHidingContent": "正在隐藏内容",
+  "adminCenterRestoringContent": "正在恢复内容",
+  "adminCenterReportedProfileTitle": "被举报的个人资料",
+  "adminCenterReportedProfileNotice": "此个人资料上下文来自受保护的举报队列。管理员账户操作仍需单独执行。",
+  "adminCenterCouldNotRefreshIndicators": "无法刷新指标。",
+  "adminCenterCouldNotRefreshAccount": "无法刷新账户详情。",
+  "adminCenterReportAlreadyReviewed": "此举报已被审核或不再处于待审核状态。",
+  "adminCenterReportNotAwaitingAdmin": "此举报不在等待管理员决定。",
+  "adminCenterConfirmedViolationRequired": "更改内容可见性前必须先确认存在违规。",
+  "adminCenterContentHiddenSuccess": "被举报内容已隐藏。",
+  "adminCenterContentRestoredSuccess": "被举报内容已恢复。",
+  "adminCenterMissingContentId": "缺少原始内容标识符。",
+  "adminCenterUnsupportedTargetType": "此举报的目标类型不受支持。",
+  "adminCenterOriginalContentUnavailable": "原始内容已不可用。",
+  "adminCenterNoReportedProfile": "此内容没有关联的被举报个人资料。",
+  "adminCenterRoleChangedSuccess": "技术角色已从 {previousRole} 更改为 {newRole}。目标用户已退出，必须重新登录。",
+  "@adminCenterRoleChangedSuccess": {
+    "placeholders": {
+      "previousRole": {
+        "type": "String"
+      },
+      "newRole": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterIdentityChangedSuccess": "公开身份已更改为 {actorType}，验证级别为 {verificationLevel}。",
+  "@adminCenterIdentityChangedSuccess": {
+    "placeholders": {
+      "actorType": {
+        "type": "String"
+      },
+      "verificationLevel": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAccountSuspendedSuccess": "账户已暂停至 {dateTime}。目标用户已退出。",
+  "@adminCenterAccountSuspendedSuccess": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterReportDecisionRecorded": "举报决定已记录：{decision}。",
+  "@adminCenterReportDecisionRecorded": {
+    "placeholders": {
+      "decision": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAdministratorDecisionRecorded": "管理员决定已记录：{decision}。",
+  "@adminCenterAdministratorDecisionRecorded": {
+    "placeholders": {
+      "decision": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterUsersCount": "{count, plural, =1 {{count} 个用户} other {{count} 个用户}}",
+  "@adminCenterUsersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterReportsCount": "{count, plural, =1 {{count} 条举报} other {{count} 条举报}}",
+  "@adminCenterReportsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterAccountValue": "账户：{account}",
+  "@adminCenterAccountValue": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterSuspendedUntilValue": "暂停至：{dateTime}",
+  "@adminCenterSuspendedUntilValue": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterSuspendConfirmation": "我确认暂停至 {dateTime}，并立即结束当前会话。",
+  "@adminCenterSuspendConfirmation": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAccountIdValue": "账户 ID：{accountId}",
+  "@adminCenterAccountIdValue": {
+    "placeholders": {
+      "accountId": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterCurrentRoleValue": "当前：{role}",
+  "@adminCenterCurrentRoleValue": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterTargetFallback": "{targetType} {targetId}",
+  "@adminCenterTargetFallback": {
+    "placeholders": {
+      "targetType": {
+        "type": "String"
+      },
+      "targetId": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterMinimumCharactersRequired": "备注至少需要 {count} 个字符。",
+  "@adminCenterMinimumCharactersRequired": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterMinimumReasonCharactersRequired": "原因至少需要 {count} 个字符。",
+  "@adminCenterMinimumReasonCharactersRequired": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterPageOf": "第 {currentPage} 页，共 {totalPages} 页",
+  "@adminCenterPageOf": {
+    "placeholders": {
+      "currentPage": {
+        "type": "int"
+      },
+      "totalPages": {
+        "type": "int"
+      }
+    }
+  },
+  "profilePublicProfileSectionTitle": "公开资料",
+  "profileIdentityVerificationSectionTitle": "身份与验证",
+  "profilePreferencesSectionTitle": "偏好设置",
+  "profileNotificationsSectionTitle": "通知",
+  "profileActivitySectionTitle": "个人活动",
+  "profileSecurityAccountSectionTitle": "安全与账户",
+  "profileThemeTitle": "主题",
+  "profileThemeSystem": "跟随系统",
+  "profileThemeSystemDescription": "使用设备主题",
+  "profileThemeLight": "浅色",
+  "profileThemeDark": "深色",
+  "profileMyPollsTitle": "Vote",
+  "profileMyPostsTitle": "Voce",
+  "profileMyCommentsTitle": "我的评论",
+  "profileMyFavoritesTitle": "我的收藏",
+  "profileAccountConnectionsTitle": "关注与粉丝",
+  "accountConnectionsFollowingTab": "关注",
+  "accountConnectionsFollowersTab": "粉丝",
+  "accountConnectionsEmptyFollowing": "你还没有关注任何账户。",
+  "accountConnectionsEmptyFollowers": "你还没有粉丝。",
+  "accountConnectionsLoadError": "无法加载账户。请重试。",
+  "profileMyFollowedScopesTitle": "我关注的地区",
+  "profileLogoutAction": "退出登录",
+  "profileLogoutDescription": "退出当前账户",
+  "profileLogoutDialogTitle": "退出登录",
+  "profileLogoutDialogMessage": "确定要退出当前账户吗？",
+  "profileLogoutCancelButton": "取消",
+  "profileLogoutConfirmButton": "退出登录",
+  "publicProfilePageTitle": "公开资料",
+  "publicProfileUserFallback": "用户",
+  "publicProfileNoBio": "暂无简介。",
+  "publicProfileResidenceLabel": "居住地",
+  "publicProfileResidenceUnknown": "未指定",
+  "publicProfileMemberSinceLabel": "加入时间",
+  "publicProfileContentSectionTitle": "公开内容",
+  "publicProfilePollsAction": "Vote",
+  "publicProfilePostsAction": "Voce",
+  "publicProfileBlockUserAction": "屏蔽用户",
+  "publicProfileLoadError": "无法加载个人资料。",
+  "publicProfileNotFound": "个人资料不可用。",
+  "publicProfileUnblockUserAction": "取消屏蔽用户",
+  "publicProfileBlockDialogTitle": "屏蔽此用户？",
+  "publicProfileBlockDialogMessage": "之后可以从其公开资料中取消屏蔽。",
+  "publicProfileUnblockDialogTitle": "取消屏蔽此用户？",
+  "publicProfileUnblockDialogMessage": "该用户将从你的屏蔽列表中移除。",
+  "publicProfileBlockSuccess": "用户已屏蔽。",
+  "publicProfileUnblockSuccess": "已取消屏蔽用户。",
+  "publicProfileBlockError": "无法更新屏蔽状态。请重试。",
+  "publicProfileFollowersLabel": "粉丝",
+  "publicProfileFollowingLabel": "关注",
+  "publicProfileFollowAction": "关注",
+  "publicProfileUnfollowAction": "取消关注",
+  "publicProfileFollowSuccess": "已关注账户。",
+  "publicProfileUnfollowSuccess": "已取消关注账户。",
+  "publicProfileFollowError": "无法更新关注状态。请重试。",
+  "publicProfileFollowRetry": "重新加载关注信息",
+  "contentLanguageFieldLabel": "内容语言",
+  "contentLanguageFieldHelper": "选择你撰写内容时使用的语言。",
+  "contentLanguageUndetermined": "未指定",
+  "createPollAdvancedOptionsTitle": "高级选项",
+  "createPollAdvancedOptionsSubtitle": "匿名性、结果可见性、投票更改和法定人数。",
+  "onboardingSkipButton": "跳过",
+  "onboardingNextButton": "下一步",
+  "onboardingStartButton": "开始",
+  "onboardingPollTitle": "Vote",
+  "onboardingPollDescription": "参与你关心主题的 Vote，或创建 Vote 以收集社区意见。",
+  "onboardingHeatIceTitle": "Heat 和 Ice",
+  "onboardingHeatIceDescription": "使用 Heat 和 Ice 表示某条内容吸引你的程度。",
+  "onboardingCivicMapTitle": "Civic Map",
+  "onboardingCivicMapDescription": "在地图上探索 Vote、Voce 和 News，了解不同地区正在发生什么。",
+  "onboardingGeoScopeTitle": "GeoScope",
+  "onboardingGeoScopeDescription": "选择你要关注的地理层级：世界、国家或城市。",
+  "onboardingVerificationTitle": "身份验证",
+  "onboardingVerificationDescription": "某些 Vote 可能要求特定验证级别，以保护投票完整性。",
+  "pollDetail_voteReceiptButton": "投票凭证",
+  "pollDetail_voteReceiptTitle": "投票凭证",
+  "pollDetail_voteReceiptIdLabel": "凭证 ID",
+  "pollDetail_voteReceiptDateLabel": "记录时间",
+  "pollDetail_voteReceiptPrivacy": "此凭证确认你的投票已被记录，但不会显示你选择了什么。",
+  "pollDetail_voteReceiptCloseButton": "关闭",
+  "profileBiometricUnlockTitle": "生物识别解锁",
+  "profileBiometricUnlockDescription": "使用设备指纹或生物识别保护已记住的会话。",
+  "profileBiometricRequiresRememberMe": "需要启用“记住我”。",
+  "profileBiometricUnavailable": "此设备上的生物识别不可用或尚未配置。",
+  "profileBiometricEnableReason": "请验证生物识别以启用 Social Vote 解锁。",
+  "profileBiometricEnabledMessage": "生物识别解锁已启用。",
+  "profileBiometricDisabledMessage": "生物识别解锁已关闭。",
+  "profileBiometricAuthFailedMessage": "生物识别认证未完成。",
+  "biometricLockTitle": "Social Vote 已锁定",
+  "biometricLockMessage": "使用设备生物识别解锁已记住的会话。",
+  "biometricUnlockButton": "解锁",
+  "biometricUsePasswordButton": "使用密码",
+  "biometricUnlockReason": "解锁你的 Social Vote 会话。",
+  "biometricUnlockFailedMessage": "解锁失败。请重试或使用密码。",
+  "adminCenterOperationalActivityTitle": "运营活动",
+  "adminCenterOperationalActivitySubtitle": "汇总计数。不进行实时在线状态跟踪。",
+  "adminCenterLast24HoursLabel": "24 小时",
+  "adminCenterLast7DaysLabel": "7 天",
+  "adminCenterNewUsersMetric": "新注册",
+  "adminCenterRecentSignInsMetric": "近期登录",
+  "adminCenterPollsCreatedMetric": "创建的 Vote",
+  "adminCenterPostsCreatedMetric": "创建的 Voce",
+  "adminCenterAdminActionsMetric": "Admin 操作",
+  "authPublicNameHelper": "这是其他用户将看到的名称。用户名会自动创建。",
+  "@authPublicNameHelper": {
+    "description": "Auth UI: explains public name and automatic username generation"
+  },
+  "adminCenterRefreshMarkersTooltip": "刷新地球标记",
+  "adminCenterMarkerDensityTitle": "世界标记密度",
+  "adminCenterMarkerDensitySubtitle": "控制 Home 地球的可视标记预算，不改变真实坐标或内容排序。",
+  "adminCenterMarkerDensityEmpty": "空",
+  "adminCenterMarkerDensityFull": "全部",
+  "adminCenterMarkerDensityBudget": "Home 预算：{count} 个标记",
+  "@adminCenterMarkerDensityBudget": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterMarkerDensitySaveError": "无法保存世界标记密度。",
+  "adminCenterMarkerDensityBackendUnavailable": "世界标记的后端设置暂不可用。",
+  "adminCenterQuickActionsTitle": "账户快捷操作",
+  "adminCenterModerationSnapshotTitle": "审核与活动概览",
+  "adminCenterReportsReceivedMetric": "收到的举报",
+  "adminCenterPendingReportsMetric": "待处理举报",
+  "adminCenterConfirmedViolationsMetric": "已确认违规",
+  "adminCenterReportsFiledMetric": "提交的举报",
+  "adminCenterCommentsCreatedMetric": "创建的评论",
+  "adminCenterAdminActionsOnAccountMetric": "针对账户的 Admin 操作",
+  "adminCenterLastReportReceivedLabel": "最近收到的举报",
+  "adminCenterOpenFullAccountAction": "打开完整账户控制",
+  "profileAppLanguageGerman": "德语",
+  "profileAppLanguagePersian": "波斯语",
+  "@profileAppLanguageGerman": {
+    "description": "Label for the German app language option"
+  },
+  "discoveryPageTitle": "探索",
+  "@discoveryPageTitle": {
+    "description": "Title of the Discovery section"
+  },
+  "organizationWorkspaceTitle": "组织 Workspace",
+  "organizationPilotBannerTitle": "免费试点",
+  "organizationPilotBannerBody": "试点期间 Sessions 免费。部分专业功能未来可能收费；当前未启用计费。",
+  "organizationVerifiedLabel": "已验证组织",
+  "organizationEditProfile": "编辑组织资料",
+  "organizationCreateSession": "新建 Session",
+  "organizationNoSessions": "还没有 Sessions。为会议、工作坊或活动创建第一个 Session。",
+  "organizationSessionsTitle": "Live Sessions",
+  "organizationRequiresVerificationTitle": "需要已验证组织",
+  "organizationRequiresVerificationBody": "此 workspace 仅对经 Social Vote 批准为已验证组织的账户开放。",
+  "organizationProfileEditorTitle": "组织资料",
+  "organizationLegalName": "法定名称",
+  "organizationPublicName": "公开名称",
+  "organizationType": "组织类型",
+  "organizationCountryCode": "国家代码",
+  "organizationCity": "城市",
+  "organizationWebsite": "官方网站",
+  "organizationDescription": "描述",
+  "organizationUploadCover": "更换封面",
+  "organizationUploadLogo": "更换标志",
+  "organizationMediaUpdated": "组织图片已更新。",
+  "organizationNamesRequired": "法定名称和公开名称为必填项。",
+  "organizationTypeAssociation": "协会",
+  "organizationTypeNonprofit": "非营利组织",
+  "organizationTypeCompany": "公司",
+  "organizationTypeCooperative": "合作社",
+  "organizationTypeSports": "体育组织",
+  "organizationTypePublicBody": "公共机构",
+  "organizationTypeCommittee": "委员会 / 团体",
+  "organizationTypeOther": "其他",
+  "sessionCreateTitle": "创建 Live Session",
+  "sessionTitleLabel": "Session 标题",
+  "sessionExpectedParticipants": "预计参与者",
+  "sessionAccessMode": "参与者访问方式",
+  "sessionAccessOpen": "开放匿名",
+  "sessionAccessOpenHint": "任何拥有链接/代码的人都可以加入。重复参与防护采用尽力而为方式；此模式不保证“一人一票”。",
+  "sessionAccessControlled": "受控匿名",
+  "sessionAccessControlledHint": "使用一次性匿名 Access Pass。Social Vote 仅存储 Access Pass 的哈希，不会将选票选择与参与者凭证关联。",
+  "sessionResultsVisibility": "结果可见性",
+  "sessionResultsLive": "实时",
+  "sessionResultsAfterVote": "参与者投票后",
+  "sessionResultsAfterClose": "问题关闭后",
+  "sessionResultsOrganizerOnly": "仅组织者",
+  "sessionCreateAction": "创建 Session",
+  "sessionPilotLimit": "试点限制：每个 Session 1 至 250 名参与者。",
+  "sessionStatusDraft": "草稿",
+  "sessionStatusOpen": "开放",
+  "sessionStatusClosed": "已关闭",
+  "sessionJoinCode": "加入代码",
+  "sessionShareJoin": "分享加入链接",
+  "sessionCopyJoinLink": "复制链接",
+  "sessionGenerateTokens": "生成 Access Pass",
+  "sessionGenerateTokensCount": "Access Pass 数量",
+  "sessionTokensOneTimeTitle": "立即保存这些凭证",
+  "sessionTokensOneTimeBody": "明文 Access Pass 仅在本次生成结果中显示。Social Vote 只存储其哈希。请复制并安全分发。",
+  "sessionCopyTokens": "复制所有链接",
+  "sessionTokensSavedAction": "我已保存",
+  "sessionOpenAction": "开启 Session",
+  "sessionCloseAction": "关闭 Session",
+  "sessionCloseConfirm": "关闭投票并创建不可变的 Verified Result 快照？",
+  "sessionQuestionsTitle": "问题",
+  "sessionAddQuestion": "添加问题",
+  "sessionQuestionTitle": "问题",
+  "sessionQuestionType": "问题类型",
+  "sessionTypeYesNo": "是 / 否",
+  "sessionTypeSingle": "单选",
+  "sessionTypeMultiple": "多选",
+  "sessionOptions": "选项",
+  "sessionOptionHint": "每行一个选项。",
+  "sessionMinSelections": "最少选择数",
+  "sessionMaxSelections": "最多选择数",
+  "sessionAddAction": "添加",
+  "sessionOpenQuestion": "开放问题",
+  "sessionCloseQuestion": "关闭问题",
+  "sessionNoQuestions": "还没有问题。",
+  "sessionPresenterTitle": "Presenter",
+  "sessionParticipantTitle": "Social Vote Live",
+  "sessionJoinAction": "加入 Session",
+  "sessionTokenLabel": "参与者令牌",
+  "sessionTokenHint": "SV-…",
+  "sessionWaitingQuestion": "等待组织者开放问题…",
+  "sessionVoteAction": "提交投票",
+  "sessionVoteReceived": "投票已收到",
+  "sessionResultsUnavailable": "根据此 Session 的策略，结果暂不可见。",
+  "sessionPrivacyNotice": "组织者定义 Session 的运营目的和问题。Social Vote 处理提供和保护服务所必需的技术数据。匿名模式不会向组织者暴露参与者凭证与其选择之间的关联。隐私角色可能因具体场景和适用协议而异。",
+  "sessionNonBindingNotice": "试点 Sessions 用于咨询和参与。它们不是法律意义上的选举、法定会议投票或具有法律约束力的认证。",
+  "sessionOptionYes": "是",
+  "sessionOptionNo": "否",
+  "verifiedResultTitle": "Verified Result",
+  "verifiedResultValid": "完整性检查通过",
+  "verifiedResultInvalid": "完整性检查失败",
+  "verifiedResultReportId": "报告 ID",
+  "verifiedResultHash": "SHA-256 结果哈希",
+  "verifiedResultGeneratedBy": "由 Social Vote 生成并加盖完整性封印",
+  "verifiedResultNotLegalCertificate": "这是可验证的汇总结果报告，不是法律证书，也不是具有法律约束力选举的认证。",
+  "verifiedResultShare": "分享验证链接",
+  "sessionResponses": "{count} 个回应",
+  "@sessionResponses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionResultVotes": "{count} 票",
+  "@sessionResultVotes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "organizationVerifiedIdentityLocked": "名称和国家属于组织已验证身份的一部分。更改它们需要重新验证。你可以自由更改封面、标志、类型、城市、网站和描述。",
+  "verifiedResultOpenedAt": "Session 开启时间",
+  "verifiedResultEligibleCredentials": "合格凭证",
+  "verifiedResultIntegritySeal": "Social Vote 完整性封印",
+  "organizationVerifiedNameLocked": "已验证名称和国家已锁定。更改它们需要重新审核验证。",
+  "sessionRetentionLabel": "原始选票保留期",
+  "sessionRetention24h": "24 小时",
+  "sessionRetention7d": "7 天",
+  "sessionRetention30d": "30 天",
+  "sessionRetentionValue": "原始选票保留期：{value}",
+  "@sessionRetentionValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "verifiedResultPrintPdf": "下载 PDF",
+  "verifiedResultPdfError": "无法下载 PDF。请重试。",
+  "verifiedResultRestrictedTitle": "受限结果",
+  "verifiedResultRestrictedBody": "此 Verified Result 不公开。请使用已授权的组织账户登录查看。",
+  "verifiedResultPrivateVerificationTitle": "公开验证不可用",
+  "verifiedResultPrivateVerificationBody": "此结果仅限组织者查看。报告 ID、SHA-256 和完整性检查仍可在授权报告中查看。",
+  "organizationAccountSectionTitle": "你的组织",
+  "organizationManageAction": "管理",
+  "organizationViewPublicProfileAction": "查看资料",
+  "organizationOfficialWebsiteAction": "官方网站",
+  "organizationVerificationIntro": "验证同时涵盖组织是否真实存在以及你是否有权代表该组织。Social Vote 会在批准前审核所提交的信息。",
+  "organizationVerificationLegalName": "法定名称",
+  "organizationVerificationPublicName": "公开名称",
+  "organizationVerificationType": "组织类型",
+  "organizationVerificationCountry": "国家",
+  "organizationVerificationCountryRequired": "请选择组织所在国家。",
+  "organizationVerificationCity": "城市",
+  "organizationVerificationWebsite": "官方网站",
+  "organizationVerificationRepresentativeRole": "你在组织中的角色",
+  "organizationVerificationRegistryId": "登记 / 税务 / 组织标识符",
+  "organizationVerificationAuthorityNote": "我们如何验证你有权代表该组织？",
+  "organizationVerificationAuthorityHelper": "简要说明你的角色，或 Admin 在试点期间可以核实的证据。",
+  "organizationVerificationRequired": "必填项。",
+  "sessionControlRoomTitle": "Session 控制室",
+  "sessionSectionLive": "Live",
+  "sessionSectionQuestions": "问题",
+  "sessionSectionAccess": "访问",
+  "sessionSectionSettings": "设置",
+  "sessionStageAction": "打开 Stage",
+  "sessionAccessPassesTitle": "参与者 Access Pass",
+  "sessionAccessPassesSubtitle": "每个 pass 都可以进入此 Controlled Anonymous Session，无需参与者手动输入长凭证。Social Vote 不存储明文 pass。",
+  "sessionAccessPass": "Access Pass",
+  "sessionAccessPassDetected": "检测到 Access Pass",
+  "sessionAccessPassAutomatic": "你的个人 pass 已准备好。继续即可匿名进入 Session。",
+  "sessionAccessPassFallback": "手动输入 pass",
+  "sessionAccessPassInvalid": "此 Access Pass 无效、已不可用，或 Session 尚未开放。",
+  "sessionAccessPassPrintWarning": "请立即打印、保存或分发这些 passes。离开此页面后，Social Vote 无法再次显示其明文内容。",
+  "sessionExistingPassesHidden": "出于安全原因，之前生成的 passes 无法再次以明文显示。请生成新的 Access Pass，以获取新的个人链接或二维码。",
+  "sessionCopyPassLinks": "复制所有链接",
+  "sessionCopyPassLink": "复制此链接",
+  "sessionControlledNeedsAccessPass": "开启受控 Session 前，请至少生成一个 Access Pass。",
+  "sessionJoinedParticipants": "已加入的访问凭证",
+  "sessionAccessesUsed": "已用于投票的访问凭证",
+  "sessionBallotsRecorded": "已记录选票",
+  "sessionQuestionsCompleted": "已完成问题",
+  "sessionCurrentQuestion": "当前问题",
+  "sessionNoOpenQuestionTitle": "没有开放的问题",
+  "sessionNoOpenQuestionBody": "参与者已连接并等待。准备好后请开放下一个问题。",
+  "sessionNotStartedTitle": "Session 尚未开始",
+  "sessionNotStartedBody": "此 Session 已创建但尚未开放。请保持此页面打开并等待组织者开始。",
+  "sessionNoAccountRequired": "无需 Social Vote 账户",
+  "sessionReceiptDetails": "凭证详情",
+  "sessionOpenAccessInstructions": "展示或分享此二维码。Session 开放期间，任何拥有链接的人都可以进入。",
+  "sessionControlledAccessInstructions": "创建个人 Access Pass，并为每位参与者分配一个。每个 pass 中的二维码会自动包含凭证。",
+  "sessionControlRoomHint": "在一个地方管理访问、问题、投屏 Stage 和最终 Verified Result。",
+  "sessionPresenterScreenTitle": "Live Stage",
+  "sessionStageWaiting": "等待下一个问题",
+  "sessionStageScan": "扫描加入 Session",
+  "sessionConfigurationTitle": "Session 配置",
+  "sessionAccessRecommended": "推荐用于受控会议",
+  "sessionCreateIntroTitle": "设置会议",
+  "sessionCreateIntroBody": "选择参与者进入方式、结果何时可见以及原始选票保留多久。这些设置由后端强制执行。",
+  "verifiedCertificateNumber": "证书编号",
+  "verifiedCertificateStatus": "完整性状态",
+  "verifiedCertificateIntegrityVerified": "完整性已验证",
+  "verifiedCertificateIntegrityFailed": "完整性检查失败",
+  "verifiedCertificateOrganizationSection": "组织",
+  "verifiedCertificateSessionSection": "Session",
+  "verifiedCertificateParticipationSection": "参与",
+  "verifiedCertificateResultsSection": "已验证结果",
+  "verifiedCertificateIntegritySection": "结果完整性",
+  "verifiedCertificateLegalName": "法定名称",
+  "verifiedCertificateOrganizationType": "组织类型",
+  "verifiedCertificateLocation": "地点",
+  "verifiedCertificateWebsite": "网站",
+  "verifiedCertificateVerification": "验证",
+  "verifiedCertificateIssuedAt": "证书签发时间",
+  "verifiedCertificateAlgorithm": "完整性算法",
+  "verifiedCertificateSchema": "报告架构",
+  "verifiedCertificateJoinedCredentials": "已加入凭证",
+  "verifiedCertificateBallotsTotal": "已记录选票",
+  "verifiedCertificateQuestionsTotal": "问题",
+  "verifiedCertificatePrivacyModel": "匿名结果模型",
+  "verifiedCertificatePrivacyText": "不可变快照仅包含汇总结果。它不包含参与者身份、明文 Access Pass、参与者密钥，也不包含参与者凭证与选票选择之间的映射。",
+  "verifiedCertificateVerifyQr": "扫描此二维码在线验证报告。",
+  "organizationDashboardTitle": "组织概览",
+  "organizationActiveSessions": "Live Sessions",
+  "organizationVerifiedReports": "已验证报告",
+  "organizationTotalSessions": "Sessions 总数",
+  "sessionPrivacyPolicyAction": "阅读隐私政策",
+  "@sessionPrivacyPolicyAction": {
+    "description": "Participant Session link to the full Privacy Policy"
+  },
+  "radioMondoTitle": "世界电台",
+  "radioMondoDescription": "三种原创声景，用于探索 Social Vote。只有在你选择曲目后才会开始播放。",
+  "radioMondoTrackClassical": "古典轨道",
+  "radioMondoTrackRain": "世界之雨",
+  "radioMondoTrackYoung": "青春脉搏",
+  "radioMondoPlaying": "正在播放",
+  "radioMondoStopped": "世界电台已停止",
+  "radioMondoStopAction": "停止",
+  "radioMondoPlaybackError": "无法播放音频",
+  "radioMondoForegroundOnly": "当 Social Vote 被关闭、进入后台或浏览器标签页被隐藏时，播放会停止。",
+  "adminCenterEditorialNavigation": "World Briefs",
+  "worldBriefEditorTitle": "Social Vote World Briefs",
+  "worldBriefEditorDescription": "编写基于证据的 briefs，明确呈现不确定性，并决定哪些内容显示在 News 和地球上。",
+  "worldBriefAllStatuses": "所有状态",
+  "worldBriefCreateAction": "创建 brief",
+  "worldBriefDraftSaved": "草稿已保存",
+  "worldBriefPublished": "Brief 已发布",
+  "worldBriefWithdrawn": "Brief 已撤回",
+  "worldBriefSaveError": "无法保存 brief",
+  "worldBriefPublishError": "无法发布 brief",
+  "worldBriefDraftDeleted": "草稿已删除",
+  "worldBriefDeleteDraft": "删除草稿",
+  "worldBriefDeleteDraftConfirm": "永久删除此未发布草稿？",
+  "worldBriefRetry": "重试",
+  "worldBriefStatusDraft": "草稿",
+  "worldBriefStatusPublished": "已发布",
+  "worldBriefStatusWithdrawn": "已撤回",
+  "worldBriefSetupRequired": "编辑后端尚未就绪",
+  "worldBriefSetupRequiredBody": "使用此部分前，请先应用随附的 World Brief 数据库迁移。",
+  "worldBriefEmptyTitle": "还没有 World Briefs",
+  "worldBriefEmptyBody": "创建草稿，记录至少两个来源，并仅在编辑审核后发布。",
+  "worldBriefFeatured": "重点",
+  "worldBriefOnGlobe": "显示在地球上",
+  "worldBriefPriority": "优先级",
+  "worldBriefEditAction": "编辑",
+  "worldBriefPublishAction": "发布",
+  "worldBriefWithdrawAction": "撤回",
+  "worldBriefSaveDraftAction": "保存草稿",
+  "worldBriefLanguage": "Brief 语言",
+  "worldBriefTitleField": "标题",
+  "worldBriefWhatHappened": "发生了什么",
+  "worldBriefWhyItMatters": "为什么重要",
+  "worldBriefWhatIsUncertain": "仍有哪些不确定",
+  "worldBriefSources": "来源 URL",
+  "worldBriefSourcesHint": "每行一个 HTTPS URL；至少两个独立来源。",
+  "worldBriefTwoSourcesRequired": "请至少添加两个来源。",
+  "worldBriefHttpsSourcesRequired": "每个来源都必须使用 HTTPS。",
+  "worldBriefGlobeSection": "地球位置",
+  "worldBriefGlobeRequiresPoint": "在地球上显示需要有效的纬度和经度。",
+  "worldBriefCountryCode": "国家代码",
+  "worldBriefCityId": "城市 ID",
+  "worldBriefLocationLabel": "地点标签",
+  "worldBriefLatitude": "纬度",
+  "worldBriefLongitude": "经度",
+  "worldBriefBreaking": "突发更新",
+  "worldBriefExpiry": "审核或到期窗口",
+  "worldBriefExpiryDays": "{days, plural, =1{1 天} other{{days} 天}}",
+  "@worldBriefExpiryDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "worldBriefRequiredField": "此字段为必填项。",
+  "worldBriefCoordinatesRequired": "请输入有效坐标。",
+  "profileHowItWorksTitle": "Social Vote 如何运作",
+  "profileHowItWorksSubtitle": "个人、组织、Voce、Vote、Sessions 和验证。",
+  "profileMyPostsLoginRequired": "你必须登录后才能查看自己的 Voce。",
+  "profileMyPostsCreatedByYou": "你创建的 Voce",
+  "profileMyPostsEmpty": "你还没有创建任何 Voce。",
+  "profileMyPollsLoginRequired": "你必须登录后才能查看自己的 Vote。",
+  "profileMyPollsCreatedByYou": "你创建的 Vote",
+  "profileMyPollsEmpty": "你还没有创建任何 Vote。",
+  "profileMyCommentsLoginRequired": "你必须登录后才能查看自己的评论。",
+  "profileMyCommentsEmpty": "你还没有写过评论。",
+  "profileFollowedScopesLoginRequired": "你必须登录。",
+  "profileFollowedScopesEmpty": "你还没有关注任何地区。",
+  "profileFollowedScopeWorld": "世界",
+  "profileFollowedScopeCountry": "国家：{code}",
+  "@profileFollowedScopeCountry": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeCity": "城市：{city}",
+  "@profileFollowedScopeCity": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeArea": "地区（{radius} 公里）",
+  "@profileFollowedScopeArea": {
+    "placeholders": {
+      "radius": {
+        "type": "double"
+      }
+    }
+  },
+  "publicProfilePollsLoadError": "无法加载公开 Vote。",
+  "publicProfilePollsEmpty": "没有公开 Vote。",
+  "publicProfilePostsLoadError": "无法加载公开 Voce。",
+  "publicProfilePostsEmpty": "没有公开 Voce。",
+  "worldBriefSocialVoteView": "Social Vote 观点",
+  "worldBriefSocialVoteViewHint": "Social Vote 的编辑分析或观点。请与报道事实和不确定性分开呈现。",
+  "worldBriefSocialVoteViewPublicNote": "Social Vote 的编辑分析，与上方报道事实明确区分。",
+  "worldBriefIndependentSourcesRequired": "发布至少需要两个来自不同域名的 HTTPS 来源。",
+  "worldBriefPublishConfirmTitle": "发布前最终检查",
+  "worldBriefPublishConfirmSources": "{count, plural, =1{已输入 1 个来源} other{已输入 {count} 个来源}}",
+  "@worldBriefPublishConfirmSources": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldBriefEnterpriseEditorTitle": "专业编辑器",
+  "worldBriefEnterpriseEditorHelp": "按部分编写 brief。Social Vote 会自动处理地球上的技术定位：请选择国家和城市，不要输入坐标。",
+  "worldBriefEditorialContentSection": "编辑内容",
+  "worldBriefEditorialContentHelp": "将事实、重要性、不确定性和 Social Vote 观点分开。这样 brief 更易于核验和阅读。",
+  "worldBriefSourcesSection": "来源与核验",
+  "worldBriefSourcesSectionHelp": "添加可验证的 HTTPS 来源。发布至少需要两个独立域名。",
+  "worldBriefDistributionSection": "分发",
+  "worldBriefDistributionHelp": "选择 brief 显示的位置。发布后会出现在 News 中；是否显示在地球上为可选项。",
+  "worldBriefNewsDestination": "发布到 Social Vote News",
+  "worldBriefNewsDestinationHelp": "World Brief 发布后的主要展示位置。",
+  "worldBriefGlobeAutomaticHelp": "在地球上添加标记。选择地点后，Social Vote 会自动解析位置。",
+  "worldBriefPlacementMode": "标记位置",
+  "worldBriefPlacementCity": "城市 / 地点",
+  "worldBriefPlacementCountry": "国家中心",
+  "worldBriefCountry": "国家",
+  "worldBriefCity": "城市或地点",
+  "worldBriefCityHelp": "示例：Tehran。不要输入纬度或经度。",
+  "worldBriefResolveLocation": "解析位置",
+  "worldBriefCoordinatesAutomatic": "坐标会自动处理，不应手动输入。",
+  "worldBriefLocationResolved": "位置已就绪：{location}",
+  "worldBriefChooseCountryFirst": "请先选择国家。",
+  "worldBriefChooseCityFirst": "请先输入城市或地点。",
+  "worldBriefLocationNotResolved": "无法可靠解析位置。请检查国家和城市后重试。",
+  "worldBriefVisibilitySection": "可见性与优先级",
+  "worldBriefVisibilityHelp": "在不更改报道事实的前提下，控制编辑突出程度、紧急性、排序和有效期。",
+  "worldBriefFeaturedHelp": "让 brief 在编辑展示区域中更加突出。",
+  "worldBriefBreakingHelp": "仅用于真正紧急或快速发展的事件。",
+  "worldBriefPriorityHelp": "0 = 普通/低优先级；100 = 最高编辑优先级。它不会改变内容的真实性状态。",
+  "worldBriefExpiryHelp": "超过此期限后，未经再次编辑审核，brief 不应继续保持活跃。",
+  "@worldBriefLocationResolved": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "profileAppLanguageSpanish": "西班牙语",
+  "profileAppLanguagePortuguese": "葡萄牙语",
+  "homeHeroPurpose": "发现重要议题，分享你的 Voce，并参与 Vote。",
+  "commentSection_hideComments": "隐藏评论",
+  "commentSection_viewComments": "查看评论",
+  "commentSection_hideReplies": "隐藏回复",
+  "commentSection_editing": "正在编辑：{snippet}",
+  "@commentSection_editing": {
+    "placeholders": {
+      "snippet": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_editInputHint": "编辑你的评论",
+  "commentSection_replyTo": "回复 {author}",
+  "@commentSection_replyTo": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_userFallback": "用户",
+  "commentSection_addError": "无法添加评论。",
+  "commentSection_nestedReplyError": "不支持超过一级的嵌套回复。",
+  "commentSection_addReplyError": "无法添加回复。",
+  "commentSection_editError": "无法编辑评论。",
+  "commentSection_deleteError": "无法删除评论。",
+  "commentSection_edited": "已编辑",
+  "commentSection_editAction": "编辑"
+}

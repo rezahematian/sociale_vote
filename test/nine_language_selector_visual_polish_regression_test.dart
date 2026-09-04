@@ -26,8 +26,12 @@ void main() {
     expect(source, contains("label: 'Français'"));
     expect(source, contains("label: 'العربية'"));
     expect(source, contains("label: 'Română'"));
+    expect(source, contains("label: 'Русский'"));
+    expect(source, contains("label: '中文（简体）'"));
     expect(source, contains("code: 'FA'"));
     expect(source, contains("code: 'AR'"));
+    expect(source, contains("code: 'RU'"));
+    expect(source, contains("code: 'ZH'"));
     expect(source, contains('textAlign: TextAlign.left'));
   });
 }

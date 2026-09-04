@@ -130,6 +130,8 @@ flutter:
     - assets/vision/social_vote_rules_vision_fr.jpg
     - assets/vision/social_vote_rules_vision_ar.jpg
     - assets/vision/social_vote_rules_vision_ro.jpg
+    - assets/vision/social_vote_rules_vision_ru.jpg
+    - assets/vision/social_vote_rules_vision_zh.jpg
     - assets/globe/earth_day_nasa_blue_marble_2048.png
     - assets/globe/earth_day_nasa_bmng_august_4096.jpg
     - assets/globe/earth_night_nasa_black_marble_2016_3600.jpg

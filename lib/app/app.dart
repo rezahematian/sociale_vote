@@ -172,6 +172,8 @@ class AppLocaleController {
     'fr',
     'ar',
     'ro',
+    'ru',
+    'zh',
   };
 
   static final ValueNotifier<Locale?> locale = ValueNotifier<Locale?>(null);

@@ -18,14 +18,16 @@ void main() {
     'fr',
     'ar',
     'ro',
+    'ru',
+    'zh',
   };
 
-  test('nine app locales and system resolution contract', () {
+  test('eleven app locales and system resolution contract', () {
     final codes = AppLocalizations.supportedLocales
         .map((locale) => locale.languageCode)
         .toSet();
     expect(codes, appLanguageCodes);
-    expect(codes.length, 9);
+    expect(codes.length, 11);
 
     for (final code in <String>['it', 'es', 'pt', 'fr', 'ar', 'ro']) {
       expect(
@@ -56,6 +58,8 @@ void main() {
     'fr',
     'ar',
     'ro',
+    'ru',
+    'zh',
   ]) {
     testWidgets('$code has Material/Cupertino/App localization delegates',
         (tester) async {
@@ -82,7 +86,7 @@ void main() {
     });
   }
 
-  testWidgets('legacy inline copy is localized for six non-EN legacy locales',
+  testWidgets('legacy inline copy is localized for eight non-EN extended locales',
       (tester) async {
     Future<String> read(String code, String english, String german) async {
       late String result;
@@ -118,6 +122,8 @@ void main() {
     expect(await read('fr', 'Content location', 'Inhaltsstandort'), 'Emplacement du contenu');
     expect(await read('ar', 'Content location', 'Inhaltsstandort'), 'موقع المحتوى');
     expect(await read('ro', 'Content location', 'Inhaltsstandort'), 'Locația conținutului');
+    expect(await read('ru', 'Content location', 'Inhaltsstandort'), 'Местоположение контента');
+    expect(await read('zh', 'Content location', 'Inhaltsstandort'), '内容位置');
     expect(await read('de', 'Content location', 'Inhaltsstandort'), 'Inhaltsstandort');
     expect(await read('en', 'Content location', 'Inhaltsstandort'), 'Content location');
   });

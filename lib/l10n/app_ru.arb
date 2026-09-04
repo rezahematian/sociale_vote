@@ -1,0 +1,2726 @@
+{
+  "@@locale": "ru",
+  "appTitle": "Social Vote",
+  "voteButton": "Голосовать",
+  "createPollPageTitle": "Создать Vote",
+  "createPollPageSubtitle": "Создайте новое гражданское голосование",
+  "createPollBasicInfoTitle": "Основная информация",
+  "createPollBasicInfoSubtitle": "Укажите основные сведения о Vote.",
+  "createPollTitleFieldLabel": "Заголовок *",
+  "createPollTitleFieldHelper": "Ясный и краткий вопрос или утверждение.",
+  "createPollDescriptionFieldLabel": "Описание (необязательно)",
+  "createPollVotingModelTitle": "Как проходит голосование",
+  "createPollVotingModelSubtitle": "Выберите, сможет ли каждый человек выбрать один или несколько вариантов ответа.",
+  "createPollTypeFieldLabel": "Тип Vote",
+  "createPollSelectionRules": "Правила выбора: минимум {min}, максимум {max} вариантов (автоматически корректируется в зависимости от типа Vote и вариантов ответа).",
+  "@createPollSelectionRules": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "createPollAllowVoteChangeTitle": "Разрешить избирателям изменять свой голос",
+  "createPollAllowVoteChangeSubtitle": "До закрытия Vote.",
+  "createPollOptionsTitle": "Варианты ответа",
+  "createPollOptionsSubtitle": "Введите как минимум два варианта ответа. Поля, отмеченные *, обязательны.",
+  "createPollOptionLabel": "Вариант {index}{requiredMarker}",
+  "@createPollOptionLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "requiredMarker": {}
+    }
+  },
+  "createPollRemoveOptionTooltip": "Удалить вариант",
+  "createPollAddOptionButton": "Добавить вариант",
+  "createPollParticipationPrivacyTitle": "Участие и конфиденциальность",
+  "createPollParticipationPrivacySubtitle": "Определите, кто может голосовать и насколько конфиденциальными должны быть голоса.",
+  "createPollWhoCanVoteLabel": "Кто может голосовать?",
+  "createPollParticipationEveryoneSubtitle": "Участвовать может любой зарегистрированный пользователь.",
+  "createPollParticipationGeoScopeSubtitle": "Ограничить этот Vote людьми из определённой страны.",
+  "createPollCountryFieldLabel": "Страна для этого Vote",
+  "createPollCountryFieldHelper": "Эта страна определяет, кто сможет участвовать в этом Vote (будущая интеграция с backend).",
+  "createPollVoteAnonymityTitle": "Анонимность голосования",
+  "createPollAnonymityAnonymousSubtitle": "Рекомендуемый вариант по умолчанию для платформ гражданского голосования.",
+  "createPollAnonymityPublicSubtitle": "Используйте с осторожностью: голоса могут быть связаны с личностью пользователя (будущая функция).",
+  "createPollResultsValidityTitle": "Результаты и действительность",
+  "createPollResultsValiditySubtitle": "Определите, когда видны результаты, и при необходимости установите минимальный кворум.",
+  "createPollResultsVisibilityFieldLabel": "Видимость результатов",
+  "createPollQuorumTitle": "Кворум (необязательно)",
+  "createPollQuorumSubtitle": "Если значение задано, Vote считается действительным только при достижении как минимум этого количества голосов. Оставьте пустым, если кворум не нужен.",
+  "createPollQuorumMinVotesFieldLabel": "Минимальное количество голосов",
+  "createPollTimingTitle": "Сроки",
+  "createPollTimingSubtitle": "Укажите, когда Vote должен быть открыт для голосования.",
+  "createPollStartDateLabel": "Дата начала",
+  "createPollEndDateLabel": "Дата окончания",
+  "createPollChangeDateButtonLabel": "Изменить",
+  "createPollTimingStatusInfo": "Начальный статус (открыт/запланирован/закрыт) будет определён автоматически на основе этих дат.",
+  "createPollSuccessMessage": "Vote успешно создан",
+  "createPollSubmitCreatingLabel": "Создание...",
+  "createPollSubmitLabel": "Создать Vote",
+  "createPollPollTypeYesNoLabel": "Да / Нет",
+  "createPollPollTypeSingleChoiceLabel": "Один ответ",
+  "createPollPollTypeMultipleChoiceLabel": "Несколько ответов",
+  "createPollPollTypeApprovalLabel": "Одобрительное голосование",
+  "createPollPollTypeRankedLabel": "Ранжированный выбор",
+  "createPollPollTypeScoreLabel": "Баллы / Оценка",
+  "createPollParticipationScopeEveryoneLabel": "Голосовать могут все",
+  "createPollParticipationScopeGeoScopeOnlyLabel": "Только пользователи из определённой страны",
+  "createPollAnonymityLevelAnonymousLabel": "Голоса анонимны",
+  "createPollAnonymityLevelPublicLabel": "Голоса публичны (расширенное / ограниченное использование)",
+  "createPollResultsVisibilityAlwaysLabel": "Всегда видны (пока Vote открыт)",
+  "createPollResultsVisibilityAfterVoteLabel": "Видны только после голосования",
+  "createPollResultsVisibilityAfterCloseLabel": "Видны только после закрытия Vote",
+  "homeLoginButton": "Войти",
+  "homeRegisterButton": "Регистрация",
+  "homeProfileButton": "Профиль",
+  "homeLogoutButton": "Выйти",
+  "homeLogoutMessage": "Вы вышли из системы. Сейчас приложение используется в гостевом режиме (только чтение).",
+  "homeSearchHint": "Искать города, страны, аккаунты и контент...",
+  "searchPageTitle": "Поиск",
+  "searchInputHint": "Искать аккаунты, Vote, News, Voce...",
+  "searchClearTooltip": "Очистить поиск",
+  "searchTypeAll": "Все",
+  "searchTypePolls": "Vote",
+  "searchTypeNews": "News",
+  "searchTypePosts": "Voce",
+  "searchTypeAccounts": "Аккаунты",
+  "searchSortHottest": "Популярные",
+  "searchSortLatest": "Новые",
+  "searchPollStatusAll": "Все Vote",
+  "searchPollStatusOpen": "Открытые",
+  "searchPollStatusClosed": "Закрытые",
+  "searchIdleMessage": "Введите запрос, чтобы начать поиск.",
+  "searchErrorMessage": "Во время поиска произошла ошибка.",
+  "searchRetryButton": "Повторить",
+  "searchEmptyMessage": "По этому запросу ничего не найдено.",
+  "searchContentUnavailable": "Контент недоступен",
+  "searchResultTypePoll": "Vote",
+  "searchResultTypeNews": "News",
+  "searchResultTypePost": "Voce",
+  "searchResultTypeAccount": "Аккаунт",
+  "searchResultTypeMixed": "Смешанное",
+  "homeUserStatusLoggedIn": "Выполнен вход как: {userId}",
+  "@homeUserStatusLoggedIn": {
+    "placeholders": {
+      "userId": {}
+    }
+  },
+  "homeUserStatusGuest": "Гостевой режим: доступно только чтение. Войдите или зарегистрируйтесь, чтобы голосовать, комментировать и реагировать.",
+  "homeScopeLabelWorld": "Мир — глобальные голосования и новости",
+  "homeScopeLabelCountry": "Страна — национальные голосования и новости",
+  "homeScopeLabelCity": "Город — местные городские голосования и новости",
+  "homeScopeShortWorld": "Мир",
+  "homeScopeShortCountry": "Страна",
+  "homeScopeShortCity": "Город",
+  "homeScopeChipWorld": "Мир",
+  "homeScopeChipItaly": "Италия",
+  "homeScopeChipTorino": "Турин",
+  "homeScopeChangedWorld": "Область изменена на Мир",
+  "homeScopeChangedItaly": "Область изменена на Италию",
+  "homeScopeChangedTorino": "Область изменена на Турин",
+  "followScopeButtonFollowed": "Отслеживается",
+  "followScopeButtonFollow": "Следить за этой областью",
+  "homeTrendingTitle": "Pulse Now",
+  "homeTrendingError": "Не удалось загрузить Pulse Now для этой области.",
+  "homeTrendingEmpty": "Сейчас в Pulse Now для этой области нет контента.",
+  "homeForYouTitle": "Pulse ({scope})",
+  "@homeForYouTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeForYouError": "Не удалось загрузить Pulse для этой области.",
+  "homeForYouEmpty": "Сейчас для этой области нет рекомендуемого контента в Pulse.",
+  "homePollsTitle": "Vote в центре внимания ({scope})",
+  "@homePollsTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homePollsEmptyTitle": "Для этой области нет Vote",
+  "homePollsEmptySubtitle": "Для этой области сейчас нет доступных Vote.",
+  "homePollsViewAllButton": "Смотреть Vote",
+  "homeNewsTitle": "Главные News ({scope})",
+  "@homeNewsTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeNewsErrorTitle": "Не удалось загрузить новости",
+  "homeNewsErrorSubtitle": "При загрузке новостей для этой области возникла проблема.",
+  "homeNewsEmptyTitle": "Для этой области нет новостей",
+  "homeNewsEmptySubtitle": "Для этой области сейчас нет новостей.",
+  "homeNewsViewAllButton": "Смотреть все новости",
+  "homeNewsBreakingBadge": "СРОЧНО",
+  "homeSocialTitle": "Voce ({scope})",
+  "@homeSocialTitle": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "homeSocialErrorTitle": "Не удалось загрузить Voce",
+  "homeSocialErrorSubtitle": "При загрузке Voce для этой области возникла проблема.",
+  "homeSocialEmptyTitle": "Для этой области нет Voce",
+  "homeSocialEmptySubtitle": "Для этой области сейчас нет контента Voce.",
+  "homeSocialViewFeedButton": "Смотреть все Voce",
+  "pollDetail_title": "Подробности Vote",
+  "pollDetail_removeFromFavoritesTooltip": "Удалить из сохранённых",
+  "pollDetail_addToFavoritesTooltip": "Сохранить",
+  "pollDetail_chipAnonymous": "Анонимное голосование",
+  "pollDetail_chipPublic": "Публичное голосование",
+  "pollDetail_chipRestrictedGeo": "Ограничено географической областью",
+  "pollDetail_quorumReached": "Кворум достигнут ({currentVotes} / {requiredVotes})",
+  "@pollDetail_quorumReached": {
+    "placeholders": {
+      "currentVotes": {
+        "type": "int"
+      },
+      "requiredVotes": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_quorumNotReached": "Кворум не достигнут ({currentVotes} / {requiredVotes})",
+  "@pollDetail_quorumNotReached": {
+    "placeholders": {
+      "currentVotes": {
+        "type": "int"
+      },
+      "requiredVotes": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_optionsTitle": "Варианты",
+  "pollDetail_statusClosedMessage": "Этот Vote закрыт.",
+  "pollDetail_statusScheduledMessage": "Этот Vote ещё не открыт.",
+  "pollDetail_statusNotAvailableMessage": "Голосование недоступно.",
+  "pollDetail_voteSubmitted": "Голос успешно отправлен!",
+  "pollDetail_voteButton": "Голосовать",
+  "pollDetail_resultsTitle": "Результаты",
+  "pollDetail_outcomePrefix": "Итог: {label}",
+  "@pollDetail_outcomePrefix": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "pollDetail_noResults": "Результатов пока нет.",
+  "pollDetail_resultsAfterVote": "Результаты будут видны после того, как вы проголосуете.",
+  "pollDetail_resultsWhenClosed": "Результаты будут видны после закрытия Vote.",
+  "pollType_yesNo": "Да / Нет",
+  "pollType_singleChoice": "Один вариант",
+  "pollType_multipleChoice": "Несколько вариантов",
+  "pollType_approval": "Одобрение",
+  "pollStatus_draft": "Черновик",
+  "pollStatus_open": "Открыт",
+  "pollStatus_closed": "Закрыт",
+  "pollStatus_scheduled": "Запланирован",
+  "pollGeo_global": "Глобальный",
+  "pollGeo_local": "Локальный",
+  "pollOutcome_approved": "Одобрено",
+  "pollOutcome_rejected": "Отклонено",
+  "pollOutcome_tie": "Ничья",
+  "pollOutcome_noMajority": "Нет большинства",
+  "pollOutcome_notApplicable": "Не применимо",
+  "pollList_title": "Vote",
+  "pollList_scopeWorld": "Мир",
+  "pollList_scopeCountryFallback": "Страна",
+  "pollList_scopeCityFallback": "Город",
+  "pollList_scopeDescriptionGlobal": "Показаны глобальные Vote.",
+  "pollList_scopeDescriptionCountry": "Показаны Vote для этой страны.",
+  "pollList_scopeDescriptionCity": "Показаны Vote для этого города.",
+  "pollList_filterStatus_all": "Все",
+  "pollList_filterStatus_open": "Открытые",
+  "pollList_filterStatus_closed": "Закрытые",
+  "pollList_sort_latest": "Новые",
+  "pollList_sort_hottest": "Популярные",
+  "pollList_filterScope_currentArea": "Текущая область",
+  "pollList_headerTitle": "{scopeLabel} · {count, plural, =0 {Vote не найдены} =1 {Найден 1 Vote} other {Найдено Vote: {count}}}",
+  "@pollList_headerTitle": {
+    "placeholders": {
+      "scopeLabel": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollList_createPollButton": "Создать Vote",
+  "pollList_paginationHint": "Прокрутите, чтобы загрузить больше Vote…",
+  "pollList_emptyMessage": "Для этой области нет Vote, соответствующих фильтру.",
+  "pollType_ranked": "Ранжированный выбор",
+  "pollType_score": "Оценочное голосование",
+  "pollVisibility_whileOpen": "Результаты видны, пока Vote открыт",
+  "pollVisibility_afterVote": "Результаты видны после голосования",
+  "pollVisibility_afterClose": "Результаты видны после закрытия",
+  "pollCard_countryRestricted": "Ограничение по стране",
+  "pollCard_restrictedToCountry": "Только для {countryName}",
+  "@pollCard_restrictedToCountry": {
+    "placeholders": {
+      "countryName": {}
+    }
+  },
+  "pollCard_quorumLabel": "Кворум {minVotes}",
+  "@pollCard_quorumLabel": {
+    "placeholders": {
+      "minVotes": {
+        "type": "int"
+      }
+    }
+  },
+  "pollCard_resultsVisibleChip": "Результаты видны",
+  "@pollCard_resultsVisibleChip": {
+    "description": "Compact PollCard label used when results are always visible"
+  },
+  "pollCard_resultsAfterVoteChip": "После голосования",
+  "@pollCard_resultsAfterVoteChip": {
+    "description": "Compact PollCard label used when results are visible after voting"
+  },
+  "pollCard_resultsAfterCloseChip": "После закрытия",
+  "@pollCard_resultsAfterCloseChip": {
+    "description": "Compact PollCard label used when results are visible after the poll closes"
+  },
+  "pollCard_publicOfficialPublisher": "Публичное должностное лицо",
+  "@pollCard_publicOfficialPublisher": {
+    "description": "PollCard label for a poll published by a public official"
+  },
+  "pollCard_institutionPublisher": "Учреждение",
+  "@pollCard_institutionPublisher": {
+    "description": "PollCard label for a poll published by an institution"
+  },
+  "pollCard_representativePublisher": "Представитель",
+  "@pollCard_representativePublisher": {
+    "description": "Fallback PollCard label for representative publishing"
+  },
+  "pollCard_voteCountLabel": "{count, plural, =1 {голос} other {голосов}}",
+  "@pollCard_voteCountLabel": {
+    "description": "Singular or plural label shown below the vote count in PollCard",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollCard_viewDetails": "Подробнее",
+  "pollResult_title": "{count, plural, =0 {Результаты (голосов нет)} =1 {Результаты (1 голос)} other {Результаты ({count} голосов)}}",
+  "@pollResult_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voteError_noSelection": "Выберите хотя бы один вариант.",
+  "voteError_unauthorized": "У вас нет права голосовать в этом Vote.",
+  "voteError_generic": "Не удалось отправить голос. Попробуйте ещё раз.",
+  "commentSection_title": "Комментарии",
+  "commentSection_sortLabel": "Сортировка:",
+  "commentSection_sortOldest": "Сначала старые",
+  "commentSection_sortNewest": "Сначала новые",
+  "commentSection_errorGeneric": "При загрузке комментариев произошла ошибка.",
+  "commentSection_empty": "Комментариев пока нет. Оставьте первый комментарий.",
+  "commentSection_loadMore": "Загрузить ещё комментарии",
+  "commentSection_replyingTo": "Ответ на: {snippet}",
+  "@commentSection_replyingTo": {
+    "placeholders": {
+      "snippet": {}
+    }
+  },
+  "commentSection_cancelReply": "Отмена",
+  "commentSection_inputHintRoot": "Добавить комментарий...",
+  "commentSection_inputHintReply": "Написать ответ...",
+  "commentSection_deleteAction": "Удалить",
+  "commentSection_replyAction": "Ответить",
+  "commentSection_youBadge": "Вы",
+  "newsDetail_title": "Подробности News",
+  "newsDetail_breakingBadge": "СРОЧНО",
+  "newsDetail_removeFromFavoritesTooltip": "Удалить из сохранённых",
+  "newsDetail_addToFavoritesTooltip": "Сохранить",
+  "newsDetail_bodyFallback": "Для этой новости нет дополнительного текста.",
+  "newsDetail_footerMoreContext": "Дополнительный контекст и источники появятся позже.",
+  "newsFeed_title": "News",
+  "newsFeed_scopeWorld": "Мир",
+  "newsFeed_scopeCountry": "Страна",
+  "newsFeed_scopeCity": "Город",
+  "newsFeed_scopeLabel": "Область: {scope}",
+  "@newsFeed_scopeLabel": {
+    "placeholders": {
+      "scope": {}
+    }
+  },
+  "newsFeed_scopeGlobalDescription": "Показаны глобальные новости.",
+  "newsFeed_scopeCountryDescription": "Показаны новости для этой страны.",
+  "newsFeed_scopeCityDescription": "Показаны новости для этого города.",
+  "newsFeed_emptyTitle": "Для этой области нет доступных новостей.",
+  "newsFeed_emptySubtitle": "Потяните для обновления или попробуйте позже.",
+  "newsFeed_itemsFound": "Найдено новостей: {count}",
+  "@newsFeed_itemsFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newsFeed_loadingMoreHint": "Прокрутите, чтобы загрузить больше новостей…",
+  "newsFeed_errorTitle": "Не удалось загрузить новости",
+  "newsFeed_errorGeneric": "При загрузке новостей произошла непредвиденная ошибка.",
+  "newsFeed_retryButton": "Повторить",
+  "newsCard_headerTitle": "News",
+  "newsFeed_errorUnauthorized": "Конфигурация News недействительна (API-ключ).",
+  "newsFeed_errorRateLimited": "Слишком много запросов. Попробуйте снова через некоторое время.",
+  "newsFeed_errorServerUnavailable": "Сервис News временно недоступен. Попробуйте позже.",
+  "newsFeed_errorTimeout": "Запрос выполняется слишком долго. Попробуйте ещё раз.",
+  "newsFeed_errorNetwork": "Нет соединения. Проверьте интернет и попробуйте снова.",
+  "newsFeed_moreTooltip": "Ещё",
+  "newsFeed_actionCopyTitle": "Копировать заголовок",
+  "newsFeed_actionRefreshFeed": "Обновить ленту",
+  "newsFeed_copiedTitleToast": "Заголовок скопирован",
+  "newsFeed_languageTooltip": "Язык News",
+  "newsFeed_languageAuto": "АВТО",
+  "newsFeed_languageIt": "IT",
+  "newsFeed_languageEn": "EN",
+  "newsFeed_languageEs": "ES",
+  "newsFeed_languageFr": "FR",
+  "newsFeed_languageDe": "DE",
+  "newsFeed_languageAr": "AR",
+  "newsFeed_languageFa": "FA",
+  "newsFeed_languageLimitedHint": "Ограниченное количество источников на этом языке. Попробуйте AUTO.",
+  "newsTopic_all": "Все",
+  "newsTopic_world": "Мир",
+  "newsTopic_nation": "Страна",
+  "newsTopic_business": "Бизнес",
+  "newsTopic_technology": "Технологии",
+  "newsTopic_science": "Наука",
+  "newsTopic_health": "Здоровье",
+  "newsTopic_sports": "Спорт",
+  "newsTopic_entertainment": "Развлечения",
+  "newsDetail_openSource": "Открыть статью-источник",
+  "@newsDetail_openSource": {
+    "description": "Button to open the original article from the source website"
+  },
+  "newsDetail_openSourceUnavailable": "Не удалось открыть статью-источник",
+  "@newsDetail_openSourceUnavailable": {
+    "description": "Shown when the source link cannot be opened"
+  },
+  "socialFeedTitle": "Voce",
+  "@socialFeedTitle": {
+    "description": "Title of the main social feed page"
+  },
+  "socialFeedCreatePostButton": "Создать Voce",
+  "@socialFeedCreatePostButton": {
+    "description": "Button that opens the post creation flow"
+  },
+  "commonCancelButton": "Отмена",
+  "@commonCancelButton": {
+    "description": "Generic Cancel button label"
+  },
+  "commonApplyButton": "Применить",
+  "@commonApplyButton": {
+    "description": "Generic Apply button label"
+  },
+  "homeScopeChooseCountry": "Выберите страну",
+  "@homeScopeChooseCountry": {
+    "description": "Title and action for choosing the Home scope country"
+  },
+  "homeScopeCountrySearchHint": "Искать страну или код...",
+  "@homeScopeCountrySearchHint": {
+    "description": "Hint shown in the country search field"
+  },
+  "homeScopeChooseCity": "Выберите город",
+  "@homeScopeChooseCity": {
+    "description": "Title and action for choosing the Home scope city"
+  },
+  "homeScopeCountryWithCode": "Страна: {code}",
+  "@homeScopeCountryWithCode": {
+    "description": "Selected country shown in the city selection dialog",
+    "placeholders": {
+      "code": {
+        "type": "String",
+        "example": "IT"
+      }
+    }
+  },
+  "homeScopeCityFieldLabel": "Город",
+  "@homeScopeCityFieldLabel": {
+    "description": "City field label in the Home scope selector"
+  },
+  "homeScopeCityExampleHint": "Введите город, например Merano",
+  "@homeScopeCityExampleHint": {
+    "description": "Examples shown in the city field"
+  },
+  "homeScopeCityRequiredError": "Введите город.",
+  "@homeScopeCityRequiredError": {
+    "description": "Error shown when the city field is empty"
+  },
+  "homeScopeCityNotFoundError": "Город не найден в выбранной стране.",
+  "@homeScopeCityNotFoundError": {
+    "description": "Error shown when the city does not belong to the selected country"
+  },
+  "homeScopeCityVerificationError": "Не удалось проверить город. Попробуйте ещё раз.",
+  "@homeScopeCityVerificationError": {
+    "description": "Generic error shown while verifying the city"
+  },
+  "homeScopeVerifyingButton": "Проверка...",
+  "@homeScopeVerifyingButton": {
+    "description": "Label shown while the city is being verified"
+  },
+  "homeMapOpenButton": "Открыть карту",
+  "@homeMapOpenButton": {
+    "description": "Button label that opens the full Civic Map from Home"
+  },
+  "homeHeroHeadline": "Формируйте будущее.\\nВместе.",
+  "@homeHeroHeadline": {
+    "description": "Main headline shown in the Home hero"
+  },
+  "homeHeroPollsAction": "Vote",
+  "@homeHeroPollsAction": {
+    "description": "Compact Home dashboard action that opens polls"
+  },
+  "homeHeroNewsAction": "News",
+  "@homeHeroNewsAction": {
+    "description": "Compact Home dashboard action that opens news"
+  },
+  "homeHeroCreateAction": "Создать",
+  "@homeHeroCreateAction": {
+    "description": "Compact Home dashboard action for creating a poll or post"
+  },
+  "homeHeroExploreAction": "Исследовать",
+  "@homeHeroExploreAction": {
+    "description": "Compact Home dashboard action that opens the full Civic Map"
+  },
+  "homeAccountMenuLabel": "Аккаунт",
+  "@homeAccountMenuLabel": {
+    "description": "Label and tooltip for the Account entry in the Home top bar"
+  },
+  "homeThemeSystemMenuItem": "Тема: системная",
+  "@homeThemeSystemMenuItem": {
+    "description": "Account menu item for using the system theme"
+  },
+  "homeThemeLightMenuItem": "Тема: светлая",
+  "@homeThemeLightMenuItem": {
+    "description": "Account menu item for using the light theme"
+  },
+  "homeThemeDarkMenuItem": "Тема: тёмная",
+  "@homeThemeDarkMenuItem": {
+    "description": "Account menu item for using the dark theme"
+  },
+  "profileAppLanguageTitle": "Язык приложения",
+  "@profileAppLanguageTitle": {
+    "description": "Title of the app language setting"
+  },
+  "profileAppLanguageSystem": "Система",
+  "@profileAppLanguageSystem": {
+    "description": "Option that follows the device language"
+  },
+  "profileAppLanguageSystemDescription": "Использовать язык устройства",
+  "@profileAppLanguageSystemDescription": {
+    "description": "Description of the system language option"
+  },
+  "profileAppLanguageItalian": "Итальянский",
+  "@profileAppLanguageItalian": {
+    "description": "Italian app language option"
+  },
+  "profileAppLanguageEnglish": "Английский",
+  "@profileAppLanguageEnglish": {
+    "description": "English app language option"
+  },
+  "homeNotificationsTooltip": "Уведомления",
+  "@homeNotificationsTooltip": {
+    "description": "Tooltip for the notifications button in the Home top bar"
+  },
+  "postCard_authorFallback": "Автор",
+  "@postCard_authorFallback": {
+    "description": "Fallback author name shown in the PostCard when no name is available"
+  },
+  "postCard_globalLocation": "Глобально",
+  "@postCard_globalLocation": {
+    "description": "Global location label shown in the PostCard"
+  },
+  "commonSaveButton": "Сохранить",
+  "@commonSaveButton": {
+    "description": "Generic Save button label"
+  },
+  "commonDeleteButton": "Удалить",
+  "@commonDeleteButton": {
+    "description": "Generic Delete button label"
+  },
+  "contentReport_menuAction": "Пожаловаться на контент",
+  "@contentReport_menuAction": {
+    "description": "Menu action used to report content"
+  },
+  "contentReport_dialogTitle": "Пожаловаться на контент",
+  "@contentReport_dialogTitle": {
+    "description": "Content report dialog title"
+  },
+  "contentReport_authenticationRequired": "Чтобы пожаловаться на контент, необходимо войти в систему",
+  "@contentReport_authenticationRequired": {
+    "description": "Message shown to a signed-out user"
+  },
+  "contentReport_submittedMessage": "Жалоба отправлена",
+  "@contentReport_submittedMessage": {
+    "description": "Report submission confirmation"
+  },
+  "contentReport_alreadySubmittedMessage": "Вы уже пожаловались на этот контент",
+  "@contentReport_alreadySubmittedMessage": {
+    "description": "Message shown when the content was already reported"
+  },
+  "contentReport_submitError": "Не удалось отправить жалобу",
+  "@contentReport_submitError": {
+    "description": "Generic error while submitting a report"
+  },
+  "contentReport_sendButton": "Отправить",
+  "@contentReport_sendButton": {
+    "description": "Report submission button"
+  },
+  "contentReport_reasonSpam": "Спам",
+  "@contentReport_reasonSpam": {
+    "description": "Spam report reason"
+  },
+  "contentReport_reasonHarassment": "Домогательства или оскорбления",
+  "@contentReport_reasonHarassment": {
+    "description": "Harassment or abuse report reason"
+  },
+  "contentReport_reasonHateSpeech": "Разжигание ненависти",
+  "@contentReport_reasonHateSpeech": {
+    "description": "Hate speech report reason"
+  },
+  "contentReport_reasonMisinformation": "Дезинформация",
+  "@contentReport_reasonMisinformation": {
+    "description": "Misinformation report reason"
+  },
+  "contentReport_reasonViolence": "Насилие",
+  "@contentReport_reasonViolence": {
+    "description": "Violence report reason"
+  },
+  "contentReport_reasonOther": "Другое",
+  "@contentReport_reasonOther": {
+    "description": "Other report reason"
+  },
+  "postDetail_title": "Подробности Voce",
+  "@postDetail_title": {
+    "description": "Post detail page title"
+  },
+  "postDetail_favoriteUpdateError": "Не удалось обновить сохранённое",
+  "@postDetail_favoriteUpdateError": {
+    "description": "Favorites update error on the post detail page"
+  },
+  "postDetail_shareMessage": "Откройте Social Vote, чтобы посмотреть эту Voce.",
+  "@postDetail_shareMessage": {
+    "description": "Text appended when sharing a post"
+  },
+  "postDetail_shareError": "Не удалось поделиться Voce",
+  "@postDetail_shareError": {
+    "description": "Post sharing error"
+  },
+  "postDetail_editDialogTitle": "Редактировать Voce",
+  "@postDetail_editDialogTitle": {
+    "description": "Edit post dialog title"
+  },
+  "postDetail_editTitleFieldLabel": "Заголовок",
+  "@postDetail_editTitleFieldLabel": {
+    "description": "Title field label in the edit post dialog"
+  },
+  "postDetail_editContentFieldLabel": "Содержание",
+  "@postDetail_editContentFieldLabel": {
+    "description": "Content field label in the edit post dialog"
+  },
+  "postDetail_editRequiredError": "Заголовок и содержание обязательны.",
+  "@postDetail_editRequiredError": {
+    "description": "Required fields error in the edit post dialog"
+  },
+  "postDetail_updateSuccess": "Voce обновлена",
+  "@postDetail_updateSuccess": {
+    "description": "Post update confirmation"
+  },
+  "postDetail_updateError": "Не удалось обновить Voce",
+  "@postDetail_updateError": {
+    "description": "Post update error"
+  },
+  "postDetail_deleteDialogTitle": "Удалить эту Voce?",
+  "@postDetail_deleteDialogTitle": {
+    "description": "Post deletion confirmation title"
+  },
+  "postDetail_deleteDialogMessage": "Это действие нельзя отменить.",
+  "@postDetail_deleteDialogMessage": {
+    "description": "Post deletion confirmation message"
+  },
+  "postDetail_deleteError": "Не удалось удалить Voce",
+  "@postDetail_deleteError": {
+    "description": "Post deletion error"
+  },
+  "postDetail_editMenuItem": "Редактировать Voce",
+  "@postDetail_editMenuItem": {
+    "description": "Edit post menu item"
+  },
+  "postDetail_deleteMenuItem": "Удалить Voce",
+  "@postDetail_deleteMenuItem": {
+    "description": "Delete post menu item"
+  },
+  "postDetail_loadError": "При загрузке Voce произошла ошибка.",
+  "@postDetail_loadError": {
+    "description": "Generic post detail loading error"
+  },
+  "postDetail_notFound": "Voce не найдена.",
+  "@postDetail_notFound": {
+    "description": "Post not found message"
+  },
+  "postDetail_errorTitle": "Ошибка",
+  "@postDetail_errorTitle": {
+    "description": "Post detail error state title"
+  },
+  "postDetail_authorFallback": "Автор",
+  "@postDetail_authorFallback": {
+    "description": "Fallback author name on the post detail page"
+  },
+  "postDetail_shareAction": "Поделиться",
+  "@postDetail_shareAction": {
+    "description": "Share action on the post detail page"
+  },
+  "postDetail_saveAction": "Сохранить",
+  "@postDetail_saveAction": {
+    "description": "Save action on the post detail page"
+  },
+  "postDetail_addToFavoritesTooltip": "Сохранить",
+  "@postDetail_addToFavoritesTooltip": {
+    "description": "Add to favorites tooltip on the post detail page"
+  },
+  "postDetail_removeFromFavoritesTooltip": "Удалить из сохранённых",
+  "@postDetail_removeFromFavoritesTooltip": {
+    "description": "Remove from favorites tooltip on the post detail page"
+  },
+  "newsDetail_favoriteUpdateError": "Не удалось обновить сохранённое",
+  "@newsDetail_favoriteUpdateError": {
+    "description": "Favorites update error on the news detail page"
+  },
+  "newsDetail_shareMessage": "Откройте Social Vote, чтобы посмотреть эту новость.",
+  "@newsDetail_shareMessage": {
+    "description": "Text appended when sharing a news item"
+  },
+  "newsDetail_shareError": "Не удалось поделиться новостью",
+  "@newsDetail_shareError": {
+    "description": "News sharing error"
+  },
+  "newsDetail_shareTooltip": "Поделиться",
+  "@newsDetail_shareTooltip": {
+    "description": "Share tooltip on the news detail page"
+  },
+  "authLoginPageTitle": "Войти",
+  "@authLoginPageTitle": {
+    "description": "Auth UI: authLoginPageTitle"
+  },
+  "authLoginHeadline": "С возвращением",
+  "@authLoginHeadline": {
+    "description": "Auth UI: authLoginHeadline"
+  },
+  "authEmailLabel": "Email",
+  "@authEmailLabel": {
+    "description": "Auth UI: authEmailLabel"
+  },
+  "authPasswordLabel": "Пароль",
+  "@authPasswordLabel": {
+    "description": "Auth UI: authPasswordLabel"
+  },
+  "authRememberMeLabel": "Запомнить меня",
+  "@authRememberMeLabel": {
+    "description": "Auth UI: authRememberMeLabel"
+  },
+  "authForgotPasswordAction": "Забыли пароль?",
+  "@authForgotPasswordAction": {
+    "description": "Auth UI: authForgotPasswordAction"
+  },
+  "authLoginButton": "Войти",
+  "@authLoginButton": {
+    "description": "Auth UI: authLoginButton"
+  },
+  "authRegisterPrompt": "Нет аккаунта?",
+  "@authRegisterPrompt": {
+    "description": "Auth UI: authRegisterPrompt"
+  },
+  "authRegisterAction": "Зарегистрироваться",
+  "@authRegisterAction": {
+    "description": "Auth UI: authRegisterAction"
+  },
+  "authRegisterPageTitle": "Регистрация",
+  "@authRegisterPageTitle": {
+    "description": "Auth UI: authRegisterPageTitle"
+  },
+  "authRegisterHeadline": "Создать аккаунт",
+  "@authRegisterHeadline": {
+    "description": "Auth UI: authRegisterHeadline"
+  },
+  "authPersonalAccountOwnershipTitle": "Вход всегда принадлежит человеку",
+  "@authPersonalAccountOwnershipTitle": {
+    "description": "Explains that authentication belongs to a person even when representing an organization"
+  },
+  "authPersonalAccountOwnershipBody": "Если вы представляете организацию, создайте личный аккаунт. После входа вы сможете запросить Verified Organization и управлять ею из Workspace.",
+  "@authPersonalAccountOwnershipBody": {
+    "description": "Explains the person-to-organization registration path"
+  },
+  "authOrganizationPathAction": "Как это работает для организаций",
+  "@authOrganizationPathAction": {
+    "description": "Opens the guide for the organization account path"
+  },
+  "authDisplayNameLabel": "Публичное имя",
+  "@authDisplayNameLabel": {
+    "description": "Auth UI: authDisplayNameLabel"
+  },
+  "authUsernameLabel": "Имя пользователя",
+  "@authUsernameLabel": {
+    "description": "Auth UI: authUsernameLabel"
+  },
+  "authCountryOfResidenceLabel": "Страна проживания",
+  "@authCountryOfResidenceLabel": {
+    "description": "Auth UI: authCountryOfResidenceLabel"
+  },
+  "authCityOfResidenceLabel": "Город проживания (необязательно)",
+  "@authCityOfResidenceLabel": {
+    "description": "Auth UI: authCityOfResidenceLabel"
+  },
+  "authConfirmPasswordLabel": "Подтвердите пароль",
+  "@authConfirmPasswordLabel": {
+    "description": "Auth UI: authConfirmPasswordLabel"
+  },
+  "authLegalConsentPrefix": "Я подтверждаю, что мне не менее 18 лет. Я принимаю Условия использования и подтверждаю, что прочитал(а) Политику конфиденциальности.",
+  "@authLegalConsentPrefix": {
+    "description": "Auth UI: authLegalConsentPrefix"
+  },
+  "authTermsOfServiceAction": "Условия использования",
+  "@authTermsOfServiceAction": {
+    "description": "Auth UI: authTermsOfServiceAction"
+  },
+  "authPrivacyPolicyAction": "Политику конфиденциальности",
+  "@authPrivacyPolicyAction": {
+    "description": "Auth UI: authPrivacyPolicyAction"
+  },
+  "authRegisterButton": "Зарегистрироваться",
+  "@authRegisterButton": {
+    "description": "Auth UI: authRegisterButton"
+  },
+  "authLoginPrompt": "Уже есть аккаунт?",
+  "@authLoginPrompt": {
+    "description": "Auth UI: authLoginPrompt"
+  },
+  "authLoginAction": "Войти",
+  "@authLoginAction": {
+    "description": "Auth UI: authLoginAction"
+  },
+  "authForgotPasswordDialogTitle": "Сброс пароля",
+  "@authForgotPasswordDialogTitle": {
+    "description": "Auth UI: authForgotPasswordDialogTitle"
+  },
+  "authForgotPasswordDialogBody": "Введите адрес email, связанный с вашим аккаунтом. Мы отправим ссылку для выбора нового пароля.",
+  "@authForgotPasswordDialogBody": {
+    "description": "Auth UI: authForgotPasswordDialogBody"
+  },
+  "authForgotPasswordSendButton": "Отправить ссылку",
+  "@authForgotPasswordSendButton": {
+    "description": "Auth UI: authForgotPasswordSendButton"
+  },
+  "authPasswordResetEmailSent": "Письмо для сброса пароля отправлено. Проверьте входящие.",
+  "@authPasswordResetEmailSent": {
+    "description": "Auth UI: authPasswordResetEmailSent"
+  },
+  "authResetPasswordPageTitle": "Сброс пароля",
+  "@authResetPasswordPageTitle": {
+    "description": "Auth UI: authResetPasswordPageTitle"
+  },
+  "authResetPasswordHeadline": "Выберите новый пароль",
+  "@authResetPasswordHeadline": {
+    "description": "Auth UI: authResetPasswordHeadline"
+  },
+  "authNewPasswordLabel": "Новый пароль",
+  "@authNewPasswordLabel": {
+    "description": "Auth UI: authNewPasswordLabel"
+  },
+  "authConfirmNewPasswordLabel": "Подтвердите новый пароль",
+  "@authConfirmNewPasswordLabel": {
+    "description": "Auth UI: authConfirmNewPasswordLabel"
+  },
+  "authUpdatePasswordButton": "Обновить пароль",
+  "@authUpdatePasswordButton": {
+    "description": "Auth UI: authUpdatePasswordButton"
+  },
+  "authPasswordUpdated": "Пароль успешно обновлён.",
+  "@authPasswordUpdated": {
+    "description": "Auth UI: authPasswordUpdated"
+  },
+  "authEmailConfirmationTitle": "Проверьте email",
+  "@authEmailConfirmationTitle": {
+    "description": "Auth UI: authEmailConfirmationTitle"
+  },
+  "authEmailConfirmationIntro": "Мы отправили ссылку подтверждения на:",
+  "@authEmailConfirmationIntro": {
+    "description": "Auth UI: authEmailConfirmationIntro"
+  },
+  "authEmailConfirmationInstructions": "Откройте ссылку в письме, чтобы подтвердить адрес. После подтверждения вернитесь в приложение и войдите.",
+  "@authEmailConfirmationInstructions": {
+    "description": "Auth UI: authEmailConfirmationInstructions"
+  },
+  "authBackToLoginButton": "Вернуться ко входу",
+  "@authBackToLoginButton": {
+    "description": "Auth UI: authBackToLoginButton"
+  },
+  "authUseAnotherEmailButton": "Использовать другой email",
+  "@authUseAnotherEmailButton": {
+    "description": "Auth UI: authUseAnotherEmailButton"
+  },
+  "authEmailRequiredError": "Введите email.",
+  "@authEmailRequiredError": {
+    "description": "Auth UI: authEmailRequiredError"
+  },
+  "authEmailInvalidError": "Введите корректный email.",
+  "@authEmailInvalidError": {
+    "description": "Auth UI: authEmailInvalidError"
+  },
+  "authPasswordRequiredError": "Введите пароль.",
+  "@authPasswordRequiredError": {
+    "description": "Auth UI: authPasswordRequiredError"
+  },
+  "authPasswordTooShortError": "Пароль должен содержать не менее 8 символов.",
+  "@authPasswordTooShortError": {
+    "description": "Auth UI: authPasswordTooShortError"
+  },
+  "authDisplayNameRequiredError": "Введите публичное имя.",
+  "@authDisplayNameRequiredError": {
+    "description": "Auth UI: authDisplayNameRequiredError"
+  },
+  "authDisplayNameTooShortError": "Публичное имя слишком короткое.",
+  "@authDisplayNameTooShortError": {
+    "description": "Auth UI: authDisplayNameTooShortError"
+  },
+  "authUsernameRequiredError": "Введите имя пользователя.",
+  "@authUsernameRequiredError": {
+    "description": "Auth UI: authUsernameRequiredError"
+  },
+  "authUsernameInvalidError": "Используйте от 3 до 20 символов: строчные буквы, цифры и символ подчёркивания.",
+  "@authUsernameInvalidError": {
+    "description": "Auth UI: authUsernameInvalidError"
+  },
+  "authUsernameAlreadyTakenError": "Это имя пользователя уже занято.",
+  "@authUsernameAlreadyTakenError": {
+    "description": "Auth UI: username already in use"
+  },
+  "authCountryRequiredError": "Выберите страну проживания.",
+  "@authCountryRequiredError": {
+    "description": "Auth UI: authCountryRequiredError"
+  },
+  "authCityRequiredError": "Введите город проживания.",
+  "@authCityRequiredError": {
+    "description": "Auth UI: authCityRequiredError"
+  },
+  "authConfirmPasswordRequiredError": "Подтвердите пароль.",
+  "@authConfirmPasswordRequiredError": {
+    "description": "Auth UI: authConfirmPasswordRequiredError"
+  },
+  "authPasswordsDoNotMatchError": "Пароли не совпадают.",
+  "@authPasswordsDoNotMatchError": {
+    "description": "Auth UI: authPasswordsDoNotMatchError"
+  },
+  "authLegalConsentRequiredError": "Для регистрации подтвердите, что вам не менее 18 лет, примите Условия использования и подтвердите, что прочитали Политику конфиденциальности.",
+  "@authLegalConsentRequiredError": {
+    "description": "Auth UI: authLegalConsentRequiredError"
+  },
+  "authForgotPasswordEmailRequiredError": "Введите email аккаунта, который хотите восстановить.",
+  "@authForgotPasswordEmailRequiredError": {
+    "description": "Auth UI: authForgotPasswordEmailRequiredError"
+  },
+  "authInvalidCredentialsError": "Неверный email или пароль.",
+  "@authInvalidCredentialsError": {
+    "description": "Auth UI: authInvalidCredentialsError"
+  },
+  "authEmailAlreadyRegisteredError": "Этот email уже зарегистрирован.",
+  "@authEmailAlreadyRegisteredError": {
+    "description": "Auth UI: authEmailAlreadyRegisteredError"
+  },
+  "authEmailNotConfirmedError": "Email не подтверждён. Перед входом проверьте входящие.",
+  "@authEmailNotConfirmedError": {
+    "description": "Auth UI: authEmailNotConfirmedError"
+  },
+  "authTooManyAttemptsError": "Слишком много попыток. Подождите несколько минут и повторите.",
+  "@authTooManyAttemptsError": {
+    "description": "Auth UI: authTooManyAttemptsError"
+  },
+  "authNetworkError": "Ошибка сети. Проверьте соединение и повторите.",
+  "@authNetworkError": {
+    "description": "Auth UI: authNetworkError"
+  },
+  "authLoginGenericError": "Не удалось войти. Попробуйте ещё раз.",
+  "@authLoginGenericError": {
+    "description": "Auth UI: authLoginGenericError"
+  },
+  "authRegisterGenericError": "Не удалось зарегистрироваться. Попробуйте ещё раз.",
+  "@authRegisterGenericError": {
+    "description": "Auth UI: authRegisterGenericError"
+  },
+  "authPasswordResetGenericError": "Не удалось отправить ссылку для сброса. Попробуйте ещё раз.",
+  "@authPasswordResetGenericError": {
+    "description": "Auth UI: authPasswordResetGenericError"
+  },
+  "authPasswordUpdateGenericError": "Не удалось обновить пароль. Попробуйте ещё раз.",
+  "@authPasswordUpdateGenericError": {
+    "description": "Auth UI: authPasswordUpdateGenericError"
+  },
+  "authShowPasswordTooltip": "Показать пароль",
+  "@authShowPasswordTooltip": {
+    "description": "Auth UI: authShowPasswordTooltip"
+  },
+  "authHidePasswordTooltip": "Скрыть пароль",
+  "@authHidePasswordTooltip": {
+    "description": "Auth UI: authHidePasswordTooltip"
+  },
+  "authTermsPageTitle": "Условия использования",
+  "@authTermsPageTitle": {
+    "description": "Auth UI: authTermsPageTitle"
+  },
+  "authPrivacyPageTitle": "Политика конфиденциальности",
+  "@authPrivacyPageTitle": {
+    "description": "Auth UI: authPrivacyPageTitle"
+  },
+  "authCloseButton": "Закрыть",
+  "@authCloseButton": {
+    "description": "Auth UI: authCloseButton"
+  },
+  "pollDetail_favoriteUpdateError": "Не удалось обновить сохранённое",
+  "@pollDetail_favoriteUpdateError": {
+    "description": "Poll detail UI: pollDetail_favoriteUpdateError"
+  },
+  "pollDetail_shareMessage": "Откройте Social Vote, чтобы посмотреть и проголосовать в этом Vote.",
+  "@pollDetail_shareMessage": {
+    "description": "Poll detail UI: pollDetail_shareMessage"
+  },
+  "pollDetail_shareError": "Не удалось поделиться Vote",
+  "@pollDetail_shareError": {
+    "description": "Poll detail UI: pollDetail_shareError"
+  },
+  "pollDetail_editPermissionError": "Вы можете редактировать только собственные Vote, в которых ещё нет голосов",
+  "@pollDetail_editPermissionError": {
+    "description": "Poll detail UI: pollDetail_editPermissionError"
+  },
+  "pollDetail_editSuccessMessage": "Vote обновлён",
+  "@pollDetail_editSuccessMessage": {
+    "description": "Poll detail UI: pollDetail_editSuccessMessage"
+  },
+  "pollDetail_editMenuItem": "Редактировать Vote",
+  "@pollDetail_editMenuItem": {
+    "description": "Poll detail UI: pollDetail_editMenuItem"
+  },
+  "pollDetail_editSavingMenuItem": "Сохранение...",
+  "@pollDetail_editSavingMenuItem": {
+    "description": "Poll detail UI: pollDetail_editSavingMenuItem"
+  },
+  "pollDetail_deletePermissionError": "Вы можете удалять только собственные Vote",
+  "@pollDetail_deletePermissionError": {
+    "description": "Poll detail UI: pollDetail_deletePermissionError"
+  },
+  "pollDetail_deleteError": "Не удалось удалить Vote",
+  "@pollDetail_deleteError": {
+    "description": "Poll detail UI: pollDetail_deleteError"
+  },
+  "pollDetail_deleteDialogTitle": "Удалить Vote",
+  "@pollDetail_deleteDialogTitle": {
+    "description": "Poll detail UI: pollDetail_deleteDialogTitle"
+  },
+  "pollDetail_deleteDialogMessage": "Вы действительно хотите удалить «{title}»? Это действие нельзя отменить.",
+  "@pollDetail_deleteDialogMessage": {
+    "description": "Poll detail UI: pollDetail_deleteDialogMessage",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "pollDetail_deleteMenuItem": "Удалить Vote",
+  "@pollDetail_deleteMenuItem": {
+    "description": "Poll detail UI: pollDetail_deleteMenuItem"
+  },
+  "pollDetail_deleteDeletingMenuItem": "Удаление...",
+  "@pollDetail_deleteDeletingMenuItem": {
+    "description": "Poll detail UI: pollDetail_deleteDeletingMenuItem"
+  },
+  "pollDetail_publicVotesAvailableTitle": "Доступны публичные голоса",
+  "@pollDetail_publicVotesAvailableTitle": {
+    "description": "Poll detail UI: pollDetail_publicVotesAvailableTitle"
+  },
+  "pollDetail_publicVotesAvailableMessage": "В этом Vote можно посмотреть, кто проголосовал за каждый вариант.",
+  "@pollDetail_publicVotesAvailableMessage": {
+    "description": "Poll detail UI: pollDetail_publicVotesAvailableMessage"
+  },
+  "pollDetail_publicVotesAction": "Посмотреть публичные голоса",
+  "@pollDetail_publicVotesAction": {
+    "description": "Poll detail UI: pollDetail_publicVotesAction"
+  },
+  "pollDetail_retryButton": "Повторить",
+  "@pollDetail_retryButton": {
+    "description": "Poll detail UI: pollDetail_retryButton"
+  },
+  "pollDetail_voteErrorNoOption": "Выберите хотя бы один вариант",
+  "@pollDetail_voteErrorNoOption": {
+    "description": "Poll detail UI: pollDetail_voteErrorNoOption"
+  },
+  "pollDetail_voteErrorAuthenticationRequired": "Чтобы голосовать, необходимо войти в систему",
+  "@pollDetail_voteErrorAuthenticationRequired": {
+    "description": "Poll detail UI: pollDetail_voteErrorAuthenticationRequired"
+  },
+  "pollDetail_voteErrorClosed": "Этот Vote закрыт",
+  "@pollDetail_voteErrorClosed": {
+    "description": "Poll detail UI: pollDetail_voteErrorClosed"
+  },
+  "pollDetail_voteErrorAlreadyVoted": "Вы уже голосовали в этом Vote",
+  "@pollDetail_voteErrorAlreadyVoted": {
+    "description": "Poll detail UI: pollDetail_voteErrorAlreadyVoted"
+  },
+  "pollDetail_voteErrorGeneric": "Не удалось отправить голос",
+  "@pollDetail_voteErrorGeneric": {
+    "description": "Poll detail UI: pollDetail_voteErrorGeneric"
+  },
+  "pollDetail_publicVotesSheetTitle": "Публичные голоса",
+  "@pollDetail_publicVotesSheetTitle": {
+    "description": "Poll detail UI: pollDetail_publicVotesSheetTitle"
+  },
+  "pollDetail_publicVotesSheetDescription": "Здесь можно посмотреть, кто проголосовал за каждый вариант в этом Vote.",
+  "@pollDetail_publicVotesSheetDescription": {
+    "description": "Poll detail UI: pollDetail_publicVotesSheetDescription"
+  },
+  "pollDetail_publicVotesSearchHint": "Искать пользователей",
+  "@pollDetail_publicVotesSearchHint": {
+    "description": "Poll detail UI: pollDetail_publicVotesSearchHint"
+  },
+  "pollDetail_publicVotesLoadError": "Не удалось загрузить публичные голоса",
+  "@pollDetail_publicVotesLoadError": {
+    "description": "Poll detail UI: pollDetail_publicVotesLoadError"
+  },
+  "pollDetail_publicVotesEmpty": "Публичных голосов нет",
+  "@pollDetail_publicVotesEmpty": {
+    "description": "Poll detail UI: pollDetail_publicVotesEmpty"
+  },
+  "pollDetail_publicVotesSearchEmpty": "По этому запросу пользователи не найдены",
+  "@pollDetail_publicVotesSearchEmpty": {
+    "description": "Poll detail UI: pollDetail_publicVotesSearchEmpty"
+  },
+  "pollDetail_publicVotesResultsCount": "Загружено результатов: {count}",
+  "@pollDetail_publicVotesResultsCount": {
+    "description": "Poll detail UI: pollDetail_publicVotesResultsCount",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollDetail_publicVotesLoadMore": "Загрузить ещё",
+  "@pollDetail_publicVotesLoadMore": {
+    "description": "Poll detail UI: pollDetail_publicVotesLoadMore"
+  },
+  "pollDetail_publicVotesUserFallback": "Пользователь",
+  "@pollDetail_publicVotesUserFallback": {
+    "description": "Poll detail UI: pollDetail_publicVotesUserFallback"
+  },
+  "pollDetail_editDialogTitle": "Редактировать Vote",
+  "@pollDetail_editDialogTitle": {
+    "description": "Poll detail UI: pollDetail_editDialogTitle"
+  },
+  "pollDetail_editTitleFieldLabel": "Заголовок",
+  "@pollDetail_editTitleFieldLabel": {
+    "description": "Poll detail UI: pollDetail_editTitleFieldLabel"
+  },
+  "pollDetail_editTitleRequired": "Заголовок обязателен",
+  "@pollDetail_editTitleRequired": {
+    "description": "Poll detail UI: pollDetail_editTitleRequired"
+  },
+  "pollDetail_editDescriptionFieldLabel": "Описание",
+  "@pollDetail_editDescriptionFieldLabel": {
+    "description": "Poll detail UI: pollDetail_editDescriptionFieldLabel"
+  },
+  "pollDetail_editError": "Не удалось обновить Vote",
+  "@pollDetail_editError": {
+    "description": "Poll detail UI: pollDetail_editError"
+  },
+  "pollDetail_loadError": "Не удалось загрузить Vote",
+  "@pollDetail_loadError": {
+    "description": "Poll detail UI: pollDetail_loadError"
+  },
+  "pollDetail_notFound": "Vote не найден",
+  "@pollDetail_notFound": {
+    "description": "Poll detail UI: pollDetail_notFound"
+  },
+  "profileEditPageTitle": "Редактировать профиль",
+  "@profileEditPageTitle": {
+    "description": "Edit profile UI: profileEditPageTitle"
+  },
+  "profileLoginRequiredMessage": "Чтобы редактировать профиль, необходимо войти в систему.",
+  "@profileLoginRequiredMessage": {
+    "description": "Edit profile UI: profileLoginRequiredMessage"
+  },
+  "profileAvatarUploading": "Загрузка...",
+  "@profileAvatarUploading": {
+    "description": "Edit profile UI: profileAvatarUploading"
+  },
+  "profileUploadAvatarButton": "Загрузить аватар",
+  "@profileUploadAvatarButton": {
+    "description": "Edit profile UI: profileUploadAvatarButton"
+  },
+  "profileDisplayNameLabel": "Отображаемое имя",
+  "@profileDisplayNameLabel": {
+    "description": "Edit profile UI: profileDisplayNameLabel"
+  },
+  "profileDisplayNameRequiredError": "Отображаемое имя обязательно.",
+  "@profileDisplayNameRequiredError": {
+    "description": "Edit profile UI: profileDisplayNameRequiredError"
+  },
+  "profileUsernameHint": "например mario_roma",
+  "@profileUsernameHint": {
+    "description": "Edit profile UI: profileUsernameHint"
+  },
+  "profileUsernameHelper": "3–20 символов: строчные буквы, цифры и символ подчёркивания",
+  "@profileUsernameHelper": {
+    "description": "Edit profile UI: profileUsernameHelper"
+  },
+  "profileAvatarUrlLabel": "URL аватара",
+  "@profileAvatarUrlLabel": {
+    "description": "Edit profile UI: profileAvatarUrlLabel"
+  },
+  "profileBioLabel": "О себе",
+  "@profileBioLabel": {
+    "description": "Edit profile UI: profileBioLabel"
+  },
+  "profileClearCountryButton": "Очистить страну",
+  "@profileClearCountryButton": {
+    "description": "Edit profile UI: profileClearCountryButton"
+  },
+  "profileCityResidenceHelper": "Перед сохранением город проживания проверяется на соответствие выбранной стране.",
+  "@profileCityResidenceHelper": {
+    "description": "Edit profile UI: profileCityResidenceHelper"
+  },
+  "profileCityNotFoundError": "Город не найден в выбранной стране.",
+  "@profileCityNotFoundError": {
+    "description": "Edit profile UI: profileCityNotFoundError"
+  },
+  "profileCityVerificationError": "Сейчас не удалось проверить город.",
+  "@profileCityVerificationError": {
+    "description": "Edit profile UI: profileCityVerificationError"
+  },
+  "profileAvatarUploadError": "Не удалось загрузить аватар.",
+  "@profileAvatarUploadError": {
+    "description": "Edit profile UI: profileAvatarUploadError"
+  },
+  "profileAccountSectionTitle": "Аккаунт",
+  "@profileAccountSectionTitle": {
+    "description": "Edit profile UI: profileAccountSectionTitle"
+  },
+  "profileAccountEmailHelper": "Адрес email аккаунта нельзя изменить на этом экране.",
+  "@profileAccountEmailHelper": {
+    "description": "Edit profile UI: profileAccountEmailHelper"
+  },
+  "profileChangePasswordAction": "Изменить пароль",
+  "@profileChangePasswordAction": {
+    "description": "Edit profile UI: profileChangePasswordAction"
+  },
+  "profileChangePasswordDescription": "Установить новый пароль для этого аккаунта.",
+  "@profileChangePasswordDescription": {
+    "description": "Edit profile UI: profileChangePasswordDescription"
+  },
+  "notificationsPageTitle": "Уведомления",
+  "@notificationsPageTitle": {
+    "description": "Notifications UI: notificationsPageTitle"
+  },
+  "notificationsMarkAllReadAction": "Отметить всё как прочитанное",
+  "@notificationsMarkAllReadAction": {
+    "description": "Notifications UI: notificationsMarkAllReadAction"
+  },
+  "notificationsNoTargetMessage": "У этого уведомления нет доступного места назначения.",
+  "@notificationsNoTargetMessage": {
+    "description": "Notifications UI: notificationsNoTargetMessage"
+  },
+  "notificationsTargetUnavailableMessage": "Контент, связанный с этим уведомлением, недоступен.",
+  "@notificationsTargetUnavailableMessage": {
+    "description": "Notifications UI: notificationsTargetUnavailableMessage"
+  },
+  "notificationsLoadError": "Не удалось загрузить уведомления.",
+  "@notificationsLoadError": {
+    "description": "Notifications UI: notificationsLoadError"
+  },
+  "notificationsRetryButton": "Повторить",
+  "@notificationsRetryButton": {
+    "description": "Notifications UI: notificationsRetryButton"
+  },
+  "notificationsEmptyMessage": "Уведомлений нет.",
+  "@notificationsEmptyMessage": {
+    "description": "Notifications UI: notificationsEmptyMessage"
+  },
+  "notificationsCommentReplyTitle": "Новый ответ на ваш комментарий",
+  "@notificationsCommentReplyTitle": {
+    "description": "Notifications UI: notificationsCommentReplyTitle"
+  },
+  "notificationsMentionTitle": "Вас упомянули",
+  "@notificationsMentionTitle": {
+    "description": "Notifications UI: notificationsMentionTitle"
+  },
+  "notificationsPollResultTitle": "Обновление Vote",
+  "@notificationsPollResultTitle": {
+    "description": "Notifications UI: notificationsPollResultTitle"
+  },
+  "notificationsCommentReplySubtitle": "Пользователь {actor} ответил в {target}",
+  "@notificationsCommentReplySubtitle": {
+    "description": "Notifications UI: notificationsCommentReplySubtitle",
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsMentionSubtitle": "Пользователь {actor} упомянул вас в {target}",
+  "@notificationsMentionSubtitle": {
+    "description": "Notifications UI: notificationsMentionSubtitle",
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsPollResultSubtitle": "В {target} доступен новый результат",
+  "@notificationsPollResultSubtitle": {
+    "description": "Notifications UI: notificationsPollResultSubtitle",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsTargetPost": "Voce",
+  "@notificationsTargetPost": {
+    "description": "Notifications UI: notificationsTargetPost"
+  },
+  "notificationsTargetNews": "новости",
+  "@notificationsTargetNews": {
+    "description": "Notifications UI: notificationsTargetNews"
+  },
+  "notificationsTargetPoll": "Vote",
+  "@notificationsTargetPoll": {
+    "description": "Notifications UI: notificationsTargetPoll"
+  },
+  "notificationsTargetVideo": "видео",
+  "@notificationsTargetVideo": {
+    "description": "Notifications UI: notificationsTargetVideo"
+  },
+  "notificationsTargetContent": "контенте",
+  "@notificationsTargetContent": {
+    "description": "Notifications UI: notificationsTargetContent"
+  },
+  "notificationsUserFallback": "пользователь",
+  "@notificationsUserFallback": {
+    "description": "Notifications UI: notificationsUserFallback"
+  },
+  "profileDeleteAccountAction": "Удалить аккаунт",
+  "@profileDeleteAccountAction": {
+    "description": "Account hub: destructive action used to permanently delete the current account"
+  },
+  "profileDeleteAccountDescription": "Навсегда удалить аккаунт и доступ",
+  "@profileDeleteAccountDescription": {
+    "description": "Account hub: short description below the delete-account action"
+  },
+  "profileDeleteAccountDialogTitle": "Удалить аккаунт",
+  "@profileDeleteAccountDialogTitle": {
+    "description": "Delete-account confirmation dialog title"
+  },
+  "profileDeleteAccountDialogMessage": "Это действие необратимо. Аккаунт нельзя восстановить. Введите DELETE для подтверждения.",
+  "@profileDeleteAccountDialogMessage": {
+    "description": "Delete-account confirmation dialog warning"
+  },
+  "profileDeleteAccountConfirmationLabel": "Подтверждение удаления",
+  "@profileDeleteAccountConfirmationLabel": {
+    "description": "Label for the typed delete-account confirmation field"
+  },
+  "profileDeleteAccountConfirmationHint": "Введите DELETE",
+  "@profileDeleteAccountConfirmationHint": {
+    "description": "Hint for the typed delete-account confirmation field"
+  },
+  "profileDeleteAccountConfirmationError": "Введите DELETE, чтобы продолжить.",
+  "@profileDeleteAccountConfirmationError": {
+    "description": "Validation error when the delete-account confirmation is incorrect"
+  },
+  "profileDeleteAccountCancelButton": "Отмена",
+  "@profileDeleteAccountCancelButton": {
+    "description": "Cancel button in the delete-account dialog"
+  },
+  "profileDeleteAccountConfirmButton": "Удалить навсегда",
+  "@profileDeleteAccountConfirmButton": {
+    "description": "Destructive confirmation button in the delete-account dialog"
+  },
+  "profileDeleteAccountFailureMessage": "Не удалось удалить аккаунт. Попробуйте ещё раз.",
+  "@profileDeleteAccountFailureMessage": {
+    "description": "Fallback message shown when account deletion fails"
+  },
+  "identityActorTypePerson": "Человек",
+  "@identityActorTypePerson": {
+    "description": "Public identity type label for a personal account"
+  },
+  "identityActorTypePublicOfficial": "Публичное должностное лицо",
+  "@identityActorTypePublicOfficial": {
+    "description": "Public identity type label for a verified public official"
+  },
+  "identityActorTypePublicInstitution": "Государственное учреждение",
+  "@identityActorTypePublicInstitution": {
+    "description": "Public identity type label for a verified public institution"
+  },
+  "identityActorTypeVerifiedOrganization": "Проверенная организация",
+  "@identityActorTypeVerifiedOrganization": {
+    "description": "Public identity type label for a verified non-governmental organization"
+  },
+  "identityVerificationNotVerified": "Не проверено",
+  "@identityVerificationNotVerified": {
+    "description": "Verification state label for a personal account without verification"
+  },
+  "identityVerificationLevel1": "Подтверждённая личность",
+  "@identityVerificationLevel1": {
+    "description": "Public label for personal identity verification level 1"
+  },
+  "identityVerificationLevel2": "Расширенная подтверждённая личность",
+  "@identityVerificationLevel2": {
+    "description": "Public label for personal identity verification level 2"
+  },
+  "identityBadgeLevel1": "Подтверждённая личность",
+  "@identityBadgeLevel1": {
+    "description": "Tooltip and badge label for personal verification level 1"
+  },
+  "identityBadgeLevel2": "Расширенная подтверждённая личность",
+  "@identityBadgeLevel2": {
+    "description": "Tooltip and badge label for personal verification level 2"
+  },
+  "identityBadgePublicOfficial": "Публичное должностное лицо",
+  "@identityBadgePublicOfficial": {
+    "description": "Tooltip and badge label for a verified public official"
+  },
+  "identityBadgePublicInstitution": "Государственное учреждение",
+  "@identityBadgePublicInstitution": {
+    "description": "Tooltip and badge label for a verified public institution"
+  },
+  "identityBadgeVerifiedOrganization": "Проверенная организация",
+  "@identityBadgeVerifiedOrganization": {
+    "description": "Tooltip and badge label for a verified organization"
+  },
+  "identityOrganizationNameLabel": "Название организации",
+  "@identityOrganizationNameLabel": {
+    "description": "Field label for the verified organization name"
+  },
+  "identityOrganizationNameRequired": "Введите название организации.",
+  "@identityOrganizationNameRequired": {
+    "description": "Validation error when the organization name is missing"
+  },
+  "identityInstitutionLevelMunicipality": "Муниципальный",
+  "@identityInstitutionLevelMunicipality": {
+    "description": "Institution level label for a municipality"
+  },
+  "identityInstitutionLevelProvince": "Провинциальный",
+  "@identityInstitutionLevelProvince": {
+    "description": "Institution level label for a province"
+  },
+  "identityInstitutionLevelRegion": "Региональный",
+  "@identityInstitutionLevelRegion": {
+    "description": "Institution level label for a region"
+  },
+  "identityInstitutionLevelMinistry": "Министерство",
+  "@identityInstitutionLevelMinistry": {
+    "description": "Institution level label for a ministry"
+  },
+  "identityInstitutionLevelGovernment": "Правительство",
+  "@identityInstitutionLevelGovernment": {
+    "description": "Institution level label for a government"
+  },
+  "identityInstitutionLevelPublicAgency": "Государственное агентство",
+  "@identityInstitutionLevelPublicAgency": {
+    "description": "Institution level label for a public agency"
+  },
+  "identityInstitutionLevelOtherPublicBody": "Другой государственный орган",
+  "@identityInstitutionLevelOtherPublicBody": {
+    "description": "Institution level label for another public body"
+  },
+  "verificationRequestPersonLevel1": "Проверка личности — Уровень 1",
+  "@verificationRequestPersonLevel1": {
+    "description": "Verification request type label for personal verification level 1"
+  },
+  "verificationRequestPersonLevel2": "Проверка личности — Уровень 2",
+  "@verificationRequestPersonLevel2": {
+    "description": "Verification request type label for personal verification level 2"
+  },
+  "verificationRequestPublicOfficial": "Проверка публичного должностного лица",
+  "@verificationRequestPublicOfficial": {
+    "description": "Verification request type label for a public official"
+  },
+  "verificationRequestPublicInstitution": "Проверка государственного учреждения",
+  "@verificationRequestPublicInstitution": {
+    "description": "Verification request type label for a public institution"
+  },
+  "verificationRequestVerifiedOrganization": "Проверка организации",
+  "@verificationRequestVerifiedOrganization": {
+    "description": "Verification request type label for a verified organization"
+  },
+  "verificationCenterTitle": "Проверка и тип аккаунта",
+  "@verificationCenterTitle": {
+    "description": "Title of the verification and account type bottom sheet"
+  },
+  "verificationCurrentAccountSection": "Текущий аккаунт",
+  "@verificationCurrentAccountSection": {
+    "description": "Section title for the current verified identity state"
+  },
+  "verificationAccountTypeValue": "Тип аккаунта: {accountType}",
+  "@verificationAccountTypeValue": {
+    "description": "Current public account type row",
+    "placeholders": {
+      "accountType": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationLevelValue": "Уровень проверки: {level}",
+  "@verificationLevelValue": {
+    "description": "Current personal verification level row",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationOfficialTitleValue": "Официальная должность: {title}",
+  "@verificationOfficialTitleValue": {
+    "description": "Current official title row",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationInstitutionNameValue": "Учреждение: {name}",
+  "@verificationInstitutionNameValue": {
+    "description": "Current public institution name row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationOrganizationNameValue": "Организация: {name}",
+  "@verificationOrganizationNameValue": {
+    "description": "Current verified organization name row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationInstitutionLevelValue": "Уровень учреждения: {level}",
+  "@verificationInstitutionLevelValue": {
+    "description": "Current institution level row",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationActiveRequestSection": "Активная заявка",
+  "@verificationActiveRequestSection": {
+    "description": "Section title for an active verification request"
+  },
+  "verificationProfileUnchangedUntilApproval": "Ваш текущий профиль не изменится до одобрения заявки.",
+  "@verificationProfileUnchangedUntilApproval": {
+    "description": "Explanation shown while a verification request is pending"
+  },
+  "verificationCancelPendingAction": "Отменить ожидающую заявку",
+  "@verificationCancelPendingAction": {
+    "description": "Button label to cancel a pending verification request"
+  },
+  "verificationPendingBlocksNewRequests": "Нельзя подать новую заявку, пока другая находится на рассмотрении.",
+  "@verificationPendingBlocksNewRequests": {
+    "description": "Message explaining that only one pending request is allowed"
+  },
+  "verificationNoActiveRequestSection": "Нет активных заявок",
+  "@verificationNoActiveRequestSection": {
+    "description": "Section title when there is no active verification request"
+  },
+  "verificationNoActiveRequestDescription": "Сейчас у вас нет заявок на рассмотрении.",
+  "@verificationNoActiveRequestDescription": {
+    "description": "Message shown when there is no active verification request"
+  },
+  "verificationLastRejectedSection": "Последняя отклонённая заявка",
+  "@verificationLastRejectedSection": {
+    "description": "Section title for the most recently rejected request"
+  },
+  "verificationLastRejectedDescription": "Ваша последняя заявка была отклонена.",
+  "@verificationLastRejectedDescription": {
+    "description": "Message shown after a rejected verification request"
+  },
+  "verificationRejectedCanResubmit": "Ваш текущий профиль не изменён. Вы можете исправить информацию и подать новую заявку.",
+  "@verificationRejectedCanResubmit": {
+    "description": "Explanation shown after a rejected request"
+  },
+  "verificationAvailableRequestsSection": "Доступные заявки",
+  "@verificationAvailableRequestsSection": {
+    "description": "Section title for verification request actions"
+  },
+  "verificationRequestLevel1Title": "Запросить проверку личности — Уровень 1",
+  "@verificationRequestLevel1Title": {
+    "description": "Action title for personal verification level 1"
+  },
+  "verificationRequestLevel1Subtitle": "Базовая проверка личности",
+  "@verificationRequestLevel1Subtitle": {
+    "description": "Action subtitle for personal verification level 1"
+  },
+  "verificationRequestLevel2Title": "Запросить проверку личности — Уровень 2",
+  "@verificationRequestLevel2Title": {
+    "description": "Action title for personal verification level 2"
+  },
+  "verificationRequestLevel2Subtitle": "Расширенная проверка личности",
+  "@verificationRequestLevel2Subtitle": {
+    "description": "Action subtitle for personal verification level 2"
+  },
+  "verificationRequestPublicOfficialTitle": "Запросить аккаунт публичного должностного лица",
+  "@verificationRequestPublicOfficialTitle": {
+    "description": "Action title for public official verification"
+  },
+  "verificationRequestPublicOfficialSubtitle": "Требуются официальная должность и проверка",
+  "@verificationRequestPublicOfficialSubtitle": {
+    "description": "Action subtitle for public official verification"
+  },
+  "verificationRequestPublicInstitutionTitle": "Запросить аккаунт государственного учреждения",
+  "@verificationRequestPublicInstitutionTitle": {
+    "description": "Action title for public institution verification"
+  },
+  "verificationRequestPublicInstitutionSubtitle": "Требуются название учреждения, его уровень и проверка",
+  "@verificationRequestPublicInstitutionSubtitle": {
+    "description": "Action subtitle for public institution verification"
+  },
+  "verificationRequestOrganizationTitle": "Запросить аккаунт проверенной организации",
+  "@verificationRequestOrganizationTitle": {
+    "description": "Action title for verified organization verification"
+  },
+  "verificationRequestOrganizationSubtitle": "Требуются сведения об организации, роль представителя и проверка Admin",
+  "@verificationRequestOrganizationSubtitle": {
+    "description": "Action subtitle for verified organization verification"
+  },
+  "verificationNoSelfServiceUpgrade": "Для текущего состояния аккаунта нет доступных вариантов проверки.",
+  "@verificationNoSelfServiceUpgrade": {
+    "description": "Message when no self-service verification action is available"
+  },
+  "verificationRequestSubmitSuccess": "Заявка успешно отправлена.",
+  "@verificationRequestSubmitSuccess": {
+    "description": "Success message after submitting a verification request"
+  },
+  "verificationRequestSubmitFailure": "Не удалось отправить заявку.",
+  "@verificationRequestSubmitFailure": {
+    "description": "Fallback error message after submitting a verification request"
+  },
+  "verificationOfficialTitleDialogTitle": "Проверка публичного должностного лица",
+  "@verificationOfficialTitleDialogTitle": {
+    "description": "Dialog title for a public official verification request"
+  },
+  "verificationOfficialTitleLabel": "Официальная должность",
+  "@verificationOfficialTitleLabel": {
+    "description": "Field label for a public official title"
+  },
+  "verificationOfficialTitleHint": "например мэр, советник, министр",
+  "@verificationOfficialTitleHint": {
+    "description": "Hint for the public official title field"
+  },
+  "verificationInstitutionDialogTitle": "Проверка государственного учреждения",
+  "@verificationInstitutionDialogTitle": {
+    "description": "Dialog title for a public institution verification request"
+  },
+  "verificationInstitutionNameLabel": "Название учреждения",
+  "@verificationInstitutionNameLabel": {
+    "description": "Field label for the public institution name"
+  },
+  "verificationInstitutionNameHint": "например город Рим",
+  "@verificationInstitutionNameHint": {
+    "description": "Hint for the public institution name field"
+  },
+  "verificationInstitutionLevelLabel": "Уровень учреждения",
+  "@verificationInstitutionLevelLabel": {
+    "description": "Field label for the public institution level"
+  },
+  "verificationOrganizationDialogTitle": "Проверка организации",
+  "@verificationOrganizationDialogTitle": {
+    "description": "Dialog title for a verified organization request"
+  },
+  "verificationOrganizationNameHint": "например Ассоциация «Экология Италии»",
+  "@verificationOrganizationNameHint": {
+    "description": "Hint for the verified organization name field"
+  },
+  "verificationSubmitRequestAction": "Отправить заявку",
+  "@verificationSubmitRequestAction": {
+    "description": "Button label to submit a verification request"
+  },
+  "verificationCancelDialogTitle": "Отменить заявку",
+  "@verificationCancelDialogTitle": {
+    "description": "Title of the pending verification cancellation dialog"
+  },
+  "verificationCancelDialogBody": "Вы уверены, что хотите отменить ожидающую заявку на проверку?",
+  "@verificationCancelDialogBody": {
+    "description": "Confirmation message for cancelling a pending verification request"
+  },
+  "verificationCancelSuccess": "Заявка отменена.",
+  "@verificationCancelSuccess": {
+    "description": "Success message after cancelling a verification request"
+  },
+  "verificationCancelFailure": "Не удалось отменить заявку.",
+  "@verificationCancelFailure": {
+    "description": "Fallback error after cancelling a verification request"
+  },
+  "verificationStatusPendingSuffix": "заявка на рассмотрении",
+  "@verificationStatusPendingSuffix": {
+    "description": "Status suffix shown when a verification request is pending"
+  },
+  "verificationStatusRejectedSuffix": "последняя заявка отклонена",
+  "@verificationStatusRejectedSuffix": {
+    "description": "Status suffix shown when the last verification request was rejected"
+  },
+  "verificationReviewPageTitle": "Рассмотрение заявок на проверку",
+  "@verificationReviewPageTitle": {
+    "description": "Title of the administrator verification review page"
+  },
+  "verificationReviewLoginRequired": "Чтобы рассматривать заявки на проверку, необходимо войти в систему.",
+  "@verificationReviewLoginRequired": {
+    "description": "Message shown when the reviewer is not logged in"
+  },
+  "verificationReviewPendingCount": "Ожидающих заявок: {count}",
+  "@verificationReviewPendingCount": {
+    "description": "Number of pending verification requests",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "verificationReviewNoPendingRequests": "Нет ожидающих заявок на проверку.",
+  "@verificationReviewNoPendingRequests": {
+    "description": "Message shown when there are no pending verification requests"
+  },
+  "verificationReviewUserIdLabel": "ID пользователя",
+  "@verificationReviewUserIdLabel": {
+    "description": "Label for the user identifier in a verification review card"
+  },
+  "verificationReviewSubmittedLabel": "Отправлено",
+  "@verificationReviewSubmittedLabel": {
+    "description": "Label for the submission date of a verification request"
+  },
+  "verificationReviewOfficialTitleLabel": "Официальная должность",
+  "@verificationReviewOfficialTitleLabel": {
+    "description": "Label for the public official title in a review card"
+  },
+  "verificationReviewInstitutionLabel": "Учреждение",
+  "@verificationReviewInstitutionLabel": {
+    "description": "Label for the institution name in a review card"
+  },
+  "verificationReviewOrganizationLabel": "Организация",
+  "@verificationReviewOrganizationLabel": {
+    "description": "Label for the organization name in a review card"
+  },
+  "verificationReviewNoteLabel": "Примечание проверки",
+  "@verificationReviewNoteLabel": {
+    "description": "Label for an existing review note"
+  },
+  "verificationReviewRejectAction": "Отклонить",
+  "@verificationReviewRejectAction": {
+    "description": "Button label to reject a verification request"
+  },
+  "verificationReviewApproveAction": "Одобрить",
+  "@verificationReviewApproveAction": {
+    "description": "Button label to approve a verification request"
+  },
+  "verificationReviewApproveDialogTitle": "Одобрить заявку",
+  "@verificationReviewApproveDialogTitle": {
+    "description": "Title of the approve verification request dialog"
+  },
+  "verificationReviewRejectDialogTitle": "Отклонить заявку",
+  "@verificationReviewRejectDialogTitle": {
+    "description": "Title of the reject verification request dialog"
+  },
+  "verificationReviewApproveConfirmation": "Подтвердить одобрение этой заявки?",
+  "@verificationReviewApproveConfirmation": {
+    "description": "Confirmation message before approving a verification request"
+  },
+  "verificationReviewRejectConfirmation": "Подтвердить отклонение этой заявки?",
+  "@verificationReviewRejectConfirmation": {
+    "description": "Confirmation message before rejecting a verification request"
+  },
+  "verificationReviewOptionalNoteLabel": "Необязательное примечание",
+  "@verificationReviewOptionalNoteLabel": {
+    "description": "Field label for an optional review note"
+  },
+  "verificationReviewRequiredNoteLabel": "Причина отклонения",
+  "@verificationReviewRequiredNoteLabel": {
+    "description": "Field label for the required rejection reason"
+  },
+  "verificationReviewOptionalHelper": "Необязательно",
+  "@verificationReviewOptionalHelper": {
+    "description": "Helper text for an optional review note"
+  },
+  "verificationReviewRequiredHelper": "Обязательно при отклонении",
+  "@verificationReviewRequiredHelper": {
+    "description": "Helper text for the required rejection reason"
+  },
+  "verificationReviewRequiredNoteError": "Введите причину отклонения.",
+  "@verificationReviewRequiredNoteError": {
+    "description": "Validation error when the rejection reason is missing"
+  },
+  "verificationReviewApprovedSuccess": "Заявка одобрена.",
+  "@verificationReviewApprovedSuccess": {
+    "description": "Success message after approving a verification request"
+  },
+  "verificationReviewRejectedSuccess": "Заявка отклонена.",
+  "@verificationReviewRejectedSuccess": {
+    "description": "Success message after rejecting a verification request"
+  },
+  "verificationReviewOperationFailure": "Операция не выполнена.",
+  "@verificationReviewOperationFailure": {
+    "description": "Fallback error message for a failed review operation"
+  },
+  "adminCenterTitle": "Admin Center",
+  "adminCenterDashboardNavigation": "Панель",
+  "adminCenterUsersNavigation": "Пользователи",
+  "adminCenterVerificationNavigation": "Проверка",
+  "adminCenterReportsNavigation": "Жалобы",
+  "adminCenterAuditNavigation": "Аудит",
+  "adminCenterAccountDetailsTitle": "Сведения об аккаунте",
+  "adminCenterTryAgainAction": "Попробовать ещё раз",
+  "adminCenterRetryAction": "Повторить",
+  "adminCenterClearAction": "Очистить",
+  "adminCenterApplyFiltersAction": "Применить фильтры",
+  "adminCenterAllDates": "Все даты",
+  "adminCenterAuditDateFilterHelp": "Фильтр аудита по дате",
+  "adminCenterActorUserIdLabel": "ID пользователя-исполнителя",
+  "adminCenterActionLabel": "Действие",
+  "adminCenterAuditActionHint": "resolve_escalated_report",
+  "adminCenterTargetIdLabel": "ID цели",
+  "adminCenterOutcomeLabel": "Результат",
+  "adminCenterAllOutcomes": "Все результаты",
+  "adminCenterOutcomeSuccess": "Успешно",
+  "adminCenterOutcomeFailure": "Ошибка",
+  "adminCenterOutcomeDenied": "Отказано",
+  "adminCenterOutcomeNoChange": "Без изменений",
+  "adminCenterOutcomeUnknown": "Неизвестно",
+  "adminCenterAuditUnavailableTitle": "Аудит недоступен",
+  "adminCenterAuditUnavailableMessage": "Проверьте соединение и права доступа, затем повторите.",
+  "adminCenterNoAuditEntriesTitle": "Нет записей аудита",
+  "adminCenterNoAuditEntriesMessage": "Нет записей, соответствующих выбранным фильтрам.",
+  "adminCenterAuditIdLabel": "ID аудита",
+  "adminCenterActorLabel": "Исполнитель",
+  "adminCenterReasonLabel": "Причина",
+  "adminCenterTimestampLabel": "Время",
+  "adminCenterErrorLabel": "Ошибка",
+  "adminCenterRecordedValuesTitle": "Записанные значения",
+  "adminCenterPreviousValueLabel": "Предыдущее",
+  "adminCenterNewValueLabel": "Новое",
+  "adminCenterContentTypeLabel": "Тип контента",
+  "adminCenterAllContent": "Весь контент",
+  "adminCenterPolls": "Vote",
+  "adminCenterPosts": "Voce",
+  "adminCenterNews": "News",
+  "adminCenterAwaitingAdminDecision": "Ожидает решения Admin",
+  "adminCenterStatusLabel": "Статус",
+  "adminCenterAllStatuses": "Все статусы",
+  "adminCenterStatusOpen": "Открыт",
+  "adminCenterStatusInReview": "На рассмотрении",
+  "adminCenterStatusResolved": "Решён",
+  "adminCenterStatusDismissed": "Отклонён",
+  "adminCenterAdminQueueUnavailableTitle": "Очередь эскалаций Admin недоступна",
+  "adminCenterReportsUnavailableTitle": "Жалобы недоступны",
+  "adminCenterConnectionTryAgainMessage": "Проверьте соединение и попробуйте ещё раз.",
+  "adminCenterNoAdminReportsTitle": "Нет жалоб, ожидающих решения Admin",
+  "adminCenterNoReportsTitle": "Нет жалоб",
+  "adminCenterNoAdminReportsMessage": "Нет эскалированных жалоб, требующих проверки администратора.",
+  "adminCenterNoReportsMessage": "Нет жалоб, соответствующих выбранным фильтрам.",
+  "adminCenterSearchUsersHint": "Поиск по имени, имени пользователя, email или ID",
+  "adminCenterClearSearchTooltip": "Очистить поиск",
+  "adminCenterUsersUnavailableTitle": "Пользователи недоступны",
+  "adminCenterNoUsersFoundTitle": "Пользователи не найдены",
+  "adminCenterNoUsersTitle": "Нет пользователей",
+  "adminCenterNoUsersFoundMessage": "Попробуйте другое имя, имя пользователя, email или ID.",
+  "adminCenterNoUsersMessage": "Нет аккаунтов для отображения.",
+  "adminCenterAccountUnavailableTitle": "Аккаунт недоступен",
+  "adminCenterBackToUsersAction": "Вернуться к пользователям",
+  "adminCenterPublicIdentitySection": "Публичная идентичность",
+  "adminCenterDisplayNameLabel": "Отображаемое имя",
+  "adminCenterNotProvided": "Не указано",
+  "adminCenterUsernameLabel": "Имя пользователя",
+  "adminCenterUserIdLabel": "ID пользователя",
+  "adminCenterIdentityTypeLabel": "Тип идентичности",
+  "adminCenterAccountSection": "Аккаунт",
+  "adminCenterTechnicalRoleLabel": "Техническая роль",
+  "adminCenterRoleMirrorLabel": "Зеркало роли профиля",
+  "adminCenterRoleSynchronizationLabel": "Синхронизация ролей",
+  "adminCenterSynchronized": "Синхронизировано",
+  "adminCenterNotSynchronized": "Не синхронизировано",
+  "adminCenterRoleNotSynchronized": "Роль не синхронизирована",
+  "adminCenterAccountStatusLabel": "Статус аккаунта",
+  "adminCenterSuspendedUntilLabel": "Приостановлен до",
+  "adminCenterAccountManagementSection": "Управление аккаунтом",
+  "adminCenterDangerZoneSection": "Опасная зона",
+  "adminCenterRoleManagementSection": "Управление ролями",
+  "adminCenterVerificationLevelLabel": "Уровень проверки",
+  "adminCenterVerificationStatusLabel": "Статус проверки",
+  "adminCenterAccessInformationSection": "Информация о доступе",
+  "adminCenterEmailLabel": "Email",
+  "adminCenterNotAvailable": "Недоступно",
+  "adminCenterEmailConfirmationLabel": "Подтверждение email",
+  "adminCenterNotConfirmed": "Не подтверждён",
+  "adminCenterRegisteredLabel": "Зарегистрирован",
+  "adminCenterLastAccessLabel": "Последний доступ",
+  "adminCenterLoadingDashboardTitle": "Загрузка панели",
+  "adminCenterLoadingDashboardMessage": "Получение последних показателей.",
+  "adminCenterDashboardUnavailableTitle": "Панель недоступна",
+  "adminCenterIndicatorsUnavailableMessage": "Не удалось загрузить показатели.",
+  "adminCenterVerificationPendingIndicator": "Ожидает проверки",
+  "adminCenterOpenReportsIndicator": "Открытые жалобы",
+  "adminCenterSuspendedAccountsIndicator": "Приостановленные аккаунты",
+  "adminCenterStaffIndicator": "Персонал",
+  "adminCenterNoPendingWorkTitle": "Нет ожидающей работы",
+  "adminCenterNoPendingWorkMessage": "Проверки, жалобы и приостановленные аккаунты обработаны.",
+  "adminCenterCouldNotUpdateUsers": "Не удалось обновить список пользователей.",
+  "adminCenterCouldNotUpdateReports": "Не удалось обновить очередь жалоб.",
+  "adminCenterUnnamedUser": "Пользователь без имени",
+  "adminCenterTemporarySuspensionTitle": "Временная приостановка",
+  "adminCenterReactivateDescription": "Немедленно снять приостановку и разрешить новый вход.",
+  "adminCenterSuspendDescription": "Ограничить доступ на определённый срок и завершить все текущие сессии.",
+  "adminCenterSuspensionUnavailableDescription": "Приостановка доступна только для синхронизированного аккаунта, не являющегося admin.",
+  "adminCenterReactivateAccountAction": "Повторно активировать аккаунт",
+  "adminCenterSuspendAccountAction": "Приостановить аккаунт",
+  "adminCenterForceLogoutAction": "Принудительно выйти",
+  "adminCenterSuspendedForceLogoutDescription": "Приостановка уже завершила текущие сессии. Перед отдельной проверкой выхода повторно активируйте аккаунт.",
+  "adminCenterForceLogoutDescription": "Завершить все текущие сессии без приостановки аккаунта.",
+  "adminCenterForceLogoutUnavailableDescription": "Принудительный выход доступен только для синхронизированного аккаунта, не являющегося admin.",
+  "adminCenterPermanentDeletionTitle": "Безвозвратное удаление аккаунта",
+  "adminCenterPermanentDeletionDescription": "Удалить данные аутентификации, завершить все сессии и анонимизировать сохраняемую публичную запись.",
+  "adminCenterDeletionUnavailableDescription": "Удаление доступно только для синхронизированного аккаунта, не являющегося admin.",
+  "adminCenterDeleteAccountPermanentlyAction": "Удалить аккаунт навсегда",
+  "adminCenterDurationOneHour": "1 час",
+  "adminCenterDurationOneDay": "24 часа",
+  "adminCenterDurationSevenDays": "7 дней",
+  "adminCenterDurationThirtyDays": "30 дней",
+  "adminCenterSuspendImmediateEffect": "Аккаунт немедленно потеряет доступ, а все текущие сессии будут завершены.",
+  "adminCenterDurationLabel": "Срок",
+  "adminCenterSuspendReasonHint": "Объясните, почему этот аккаунт необходимо приостановить",
+  "adminCenterReactivateReasonHint": "Объясните, почему этот аккаунт можно повторно активировать",
+  "adminCenterReactivateConfirmation": "Я подтверждаю, что этому аккаунту можно вернуть доступ.",
+  "adminCenterReactivateFailure": "Не удалось повторно активировать аккаунт. Проверьте его роль и статус, затем повторите.",
+  "adminCenterReactivateSuccess": "Аккаунт повторно активирован. Новый вход разрешён.",
+  "adminCenterForceLogoutFullDescription": "Завершить все текущие сессии этого аккаунта. Аккаунт останется активным и сможет снова войти.",
+  "adminCenterForceLogoutReasonHint": "Объясните, почему текущие сессии необходимо завершить",
+  "adminCenterForceLogoutConfirmation": "Я подтверждаю немедленное завершение всех текущих сессий этого аккаунта.",
+  "adminCenterForceLogoutFailure": "Не удалось завершить сессии аккаунта. Проверьте его роль и статус, затем повторите.",
+  "adminCenterForceLogoutSuccess": "Текущие сессии завершены. Аккаунт может снова войти.",
+  "adminCenterSuspendFailure": "Не удалось приостановить аккаунт. Проверьте его роль и статус, затем повторите.",
+  "adminCenterDeleteReasonHint": "Объясните, почему этот аккаунт необходимо удалить",
+  "adminCenterTypeDeleteLabel": "Введите DELETE",
+  "adminCenterTypeAccountIdLabel": "Введите полный ID аккаунта",
+  "adminCenterDeletePermanentlyAction": "Удалить навсегда",
+  "adminCenterDeleteIrreversibleWarning": "Это действие необратимо. Данные аутентификации и текущие сессии будут удалены, аватар будет удалён, а сохраняемая публичная запись — анонимизирована. Запись аудита останется.",
+  "adminCenterDeleteFailure": "Не удалось удалить аккаунт. Проверьте его роль, статус и значения подтверждения, затем повторите.",
+  "adminCenterDeleteSuccess": "Аккаунт безвозвратно удалён, личные данные анонимизированы.",
+  "adminCenterChangeTechnicalRoleTitle": "Изменить техническую роль",
+  "adminCenterChangeRoleDescription": "Перед подтверждением проверьте текущую и запрашиваемую роль.",
+  "adminCenterChangeRoleUnavailableDescription": "Изменение роли доступно только для синхронизированного, не удалённого аккаунта.",
+  "adminCenterChangeRoleAction": "Изменить роль",
+  "adminCenterChangePublicIdentityTitle": "Изменить публичную идентичность",
+  "adminCenterChangeIdentityDescription": "Обновить публичный тип аккаунта и уровень проверки.",
+  "adminCenterChangeIdentityUnavailableDescription": "Изменение идентичности доступно только для синхронизированного аккаунта, не являющегося admin.",
+  "adminCenterChangeIdentityAction": "Изменить идентичность",
+  "adminCenterChoosePublicIdentityMessage": "Выберите публичный тип аккаунта и его статус проверки.",
+  "adminCenterPublicAccountTypeLabel": "Публичный тип аккаунта",
+  "adminCenterPersonVerificationHelper": "Уровни 1 и 2 доступны только для Persona.",
+  "adminCenterNonPersonVerificationHelper": "Аккаунты не типа Persona не используют Уровень 1 или Уровень 2.",
+  "adminCenterBeforeLabel": "До",
+  "adminCenterAfterLabel": "После",
+  "adminCenterIdentityReasonHint": "Объясните, почему публичную идентичность необходимо изменить",
+  "adminCenterIdentityConfirmation": "Я подтверждаю публичную идентичность и уровень проверки, показанные выше.",
+  "adminCenterIdentityChangeFailure": "Не удалось изменить публичную идентичность. Проверьте состояние аккаунта и повторите.",
+  "adminCenterChooseTechnicalRoleMessage": "Выберите новую техническую роль и укажите причину изменения.",
+  "adminCenterNewTechnicalRoleLabel": "Новая техническая роль",
+  "adminCenterSelectRole": "Выберите роль",
+  "adminCenterRoleSessionWarning": "Это изменение завершит активную сессию получателя. Чтобы продолжить пользоваться аккаунтом, ему потребуется войти снова.",
+  "adminCenterRoleReasonHint": "Объясните, почему необходимо изменить техническую роль",
+  "adminCenterRoleConfirmation": "Я подтверждаю указанную выше роль и понимаю, что получателю потребуется войти снова.",
+  "adminCenterRoleChangeFailure": "Не удалось изменить роль. Проверьте состояние аккаунта и повторите.",
+  "adminCenterChangingRole": "Изменение роли",
+  "adminCenterConfirmRoleChange": "Подтвердить изменение роли",
+  "adminCenterRoleUser": "Пользователь",
+  "adminCenterRoleModerator": "Модератор",
+  "adminCenterRoleAdmin": "Admin",
+  "adminCenterAccountStatusActive": "Активен",
+  "adminCenterAccountStatusSuspended": "Приостановлен",
+  "adminCenterAccountStatusDeleted": "Удалён",
+  "adminCenterVerificationStatusNone": "Нет",
+  "adminCenterVerificationStatusPending": "Ожидает",
+  "adminCenterVerificationStatusRejected": "Отклонён",
+  "adminCenterVerificationNotVerified": "Не проверен",
+  "adminCenterVerificationLevel1": "Уровень 1",
+  "adminCenterVerificationLevel2": "Уровень 2",
+  "adminCenterReportSingular": "жалоба",
+  "adminCenterReportPlural": "жалобы",
+  "adminCenterUserSingular": "пользователь",
+  "adminCenterUserPlural": "пользователи",
+  "adminCenterPoll": "Vote",
+  "adminCenterPost": "Voce",
+  "adminCenterUnknown": "Неизвестно",
+  "adminCenterContentHidden": "Контент скрыт",
+  "adminCenterContentVisible": "Контент видим",
+  "adminCenterReportedByLabel": "Жалоба от",
+  "adminCenterContentOwnerLabel": "Владелец контента",
+  "adminCenterReviewReportAction": "Рассмотреть жалобу",
+  "adminCenterAdminDecisionAction": "Решение Admin",
+  "adminCenterRestoreContentAction": "Восстановить контент",
+  "adminCenterHideContentAction": "Скрыть контент",
+  "adminCenterOpenProfileAction": "Открыть профиль",
+  "adminCenterOpenContentAction": "Открыть контент",
+  "adminCenterDecisionNoViolation": "Нарушения нет",
+  "adminCenterDecisionViolationConfirmed": "Нарушение подтверждено",
+  "adminCenterDecisionEscalateToAdmin": "Передать Admin",
+  "adminCenterResolutionNoAccountAction": "Без действий с аккаунтом",
+  "adminCenterResolutionAccountSuspended": "Аккаунт приостановлен",
+  "adminCenterResolutionLogoutForced": "Принудительный выход",
+  "adminCenterResolutionAccountDeleted": "Аккаунт удалён",
+  "adminCenterReviewerLabel": "Проверяющий",
+  "adminCenterDecisionDescriptionNoViolation": "Закрывает жалобу, поскольку контент не нарушает действующие правила.",
+  "adminCenterDecisionDescriptionViolation": "Подтверждает нарушение и оставляет дело на рассмотрении для действия с контентом, предусмотренного AC8.5.",
+  "adminCenterDecisionDescriptionEscalation": "Передаёт дело администратору для проверки на уровне аккаунта.",
+  "adminCenterChooseModerationOutcome": "Выберите результат модерации для этой жалобы.",
+  "adminCenterDecisionAlreadyRecordedFailure": "Не удалось записать решение. Возможно, жалоба уже была рассмотрена. Обновите очередь и повторите.",
+  "adminCenterDecisionLabel": "Решение",
+  "adminCenterReportReasonLabel": "Причина жалобы",
+  "adminCenterReviewNoteLabel": "Примечание проверки",
+  "adminCenterReviewNoteHint": "Опишите доказательства и решение модерации",
+  "adminCenterRecordingDecision": "Запись решения",
+  "adminCenterConfirmDecision": "Подтвердить решение",
+  "adminCenterAdministratorDecisionTitle": "Решение администратора",
+  "adminCenterResolutionDescriptionNoAction": "Закрывает эскалированную жалобу без изменения аккаунта.",
+  "adminCenterResolutionDescriptionSuspended": "Закрывает жалобу после успешной приостановки аккаунта, уже записанной в журнале аудита.",
+  "adminCenterResolutionDescriptionLogout": "Закрывает жалобу после успешного принудительного выхода, уже записанного в журнале аудита.",
+  "adminCenterResolutionDescriptionDeleted": "Закрывает жалобу после успешного удаления аккаунта, уже записанного в журнале аудита.",
+  "adminCenterChooseFinalOutcome": "Выберите окончательный результат администратора для этой эскалации.",
+  "adminCenterAdminResolutionFailure": "Не удалось записать решение администратора. Обновите очередь и повторите.",
+  "adminCenterAdminResolutionRequiresAction": "Сначала выполните соответствующее действие с аккаунтом, затем вернитесь к этой жалобе и запишите окончательное решение администратора.",
+  "adminCenterEscalationNoteLabel": "Примечание эскалации",
+  "adminCenterFinalOutcomeLabel": "Итоговый результат",
+  "adminCenterAdministratorNoteLabel": "Примечание администратора",
+  "adminCenterAdministratorNoteHint": "Объясните окончательное решение на уровне аккаунта",
+  "adminCenterHideContentFailure": "Не удалось скрыть контент. Обновите очередь жалоб и повторите.",
+  "adminCenterRestoreContentFailure": "Не удалось восстановить контент. Обновите очередь жалоб и повторите.",
+  "adminCenterHideContentWarning": "Это удалит контент из публичного доступа. Позже действие можно отменить через фильтр «Решённые жалобы».",
+  "adminCenterRestoreContentWarning": "Это снова сделает контент публично доступным.",
+  "adminCenterActionReasonLabel": "Причина действия",
+  "adminCenterHideContentReasonHint": "Объясните, почему контент необходимо скрыть",
+  "adminCenterRestoreContentReasonHint": "Объясните, почему контент можно восстановить",
+  "adminCenterHidingContent": "Скрытие контента",
+  "adminCenterRestoringContent": "Восстановление контента",
+  "adminCenterReportedProfileTitle": "Профиль, на который пожаловались",
+  "adminCenterReportedProfileNotice": "Контекст этого профиля получен из защищённой очереди жалоб. Административные действия с аккаунтом выполняются отдельно.",
+  "adminCenterCouldNotRefreshIndicators": "Не удалось обновить показатели.",
+  "adminCenterCouldNotRefreshAccount": "Не удалось обновить сведения об аккаунте.",
+  "adminCenterReportAlreadyReviewed": "Эта жалоба уже рассмотрена или больше не ожидает проверки.",
+  "adminCenterReportNotAwaitingAdmin": "Эта жалоба не ожидает решения администратора.",
+  "adminCenterConfirmedViolationRequired": "Чтобы изменить видимость контента, требуется подтверждённое нарушение.",
+  "adminCenterContentHiddenSuccess": "Контент, на который пожаловались, скрыт.",
+  "adminCenterContentRestoredSuccess": "Контент, на который пожаловались, восстановлен.",
+  "adminCenterMissingContentId": "Отсутствует исходный идентификатор контента.",
+  "adminCenterUnsupportedTargetType": "У этой жалобы неподдерживаемый тип цели.",
+  "adminCenterOriginalContentUnavailable": "Исходный контент больше недоступен.",
+  "adminCenterNoReportedProfile": "С этим контентом не связан профиль, на который пожаловались.",
+  "adminCenterRoleChangedSuccess": "Техническая роль изменена с {previousRole} на {newRole}. Получатель вышел из системы и должен войти снова.",
+  "@adminCenterRoleChangedSuccess": {
+    "placeholders": {
+      "previousRole": {
+        "type": "String"
+      },
+      "newRole": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterIdentityChangedSuccess": "Публичная идентичность изменена на {actorType} с уровнем проверки {verificationLevel}.",
+  "@adminCenterIdentityChangedSuccess": {
+    "placeholders": {
+      "actorType": {
+        "type": "String"
+      },
+      "verificationLevel": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAccountSuspendedSuccess": "Аккаунт приостановлен до {dateTime}. Получатель вышел из системы.",
+  "@adminCenterAccountSuspendedSuccess": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterReportDecisionRecorded": "Решение по жалобе записано: {decision}.",
+  "@adminCenterReportDecisionRecorded": {
+    "placeholders": {
+      "decision": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAdministratorDecisionRecorded": "Решение администратора записано: {decision}.",
+  "@adminCenterAdministratorDecisionRecorded": {
+    "placeholders": {
+      "decision": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterUsersCount": "{count, plural, =1 {{count} пользователь} other {{count} пользователей}}",
+  "@adminCenterUsersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterReportsCount": "{count, plural, =1 {{count} жалоба} other {{count} жалоб}}",
+  "@adminCenterReportsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterAccountValue": "Аккаунт: {account}",
+  "@adminCenterAccountValue": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterSuspendedUntilValue": "Приостановлен до: {dateTime}",
+  "@adminCenterSuspendedUntilValue": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterSuspendConfirmation": "Я подтверждаю приостановку до {dateTime} и немедленное завершение текущих сессий.",
+  "@adminCenterSuspendConfirmation": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterAccountIdValue": "ID аккаунта: {accountId}",
+  "@adminCenterAccountIdValue": {
+    "placeholders": {
+      "accountId": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterCurrentRoleValue": "Текущая: {role}",
+  "@adminCenterCurrentRoleValue": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterTargetFallback": "{targetType} {targetId}",
+  "@adminCenterTargetFallback": {
+    "placeholders": {
+      "targetType": {
+        "type": "String"
+      },
+      "targetId": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCenterMinimumCharactersRequired": "Требуется примечание не короче {count} символов.",
+  "@adminCenterMinimumCharactersRequired": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterMinimumReasonCharactersRequired": "Требуется причина не короче {count} символов.",
+  "@adminCenterMinimumReasonCharactersRequired": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterPageOf": "Страница {currentPage} из {totalPages}",
+  "@adminCenterPageOf": {
+    "placeholders": {
+      "currentPage": {
+        "type": "int"
+      },
+      "totalPages": {
+        "type": "int"
+      }
+    }
+  },
+  "profilePublicProfileSectionTitle": "Публичный профиль",
+  "profileIdentityVerificationSectionTitle": "Идентичность и проверка",
+  "profilePreferencesSectionTitle": "Настройки",
+  "profileNotificationsSectionTitle": "Уведомления",
+  "profileActivitySectionTitle": "Личная активность",
+  "profileSecurityAccountSectionTitle": "Безопасность и аккаунт",
+  "profileThemeTitle": "Тема",
+  "profileThemeSystem": "Системная",
+  "profileThemeSystemDescription": "Следует теме устройства",
+  "profileThemeLight": "Светлая",
+  "profileThemeDark": "Тёмная",
+  "profileMyPollsTitle": "Vote",
+  "profileMyPostsTitle": "Voce",
+  "profileMyCommentsTitle": "Мои комментарии",
+  "profileMyFavoritesTitle": "Мои сохранённые",
+  "profileAccountConnectionsTitle": "Подписки и подписчики",
+  "accountConnectionsFollowingTab": "Подписки",
+  "accountConnectionsFollowersTab": "Подписчики",
+  "accountConnectionsEmptyFollowing": "Вы пока ни на кого не подписаны.",
+  "accountConnectionsEmptyFollowers": "У вас пока нет подписчиков.",
+  "accountConnectionsLoadError": "Не удалось загрузить аккаунты. Попробуйте ещё раз.",
+  "profileMyFollowedScopesTitle": "Мои отслеживаемые области",
+  "profileLogoutAction": "Выйти",
+  "profileLogoutDescription": "Выйти из текущего аккаунта",
+  "profileLogoutDialogTitle": "Выйти",
+  "profileLogoutDialogMessage": "Вы уверены, что хотите выйти из аккаунта?",
+  "profileLogoutCancelButton": "Отмена",
+  "profileLogoutConfirmButton": "Выйти",
+  "publicProfilePageTitle": "Публичный профиль",
+  "publicProfileUserFallback": "Пользователь",
+  "publicProfileNoBio": "Описание отсутствует.",
+  "publicProfileResidenceLabel": "Место проживания",
+  "publicProfileResidenceUnknown": "Не указано",
+  "publicProfileMemberSinceLabel": "Участник с",
+  "publicProfileContentSectionTitle": "Публичный контент",
+  "publicProfilePollsAction": "Vote",
+  "publicProfilePostsAction": "Voce",
+  "publicProfileBlockUserAction": "Заблокировать пользователя",
+  "publicProfileLoadError": "Не удалось загрузить профиль.",
+  "publicProfileNotFound": "Профиль недоступен.",
+  "publicProfileUnblockUserAction": "Разблокировать пользователя",
+  "publicProfileBlockDialogTitle": "Заблокировать этого пользователя?",
+  "publicProfileBlockDialogMessage": "Позже вы сможете разблокировать его из публичного профиля.",
+  "publicProfileUnblockDialogTitle": "Разблокировать этого пользователя?",
+  "publicProfileUnblockDialogMessage": "Пользователь будет удалён из вашего списка блокировок.",
+  "publicProfileBlockSuccess": "Пользователь заблокирован.",
+  "publicProfileUnblockSuccess": "Пользователь разблокирован.",
+  "publicProfileBlockError": "Не удалось обновить блокировку. Попробуйте ещё раз.",
+  "publicProfileFollowersLabel": "подписчиков",
+  "publicProfileFollowingLabel": "подписок",
+  "publicProfileFollowAction": "Подписаться",
+  "publicProfileUnfollowAction": "Отписаться",
+  "publicProfileFollowSuccess": "Вы подписались на аккаунт.",
+  "publicProfileUnfollowSuccess": "Вы отписались от аккаунта.",
+  "publicProfileFollowError": "Не удалось обновить подписку. Попробуйте ещё раз.",
+  "publicProfileFollowRetry": "Обновить информацию о подписке",
+  "contentLanguageFieldLabel": "Язык контента",
+  "contentLanguageFieldHelper": "Выберите язык, на котором написан контент.",
+  "contentLanguageUndetermined": "Не указано",
+  "createPollAdvancedOptionsTitle": "Расширенные настройки",
+  "createPollAdvancedOptionsSubtitle": "Анонимность, видимость результатов, изменение голоса и кворум.",
+  "onboardingSkipButton": "Пропустить",
+  "onboardingNextButton": "Далее",
+  "onboardingStartButton": "Начать",
+  "onboardingPollTitle": "Vote",
+  "onboardingPollDescription": "Участвуйте в Vote по важным для вас темам или создайте свой, чтобы узнать мнение сообщества.",
+  "onboardingHeatIceTitle": "Heat и Ice",
+  "onboardingHeatIceDescription": "Используйте Heat и Ice, чтобы показать, насколько сильно контент привлекает ваш интерес.",
+  "onboardingCivicMapTitle": "Civic Map",
+  "onboardingCivicMapDescription": "Исследуйте Vote, Voce и News на карте и узнавайте, что происходит в разных местах.",
+  "onboardingGeoScopeTitle": "GeoScope",
+  "onboardingGeoScopeDescription": "Выберите географический уровень, который хотите отслеживать: мир, страна или город.",
+  "onboardingVerificationTitle": "Проверка личности",
+  "onboardingVerificationDescription": "Некоторые Vote могут требовать определённого уровня проверки для защиты целостности голосования.",
+  "pollDetail_voteReceiptButton": "Квитанция голосования",
+  "pollDetail_voteReceiptTitle": "Квитанция голосования",
+  "pollDetail_voteReceiptIdLabel": "ID квитанции",
+  "pollDetail_voteReceiptDateLabel": "Записано",
+  "pollDetail_voteReceiptPrivacy": "Эта квитанция подтверждает, что ваш голос записан, не раскрывая сделанный выбор.",
+  "pollDetail_voteReceiptCloseButton": "Закрыть",
+  "profileBiometricUnlockTitle": "Биометрическая разблокировка",
+  "profileBiometricUnlockDescription": "Защищает сохранённую сессию с помощью отпечатка пальца или биометрии устройства.",
+  "profileBiometricRequiresRememberMe": "Требуется включить «Запомнить меня».",
+  "profileBiometricUnavailable": "Биометрия недоступна или не настроена на этом устройстве.",
+  "profileBiometricEnableReason": "Подтвердите биометрию, чтобы включить разблокировку Social Vote.",
+  "profileBiometricEnabledMessage": "Биометрическая разблокировка включена.",
+  "profileBiometricDisabledMessage": "Биометрическая разблокировка отключена.",
+  "profileBiometricAuthFailedMessage": "Биометрическая аутентификация не была завершена.",
+  "biometricLockTitle": "Social Vote заблокирован",
+  "biometricLockMessage": "Используйте биометрию устройства, чтобы разблокировать сохранённую сессию.",
+  "biometricUnlockButton": "Разблокировать",
+  "biometricUsePasswordButton": "Использовать пароль",
+  "biometricUnlockReason": "Разблокируйте вашу сессию Social Vote.",
+  "biometricUnlockFailedMessage": "Не удалось разблокировать. Попробуйте ещё раз или используйте пароль.",
+  "adminCenterOperationalActivityTitle": "Операционная активность",
+  "adminCenterOperationalActivitySubtitle": "Агрегированные счётчики. Без отслеживания присутствия онлайн в реальном времени.",
+  "adminCenterLast24HoursLabel": "24 часа",
+  "adminCenterLast7DaysLabel": "7 дней",
+  "adminCenterNewUsersMetric": "Новые регистрации",
+  "adminCenterRecentSignInsMetric": "Недавние входы",
+  "adminCenterPollsCreatedMetric": "Созданные Vote",
+  "adminCenterPostsCreatedMetric": "Созданные Voce",
+  "adminCenterAdminActionsMetric": "Действия Admin",
+  "authPublicNameHelper": "Это имя будут видеть другие пользователи. Имя пользователя создаётся автоматически.",
+  "@authPublicNameHelper": {
+    "description": "Auth UI: explains public name and automatic username generation"
+  },
+  "adminCenterRefreshMarkersTooltip": "Обновить маркеры глобуса",
+  "adminCenterMarkerDensityTitle": "Плотность мировых маркеров",
+  "adminCenterMarkerDensitySubtitle": "Управляет визуальным бюджетом маркеров на глобусе Home, не изменяя реальные координаты или ранжирование контента.",
+  "adminCenterMarkerDensityEmpty": "Пусто",
+  "adminCenterMarkerDensityFull": "Полностью",
+  "adminCenterMarkerDensityBudget": "Бюджет Home: {count} маркеров",
+  "@adminCenterMarkerDensityBudget": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCenterMarkerDensitySaveError": "Не удалось сохранить плотность мировых маркеров.",
+  "adminCenterMarkerDensityBackendUnavailable": "Backend-настройки мировых маркеров пока недоступны.",
+  "adminCenterQuickActionsTitle": "Быстрые действия с аккаунтом",
+  "adminCenterModerationSnapshotTitle": "Сводка модерации и активности",
+  "adminCenterReportsReceivedMetric": "Полученные жалобы",
+  "adminCenterPendingReportsMetric": "Ожидающие жалобы",
+  "adminCenterConfirmedViolationsMetric": "Подтверждённые нарушения",
+  "adminCenterReportsFiledMetric": "Отправленные жалобы",
+  "adminCenterCommentsCreatedMetric": "Созданные комментарии",
+  "adminCenterAdminActionsOnAccountMetric": "Действия Admin с аккаунтом",
+  "adminCenterLastReportReceivedLabel": "Последняя полученная жалоба",
+  "adminCenterOpenFullAccountAction": "Открыть полное управление аккаунтом",
+  "profileAppLanguageGerman": "Немецкий",
+  "profileAppLanguagePersian": "Персидский",
+  "@profileAppLanguageGerman": {
+    "description": "Label for the German app language option"
+  },
+  "discoveryPageTitle": "Исследовать",
+  "@discoveryPageTitle": {
+    "description": "Title of the Discovery section"
+  },
+  "organizationWorkspaceTitle": "Workspace организации",
+  "organizationPilotBannerTitle": "Бесплатный пилот",
+  "organizationPilotBannerBody": "Во время пилота Sessions бесплатны. Некоторые профессиональные функции в будущем могут стать платными; сейчас billing отключён.",
+  "organizationVerifiedLabel": "Проверенная организация",
+  "organizationEditProfile": "Редактировать профиль организации",
+  "organizationCreateSession": "Новая Session",
+  "organizationNoSessions": "Sessions пока нет. Создайте первую для встречи, семинара или мероприятия.",
+  "organizationSessionsTitle": "Live Sessions",
+  "organizationRequiresVerificationTitle": "Требуется проверенная организация",
+  "organizationRequiresVerificationBody": "Этот workspace доступен только аккаунтам, одобренным Social Vote как проверенная организация.",
+  "organizationProfileEditorTitle": "Профиль организации",
+  "organizationLegalName": "Юридическое название",
+  "organizationPublicName": "Публичное название",
+  "organizationType": "Тип организации",
+  "organizationCountryCode": "Код страны",
+  "organizationCity": "Город",
+  "organizationWebsite": "Официальный сайт",
+  "organizationDescription": "Описание",
+  "organizationUploadCover": "Изменить обложку",
+  "organizationUploadLogo": "Изменить логотип",
+  "organizationMediaUpdated": "Изображение организации обновлено.",
+  "organizationNamesRequired": "Юридическое и публичное названия обязательны.",
+  "organizationTypeAssociation": "Ассоциация",
+  "organizationTypeNonprofit": "Некоммерческая организация",
+  "organizationTypeCompany": "Компания",
+  "organizationTypeCooperative": "Кооператив",
+  "organizationTypeSports": "Спортивная организация",
+  "organizationTypePublicBody": "Государственный орган",
+  "organizationTypeCommittee": "Комитет / группа",
+  "organizationTypeOther": "Другое",
+  "sessionCreateTitle": "Создать Live Session",
+  "sessionTitleLabel": "Название Session",
+  "sessionExpectedParticipants": "Ожидаемое число участников",
+  "sessionAccessMode": "Доступ участников",
+  "sessionAccessOpen": "Открытый анонимный",
+  "sessionAccessOpenHint": "Любой человек со ссылкой/кодом может присоединиться. Защита от дубликатов работает по принципу best-effort; этот режим не гарантирует принцип «один человек — один голос».",
+  "sessionAccessControlled": "Контролируемый анонимный",
+  "sessionAccessControlledHint": "Используйте одноразовые анонимные Access Pass. Social Vote хранит только хэш Access Pass и не связывает выбор в бюллетене с учётными данными участника.",
+  "sessionResultsVisibility": "Видимость результатов",
+  "sessionResultsLive": "В реальном времени",
+  "sessionResultsAfterVote": "После голоса участника",
+  "sessionResultsAfterClose": "После закрытия вопроса",
+  "sessionResultsOrganizerOnly": "Только организатор",
+  "sessionCreateAction": "Создать Session",
+  "sessionPilotLimit": "Лимит пилота: от 1 до 250 участников на Session.",
+  "sessionStatusDraft": "Черновик",
+  "sessionStatusOpen": "Открыта",
+  "sessionStatusClosed": "Закрыта",
+  "sessionJoinCode": "Код присоединения",
+  "sessionShareJoin": "Поделиться ссылкой для входа",
+  "sessionCopyJoinLink": "Копировать ссылку",
+  "sessionGenerateTokens": "Создать Access Pass",
+  "sessionGenerateTokensCount": "Количество Access Pass",
+  "sessionTokensOneTimeTitle": "Сохраните эти данные сейчас",
+  "sessionTokensOneTimeBody": "Открытые Access Pass показываются только в результате этой генерации. Social Vote хранит только их хэши. Скопируйте и передайте их безопасным способом.",
+  "sessionCopyTokens": "Копировать все ссылки",
+  "sessionTokensSavedAction": "Я сохранил(а)",
+  "sessionOpenAction": "Открыть Session",
+  "sessionCloseAction": "Закрыть Session",
+  "sessionCloseConfirm": "Закрыть голосование и создать неизменяемый снимок Verified Result?",
+  "sessionQuestionsTitle": "Вопросы",
+  "sessionAddQuestion": "Добавить вопрос",
+  "sessionQuestionTitle": "Вопрос",
+  "sessionQuestionType": "Тип вопроса",
+  "sessionTypeYesNo": "Да / Нет",
+  "sessionTypeSingle": "Один вариант",
+  "sessionTypeMultiple": "Несколько вариантов",
+  "sessionOptions": "Варианты",
+  "sessionOptionHint": "Один вариант на строку.",
+  "sessionMinSelections": "Минимум вариантов",
+  "sessionMaxSelections": "Максимум вариантов",
+  "sessionAddAction": "Добавить",
+  "sessionOpenQuestion": "Открыть вопрос",
+  "sessionCloseQuestion": "Закрыть вопрос",
+  "sessionNoQuestions": "Вопросов пока нет.",
+  "sessionPresenterTitle": "Presenter",
+  "sessionParticipantTitle": "Social Vote Live",
+  "sessionJoinAction": "Присоединиться к Session",
+  "sessionTokenLabel": "Токен участника",
+  "sessionTokenHint": "SV-…",
+  "sessionWaitingQuestion": "Ожидание, пока организатор откроет вопрос…",
+  "sessionVoteAction": "Отправить голос",
+  "sessionVoteReceived": "Голос получен",
+  "sessionResultsUnavailable": "Согласно политике этой Session результаты пока не видны.",
+  "sessionPrivacyNotice": "Организатор определяет рабочую цель Session и вопросы. Social Vote обрабатывает технические данные, необходимые для предоставления и защиты сервиса. В анонимных режимах связь между учётными данными участника и его выбором не раскрывается организатору. Роли в сфере конфиденциальности могут зависеть от контекста и применимых соглашений.",
+  "sessionNonBindingNotice": "Пилотные Sessions предназначены для консультаций и участия. Они не являются юридическими выборами, установленным законом голосованием собрания или юридически обязательной сертификацией.",
+  "sessionOptionYes": "Да",
+  "sessionOptionNo": "Нет",
+  "verifiedResultTitle": "Verified Result",
+  "verifiedResultValid": "Проверка целостности пройдена",
+  "verifiedResultInvalid": "Проверка целостности не пройдена",
+  "verifiedResultReportId": "ID отчёта",
+  "verifiedResultHash": "SHA-256 хэш результата",
+  "verifiedResultGeneratedBy": "Создано и защищено печатью целостности Social Vote",
+  "verifiedResultNotLegalCertificate": "Это проверяемый агрегированный отчёт о результатах, а не юридический сертификат и не сертификация юридически обязательных выборов.",
+  "verifiedResultShare": "Поделиться ссылкой проверки",
+  "sessionResponses": "{count} ответов",
+  "@sessionResponses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionResultVotes": "{count} голосов",
+  "@sessionResultVotes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "organizationVerifiedIdentityLocked": "Название и страна являются частью подтверждённой идентичности организации. Их изменение потребует новой проверки. Вы можете свободно менять обложку, логотип, тип, город, сайт и описание.",
+  "verifiedResultOpenedAt": "Session открыта",
+  "verifiedResultEligibleCredentials": "Допустимые учётные данные",
+  "verifiedResultIntegritySeal": "Печать целостности Social Vote",
+  "organizationVerifiedNameLocked": "Подтверждённые название и страна заблокированы. Их изменение требует новой проверки.",
+  "sessionRetentionLabel": "Хранение исходных бюллетеней",
+  "sessionRetention24h": "24 часа",
+  "sessionRetention7d": "7 дней",
+  "sessionRetention30d": "30 дней",
+  "sessionRetentionValue": "Хранение исходных бюллетеней: {value}",
+  "@sessionRetentionValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "verifiedResultPrintPdf": "Скачать PDF",
+  "verifiedResultPdfError": "Не удалось скачать PDF. Попробуйте ещё раз.",
+  "verifiedResultRestrictedTitle": "Ограниченный результат",
+  "verifiedResultRestrictedBody": "Этот Verified Result недоступен публично. Войдите через авторизованный аккаунт организации, чтобы посмотреть его.",
+  "verifiedResultPrivateVerificationTitle": "Публичная проверка недоступна",
+  "verifiedResultPrivateVerificationBody": "Этот результат доступен только организатору. ID отчёта, SHA-256 и проверка целостности остаются доступны в авторизованном отчёте.",
+  "organizationAccountSectionTitle": "Ваши организации",
+  "organizationManageAction": "Управлять",
+  "organizationViewPublicProfileAction": "Посмотреть профиль",
+  "organizationOfficialWebsiteAction": "Официальный сайт",
+  "organizationVerificationIntro": "Проверка охватывает как существование организации, так и ваши полномочия представлять её. Social Vote рассмотрит предоставленные сведения до одобрения.",
+  "organizationVerificationLegalName": "Юридическое название",
+  "organizationVerificationPublicName": "Публичное название",
+  "organizationVerificationType": "Тип организации",
+  "organizationVerificationCountry": "Страна",
+  "organizationVerificationCountryRequired": "Выберите страну организации.",
+  "organizationVerificationCity": "Город",
+  "organizationVerificationWebsite": "Официальный сайт",
+  "organizationVerificationRepresentativeRole": "Ваша роль в организации",
+  "organizationVerificationRegistryId": "Регистрационный / налоговый / организационный идентификатор",
+  "organizationVerificationAuthorityNote": "Как мы можем проверить, что вы имеете право представлять организацию?",
+  "organizationVerificationAuthorityHelper": "Кратко укажите вашу роль или доказательства, которые Admin может проверить во время пилота.",
+  "organizationVerificationRequired": "Обязательное поле.",
+  "sessionControlRoomTitle": "Session Control Room",
+  "sessionSectionLive": "Live",
+  "sessionSectionQuestions": "Вопросы",
+  "sessionSectionAccess": "Доступ",
+  "sessionSectionSettings": "Настройки",
+  "sessionStageAction": "Открыть Stage",
+  "sessionAccessPassesTitle": "Access Pass участников",
+  "sessionAccessPassesSubtitle": "Каждый pass открывает эту Controlled Anonymous Session без необходимости вводить длинные учётные данные вручную. Открытый pass не хранится Social Vote.",
+  "sessionAccessPass": "Access Pass",
+  "sessionAccessPassDetected": "Access Pass обнаружен",
+  "sessionAccessPassAutomatic": "Ваш персональный pass готов. Продолжайте, чтобы войти в Session анонимно.",
+  "sessionAccessPassFallback": "Ввести pass вручную",
+  "sessionAccessPassInvalid": "Этот Access Pass недействителен, уже недоступен или Session не открыта.",
+  "sessionAccessPassPrintWarning": "Распечатайте, сохраните или раздайте эти passes сейчас. После выхода с этого экрана Social Vote не сможет снова показать их в открытом виде.",
+  "sessionExistingPassesHidden": "В целях безопасности ранее созданные passes нельзя снова показать в открытом виде. Создайте новые Access Pass, чтобы получить новые персональные ссылки или QR-коды.",
+  "sessionCopyPassLinks": "Копировать все ссылки",
+  "sessionCopyPassLink": "Копировать эту ссылку",
+  "sessionControlledNeedsAccessPass": "Перед открытием контролируемой Session создайте хотя бы один Access Pass.",
+  "sessionJoinedParticipants": "Присоединившиеся учётные данные",
+  "sessionAccessesUsed": "Доступы, использованные для голосования",
+  "sessionBallotsRecorded": "Записанные бюллетени",
+  "sessionQuestionsCompleted": "Завершённые вопросы",
+  "sessionCurrentQuestion": "Текущий вопрос",
+  "sessionNoOpenQuestionTitle": "Нет открытого вопроса",
+  "sessionNoOpenQuestionBody": "Участники подключены и ожидают. Откройте следующий вопрос, когда будете готовы.",
+  "sessionNotStartedTitle": "Session ещё не началась",
+  "sessionNotStartedBody": "Эта Session существует, но ещё не открыта. Оставьте страницу открытой и дождитесь запуска организатором.",
+  "sessionNoAccountRequired": "Аккаунт Social Vote не требуется",
+  "sessionReceiptDetails": "Сведения о квитанции",
+  "sessionOpenAccessInstructions": "Покажите или поделитесь этим QR-кодом. Любой человек со ссылкой может войти, пока Session открыта.",
+  "sessionControlledAccessInstructions": "Создайте персональные Access Pass и выдайте по одному каждому участнику. QR-код в каждом pass автоматически содержит учётные данные.",
+  "sessionControlRoomHint": "Управляйте доступом, вопросами, проецируемым Stage и итоговым Verified Result из одного места.",
+  "sessionPresenterScreenTitle": "Live Stage",
+  "sessionStageWaiting": "Ожидание следующего вопроса",
+  "sessionStageScan": "Сканируйте, чтобы присоединиться к Session",
+  "sessionConfigurationTitle": "Конфигурация Session",
+  "sessionAccessRecommended": "Рекомендуется для контролируемых встреч",
+  "sessionCreateIntroTitle": "Настройте встречу",
+  "sessionCreateIntroBody": "Выберите способ входа участников, момент отображения результатов и срок хранения исходных бюллетеней. Эти настройки применяются backend.",
+  "verifiedCertificateNumber": "Номер сертификата",
+  "verifiedCertificateStatus": "Статус целостности",
+  "verifiedCertificateIntegrityVerified": "ЦЕЛОСТНОСТЬ ПОДТВЕРЖДЕНА",
+  "verifiedCertificateIntegrityFailed": "ПРОВЕРКА ЦЕЛОСТНОСТИ НЕ ПРОЙДЕНА",
+  "verifiedCertificateOrganizationSection": "Организация",
+  "verifiedCertificateSessionSection": "Session",
+  "verifiedCertificateParticipationSection": "Участие",
+  "verifiedCertificateResultsSection": "Проверенные результаты",
+  "verifiedCertificateIntegritySection": "Целостность результата",
+  "verifiedCertificateLegalName": "Юридическое название",
+  "verifiedCertificateOrganizationType": "Тип организации",
+  "verifiedCertificateLocation": "Местоположение",
+  "verifiedCertificateWebsite": "Сайт",
+  "verifiedCertificateVerification": "Проверка",
+  "verifiedCertificateIssuedAt": "Сертификат выдан",
+  "verifiedCertificateAlgorithm": "Алгоритм целостности",
+  "verifiedCertificateSchema": "Схема отчёта",
+  "verifiedCertificateJoinedCredentials": "Присоединившиеся учётные данные",
+  "verifiedCertificateBallotsTotal": "Записанные бюллетени",
+  "verifiedCertificateQuestionsTotal": "Вопросы",
+  "verifiedCertificatePrivacyModel": "Модель анонимных результатов",
+  "verifiedCertificatePrivacyText": "Неизменяемый снимок содержит только агрегированные результаты. Он не содержит личность участника, открытый Access Pass, секрет участника или сопоставление учётных данных участника с выбором в бюллетене.",
+  "verifiedCertificateVerifyQr": "Сканируйте этот QR-код, чтобы проверить отчёт онлайн.",
+  "organizationDashboardTitle": "Обзор организации",
+  "organizationActiveSessions": "Live Sessions",
+  "organizationVerifiedReports": "Проверенные отчёты",
+  "organizationTotalSessions": "Всего Sessions",
+  "sessionPrivacyPolicyAction": "Прочитать Политику конфиденциальности",
+  "@sessionPrivacyPolicyAction": {
+    "description": "Participant Session link to the full Privacy Policy"
+  },
+  "radioMondoTitle": "Мировое радио",
+  "radioMondoDescription": "Три оригинальных звуковых пространства для исследования Social Vote. Воспроизведение начинается только после выбора трека.",
+  "radioMondoTrackClassical": "Классическая орбита",
+  "radioMondoTrackRain": "Дождь над миром",
+  "radioMondoTrackYoung": "Молодой пульс",
+  "radioMondoPlaying": "Сейчас играет",
+  "radioMondoStopped": "Мировое радио остановлено",
+  "radioMondoStopAction": "Остановить",
+  "radioMondoPlaybackError": "Не удалось воспроизвести аудио",
+  "radioMondoForegroundOnly": "Воспроизведение останавливается, когда Social Vote закрыт, отправлен в фон или вкладка браузера скрыта.",
+  "adminCenterEditorialNavigation": "World Briefs",
+  "worldBriefEditorTitle": "Social Vote World Briefs",
+  "worldBriefEditorDescription": "Готовьте briefs на основе доказательств, явно показывайте неопределённость и решайте, что появляется в News и на глобусе.",
+  "worldBriefAllStatuses": "Все статусы",
+  "worldBriefCreateAction": "Создать brief",
+  "worldBriefDraftSaved": "Черновик сохранён",
+  "worldBriefPublished": "Brief опубликован",
+  "worldBriefWithdrawn": "Brief снят с публикации",
+  "worldBriefSaveError": "Не удалось сохранить brief",
+  "worldBriefPublishError": "Не удалось опубликовать brief",
+  "worldBriefDraftDeleted": "Черновик удалён",
+  "worldBriefDeleteDraft": "Удалить черновик",
+  "worldBriefDeleteDraftConfirm": "Навсегда удалить этот неопубликованный черновик?",
+  "worldBriefRetry": "Попробовать ещё раз",
+  "worldBriefStatusDraft": "Черновик",
+  "worldBriefStatusPublished": "Опубликован",
+  "worldBriefStatusWithdrawn": "Снят с публикации",
+  "worldBriefSetupRequired": "Редакционный backend не готов",
+  "worldBriefSetupRequiredBody": "Перед использованием этого раздела примените включённую миграцию базы данных World Brief.",
+  "worldBriefEmptyTitle": "World Briefs пока нет",
+  "worldBriefEmptyBody": "Создайте черновик, укажите как минимум два источника и публикуйте только после редакционной проверки.",
+  "worldBriefFeatured": "Избранное",
+  "worldBriefOnGlobe": "Показывать на глобусе",
+  "worldBriefPriority": "Приоритет",
+  "worldBriefEditAction": "Редактировать",
+  "worldBriefPublishAction": "Опубликовать",
+  "worldBriefWithdrawAction": "Снять с публикации",
+  "worldBriefSaveDraftAction": "Сохранить черновик",
+  "worldBriefLanguage": "Язык brief",
+  "worldBriefTitleField": "Заголовок",
+  "worldBriefWhatHappened": "Что произошло",
+  "worldBriefWhyItMatters": "Почему это важно",
+  "worldBriefWhatIsUncertain": "Что всё ещё неизвестно",
+  "worldBriefSources": "URL источников",
+  "worldBriefSourcesHint": "Один HTTPS URL на строку; минимум два независимых источника.",
+  "worldBriefTwoSourcesRequired": "Добавьте как минимум два источника.",
+  "worldBriefHttpsSourcesRequired": "Каждый источник должен использовать HTTPS.",
+  "worldBriefGlobeSection": "Размещение на глобусе",
+  "worldBriefGlobeRequiresPoint": "Для отображения на глобусе требуются корректные широта и долгота.",
+  "worldBriefCountryCode": "Код страны",
+  "worldBriefCityId": "ID города",
+  "worldBriefLocationLabel": "Название места",
+  "worldBriefLatitude": "Широта",
+  "worldBriefLongitude": "Долгота",
+  "worldBriefBreaking": "Срочное обновление",
+  "worldBriefExpiry": "Окно проверки или истечения",
+  "worldBriefExpiryDays": "{days, plural, =1{1 день} other{{days} дней}}",
+  "@worldBriefExpiryDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "worldBriefRequiredField": "Это поле обязательно.",
+  "worldBriefCoordinatesRequired": "Введите корректную координату.",
+  "profileHowItWorksTitle": "Как работает Social Vote",
+  "profileHowItWorksSubtitle": "Люди, организации, Voce, Vote, Sessions и проверка.",
+  "profileMyPostsLoginRequired": "Чтобы посмотреть свои Voce, необходимо войти.",
+  "profileMyPostsCreatedByYou": "Voce, созданные вами",
+  "profileMyPostsEmpty": "Вы ещё не создали ни одной Voce.",
+  "profileMyPollsLoginRequired": "Чтобы посмотреть свои Vote, необходимо войти.",
+  "profileMyPollsCreatedByYou": "Vote, созданные вами",
+  "profileMyPollsEmpty": "Вы ещё не создали ни одного Vote.",
+  "profileMyCommentsLoginRequired": "Чтобы посмотреть свои комментарии, необходимо войти.",
+  "profileMyCommentsEmpty": "Вы ещё не написали ни одного комментария.",
+  "profileFollowedScopesLoginRequired": "Необходимо войти в систему.",
+  "profileFollowedScopesEmpty": "Вы пока не отслеживаете ни одной области.",
+  "profileFollowedScopeWorld": "Мир",
+  "profileFollowedScopeCountry": "Страна: {code}",
+  "@profileFollowedScopeCountry": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeCity": "Город: {city}",
+  "@profileFollowedScopeCity": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowedScopeArea": "Область ({radius} км)",
+  "@profileFollowedScopeArea": {
+    "placeholders": {
+      "radius": {
+        "type": "double"
+      }
+    }
+  },
+  "publicProfilePollsLoadError": "Не удалось загрузить публичные Vote.",
+  "publicProfilePollsEmpty": "Публичных Vote нет.",
+  "publicProfilePostsLoadError": "Не удалось загрузить публичные Voce.",
+  "publicProfilePostsEmpty": "Публичных Voce нет.",
+  "worldBriefSocialVoteView": "Позиция Social Vote",
+  "worldBriefSocialVoteViewHint": "Редакционный анализ или позиция Social Vote. Держите её отдельно от сообщаемых фактов и неопределённости.",
+  "worldBriefSocialVoteViewPublicNote": "Редакционный анализ Social Vote, явно отделённый от сообщаемых выше фактов.",
+  "worldBriefIndependentSourcesRequired": "Для публикации требуется минимум два HTTPS-источника из разных доменов.",
+  "worldBriefPublishConfirmTitle": "Финальная проверка перед публикацией",
+  "worldBriefPublishConfirmSources": "{count, plural, =1{Указан 1 источник} other{Указано источников: {count}}}",
+  "@worldBriefPublishConfirmSources": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldBriefEnterpriseEditorTitle": "Профессиональный редакционный редактор",
+  "worldBriefEnterpriseEditorHelp": "Создавайте brief по разделам. Social Vote автоматически обрабатывает техническое размещение на глобусе: выбирайте страну и город, а не координаты.",
+  "worldBriefEditorialContentSection": "Редакционный контент",
+  "worldBriefEditorialContentHelp": "Разделяйте факты, значимость, неопределённость и позицию Social Vote. Так brief легче проверять и читать.",
+  "worldBriefSourcesSection": "Источники и проверка",
+  "worldBriefSourcesSectionHelp": "Добавьте проверяемые HTTPS-источники. Для публикации нужны минимум два независимых домена.",
+  "worldBriefDistributionSection": "Распространение",
+  "worldBriefDistributionHelp": "Выберите, где будет показан brief. Публикация делает его доступным в News; размещение на глобусе необязательно.",
+  "worldBriefNewsDestination": "Опубликовать в Social Vote News",
+  "worldBriefNewsDestinationHelp": "После публикации это основное место размещения World Brief.",
+  "worldBriefGlobeAutomaticHelp": "Добавляет маркер на глобус. Выберите место, а Social Vote автоматически определит позицию.",
+  "worldBriefPlacementMode": "Размещение маркера",
+  "worldBriefPlacementCity": "Город / место",
+  "worldBriefPlacementCountry": "Центр страны",
+  "worldBriefCountry": "Страна",
+  "worldBriefCity": "Город или место",
+  "worldBriefCityHelp": "Пример: Тегеран. Не вводите широту или долготу.",
+  "worldBriefResolveLocation": "Определить место",
+  "worldBriefCoordinatesAutomatic": "Координаты определяются автоматически и не должны вводиться вручную.",
+  "worldBriefLocationResolved": "Место готово: {location}",
+  "worldBriefChooseCountryFirst": "Сначала выберите страну.",
+  "worldBriefChooseCityFirst": "Сначала введите город или место.",
+  "worldBriefLocationNotResolved": "Не удалось надёжно определить место. Проверьте страну и город и повторите.",
+  "worldBriefVisibilitySection": "Видимость и приоритет",
+  "worldBriefVisibilityHelp": "Управляйте редакционной заметностью, срочностью, порядком и сроком жизни без изменения сообщаемых фактов.",
+  "worldBriefFeaturedHelp": "Сделайте brief более заметным на редакционных поверхностях.",
+  "worldBriefBreakingHelp": "Используйте только для действительно срочных или быстро развивающихся событий.",
+  "worldBriefPriorityHelp": "0 = обычный/низкий приоритет; 100 = наивысший редакционный приоритет. Это не меняет статус достоверности контента.",
+  "worldBriefExpiryHelp": "После этого срока brief не должен оставаться активным без новой редакционной проверки.",
+  "@worldBriefLocationResolved": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "profileAppLanguageSpanish": "Испанский",
+  "profileAppLanguagePortuguese": "Португальский",
+  "homeHeroPurpose": "Узнавайте, что важно, делитесь своей Voce и участвуйте в Vote.",
+  "commentSection_hideComments": "Скрыть комментарии",
+  "commentSection_viewComments": "Показать комментарии",
+  "commentSection_hideReplies": "Скрыть ответы",
+  "commentSection_editing": "Редактирование: {snippet}",
+  "@commentSection_editing": {
+    "placeholders": {
+      "snippet": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_editInputHint": "Редактировать комментарий",
+  "commentSection_replyTo": "Ответить {author}",
+  "@commentSection_replyTo": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "commentSection_userFallback": "Пользователь",
+  "commentSection_addError": "Не удалось добавить комментарий.",
+  "commentSection_nestedReplyError": "Вложенные ответы глубже одного уровня не поддерживаются.",
+  "commentSection_addReplyError": "Не удалось добавить ответ.",
+  "commentSection_editError": "Не удалось отредактировать комментарий.",
+  "commentSection_deleteError": "Не удалось удалить комментарий.",
+  "commentSection_edited": "Изменено",
+  "commentSection_editAction": "Редактировать"
+}

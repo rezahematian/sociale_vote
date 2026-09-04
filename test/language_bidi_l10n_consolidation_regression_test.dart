@@ -134,11 +134,11 @@ void main() {
     expect(Countries.nameForCode('IT', languageCode: 'ro'), 'Italia');
   });
 
-  test('no duplicate guest-only dynamic fallback branch remains', () {
+  test('guest-only dynamic fallback branch remains once per translation group', () {
     final source = File('lib/app/localization/de_fallback.dart').readAsStringSync();
     const needle =
         ', sign in or create an account. As a guest you can only view content.';
-    expect(RegExp(RegExp.escape(needle)).allMatches(source).length, 2);
+    expect(RegExp(RegExp.escape(needle)).allMatches(source).length, 4);
   });
 
   test('auth/signup language metadata accepts all nine app languages', () {

@@ -188,6 +188,8 @@ class _LiveWorldPreview extends StatelessWidget {
       'fr' => 'Aperçu en direct',
       'ar' => 'معاينة مباشرة',
       'ro' => 'Previzualizare live',
+      'ru' => 'Предпросмотр',
+      'zh' => '实时预览',
       _ => 'Live preview',
     };
     final subtitle = switch (languageCode) {
@@ -200,6 +202,8 @@ class _LiveWorldPreview extends StatelessWidget {
         'Les trois choix ci-dessous modifient uniquement l’apparence de World.',
       'ar' => 'تغيّر الخيارات الثلاثة أدناه مظهر World فقط.',
       'ro' => 'Cele trei opțiuni de mai jos modifică doar aspectul World.',
+      'ru' => 'Три варианта ниже меняют только внешний вид World.',
+      'zh' => '下面三个选项只会改变 World 的外观。',
       _ => 'The three choices below change only the World appearance.',
     };
 
@@ -610,6 +614,8 @@ class _WorldAppearanceCopy {
     String? fr,
     String? ar,
     String? ro,
+    String? ru,
+    String? zh,
   }) {
     return switch (languageCode) {
       'it' => it,
@@ -620,6 +626,8 @@ class _WorldAppearanceCopy {
       'fr' => fr ?? en,
       'ar' => ar ?? en,
       'ro' => ro ?? en,
+      'ru' => ru ?? en,
+      'zh' => zh ?? en,
       _ => en,
     };
   }
@@ -634,7 +642,9 @@ class _WorldAppearanceCopy {
         fr: 'Apparence du monde',
         ar: 'مظهر العالم',
         ro: 'Aspectul lumii',
-      );
+              ru: 'Внешний вид мира',
+        zh: '世界外观',
+);
 
   String get subtitle => _localized(
         it: 'Scegli separatamente Globe, Radio Mondo e controllo rotazione.',
@@ -646,7 +656,9 @@ class _WorldAppearanceCopy {
         fr: 'Choisissez séparément Globe, Radio Mondo et le contrôle de rotation.',
         ar: 'اختر Globe وRadio Mondo والتحكم في الدوران بشكل مستقل.',
         ro: 'Alege separat Globe, Radio Mondo și controlul rotației.',
-      );
+              ru: 'Выбирайте Globe, Radio Mondo и управление вращением независимо.',
+        zh: '可分别选择 Globe、Radio Mondo 和旋转控制。',
+);
 
   String get globeTitle => _localized(
       it: 'Stile Globe',
@@ -657,7 +669,9 @@ class _WorldAppearanceCopy {
       pt: 'Estilo do Globe',
       fr: 'Style du Globe',
       ar: 'نمط Globe',
-      ro: 'Stil Globe');
+      ro: 'Stil Globe',      ru: 'Стиль Globe',
+      zh: 'Globe 风格',
+);
 
   String get globeSubtitle => _localized(
         it: 'Cambia solo l’aspetto. Dati e marker restano invariati.',
@@ -669,7 +683,9 @@ class _WorldAppearanceCopy {
         fr: 'Modifie uniquement l’apparence. Les données et les marqueurs restent inchangés.',
         ar: 'يغيّر المظهر فقط. تبقى البيانات والعلامات دون تغيير.',
         ro: 'Modifică doar aspectul. Datele și marker-ele rămân neschimbate.',
-      );
+              ru: 'Меняет только внешний вид. Данные и маркеры не изменяются.',
+        zh: '仅改变外观。数据和标记保持不变。',
+);
 
   String get radioTitle => 'Radio Mondo';
 
@@ -683,7 +699,9 @@ class _WorldAppearanceCopy {
         fr: 'Choisissez le style du bouton Radio Mondo à côté du Globe.',
         ar: 'اختر نمط زر Radio Mondo بجوار Globe.',
         ro: 'Alege stilul butonului Radio Mondo de lângă Globe.',
-      );
+              ru: 'Выберите стиль кнопки Radio Mondo рядом с Globe.',
+        zh: '选择 Globe 旁边的 Radio Mondo 按钮样式。',
+);
 
   String get rotationTitle => _localized(
       it: 'Controllo rotazione',
@@ -694,7 +712,9 @@ class _WorldAppearanceCopy {
       pt: 'Controle de rotação',
       fr: 'Contrôle de rotation',
       ar: 'التحكم في الدوران',
-      ro: 'Controlul rotației');
+      ro: 'Controlul rotației',      ru: 'Управление вращением',
+      zh: '旋转控制',
+);
 
   String get rotationSubtitle => _localized(
         it: 'Scegli lo stile del pulsante che avvia o ferma il Globe.',
@@ -706,7 +726,9 @@ class _WorldAppearanceCopy {
         fr: 'Choisissez le style du bouton qui démarre ou arrête la rotation du Globe.',
         ar: 'اختر نمط الزر الذي يبدأ أو يوقف دوران Globe.',
         ro: 'Alege stilul butonului care pornește sau oprește rotația Globe.',
-      );
+              ru: 'Выберите стиль кнопки запуска/остановки вращения Globe.',
+        zh: '选择 Globe 启动/停止旋转按钮的样式。',
+);
 
   String get reset => _localized(
       it: 'Ripristina',
@@ -717,7 +739,9 @@ class _WorldAppearanceCopy {
       pt: 'Redefinir',
       fr: 'Réinitialiser',
       ar: 'إعادة الضبط',
-      ro: 'Resetează');
+      ro: 'Resetează',      ru: 'Сбросить',
+      zh: '重置',
+);
 
   String get localOnly => _localized(
         it: 'Queste preferenze restano locali sul dispositivo e non modificano GeoScope, contenuti o marker live.',
@@ -729,7 +753,9 @@ class _WorldAppearanceCopy {
         fr: 'Ces préférences restent sur cet appareil et ne modifient jamais GeoScope, le contenu ni les marqueurs en direct.',
         ar: 'تبقى هذه التفضيلات على هذا الجهاز ولا تغيّر GeoScope أو المحتوى أو العلامات المباشرة.',
         ro: 'Aceste preferințe rămân pe acest dispozitiv și nu modifică GeoScope, conținutul sau marker-ele live.',
-      );
+              ru: 'Эти настройки остаются локальными на этом устройстве и не изменяют GeoScope, контент или live-маркеры.',
+        zh: '这些偏好仅保存在此设备上，不会改变 GeoScope、内容或实时标记。',
+);
 
   String globeLabel(GlobeVisualStyle style) {
     return switch (style) {
@@ -742,7 +768,9 @@ class _WorldAppearanceCopy {
           pt: 'A · Clássico e limpo',
           fr: 'A · Classique et épuré',
           ar: 'A · كلاسيكي ونظيف',
-          ro: 'A · Clasic și curat'),
+          ro: 'A · Clasic și curat',          ru: 'A · Классический и чистый',
+          zh: 'A · 经典简洁',
+),
       GlobeVisualStyle.realistic => _localized(
           it: 'B · Realistico e profondo',
           en: 'B · Realistic deep',
@@ -752,7 +780,9 @@ class _WorldAppearanceCopy {
           pt: 'B · Realista e profundo',
           fr: 'B · Réaliste et profond',
           ar: 'B · واقعي وعميق',
-          ro: 'B · Realist și profund'),
+          ro: 'B · Realist și profund',          ru: 'B · Реалистичный и глубокий',
+          zh: 'B · 真实深邃',
+),
       GlobeVisualStyle.bright => _localized(
           it: 'C · Moderno e luminoso',
           en: 'C · Modern bright',
@@ -762,7 +792,9 @@ class _WorldAppearanceCopy {
           pt: 'C · Moderno e luminoso',
           fr: 'C · Moderne et lumineux',
           ar: 'C · حديث ومضيء',
-          ro: 'C · Modern și luminos'),
+          ro: 'C · Modern și luminos',          ru: 'C · Современный и яркий',
+          zh: 'C · 现代明亮',
+),
       GlobeVisualStyle.nightLights => _localized(
           it: 'D · Notte con luci',
           en: 'D · Night lights',
@@ -772,7 +804,9 @@ class _WorldAppearanceCopy {
           pt: 'D · Luzes noturnas',
           fr: 'D · Lumières nocturnes',
           ar: 'D · أضواء ليلية',
-          ro: 'D · Lumini de noapte'),
+          ro: 'D · Lumini de noapte',          ru: 'D · Ночные огни',
+          zh: 'D · 夜间灯光',
+),
       GlobeVisualStyle.techNeon => _localized(
           it: 'E · Tech Neon',
           en: 'E · Tech Neon',
@@ -782,7 +816,9 @@ class _WorldAppearanceCopy {
           pt: 'E · Tech Neon',
           fr: 'E · Tech Neon',
           ar: 'E · تقنية نيون',
-          ro: 'E · Tech Neon'),
+          ro: 'E · Tech Neon',          ru: 'E · Техно-неон',
+          zh: 'E · 科技霓虹',
+),
       GlobeVisualStyle.terrainRelief => _localized(
           it: 'F · Rilievo geografico',
           en: 'F · Terrain relief',
@@ -792,7 +828,9 @@ class _WorldAppearanceCopy {
           pt: 'F · Relevo geográfico',
           fr: 'F · Relief géographique',
           ar: 'F · تضاريس جغرافية',
-          ro: 'F · Relief geografic'),
+          ro: 'F · Relief geografic',          ru: 'F · Рельеф местности',
+          zh: 'F · 地形浮雕',
+),
       GlobeVisualStyle.minimalDay => _localized(
           it: 'G · Minimal Day',
           en: 'G · Minimal Day',
@@ -802,7 +840,9 @@ class _WorldAppearanceCopy {
           pt: 'G · Dia minimalista',
           fr: 'G · Jour minimal',
           ar: 'G · نهار بسيط',
-          ro: 'G · Zi minimalistă'),
+          ro: 'G · Zi minimalistă',          ru: 'G · Минималистичный день',
+          zh: 'G · 极简日景',
+),
     };
   }
 
@@ -817,7 +857,9 @@ class _WorldAppearanceCopy {
           pt: '1 · Nota',
           fr: '1 · Note',
           ar: '1 · نغمة',
-          ro: '1 · Notă'),
+          ro: '1 · Notă',          ru: '1 · Нота',
+          zh: '1 · 音符',
+),
       RadioVisualStyle.oldStyle => _localized(
           it: '2 · Radio',
           en: '2 · Radio',
@@ -827,7 +869,9 @@ class _WorldAppearanceCopy {
           pt: '2 · Rádio',
           fr: '2 · Radio',
           ar: '2 · راديو',
-          ro: '2 · Radio'),
+          ro: '2 · Radio',          ru: '2 · Радио',
+          zh: '2 · 电台',
+),
       RadioVisualStyle.retroElegant => _localized(
           it: '3 · Equalizer',
           en: '3 · Equalizer',
@@ -837,7 +881,9 @@ class _WorldAppearanceCopy {
           pt: '3 · Equalizador',
           fr: '3 · Égaliseur',
           ar: '3 · معادل صوتي',
-          ro: '3 · Egalizator'),
+          ro: '3 · Egalizator',          ru: '3 · Эквалайзер',
+          zh: '3 · 均衡器',
+),
       RadioVisualStyle.woodMinimal => _localized(
           it: '4 · Onda',
           en: '4 · Wave',
@@ -847,7 +893,9 @@ class _WorldAppearanceCopy {
           pt: '4 · Onda',
           fr: '4 · Onde',
           ar: '4 · موجة',
-          ro: '4 · Undă'),
+          ro: '4 · Undă',          ru: '4 · Волна',
+          zh: '4 · 波形',
+),
       RadioVisualStyle.modernVintage => _localized(
           it: '5 · Cuffie',
           en: '5 · Headphones',
@@ -857,7 +905,9 @@ class _WorldAppearanceCopy {
           pt: '5 · Fones',
           fr: '5 · Casque',
           ar: '5 · سماعات',
-          ro: '5 · Căști'),
+          ro: '5 · Căști',          ru: '5 · Наушники',
+          zh: '5 · 耳机',
+),
       RadioVisualStyle.steampunk => _localized(
           it: '6 · Disco',
           en: '6 · Disc',
@@ -867,7 +917,9 @@ class _WorldAppearanceCopy {
           pt: '6 · Disco',
           fr: '6 · Disque',
           ar: '6 · قرص',
-          ro: '6 · Disc'),
+          ro: '6 · Disc',          ru: '6 · Диск',
+          zh: '6 · 唱片',
+),
       RadioVisualStyle.minimalChic => _localized(
           it: '7 · Pulse',
           en: '7 · Pulse',
@@ -877,7 +929,9 @@ class _WorldAppearanceCopy {
           pt: '7 · Pulso',
           fr: '7 · Pulse',
           ar: '7 · نبض',
-          ro: '7 · Puls'),
+          ro: '7 · Puls',          ru: '7 · Pulse',
+          zh: '7 · 脉搏',
+),
     };
   }
 
@@ -892,7 +946,9 @@ class _WorldAppearanceCopy {
           pt: '1 · Clássico',
           fr: '1 · Classique',
           ar: '1 · كلاسيكي',
-          ro: '1 · Clasic'),
+          ro: '1 · Clasic',          ru: '1 · Классический',
+          zh: '1 · 经典',
+),
       GlobeRotationVisualStyle.minimal => _localized(
           it: '2 · Minimal',
           en: '2 · Minimal',
@@ -902,7 +958,9 @@ class _WorldAppearanceCopy {
           pt: '2 · Minimal',
           fr: '2 · Minimal',
           ar: '2 · بسيط',
-          ro: '2 · Minimal'),
+          ro: '2 · Minimal',          ru: '2 · Минимальный',
+          zh: '2 · 极简',
+),
       GlobeRotationVisualStyle.subtle => _localized(
           it: '3 · Sottile',
           en: '3 · Subtle',
@@ -912,7 +970,9 @@ class _WorldAppearanceCopy {
           pt: '3 · Sutil',
           fr: '3 · Subtil',
           ar: '3 · خفيف',
-          ro: '3 · Subtil'),
+          ro: '3 · Subtil',          ru: '3 · Ненавязчивый',
+          zh: '3 · 轻柔',
+),
       GlobeRotationVisualStyle.neon => _localized(
           it: '4 · Neon',
           en: '4 · Neon',
@@ -922,7 +982,9 @@ class _WorldAppearanceCopy {
           pt: '4 · Neon',
           fr: '4 · Néon',
           ar: '4 · نيون',
-          ro: '4 · Neon'),
+          ro: '4 · Neon',          ru: '4 · Неон',
+          zh: '4 · 霓虹',
+),
       GlobeRotationVisualStyle.filled => _localized(
           it: '5 · Pieno',
           en: '5 · Filled',
@@ -932,7 +994,9 @@ class _WorldAppearanceCopy {
           pt: '5 · Preenchido',
           fr: '5 · Plein',
           ar: '5 · ممتلئ',
-          ro: '5 · Plin'),
+          ro: '5 · Plin',          ru: '5 · Заполненный',
+          zh: '5 · 实心',
+),
       GlobeRotationVisualStyle.glass => _localized(
           it: '6 · Glass',
           en: '6 · Glass',
@@ -942,7 +1006,9 @@ class _WorldAppearanceCopy {
           pt: '6 · Vidro',
           fr: '6 · Verre',
           ar: '6 · زجاج',
-          ro: '6 · Sticlă'),
+          ro: '6 · Sticlă',          ru: '6 · Стекло',
+          zh: '6 · 玻璃',
+),
       GlobeRotationVisualStyle.premium => _localized(
           it: '7 · Premium',
           en: '7 · Premium',
@@ -952,7 +1018,9 @@ class _WorldAppearanceCopy {
           pt: '7 · Premium',
           fr: '7 · Premium',
           ar: '7 · مميز',
-          ro: '7 · Premium'),
+          ro: '7 · Premium',          ru: '7 · Premium',
+          zh: '7 · 高级',
+),
     };
   }
 }

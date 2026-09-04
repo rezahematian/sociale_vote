@@ -46,6 +46,8 @@ String _worldAppearanceSettingsTitle(BuildContext context) {
     'fr' => 'Apparence du monde',
     'ar' => 'مظهر العالم',
     'ro' => 'Aspectul lumii',
+    'ru' => 'Внешний вид мира',
+    'zh' => '世界外观',
     _ => 'World appearance',
   };
 }
@@ -60,6 +62,8 @@ String _worldAppearanceSettingsSubtitle(BuildContext context) {
     'fr' => 'Globe, Radio Mondo et contrôle de rotation',
     'ar' => 'Globe وRadio Mondo والتحكم في الدوران',
     'ro' => 'Globe, Radio Mondo și controlul rotației',
+    'ru' => 'Globe, Radio Mondo и управление вращением',
+    'zh' => 'Globe、Radio Mondo 和旋转控制',
     _ => 'Globe, Radio Mondo and rotation control',
   };
 }
@@ -74,6 +78,8 @@ String _quickSettingsSectionTitle(BuildContext context) {
     'fr' => 'Accès rapide',
     'ar' => 'وصول سريع',
     'ro' => 'Acces rapid',
+    'ru' => 'Быстрый доступ',
+    'zh' => '快速设置',
     _ => 'Quick settings',
   };
 }
@@ -88,6 +94,8 @@ String _accountSectionsTitle(BuildContext context) {
     'fr' => 'Sections du compte',
     'ar' => 'أقسام الحساب',
     'ro' => 'Secțiuni cont',
+    'ru' => 'Разделы аккаунта',
+    'zh' => '账户分区',
     _ => 'Account sections',
   };
 }
@@ -108,6 +116,8 @@ String _globeStyleLabel(
     required String fr,
     required String ar,
     required String ro,
+    required String ru,
+    required String zh,
   }) {
     return switch (languageCode) {
       'it' => it,
@@ -118,6 +128,8 @@ String _globeStyleLabel(
       'fr' => fr,
       'ar' => ar,
       'ro' => ro,
+      'ru' => ru,
+      'zh' => zh,
       _ => en,
     };
   }
@@ -133,6 +145,8 @@ String _globeStyleLabel(
         fr: 'A · Classique et épuré',
         ar: 'A · كلاسيكي ونظيف',
         ro: 'A · Clasic și curat',
+        ru: 'A · Классический и чистый',
+        zh: 'A · 经典简洁',
       ),
     GlobeVisualStyle.realistic => localized(
         en: 'B · Realistic deep',
@@ -144,6 +158,8 @@ String _globeStyleLabel(
         fr: 'B · Réaliste et profond',
         ar: 'B · واقعي وعميق',
         ro: 'B · Realist și profund',
+        ru: 'B · Реалистичный и глубокий',
+        zh: 'B · 真实深邃',
       ),
     GlobeVisualStyle.bright => localized(
         en: 'C · Modern bright',
@@ -155,6 +171,8 @@ String _globeStyleLabel(
         fr: 'C · Moderne et lumineux',
         ar: 'C · حديث ومضيء',
         ro: 'C · Modern și luminos',
+        ru: 'C · Современный и яркий',
+        zh: 'C · 现代明亮',
       ),
     GlobeVisualStyle.nightLights => localized(
         en: 'D · Night lights',
@@ -166,6 +184,8 @@ String _globeStyleLabel(
         fr: 'D · Lumières nocturnes',
         ar: 'D · أضواء ليلية',
         ro: 'D · Lumini de noapte',
+        ru: 'D · Ночные огни',
+        zh: 'D · 夜间灯光',
       ),
     GlobeVisualStyle.techNeon => localized(
         en: 'E · Tech Neon',
@@ -177,6 +197,8 @@ String _globeStyleLabel(
         fr: 'E · Tech Neon',
         ar: 'E · تقنية نيون',
         ro: 'E · Tech Neon',
+        ru: 'E · Техно-неон',
+        zh: 'E · 科技霓虹',
       ),
     GlobeVisualStyle.terrainRelief => localized(
         en: 'F · Terrain relief',
@@ -188,6 +210,8 @@ String _globeStyleLabel(
         fr: 'F · Relief géographique',
         ar: 'F · تضاريس جغرافية',
         ro: 'F · Relief geografic',
+        ru: 'F · Рельеф местности',
+        zh: 'F · 地形浮雕',
       ),
     GlobeVisualStyle.minimalDay => localized(
         en: 'G · Minimal Day',
@@ -199,6 +223,8 @@ String _globeStyleLabel(
         fr: 'G · Jour minimal',
         ar: 'G · نهار بسيط',
         ro: 'G · Zi minimalistă',
+        ru: 'G · Минималистичный день',
+        zh: 'G · 极简日景',
       ),
   };
 }
@@ -665,6 +691,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
                       'fr' => const Locale('fr'),
                       'ar' => const Locale('ar'),
                       'ro' => const Locale('ro'),
+                      'ru' => const Locale('ru'),
+                      'zh' => const Locale('zh'),
                       _ => null,
                     };
 
@@ -727,6 +755,16 @@ class _MyProfileViewState extends State<_MyProfileView> {
                         value: 'ro',
                         label: 'Română',
                         code: 'RO',
+                      ),
+                      languageTile(
+                        value: 'ru',
+                        label: 'Русский',
+                        code: 'RU',
+                      ),
+                      languageTile(
+                        value: 'zh',
+                        label: '中文（简体）',
+                        code: 'ZH',
                       ),
                       const SizedBox(height: 8),
                     ],
@@ -2509,6 +2547,10 @@ class _MyProfileViewState extends State<_MyProfileView> {
         return 'العربية';
       case 'ro':
         return 'Română';
+      case 'ru':
+        return 'Русский';
+      case 'zh':
+        return '中文（简体）';
       default:
         return l10n.profileAppLanguageSystem;
     }

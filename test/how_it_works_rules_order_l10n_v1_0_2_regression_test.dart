@@ -21,7 +21,7 @@ void main() {
     );
   });
 
-  test('Legacy How Social Vote works copy covers all nine locales', () {
+  test('Legacy How Social Vote works copy covers all eleven locales', () {
     final source = File(pagePath).readAsStringSync();
 
     final requiredMarkers = <String>[
@@ -31,6 +31,8 @@ void main() {
       "fr: 'Participation pour les personnes. Outils professionnels pour les organisations.'",
       "ar: 'مشاركة للناس. أدوات احترافية للمنظمات.'",
       "ro: 'Participare pentru oameni. Instrumente profesionale pentru organizații.'",
+      "ru: 'Участие для людей. Профессиональные инструменты для организаций.'",
+      "zh: '为个人提供参与，为组织提供专业工具。'",
       "fa: 'ابزار مناسب را انتخاب کنید'",
       "ar: 'التحقق والثقة والخصوصية'",
       "fr: 'Le principe économique'",
@@ -52,7 +54,7 @@ void main() {
   test('Localized poster assets are registered and present', () {
     final pubspec = File('pubspec.yaml').readAsStringSync();
 
-    for (final code in ['en', 'de', 'fa', 'es', 'pt', 'fr', 'ar', 'ro']) {
+    for (final code in ['en', 'de', 'fa', 'es', 'pt', 'fr', 'ar', 'ro', 'ru', 'zh']) {
       final asset = 'assets/vision/social_vote_rules_vision_$code.jpg';
       expect(pubspec, contains('- $asset'), reason: asset);
       final file = File(asset);
@@ -69,7 +71,7 @@ void main() {
   test('Poster selection maps every supported locale without mirroring layout', () {
     final source = File(pagePath).readAsStringSync();
 
-    for (final code in ['de', 'fa', 'es', 'pt', 'fr', 'ar', 'ro']) {
+    for (final code in ['de', 'fa', 'es', 'pt', 'fr', 'ar', 'ro', 'ru', 'zh']) {
       expect(
         source,
         contains("'$code' => 'assets/vision/social_vote_rules_vision_$code.jpg'"),
