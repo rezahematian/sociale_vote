@@ -7,11 +7,15 @@ class WebGlobeFocus {
   final double latitude;
   final double longitude;
   final double distance;
+  final bool recoverToNaturalRotation;
+  final int recoveryHoldMs;
 
   const WebGlobeFocus({
     required this.latitude,
     required this.longitude,
     required this.distance,
+    this.recoverToNaturalRotation = false,
+    this.recoveryHoldMs = 260,
   });
 }
 

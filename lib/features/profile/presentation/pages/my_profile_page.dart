@@ -1996,6 +1996,8 @@ class _MyProfileViewState extends State<_MyProfileView> {
               children: [
                 _SectionTitle(l10n.profilePublicProfileSectionTitle),
                 Card(
+                  margin: EdgeInsets.zero,
+                  clipBehavior: Clip.antiAlias,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: controller.isLoading && profile == null
@@ -2830,17 +2832,29 @@ class _OrganizationAccountCard extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             if (constraints.maxWidth < 620) {
+              final compactActions = constraints.maxWidth >= 340
+                  ? Row(
+                      children: [
+                        Expanded(child: actions[0]),
+                        const SizedBox(width: 8),
+                        Expanded(child: actions[1]),
+                      ],
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        actions[0],
+                        const SizedBox(height: 8),
+                        actions[1],
+                      ],
+                    );
+
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   identity,
                   const SizedBox(height: 14),
-                  ...actions.map(
-                    (action) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: SizedBox(width: double.infinity, child: action),
-                    ),
-                  ),
+                  compactActions,
                 ],
               );
             }

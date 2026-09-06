@@ -287,6 +287,30 @@ class _FeedToolbar extends StatelessWidget {
       ),
     );
 
+    final compactFilters = Row(
+      children: [
+        Expanded(
+          child: _FeedSortButton(
+            icon: Icons.local_fire_department_outlined,
+            label: l10n.searchSortHottest,
+            selected: selectedMode == FeedSortMode.hottest,
+            compact: true,
+            onTap: () => onSelected(FeedSortMode.hottest),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: _FeedSortButton(
+            icon: Icons.schedule_outlined,
+            label: l10n.searchSortLatest,
+            selected: selectedMode == FeedSortMode.latest,
+            compact: true,
+            onTap: () => onSelected(FeedSortMode.latest),
+          ),
+        ),
+      ],
+    );
+
     final createButton = FilledButton.icon(
       onPressed: isCreatingPost
           ? null
@@ -339,9 +363,12 @@ class _FeedToolbar extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              filters,
+              compactFilters,
               const SizedBox(height: AppSpacing.xs),
-              createButton,
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: createButton,
+              ),
             ],
           );
         },
@@ -355,12 +382,14 @@ class _FeedSortButton extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final bool compact;
 
   const _FeedSortButton({
     required this.icon,
     required this.label,
     required this.selected,
     required this.onTap,
+    this.compact = false,
   });
 
   @override
@@ -388,9 +417,9 @@ class _FeedSortButton extends StatelessWidget {
           onTap: onTap,
           borderRadius: AppRadius.buttonRadius,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              minWidth: 132,
-              minHeight: 44,
+            constraints: BoxConstraints(
+              minWidth: compact ? 0 : 132,
+              minHeight: compact ? 38 : 44,
             ),
             child: Ink(
               decoration: BoxDecoration(
@@ -402,9 +431,9 @@ class _FeedSortButton extends StatelessWidget {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.s,
-                  vertical: AppSpacing.xs,
+                padding: EdgeInsets.symmetric(
+                  horizontal: compact ? 7 : AppSpacing.s,
+                  vertical: compact ? 5 : AppSpacing.xs,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,

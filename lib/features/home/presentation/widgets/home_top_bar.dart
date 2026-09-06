@@ -88,6 +88,8 @@ class HomeTopBar extends StatelessWidget {
       return LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth < 430) {
+            // Narrow Android / narrow Web: keep utility actions beside the
+            // brand instead of leaving detached circles under authentication.
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
@@ -101,22 +103,22 @@ class HomeTopBar extends StatelessWidget {
                         child: _ColorfulBrand(),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    guestAuthActions,
+                    if (guestUtilityActions.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: guestUtilityActions,
+                      ),
+                    ],
                   ],
                 ),
-                if (guestUtilityActions.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: guestUtilityActions,
-                    ),
-                  ),
-                ],
+                const SizedBox(height: 7),
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: guestAuthActions,
+                ),
               ],
             );
           }

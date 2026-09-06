@@ -217,6 +217,8 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                                       worldGlobeHandoff?.globeZoom,
                                   visualStyle: appearance.globeStyle,
                                   rotationVisualStyle: appearance.rotationStyle,
+                                  showHomeRadioControl: true,
+                                  radioVisualStyle: appearance.radioStyle,
                                   markerDataSettled: !controller.isLoading &&
                                       !controller.isRefreshing,
                                 );
@@ -1056,8 +1058,11 @@ class _MapTopControls extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     firstRow,
-                    const SizedBox(height: 10),
-                    _MapTypeFilters(controller: controller),
+                    const SizedBox(height: 8),
+                    _MapTypeFilters(
+                      controller: controller,
+                      horizontal: constraints.maxWidth < 440,
+                    ),
                   ],
                 ),
               ),
@@ -1556,9 +1561,11 @@ class _CompactBadge extends StatelessWidget {
 
 class _MapTypeFilters extends StatelessWidget {
   final CivicMapController controller;
+  final bool horizontal;
 
   const _MapTypeFilters({
     required this.controller,
+    this.horizontal = false,
   });
 
   SocialVoteContentKind _contentKindForType(CivicMapItemType type) {
@@ -1634,16 +1641,34 @@ class _MapTypeFilters extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final chips = <Widget>[
+      _buildAllChip(context),
+      _buildTypeChip(context, CivicMapItemType.news),
+      _buildTypeChip(context, CivicMapItemType.poll),
+      _buildTypeChip(context, CivicMapItemType.post),
+    ];
+
+    if (horizontal) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var index = 0; index < chips.length; index++) ...[
+              if (index > 0) const SizedBox(width: 6),
+              chips[index],
+            ],
+          ],
+        ),
+      );
+    }
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       alignment: WrapAlignment.center,
-      children: [
-        _buildAllChip(context),
-        _buildTypeChip(context, CivicMapItemType.news),
-        _buildTypeChip(context, CivicMapItemType.poll),
-        _buildTypeChip(context, CivicMapItemType.post),
-      ],
+      children: chips,
     );
   }
 }

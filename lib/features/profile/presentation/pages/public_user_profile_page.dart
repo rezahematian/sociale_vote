@@ -1260,66 +1260,89 @@ class _OrganizationPublicActions extends StatelessWidget {
 
     return Card(
       margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Wrap(
-              spacing: 12,
-              runSpacing: 10,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                if (showType)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.category_outlined,
-                        size: 17,
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.60,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        typeLabel,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.72,
-                          ),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                _OrganizationFollowSummary(
-                  state: followState,
-                  isLoading: followStateLoading,
-                  hasError: followStateLoadError,
-                  isActionLoading: followActionLoading,
-                  showAction: showFollowAction,
-                  l10n: l10n,
-                  onToggle: onToggleFollow,
-                  onRetry: onRetryFollow,
-                ),
-              ],
-            ),
-            if (actions.isNotEmpty) ...[
-              const SizedBox(height: 14),
-              Divider(
-                height: 1,
-                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 560;
+          final followSummary = _OrganizationFollowSummary(
+            state: followState,
+            isLoading: followStateLoading,
+            hasError: followStateLoadError,
+            isActionLoading: followActionLoading,
+            showAction: showFollowAction,
+            compact: compact,
+            l10n: l10n,
+            onToggle: onToggleFollow,
+            onRetry: onRetryFollow,
+          );
+
+          final typeWidget = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.category_outlined,
+                size: 17,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.60),
               ),
-              const SizedBox(height: 14),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: actions,
+              const SizedBox(width: 6),
+              Text(
+                typeLabel,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
-          ],
-        ),
+          );
+
+          if (compact) {
+            return Padding(
+              padding: const EdgeInsets.all(12),
+              child: Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  if (showType) typeWidget,
+                  followSummary,
+                  ...actions,
+                ],
+              ),
+            );
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 10,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    if (showType) typeWidget,
+                    followSummary,
+                  ],
+                ),
+                if (actions.isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  Divider(
+                    height: 1,
+                    color: theme.colorScheme.outlineVariant.withValues(
+                      alpha: 0.55,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: actions,
+                  ),
+                ],
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -1373,6 +1396,7 @@ class _OrganizationFollowSummary extends StatelessWidget {
   final bool hasError;
   final bool isActionLoading;
   final bool showAction;
+  final bool compact;
   final AppLocalizations l10n;
   final VoidCallback onToggle;
   final VoidCallback onRetry;
@@ -1383,6 +1407,7 @@ class _OrganizationFollowSummary extends StatelessWidget {
     required this.hasError,
     required this.isActionLoading,
     required this.showAction,
+    this.compact = false,
     required this.l10n,
     required this.onToggle,
     required this.onRetry,
@@ -1429,6 +1454,17 @@ class _OrganizationFollowSummary extends StatelessWidget {
         if (showAction)
           FilledButton.tonalIcon(
             onPressed: isActionLoading ? null : onToggle,
+            style: FilledButton.styleFrom(
+              minimumSize: Size(0, compact ? 36 : 40),
+              padding: EdgeInsets.symmetric(
+                horizontal: compact ? 10 : 14,
+                vertical: compact ? 6 : 8,
+              ),
+              tapTargetSize: compact
+                  ? MaterialTapTargetSize.shrinkWrap
+                  : MaterialTapTargetSize.padded,
+              visualDensity: compact ? VisualDensity.compact : VisualDensity.standard,
+            ),
             icon: isActionLoading
                 ? const SizedBox.square(
                     dimension: 16,

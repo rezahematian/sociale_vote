@@ -221,6 +221,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
     with WidgetsBindingObserver {
   static const double _countryFocusDistance = 2.24;
   static const double _handoffMapZoom = 4.05;
+  static const bool _enableCountrySurfaceSelection = false;
 
   final ValueNotifier<WebGlobeFocus?> _focusNotifier =
       ValueNotifier<WebGlobeFocus?>(null);
@@ -292,7 +293,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
             : MediaQuery.sizeOf(context).height;
 
         final available = math.max(1.0, math.min(finiteWidth, finiteHeight));
-        final inset = _isHomeProfile ? 12.0 : 18.0;
+        final inset = _isHomeProfile ? 12.0 : 8.0;
         final squareSize = math.max(1.0, available - inset);
 
         final diagnostic = '${finiteWidth.toStringAsFixed(1)}x'
@@ -336,7 +337,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
                       initialFocusZoom: widget.initialFocusZoom,
                       onUnavailable: widget.onUseClassicMap,
                     ),
-                    if (_isHomeProfile && widget.showHomeRadioControl)
+                    if (widget.showHomeRadioControl)
                       Positioned(
                         left: 18,
                         bottom: 18,
@@ -479,6 +480,13 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
       return;
     }
 
+    _focusNotifier.value = WebGlobeFocus(
+      latitude: item.latitude,
+      longitude: item.longitude,
+      distance: _countryFocusDistance,
+      recoverToNaturalRotation: true,
+      recoveryHoldMs: 260,
+    );
     widget.onItemTap(item);
   }
 
@@ -488,7 +496,9 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
       return;
     }
 
-    _resolveCountryFromTap(latitude, longitude);
+    if (_enableCountrySurfaceSelection) {
+      _resolveCountryFromTap(latitude, longitude);
+    }
   }
 
   void _handleDeepZoom(double latitude, double longitude) {
@@ -663,13 +673,14 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
   static const String _earthTextureNightAsset =
       'assets/globe/earth_night_nasa_black_marble_2016_3600.jpg';
 
-  static const double _approvedPanSensitivity = 0.55;
-  static const double _gestureIntentThreshold = 10.0;
-  static const double _gestureFallbackThreshold = 24.0;
-  static const double _axisDominance = 1.15;
+  static const double _approvedPanSensitivity = 0.58;
+  static const double _gestureIntentThreshold = 7.0;
+  static const double _gestureFallbackThreshold = 16.0;
+  static const double _axisDominance = 1.08;
   static const double _sphereHitSlop = 8.0;
   static const double _homeMaxViewport = 520.0;
-  static const double _exploreMaxViewport = 760.0;
+  static const double _exploreMaxViewport = 820.0;
+  static const bool _enableCountrySurfaceSelection = false;
   static const double _countryFocusZoom = 0.055;
   static const Duration _countryFocusDuration = Duration(milliseconds: 480);
   static const double _exploreTapMovementTolerance = 12.0;
@@ -946,25 +957,40 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
     _nativeNaturalTiltToken += 1;
   }
 
-  void _scheduleNativeNaturalTiltRecovery() {
-    if (!_shouldNativeAutoRotate || !_globeController.isReady) {
+  void _scheduleNativeNaturalTiltRecovery({
+    Duration delay = _nativeNaturalTiltDelay,
+    bool refreshMarkersBeforeRecovery = false,
+  }) {
+    if (!_globeController.isReady ||
+        (!_shouldNativeAutoRotate && !refreshMarkersBeforeRecovery)) {
       return;
     }
 
     final token = ++_nativeNaturalTiltToken;
     _nativeNaturalTiltTimer?.cancel();
 
-    // The renderer has just finished its gesture/deceleration hand-off. Stop
-    // passive rotation while latitude returns to the same natural attitude as
-    // the Web globe; longitude is preserved.
+    // The renderer has just finished its gesture/deceleration or temporary
+    // marker-focus hand-off. Stop passive rotation while latitude returns to
+    // the approved natural attitude; longitude is preserved.
     _globeController.stopRotation();
 
-    _nativeNaturalTiltTimer = Timer(_nativeNaturalTiltDelay, () {
+    _nativeNaturalTiltTimer = Timer(delay, () {
       if (!mounted ||
           token != _nativeNaturalTiltToken ||
-          !_shouldNativeAutoRotate ||
           !_globeController.isReady) {
         _applyNativeRotationPolicy();
+        return;
+      }
+
+      if (refreshMarkersBeforeRecovery) {
+        // Re-publish the same immutable marker points after a programmatic
+        // focus. This repairs the native overlay-label cache without changing
+        // coordinates, clustering, density, or content selection.
+        _lastNativeMarkerInputSignature = null;
+        _syncGlobeContentPoints();
+      }
+
+      if (!_shouldNativeAutoRotate) {
         return;
       }
 
@@ -1163,7 +1189,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
         );
 
         return Align(
-          alignment: Alignment.topCenter,
+          alignment: _isHomeProfile ? Alignment.topCenter : Alignment.center,
           child: SizedBox.square(
             dimension: viewportSize,
             child: RepaintBoundary(
@@ -1198,8 +1224,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
                               onPointerCancel: _handleExplorePointerCancel,
                               child: globe,
                             ),
-                  if ((_isHomeProfile && widget.showHomeRadioControl) ||
-                      isAuthenticated)
+                  if (widget.showHomeRadioControl || isAuthenticated)
                     Positioned(
                       left: 12,
                       right: 12,
@@ -1207,7 +1232,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          if (_isHomeProfile && widget.showHomeRadioControl)
+                          if (widget.showHomeRadioControl)
                             RadioMondoDock(
                               visualStyle: widget.radioVisualStyle,
                               size: 44,
@@ -1438,12 +1463,14 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
       }
     }
 
-    final coordinates = globeState.coordinatesAtLocalPosition(
-      rendererLocalPosition,
-    );
+    if (_enableCountrySurfaceSelection) {
+      final coordinates = globeState.coordinatesAtLocalPosition(
+        rendererLocalPosition,
+      );
 
-    debugPrint('[WorldGlobe] Explore tap coordinates: $coordinates');
-    _handleExploreGlobeTap(coordinates);
+      debugPrint('[WorldGlobe] Explore tap coordinates: $coordinates');
+      _handleExploreGlobeTap(coordinates);
+    }
   }
 
   void _handleGlobeZoomChanged(double zoom) {
@@ -1573,6 +1600,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
       GlobeVisualStyle.realistic => _earthTextureRealisticAsset,
       GlobeVisualStyle.nightLights => _earthTextureNightAsset,
       GlobeVisualStyle.terrainRelief => _earthTextureRealisticAsset,
+      GlobeVisualStyle.bright => _earthTextureRealisticAsset,
       _ => _earthTextureClassicAsset,
     };
   }
@@ -2003,6 +2031,31 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
         ),
       );
       return;
+    }
+
+    if (_globeController.isReady) {
+      _cancelNativeNaturalTiltRecovery();
+      _globeController.stopRotation();
+
+      final targetZoom = _countryFocusZoom
+          .clamp(_globeController.minZoom, _globeController.maxZoom)
+          .toDouble();
+      _globeController.setZoom(targetZoom);
+      _globeController.focusOnCoordinates(
+        GlobeCoordinates(item.latitude, item.longitude),
+        animate: true,
+        duration: _countryFocusDuration,
+        curve: Curves.easeInOutCubic,
+      );
+
+      // Marker focus is intentionally temporary. Let the marker remain
+      // highlighted for a short beat, then restore the same natural tilt and
+      // passive rotation used after a normal drag. A user gesture cancels this
+      // timer through _cancelNativeNaturalTiltRecovery().
+      _scheduleNativeNaturalTiltRecovery(
+        delay: const Duration(milliseconds: 740),
+        refreshMarkersBeforeRecovery: true,
+      );
     }
 
     widget.onItemTap(item);

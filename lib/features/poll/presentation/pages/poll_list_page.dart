@@ -435,6 +435,41 @@ class _PollListPageState extends State<PollListPage> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        if (constraints.maxWidth < 560) {
+          final theme = Theme.of(context);
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerLow.withValues(
+                alpha: 0.72,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant.withValues(
+                  alpha: 0.72,
+                ),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Column(
+                children: [
+                  _buildCompactFilterRow(
+                    context,
+                    items: primaryItems,
+                    isPrimary: true,
+                  ),
+                  const SizedBox(height: 6),
+                  _buildCompactFilterRow(
+                    context,
+                    items: statusItems,
+                    isPrimary: false,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
         if (constraints.maxWidth >= _singleRowFiltersMinWidth) {
           return Row(
             children: [
@@ -470,6 +505,30 @@ class _PollListPageState extends State<PollListPage> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildCompactFilterRow(
+    BuildContext context, {
+    required List<_PollFilterItem> items,
+    required bool isPrimary,
+  }) {
+    return Row(
+      children: [
+        for (var index = 0; index < items.length; index++) ...[
+          if (index > 0) const SizedBox(width: 5),
+          Expanded(
+            child: _buildFilterButton(
+              context,
+              label: items[index].label,
+              selected: items[index].selected,
+              onTap: items[index].onTap,
+              isPrimary: isPrimary,
+              compact: true,
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -516,6 +575,7 @@ class _PollListPageState extends State<PollListPage> {
     required bool selected,
     required VoidCallback onTap,
     required bool isPrimary,
+    bool compact = false,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -551,8 +611,8 @@ class _PollListPageState extends State<PollListPage> {
           borderRadius: AppRadius.buttonRadius,
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              minWidth: isPrimary ? 112 : 84,
-              minHeight: 44,
+              minWidth: compact ? 0 : (isPrimary ? 112 : 84),
+              minHeight: compact ? 38 : 44,
             ),
             child: Ink(
               decoration: BoxDecoration(
@@ -564,9 +624,9 @@ class _PollListPageState extends State<PollListPage> {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.s,
-                  vertical: AppSpacing.xs,
+                padding: EdgeInsets.symmetric(
+                  horizontal: compact ? 6 : AppSpacing.s,
+                  vertical: compact ? 5 : AppSpacing.xs,
                 ),
                 child: Center(
                   child: Text(
@@ -657,7 +717,10 @@ class _PollListPageState extends State<PollListPage> {
             children: [
               contextBlock,
               const SizedBox(height: AppSpacing.s),
-              createButton,
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: createButton,
+              ),
             ],
           );
         }

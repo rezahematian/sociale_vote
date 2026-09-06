@@ -1038,14 +1038,16 @@ class RotatingGlobeState extends State<RotatingGlobe>
       }
 
       final scaledSize = point.point.style.size * (0.7 + 0.6 * point.depth);
+      final markerHitPadding =
+          point.id.startsWith('social-vote:') ? 34.0 : 18.0;
       final hitRect = Rect.fromCenter(
         // Custom Social Vote marker labels can be fanned apart in screen
         // space so Vote/Voce/News at the same geographic point remain
         // independently visible. Keep pointer hit testing aligned with that
         // rendered position without falsifying latitude/longitude.
         center: point.position2D + point.point.hitTestOffset,
-        width: scaledSize * 2 + 18,
-        height: scaledSize * 2 + 18,
+        width: scaledSize * 2 + markerHitPadding,
+        height: scaledSize * 2 + markerHitPadding,
       );
 
       if (hitRect.contains(foregroundLocalPosition)) {

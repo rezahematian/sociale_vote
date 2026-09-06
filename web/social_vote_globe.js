@@ -928,7 +928,11 @@ class SocialVoteGlobeElement extends HTMLElement {
     if (canvas) {
       const guestHome = this._guestHomeIsReadOnly();
       canvas.style.cursor = guestHome ? 'default' : 'grab';
-      canvas.style.touchAction = guestHome ? 'pan-y' : 'none';
+      // Home keeps vertical page scrolling native to the browser while
+      // horizontal touch remains available to the globe interaction.
+      canvas.style.touchAction = this._config.profile === 'home'
+        ? 'pan-y'
+        : 'none';
     }
   }
 
@@ -1573,7 +1577,9 @@ class SocialVoteGlobeElement extends HTMLElement {
         ),
       );
 
-      const scale = 0.118 * sizeFactor;
+      const markerScaleBase =
+          this._config.profile === 'home' ? 0.118 : 0.132;
+      const scale = markerScaleBase * sizeFactor;
       sprite.scale.set(scale, scale, 1);
 
       sprite.userData.markerId =
@@ -1616,6 +1622,13 @@ class SocialVoteGlobeElement extends HTMLElement {
       1.65,
       3.10,
     );
+    const recoverToNaturalRotation =
+        focus.recoverToNaturalRotation === true;
+    const recoveryHoldMs = clamp(
+      Number(focus.recoveryHoldMs) || 260,
+      0,
+      1200,
+    );
 
     if (
       !Number.isFinite(latitude) ||
@@ -1629,6 +1642,10 @@ class SocialVoteGlobeElement extends HTMLElement {
       longitude,
       distance,
       true,
+      {
+        recoverToNaturalRotation,
+        recoveryHoldMs,
+      },
     );
   }
 
@@ -1637,6 +1654,7 @@ class SocialVoteGlobeElement extends HTMLElement {
     longitude,
     distance,
     animate,
+    options = {},
   ) {
     const desiredDirection = latLngToVector(
       latitude,
@@ -1660,11 +1678,31 @@ class SocialVoteGlobeElement extends HTMLElement {
     const startDistance =
         this._camera.position.length();
 
+    const recoverToNaturalRotation =
+        options.recoverToNaturalRotation === true &&
+        this._autoRotatePreference;
+    const recoveryHoldMs = clamp(
+      Number(options.recoveryHoldMs) || 260,
+      0,
+      1200,
+    );
+    const recoveryToken = recoverToNaturalRotation
+      ? ++this._naturalSettleToken
+      : null;
+
+    if (recoverToNaturalRotation && this._controls) {
+      this._naturalSettling = false;
+      this._controls.autoRotate = false;
+    }
+
     const startedAt = performance.now();
     const duration = 480;
 
     const step = (now) => {
-      if (this._disposed) {
+      if (
+        this._disposed ||
+        (recoveryToken != null && recoveryToken !== this._naturalSettleToken)
+      ) {
         return;
       }
 
@@ -1702,6 +1740,23 @@ class SocialVoteGlobeElement extends HTMLElement {
 
       if (rawT < 1) {
         requestAnimationFrame(step);
+        return;
+      }
+
+      if (
+        recoveryToken != null &&
+        recoveryToken === this._naturalSettleToken &&
+        this._autoRotatePreference
+      ) {
+        setTimeout(() => {
+          if (
+            !this._disposed &&
+            recoveryToken === this._naturalSettleToken &&
+            this._autoRotatePreference
+          ) {
+            this._settleToNaturalRotation();
+          }
+        }, recoveryHoldMs);
       }
     };
 
@@ -1966,8 +2021,8 @@ class SocialVoteGlobeElement extends HTMLElement {
 
     if (this._controls) {
       const isTouch = event.pointerType === 'touch';
-      this._controls.rotateSpeed = isTouch ? 0.27 : 0.38;
-      this._controls.zoomSpeed = isTouch ? 0.42 : 0.52;
+      this._controls.rotateSpeed = isTouch ? 0.32 : 0.38;
+      this._controls.zoomSpeed = isTouch ? 0.46 : 0.52;
     }
 
     this._pointerDown = {
