@@ -17,10 +17,9 @@ void main() {
 
     expect(source, contains("static const double _productProgress = 0.33;"));
     expect(source, contains("static const String _principlesVersion = '0.3';"));
-    expect(
-      source,
-      contains('assets/vision/social_vote_regole_del_gioco_33.png'),
-    );
+    expect(source, contains('_DynamicVisionHero('));
+    expect(source, isNot(contains('_VisionPosterCard(')));
+    expect(source, isNot(contains('assets/vision/')));
     expect(source, contains('Share.share('));
     expect(source, contains('AppRouter.publicHowItWorksUrl()'));
     expect(source, contains('socialVoteContentDirection(rule.body)'));
@@ -38,12 +37,12 @@ void main() {
     expect(poster.lengthSync(), greaterThan(2 * 1024 * 1024));
   });
 
-  test('Rules page keeps nine-language copy hooks without changing ARBs', () {
+  test('Rules page keeps eleven-language copy hooks with text-native Rules runtime', () {
     final source = File(
       'lib/features/onboarding/presentation/how_social_vote_works_page.dart',
     ).readAsStringSync();
 
-    for (final code in ['fa', 'es', 'pt', 'fr', 'ar', 'ro']) {
+    for (final code in ['fa', 'es', 'pt', 'fr', 'ar', 'ro', 'ru', 'zh']) {
       expect(source, contains("'$code' =>"));
     }
     // V1.0.2 keeps the original nine-language Rules contract while the page

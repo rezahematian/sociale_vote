@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/app.dart';
+import 'package:sociale_vote/app/localization/appearance_label.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
 enum _AccountMenuAction {
@@ -373,7 +374,7 @@ class _AccountMenuButton extends StatelessWidget {
           _themeItem(
             action: _AccountMenuAction.appearanceSpace,
             icon: Icons.auto_awesome,
-            label: 'Space',
+            label: socialVoteSpaceAppearanceLabel(context),
             selected: _isSelectedAppearance(AppAppearanceMode.space),
           ),
         ],

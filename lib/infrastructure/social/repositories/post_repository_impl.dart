@@ -169,6 +169,7 @@ class PostRepositoryImpl implements PostRepository {
       'author_id': authorId,
       'title': post.title,
       'content': post.content,
+      'language_code': post.languageCode,
       'country_code': post.countryCode ?? post.contentLocation?.countryCode,
       'city_id': post.cityId ?? post.contentLocation?.cityId,
       'content_location': post.contentLocation?.toJson(),
@@ -187,12 +188,14 @@ class PostRepositoryImpl implements PostRepository {
     required String postId,
     required String title,
     required String content,
+    required String languageCode,
   }) async {
     final updatedRows = await AppSupabase.client
         .from(_postsTable)
         .update({
           'title': title,
           'content': content,
+          'language_code': languageCode,
         })
         .eq('id', postId)
         .select()
@@ -289,6 +292,7 @@ class PostRepositoryImpl implements PostRepository {
             : authorIdentity?.avatarUrl,
         title: (row['title'] as String?) ?? '',
         content: (row['content'] as String?) ?? '',
+        languageCode: (row['language_code'] as String?)?.trim().toLowerCase() ?? 'und',
         createdAt: _parseDateTime(createdAtRaw),
         updatedAt: _parseNullableDateTime(updatedAtRaw),
         commentCount: 0,

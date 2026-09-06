@@ -105,7 +105,7 @@ void main() {
     expect(l10n.homePollsTitle('جهان'), 'Vote · برگزیده (جهان)');
     expect(l10n.homeNewsTitle('جهان'), 'مهم‌ترین خبرها (جهان)');
     expect(l10n.homeSocialTitle('جهان'), 'Voce · جهان');
-    expect(l10n.homeTrendingTitle, 'Pulse · اکنون');
+    expect(l10n.homeTrendingTitle, 'Pulse Now');
     expect(l10n.profileHowItWorksTitle, 'راهنمای برنامه');
     expect(l10n.organizationWorkspaceTitle, 'فضای کاری سازمان');
     expect(l10n.pollList_scopeDescriptionCountry.contains('Vote‌های'), isFalse);

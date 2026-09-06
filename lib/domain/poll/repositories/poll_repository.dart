@@ -79,5 +79,6 @@ abstract class PollRepository {
     required String pollId,
     required String title,
     String? description,
+    required String languageCode,
   });
 }

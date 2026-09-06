@@ -24,6 +24,8 @@ class LegalDocumentPage extends StatelessWidget {
       type,
       languageCode: languageCode,
     );
+    final usesEnglishLegalText =
+        languageCode != 'en' && languageCode != 'it' && languageCode != 'de';
 
     final title = switch (type) {
       LegalDocumentType.terms => l10n.authTermsPageTitle,
@@ -44,6 +46,12 @@ class LegalDocumentPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    if (usesEnglishLegalText) ...[
+                      _LegalLanguageNotice(
+                        text: _englishLegalAvailabilityNotice(languageCode),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     _DraftNotice(text: document.notice),
                     const SizedBox(height: 24),
                     for (final section in document.sections) ...[
@@ -75,6 +83,57 @@ class LegalDocumentPage extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+String _englishLegalAvailabilityNotice(String languageCode) {
+  return switch (languageCode) {
+    'fa' => 'نسخه حقوقی معتبر این سند در حال حاضر به زبان انگلیسی در دسترس است.',
+    'es' => 'La versión legal disponible de este documento está actualmente en inglés.',
+    'pt' => 'A versão legal disponível deste documento está atualmente em inglês.',
+    'fr' => 'La version juridique disponible de ce document est actuellement en anglais.',
+    'ar' => 'النسخة القانونية المتاحة من هذا المستند متوفرة حاليًا باللغة الإنجليزية.',
+    'ro' => 'Versiunea juridică disponibilă a acestui document este în prezent în limba engleză.',
+    'ru' => 'Доступная юридическая версия этого документа в настоящее время представлена на английском языке.',
+    'zh' => '本文件当前可用的法律版本为英文版。',
+    _ => 'The currently available legal version of this document is in English.',
+  };
+}
+
+class _LegalLanguageNotice extends StatelessWidget {
+  final String text;
+
+  const _LegalLanguageNotice({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.secondaryContainer,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.secondary.withValues(alpha: 0.30)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.translate_rounded, color: colors.onSecondaryContainer),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                text,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colors.onSecondaryContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+          ],
         ),
       ),
     );

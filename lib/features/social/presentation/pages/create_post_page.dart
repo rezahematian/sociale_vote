@@ -10,6 +10,7 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
 import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
 import 'package:sociale_vote/shared/widgets/content_directionality.dart';
+import 'package:sociale_vote/shared/widgets/content_language_field.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 class CreatePostPage extends StatefulWidget {
@@ -41,6 +42,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
   OrganizationContext? _organizationContext;
   bool _organizationPublishingLoaded = false;
   bool _publishAsOrganization = false;
+  String _contentLanguageCode = 'und';
+  bool _contentLanguageInitialized = false;
 
   @override
   void initState() {
@@ -79,6 +82,17 @@ class _CreatePostPageState extends State<CreatePostPage> {
       setState(() {
         _organizationPublishingLoaded = true;
       });
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_contentLanguageInitialized) {
+      _contentLanguageCode = defaultContentLanguageCodeForLocale(
+        Localizations.localeOf(context),
+      );
+      _contentLanguageInitialized = true;
     }
   }
 
@@ -381,6 +395,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
         authorName: authorName,
         title: title,
         content: content,
+        languageCode: _contentLanguageCode,
         countryCode: countryCode,
         cityId: cityId,
         contentLocation: effectiveLocation,
@@ -624,6 +639,17 @@ class _CreatePostPageState extends State<CreatePostPage> {
                     }
                     return null;
                   },
+                ),
+                const SizedBox(height: 16),
+                ContentLanguageField(
+                  selectedCode: _contentLanguageCode,
+                  onChanged: (value) {
+                    setState(() {
+                      _contentLanguageCode = value;
+                    });
+                  },
+                  enabled: !_isSubmitting,
+                  includeUndetermined: true,
                 ),
                 const SizedBox(height: 16),
                 Card(

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/core/localization/app_language_state.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/content/news/usecases/get_news_feed.dart';
@@ -57,6 +58,7 @@ class NewsController extends ChangeNotifier {
   NewsSortMode _sortMode = NewsSortMode.hottest;
   NewsTopic _selectedTopic = NewsTopic.all;
   NewsLanguage _selectedLanguage = NewsLanguage.auto;
+  String? _activeFeedLanguage;
 
   bool _isDisposed = false;
   int _requestId = 0;
@@ -170,7 +172,8 @@ class NewsController extends ChangeNotifier {
 
   String _effectiveLanguageApiValue() {
     return _selectedLanguage.effectiveApiValue(
-      systemLanguageCode: _systemLanguageCode(),
+      appLanguageCode:
+          AppLanguageState.selectedLanguageCode ?? _systemLanguageCode(),
     );
   }
 
@@ -275,6 +278,14 @@ class NewsController extends ChangeNotifier {
         return NewsLanguage.ar;
       case 'fa':
         return NewsLanguage.fa;
+      case 'pt':
+        return NewsLanguage.pt;
+      case 'ro':
+        return NewsLanguage.ro;
+      case 'ru':
+        return NewsLanguage.ru;
+      case 'zh':
+        return NewsLanguage.zh;
     }
 
     return null;
@@ -298,6 +309,7 @@ class NewsController extends ChangeNotifier {
     _commentCounts.clear();
     _currentOffset = 0;
     _hasMoreFromSource = true;
+    _activeFeedLanguage = null;
     _lastKnownUserId = effectiveUserId;
 
     try {
@@ -366,15 +378,36 @@ class NewsController extends ChangeNotifier {
   Future<void> _loadNextPage({required int requestId}) async {
     final scopeFilter = _currentScopeFilter();
 
-    final sourceResult = await _getNewsFeed(
+    final requestedLanguage =
+        _activeFeedLanguage ?? _effectiveLanguageApiValue();
+    var sourceResult = await _getNewsFeed(
       countryCode: scopeFilter.countryCode,
       cityId: scopeFilter.cityId,
       topic: _selectedTopic.apiValue,
-      language: _effectiveLanguageApiValue(),
+      language: requestedLanguage,
       limit: pageSize,
       offset: _currentOffset,
       allowProviderRefresh: false,
     );
+
+    // Deterministic product contract: if the requested language has no News,
+    // the initial page falls back to English. We never translate articles.
+    if (_currentOffset == 0 &&
+        sourceResult.isEmpty &&
+        requestedLanguage != 'en') {
+      sourceResult = await _getNewsFeed(
+        countryCode: scopeFilter.countryCode,
+        cityId: scopeFilter.cityId,
+        topic: _selectedTopic.apiValue,
+        language: 'en',
+        limit: pageSize,
+        offset: 0,
+        allowProviderRefresh: false,
+      );
+      _activeFeedLanguage = 'en';
+    } else if (_currentOffset == 0) {
+      _activeFeedLanguage = requestedLanguage;
+    }
 
     if (!_isRequestStillValid(requestId)) {
       return;

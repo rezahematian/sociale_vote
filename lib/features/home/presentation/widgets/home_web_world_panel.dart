@@ -6,8 +6,8 @@ import 'package:sociale_vote/domain/content/social/entities/post.dart';
 import 'package:sociale_vote/features/news/application/news_controller.dart';
 import 'package:sociale_vote/features/poll/application/poll_list_controller.dart';
 import 'package:sociale_vote/features/social/application/feed_controller.dart';
-import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
+import 'package:sociale_vote/shared/widgets/product_signature_label.dart';
 
 /// Compact desktop-only Home information panel.
 ///
@@ -31,7 +31,6 @@ class HomeWebWorldPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
     final pollController = context.watch<PollListController>();
     final feedController = context.watch<FeedController>();
     final newsController = context.watch<NewsController>();
@@ -67,7 +66,7 @@ class HomeWebWorldPanel extends StatelessWidget {
           color: theme.colorScheme.outline.withValues(alpha: 0.16),
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,21 +80,23 @@ class HomeWebWorldPanel extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  'Social Vote · $scopeShortLabel',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall?.copyWith(
+                child: ProductSignatureLabel(
+                  kind: ProductSignatureKind.world,
+                  brandStyle: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
+                  ),
+                  descriptorStyle: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           _WebPulseRow(
             icon: Icons.how_to_vote_outlined,
-            label: l10n.homePollsTitle(scopeShortLabel),
+            productKind: ProductSignatureKind.vote,
             title: poll?.title,
             trailingValue: poll?.voteCount.toString(),
             loading: pollController.isLoading && poll == null,
@@ -114,10 +115,10 @@ class HomeWebWorldPanel extends StatelessWidget {
               Navigator.pushNamed(context, AppRouter.polls);
             },
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _WebPulseRow(
             icon: Icons.forum_outlined,
-            label: l10n.homeSocialTitle(scopeShortLabel),
+            productKind: ProductSignatureKind.voce,
             title: post?.title,
             trailingValue: post == null
                 ? null
@@ -138,10 +139,10 @@ class HomeWebWorldPanel extends StatelessWidget {
               Navigator.pushNamed(context, AppRouter.social);
             },
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _WebPulseRow(
             icon: Icons.newspaper_outlined,
-            label: l10n.homeNewsTitle(scopeShortLabel),
+            productKind: ProductSignatureKind.news,
             title: news?.title,
             trailingValue: null,
             loading: newsController.isLoading && news == null,
@@ -168,7 +169,7 @@ class HomeWebWorldPanel extends StatelessWidget {
 
 class _WebPulseRow extends StatelessWidget {
   final IconData icon;
-  final String label;
+  final ProductSignatureKind productKind;
   final String? title;
   final String? trailingValue;
   final bool loading;
@@ -177,7 +178,7 @@ class _WebPulseRow extends StatelessWidget {
 
   const _WebPulseRow({
     required this.icon,
-    required this.label,
+    required this.productKind,
     required this.title,
     required this.trailingValue,
     required this.loading,
@@ -196,7 +197,7 @@ class _WebPulseRow extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: SizedBox(
-          height: 62,
+          height: 64,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 11),
             child: Row(
@@ -230,16 +231,23 @@ class _WebPulseRow extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              label,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w600,
+                            ProductSignatureLabel(
+                              kind: productKind,
+                              brandStyle: theme.textTheme.labelMedium?.copyWith(
+                                color: theme.colorScheme.onSurface,
+                                fontWeight: FontWeight.w700,
+                                height: 1.0,
                               ),
+                              descriptorStyle:
+                                  theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontSize: 10.0,
+                                fontWeight: FontWeight.w500,
+                                height: 1.0,
+                              ),
+                              gap: 2,
                             ),
-                            const SizedBox(height: 3),
+                            const SizedBox(height: 4),
                             Text(
                               title?.trim().isNotEmpty == true
                                   ? title!

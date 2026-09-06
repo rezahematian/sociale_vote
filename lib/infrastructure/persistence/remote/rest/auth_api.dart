@@ -63,6 +63,8 @@ class AuthApi {
       'fr' => 'fr',
       'ar' => 'ar',
       'ro' => 'ro',
+      'ru' => 'ru',
+      'zh' => 'zh',
       _ => 'en',
     };
     final normalizedCountry = country.trim();

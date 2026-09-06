@@ -794,7 +794,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsFeed_languageTooltip => 'News language';
 
   @override
-  String get newsFeed_languageAuto => 'AUTO';
+  String get newsFeed_languageAuto => 'Auto';
 
   @override
   String get newsFeed_languageIt => 'IT';

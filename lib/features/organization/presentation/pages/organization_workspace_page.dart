@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sociale_vote/app/di.dart';
-import 'package:sociale_vote/app/localization/de_fallback.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/domain/organization/entities/live_session_models.dart';
 import 'package:sociale_vote/domain/organization/entities/organization_models.dart';
@@ -12,6 +11,7 @@ import 'package:sociale_vote/features/organization/presentation/pages/live_sessi
 import 'package:sociale_vote/features/organization/presentation/pages/organization_profile_editor_page.dart';
 import 'package:sociale_vote/features/organization/presentation/widgets/organization_cover_header.dart';
 import 'package:sociale_vote/features/organization/presentation/widgets/organization_external_channel_icon.dart';
+import 'package:sociale_vote/features/organization/presentation/workspace_localization.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/create_poll_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/public_user_profile_page.dart';
 import 'package:sociale_vote/features/social/presentation/pages/create_post_page.dart';
@@ -32,9 +32,12 @@ String _tr(
   required String en,
   required String de,
 }) {
-  final language = Localizations.localeOf(context).languageCode.toLowerCase();
-  if (language == 'it') return it;
-  return deOrEnglish(context, english: en, german: de);
+  return workspaceTr(
+    context,
+    italian: it,
+    english: en,
+    german: de,
+  );
 }
 
 class OrganizationWorkspacePage extends StatefulWidget {
@@ -260,7 +263,7 @@ class _WorkspaceHeaderActions extends StatelessWidget {
                 label: data.organization.isVerified
                     ? _tr(
                         context,
-                        it: 'Organization verificata',
+                        it: 'Organizzazione verificata',
                         en: 'Verified organization',
                         de: 'Verifizierte Organisation',
                       )
@@ -291,9 +294,9 @@ class _WorkspaceHeaderActions extends StatelessWidget {
                   icon: Icons.science_outlined,
                   label: _tr(
                     context,
-                    it: 'Business Pilot',
+                    it: 'Programma pilota',
                     en: 'Business Pilot',
-                    de: 'Business Pilot',
+                    de: 'Pilotprogramm',
                   ),
                 ),
             ],
@@ -328,7 +331,7 @@ class _WorkspaceHeaderActions extends StatelessWidget {
                   leading: const Icon(Icons.edit_outlined),
                   title: Text(_tr(
                     context,
-                    it: 'Modifica Organization',
+                    it: 'Modifica organizzazione',
                     en: 'Edit organization',
                     de: 'Organisation bearbeiten',
                   )),
@@ -467,18 +470,24 @@ class _WorkspaceDesktopNavigation extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Social Vote Business',
+                  data.organization.publicName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  data.organization.publicName,
+                  workspaceUiTerm(
+                    context,
+                    WorkspaceUiTerm.businessWorkspace,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colors.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -542,7 +551,7 @@ class _WorkspaceDesktopNavigation extends StatelessWidget {
                     en: 'Free pilot',
                     de: 'Kostenloser Pilot',
                   )
-                : 'Business',
+                : workspaceUiTerm(context, WorkspaceUiTerm.business),
           ),
         ],
       ),
@@ -772,9 +781,9 @@ class _OverviewSection extends StatelessWidget {
           title: data.organization.publicName,
           body: _tr(
             context,
-            it: 'Pubblicazione ufficiale, consultazioni live e risultati verificabili in un unico Workspace.',
+            it: 'Pubblicazione ufficiale, consultazioni live e risultati verificabili in un unico spazio di lavoro.',
             en: 'Official publishing, live consultations and verifiable results in one workspace.',
-            de: 'Offizielle Veröffentlichungen, Live-Konsultationen und überprüfbare Ergebnisse in einem Workspace.',
+            de: 'Offizielle Veröffentlichungen, Live-Konsultationen und überprüfbare Ergebnisse in einem Arbeitsbereich.',
           ),
         ),
         const SizedBox(height: 18),
@@ -787,9 +796,9 @@ class _OverviewSection extends StatelessWidget {
               value: '$active',
               label: _tr(
                 context,
-                it: 'Sessions live',
+                it: 'Sessioni live',
                 en: 'Live sessions',
-                de: 'Live-Sessions',
+                de: 'Live-Sitzungen',
               ),
             ),
             _MetricData(
@@ -817,9 +826,9 @@ class _OverviewSection extends StatelessWidget {
               value: '$reports',
               label: _tr(
                 context,
-                it: 'Verified Results',
+                it: 'Risultati verificati',
                 en: 'Verified Results',
-                de: 'Verified Results',
+                de: 'Verifizierte Ergebnisse',
               ),
             ),
           ],
@@ -856,15 +865,15 @@ class _OverviewSection extends StatelessWidget {
             icon: Icons.inbox_outlined,
             title: _tr(
               context,
-              it: 'Nessuna Session ancora',
+              it: 'Nessuna sessione ancora',
               en: 'No sessions yet',
-              de: 'Noch keine Sessions',
+              de: 'Noch keine Sitzungen',
             ),
             body: _tr(
               context,
-              it: 'Crea una Session per iniziare a raccogliere partecipazione e risultati.',
+              it: 'Crea una sessione per iniziare a raccogliere partecipazione e risultati.',
               en: 'Create a session to start collecting participation and results.',
-              de: 'Erstelle eine Session, um Teilnahme und Ergebnisse zu erfassen.',
+              de: 'Erstelle eine Sitzung, um Teilnahme und Ergebnisse zu erfassen.',
             ),
           )
         else
@@ -918,9 +927,9 @@ class _PublishSection extends StatelessWidget {
           ),
           body: _tr(
             context,
-            it: 'Voce per comunicare, Vote per consultare, Session per partecipazione live e risultati verificabili.',
+            it: 'Voce per comunicare, Vote per consultare, una sessione per partecipazione live e risultati verificabili.',
             en: 'Voce to communicate, Vote to consult, Session for live participation and verifiable results.',
-            de: 'Voce für Kommunikation, Vote für Konsultationen, Session für Live-Teilnahme und überprüfbare Ergebnisse.',
+            de: 'Voce für Kommunikation, Vote für Konsultationen und eine Sitzung für Live-Teilnahme und überprüfbare Ergebnisse.',
           ),
         ),
         const SizedBox(height: 18),
@@ -959,7 +968,10 @@ class _SessionsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _WorkspaceSectionHeading(
-          eyebrow: 'SESSIONS',
+          eyebrow: workspaceUiTerm(
+            context,
+            WorkspaceUiTerm.sessions,
+          ).toUpperCase(),
           title: _tr(
             context,
             it: 'Consultazioni live',
@@ -968,18 +980,18 @@ class _SessionsSection extends StatelessWidget {
           ),
           body: _tr(
             context,
-            it: 'Gestisci accesso, QR, domande, stage, partecipazione e chiusura della Session.',
+            it: 'Gestisci accesso, QR, domande, palco, partecipazione e chiusura della sessione.',
             en: 'Manage access, QR, questions, stage, participation and session closure.',
-            de: 'Verwalte Zugriff, QR, Fragen, Stage, Teilnahme und Session-Abschluss.',
+            de: 'Verwalte Zugriff, QR, Fragen, Bühne, Teilnahme und Sitzungsabschluss.',
           ),
           action: FilledButton.icon(
             onPressed: data.canOperateSessions ? onCreateSession : null,
             icon: const Icon(Icons.add_rounded),
             label: Text(_tr(
               context,
-              it: 'Nuova Session',
+              it: 'Nuova sessione',
               en: 'New session',
-              de: 'Neue Session',
+              de: 'Neue Sitzung',
             )),
           ),
         ),
@@ -989,15 +1001,15 @@ class _SessionsSection extends StatelessWidget {
             icon: Icons.meeting_room_outlined,
             title: _tr(
               context,
-              it: 'Nessuna Session',
+              it: 'Nessuna sessione',
               en: 'No sessions',
-              de: 'Keine Sessions',
+              de: 'Keine Sitzungen',
             ),
             body: _tr(
               context,
-              it: 'Le Sessions create dall’Organization appariranno qui.',
+              it: 'Le sessioni create dall’organizzazione appariranno qui.',
               en: 'Sessions created by the organization will appear here.',
-              de: 'Von der Organisation erstellte Sessions erscheinen hier.',
+              de: 'Von der Organisation erstellte Sitzungen erscheinen hier.',
             ),
           )
         else
@@ -1037,7 +1049,12 @@ class _ResultsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _WorkspaceSectionHeading(
-          eyebrow: 'VERIFIED RESULTS',
+          eyebrow: _tr(
+            context,
+            it: 'Risultati verificati',
+            en: 'Verified Results',
+            de: 'Verifizierte Ergebnisse',
+          ).toUpperCase(),
           title: _tr(
             context,
             it: 'Risultati verificabili',
@@ -1057,15 +1074,15 @@ class _ResultsSection extends StatelessWidget {
             icon: Icons.verified_outlined,
             title: _tr(
               context,
-              it: 'Nessun Verified Result ancora',
+              it: 'Nessun risultato verificato ancora',
               en: 'No Verified Results yet',
-              de: 'Noch keine Verified Results',
+              de: 'Noch keine verifizierten Ergebnisse',
             ),
             body: _tr(
               context,
-              it: 'Quando una Session viene chiusa con report verificato, il risultato apparirà qui.',
+              it: 'Quando una sessione viene chiusa con un report verificato, il risultato apparirà qui.',
               en: 'When a session closes with a verified report, the result will appear here.',
-              de: 'Wenn eine Session mit verifiziertem Bericht abgeschlossen wird, erscheint das Ergebnis hier.',
+              de: 'Wenn eine Sitzung mit verifiziertem Bericht abgeschlossen wird, erscheint das Ergebnis hier.',
             ),
           )
         else
@@ -1180,11 +1197,19 @@ class _TeamSectionState extends State<_TeamSection> {
                     ),
                     border: const OutlineInputBorder(),
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 'manager', child: Text('Manager')),
+                  items: [
                     DropdownMenuItem(
-                        value: 'operator', child: Text('Operator')),
-                    DropdownMenuItem(value: 'viewer', child: Text('Viewer')),
+                      value: 'manager',
+                      child: Text(_roleLabel(context, 'manager')),
+                    ),
+                    DropdownMenuItem(
+                      value: 'operator',
+                      child: Text(_roleLabel(context, 'operator')),
+                    ),
+                    DropdownMenuItem(
+                      value: 'viewer',
+                      child: Text(_roleLabel(context, 'viewer')),
+                    ),
                   ],
                   onChanged: (value) {
                     if (value != null) {
@@ -1258,10 +1283,19 @@ class _TeamSectionState extends State<_TeamSection> {
               ),
               border: const OutlineInputBorder(),
             ),
-            items: const [
-              DropdownMenuItem(value: 'manager', child: Text('Manager')),
-              DropdownMenuItem(value: 'operator', child: Text('Operator')),
-              DropdownMenuItem(value: 'viewer', child: Text('Viewer')),
+            items: [
+              DropdownMenuItem(
+                value: 'manager',
+                child: Text(_roleLabel(context, 'manager')),
+              ),
+              DropdownMenuItem(
+                value: 'operator',
+                child: Text(_roleLabel(context, 'operator')),
+              ),
+              DropdownMenuItem(
+                value: 'viewer',
+                child: Text(_roleLabel(context, 'viewer')),
+              ),
             ],
             onChanged: (value) {
               if (value != null) setDialogState(() => role = value);
@@ -1357,7 +1391,7 @@ class _TeamSectionState extends State<_TeamSection> {
       _CapabilityRow(
         label: _tr(
           context,
-          it: 'Gestire il profilo Organization',
+          it: 'Gestire il profilo dell’organizzazione',
           en: 'Manage organization profile',
           de: 'Organisationsprofil verwalten',
         ),
@@ -1375,9 +1409,9 @@ class _TeamSectionState extends State<_TeamSection> {
       _CapabilityRow(
         label: _tr(
           context,
-          it: 'Gestire Sessions',
+          it: 'Gestire le sessioni',
           en: 'Operate sessions',
-          de: 'Sessions verwalten',
+          de: 'Sitzungen verwalten',
         ),
         allowed: data.canOperateSessions,
       ),
@@ -1404,13 +1438,13 @@ class _TeamSectionState extends State<_TeamSection> {
           ),
           title: _tr(
             context,
-            it: 'Team e ruoli',
+            it: 'Gruppo e ruoli',
             en: 'Team and roles',
-            de: 'Team und Rollen',
+            de: 'Gruppe und Rollen',
           ),
           body: _tr(
             context,
-            it: 'Ruoli, aggiunte, modifiche e revoche sono enforce lato server e registrate nell’audit Organization.',
+            it: 'Ruoli, aggiunte, modifiche e revoche sono applicati lato server e registrati nell’audit dell’organizzazione.',
             en: 'Roles, additions, changes and revocations are enforced server-side and recorded in the Organization audit.',
             de: 'Rollen, Hinzufügungen, Änderungen und Widerrufe werden serverseitig erzwungen und im Organisationsaudit protokolliert.',
           ),
@@ -1504,9 +1538,9 @@ class _TeamSectionState extends State<_TeamSection> {
             icon: Icons.error_outline,
             title: _tr(
               context,
-              it: 'Team non disponibile',
+              it: 'Gruppo non disponibile',
               en: 'Team unavailable',
-              de: 'Team nicht verfügbar',
+              de: 'Gruppe nicht verfügbar',
             ),
             body: _error.toString(),
           )
@@ -1521,7 +1555,7 @@ class _TeamSectionState extends State<_TeamSection> {
             ),
             body: _tr(
               context,
-              it: 'Non risultano membership attive per questa Organization.',
+              it: 'Non risultano appartenenze attive per questa organizzazione.',
               en: 'No active memberships are currently available for this Organization.',
               de: 'Für diese Organisation sind derzeit keine aktiven Mitgliedschaften verfügbar.',
             ),
@@ -1651,7 +1685,10 @@ class _OrganizationSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _WorkspaceSectionHeading(
-          eyebrow: 'ORGANIZATION',
+          eyebrow: workspaceUiTerm(
+            context,
+            WorkspaceUiTerm.organization,
+          ).toUpperCase(),
           title: _tr(
             context,
             it: 'Identità e profilo',
@@ -1660,9 +1697,9 @@ class _OrganizationSection extends StatelessWidget {
           ),
           body: _tr(
             context,
-            it: 'I dati ufficiali dell’Organization alimentano firma pubblica, Workspace e servizi Business.',
+            it: 'I dati ufficiali dell’organizzazione alimentano la firma pubblica, lo spazio di lavoro e i servizi professionali.',
             en: 'Official organization data powers the public signature, workspace and Business services.',
-            de: 'Offizielle Organisationsdaten speisen öffentliche Signatur, Workspace und Business-Dienste.',
+            de: 'Offizielle Organisationsdaten speisen die öffentliche Signatur, den Arbeitsbereich und Geschäftsdienste.',
           ),
           action: Wrap(
             spacing: 8,
@@ -1905,15 +1942,15 @@ class _OperationalReadiness extends StatelessWidget {
                   ready
                       ? _tr(
                           context,
-                          it: 'Workspace operativo',
+                          it: 'Spazio di lavoro operativo',
                           en: 'Workspace operational',
-                          de: 'Workspace betriebsbereit',
+                          de: 'Arbeitsbereich betriebsbereit',
                         )
                       : _tr(
                           context,
-                          it: 'Workspace con limitazioni',
+                          it: 'Spazio di lavoro con limitazioni',
                           en: 'Workspace restricted',
-                          de: 'Workspace eingeschränkt',
+                          de: 'Arbeitsbereich eingeschränkt',
                         ),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w900,
@@ -1924,15 +1961,15 @@ class _OperationalReadiness extends StatelessWidget {
                   ready
                       ? _tr(
                           context,
-                          it: 'Organization verificata e Workspace attivo. Le azioni restano comunque soggette ai controlli backend/RLS.',
+                          it: 'Organizzazione verificata e spazio di lavoro attivo. Le azioni restano comunque soggette ai controlli backend/RLS.',
                           en: 'Organization verified and workspace active. Actions remain subject to backend/RLS enforcement.',
-                          de: 'Organisation verifiziert und Workspace aktiv. Aktionen unterliegen weiterhin Backend-/RLS-Prüfungen.',
+                          de: 'Organisation verifiziert und Arbeitsbereich aktiv. Aktionen unterliegen weiterhin Backend-/RLS-Prüfungen.',
                         )
                       : _tr(
                           context,
-                          it: 'I servizi Business restano limitati finché identità e Workspace non soddisfano i requisiti server-side.',
+                          it: 'I servizi professionali restano limitati finché identità e spazio di lavoro non soddisfano i requisiti lato server.',
                           en: 'Business services remain limited until identity and workspace satisfy server-side requirements.',
-                          de: 'Business-Dienste bleiben eingeschränkt, bis Identität und Workspace die serverseitigen Anforderungen erfüllen.',
+                          de: 'Geschäftsdienste bleiben eingeschränkt, bis Identität und Arbeitsbereich die serverseitigen Anforderungen erfüllen.',
                         ),
                 ),
               ],
@@ -1961,9 +1998,9 @@ class _TrustPanel extends StatelessWidget {
       ),
       body: _tr(
         context,
-        it: 'Identità Organization, ruoli, stato Workspace e permessi vengono verificati lato server. Il Pilot non vende verifica, ranking o visibilità. Verified Results restano separati dalla semplice pubblicazione.',
+        it: 'Identità dell’organizzazione, ruoli, stato dello spazio di lavoro e permessi vengono verificati lato server. Il programma pilota non vende verifica, ranking o visibilità. I risultati verificati restano separati dalla semplice pubblicazione.',
         en: 'Organization identity, roles, workspace status and permissions are verified server-side. The pilot does not sell verification, ranking or visibility. Verified Results remain separate from ordinary publishing.',
-        de: 'Organisationsidentität, Rollen, Workspace-Status und Berechtigungen werden serverseitig geprüft. Der Pilot verkauft keine Verifizierung, Rankings oder Sichtbarkeit. Verified Results bleiben von normaler Veröffentlichung getrennt.',
+        de: 'Organisationsidentität, Rollen, Status des Arbeitsbereichs und Berechtigungen werden serverseitig geprüft. Das Pilotprogramm verkauft keine Verifizierung, Rankings oder Sichtbarkeit. Verifizierte Ergebnisse bleiben von normaler Veröffentlichung getrennt.',
       ),
     );
   }
@@ -2014,13 +2051,13 @@ class _ActionGrid extends StatelessWidget {
                 body: expandedCopy
                     ? _tr(
                         context,
-                        it: 'Pubblica aggiornamenti, proposte e messaggi con identità Organization.',
+                        it: 'Pubblica aggiornamenti, proposte e messaggi con l’identità dell’organizzazione.',
                         en: 'Publish updates, proposals and messages with organization identity.',
                         de: 'Veröffentliche Updates, Vorschläge und Mitteilungen mit Organisationsidentität.',
                       )
                     : _tr(
                         context,
-                        it: 'Pubblica come Organization.',
+                        it: 'Pubblica come organizzazione.',
                         en: 'Publish as the organization.',
                         de: 'Als Organisation veröffentlichen.',
                       ),
@@ -2072,7 +2109,10 @@ class _ActionGrid extends StatelessWidget {
               width: width,
               child: _EnterpriseActionCard(
                 icon: Icons.groups_2_outlined,
-                title: 'Session',
+                title: workspaceUiTerm(
+                  context,
+                  WorkspaceUiTerm.session,
+                ),
                 subtitle: _tr(
                   context,
                   it: 'Partecipazione live',
@@ -2082,21 +2122,21 @@ class _ActionGrid extends StatelessWidget {
                 body: expandedCopy
                     ? _tr(
                         context,
-                        it: 'Conduci una consultazione con QR, Stage, controllo accessi e Verified Result.',
+                        it: 'Conduci una consultazione con QR, palco, controllo accessi e risultato verificato.',
                         en: 'Run a consultation with QR, Stage, access control and Verified Result.',
-                        de: 'Führe eine Konsultation mit QR, Stage, Zugriffskontrolle und Verified Result durch.',
+                        de: 'Führe eine Konsultation mit QR, Bühne, Zugriffskontrolle und verifiziertem Ergebnis durch.',
                       )
                     : _tr(
                         context,
-                        it: 'QR, Stage e Verified Result.',
+                        it: 'QR, palco e risultato verificato.',
                         en: 'QR, Stage and Verified Result.',
-                        de: 'QR, Stage und Verified Result.',
+                        de: 'QR, Bühne und verifiziertes Ergebnis.',
                       ),
                 actionLabel: _tr(
                   context,
-                  it: 'Crea Session',
+                  it: 'Crea sessione',
                   en: 'Create Session',
-                  de: 'Session erstellen',
+                  de: 'Sitzung erstellen',
                 ),
                 enabled: data.canOperateSessions,
                 onPressed: onCreateSession,
@@ -2709,15 +2749,18 @@ String _sectionLabel(BuildContext context, _WorkspaceSection section) {
         en: 'Publish',
         de: 'Veröffentlichen',
       ),
-    _WorkspaceSection.sessions => 'Sessions',
+    _WorkspaceSection.sessions =>
+        workspaceUiTerm(context, WorkspaceUiTerm.sessions),
     _WorkspaceSection.results => _tr(
         context,
         it: 'Risultati',
         en: 'Results',
         de: 'Ergebnisse',
       ),
-    _WorkspaceSection.team => 'Team',
-    _WorkspaceSection.organization => 'Organization',
+    _WorkspaceSection.team =>
+        workspaceUiTerm(context, WorkspaceUiTerm.team),
+    _WorkspaceSection.organization =>
+        workspaceUiTerm(context, WorkspaceUiTerm.organization),
   };
 }
 
@@ -2728,43 +2771,63 @@ String _workspaceEntitlementLabel(
   return switch (status) {
     WorkspaceEntitlementStatus.none => _tr(
         context,
-        it: 'Workspace non attivo',
+        it: 'Spazio di lavoro non attivo',
         en: 'Workspace not active',
-        de: 'Workspace nicht aktiv',
+        de: 'Arbeitsbereich nicht aktiv',
       ),
     WorkspaceEntitlementStatus.pilot => _tr(
         context,
-        it: 'Workspace Pilot',
+        it: 'Spazio di lavoro pilota',
         en: 'Workspace Pilot',
-        de: 'Workspace Pilot',
+        de: 'Pilot-Arbeitsbereich',
       ),
     WorkspaceEntitlementStatus.active => _tr(
         context,
-        it: 'Workspace attivo',
+        it: 'Spazio di lavoro attivo',
         en: 'Workspace active',
-        de: 'Workspace aktiv',
+        de: 'Arbeitsbereich aktiv',
       ),
     WorkspaceEntitlementStatus.suspended => _tr(
         context,
-        it: 'Workspace sospeso',
+        it: 'Spazio di lavoro sospeso',
         en: 'Workspace suspended',
-        de: 'Workspace gesperrt',
+        de: 'Arbeitsbereich gesperrt',
       ),
     WorkspaceEntitlementStatus.expired => _tr(
         context,
-        it: 'Workspace scaduto',
+        it: 'Spazio di lavoro scaduto',
         en: 'Workspace expired',
-        de: 'Workspace abgelaufen',
+        de: 'Arbeitsbereich abgelaufen',
       ),
   };
 }
 
 String _roleLabel(BuildContext context, String rawRole) {
   return switch (rawRole.trim().toLowerCase()) {
-    'owner' => _tr(context, it: 'Owner', en: 'Owner', de: 'Owner'),
-    'manager' => _tr(context, it: 'Manager', en: 'Manager', de: 'Manager'),
-    'operator' => _tr(context, it: 'Operator', en: 'Operator', de: 'Operator'),
-    _ => _tr(context, it: 'Viewer', en: 'Viewer', de: 'Viewer'),
+    'owner' => _tr(
+        context,
+        it: 'Proprietario',
+        en: 'Owner',
+        de: 'Eigentümer',
+      ),
+    'manager' => _tr(
+        context,
+        it: 'Responsabile',
+        en: 'Manager',
+        de: 'Verantwortlicher',
+      ),
+    'operator' => _tr(
+        context,
+        it: 'Operatore',
+        en: 'Operator',
+        de: 'Bearbeiter',
+      ),
+    _ => _tr(
+        context,
+        it: 'Lettore',
+        en: 'Viewer',
+        de: 'Betrachter',
+      ),
   };
 }
 

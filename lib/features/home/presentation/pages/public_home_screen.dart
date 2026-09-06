@@ -38,6 +38,7 @@ import 'package:sociale_vote/shared/data/countries.dart' as country_data;
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/services/egress_policy_service.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
+import 'package:sociale_vote/app/localization/appearance_label.dart';
 
 class PublicHomeScreen extends StatefulWidget {
   const PublicHomeScreen({super.key});
@@ -928,7 +929,11 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                         maxWidth: 1440,
                                       ),
                                       child: SizedBox(
-                                        height: 560,
+                                        // Dual-line product signatures increased the
+                                        // compact desktop Home column height. Keep enough
+                                        // vertical room for Hero + World panel without
+                                        // RenderFlex overflow while preserving the layout.
+                                        height: 600,
                                         child: Row(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.stretch,
@@ -1226,10 +1231,10 @@ class _HomeScopeSelector extends StatelessWidget {
                       icon: const Icon(Icons.dark_mode_outlined),
                       label: Text(darkLabel),
                     ),
-                    const ButtonSegment<AppAppearanceMode>(
+                    ButtonSegment<AppAppearanceMode>(
                       value: AppAppearanceMode.space,
-                      icon: Icon(Icons.auto_awesome),
-                      label: Text('Space'),
+                      icon: const Icon(Icons.auto_awesome),
+                      label: Text(socialVoteSpaceAppearanceLabel(context)),
                     ),
                   ],
                   selected: <AppAppearanceMode>{appearanceMode},

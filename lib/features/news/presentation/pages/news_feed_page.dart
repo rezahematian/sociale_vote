@@ -166,6 +166,14 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
         return 'AR';
       case NewsLanguage.fa:
         return 'FA';
+      case NewsLanguage.pt:
+        return 'PT';
+      case NewsLanguage.ro:
+        return 'RO';
+      case NewsLanguage.ru:
+        return 'RU';
+      case NewsLanguage.zh:
+        return 'ZH';
     }
   }
 
@@ -665,6 +673,22 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
         PopupMenuItem<NewsLanguage>(
           value: NewsLanguage.fa,
           child: Text('FA'),
+        ),
+        PopupMenuItem<NewsLanguage>(
+          value: NewsLanguage.pt,
+          child: Text('PT'),
+        ),
+        PopupMenuItem<NewsLanguage>(
+          value: NewsLanguage.ro,
+          child: Text('RO'),
+        ),
+        PopupMenuItem<NewsLanguage>(
+          value: NewsLanguage.ru,
+          child: Text('RU'),
+        ),
+        PopupMenuItem<NewsLanguage>(
+          value: NewsLanguage.zh,
+          child: Text('ZH'),
         ),
       ],
       padding: EdgeInsets.zero,

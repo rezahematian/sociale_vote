@@ -291,7 +291,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeScopeLabelCity => 'Город — местные городские голосования и новости';
 
   @override
-  String get homeScopeShortWorld => 'Мир';
+  String get homeScopeShortWorld => 'World';
 
   @override
   String get homeScopeShortCountry => 'Страна';
@@ -300,7 +300,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeScopeShortCity => 'Город';
 
   @override
-  String get homeScopeChipWorld => 'Мир';
+  String get homeScopeChipWorld => 'World';
 
   @override
   String get homeScopeChipItaly => 'Италия';
@@ -512,7 +512,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get pollList_title => 'Vote';
 
   @override
-  String get pollList_scopeWorld => 'Мир';
+  String get pollList_scopeWorld => 'World';
 
   @override
   String get pollList_scopeCountryFallback => 'Страна';
@@ -552,8 +552,10 @@ class AppLocalizationsRu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Найдено Vote: $count',
-      one: 'Найден 1 Vote',
+      other: 'Найдено $count Vote',
+      many: 'Найдено $count Vote',
+      few: 'Найдено $count Vote',
+      one: 'Найден $count Vote',
       zero: 'Vote не найдены',
     );
     return '$scopeLabel · $_temp0';
@@ -619,7 +621,9 @@ class AppLocalizationsRu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'голосов',
+      other: 'голоса',
+      many: 'голосов',
+      few: 'голоса',
       one: 'голос',
     );
     return '$_temp0';
@@ -633,8 +637,10 @@ class AppLocalizationsRu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Результаты ($count голосов)',
-      one: 'Результаты (1 голос)',
+      other: 'Результаты ($count голоса)',
+      many: 'Результаты ($count голосов)',
+      few: 'Результаты ($count голоса)',
+      one: 'Результаты ($count голос)',
       zero: 'Результаты (голосов нет)',
     );
     return '$_temp0';
@@ -694,7 +700,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get commentSection_youBadge => 'Вы';
 
   @override
-  String get newsDetail_title => 'Подробности News';
+  String get newsDetail_title => 'News · Подробности';
 
   @override
   String get newsDetail_breakingBadge => 'СРОЧНО';
@@ -715,7 +721,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get newsFeed_title => 'News';
 
   @override
-  String get newsFeed_scopeWorld => 'Мир';
+  String get newsFeed_scopeWorld => 'World';
 
   @override
   String get newsFeed_scopeCountry => 'Страна';
@@ -794,7 +800,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get newsFeed_languageTooltip => 'Язык News';
 
   @override
-  String get newsFeed_languageAuto => 'АВТО';
+  String get newsFeed_languageAuto => 'Автоматически';
 
   @override
   String get newsFeed_languageIt => 'IT';
@@ -824,7 +830,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get newsTopic_all => 'Все';
 
   @override
-  String get newsTopic_world => 'Мир';
+  String get newsTopic_world => 'World';
 
   @override
   String get newsTopic_nation => 'Страна';
@@ -901,7 +907,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeMapOpenButton => 'Открыть карту';
 
   @override
-  String get homeHeroHeadline => 'Формируйте будущее.\\nВместе.';
+  String get homeHeroHeadline => 'Формируйте будущее.\nВместе.';
 
   @override
   String get homeHeroPollsAction => 'Vote';
@@ -1114,7 +1120,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get authPersonalAccountOwnershipTitle => 'Вход всегда принадлежит человеку';
 
   @override
-  String get authPersonalAccountOwnershipBody => 'Если вы представляете организацию, создайте личный аккаунт. После входа вы сможете запросить Verified Organization и управлять ею из Workspace.';
+  String get authPersonalAccountOwnershipBody => 'Если вы представляете организацию, создайте личный аккаунт. После входа вы сможете запросить Verified Организация и управлять ею из Рабочее пространство.';
 
   @override
   String get authOrganizationPathAction => 'Как это работает для организаций';
@@ -1858,7 +1864,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get verificationReviewOperationFailure => 'Операция не выполнена.';
 
   @override
-  String get adminCenterTitle => 'Admin Center';
+  String get adminCenterTitle => 'Центр администрирования';
 
   @override
   String get adminCenterDashboardNavigation => 'Панель';
@@ -2637,7 +2643,9 @@ class AppLocalizationsRu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count пользователей',
+      other: '$count пользователя',
+      many: '$count пользователей',
+      few: '$count пользователя',
       one: '$count пользователь',
     );
     return '$_temp0';
@@ -2648,7 +2656,9 @@ class AppLocalizationsRu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count жалоб',
+      other: '$count жалобы',
+      many: '$count жалоб',
+      few: '$count жалобы',
       one: '$count жалоба',
     );
     return '$_temp0';
@@ -2904,7 +2914,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onboardingHeatIceDescription => 'Используйте Heat и Ice, чтобы показать, насколько сильно контент привлекает ваш интерес.';
 
   @override
-  String get onboardingCivicMapTitle => 'Civic Map';
+  String get onboardingCivicMapTitle => 'Карта гражданского участия';
 
   @override
   String get onboardingCivicMapDescription => 'Исследуйте Vote, Voce и News на карте и узнавайте, что происходит в разных местах.';
@@ -3077,13 +3087,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get discoveryPageTitle => 'Исследовать';
 
   @override
-  String get organizationWorkspaceTitle => 'Workspace организации';
+  String get organizationWorkspaceTitle => 'Рабочее пространство организации';
 
   @override
   String get organizationPilotBannerTitle => 'Бесплатный пилот';
 
   @override
-  String get organizationPilotBannerBody => 'Во время пилота Sessions бесплатны. Некоторые профессиональные функции в будущем могут стать платными; сейчас billing отключён.';
+  String get organizationPilotBannerBody => 'Во время пилота Сессии бесплатны. Некоторые профессиональные функции в будущем могут стать платными; сейчас billing отключён.';
 
   @override
   String get organizationVerifiedLabel => 'Проверенная организация';
@@ -3092,19 +3102,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get organizationEditProfile => 'Редактировать профиль организации';
 
   @override
-  String get organizationCreateSession => 'Новая Session';
+  String get organizationCreateSession => 'Новая Сессия';
 
   @override
-  String get organizationNoSessions => 'Sessions пока нет. Создайте первую для встречи, семинара или мероприятия.';
+  String get organizationNoSessions => 'Сессии пока нет. Создайте первую для встречи, семинара или мероприятия.';
 
   @override
-  String get organizationSessionsTitle => 'Live Sessions';
+  String get organizationSessionsTitle => 'Live Сессии';
 
   @override
   String get organizationRequiresVerificationTitle => 'Требуется проверенная организация';
 
   @override
-  String get organizationRequiresVerificationBody => 'Этот workspace доступен только аккаунтам, одобренным Social Vote как проверенная организация.';
+  String get organizationRequiresVerificationBody => 'Этот рабочее пространство доступен только аккаунтам, одобренным Social Vote как проверенная организация.';
 
   @override
   String get organizationProfileEditorTitle => 'Профиль организации';
@@ -3167,10 +3177,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get organizationTypeOther => 'Другое';
 
   @override
-  String get sessionCreateTitle => 'Создать Live Session';
+  String get sessionCreateTitle => 'Создать Live Сессия';
 
   @override
-  String get sessionTitleLabel => 'Название Session';
+  String get sessionTitleLabel => 'Название Сессия';
 
   @override
   String get sessionExpectedParticipants => 'Ожидаемое число участников';
@@ -3188,7 +3198,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sessionAccessControlled => 'Контролируемый анонимный';
 
   @override
-  String get sessionAccessControlledHint => 'Используйте одноразовые анонимные Access Pass. Social Vote хранит только хэш Access Pass и не связывает выбор в бюллетене с учётными данными участника.';
+  String get sessionAccessControlledHint => 'Используйте одноразовые анонимные Пропуск доступа. Social Vote хранит только хэш Пропуск доступа и не связывает выбор в бюллетене с учётными данными участника.';
 
   @override
   String get sessionResultsVisibility => 'Видимость результатов';
@@ -3206,10 +3216,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sessionResultsOrganizerOnly => 'Только организатор';
 
   @override
-  String get sessionCreateAction => 'Создать Session';
+  String get sessionCreateAction => 'Создать Сессия';
 
   @override
-  String get sessionPilotLimit => 'Лимит пилота: от 1 до 250 участников на Session.';
+  String get sessionPilotLimit => 'Лимит пилота: от 1 до 250 участников на Сессия.';
 
   @override
   String get sessionStatusDraft => 'Черновик';
@@ -3230,16 +3240,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sessionCopyJoinLink => 'Копировать ссылку';
 
   @override
-  String get sessionGenerateTokens => 'Создать Access Pass';
+  String get sessionGenerateTokens => 'Создать Пропуск доступа';
 
   @override
-  String get sessionGenerateTokensCount => 'Количество Access Pass';
+  String get sessionGenerateTokensCount => 'Количество Пропуск доступа';
 
   @override
   String get sessionTokensOneTimeTitle => 'Сохраните эти данные сейчас';
 
   @override
-  String get sessionTokensOneTimeBody => 'Открытые Access Pass показываются только в результате этой генерации. Social Vote хранит только их хэши. Скопируйте и передайте их безопасным способом.';
+  String get sessionTokensOneTimeBody => 'Открытые Пропуск доступа показываются только в результате этой генерации. Social Vote хранит только их хэши. Скопируйте и передайте их безопасным способом.';
 
   @override
   String get sessionCopyTokens => 'Копировать все ссылки';
@@ -3248,13 +3258,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sessionTokensSavedAction => 'Я сохранил(а)';
 
   @override
-  String get sessionOpenAction => 'Открыть Session';
+  String get sessionOpenAction => 'Открыть Сессия';
 
   @override
-  String get sessionCloseAction => 'Закрыть Session';
+  String get sessionCloseAction => 'Закрыть Сессия';
 
   @override
-  String get sessionCloseConfirm => 'Закрыть голосование и создать неизменяемый снимок Verified Result?';
+  String get sessionCloseConfirm => 'Закрыть голосование и создать неизменяемый снимок Проверенный результат?';
 
   @override
   String get sessionQuestionsTitle => 'Вопросы';
@@ -3302,13 +3312,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sessionNoQuestions => 'Вопросов пока нет.';
 
   @override
-  String get sessionPresenterTitle => 'Presenter';
+  String get sessionPresenterTitle => 'Ведущий';
 
   @override
   String get sessionParticipantTitle => 'Social Vote Live';
 
   @override
-  String get sessionJoinAction => 'Присоединиться к Session';
+  String get sessionJoinAction => 'Присоединиться к Сессия';
 
   @override
   String get sessionTokenLabel => 'Токен участника';
@@ -3326,13 +3336,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sessionVoteReceived => 'Голос получен';
 
   @override
-  String get sessionResultsUnavailable => 'Согласно политике этой Session результаты пока не видны.';
+  String get sessionResultsUnavailable => 'Согласно политике этой Сессия результаты пока не видны.';
 
   @override
-  String get sessionPrivacyNotice => 'Организатор определяет рабочую цель Session и вопросы. Social Vote обрабатывает технические данные, необходимые для предоставления и защиты сервиса. В анонимных режимах связь между учётными данными участника и его выбором не раскрывается организатору. Роли в сфере конфиденциальности могут зависеть от контекста и применимых соглашений.';
+  String get sessionPrivacyNotice => 'Организатор определяет рабочую цель Сессия и вопросы. Social Vote обрабатывает технические данные, необходимые для предоставления и защиты сервиса. В анонимных режимах связь между учётными данными участника и его выбором не раскрывается организатору. Роли в сфере конфиденциальности могут зависеть от контекста и применимых соглашений.';
 
   @override
-  String get sessionNonBindingNotice => 'Пилотные Sessions предназначены для консультаций и участия. Они не являются юридическими выборами, установленным законом голосованием собрания или юридически обязательной сертификацией.';
+  String get sessionNonBindingNotice => 'Пилотные Сессии предназначены для консультаций и участия. Они не являются юридическими выборами, установленным законом голосованием собрания или юридически обязательной сертификацией.';
 
   @override
   String get sessionOptionYes => 'Да';
@@ -3341,7 +3351,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sessionOptionNo => 'Нет';
 
   @override
-  String get verifiedResultTitle => 'Verified Result';
+  String get verifiedResultTitle => 'Проверенный результат';
 
   @override
   String get verifiedResultValid => 'Проверка целостности пройдена';
@@ -3378,7 +3388,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get organizationVerifiedIdentityLocked => 'Название и страна являются частью подтверждённой идентичности организации. Их изменение потребует новой проверки. Вы можете свободно менять обложку, логотип, тип, город, сайт и описание.';
 
   @override
-  String get verifiedResultOpenedAt => 'Session открыта';
+  String get verifiedResultOpenedAt => 'Сессия открыта';
 
   @override
   String get verifiedResultEligibleCredentials => 'Допустимые учётные данные';
@@ -3416,7 +3426,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get verifiedResultRestrictedTitle => 'Ограниченный результат';
 
   @override
-  String get verifiedResultRestrictedBody => 'Этот Verified Result недоступен публично. Войдите через авторизованный аккаунт организации, чтобы посмотреть его.';
+  String get verifiedResultRestrictedBody => 'Этот Проверенный результат недоступен публично. Войдите через авторизованный аккаунт организации, чтобы посмотреть его.';
 
   @override
   String get verifiedResultPrivateVerificationTitle => 'Публичная проверка недоступна';
@@ -3476,7 +3486,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get organizationVerificationRequired => 'Обязательное поле.';
 
   @override
-  String get sessionControlRoomTitle => 'Session Control Room';
+  String get sessionControlRoomTitle => 'Центр управления сессией';
 
   @override
   String get sessionSectionLive => 'Live';
@@ -3491,34 +3501,34 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sessionSectionSettings => 'Настройки';
 
   @override
-  String get sessionStageAction => 'Открыть Stage';
+  String get sessionStageAction => 'Открыть Сцена';
 
   @override
-  String get sessionAccessPassesTitle => 'Access Pass участников';
+  String get sessionAccessPassesTitle => 'Пропуск доступа участников';
 
   @override
-  String get sessionAccessPassesSubtitle => 'Каждый pass открывает эту Controlled Anonymous Session без необходимости вводить длинные учётные данные вручную. Открытый pass не хранится Social Vote.';
+  String get sessionAccessPassesSubtitle => 'Каждый pass открывает эту Controlled Anonymous Сессия без необходимости вводить длинные учётные данные вручную. Открытый pass не хранится Social Vote.';
 
   @override
-  String get sessionAccessPass => 'Access Pass';
+  String get sessionAccessPass => 'Пропуск доступа';
 
   @override
-  String get sessionAccessPassDetected => 'Access Pass обнаружен';
+  String get sessionAccessPassDetected => 'Пропуск доступа обнаружен';
 
   @override
-  String get sessionAccessPassAutomatic => 'Ваш персональный pass готов. Продолжайте, чтобы войти в Session анонимно.';
+  String get sessionAccessPassAutomatic => 'Ваш персональный pass готов. Продолжайте, чтобы войти в Сессия анонимно.';
 
   @override
   String get sessionAccessPassFallback => 'Ввести pass вручную';
 
   @override
-  String get sessionAccessPassInvalid => 'Этот Access Pass недействителен, уже недоступен или Session не открыта.';
+  String get sessionAccessPassInvalid => 'Этот Пропуск доступа недействителен, уже недоступен или Сессия не открыта.';
 
   @override
   String get sessionAccessPassPrintWarning => 'Распечатайте, сохраните или раздайте эти passes сейчас. После выхода с этого экрана Social Vote не сможет снова показать их в открытом виде.';
 
   @override
-  String get sessionExistingPassesHidden => 'В целях безопасности ранее созданные passes нельзя снова показать в открытом виде. Создайте новые Access Pass, чтобы получить новые персональные ссылки или QR-коды.';
+  String get sessionExistingPassesHidden => 'В целях безопасности ранее созданные passes нельзя снова показать в открытом виде. Создайте новые Пропуск доступа, чтобы получить новые персональные ссылки или QR-коды.';
 
   @override
   String get sessionCopyPassLinks => 'Копировать все ссылки';
@@ -3527,7 +3537,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sessionCopyPassLink => 'Копировать эту ссылку';
 
   @override
-  String get sessionControlledNeedsAccessPass => 'Перед открытием контролируемой Session создайте хотя бы один Access Pass.';
+  String get sessionControlledNeedsAccessPass => 'Перед открытием контролируемой Сессия создайте хотя бы один Пропуск доступа.';
 
   @override
   String get sessionJoinedParticipants => 'Присоединившиеся учётные данные';
@@ -3551,10 +3561,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sessionNoOpenQuestionBody => 'Участники подключены и ожидают. Откройте следующий вопрос, когда будете готовы.';
 
   @override
-  String get sessionNotStartedTitle => 'Session ещё не началась';
+  String get sessionNotStartedTitle => 'Сессия ещё не началась';
 
   @override
-  String get sessionNotStartedBody => 'Эта Session существует, но ещё не открыта. Оставьте страницу открытой и дождитесь запуска организатором.';
+  String get sessionNotStartedBody => 'Эта Сессия существует, но ещё не открыта. Оставьте страницу открытой и дождитесь запуска организатором.';
 
   @override
   String get sessionNoAccountRequired => 'Аккаунт Social Vote не требуется';
@@ -3563,25 +3573,25 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sessionReceiptDetails => 'Сведения о квитанции';
 
   @override
-  String get sessionOpenAccessInstructions => 'Покажите или поделитесь этим QR-кодом. Любой человек со ссылкой может войти, пока Session открыта.';
+  String get sessionOpenAccessInstructions => 'Покажите или поделитесь этим QR-кодом. Любой человек со ссылкой может войти, пока Сессия открыта.';
 
   @override
-  String get sessionControlledAccessInstructions => 'Создайте персональные Access Pass и выдайте по одному каждому участнику. QR-код в каждом pass автоматически содержит учётные данные.';
+  String get sessionControlledAccessInstructions => 'Создайте персональные Пропуск доступа и выдайте по одному каждому участнику. QR-код в каждом pass автоматически содержит учётные данные.';
 
   @override
-  String get sessionControlRoomHint => 'Управляйте доступом, вопросами, проецируемым Stage и итоговым Verified Result из одного места.';
+  String get sessionControlRoomHint => 'Управляйте доступом, вопросами, проецируемым Сцена и итоговым Проверенный результат из одного места.';
 
   @override
-  String get sessionPresenterScreenTitle => 'Live Stage';
+  String get sessionPresenterScreenTitle => 'Сцена в прямом эфире';
 
   @override
   String get sessionStageWaiting => 'Ожидание следующего вопроса';
 
   @override
-  String get sessionStageScan => 'Сканируйте, чтобы присоединиться к Session';
+  String get sessionStageScan => 'Сканируйте, чтобы присоединиться к Сессия';
 
   @override
-  String get sessionConfigurationTitle => 'Конфигурация Session';
+  String get sessionConfigurationTitle => 'Конфигурация Сессия';
 
   @override
   String get sessionAccessRecommended => 'Рекомендуется для контролируемых встреч';
@@ -3608,7 +3618,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get verifiedCertificateOrganizationSection => 'Организация';
 
   @override
-  String get verifiedCertificateSessionSection => 'Session';
+  String get verifiedCertificateSessionSection => 'Сессия';
 
   @override
   String get verifiedCertificateParticipationSection => 'Участие';
@@ -3656,7 +3666,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get verifiedCertificatePrivacyModel => 'Модель анонимных результатов';
 
   @override
-  String get verifiedCertificatePrivacyText => 'Неизменяемый снимок содержит только агрегированные результаты. Он не содержит личность участника, открытый Access Pass, секрет участника или сопоставление учётных данных участника с выбором в бюллетене.';
+  String get verifiedCertificatePrivacyText => 'Неизменяемый снимок содержит только агрегированные результаты. Он не содержит личность участника, открытый Пропуск доступа, секрет участника или сопоставление учётных данных участника с выбором в бюллетене.';
 
   @override
   String get verifiedCertificateVerifyQr => 'Сканируйте этот QR-код, чтобы проверить отчёт онлайн.';
@@ -3665,13 +3675,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get organizationDashboardTitle => 'Обзор организации';
 
   @override
-  String get organizationActiveSessions => 'Live Sessions';
+  String get organizationActiveSessions => 'Live Сессии';
 
   @override
   String get organizationVerifiedReports => 'Проверенные отчёты';
 
   @override
-  String get organizationTotalSessions => 'Всего Sessions';
+  String get organizationTotalSessions => 'Всего Сессии';
 
   @override
   String get sessionPrivacyPolicyAction => 'Прочитать Политику конфиденциальности';
@@ -3710,7 +3720,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get adminCenterEditorialNavigation => 'World Briefs';
 
   @override
-  String get worldBriefEditorTitle => 'Social Vote World Briefs';
+  String get worldBriefEditorTitle => 'Social Vote · World Brief';
 
   @override
   String get worldBriefEditorDescription => 'Готовьте briefs на основе доказательств, явно показывайте неопределённость и решайте, что появляется в News и на глобусе.';
@@ -3764,7 +3774,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get worldBriefSetupRequiredBody => 'Перед использованием этого раздела примените включённую миграцию базы данных World Brief.';
 
   @override
-  String get worldBriefEmptyTitle => 'World Briefs пока нет';
+  String get worldBriefEmptyTitle => 'World Brief пока нет';
 
   @override
   String get worldBriefEmptyBody => 'Создайте черновик, укажите как минимум два источника и публикуйте только после редакционной проверки.';
@@ -3849,7 +3859,9 @@ class AppLocalizationsRu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days дней',
+      other: '$days дня',
+      many: '$days дней',
+      few: '$days дня',
       one: '1 день',
     );
     return '$_temp0';
@@ -3865,7 +3877,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileHowItWorksTitle => 'Как работает Social Vote';
 
   @override
-  String get profileHowItWorksSubtitle => 'Люди, организации, Voce, Vote, Sessions и проверка.';
+  String get profileHowItWorksSubtitle => 'Люди, организации, Voce, Vote, Сессии и проверка.';
 
   @override
   String get profileMyPostsLoginRequired => 'Чтобы посмотреть свои Voce, необходимо войти.';
@@ -3947,8 +3959,10 @@ class AppLocalizationsRu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Указано источников: $count',
-      one: 'Указан 1 источник',
+      other: 'Указано $count источника',
+      many: 'Указано $count источников',
+      few: 'Указано $count источника',
+      one: 'Указан $count источник',
     );
     return '$_temp0';
   }

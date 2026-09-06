@@ -17,6 +17,7 @@ import 'package:sociale_vote/features/discussion/presentation/widgets/comment_se
 import 'package:sociale_vote/features/news/application/news_controller.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
 /// Pagina di dettaglio per una singola news.
@@ -716,6 +717,8 @@ class _NewsDetailHeroCard extends StatelessWidget {
                     const SizedBox(height: 18),
                     Text(
                       news.title.trim(),
+                      textDirection: socialVoteContentDirection(news.title),
+                      textAlign: socialVoteContentTextAlign(news.title),
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                         height: 1.18,
@@ -747,6 +750,8 @@ class _NewsDetailHeroCard extends StatelessWidget {
                         ),
                         child: Text(
                           bodyText,
+                          textDirection: socialVoteContentDirection(bodyText),
+                          textAlign: socialVoteContentTextAlign(bodyText),
                           style: theme.textTheme.bodyLarge?.copyWith(
                             height: 1.48,
                             color: theme.colorScheme.onSurface.withValues(
@@ -907,6 +912,8 @@ class _WorldBriefBody extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               text,
+              textDirection: socialVoteContentDirection(text),
+              textAlign: socialVoteContentTextAlign(text),
               style: theme.textTheme.bodyLarge?.copyWith(height: 1.48),
             ),
           ],

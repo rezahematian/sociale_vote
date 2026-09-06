@@ -4,6 +4,7 @@ class PollDto {
   final String id;
   final String title;
   final String? description;
+  final String languageCode;
   final String type;
   final String status;
   final List<PollOptionDto> options;
@@ -29,6 +30,7 @@ class PollDto {
     required this.id,
     required this.title,
     this.description,
+    this.languageCode = 'und',
     required this.type,
     required this.status,
     required this.options,
@@ -49,6 +51,7 @@ class PollDto {
       id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String?,
+      languageCode: (json['languageCode'] ?? json['language_code'] ?? 'und').toString(),
       type: json['type'] as String,
       status: json['status'] as String,
       options: (json['options'] as List<dynamic>)
@@ -73,6 +76,7 @@ class PollDto {
       'id': id,
       'title': title,
       'description': description,
+      'languageCode': languageCode,
       'type': type,
       'status': status,
       'options': options.map((o) => o.toJson()).toList(),

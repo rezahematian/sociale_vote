@@ -9,6 +9,7 @@ import 'package:sociale_vote/features/poll/application/poll_list_controller.dart
 import 'package:sociale_vote/features/poll/presentation/widgets/poll_card.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
+import 'package:sociale_vote/shared/widgets/product_signature_label.dart';
 
 class HomePollSection extends StatelessWidget {
   final String scopeShortLabel;
@@ -44,11 +45,20 @@ class HomePollSection extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            l10n.homePollsTitle(scopeShortLabel),
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ProductSignatureLabel(
+                kind: ProductSignatureKind.vote,
+                brandStyle: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                descriptorStyle: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ),
       ],

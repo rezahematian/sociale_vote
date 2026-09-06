@@ -291,7 +291,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get homeScopeLabelCity => 'Oraș – voturi și știri locale';
 
   @override
-  String get homeScopeShortWorld => 'Lume';
+  String get homeScopeShortWorld => 'World';
 
   @override
   String get homeScopeShortCountry => 'Țară';
@@ -300,7 +300,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get homeScopeShortCity => 'Oraș';
 
   @override
-  String get homeScopeChipWorld => 'Lume';
+  String get homeScopeChipWorld => 'World';
 
   @override
   String get homeScopeChipItaly => 'Italia';
@@ -324,13 +324,13 @@ class AppLocalizationsRo extends AppLocalizations {
   String get followScopeButtonFollow => 'Urmărește această zonă';
 
   @override
-  String get homeTrendingTitle => 'Pulse acum';
+  String get homeTrendingTitle => 'Pulse Now';
 
   @override
-  String get homeTrendingError => 'Nu s-a putut încărca Pulse acum pentru această zonă.';
+  String get homeTrendingError => 'Nu s-a putut încărca Pulse Now pentru această zonă.';
 
   @override
-  String get homeTrendingEmpty => 'Nu există conținut în Pulse acum pentru această zonă în acest moment.';
+  String get homeTrendingEmpty => 'Nu există conținut în Pulse Now pentru această zonă în acest moment.';
 
   @override
   String homeForYouTitle(Object scope) {
@@ -512,7 +512,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get pollList_title => 'Vote';
 
   @override
-  String get pollList_scopeWorld => 'Lume';
+  String get pollList_scopeWorld => 'World';
 
   @override
   String get pollList_scopeCountryFallback => 'Țară';
@@ -694,7 +694,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get commentSection_youBadge => 'Tu';
 
   @override
-  String get newsDetail_title => 'Detalii News';
+  String get newsDetail_title => 'News · Detalii';
 
   @override
   String get newsDetail_breakingBadge => 'ULTIMA ORĂ';
@@ -715,7 +715,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get newsFeed_title => 'News';
 
   @override
-  String get newsFeed_scopeWorld => 'Lume';
+  String get newsFeed_scopeWorld => 'World';
 
   @override
   String get newsFeed_scopeCountry => 'Țară';
@@ -794,7 +794,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get newsFeed_languageTooltip => 'Limba News';
 
   @override
-  String get newsFeed_languageAuto => 'AUTO';
+  String get newsFeed_languageAuto => 'Automat';
 
   @override
   String get newsFeed_languageIt => 'IT';
@@ -824,7 +824,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get newsTopic_all => 'Toate';
 
   @override
-  String get newsTopic_world => 'Lume';
+  String get newsTopic_world => 'World';
 
   @override
   String get newsTopic_nation => 'Național';
@@ -1114,7 +1114,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get authPersonalAccountOwnershipTitle => 'Autentificarea aparține întotdeauna unei persoane';
 
   @override
-  String get authPersonalAccountOwnershipBody => 'Dacă reprezinți o organizație, creează-ți contul personal. După autentificare, poți solicita o Organizație verificată și o poți gestiona din Workspace.';
+  String get authPersonalAccountOwnershipBody => 'Dacă reprezinți o organizație, creează-ți contul personal. După autentificare, poți solicita o Organizație verificată și o poți gestiona din Spațiu de lucru.';
 
   @override
   String get authOrganizationPathAction => 'Cum funcționează pentru organizații';
@@ -2904,7 +2904,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get onboardingHeatIceDescription => 'Folosește Heat și Ice pentru a arăta cât de puternic îți atrage atenția un conținut.';
 
   @override
-  String get onboardingCivicMapTitle => 'Civic Map';
+  String get onboardingCivicMapTitle => 'Hartă civică';
 
   @override
   String get onboardingCivicMapDescription => 'Explorează Vote, Voce și News pe hartă și descoperă ce se întâmplă în diferite zone.';
@@ -3077,13 +3077,13 @@ class AppLocalizationsRo extends AppLocalizations {
   String get discoveryPageTitle => 'Explorează';
 
   @override
-  String get organizationWorkspaceTitle => 'Workspace organizației';
+  String get organizationWorkspaceTitle => 'Spațiul de lucru al organizației';
 
   @override
   String get organizationPilotBannerTitle => 'Pilot gratuit';
 
   @override
-  String get organizationPilotBannerBody => 'Sessions sunt gratuite în perioada pilot. Unele funcții profesionale pot deveni cu plată în viitor; facturarea nu este activă acum.';
+  String get organizationPilotBannerBody => 'Sesiuni sunt gratuite în perioada pilot. Unele funcții profesionale pot deveni cu plată în viitor; facturarea nu este activă acum.';
 
   @override
   String get organizationVerifiedLabel => 'Organizație verificată';
@@ -3092,19 +3092,19 @@ class AppLocalizationsRo extends AppLocalizations {
   String get organizationEditProfile => 'Editează profilul organizației';
 
   @override
-  String get organizationCreateSession => 'Session nouă';
+  String get organizationCreateSession => 'Sesiune nouă';
 
   @override
-  String get organizationNoSessions => 'Nu există încă Sessions. Creează prima pentru o întâlnire, atelier sau eveniment.';
+  String get organizationNoSessions => 'Nu există încă Sesiuni. Creează prima pentru o întâlnire, atelier sau eveniment.';
 
   @override
-  String get organizationSessionsTitle => 'Sessions live';
+  String get organizationSessionsTitle => 'Sesiuni live';
 
   @override
   String get organizationRequiresVerificationTitle => 'Este necesară o organizație verificată';
 
   @override
-  String get organizationRequiresVerificationBody => 'Acest Workspace este disponibil doar conturilor aprobate de Social Vote ca organizație verificată.';
+  String get organizationRequiresVerificationBody => 'Acest Spațiu de lucru este disponibil doar conturilor aprobate de Social Vote ca organizație verificată.';
 
   @override
   String get organizationProfileEditorTitle => 'Profilul organizației';
@@ -3167,10 +3167,10 @@ class AppLocalizationsRo extends AppLocalizations {
   String get organizationTypeOther => 'Altul';
 
   @override
-  String get sessionCreateTitle => 'Creează Live Session';
+  String get sessionCreateTitle => 'Creează Live Sesiune';
 
   @override
-  String get sessionTitleLabel => 'Titlul Session';
+  String get sessionTitleLabel => 'Titlul Sesiune';
 
   @override
   String get sessionExpectedParticipants => 'Participanți estimați';
@@ -3188,7 +3188,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get sessionAccessControlled => 'Anonim controlat';
 
   @override
-  String get sessionAccessControlledHint => 'Folosește Access Passes anonime de unică folosință. Social Vote stochează doar hash-ul Access Pass și nu leagă alegerile din buletin de credențialele participantului.';
+  String get sessionAccessControlledHint => 'Folosește Permise de acces anonime de unică folosință. Social Vote stochează doar hash-ul Permis de acces și nu leagă alegerile din buletin de credențialele participantului.';
 
   @override
   String get sessionResultsVisibility => 'Vizibilitatea rezultatelor';
@@ -3206,10 +3206,10 @@ class AppLocalizationsRo extends AppLocalizations {
   String get sessionResultsOrganizerOnly => 'Doar organizatorul';
 
   @override
-  String get sessionCreateAction => 'Creează Session';
+  String get sessionCreateAction => 'Creează Sesiune';
 
   @override
-  String get sessionPilotLimit => 'Limită pilot: între 1 și 250 de participanți per Session.';
+  String get sessionPilotLimit => 'Limită pilot: între 1 și 250 de participanți per Sesiune.';
 
   @override
   String get sessionStatusDraft => 'Ciornă';
@@ -3230,16 +3230,16 @@ class AppLocalizationsRo extends AppLocalizations {
   String get sessionCopyJoinLink => 'Copiază linkul';
 
   @override
-  String get sessionGenerateTokens => 'Generează Access Passes';
+  String get sessionGenerateTokens => 'Generează Permise de acces';
 
   @override
-  String get sessionGenerateTokensCount => 'Număr de Access Passes';
+  String get sessionGenerateTokensCount => 'Număr de Permise de acces';
 
   @override
   String get sessionTokensOneTimeTitle => 'Salvează aceste credențiale acum';
 
   @override
-  String get sessionTokensOneTimeBody => 'Access Passes în clar sunt afișate doar în rezultatul acestui lot. Social Vote stochează doar hash-urile lor. Copiază-le și distribuie-le în siguranță.';
+  String get sessionTokensOneTimeBody => 'Permise de acces în clar sunt afișate doar în rezultatul acestui lot. Social Vote stochează doar hash-urile lor. Copiază-le și distribuie-le în siguranță.';
 
   @override
   String get sessionCopyTokens => 'Copiază toate linkurile';
@@ -3248,13 +3248,13 @@ class AppLocalizationsRo extends AppLocalizations {
   String get sessionTokensSavedAction => 'Le-am salvat';
 
   @override
-  String get sessionOpenAction => 'Deschide Session';
+  String get sessionOpenAction => 'Deschide Sesiune';
 
   @override
-  String get sessionCloseAction => 'Închide Session';
+  String get sessionCloseAction => 'Închide Sesiune';
 
   @override
-  String get sessionCloseConfirm => 'Închizi votarea și creezi instantaneul imuabil Verified Result?';
+  String get sessionCloseConfirm => 'Închizi votarea și creezi instantaneul imuabil Rezultat verificat?';
 
   @override
   String get sessionQuestionsTitle => 'Întrebări';
@@ -3308,7 +3308,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get sessionParticipantTitle => 'Social Vote Live';
 
   @override
-  String get sessionJoinAction => 'Alătură-te Session';
+  String get sessionJoinAction => 'Alătură-te Sesiune';
 
   @override
   String get sessionTokenLabel => 'Token participant';
@@ -3326,13 +3326,13 @@ class AppLocalizationsRo extends AppLocalizations {
   String get sessionVoteReceived => 'Vot primit';
 
   @override
-  String get sessionResultsUnavailable => 'Rezultatele nu sunt încă vizibile conform politicii acestei Session.';
+  String get sessionResultsUnavailable => 'Rezultatele nu sunt încă vizibile conform politicii acestei Sesiune.';
 
   @override
-  String get sessionPrivacyNotice => 'Organizatorul definește scopul operațional și întrebările Session. Social Vote prelucrează datele tehnice necesare pentru furnizarea și protejarea serviciului. Modurile anonime nu expun organizatorului legătura dintre credențialele unui participant și o alegere. Rolurile privind confidențialitatea pot depinde de context și de acordurile aplicabile.';
+  String get sessionPrivacyNotice => 'Organizatorul definește scopul operațional și întrebările Sesiune. Social Vote prelucrează datele tehnice necesare pentru furnizarea și protejarea serviciului. Modurile anonime nu expun organizatorului legătura dintre credențialele unui participant și o alegere. Rolurile privind confidențialitatea pot depinde de context și de acordurile aplicabile.';
 
   @override
-  String get sessionNonBindingNotice => 'Sessions pilot sunt pentru consultare și participare. Ele nu reprezintă alegeri legale, voturi statutare ale unei adunări sau certificări cu caracter juridic obligatoriu.';
+  String get sessionNonBindingNotice => 'Sesiuni pilot sunt pentru consultare și participare. Ele nu reprezintă alegeri legale, voturi statutare ale unei adunări sau certificări cu caracter juridic obligatoriu.';
 
   @override
   String get sessionOptionYes => 'Da';
@@ -3341,7 +3341,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get sessionOptionNo => 'Nu';
 
   @override
-  String get verifiedResultTitle => 'Verified Result';
+  String get verifiedResultTitle => 'Rezultat verificat';
 
   @override
   String get verifiedResultValid => 'Verificarea integrității a reușit';
@@ -3378,7 +3378,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get organizationVerifiedIdentityLocked => 'Numele și țara fac parte din identitatea verificată a organizației. Schimbarea lor va necesita o nouă verificare. Poți modifica liber coperta, logo-ul, tipul, orașul, site-ul și descrierea.';
 
   @override
-  String get verifiedResultOpenedAt => 'Session deschisă';
+  String get verifiedResultOpenedAt => 'Sesiune deschisă';
 
   @override
   String get verifiedResultEligibleCredentials => 'Credențiale eligibile';
@@ -3416,7 +3416,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get verifiedResultRestrictedTitle => 'Rezultat restricționat';
 
   @override
-  String get verifiedResultRestrictedBody => 'Acest Verified Result nu este disponibil public. Autentifică-te cu un cont de organizație autorizat pentru a-l vedea.';
+  String get verifiedResultRestrictedBody => 'Acest Rezultat verificat nu este disponibil public. Autentifică-te cu un cont de organizație autorizat pentru a-l vedea.';
 
   @override
   String get verifiedResultPrivateVerificationTitle => 'Verificare publică indisponibilă';
@@ -3476,7 +3476,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get organizationVerificationRequired => 'Câmp obligatoriu.';
 
   @override
-  String get sessionControlRoomTitle => 'Camera de control Session';
+  String get sessionControlRoomTitle => 'Camera de control Sesiune';
 
   @override
   String get sessionSectionLive => 'Live';
@@ -3491,34 +3491,34 @@ class AppLocalizationsRo extends AppLocalizations {
   String get sessionSectionSettings => 'Setări';
 
   @override
-  String get sessionStageAction => 'Deschide Stage';
+  String get sessionStageAction => 'Deschide Scenă';
 
   @override
-  String get sessionAccessPassesTitle => 'Access Passes pentru participanți';
+  String get sessionAccessPassesTitle => 'Permise de acces pentru participanți';
 
   @override
-  String get sessionAccessPassesSubtitle => 'Fiecare pass deschide această Controlled Anonymous Session fără ca participantul să introducă credențiala lungă. Pass-ul în clar nu este stocat de Social Vote.';
+  String get sessionAccessPassesSubtitle => 'Fiecare pass deschide această Controlled Anonymous Sesiune fără ca participantul să introducă credențiala lungă. Pass-ul în clar nu este stocat de Social Vote.';
 
   @override
-  String get sessionAccessPass => 'Access Pass';
+  String get sessionAccessPass => 'Permis de acces';
 
   @override
-  String get sessionAccessPassDetected => 'Access Pass detectat';
+  String get sessionAccessPassDetected => 'Permis de acces detectat';
 
   @override
-  String get sessionAccessPassAutomatic => 'Pass-ul tău personal este gata. Continuă pentru a intra anonim în Session.';
+  String get sessionAccessPassAutomatic => 'Pass-ul tău personal este gata. Continuă pentru a intra anonim în Sesiune.';
 
   @override
   String get sessionAccessPassFallback => 'Introdu pass-ul manual';
 
   @override
-  String get sessionAccessPassInvalid => 'Acest Access Pass este invalid, nu mai este disponibil sau Session nu este deschisă.';
+  String get sessionAccessPassInvalid => 'Acest Permis de acces este invalid, nu mai este disponibil sau Sesiune nu este deschisă.';
 
   @override
   String get sessionAccessPassPrintWarning => 'Tipărește, salvează sau distribuie aceste passes acum. După ce părăsești acest ecran, Social Vote nu le va mai putea afișa în clar.';
 
   @override
-  String get sessionExistingPassesHidden => 'Din motive de securitate, passes generate anterior nu mai pot fi afișate în clar. Generează Access Passes noi pentru a obține linkuri personale sau coduri QR noi.';
+  String get sessionExistingPassesHidden => 'Din motive de securitate, passes generate anterior nu mai pot fi afișate în clar. Generează Permise de acces noi pentru a obține linkuri personale sau coduri QR noi.';
 
   @override
   String get sessionCopyPassLinks => 'Copiază toate linkurile';
@@ -3527,7 +3527,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get sessionCopyPassLink => 'Copiază acest link';
 
   @override
-  String get sessionControlledNeedsAccessPass => 'Înainte de a deschide o Session controlată, generează cel puțin un Access Pass.';
+  String get sessionControlledNeedsAccessPass => 'Înainte de a deschide o Sesiune controlată, generează cel puțin un Permis de acces.';
 
   @override
   String get sessionJoinedParticipants => 'Credențiale de acces conectate';
@@ -3551,10 +3551,10 @@ class AppLocalizationsRo extends AppLocalizations {
   String get sessionNoOpenQuestionBody => 'Participanții sunt conectați și așteaptă. Deschide următoarea întrebare când ești gata.';
 
   @override
-  String get sessionNotStartedTitle => 'Session nu a început încă';
+  String get sessionNotStartedTitle => 'Sesiune nu a început încă';
 
   @override
-  String get sessionNotStartedBody => 'Această Session există, dar nu este încă deschisă. Păstrează această pagină deschisă și așteaptă ca organizatorul să o pornească.';
+  String get sessionNotStartedBody => 'Această Sesiune există, dar nu este încă deschisă. Păstrează această pagină deschisă și așteaptă ca organizatorul să o pornească.';
 
   @override
   String get sessionNoAccountRequired => 'Nu este necesar un cont Social Vote';
@@ -3563,25 +3563,25 @@ class AppLocalizationsRo extends AppLocalizations {
   String get sessionReceiptDetails => 'Detalii dovadă';
 
   @override
-  String get sessionOpenAccessInstructions => 'Afișează sau distribuie acest QR. Oricine are linkul poate intra cât timp Session este deschisă.';
+  String get sessionOpenAccessInstructions => 'Afișează sau distribuie acest QR. Oricine are linkul poate intra cât timp Sesiune este deschisă.';
 
   @override
   String get sessionControlledAccessInstructions => 'Creează passes de acces personale și oferă câte unul fiecărui participant. QR-ul din fiecare pass conține automat credențiala.';
 
   @override
-  String get sessionControlRoomHint => 'Gestionează accesul, întrebările, Stage proiectat și Verified Result final dintr-un singur loc.';
+  String get sessionControlRoomHint => 'Gestionează accesul, întrebările, Scenă proiectat și Rezultat verificat final dintr-un singur loc.';
 
   @override
-  String get sessionPresenterScreenTitle => 'Live Stage';
+  String get sessionPresenterScreenTitle => 'Scenă în direct';
 
   @override
   String get sessionStageWaiting => 'Se așteaptă următoarea întrebare';
 
   @override
-  String get sessionStageScan => 'Scanează pentru a te alătura Session';
+  String get sessionStageScan => 'Scanează pentru a te alătura Sesiune';
 
   @override
-  String get sessionConfigurationTitle => 'Configurarea Session';
+  String get sessionConfigurationTitle => 'Configurarea Sesiune';
 
   @override
   String get sessionAccessRecommended => 'Recomandat pentru întâlniri controlate';
@@ -3608,7 +3608,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get verifiedCertificateOrganizationSection => 'Organizație';
 
   @override
-  String get verifiedCertificateSessionSection => 'Session';
+  String get verifiedCertificateSessionSection => 'Sesiune';
 
   @override
   String get verifiedCertificateParticipationSection => 'Participare';
@@ -3656,7 +3656,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get verifiedCertificatePrivacyModel => 'Model de rezultat anonim';
 
   @override
-  String get verifiedCertificatePrivacyText => 'Instantaneul imuabil conține doar rezultate agregate. Nu conține identitatea participantului, Access Pass în clar, secretul participantului sau vreo mapare între credențialele participantului și alegerea din buletin.';
+  String get verifiedCertificatePrivacyText => 'Instantaneul imuabil conține doar rezultate agregate. Nu conține identitatea participantului, Permis de acces în clar, secretul participantului sau vreo mapare între credențialele participantului și alegerea din buletin.';
 
   @override
   String get verifiedCertificateVerifyQr => 'Scanează acest QR pentru a verifica raportul online.';
@@ -3665,13 +3665,13 @@ class AppLocalizationsRo extends AppLocalizations {
   String get organizationDashboardTitle => 'Prezentare generală a organizației';
 
   @override
-  String get organizationActiveSessions => 'Sessions live';
+  String get organizationActiveSessions => 'Sesiuni live';
 
   @override
   String get organizationVerifiedReports => 'Rapoarte verificate';
 
   @override
-  String get organizationTotalSessions => 'Total Sessions';
+  String get organizationTotalSessions => 'Total sesiuni';
 
   @override
   String get sessionPrivacyPolicyAction => 'Citește Politica de confidențialitate';
@@ -3710,7 +3710,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get adminCenterEditorialNavigation => 'World Briefs';
 
   @override
-  String get worldBriefEditorTitle => 'Social Vote World Briefs';
+  String get worldBriefEditorTitle => 'Social Vote · World Brief';
 
   @override
   String get worldBriefEditorDescription => 'Pregătește sinteze bazate pe dovezi, păstrează incertitudinea vizibilă și decide ce apare în News și pe Globe.';
@@ -3865,7 +3865,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get profileHowItWorksTitle => 'Cum funcționează Social Vote';
 
   @override
-  String get profileHowItWorksSubtitle => 'Persoane, Organizații, Voce, Vote, Sessions și verificare.';
+  String get profileHowItWorksSubtitle => 'Persoane, Organizații, Voce, Vote, Sesiuni și verificare.';
 
   @override
   String get profileMyPostsLoginRequired => 'Trebuie să fii autentificat pentru a vedea Voce create de tine.';

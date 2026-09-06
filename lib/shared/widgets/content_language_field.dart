@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:sociale_vote/core/localization/content_language_code.dart' as content_language;
 import 'package:sociale_vote/l10n/app_localizations.dart';
 
 class ContentLanguageOption {
@@ -13,52 +14,27 @@ class ContentLanguageOption {
 }
 
 const List<ContentLanguageOption> supportedContentLanguages = [
-  ContentLanguageOption(code: 'it', label: 'Italiano'),
   ContentLanguageOption(code: 'en', label: 'English'),
-  ContentLanguageOption(code: 'es', label: 'Español'),
-  ContentLanguageOption(code: 'fr', label: 'Français'),
+  ContentLanguageOption(code: 'it', label: 'Italiano'),
   ContentLanguageOption(code: 'de', label: 'Deutsch'),
-  ContentLanguageOption(code: 'pt', label: 'Português'),
-  ContentLanguageOption(code: 'ro', label: 'Română'),
-  ContentLanguageOption(code: 'ar', label: 'العربية'),
   ContentLanguageOption(code: 'fa', label: 'فارسی'),
-  ContentLanguageOption(code: 'tr', label: 'Türkçe'),
+  ContentLanguageOption(code: 'es', label: 'Español'),
+  ContentLanguageOption(code: 'pt', label: 'Português'),
+  ContentLanguageOption(code: 'fr', label: 'Français'),
+  ContentLanguageOption(code: 'ar', label: 'العربية'),
+  ContentLanguageOption(code: 'ro', label: 'Română'),
   ContentLanguageOption(code: 'ru', label: 'Русский'),
-  ContentLanguageOption(code: 'uk', label: 'Українська'),
-  ContentLanguageOption(code: 'zh', label: '中文'),
-  ContentLanguageOption(code: 'ja', label: '日本語'),
-  ContentLanguageOption(code: 'ko', label: '한국어'),
-  ContentLanguageOption(code: 'hi', label: 'हिन्दी'),
+  ContentLanguageOption(code: 'zh', label: '中文（简体）'),
 ];
 
 String normalizeContentLanguageCode(
   String? value, {
   String fallback = 'und',
-}) {
-  final normalized = value?.trim().toLowerCase().replaceAll('_', '-');
-  if (normalized == null || normalized.isEmpty) {
-    return fallback;
-  }
+}) =>
+    content_language.normalizeContentLanguageCode(value, fallback: fallback);
 
-  final valid = RegExp(r'^[a-z]{2,3}(-[a-z0-9]{2,8})*$');
-  if (normalized == 'und' || valid.hasMatch(normalized)) {
-    return normalized;
-  }
-
-  return fallback;
-}
-
-String defaultContentLanguageCodeForLocale(Locale locale) {
-  final languageCode = normalizeContentLanguageCode(
-    locale.languageCode,
-  );
-
-  final supported = supportedContentLanguages.any(
-    (option) => option.code == languageCode,
-  );
-
-  return supported ? languageCode : 'und';
-}
+String defaultContentLanguageCodeForLocale(Locale locale) =>
+    content_language.defaultContentLanguageCodeForLocale(locale);
 
 class ContentLanguageField extends StatelessWidget {
   final String selectedCode;

@@ -163,6 +163,7 @@ class PollDetailController extends ChangeNotifier {
     required String userId,
     required String title,
     String? description,
+    required String languageCode,
   }) async {
     final currentState = _state;
     if (currentState is! PollDetailLoaded) {
@@ -187,6 +188,7 @@ class PollDetailController extends ChangeNotifier {
         pollId: currentState.poll.id.value,
         title: title,
         description: description,
+        languageCode: languageCode,
       );
 
       if (!_isDisposed && _currentPollId?.value == updatedPoll.id.value) {

@@ -224,6 +224,7 @@ class PollRepositorySupabase implements PollRepository {
     required String pollId,
     required String title,
     String? description,
+    required String languageCode,
   }) async {
     final currentUser = AppSupabase.currentUser;
     if (currentUser == null) {
@@ -255,6 +256,7 @@ class PollRepositorySupabase implements PollRepository {
     final payload = <String, dynamic>{
       'title': normalizedTitle,
       'description': normalizedDescription,
+      'language_code': languageCode,
     };
 
     try {
@@ -304,6 +306,7 @@ class PollRepositorySupabase implements PollRepository {
       'author_id': authorId,
       'title': poll.title,
       'description': poll.description,
+      'language_code': poll.languageCode,
       'type': _pollTypeValue(poll.type),
       'status': _pollStatusValue(poll.status),
       'options': poll.options
@@ -391,6 +394,7 @@ class PollRepositorySupabase implements PollRepository {
       id: PollId((row['id'] as String?) ?? ''),
       title: (row['title'] as String?) ?? '',
       description: row['description'] as String?,
+      languageCode: (row['language_code'] as String?)?.trim().toLowerCase() ?? 'und',
       type: _pollTypeFromValue(row['type'] as String?),
       status: effectiveStatus,
       options: options,

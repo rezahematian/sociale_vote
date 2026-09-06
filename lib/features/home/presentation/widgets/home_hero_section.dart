@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/widgets/content_directionality.dart';
+import 'package:sociale_vote/shared/widgets/product_signature_label.dart';
 
 class HomeHeroSection extends StatelessWidget {
   final String scopeShortLabel;
@@ -30,6 +32,8 @@ class HomeHeroSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final localeTextDirection = socialVoteLocaleTextDirection(context);
+    final localeTextAlign = socialVoteLocaleTextAlign(context);
     final materialL10n = MaterialLocalizations.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final colors = theme.colorScheme;
@@ -87,6 +91,11 @@ class HomeHeroSection extends StatelessWidget {
         : isDark
             ? Colors.white.withValues(alpha: 0.97)
             : colors.onSurface;
+    final isWorldScope = scopeShortLabel == l10n.homeScopeShortWorld;
+    final worldCopy = ProductSignatureCopy.of(
+      context,
+      ProductSignatureKind.world,
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -181,7 +190,11 @@ class HomeHeroSection extends StatelessWidget {
                               child: _buildTopChip(
                                 theme: theme,
                                 icon: Icons.public_outlined,
-                                label: scopeShortLabel,
+                                label: isWorldScope
+                                    ? worldCopy.brand
+                                    : scopeShortLabel,
+                                subtitle:
+                                    isWorldScope ? worldCopy.descriptor : null,
                                 foregroundColor: chipForegroundColor,
                                 backgroundColor: chipBackgroundColor,
                                 borderColor: chipBorderColor,
@@ -207,6 +220,9 @@ class HomeHeroSection extends StatelessWidget {
                       const SizedBox(height: 14),
                       Text(
                         l10n.homeHeroHeadline,
+                        textDirection: localeTextDirection,
+                        textAlign: localeTextAlign,
+                        textWidthBasis: TextWidthBasis.parent,
                         style: (desktopCompact
                                 ? theme.textTheme.titleLarge
                                 : theme.textTheme.headlineSmall)
@@ -219,7 +235,14 @@ class HomeHeroSection extends StatelessWidget {
                       ),
                       SizedBox(height: desktopCompact ? 6 : 8),
                       Text(
-                        l10n.homeHeroPurpose,
+                        localeTextDirection == TextDirection.rtl
+                            ? socialVoteIsolateFixedProductNames(
+                                l10n.homeHeroPurpose,
+                              )
+                            : l10n.homeHeroPurpose,
+                        textDirection: localeTextDirection,
+                        textAlign: localeTextAlign,
+                        textWidthBasis: TextWidthBasis.parent,
                         maxLines: desktopCompact ? 2 : 3,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -234,7 +257,7 @@ class HomeHeroSection extends StatelessWidget {
                           Expanded(
                             child: _DashboardActionButton(
                               icon: Icons.how_to_vote_outlined,
-                              label: l10n.homeHeroPollsAction,
+                              productKind: ProductSignatureKind.vote,
                               onPressed: onOpenPolls,
                               emphasized: true,
                               spaceStyle: spaceStyle,
@@ -245,7 +268,7 @@ class HomeHeroSection extends StatelessWidget {
                           Expanded(
                             child: _DashboardActionButton(
                               icon: Icons.article_outlined,
-                              label: l10n.homeHeroNewsAction,
+                              productKind: ProductSignatureKind.news,
                               onPressed: onOpenNews,
                               spaceStyle: spaceStyle,
                               compact: desktopCompact,
@@ -323,6 +346,7 @@ class HomeHeroSection extends StatelessWidget {
   Widget _buildTopChip({
     required ThemeData theme,
     required String label,
+    String? subtitle,
     required Color foregroundColor,
     required Color backgroundColor,
     required Color borderColor,
@@ -346,14 +370,44 @@ class HomeHeroSection extends StatelessWidget {
             const SizedBox(width: 6),
           ],
           Flexible(
-            child: Text(
-              label,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: foregroundColor,
-              ),
-            ),
+            child: subtitle == null
+                ? Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: foregroundColor,
+                    ),
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        overflow: TextOverflow.ellipsis,
+                        textDirection: TextDirection.ltr,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: foregroundColor,
+                          height: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        textDirection: socialVoteContentDirection(subtitle),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w500,
+                          color: foregroundColor.withValues(alpha: 0.76),
+                          height: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
           ),
           if (trailingIcon != null) ...[
             const SizedBox(width: 4),
@@ -380,7 +434,8 @@ class HomeHeroSection extends StatelessWidget {
 
 class _DashboardActionButton extends StatelessWidget {
   final IconData icon;
-  final String label;
+  final String? label;
+  final ProductSignatureKind? productKind;
   final VoidCallback onPressed;
   final bool emphasized;
   final bool softPrimary;
@@ -389,7 +444,8 @@ class _DashboardActionButton extends StatelessWidget {
 
   const _DashboardActionButton({
     required this.icon,
-    required this.label,
+    this.label,
+    this.productKind,
     required this.onPressed,
     this.emphasized = false,
     this.softPrimary = false,
@@ -402,6 +458,14 @@ class _DashboardActionButton extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+    final productCopy = productKind == null
+        ? null
+        : ProductSignatureCopy.of(context, productKind!);
+    final semanticLabel = productCopy == null
+        ? (label ?? '')
+        : '${productCopy.brand}: ${productCopy.descriptor}';
+
+    assert(productCopy != null || (label != null && label!.trim().isNotEmpty));
 
     final backgroundColor = spaceStyle
         ? (emphasized
@@ -437,14 +501,14 @@ class _DashboardActionButton extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: label,
+      label: semanticLabel,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(16),
           child: Ink(
-            height: 48,
+            height: productCopy == null ? 48 : 56,
             decoration: BoxDecoration(
               color: backgroundColor,
               borderRadius: BorderRadius.circular(16),
@@ -457,15 +521,33 @@ class _DashboardActionButton extends StatelessWidget {
                 Icon(icon, size: 19, color: foregroundColor),
                 const SizedBox(width: 8),
                 Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: foregroundColor,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  child: productCopy == null
+                      ? Text(
+                          label!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: foregroundColor,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        )
+                      : ProductSignatureLabel(
+                          kind: productKind!,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          textAlign: TextAlign.center,
+                          brandStyle: theme.textTheme.labelLarge?.copyWith(
+                            color: foregroundColor,
+                            fontWeight: FontWeight.w700,
+                            height: 1.0,
+                          ),
+                          descriptorStyle: theme.textTheme.labelSmall?.copyWith(
+                            color: foregroundColor.withValues(alpha: 0.76),
+                            fontSize: compact ? 9.5 : 10.0,
+                            fontWeight: FontWeight.w500,
+                            height: 1.0,
+                          ),
+                          gap: 2,
+                        ),
                 ),
               ],
             ),

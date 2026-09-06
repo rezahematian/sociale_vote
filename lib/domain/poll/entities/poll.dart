@@ -18,6 +18,10 @@ class Poll {
   final String title;
   final String? description;
 
+  /// Lingua del contenuto, indipendente dalla lingua della UI.
+  /// `und` identifica i contenuti legacy/non determinati.
+  final String languageCode;
+
   /// Tipo di poll (single, multi, yes/no, etc.).
   final PollType type;
 
@@ -98,6 +102,7 @@ class Poll {
     required this.id,
     required this.title,
     this.description,
+    this.languageCode = 'und',
     required this.type,
     required this.status,
     required this.options,
@@ -208,6 +213,7 @@ class Poll {
     PollId? id,
     String? title,
     String? description,
+    String? languageCode,
     PollType? type,
     PollStatus? status,
     List<PollOption>? options,
@@ -235,6 +241,7 @@ class Poll {
       id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
+      languageCode: languageCode ?? this.languageCode,
       type: type ?? this.type,
       status: status ?? this.status,
       options: options ?? this.options,
@@ -267,6 +274,6 @@ class Poll {
 
   @override
   String toString() {
-    return 'Poll(id: $id, title: $title, createdAt: $createdAt, votes: $voteCount, type: $type, status: $status, options: ${options.length}, countryCode: $countryCode, cityId: $cityId, contentLocation: $contentLocation, createdBy: $createdByUserId, authorName: $authorName, authorActorType: $authorActorType, authorVerificationLevel: $authorVerificationLevel, authorInstitutionLevel: $authorInstitutionLevel, publishedAsActorType: $publishedAsActorType, publishedAsInstitutionLevel: $publishedAsInstitutionLevel, publishedAsDisplayName: $publishedAsDisplayName)';
+    return 'Poll(id: $id, title: $title, languageCode: $languageCode, createdAt: $createdAt, votes: $voteCount, type: $type, status: $status, options: ${options.length}, countryCode: $countryCode, cityId: $cityId, contentLocation: $contentLocation, createdBy: $createdByUserId, authorName: $authorName, authorActorType: $authorActorType, authorVerificationLevel: $authorVerificationLevel, authorInstitutionLevel: $authorInstitutionLevel, publishedAsActorType: $publishedAsActorType, publishedAsInstitutionLevel: $publishedAsInstitutionLevel, publishedAsDisplayName: $publishedAsDisplayName)';
   }
 }

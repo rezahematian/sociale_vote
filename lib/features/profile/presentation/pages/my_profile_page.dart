@@ -33,6 +33,7 @@ import 'package:sociale_vote/shared/services/biometric_unlock_service.dart';
 import 'package:sociale_vote/shared/services/world_appearance_service.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 import 'package:sociale_vote/shared/widgets/content_directionality.dart';
+import 'package:sociale_vote/shared/widgets/product_signature_label.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 import 'package:sociale_vote/shared/widgets/world_control_visuals.dart';
 
@@ -54,19 +55,36 @@ String _worldAppearanceSettingsTitle(BuildContext context) {
 
 String _worldAppearanceSettingsSubtitle(BuildContext context) {
   return switch (Localizations.localeOf(context).languageCode) {
-    'it' => 'Globe, Radio Mondo e controllo rotazione',
-    'de' => 'Globe, Radio Mondo und Rotationssteuerung',
-    'fa' => 'Globe، Radio Mondo و کنترل چرخش',
-    'es' => 'Globe, Radio Mondo y control de rotación',
-    'pt' => 'Globe, Radio Mondo e controle de rotação',
-    'fr' => 'Globe, Radio Mondo et contrôle de rotation',
-    'ar' => 'Globe وRadio Mondo والتحكم في الدوران',
-    'ro' => 'Globe, Radio Mondo și controlul rotației',
-    'ru' => 'Globe, Radio Mondo и управление вращением',
-    'zh' => 'Globe、Radio Mondo 和旋转控制',
-    _ => 'Globe, Radio Mondo and rotation control',
+    'it' => 'Globo, radio del mondo e controllo rotazione',
+    'de' => 'Globus, Weltradio und Rotationssteuerung',
+    'fa' => 'کره زمین، رادیوی جهان و کنترل چرخش',
+    'es' => 'Globo, radio mundial y control de rotación',
+    'pt' => 'Globo, rádio mundial e controle de rotação',
+    'fr' => 'Globe, radio mondiale et contrôle de rotation',
+    'ar' => 'الكرة الأرضية وراديو العالم والتحكم في الدوران',
+    'ro' => 'Glob, radio mondial și controlul rotației',
+    'ru' => 'Глобус, мировое радио и управление вращением',
+    'zh' => '地球仪、世界电台和旋转控制',
+    _ => 'Globe, world radio and rotation control',
   };
 }
+
+String _globeQuickSettingsTitle(BuildContext context) {
+  return switch (Localizations.localeOf(context).languageCode) {
+    'it' => 'Globo',
+    'de' => 'Globus',
+    'fa' => 'کره زمین',
+    'es' => 'Globo',
+    'pt' => 'Globo',
+    'fr' => 'Globe',
+    'ar' => 'الكرة الأرضية',
+    'ro' => 'Glob',
+    'ru' => 'Глобус',
+    'zh' => '地球仪',
+    _ => 'Globe',
+  };
+}
+
 
 String _quickSettingsSectionTitle(BuildContext context) {
   return switch (Localizations.localeOf(context).languageCode) {
@@ -377,20 +395,29 @@ class _MyProfileViewState extends State<_MyProfileView> {
   String _workspaceAccessCheckFailedMessage(BuildContext context) {
     return switch (Localizations.localeOf(context).languageCode) {
       'it' =>
-        'Impossibile verificare ora l\'accesso al Workspace. Tocca per riprovare.',
+        'Impossibile verificare ora l’accesso allo spazio di lavoro dell’organizzazione. Tocca per riprovare.',
       'de' =>
-        'Der Workspace-Zugriff kann gerade nicht geprüft werden. Tippe zum Wiederholen.',
+        'Der Zugriff auf den Organisationsarbeitsbereich kann gerade nicht geprüft werden. Tippe zum Wiederholen.',
       'fa' =>
-        'در حال حاضر امکان بررسی دسترسی Workspace نیست. برای تلاش دوباره ضربه بزنید.',
+        'در حال حاضر امکان بررسی دسترسی به فضای کاری سازمان نیست. برای تلاش دوباره ضربه بزنید.',
+      'es' =>
+        'No se puede comprobar ahora el acceso al espacio de trabajo de la organización. Toca para volver a intentarlo.',
+      'pt' =>
+        'Não é possível verificar agora o acesso ao espaço de trabalho da organização. Toque para tentar novamente.',
       'fr' =>
-        'Impossible de vérifier l’accès au Workspace pour le moment. Touchez pour réessayer.',
+        'L’accès à l’espace de travail de l’organisation ne peut pas être vérifié pour le moment. Touchez pour réessayer.',
       'ar' =>
-        'يتعذر التحقق من صلاحية الوصول إلى Workspace الآن. اضغط لإعادة المحاولة.',
+        'يتعذر الآن التحقق من الوصول إلى مساحة عمل المنظمة. اضغط لإعادة المحاولة.',
       'ro' =>
-        'Accesul la Workspace nu poate fi verificat acum. Atinge pentru a încerca din nou.',
-      _ => 'Workspace access cannot be checked right now. Tap to try again.',
+        'Accesul la spațiul de lucru al organizației nu poate fi verificat acum. Atinge pentru a încerca din nou.',
+      'ru' =>
+        'Сейчас не удаётся проверить доступ к рабочему пространству организации. Нажмите, чтобы повторить попытку.',
+      'zh' => '目前无法检查组织工作区访问权限。点击即可重试。',
+      _ =>
+        'Organization workspace access cannot be checked right now. Tap to try again.',
     };
   }
+
 
   void _refreshUnreadNotificationsCount() {
     setState(() {
@@ -900,6 +927,10 @@ class _MyProfileViewState extends State<_MyProfileView> {
             const Divider(height: 1),
             _SettingsTile(
               title: l10n.profileMyPollsTitle,
+              subtitle: ProductSignatureCopy.of(
+                sectionContext,
+                ProductSignatureKind.vote,
+              ).descriptor,
               icon: Icons.how_to_vote,
               onTap: () {
                 Navigator.of(sectionContext).push(
@@ -910,6 +941,10 @@ class _MyProfileViewState extends State<_MyProfileView> {
             const Divider(height: 1),
             _SettingsTile(
               title: l10n.profileMyPostsTitle,
+              subtitle: ProductSignatureCopy.of(
+                sectionContext,
+                ProductSignatureKind.voce,
+              ).descriptor,
               icon: Icons.forum_outlined,
               onTap: () {
                 Navigator.of(sectionContext).push(
@@ -2288,7 +2323,7 @@ class _MyProfileViewState extends State<_MyProfileView> {
                       builder: (context, _) {
                         final appearance = WorldAppearanceService.instance;
                         return _SettingsTile(
-                          title: 'Globe',
+                          title: _globeQuickSettingsTitle(context),
                           subtitle: _globeStyleLabel(
                             context,
                             appearance.globeStyle,

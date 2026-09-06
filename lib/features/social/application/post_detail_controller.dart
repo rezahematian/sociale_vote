@@ -135,6 +135,7 @@ class PostDetailController extends ChangeNotifier {
   Future<Post> update({
     required String title,
     required String content,
+    required String languageCode,
   }) async {
     final currentPost = _post;
     if (currentPost == null) {
@@ -150,6 +151,7 @@ class PostDetailController extends ChangeNotifier {
       postId: currentPost.id.value,
       title: title,
       content: content,
+      languageCode: languageCode,
     );
 
     if (_isDisposed) {

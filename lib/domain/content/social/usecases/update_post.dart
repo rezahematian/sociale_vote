@@ -10,11 +10,13 @@ class UpdatePost {
     required String postId,
     required String title,
     required String content,
+    required String languageCode,
   }) {
     return _repository.updatePost(
       postId: postId,
       title: title,
       content: content,
+      languageCode: languageCode,
     );
   }
 }

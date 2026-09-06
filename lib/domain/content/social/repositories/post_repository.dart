@@ -61,6 +61,7 @@ abstract class PostRepository {
     required String postId,
     required String title,
     required String content,
+    required String languageCode,
   });
 
   /// (Opzionale ma utile da subito) Elimina un post esistente.

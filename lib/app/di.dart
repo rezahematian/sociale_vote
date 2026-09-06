@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:sociale_vote/core/localization/app_language_state.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sociale_vote/core/http/api_client.dart';
@@ -656,6 +658,10 @@ class AppDI {
         case 'de':
         case 'ar':
         case 'fa':
+        case 'pt':
+        case 'ro':
+        case 'ru':
+        case 'zh':
           return normalized;
         default:
           return null;
@@ -671,7 +677,25 @@ class AppDI {
       return stored;
     }
 
+    final appLanguage = AppLanguageState.selectedLanguageCode;
+    if (appLanguage != null && appLanguage.trim().isNotEmpty) {
+      return _normalizeNewsLanguageOrEnglish(appLanguage);
+    }
+
     return _readSystemContentLanguageApiValue();
+  }
+
+  String _normalizeNewsLanguageOrEnglish(String? value) {
+    final normalized = value
+        ?.trim()
+        .toLowerCase()
+        .replaceAll('_', '-')
+        .split('-')
+        .first;
+    const supported = <String>{
+      'en', 'it', 'de', 'fa', 'es', 'pt', 'fr', 'ar', 'ro', 'ru', 'zh',
+    };
+    return supported.contains(normalized) ? normalized! : 'en';
   }
 
   String? _readSystemContentLanguageApiValue() {
@@ -685,18 +709,7 @@ class AppDI {
           .split('-')
           .first;
 
-      switch (normalized) {
-        case 'it':
-        case 'en':
-        case 'es':
-        case 'fr':
-        case 'de':
-        case 'ar':
-        case 'fa':
-          return normalized;
-        default:
-          return 'en';
-      }
+      return _normalizeNewsLanguageOrEnglish(normalized);
     } catch (_) {
       return 'en';
     }
@@ -826,6 +839,7 @@ class AppDI {
     required String authorName,
     required String title,
     required String content,
+    String languageCode = 'und',
     String? countryCode,
     String? cityId,
     ContentLocation? contentLocation,
@@ -836,6 +850,7 @@ class AppDI {
       authorName: authorName,
       title: title,
       content: content,
+      languageCode: languageCode,
       countryCode: countryCode,
       cityId: cityId,
       contentLocation: contentLocation,
@@ -1313,7 +1328,7 @@ class AppDI {
   }) async {
     final dynamic useCase = getNewsFeed;
 
-    final news = await _tryLoadListOrEmpty<NewsItem>([
+    var news = await _tryLoadListOrEmpty<NewsItem>([
       () => useCase(
             countryCode: countryCode,
             cityId: cityId,
@@ -1324,6 +1339,21 @@ class AppDI {
             allowFallbackCache: allowFallbackCache,
           ),
     ]);
+
+    final requestedLanguage = _normalizeNewsLanguageOrEnglish(language);
+    if (news.isEmpty && requestedLanguage != 'en') {
+      news = await _tryLoadListOrEmpty<NewsItem>([
+        () => useCase(
+              countryCode: countryCode,
+              cityId: cityId,
+              language: 'en',
+              limit: limit,
+              offset: 0,
+              allowProviderRefresh: allowProviderRefresh,
+              allowFallbackCache: allowFallbackCache,
+            ),
+      ]);
+    }
 
     if (news.isEmpty) {
       return news;

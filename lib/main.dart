@@ -212,6 +212,8 @@ class _NativeStartupBootstrapState extends State<_NativeStartupBootstrap> {
       'fr' => 'Impossible de démarrer Social Vote.',
       'ar' => 'تعذر تشغيل Social Vote.',
       'ro' => 'Social Vote nu a putut fi pornit.',
+      'ru' => 'Не удалось запустить Social Vote.',
+      'zh' => '无法启动 Social Vote。',
       _ => 'Unable to start Social Vote.',
     };
     final startupRetryText = switch (startupLanguageCode) {
@@ -223,6 +225,8 @@ class _NativeStartupBootstrapState extends State<_NativeStartupBootstrap> {
       'fr' => 'Réessayer',
       'ar' => 'إعادة المحاولة',
       'ro' => 'Încearcă din nou',
+      'ru' => 'Повторить',
+      'zh' => '重试',
       _ => 'Retry',
     };
 

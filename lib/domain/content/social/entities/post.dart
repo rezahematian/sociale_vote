@@ -50,6 +50,10 @@ class Post {
   /// Contenuto testuale principale del post.
   final String content;
 
+  /// Lingua del contenuto, indipendente dalla lingua della UI.
+  /// `und` identifica i contenuti legacy/non determinati.
+  final String languageCode;
+
   /// Timestamp originale di creazione del post.
   final DateTime createdAt;
 
@@ -94,6 +98,7 @@ class Post {
     this.authorAvatarUrl,
     required this.title,
     required this.content,
+    this.languageCode = 'und',
     required this.createdAt,
     this.updatedAt,
     this.commentCount = 0,
@@ -152,6 +157,7 @@ class Post {
     String? authorAvatarUrl,
     String? title,
     String? content,
+    String? languageCode,
     DateTime? createdAt,
     DateTime? updatedAt,
     int? commentCount,
@@ -173,6 +179,7 @@ class Post {
       authorAvatarUrl: authorAvatarUrl ?? this.authorAvatarUrl,
       title: title ?? this.title,
       content: content ?? this.content,
+      languageCode: languageCode ?? this.languageCode,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       commentCount: commentCount ?? this.commentCount,

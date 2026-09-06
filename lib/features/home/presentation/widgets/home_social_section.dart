@@ -10,6 +10,7 @@ import 'package:sociale_vote/features/home/presentation/widgets/home_post_previe
 import 'package:sociale_vote/features/social/application/feed_controller.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
+import 'package:sociale_vote/shared/widgets/product_signature_label.dart';
 
 class HomeSocialSection extends StatelessWidget {
   final String scopeShortLabel;
@@ -55,13 +56,20 @@ class HomeSocialSection extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            l10n.homeSocialTitle(scopeShortLabel),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ProductSignatureLabel(
+                kind: ProductSignatureKind.voce,
+                brandStyle: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                descriptorStyle: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ),
       ],

@@ -291,7 +291,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get homeScopeLabelCity => '城市 — 本地城市投票和新闻';
 
   @override
-  String get homeScopeShortWorld => '世界';
+  String get homeScopeShortWorld => 'World';
 
   @override
   String get homeScopeShortCountry => '国家';
@@ -300,7 +300,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get homeScopeShortCity => '城市';
 
   @override
-  String get homeScopeChipWorld => '世界';
+  String get homeScopeChipWorld => 'World';
 
   @override
   String get homeScopeChipItaly => '意大利';
@@ -324,24 +324,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get followScopeButtonFollow => '关注此地区';
 
   @override
-  String get homeTrendingTitle => '实时脉搏';
+  String get homeTrendingTitle => 'Pulse Now';
 
   @override
-  String get homeTrendingError => '无法加载此地区的实时脉搏。';
+  String get homeTrendingError => '无法加载此地区的 Pulse Now。';
 
   @override
-  String get homeTrendingEmpty => '此地区目前没有实时脉搏内容。';
+  String get homeTrendingEmpty => '此地区目前没有 Pulse Now 内容。';
 
   @override
   String homeForYouTitle(Object scope) {
-    return '脉搏（$scope）';
+    return 'Pulse（$scope）';
   }
 
   @override
-  String get homeForYouError => '无法加载此地区的脉搏。';
+  String get homeForYouError => '无法加载此地区的 Pulse。';
 
   @override
-  String get homeForYouEmpty => '此地区目前没有脉搏推荐内容。';
+  String get homeForYouEmpty => '此地区目前没有 Pulse 推荐内容。';
 
   @override
   String homePollsTitle(Object scope) {
@@ -512,7 +512,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pollList_title => 'Vote';
 
   @override
-  String get pollList_scopeWorld => '世界';
+  String get pollList_scopeWorld => 'World';
 
   @override
   String get pollList_scopeCountryFallback => '国家';
@@ -694,7 +694,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commentSection_youBadge => '你';
 
   @override
-  String get newsDetail_title => 'News 详情';
+  String get newsDetail_title => 'News · 详情';
 
   @override
   String get newsDetail_breakingBadge => '突发';
@@ -715,7 +715,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get newsFeed_title => 'News';
 
   @override
-  String get newsFeed_scopeWorld => '世界';
+  String get newsFeed_scopeWorld => 'World';
 
   @override
   String get newsFeed_scopeCountry => '国家';
@@ -824,7 +824,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get newsTopic_all => '全部';
 
   @override
-  String get newsTopic_world => '世界';
+  String get newsTopic_world => 'World';
 
   @override
   String get newsTopic_nation => '国家';
@@ -901,7 +901,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get homeMapOpenButton => '打开地图';
 
   @override
-  String get homeHeroHeadline => '塑造未来。\\n一起。';
+  String get homeHeroHeadline => '塑造未来。\n一起。';
 
   @override
   String get homeHeroPollsAction => 'Vote';
@@ -1114,7 +1114,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get authPersonalAccountOwnershipTitle => '登录账户始终属于个人';
 
   @override
-  String get authPersonalAccountOwnershipBody => '如果你代表某个组织，请先创建个人账户。登录后，你可以申请 Verified Organization，并在 Workspace 中管理它。';
+  String get authPersonalAccountOwnershipBody => '如果你代表某个组织，请先创建个人账户。登录后，你可以申请 Verified 组织，并在 工作区 中管理它。';
 
   @override
   String get authOrganizationPathAction => '组织如何使用';
@@ -1858,7 +1858,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get verificationReviewOperationFailure => '操作失败。';
 
   @override
-  String get adminCenterTitle => 'Admin Center';
+  String get adminCenterTitle => '管理中心';
 
   @override
   String get adminCenterDashboardNavigation => '仪表盘';
@@ -2904,7 +2904,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboardingHeatIceDescription => '使用 Heat 和 Ice 表示某条内容吸引你的程度。';
 
   @override
-  String get onboardingCivicMapTitle => 'Civic Map';
+  String get onboardingCivicMapTitle => '公民参与地图';
 
   @override
   String get onboardingCivicMapDescription => '在地图上探索 Vote、Voce 和 News，了解不同地区正在发生什么。';
@@ -3077,13 +3077,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get discoveryPageTitle => '探索';
 
   @override
-  String get organizationWorkspaceTitle => '组织 Workspace';
+  String get organizationWorkspaceTitle => '组织工作区';
 
   @override
   String get organizationPilotBannerTitle => '免费试点';
 
   @override
-  String get organizationPilotBannerBody => '试点期间 Sessions 免费。部分专业功能未来可能收费；当前未启用计费。';
+  String get organizationPilotBannerBody => '试点期间 会话 免费。部分专业功能未来可能收费；当前未启用计费。';
 
   @override
   String get organizationVerifiedLabel => '已验证组织';
@@ -3092,19 +3092,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get organizationEditProfile => '编辑组织资料';
 
   @override
-  String get organizationCreateSession => '新建 Session';
+  String get organizationCreateSession => '新建 会话';
 
   @override
-  String get organizationNoSessions => '还没有 Sessions。为会议、工作坊或活动创建第一个 Session。';
+  String get organizationNoSessions => '还没有 会话。为会议、工作坊或活动创建第一个 会话。';
 
   @override
-  String get organizationSessionsTitle => 'Live Sessions';
+  String get organizationSessionsTitle => 'Live 会话';
 
   @override
   String get organizationRequiresVerificationTitle => '需要已验证组织';
 
   @override
-  String get organizationRequiresVerificationBody => '此 workspace 仅对经 Social Vote 批准为已验证组织的账户开放。';
+  String get organizationRequiresVerificationBody => '此 工作区 仅对经 Social Vote 批准为已验证组织的账户开放。';
 
   @override
   String get organizationProfileEditorTitle => '组织资料';
@@ -3167,10 +3167,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get organizationTypeOther => '其他';
 
   @override
-  String get sessionCreateTitle => '创建 Live Session';
+  String get sessionCreateTitle => '创建 Live 会话';
 
   @override
-  String get sessionTitleLabel => 'Session 标题';
+  String get sessionTitleLabel => '会话 标题';
 
   @override
   String get sessionExpectedParticipants => '预计参与者';
@@ -3188,7 +3188,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sessionAccessControlled => '受控匿名';
 
   @override
-  String get sessionAccessControlledHint => '使用一次性匿名 Access Pass。Social Vote 仅存储 Access Pass 的哈希，不会将选票选择与参与者凭证关联。';
+  String get sessionAccessControlledHint => '使用一次性匿名 访问通行证。Social Vote 仅存储 访问通行证 的哈希，不会将选票选择与参与者凭证关联。';
 
   @override
   String get sessionResultsVisibility => '结果可见性';
@@ -3206,10 +3206,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sessionResultsOrganizerOnly => '仅组织者';
 
   @override
-  String get sessionCreateAction => '创建 Session';
+  String get sessionCreateAction => '创建 会话';
 
   @override
-  String get sessionPilotLimit => '试点限制：每个 Session 1 至 250 名参与者。';
+  String get sessionPilotLimit => '试点限制：每个 会话 1 至 250 名参与者。';
 
   @override
   String get sessionStatusDraft => '草稿';
@@ -3230,16 +3230,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sessionCopyJoinLink => '复制链接';
 
   @override
-  String get sessionGenerateTokens => '生成 Access Pass';
+  String get sessionGenerateTokens => '生成 访问通行证';
 
   @override
-  String get sessionGenerateTokensCount => 'Access Pass 数量';
+  String get sessionGenerateTokensCount => '访问通行证 数量';
 
   @override
   String get sessionTokensOneTimeTitle => '立即保存这些凭证';
 
   @override
-  String get sessionTokensOneTimeBody => '明文 Access Pass 仅在本次生成结果中显示。Social Vote 只存储其哈希。请复制并安全分发。';
+  String get sessionTokensOneTimeBody => '明文 访问通行证 仅在本次生成结果中显示。Social Vote 只存储其哈希。请复制并安全分发。';
 
   @override
   String get sessionCopyTokens => '复制所有链接';
@@ -3248,13 +3248,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sessionTokensSavedAction => '我已保存';
 
   @override
-  String get sessionOpenAction => '开启 Session';
+  String get sessionOpenAction => '开启 会话';
 
   @override
-  String get sessionCloseAction => '关闭 Session';
+  String get sessionCloseAction => '关闭 会话';
 
   @override
-  String get sessionCloseConfirm => '关闭投票并创建不可变的 Verified Result 快照？';
+  String get sessionCloseConfirm => '关闭投票并创建不可变的 已验证结果 快照？';
 
   @override
   String get sessionQuestionsTitle => '问题';
@@ -3302,13 +3302,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sessionNoQuestions => '还没有问题。';
 
   @override
-  String get sessionPresenterTitle => 'Presenter';
+  String get sessionPresenterTitle => '主持人';
 
   @override
   String get sessionParticipantTitle => 'Social Vote Live';
 
   @override
-  String get sessionJoinAction => '加入 Session';
+  String get sessionJoinAction => '加入 会话';
 
   @override
   String get sessionTokenLabel => '参与者令牌';
@@ -3326,13 +3326,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sessionVoteReceived => '投票已收到';
 
   @override
-  String get sessionResultsUnavailable => '根据此 Session 的策略，结果暂不可见。';
+  String get sessionResultsUnavailable => '根据此 会话 的策略，结果暂不可见。';
 
   @override
-  String get sessionPrivacyNotice => '组织者定义 Session 的运营目的和问题。Social Vote 处理提供和保护服务所必需的技术数据。匿名模式不会向组织者暴露参与者凭证与其选择之间的关联。隐私角色可能因具体场景和适用协议而异。';
+  String get sessionPrivacyNotice => '组织者定义 会话 的运营目的和问题。Social Vote 处理提供和保护服务所必需的技术数据。匿名模式不会向组织者暴露参与者凭证与其选择之间的关联。隐私角色可能因具体场景和适用协议而异。';
 
   @override
-  String get sessionNonBindingNotice => '试点 Sessions 用于咨询和参与。它们不是法律意义上的选举、法定会议投票或具有法律约束力的认证。';
+  String get sessionNonBindingNotice => '试点 会话 用于咨询和参与。它们不是法律意义上的选举、法定会议投票或具有法律约束力的认证。';
 
   @override
   String get sessionOptionYes => '是';
@@ -3341,7 +3341,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sessionOptionNo => '否';
 
   @override
-  String get verifiedResultTitle => 'Verified Result';
+  String get verifiedResultTitle => '已验证结果';
 
   @override
   String get verifiedResultValid => '完整性检查通过';
@@ -3378,7 +3378,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get organizationVerifiedIdentityLocked => '名称和国家属于组织已验证身份的一部分。更改它们需要重新验证。你可以自由更改封面、标志、类型、城市、网站和描述。';
 
   @override
-  String get verifiedResultOpenedAt => 'Session 开启时间';
+  String get verifiedResultOpenedAt => '会话 开启时间';
 
   @override
   String get verifiedResultEligibleCredentials => '合格凭证';
@@ -3416,7 +3416,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get verifiedResultRestrictedTitle => '受限结果';
 
   @override
-  String get verifiedResultRestrictedBody => '此 Verified Result 不公开。请使用已授权的组织账户登录查看。';
+  String get verifiedResultRestrictedBody => '此 已验证结果 不公开。请使用已授权的组织账户登录查看。';
 
   @override
   String get verifiedResultPrivateVerificationTitle => '公开验证不可用';
@@ -3476,7 +3476,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get organizationVerificationRequired => '必填项。';
 
   @override
-  String get sessionControlRoomTitle => 'Session 控制室';
+  String get sessionControlRoomTitle => '会话 控制室';
 
   @override
   String get sessionSectionLive => 'Live';
@@ -3491,34 +3491,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sessionSectionSettings => '设置';
 
   @override
-  String get sessionStageAction => '打开 Stage';
+  String get sessionStageAction => '打开 舞台';
 
   @override
-  String get sessionAccessPassesTitle => '参与者 Access Pass';
+  String get sessionAccessPassesTitle => '参与者 访问通行证';
 
   @override
-  String get sessionAccessPassesSubtitle => '每个 pass 都可以进入此 Controlled Anonymous Session，无需参与者手动输入长凭证。Social Vote 不存储明文 pass。';
+  String get sessionAccessPassesSubtitle => '每个 pass 都可以进入此 Controlled Anonymous 会话，无需参与者手动输入长凭证。Social Vote 不存储明文 pass。';
 
   @override
-  String get sessionAccessPass => 'Access Pass';
+  String get sessionAccessPass => '访问通行证';
 
   @override
-  String get sessionAccessPassDetected => '检测到 Access Pass';
+  String get sessionAccessPassDetected => '检测到 访问通行证';
 
   @override
-  String get sessionAccessPassAutomatic => '你的个人 pass 已准备好。继续即可匿名进入 Session。';
+  String get sessionAccessPassAutomatic => '你的个人 pass 已准备好。继续即可匿名进入 会话。';
 
   @override
   String get sessionAccessPassFallback => '手动输入 pass';
 
   @override
-  String get sessionAccessPassInvalid => '此 Access Pass 无效、已不可用，或 Session 尚未开放。';
+  String get sessionAccessPassInvalid => '此 访问通行证 无效、已不可用，或 会话 尚未开放。';
 
   @override
   String get sessionAccessPassPrintWarning => '请立即打印、保存或分发这些 passes。离开此页面后，Social Vote 无法再次显示其明文内容。';
 
   @override
-  String get sessionExistingPassesHidden => '出于安全原因，之前生成的 passes 无法再次以明文显示。请生成新的 Access Pass，以获取新的个人链接或二维码。';
+  String get sessionExistingPassesHidden => '出于安全原因，之前生成的 passes 无法再次以明文显示。请生成新的 访问通行证，以获取新的个人链接或二维码。';
 
   @override
   String get sessionCopyPassLinks => '复制所有链接';
@@ -3527,7 +3527,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sessionCopyPassLink => '复制此链接';
 
   @override
-  String get sessionControlledNeedsAccessPass => '开启受控 Session 前，请至少生成一个 Access Pass。';
+  String get sessionControlledNeedsAccessPass => '开启受控 会话 前，请至少生成一个 访问通行证。';
 
   @override
   String get sessionJoinedParticipants => '已加入的访问凭证';
@@ -3551,10 +3551,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sessionNoOpenQuestionBody => '参与者已连接并等待。准备好后请开放下一个问题。';
 
   @override
-  String get sessionNotStartedTitle => 'Session 尚未开始';
+  String get sessionNotStartedTitle => '会话 尚未开始';
 
   @override
-  String get sessionNotStartedBody => '此 Session 已创建但尚未开放。请保持此页面打开并等待组织者开始。';
+  String get sessionNotStartedBody => '此 会话 已创建但尚未开放。请保持此页面打开并等待组织者开始。';
 
   @override
   String get sessionNoAccountRequired => '无需 Social Vote 账户';
@@ -3563,25 +3563,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sessionReceiptDetails => '凭证详情';
 
   @override
-  String get sessionOpenAccessInstructions => '展示或分享此二维码。Session 开放期间，任何拥有链接的人都可以进入。';
+  String get sessionOpenAccessInstructions => '展示或分享此二维码。会话 开放期间，任何拥有链接的人都可以进入。';
 
   @override
-  String get sessionControlledAccessInstructions => '创建个人 Access Pass，并为每位参与者分配一个。每个 pass 中的二维码会自动包含凭证。';
+  String get sessionControlledAccessInstructions => '创建个人 访问通行证，并为每位参与者分配一个。每个 pass 中的二维码会自动包含凭证。';
 
   @override
-  String get sessionControlRoomHint => '在一个地方管理访问、问题、投屏 Stage 和最终 Verified Result。';
+  String get sessionControlRoomHint => '在一个地方管理访问、问题、投屏 舞台 和最终 已验证结果。';
 
   @override
-  String get sessionPresenterScreenTitle => 'Live Stage';
+  String get sessionPresenterScreenTitle => '直播舞台';
 
   @override
   String get sessionStageWaiting => '等待下一个问题';
 
   @override
-  String get sessionStageScan => '扫描加入 Session';
+  String get sessionStageScan => '扫描加入 会话';
 
   @override
-  String get sessionConfigurationTitle => 'Session 配置';
+  String get sessionConfigurationTitle => '会话 配置';
 
   @override
   String get sessionAccessRecommended => '推荐用于受控会议';
@@ -3608,7 +3608,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get verifiedCertificateOrganizationSection => '组织';
 
   @override
-  String get verifiedCertificateSessionSection => 'Session';
+  String get verifiedCertificateSessionSection => '会话';
 
   @override
   String get verifiedCertificateParticipationSection => '参与';
@@ -3656,7 +3656,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get verifiedCertificatePrivacyModel => '匿名结果模型';
 
   @override
-  String get verifiedCertificatePrivacyText => '不可变快照仅包含汇总结果。它不包含参与者身份、明文 Access Pass、参与者密钥，也不包含参与者凭证与选票选择之间的映射。';
+  String get verifiedCertificatePrivacyText => '不可变快照仅包含汇总结果。它不包含参与者身份、明文 访问通行证、参与者密钥，也不包含参与者凭证与选票选择之间的映射。';
 
   @override
   String get verifiedCertificateVerifyQr => '扫描此二维码在线验证报告。';
@@ -3665,13 +3665,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get organizationDashboardTitle => '组织概览';
 
   @override
-  String get organizationActiveSessions => 'Live Sessions';
+  String get organizationActiveSessions => 'Live 会话';
 
   @override
   String get organizationVerifiedReports => '已验证报告';
 
   @override
-  String get organizationTotalSessions => 'Sessions 总数';
+  String get organizationTotalSessions => '会话 总数';
 
   @override
   String get sessionPrivacyPolicyAction => '阅读隐私政策';
@@ -3710,7 +3710,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get adminCenterEditorialNavigation => 'World Briefs';
 
   @override
-  String get worldBriefEditorTitle => 'Social Vote World Briefs';
+  String get worldBriefEditorTitle => 'Social Vote · World Brief';
 
   @override
   String get worldBriefEditorDescription => '编写基于证据的 briefs，明确呈现不确定性，并决定哪些内容显示在 News 和地球上。';
@@ -3764,7 +3764,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get worldBriefSetupRequiredBody => '使用此部分前，请先应用随附的 World Brief 数据库迁移。';
 
   @override
-  String get worldBriefEmptyTitle => '还没有 World Briefs';
+  String get worldBriefEmptyTitle => '还没有 World Brief';
 
   @override
   String get worldBriefEmptyBody => '创建草稿，记录至少两个来源，并仅在编辑审核后发布。';
@@ -3865,7 +3865,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileHowItWorksTitle => 'Social Vote 如何运作';
 
   @override
-  String get profileHowItWorksSubtitle => '个人、组织、Voce、Vote、Sessions 和验证。';
+  String get profileHowItWorksSubtitle => '个人、组织、Voce、Vote、会话 和验证。';
 
   @override
   String get profileMyPostsLoginRequired => '你必须登录后才能查看自己的 Voce。';

@@ -18,6 +18,7 @@ import 'package:sociale_vote/features/map/presentation/widgets/world_globe_widge
 import 'package:sociale_vote/shared/services/world_appearance_service.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 import 'package:sociale_vote/features/news/domain/news_language.dart';
+import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 
@@ -106,7 +107,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Civic Map'),
+            Text(AppLocalizations.of(context)!.onboardingCivicMapTitle),
             Text(
               _scopeLabel(context, activeScope),
               maxLines: 1,
@@ -566,6 +567,14 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
         return NewsLanguage.ar;
       case 'fa':
         return NewsLanguage.fa;
+      case 'pt':
+        return NewsLanguage.pt;
+      case 'ro':
+        return NewsLanguage.ro;
+      case 'ru':
+        return NewsLanguage.ru;
+      case 'zh':
+        return NewsLanguage.zh;
       default:
         return NewsLanguage.auto;
     }
@@ -1098,7 +1107,7 @@ class _MapLanguageSelector extends StatelessWidget {
             (language) => Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                _compactLabelForLanguage(language),
+                _compactLabelForLanguage(context, language),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -1108,7 +1117,7 @@ class _MapLanguageSelector extends StatelessWidget {
       items: NewsLanguage.values.map((language) {
         return DropdownMenuItem<NewsLanguage>(
           value: language,
-          child: Text(_fullLabelForLanguage(language)),
+          child: Text(_fullLabelForLanguage(context, language)),
         );
       }).toList(growable: false),
       onChanged: enabled
@@ -1121,10 +1130,13 @@ class _MapLanguageSelector extends StatelessWidget {
     );
   }
 
-  String _compactLabelForLanguage(NewsLanguage language) {
+  String _compactLabelForLanguage(
+    BuildContext context,
+    NewsLanguage language,
+  ) {
     switch (language) {
       case NewsLanguage.auto:
-        return 'Auto';
+        return AppLocalizations.of(context)!.newsFeed_languageAuto;
       case NewsLanguage.it:
         return 'IT';
       case NewsLanguage.en:
@@ -1139,13 +1151,24 @@ class _MapLanguageSelector extends StatelessWidget {
         return 'AR';
       case NewsLanguage.fa:
         return 'FA';
+      case NewsLanguage.pt:
+        return 'PT';
+      case NewsLanguage.ro:
+        return 'RO';
+      case NewsLanguage.ru:
+        return 'RU';
+      case NewsLanguage.zh:
+        return 'ZH';
     }
   }
 
-  String _fullLabelForLanguage(NewsLanguage language) {
+  String _fullLabelForLanguage(
+    BuildContext context,
+    NewsLanguage language,
+  ) {
     switch (language) {
       case NewsLanguage.auto:
-        return 'Auto';
+        return AppLocalizations.of(context)!.newsFeed_languageAuto;
       case NewsLanguage.it:
         return 'Italiano (IT)';
       case NewsLanguage.en:
@@ -1160,6 +1183,14 @@ class _MapLanguageSelector extends StatelessWidget {
         return 'العربية (AR)';
       case NewsLanguage.fa:
         return 'فارسی (FA)';
+      case NewsLanguage.pt:
+        return 'Português (PT)';
+      case NewsLanguage.ro:
+        return 'Română (RO)';
+      case NewsLanguage.ru:
+        return 'Русский (RU)';
+      case NewsLanguage.zh:
+        return '中文（简体） (ZH)';
     }
   }
 }
@@ -1289,10 +1320,7 @@ class _MarkerPreviewCard extends StatelessWidget {
                   onPressed: onOpen,
                   icon: const Icon(Icons.open_in_new),
                   label: Text(
-                    Localizations.localeOf(context).languageCode == 'it'
-                        ? 'Apri dettaglio'
-                        : deOrEnglish(context,
-                            english: 'Open details', german: 'Details öffnen'),
+                    AppLocalizations.of(context)!.pollCard_viewDetails,
                   ),
                 ),
               ],
@@ -1542,17 +1570,8 @@ class _MapTypeFilters extends StatelessWidget {
   }
 
   String _label(BuildContext context, CivicMapItemType? type) {
-    final language = Localizations.localeOf(context).languageCode;
     if (type == null) {
-      if (language == 'it') return 'Tutti';
-      if (language == 'de') return 'Alle';
-      if (language == 'fa') return 'همه';
-      if (language == 'es') return 'Todos';
-      if (language == 'pt') return 'Todos';
-      if (language == 'fr') return 'Tous';
-      if (language == 'ar') return 'الكل';
-      if (language == 'ro') return 'Toate';
-      return 'All';
+      return AppLocalizations.of(context)!.searchTypeAll;
     }
     return switch (type) {
       CivicMapItemType.poll => 'Vote',

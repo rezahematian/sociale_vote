@@ -623,7 +623,7 @@ class _PublicCityRouteGateState extends State<_PublicCityRouteGate> {
           final l10n = AppLocalizations.of(context)!;
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Civic Map'),
+              title: Text(l10n.onboardingCivicMapTitle),
             ),
             body: Center(
               child: Padding(

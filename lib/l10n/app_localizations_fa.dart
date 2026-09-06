@@ -291,7 +291,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get homeScopeLabelCity => 'شهر – رأی‌گیری‌ها و خبرهای محلی';
 
   @override
-  String get homeScopeShortWorld => 'جهان';
+  String get homeScopeShortWorld => 'World';
 
   @override
   String get homeScopeShortCountry => 'کشور';
@@ -300,7 +300,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get homeScopeShortCity => 'شهر';
 
   @override
-  String get homeScopeChipWorld => 'جهان';
+  String get homeScopeChipWorld => 'World';
 
   @override
   String get homeScopeChipItaly => 'ایتالیا';
@@ -324,24 +324,24 @@ class AppLocalizationsFa extends AppLocalizations {
   String get followScopeButtonFollow => 'دنبال‌کردن این منطقه';
 
   @override
-  String get homeTrendingTitle => 'Pulse · اکنون';
+  String get homeTrendingTitle => 'Pulse Now';
 
   @override
-  String get homeTrendingError => 'بارگذاری محتوای داغ این منطقه ممکن نیست.';
+  String get homeTrendingError => 'بارگذاری Pulse Now برای این منطقه ممکن نیست.';
 
   @override
-  String get homeTrendingEmpty => 'در حال حاضر محتوای داغی برای این منطقه نیست.';
+  String get homeTrendingEmpty => 'در حال حاضر محتوایی در Pulse Now برای این منطقه نیست.';
 
   @override
   String homeForYouTitle(Object scope) {
-    return 'Pulse · $scope';
+    return 'Pulse ($scope)';
   }
 
   @override
-  String get homeForYouError => 'بارگذاری پیشنهادهای این منطقه ممکن نیست.';
+  String get homeForYouError => 'بارگذاری Pulse برای این منطقه ممکن نیست.';
 
   @override
-  String get homeForYouEmpty => 'در حال حاضر محتوای پیشنهادی برای این منطقه نیست.';
+  String get homeForYouEmpty => 'در حال حاضر محتوای پیشنهادی در Pulse برای این منطقه نیست.';
 
   @override
   String homePollsTitle(Object scope) {
@@ -512,7 +512,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get pollList_title => 'Vote';
 
   @override
-  String get pollList_scopeWorld => 'جهان';
+  String get pollList_scopeWorld => 'World';
 
   @override
   String get pollList_scopeCountryFallback => 'کشور';
@@ -694,7 +694,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get commentSection_youBadge => 'شما';
 
   @override
-  String get newsDetail_title => 'جزئیات خبر';
+  String get newsDetail_title => 'News · جزئیات';
 
   @override
   String get newsDetail_breakingBadge => 'فوری';
@@ -712,10 +712,10 @@ class AppLocalizationsFa extends AppLocalizations {
   String get newsDetail_footerMoreContext => 'زمینه و منابع بیشتر به‌زودی اضافه می‌شود.';
 
   @override
-  String get newsFeed_title => 'خبرها';
+  String get newsFeed_title => 'News';
 
   @override
-  String get newsFeed_scopeWorld => 'جهان';
+  String get newsFeed_scopeWorld => 'World';
 
   @override
   String get newsFeed_scopeCountry => 'کشور';
@@ -824,7 +824,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get newsTopic_all => 'همه';
 
   @override
-  String get newsTopic_world => 'جهان';
+  String get newsTopic_world => 'World';
 
   @override
   String get newsTopic_nation => 'کشور';
@@ -2904,7 +2904,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get onboardingHeatIceDescription => 'از Heat و Ice برای نشان‌دادن شدت توجه شما به یک محتوا استفاده کنید.';
 
   @override
-  String get onboardingCivicMapTitle => 'نقشه مدنی';
+  String get onboardingCivicMapTitle => 'نقشه مشارکت مدنی';
 
   @override
   String get onboardingCivicMapDescription => 'Vote، Voce و News را روی نقشه کاوش کنید و ببینید در مناطق مختلف چه خبر است.';
@@ -3083,7 +3083,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get organizationPilotBannerTitle => 'دوره آزمایشی رایگان';
 
   @override
-  String get organizationPilotBannerBody => 'Sessions در دوره آزمایشی رایگان هستند. ممکن است برخی قابلیت‌های حرفه‌ای در آینده پولی شوند؛ اکنون صورت‌حساب فعال نیست.';
+  String get organizationPilotBannerBody => 'جلسه‌ها در دوره آزمایشی رایگان هستند. ممکن است برخی قابلیت‌های حرفه‌ای در آینده پولی شوند؛ اکنون صورت‌حساب فعال نیست.';
 
   @override
   String get organizationVerifiedLabel => 'سازمان تأییدشده';
@@ -3092,13 +3092,13 @@ class AppLocalizationsFa extends AppLocalizations {
   String get organizationEditProfile => 'ویرایش پروفایل سازمان';
 
   @override
-  String get organizationCreateSession => 'Session جدید';
+  String get organizationCreateSession => 'جلسه جدید';
 
   @override
-  String get organizationNoSessions => 'هنوز Session‌ای نیست. اولین Session را برای جلسه، کارگاه یا رویداد ایجاد کنید.';
+  String get organizationNoSessions => 'هنوز جلسه‌ای نیست. اولین جلسه را برای جلسه، کارگاه یا رویداد ایجاد کنید.';
 
   @override
-  String get organizationSessionsTitle => 'Sessions زنده';
+  String get organizationSessionsTitle => 'جلسه‌ها زنده';
 
   @override
   String get organizationRequiresVerificationTitle => 'سازمان تأییدشده لازم است';
@@ -3167,10 +3167,10 @@ class AppLocalizationsFa extends AppLocalizations {
   String get organizationTypeOther => 'سایر';
 
   @override
-  String get sessionCreateTitle => 'ایجاد Session زنده';
+  String get sessionCreateTitle => 'ایجاد جلسه زنده';
 
   @override
-  String get sessionTitleLabel => 'عنوان Session';
+  String get sessionTitleLabel => 'عنوان جلسه';
 
   @override
   String get sessionExpectedParticipants => 'شرکت‌کنندگان مورد انتظار';
@@ -3188,7 +3188,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get sessionAccessControlled => 'ناشناس کنترل‌شده';
 
   @override
-  String get sessionAccessControlledHint => 'از Access Pass‌های ناشناس یک‌بارمصرف استفاده کنید. Social Vote فقط هش Access Pass را ذخیره می‌کند و گزینه‌های رأی را به اعتبارنامه شرکت‌کننده مرتبط نمی‌کند.';
+  String get sessionAccessControlledHint => 'از مجوز دسترسی‌های ناشناس یک‌بارمصرف استفاده کنید. Social Vote فقط هش مجوز دسترسی را ذخیره می‌کند و گزینه‌های رأی را به اعتبارنامه شرکت‌کننده مرتبط نمی‌کند.';
 
   @override
   String get sessionResultsVisibility => 'قابلیت مشاهده نتیجه';
@@ -3206,10 +3206,10 @@ class AppLocalizationsFa extends AppLocalizations {
   String get sessionResultsOrganizerOnly => 'فقط برگزارکننده';
 
   @override
-  String get sessionCreateAction => 'ایجاد Session';
+  String get sessionCreateAction => 'ایجاد جلسه';
 
   @override
-  String get sessionPilotLimit => 'محدودیت آزمایشی: از ۱ تا ۲۵۰ شرکت‌کننده در هر Session.';
+  String get sessionPilotLimit => 'محدودیت آزمایشی: از ۱ تا ۲۵۰ شرکت‌کننده در هر جلسه.';
 
   @override
   String get sessionStatusDraft => 'پیش‌نویس';
@@ -3230,16 +3230,16 @@ class AppLocalizationsFa extends AppLocalizations {
   String get sessionCopyJoinLink => 'کپی پیوند';
 
   @override
-  String get sessionGenerateTokens => 'ایجاد Access Pass‌ها';
+  String get sessionGenerateTokens => 'ایجاد مجوز دسترسی‌ها';
 
   @override
-  String get sessionGenerateTokensCount => 'تعداد Access Pass‌ها';
+  String get sessionGenerateTokensCount => 'تعداد مجوز دسترسی‌ها';
 
   @override
   String get sessionTokensOneTimeTitle => 'این اعتبارنامه‌ها را همین حالا ذخیره کنید';
 
   @override
-  String get sessionTokensOneTimeBody => 'Access Pass‌های متن‌ساده فقط در نتیجه این دسته نمایش داده می‌شوند. Social Vote فقط هش آن‌ها را ذخیره می‌کند. آن‌ها را با امنیت کپی و توزیع کنید.';
+  String get sessionTokensOneTimeBody => 'مجوز دسترسی‌های متن‌ساده فقط در نتیجه این دسته نمایش داده می‌شوند. Social Vote فقط هش آن‌ها را ذخیره می‌کند. آن‌ها را با امنیت کپی و توزیع کنید.';
 
   @override
   String get sessionCopyTokens => 'کپی همه پیوندها';
@@ -3248,13 +3248,13 @@ class AppLocalizationsFa extends AppLocalizations {
   String get sessionTokensSavedAction => 'ذخیره‌شان کردم';
 
   @override
-  String get sessionOpenAction => 'باز کردن Session';
+  String get sessionOpenAction => 'باز کردن جلسه';
 
   @override
-  String get sessionCloseAction => 'بستن Session';
+  String get sessionCloseAction => 'بستن جلسه';
 
   @override
-  String get sessionCloseConfirm => 'رأی‌گیری بسته شود و نسخه ثابت Verified Result ایجاد شود؟';
+  String get sessionCloseConfirm => 'رأی‌گیری بسته شود و نسخه ثابت نتیجه تأییدشده ایجاد شود؟';
 
   @override
   String get sessionQuestionsTitle => 'پرسش‌ها';
@@ -3308,7 +3308,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get sessionParticipantTitle => 'Social Vote Live';
 
   @override
-  String get sessionJoinAction => 'پیوستن به Session';
+  String get sessionJoinAction => 'پیوستن به جلسه';
 
   @override
   String get sessionTokenLabel => 'توکن شرکت‌کننده';
@@ -3326,13 +3326,13 @@ class AppLocalizationsFa extends AppLocalizations {
   String get sessionVoteReceived => 'رأی دریافت شد';
 
   @override
-  String get sessionResultsUnavailable => 'نتایج هنوز طبق سیاست این Session قابل مشاهده نیستند.';
+  String get sessionResultsUnavailable => 'نتایج هنوز طبق سیاست این جلسه قابل مشاهده نیستند.';
 
   @override
-  String get sessionPrivacyNotice => 'برگزارکننده، هدف عملیاتی و پرسش‌های Session را تعیین می‌کند. Social Vote داده‌های فنی لازم برای ارائه و محافظت از خدمت را پردازش می‌کند. حالت‌های ناشناس، ارتباط بین اعتبارنامه شرکت‌کننده و گزینه رأی را به برگزارکننده نشان نمی‌دهند. نقش‌های حریم خصوصی ممکن است به زمینه و توافق‌های قابل اجرا بستگی داشته باشند.';
+  String get sessionPrivacyNotice => 'برگزارکننده، هدف عملیاتی و پرسش‌های جلسه را تعیین می‌کند. Social Vote داده‌های فنی لازم برای ارائه و محافظت از خدمت را پردازش می‌کند. حالت‌های ناشناس، ارتباط بین اعتبارنامه شرکت‌کننده و گزینه رأی را به برگزارکننده نشان نمی‌دهند. نقش‌های حریم خصوصی ممکن است به زمینه و توافق‌های قابل اجرا بستگی داشته باشند.';
 
   @override
-  String get sessionNonBindingNotice => 'Sessions آزمایشی برای مشورت و مشارکت هستند. آن‌ها انتخابات قانونی، رأی مجمع رسمی یا گواهی الزام‌آور قانونی نیستند.';
+  String get sessionNonBindingNotice => 'جلسه‌ها آزمایشی برای مشورت و مشارکت هستند. آن‌ها انتخابات قانونی، رأی مجمع رسمی یا گواهی الزام‌آور قانونی نیستند.';
 
   @override
   String get sessionOptionYes => 'بله';
@@ -3378,7 +3378,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get organizationVerifiedIdentityLocked => 'نام و کشور بخشی از هویت تأییدشده سازمان هستند. تغییر آن‌ها نیازمند تأیید دوباره است. تصویر روی جلد، نشان، نوع، شهر، وب‌سایت و توضیحات را آزادانه می‌توانید تغییر دهید.';
 
   @override
-  String get verifiedResultOpenedAt => 'Session باز شد';
+  String get verifiedResultOpenedAt => 'جلسه باز شد';
 
   @override
   String get verifiedResultEligibleCredentials => 'اعتبارنامه‌های مجاز';
@@ -3476,7 +3476,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get organizationVerificationRequired => 'فیلد الزامی.';
 
   @override
-  String get sessionControlRoomTitle => 'اتاق کنترل Session';
+  String get sessionControlRoomTitle => 'اتاق کنترل جلسه';
 
   @override
   String get sessionSectionLive => 'زنده';
@@ -3494,31 +3494,31 @@ class AppLocalizationsFa extends AppLocalizations {
   String get sessionStageAction => 'باز کردن صحنه';
 
   @override
-  String get sessionAccessPassesTitle => 'Access Pass‌های شرکت‌کنندگان';
+  String get sessionAccessPassesTitle => 'مجوز دسترسی‌های شرکت‌کنندگان';
 
   @override
-  String get sessionAccessPassesSubtitle => 'هر Pass، این Session ناشناس کنترل‌شده را بدون نیاز به تایپ اعتبارنامه طولانی باز می‌کند. Social Vote متن ساده Pass را ذخیره نمی‌کند.';
+  String get sessionAccessPassesSubtitle => 'هر Pass، این جلسه ناشناس کنترل‌شده را بدون نیاز به تایپ اعتبارنامه طولانی باز می‌کند. Social Vote متن ساده Pass را ذخیره نمی‌کند.';
 
   @override
-  String get sessionAccessPass => 'Access Pass';
+  String get sessionAccessPass => 'مجوز دسترسی';
 
   @override
-  String get sessionAccessPassDetected => 'Access Pass شناسایی شد';
+  String get sessionAccessPassDetected => 'مجوز دسترسی شناسایی شد';
 
   @override
-  String get sessionAccessPassAutomatic => 'Pass شخصی شما آماده است. برای ورود ناشناس به Session ادامه دهید.';
+  String get sessionAccessPassAutomatic => 'Pass شخصی شما آماده است. برای ورود ناشناس به جلسه ادامه دهید.';
 
   @override
   String get sessionAccessPassFallback => 'واردکردن دستی Pass';
 
   @override
-  String get sessionAccessPassInvalid => 'این Access Pass نامعتبر یا دیگر موجود نیست، یا Session باز نیست.';
+  String get sessionAccessPassInvalid => 'این مجوز دسترسی نامعتبر یا دیگر موجود نیست، یا جلسه باز نیست.';
 
   @override
   String get sessionAccessPassPrintWarning => 'این Pass‌ها را همین حالا چاپ، ذخیره یا توزیع کنید. پس از ترک این صفحه، Social Vote نمی‌تواند متن ساده Pass‌ها را دوباره نشان دهد.';
 
   @override
-  String get sessionExistingPassesHidden => 'به دلایل امنیتی، Pass‌های قبلی دوباره به‌صورت متن ساده نمایش داده نمی‌شوند. برای دریافت پیوندها یا QR Code‌های شخصی جدید، Access Pass‌های جدید بسازید.';
+  String get sessionExistingPassesHidden => 'به دلایل امنیتی، Pass‌های قبلی دوباره به‌صورت متن ساده نمایش داده نمی‌شوند. برای دریافت پیوندها یا QR Code‌های شخصی جدید، مجوز دسترسی‌های جدید بسازید.';
 
   @override
   String get sessionCopyPassLinks => 'کپی همه پیوندها';
@@ -3527,7 +3527,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get sessionCopyPassLink => 'کپی این پیوند';
 
   @override
-  String get sessionControlledNeedsAccessPass => 'پیش از باز کردن Session کنترل‌شده، حداقل یک Access Pass ایجاد کنید.';
+  String get sessionControlledNeedsAccessPass => 'پیش از باز کردن جلسه کنترل‌شده، حداقل یک مجوز دسترسی ایجاد کنید.';
 
   @override
   String get sessionJoinedParticipants => 'اعتبارنامه‌های واردشده';
@@ -3551,10 +3551,10 @@ class AppLocalizationsFa extends AppLocalizations {
   String get sessionNoOpenQuestionBody => 'شرکت‌کنندگان متصل و منتظر هستند. هر زمان آماده بودید، پرسش بعدی را باز کنید.';
 
   @override
-  String get sessionNotStartedTitle => 'Session هنوز شروع نشده است';
+  String get sessionNotStartedTitle => 'جلسه هنوز شروع نشده است';
 
   @override
-  String get sessionNotStartedBody => 'این Session وجود دارد اما هنوز باز نیست. این صفحه را باز نگه دارید و منتظر شروع برگزارکننده بمانید.';
+  String get sessionNotStartedBody => 'این جلسه وجود دارد اما هنوز باز نیست. این صفحه را باز نگه دارید و منتظر شروع برگزارکننده بمانید.';
 
   @override
   String get sessionNoAccountRequired => 'به حساب Social Vote نیازی نیست';
@@ -3563,10 +3563,10 @@ class AppLocalizationsFa extends AppLocalizations {
   String get sessionReceiptDetails => 'جزئیات رسید';
 
   @override
-  String get sessionOpenAccessInstructions => 'این QR را نمایش دهید یا همرسانی کنید. هر کسی که پیوند را داشته باشد، تا زمانی که Session باز است می‌تواند وارد شود.';
+  String get sessionOpenAccessInstructions => 'این QR را نمایش دهید یا همرسانی کنید. هر کسی که پیوند را داشته باشد، تا زمانی که جلسه باز است می‌تواند وارد شود.';
 
   @override
-  String get sessionControlledAccessInstructions => 'Access Pass‌های شخصی ایجاد کنید و به هر شرکت‌کننده یکی بدهید. QR هر Pass اعتبارنامه را خودکار در خود دارد.';
+  String get sessionControlledAccessInstructions => 'مجوز دسترسی‌های شخصی ایجاد کنید و به هر شرکت‌کننده یکی بدهید. QR هر Pass اعتبارنامه را خودکار در خود دارد.';
 
   @override
   String get sessionControlRoomHint => 'دسترسی، پرسش‌ها، صحنه پخش‌شده و نتیجه تأییدشده نهایی را از یک مکان مدیریت کنید.';
@@ -3578,10 +3578,10 @@ class AppLocalizationsFa extends AppLocalizations {
   String get sessionStageWaiting => 'در انتظار پرسش بعدی';
 
   @override
-  String get sessionStageScan => 'برای پیوستن به Session اسکن کنید';
+  String get sessionStageScan => 'برای پیوستن به جلسه اسکن کنید';
 
   @override
-  String get sessionConfigurationTitle => 'پیکربندی Session';
+  String get sessionConfigurationTitle => 'پیکربندی جلسه';
 
   @override
   String get sessionAccessRecommended => 'پیشنهادشده برای جلسات کنترل‌شده';
@@ -3656,7 +3656,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get verifiedCertificatePrivacyModel => 'مدل نتیجه ناشناس';
 
   @override
-  String get verifiedCertificatePrivacyText => 'نسخه ثابت فقط حاوی نتایج تجمیعی است. هویت شرکت‌کننده، Access Pass متن‌ساده، راز شرکت‌کننده یا هرگونه نگاشت اعتبارنامه شرکت‌کننده به گزینه رأی را شامل نمی‌شود.';
+  String get verifiedCertificatePrivacyText => 'نسخه ثابت فقط حاوی نتایج تجمیعی است. هویت شرکت‌کننده، مجوز دسترسی متن‌ساده، راز شرکت‌کننده یا هرگونه نگاشت اعتبارنامه شرکت‌کننده به گزینه رأی را شامل نمی‌شود.';
 
   @override
   String get verifiedCertificateVerifyQr => 'برای راستی‌آزمایی آنلاین گزارش، این QR را اسکن کنید.';
@@ -3665,13 +3665,13 @@ class AppLocalizationsFa extends AppLocalizations {
   String get organizationDashboardTitle => 'نمای کلی سازمان';
 
   @override
-  String get organizationActiveSessions => 'Sessions زنده';
+  String get organizationActiveSessions => 'جلسه‌ها زنده';
 
   @override
   String get organizationVerifiedReports => 'گزارش‌های تأییدشده';
 
   @override
-  String get organizationTotalSessions => 'مجموع Sessions';
+  String get organizationTotalSessions => 'مجموع جلسه‌ها';
 
   @override
   String get sessionPrivacyPolicyAction => 'مطالعه سیاست حریم خصوصی';
@@ -3710,7 +3710,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get adminCenterEditorialNavigation => 'گزارش‌های جهان';
 
   @override
-  String get worldBriefEditorTitle => 'گزارش‌های جهان Social Vote';
+  String get worldBriefEditorTitle => 'Social Vote · World Brief';
 
   @override
   String get worldBriefEditorDescription => 'گزارش‌های مستند آماده کنید، موارد نامطمئن را آشکار نگه دارید و تعیین کنید چه چیزی در اخبار و روی کره نمایش داده شود.';
@@ -3764,7 +3764,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get worldBriefSetupRequiredBody => 'پیش از استفاده از این بخش، مهاجرت پایگاه داده World Brief موجود در بسته را اجرا کنید.';
 
   @override
-  String get worldBriefEmptyTitle => 'هنوز گزارشی وجود ندارد';
+  String get worldBriefEmptyTitle => 'هنوز World Brief وجود ندارد';
 
   @override
   String get worldBriefEmptyBody => 'یک پیش‌نویس بسازید، دست‌کم دو منبع را ثبت کنید و تنها پس از بازبینی تحریریه منتشر کنید.';
@@ -3859,7 +3859,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get profileHowItWorksTitle => 'راهنمای برنامه';
 
   @override
-  String get profileHowItWorksSubtitle => 'افراد، سازمان‌ها، Voce، Vote، Sessions و تأیید هویت.';
+  String get profileHowItWorksSubtitle => 'افراد، سازمان‌ها، Voce، Vote، جلسه‌ها و تأیید هویت.';
 
   @override
   String get profileMyPostsLoginRequired => 'برای دیدن بخش Voce خود باید وارد شوید.';
@@ -4043,7 +4043,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get profileAppLanguagePortuguese => 'پرتغالی';
 
   @override
-  String get homeHeroPurpose => 'آنچه اهمیت دارد را کشف کنید، Voce خود را به اشتراک بگذارید و در Vote شرکت کنید.';
+  String get homeHeroPurpose => 'موضوعات مهم را کشف کنید، دیدگاه خود را در Voce به اشتراک بگذارید و در Vote شرکت کنید.';
 
   @override
   String get commentSection_hideComments => 'بستن دیدگاه‌ها';

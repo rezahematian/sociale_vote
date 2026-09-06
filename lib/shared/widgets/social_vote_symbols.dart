@@ -95,6 +95,8 @@ abstract final class SocialVoteSymbols {
           'fr' => 'Organisation',
           'ar' => 'منظمة',
           'ro' => 'Organizație',
+          'ru' => 'Организация',
+          'zh' => '组织',
           _ => 'Organization',
         },
       ActorType.institution => switch (language) {
@@ -106,6 +108,8 @@ abstract final class SocialVoteSymbols {
           'fr' => 'Institution publique',
           'ar' => 'مؤسسة عامة',
           'ro' => 'Instituție publică',
+          'ru' => 'Государственное учреждение',
+          'zh' => '公共机构',
           _ => 'Public institution',
         },
       ActorType.publicOfficial => switch (language) {
@@ -117,6 +121,8 @@ abstract final class SocialVoteSymbols {
           'fr' => 'Responsable public',
           'ar' => 'مسؤول عام',
           'ro' => 'Oficial public',
+          'ru' => 'Публичное должностное лицо',
+          'zh' => '公职人员',
           _ => 'Public official',
         },
       ActorType.citizen => switch (language) {
@@ -128,6 +134,8 @@ abstract final class SocialVoteSymbols {
           'fr' => 'Citoyen',
           'ar' => 'مواطن',
           'ro' => 'Cetățean',
+          'ru' => 'Гражданин',
+          'zh' => '公民',
           _ => 'Citizen',
         },
     };
@@ -163,6 +171,8 @@ abstract final class SocialVoteSymbols {
       'fr' => 'Ouvrir le profil',
       'ar' => 'فتح الملف الشخصي',
       'ro' => 'Deschide profilul',
+      'ru' => 'Открыть профиль',
+      'zh' => '打开个人资料',
       _ => 'Open profile',
     };
   }
@@ -246,6 +256,8 @@ class GlobeContentMarker extends StatelessWidget {
       'fr' => '$label contenus',
       'ar' => '$label عناصر',
       'ro' => '$label elemente',
+      'ru' => '$label элементов',
+      'zh' => '$label 个内容',
       _ => '$label items',
     };
 

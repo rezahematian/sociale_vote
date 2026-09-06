@@ -10,11 +10,13 @@ class UpdatePollText {
     required String pollId,
     required String title,
     String? description,
+    required String languageCode,
   }) {
     return _repository.updatePollText(
       pollId: pollId,
       title: title,
       description: description,
+      languageCode: languageCode,
     );
   }
 }

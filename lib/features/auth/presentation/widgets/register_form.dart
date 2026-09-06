@@ -728,6 +728,8 @@ class _RegisterFormState extends State<RegisterForm> {
       'fr' => 'fr',
       'ar' => 'ar',
       'ro' => 'ro',
+      'ru' => 'ru',
+      'zh' => 'zh',
       _ => 'en',
     };
     final displayName = _displayNameController.text.trim();

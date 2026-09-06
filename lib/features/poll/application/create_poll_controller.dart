@@ -51,6 +51,7 @@ class CreatePollController extends ChangeNotifier {
 
   String _title = '';
   String _description = '';
+  String _languageCode = 'und';
   final List<String> _options = ['', ''];
 
   PollType _type = PollType.singleChoice;
@@ -83,6 +84,7 @@ class CreatePollController extends ChangeNotifier {
 
   String get title => _title;
   String get description => _description;
+  String get languageCode => _languageCode;
   List<String> get options => List.unmodifiable(_options);
 
   PollType get type => _type;
@@ -181,6 +183,13 @@ class CreatePollController extends ChangeNotifier {
 
   void setDescription(String value) {
     _description = value;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  void setLanguageCode(String value) {
+    final normalized = value.trim().toLowerCase();
+    _languageCode = normalized.isEmpty ? 'und' : normalized;
     _errorMessage = null;
     notifyListeners();
   }
@@ -707,6 +716,7 @@ class CreatePollController extends ChangeNotifier {
         id: temporaryId,
         title: trimmedTitle,
         description: trimmedDescription.isEmpty ? null : trimmedDescription,
+        languageCode: _languageCode,
         type: _type,
         status: status,
         options: pollOptions,

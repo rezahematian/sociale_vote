@@ -291,7 +291,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeScopeLabelCity => 'المدينة – تصويتات وأخبار محلية';
 
   @override
-  String get homeScopeShortWorld => 'العالم';
+  String get homeScopeShortWorld => 'World';
 
   @override
   String get homeScopeShortCountry => 'البلد';
@@ -300,7 +300,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeScopeShortCity => 'المدينة';
 
   @override
-  String get homeScopeChipWorld => 'العالم';
+  String get homeScopeChipWorld => 'World';
 
   @override
   String get homeScopeChipItaly => 'إيطاليا';
@@ -324,13 +324,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get followScopeButtonFollow => 'متابعة هذه المنطقة';
 
   @override
-  String get homeTrendingTitle => 'Pulse الآن';
+  String get homeTrendingTitle => 'Pulse Now';
 
   @override
-  String get homeTrendingError => 'تعذر تحميل Pulse الآن لهذه المنطقة.';
+  String get homeTrendingError => 'تعذر تحميل Pulse Now لهذه المنطقة.';
 
   @override
-  String get homeTrendingEmpty => 'لا يوجد محتوى في Pulse الآن لهذه المنطقة حاليًا.';
+  String get homeTrendingEmpty => 'لا يوجد محتوى في Pulse Now لهذه المنطقة حاليًا.';
 
   @override
   String homeForYouTitle(Object scope) {
@@ -512,7 +512,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pollList_title => 'Vote';
 
   @override
-  String get pollList_scopeWorld => 'العالم';
+  String get pollList_scopeWorld => 'World';
 
   @override
   String get pollList_scopeCountryFallback => 'البلد';
@@ -552,7 +552,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'تم العثور على $count Vote',
+      other: 'تم العثور على $count من Vote',
+      many: 'تم العثور على $count من Vote',
+      few: 'تم العثور على $count من Vote',
+      two: 'تم العثور على اثنين من Vote',
       one: 'تم العثور على Vote واحد',
       zero: 'لم يتم العثور على Vote',
     );
@@ -619,8 +622,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'أصوات',
+      other: 'صوت',
+      many: 'صوتًا',
+      few: 'أصوات',
+      two: 'صوتان',
       one: 'صوت',
+      zero: 'أصوات',
     );
     return '$_temp0';
   }
@@ -633,7 +640,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'النتائج ($count أصوات)',
+      other: 'النتائج ($count صوت)',
+      many: 'النتائج ($count صوتًا)',
+      few: 'النتائج ($count أصوات)',
+      two: 'النتائج (صوتان)',
       one: 'النتائج (صوت واحد)',
       zero: 'النتائج (لا أصوات)',
     );
@@ -694,7 +704,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commentSection_youBadge => 'أنت';
 
   @override
-  String get newsDetail_title => 'تفاصيل News';
+  String get newsDetail_title => 'News · التفاصيل';
 
   @override
   String get newsDetail_breakingBadge => 'عاجل';
@@ -715,7 +725,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get newsFeed_title => 'News';
 
   @override
-  String get newsFeed_scopeWorld => 'العالم';
+  String get newsFeed_scopeWorld => 'World';
 
   @override
   String get newsFeed_scopeCountry => 'البلد';
@@ -824,7 +834,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get newsTopic_all => 'الكل';
 
   @override
-  String get newsTopic_world => 'العالم';
+  String get newsTopic_world => 'World';
 
   @override
   String get newsTopic_nation => 'وطني';
@@ -1114,7 +1124,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authPersonalAccountOwnershipTitle => 'تسجيل الدخول يعود دائمًا إلى شخص';
 
   @override
-  String get authPersonalAccountOwnershipBody => 'إذا كنت تمثل منظمة، فأنشئ حسابك الشخصي. بعد تسجيل الدخول، يمكنك طلب منظمة موثقة وإدارتها من Workspace.';
+  String get authPersonalAccountOwnershipBody => 'إذا كنت تمثل منظمة، فأنشئ حسابك الشخصي. بعد تسجيل الدخول، يمكنك طلب منظمة موثقة وإدارتها من مساحة العمل.';
 
   @override
   String get authOrganizationPathAction => 'كيف يعمل الأمر للمنظمات';
@@ -2637,8 +2647,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count مستخدمين',
+      other: '$count مستخدم',
+      many: '$count مستخدمًا',
+      few: '$count مستخدمين',
+      two: '$count مستخدمان',
       one: '$count مستخدم',
+      zero: 'لا مستخدمين',
     );
     return '$_temp0';
   }
@@ -2648,8 +2662,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count بلاغات',
+      other: '$count بلاغ',
+      many: '$count بلاغًا',
+      few: '$count بلاغات',
+      two: '$count بلاغان',
       one: '$count بلاغ',
+      zero: 'لا بلاغات',
     );
     return '$_temp0';
   }
@@ -2904,7 +2922,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get onboardingHeatIceDescription => 'استخدم Heat وIce لإظهار مدى قوة اهتمامك بمحتوى ما.';
 
   @override
-  String get onboardingCivicMapTitle => 'Civic Map';
+  String get onboardingCivicMapTitle => 'خريطة المشاركة المدنية';
 
   @override
   String get onboardingCivicMapDescription => 'استكشف Vote وVoce وNews على الخريطة واكتشف ما يحدث في مناطق مختلفة.';
@@ -3077,13 +3095,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get discoveryPageTitle => 'استكشاف';
 
   @override
-  String get organizationWorkspaceTitle => 'Workspace المنظمة';
+  String get organizationWorkspaceTitle => 'مساحة عمل المنظمة';
 
   @override
   String get organizationPilotBannerTitle => 'تجربة مجانية';
 
   @override
-  String get organizationPilotBannerBody => 'Sessions مجانية خلال المرحلة التجريبية. قد تصبح بعض الميزات الاحترافية مدفوعة مستقبلًا؛ الفوترة غير مفعلة الآن.';
+  String get organizationPilotBannerBody => 'الجلسات مجانية خلال المرحلة التجريبية. قد تصبح بعض الميزات الاحترافية مدفوعة مستقبلًا؛ الفوترة غير مفعلة الآن.';
 
   @override
   String get organizationVerifiedLabel => 'منظمة موثقة';
@@ -3092,19 +3110,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get organizationEditProfile => 'تعديل ملف المنظمة';
 
   @override
-  String get organizationCreateSession => 'Session جديدة';
+  String get organizationCreateSession => 'الجلسة جديدة';
 
   @override
-  String get organizationNoSessions => 'لا توجد Sessions بعد. أنشئ الأولى لاجتماع أو ورشة أو فعالية.';
+  String get organizationNoSessions => 'لا توجد الجلسات بعد. أنشئ الأولى لاجتماع أو ورشة أو فعالية.';
 
   @override
-  String get organizationSessionsTitle => 'Sessions مباشرة';
+  String get organizationSessionsTitle => 'الجلسات مباشرة';
 
   @override
   String get organizationRequiresVerificationTitle => 'مطلوب منظمة موثقة';
 
   @override
-  String get organizationRequiresVerificationBody => 'هذا الـ Workspace متاح فقط للحسابات التي اعتمدتها Social Vote كمنظمة موثقة.';
+  String get organizationRequiresVerificationBody => 'هذا الـ مساحة العمل متاح فقط للحسابات التي اعتمدتها Social Vote كمنظمة موثقة.';
 
   @override
   String get organizationProfileEditorTitle => 'ملف المنظمة';
@@ -3167,10 +3185,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get organizationTypeOther => 'أخرى';
 
   @override
-  String get sessionCreateTitle => 'إنشاء Live Session';
+  String get sessionCreateTitle => 'إنشاء Live الجلسة';
 
   @override
-  String get sessionTitleLabel => 'عنوان Session';
+  String get sessionTitleLabel => 'عنوان الجلسة';
 
   @override
   String get sessionExpectedParticipants => 'المشاركون المتوقعون';
@@ -3188,7 +3206,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sessionAccessControlled => 'مجهول ومتحكم به';
 
   @override
-  String get sessionAccessControlledHint => 'استخدم Access Passes مجهولة ولمرة واحدة. تخزن Social Vote فقط بصمة Access Pass ولا تربط خيارات الاقتراع ببيانات اعتماد المشارك.';
+  String get sessionAccessControlledHint => 'استخدم تصاريح الوصول مجهولة ولمرة واحدة. تخزن Social Vote فقط بصمة تصريح الوصول ولا تربط خيارات الاقتراع ببيانات اعتماد المشارك.';
 
   @override
   String get sessionResultsVisibility => 'ظهور النتائج';
@@ -3206,10 +3224,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sessionResultsOrganizerOnly => 'للمنظم فقط';
 
   @override
-  String get sessionCreateAction => 'إنشاء Session';
+  String get sessionCreateAction => 'إنشاء الجلسة';
 
   @override
-  String get sessionPilotLimit => 'حد المرحلة التجريبية: من 1 إلى 250 مشاركًا لكل Session.';
+  String get sessionPilotLimit => 'حد المرحلة التجريبية: من 1 إلى 250 مشاركًا لكل الجلسة.';
 
   @override
   String get sessionStatusDraft => 'مسودة';
@@ -3230,16 +3248,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sessionCopyJoinLink => 'نسخ الرابط';
 
   @override
-  String get sessionGenerateTokens => 'إنشاء Access Passes';
+  String get sessionGenerateTokens => 'إنشاء تصاريح الوصول';
 
   @override
-  String get sessionGenerateTokensCount => 'عدد Access Passes';
+  String get sessionGenerateTokensCount => 'عدد تصاريح الوصول';
 
   @override
   String get sessionTokensOneTimeTitle => 'احفظ بيانات الاعتماد هذه الآن';
 
   @override
-  String get sessionTokensOneTimeBody => 'تُعرض Access Passes بالنص الصريح فقط في نتيجة هذه الدفعة. تخزن Social Vote بصماتها فقط. انسخها ووزعها بأمان.';
+  String get sessionTokensOneTimeBody => 'تُعرض تصاريح الوصول بالنص الصريح فقط في نتيجة هذه الدفعة. تخزن Social Vote بصماتها فقط. انسخها ووزعها بأمان.';
 
   @override
   String get sessionCopyTokens => 'نسخ كل الروابط';
@@ -3248,13 +3266,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sessionTokensSavedAction => 'لقد حفظتها';
 
   @override
-  String get sessionOpenAction => 'فتح Session';
+  String get sessionOpenAction => 'فتح الجلسة';
 
   @override
-  String get sessionCloseAction => 'إغلاق Session';
+  String get sessionCloseAction => 'إغلاق الجلسة';
 
   @override
-  String get sessionCloseConfirm => 'إغلاق التصويت وإنشاء لقطة Verified Result غير قابلة للتغيير؟';
+  String get sessionCloseConfirm => 'إغلاق التصويت وإنشاء لقطة النتيجة المتحقق منها غير قابلة للتغيير؟';
 
   @override
   String get sessionQuestionsTitle => 'الأسئلة';
@@ -3308,7 +3326,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sessionParticipantTitle => 'Social Vote Live';
 
   @override
-  String get sessionJoinAction => 'الانضمام إلى Session';
+  String get sessionJoinAction => 'الانضمام إلى الجلسة';
 
   @override
   String get sessionTokenLabel => 'رمز المشارك';
@@ -3326,13 +3344,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sessionVoteReceived => 'تم استلام التصويت';
 
   @override
-  String get sessionResultsUnavailable => 'النتائج غير ظاهرة بعد وفق سياسة هذه الـ Session.';
+  String get sessionResultsUnavailable => 'النتائج غير ظاهرة بعد وفق سياسة هذه الـ الجلسة.';
 
   @override
-  String get sessionPrivacyNotice => 'يحدد المنظم الغرض التشغيلي وأسئلة Session. تعالج Social Vote البيانات التقنية اللازمة لتقديم الخدمة وحمايتها. الأوضاع المجهولة لا تكشف للمنظم العلاقة بين بيانات اعتماد المشارك واختياره. قد تعتمد أدوار الخصوصية على السياق والاتفاقيات المعمول بها.';
+  String get sessionPrivacyNotice => 'يحدد المنظم الغرض التشغيلي وأسئلة الجلسة. تعالج Social Vote البيانات التقنية اللازمة لتقديم الخدمة وحمايتها. الأوضاع المجهولة لا تكشف للمنظم العلاقة بين بيانات اعتماد المشارك واختياره. قد تعتمد أدوار الخصوصية على السياق والاتفاقيات المعمول بها.';
 
   @override
-  String get sessionNonBindingNotice => 'Sessions التجريبية مخصصة للتشاور والمشاركة. وهي ليست انتخابات قانونية ولا تصويت جمعية نظامية ولا اعتمادًا ملزمًا قانونيًا.';
+  String get sessionNonBindingNotice => 'الجلسات التجريبية مخصصة للتشاور والمشاركة. وهي ليست انتخابات قانونية ولا تصويت جمعية نظامية ولا اعتمادًا ملزمًا قانونيًا.';
 
   @override
   String get sessionOptionYes => 'نعم';
@@ -3341,7 +3359,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sessionOptionNo => 'لا';
 
   @override
-  String get verifiedResultTitle => 'Verified Result';
+  String get verifiedResultTitle => 'النتيجة المتحقق منها';
 
   @override
   String get verifiedResultValid => 'نجح فحص النزاهة';
@@ -3378,7 +3396,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get organizationVerifiedIdentityLocked => 'الاسم والبلد جزء من الهوية الموثقة للمنظمة. تغييرهما يتطلب توثيقًا جديدًا. يمكنك تغيير الغلاف والشعار والنوع والمدينة والموقع والوصف بحرية.';
 
   @override
-  String get verifiedResultOpenedAt => 'تم فتح Session';
+  String get verifiedResultOpenedAt => 'تم فتح الجلسة';
 
   @override
   String get verifiedResultEligibleCredentials => 'بيانات الاعتماد المؤهلة';
@@ -3416,7 +3434,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get verifiedResultRestrictedTitle => 'نتيجة مقيّدة';
 
   @override
-  String get verifiedResultRestrictedBody => 'هذا الـ Verified Result غير متاح للعامة. سجّل الدخول بحساب منظمة مخول لعرضه.';
+  String get verifiedResultRestrictedBody => 'هذا الـ النتيجة المتحقق منها غير متاح للعامة. سجّل الدخول بحساب منظمة مخول لعرضه.';
 
   @override
   String get verifiedResultPrivateVerificationTitle => 'التحقق العام غير متاح';
@@ -3476,7 +3494,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get organizationVerificationRequired => 'حقل مطلوب.';
 
   @override
-  String get sessionControlRoomTitle => 'غرفة تحكم Session';
+  String get sessionControlRoomTitle => 'غرفة تحكم الجلسة';
 
   @override
   String get sessionSectionLive => 'مباشر';
@@ -3491,34 +3509,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sessionSectionSettings => 'الإعدادات';
 
   @override
-  String get sessionStageAction => 'فتح Stage';
+  String get sessionStageAction => 'فتح المنصة';
 
   @override
-  String get sessionAccessPassesTitle => 'Access Passes للمشاركين';
+  String get sessionAccessPassesTitle => 'تصاريح الوصول للمشاركين';
 
   @override
-  String get sessionAccessPassesSubtitle => 'يفتح كل pass هذه Controlled Anonymous Session دون الحاجة إلى كتابة بيانات الاعتماد الطويلة. لا تخزن Social Vote الـ pass بالنص الصريح.';
+  String get sessionAccessPassesSubtitle => 'يفتح كل pass هذه Controlled Anonymous الجلسة دون الحاجة إلى كتابة بيانات الاعتماد الطويلة. لا تخزن Social Vote الـ pass بالنص الصريح.';
 
   @override
-  String get sessionAccessPass => 'Access Pass';
+  String get sessionAccessPass => 'تصريح الوصول';
 
   @override
-  String get sessionAccessPassDetected => 'تم اكتشاف Access Pass';
+  String get sessionAccessPassDetected => 'تم اكتشاف تصريح الوصول';
 
   @override
-  String get sessionAccessPassAutomatic => 'الـ pass الشخصي جاهز. تابع للدخول إلى Session بشكل مجهول.';
+  String get sessionAccessPassAutomatic => 'الـ pass الشخصي جاهز. تابع للدخول إلى الجلسة بشكل مجهول.';
 
   @override
   String get sessionAccessPassFallback => 'أدخل pass يدويًا';
 
   @override
-  String get sessionAccessPassInvalid => 'هذا الـ Access Pass غير صالح أو لم يعد متاحًا أو أن Session غير مفتوحة.';
+  String get sessionAccessPassInvalid => 'هذا الـ تصريح الوصول غير صالح أو لم يعد متاحًا أو أن الجلسة غير مفتوحة.';
 
   @override
   String get sessionAccessPassPrintWarning => 'اطبع أو احفظ أو وزع هذه الـ passes الآن. بعد مغادرة هذه الشاشة لن تتمكن Social Vote من إظهارها بالنص الصريح مجددًا.';
 
   @override
-  String get sessionExistingPassesHidden => 'لأسباب أمنية لا يمكن إظهار الـ passes السابقة بالنص الصريح مرة أخرى. أنشئ Access Passes جديدة للحصول على روابط شخصية أو رموز QR جديدة.';
+  String get sessionExistingPassesHidden => 'لأسباب أمنية لا يمكن إظهار الـ passes السابقة بالنص الصريح مرة أخرى. أنشئ تصاريح الوصول جديدة للحصول على روابط شخصية أو رموز QR جديدة.';
 
   @override
   String get sessionCopyPassLinks => 'نسخ كل الروابط';
@@ -3527,7 +3545,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sessionCopyPassLink => 'نسخ هذا الرابط';
 
   @override
-  String get sessionControlledNeedsAccessPass => 'قبل فتح Session متحكم بها، أنشئ Access Pass واحدًا على الأقل.';
+  String get sessionControlledNeedsAccessPass => 'قبل فتح الجلسة متحكم بها، أنشئ تصريح الوصول واحدًا على الأقل.';
 
   @override
   String get sessionJoinedParticipants => 'بيانات اعتماد الوصول المنضمة';
@@ -3551,10 +3569,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sessionNoOpenQuestionBody => 'المشاركون متصلون وينتظرون. افتح السؤال التالي عندما تكون جاهزًا.';
 
   @override
-  String get sessionNotStartedTitle => 'Session لم تبدأ بعد';
+  String get sessionNotStartedTitle => 'الجلسة لم تبدأ بعد';
 
   @override
-  String get sessionNotStartedBody => 'هذه الـ Session موجودة لكنها غير مفتوحة بعد. أبقِ هذه الصفحة مفتوحة وانتظر أن يبدأها المنظم.';
+  String get sessionNotStartedBody => 'هذه الـ الجلسة موجودة لكنها غير مفتوحة بعد. أبقِ هذه الصفحة مفتوحة وانتظر أن يبدأها المنظم.';
 
   @override
   String get sessionNoAccountRequired => 'لا يلزم حساب Social Vote';
@@ -3563,25 +3581,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sessionReceiptDetails => 'تفاصيل الإيصال';
 
   @override
-  String get sessionOpenAccessInstructions => 'اعرض أو شارك رمز QR هذا. يمكن لأي شخص لديه الرابط الدخول أثناء فتح Session.';
+  String get sessionOpenAccessInstructions => 'اعرض أو شارك رمز QR هذا. يمكن لأي شخص لديه الرابط الدخول أثناء فتح الجلسة.';
 
   @override
   String get sessionControlledAccessInstructions => 'أنشئ passes وصول شخصية وامنح كل مشارك واحدًا. يحتوي QR في كل pass على بيانات الاعتماد تلقائيًا.';
 
   @override
-  String get sessionControlRoomHint => 'أدر الوصول والأسئلة وStage المعروض وVerified Result النهائي من مكان واحد.';
+  String get sessionControlRoomHint => 'أدر الوصول والأسئلة والمنصة المعروض والنتيجة المتحقق منها النهائي من مكان واحد.';
 
   @override
-  String get sessionPresenterScreenTitle => 'Live Stage';
+  String get sessionPresenterScreenTitle => 'المنصة المباشرة';
 
   @override
   String get sessionStageWaiting => 'بانتظار السؤال التالي';
 
   @override
-  String get sessionStageScan => 'امسح للانضمام إلى Session';
+  String get sessionStageScan => 'امسح للانضمام إلى الجلسة';
 
   @override
-  String get sessionConfigurationTitle => 'إعداد Session';
+  String get sessionConfigurationTitle => 'إعداد الجلسة';
 
   @override
   String get sessionAccessRecommended => 'موصى به للاجتماعات المتحكم بها';
@@ -3608,7 +3626,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get verifiedCertificateOrganizationSection => 'المنظمة';
 
   @override
-  String get verifiedCertificateSessionSection => 'Session';
+  String get verifiedCertificateSessionSection => 'الجلسة';
 
   @override
   String get verifiedCertificateParticipationSection => 'المشاركة';
@@ -3656,7 +3674,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get verifiedCertificatePrivacyModel => 'نموذج نتيجة مجهولة';
 
   @override
-  String get verifiedCertificatePrivacyText => 'تحتوي اللقطة غير القابلة للتغيير على نتائج مجمعة فقط. ولا تحتوي على هوية مشارك أو Access Pass بالنص الصريح أو سر مشارك أو أي ربط بين بيانات اعتماد مشارك واختيار اقتراع.';
+  String get verifiedCertificatePrivacyText => 'تحتوي اللقطة غير القابلة للتغيير على نتائج مجمعة فقط. ولا تحتوي على هوية مشارك أو تصريح الوصول بالنص الصريح أو سر مشارك أو أي ربط بين بيانات اعتماد مشارك واختيار اقتراع.';
 
   @override
   String get verifiedCertificateVerifyQr => 'امسح رمز QR هذا للتحقق من التقرير عبر الإنترنت.';
@@ -3665,13 +3683,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get organizationDashboardTitle => 'نظرة عامة على المنظمة';
 
   @override
-  String get organizationActiveSessions => 'Sessions مباشرة';
+  String get organizationActiveSessions => 'الجلسات مباشرة';
 
   @override
   String get organizationVerifiedReports => 'تقارير موثقة';
 
   @override
-  String get organizationTotalSessions => 'إجمالي Sessions';
+  String get organizationTotalSessions => 'إجمالي الجلسات';
 
   @override
   String get sessionPrivacyPolicyAction => 'قراءة سياسة الخصوصية';
@@ -3710,7 +3728,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get adminCenterEditorialNavigation => 'World Briefs';
 
   @override
-  String get worldBriefEditorTitle => 'Social Vote World Briefs';
+  String get worldBriefEditorTitle => 'Social Vote · World Brief';
 
   @override
   String get worldBriefEditorDescription => 'أعد موجزات قائمة على الأدلة، وأبقِ عدم اليقين ظاهرًا، وحدد ما يظهر في News وعلى Globe.';
@@ -3764,7 +3782,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get worldBriefSetupRequiredBody => 'طبّق ترحيل قاعدة بيانات World Brief المرفق قبل استخدام هذا القسم.';
 
   @override
-  String get worldBriefEmptyTitle => 'لا توجد World Briefs بعد';
+  String get worldBriefEmptyTitle => 'لا يوجد World Brief بعد';
 
   @override
   String get worldBriefEmptyBody => 'أنشئ مسودة ووثّق مصدرين على الأقل وانشر فقط بعد المراجعة التحريرية.';
@@ -3849,8 +3867,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days أيام',
+      other: '$days يوم',
+      many: '$days يومًا',
+      few: '$days أيام',
+      two: 'يومان',
       one: 'يوم واحد',
+      zero: '0 يوم',
     );
     return '$_temp0';
   }
@@ -3865,7 +3887,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileHowItWorksTitle => 'كيف تعمل Social Vote';
 
   @override
-  String get profileHowItWorksSubtitle => 'الأشخاص والمنظمات وVoce وVote وSessions والتوثيق.';
+  String get profileHowItWorksSubtitle => 'الأشخاص والمنظمات وVoce وVote والجلسات والتوثيق.';
 
   @override
   String get profileMyPostsLoginRequired => 'يجب تسجيل الدخول لعرض Voce الخاصة بك.';
@@ -3947,8 +3969,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'تم إدخال $count مصادر',
+      other: 'تم إدخال $count مصدر',
+      many: 'تم إدخال $count مصدرًا',
+      few: 'تم إدخال $count مصادر',
+      two: 'تم إدخال مصدرين',
       one: 'تم إدخال مصدر واحد',
+      zero: 'لم يتم إدخال أي مصدر',
     );
     return '$_temp0';
   }
@@ -4049,7 +4075,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileAppLanguagePortuguese => 'البرتغالية';
 
   @override
-  String get homeHeroPurpose => 'اكتشف ما يهم، وشارك Voce الخاصة بك وشارك في Vote.';
+  String get homeHeroPurpose => 'اكتشف ما يهم، وعبّر عن رأيك في Voce وشارك في Vote.';
 
   @override
   String get commentSection_hideComments => 'إخفاء التعليقات';

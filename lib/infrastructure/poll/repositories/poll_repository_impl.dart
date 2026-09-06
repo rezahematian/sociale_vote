@@ -170,12 +170,14 @@ class PollRepositoryImpl implements PollRepository {
     required String pollId,
     required String title,
     String? description,
+    required String languageCode,
   }) async {
     final dynamic response = await _apiClient.postJson(
       '/polls/$pollId',
       body: {
         'title': title,
         'description': description,
+        'languageCode': languageCode,
       },
     );
 

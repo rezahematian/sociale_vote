@@ -130,7 +130,9 @@ void main() {
 
   test('guest locale contract is System and preference is account scoped', () {
     final source = File('lib/app/app.dart').readAsStringSync();
-    expect(source, contains("if (userId == null) {\n      locale.value = null;"));
+    expect(source, contains('if (userId == null) {'));
+    expect(source, contains('AppLanguageState.selectedLanguageCode = null;'));
+    expect(source, contains('locale.value = null;'));
     expect(source, contains('app_locale_preference_v2'));
     expect(source, contains('Guest always uses System'));
   });

@@ -60,6 +60,23 @@ TextAlign socialVoteLocaleTextAlign(BuildContext context) {
       : TextAlign.left;
 }
 
+/// Keeps fixed Latin Social Vote product names stable inside RTL UI copy.
+///
+/// The Unicode isolates are written as Dart escapes on purpose: generated
+/// localization files must not contain raw U+2066/U+2069 code points because
+/// the analyzer reports them as text_direction_code_point_in_literal.
+String socialVoteIsolateFixedProductNames(String value) {
+  const lri = '\u2066';
+  const pdi = '\u2069';
+  final productNames = RegExp(
+    r'Pulse Now|World Brief|Social Vote|Vote|Voce|News|World|Pulse',
+  );
+  return value.replaceAllMapped(
+    productNames,
+    (match) => '$lri${match.group(0)}$pdi',
+  );
+}
+
 /// Authored input follows the first strong character. Empty input falls back
 /// to the current locale so an empty Persian/Arabic editor starts from the right.
 /// Once the user types Latin text the field becomes LTR on the next rebuild.

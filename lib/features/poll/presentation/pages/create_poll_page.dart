@@ -20,6 +20,7 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 import 'package:sociale_vote/shared/widgets/content_directionality.dart';
+import 'package:sociale_vote/shared/widgets/content_language_field.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
 
@@ -61,11 +62,23 @@ class _CreatePollViewState extends State<_CreatePollView> {
   bool _publishingIdentityLoaded = false;
   bool _showAdvancedOptions = false;
   bool _showManualContentLocationFields = false;
+  bool _contentLanguageInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _loadPublishingIdentity();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_contentLanguageInitialized) {
+      context.read<CreatePollController>().setLanguageCode(
+            defaultContentLanguageCodeForLocale(Localizations.localeOf(context)),
+          );
+      _contentLanguageInitialized = true;
+    }
   }
 
   @override
@@ -1447,6 +1460,13 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                   ),
                                   maxLines: 3,
                                   onChanged: controller.setDescription,
+                                ),
+                                const SizedBox(height: 16),
+                                ContentLanguageField(
+                                  selectedCode: controller.languageCode,
+                                  onChanged: controller.setLanguageCode,
+                                  enabled: !isSubmitting,
+                                  includeUndetermined: true,
                                 ),
                               ],
                             ),

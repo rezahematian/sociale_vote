@@ -10,26 +10,6 @@ class HowSocialVoteWorksPage extends StatelessWidget {
 
   static const double _productProgress = 0.33;
   static const String _principlesVersion = '0.3';
-  static const String _posterAssetIt =
-      'assets/vision/social_vote_regole_del_gioco_33.png';
-
-  String _posterAssetForLocale(BuildContext context) {
-    final language = Localizations.localeOf(context).languageCode.toLowerCase();
-    return switch (language) {
-      'it' => _posterAssetIt,
-      'de' => 'assets/vision/social_vote_rules_vision_de.jpg',
-      'fa' => 'assets/vision/social_vote_rules_vision_fa.jpg',
-      'es' => 'assets/vision/social_vote_rules_vision_es.jpg',
-      'pt' => 'assets/vision/social_vote_rules_vision_pt.jpg',
-      'fr' => 'assets/vision/social_vote_rules_vision_fr.jpg',
-      'ar' => 'assets/vision/social_vote_rules_vision_ar.jpg',
-      'ro' => 'assets/vision/social_vote_rules_vision_ro.jpg',
-      'ru' => 'assets/vision/social_vote_rules_vision_ru.jpg',
-      'zh' => 'assets/vision/social_vote_rules_vision_zh.jpg',
-      _ => 'assets/vision/social_vote_rules_vision_en.jpg',
-    };
-  }
-
   String _text(
     BuildContext context, {
     required String it,
@@ -223,18 +203,18 @@ class HowSocialVoteWorksPage extends StatelessWidget {
     final loggedIn = AppDI.instance.currentUserId != null;
     final pilotText = _text(
       context,
-      it: 'Durante il pilot Business, billing e pagamenti restano disattivati.',
-      en: 'During the Business pilot, billing and payments remain disabled.',
-      de: 'Während des Business-Piloten bleiben Abrechnung und Zahlungen deaktiviert.',
-      fa: 'در دوره آزمایشی Business، صورتحساب و پرداخت‌ها غیرفعال می‌مانند.',
-      es: 'Durante el piloto Business, la facturación y los pagos permanecen desactivados.',
-      pt: 'Durante o piloto Business, a faturação e os pagamentos permanecem desativados.',
-      fr: 'Pendant le pilote Business, la facturation et les paiements restent désactivés.',
-      ar: 'خلال برنامج Business التجريبي، تظل الفوترة والمدفوعات معطلة.',
-      ro: 'În timpul pilotului Business, facturarea și plățile rămân dezactivate.',
+      it: 'Durante il programma pilota professionale, fatturazione e pagamenti restano disattivati.',
+      en: 'During the professional pilot, billing and payments remain disabled.',
+      de: 'Während des Pilotprogramms für professionelle Werkzeuge bleiben Abrechnung und Zahlungen deaktiviert.',
+      fa: 'در دوره آزمایشی ابزارهای حرفه‌ای، صورتحساب و پرداخت‌ها غیرفعال می‌مانند.',
+      es: 'Durante el programa piloto profesional, la facturación y los pagos permanecen desactivados.',
+      pt: 'Durante o programa piloto profissional, a faturação e os pagamentos permanecem desativados.',
+      fr: 'Pendant le programme pilote professionnel, la facturation et les paiements restent désactivés.',
+      ar: 'خلال البرنامج التجريبي للأدوات الاحترافية، تظل الفوترة والمدفوعات معطلة.',
+      ro: 'În timpul programului pilot profesional, facturarea și plățile rămân dezactivate.',
     
-      ru: 'Во время Business-пилота billing и платежи остаются отключены.',
-      zh: 'Business 试点期间，计费和付款保持关闭。',
+      ru: 'Во время пилотной программы профессиональных инструментов биллинг и платежи остаются отключены.',
+      zh: '专业工具试点期间，计费和付款保持关闭。',
 );
 
     return Scaffold(
@@ -303,18 +283,18 @@ class HowSocialVoteWorksPage extends StatelessWidget {
 ),
                 body: _text(
                   context,
-                  it: 'Social Vote è una piattaforma di partecipazione: scopri cosa succede, esprimi la tua Voce e partecipa ai Vote. Le organizzazioni possono usare un Workspace dedicato per comunicare, consultare e gestire Sessions.',
-                  en: 'Social Vote is a participation platform: discover what is happening, share your Voce and take part in Vote. Organizations can use a dedicated Workspace to communicate, consult and run Sessions.',
-                  de: 'Social Vote ist eine Plattform für Teilhabe: Entdecke, was passiert, teile deine Voce und nimm an Vote teil. Organisationen können einen eigenen Workspace für Kommunikation, Konsultationen und Sessions nutzen.',
-                  fa: 'Social Vote یک پلتفرم مشارکت است: آنچه در جریان است را ببینید، Voce خود را به اشتراک بگذارید و در Vote شرکت کنید. سازمان‌ها می‌توانند از Workspace اختصاصی برای ارتباط، مشورت و برگزاری Sessions استفاده کنند.',
-                  es: 'Social Vote es una plataforma de participación: descubre lo que ocurre, comparte tu Voce y participa en Vote. Las organizaciones pueden usar un Workspace dedicado para comunicar, consultar y gestionar Sessions.',
-                  pt: 'O Social Vote é uma plataforma de participação: descubra o que está a acontecer, partilhe a sua Voce e participe em Vote. As organizações podem usar um Workspace dedicado para comunicar, consultar e gerir Sessions.',
-                  fr: 'Social Vote est une plateforme de participation : découvrez ce qui se passe, partagez votre Voce et participez à Vote. Les organisations peuvent utiliser un Workspace dédié pour communiquer, consulter et gérer des Sessions.',
-                  ar: 'Social Vote منصة للمشاركة: اكتشف ما يحدث، وشارك Voce الخاصة بك، وشارك في Vote. ويمكن للمنظمات استخدام Workspace مخصص للتواصل والتشاور وإدارة Sessions.',
-                  ro: 'Social Vote este o platformă de participare: descoperă ce se întâmplă, publică Voce și participă la Vote. Organizațiile pot folosi un Workspace dedicat pentru comunicare, consultare și gestionarea Sessions.',
+                  it: 'Social Vote è una piattaforma di partecipazione: scopri cosa succede, esprimi la tua Voce e partecipa ai Vote. Le organizzazioni possono usare un spazio di lavoro dedicato per comunicare, consultare e gestire sessioni.',
+                  en: 'Social Vote is a participation platform: discover what is happening, share your Voce and take part in Vote. Organizations can use a dedicated workspace to communicate, consult and run sessions.',
+                  de: 'Social Vote ist eine Plattform für Teilhabe: Entdecke, was passiert, teile deine Voce und nimm an Vote teil. Organisationen können einen eigenen Arbeitsbereich für Kommunikation, Konsultationen und Sitzungen nutzen.',
+                  fa: 'Social Vote یک پلتفرم مشارکت است: آنچه در جریان است را ببینید، Voce خود را به اشتراک بگذارید و در Vote شرکت کنید. سازمان‌ها می‌توانند از فضای کاری اختصاصی برای ارتباط، مشورت و برگزاری جلسه‌ها استفاده کنند.',
+                  es: 'Social Vote es una plataforma de participación: descubre lo que ocurre, comparte tu Voce y participa en Vote. Las organizaciones pueden usar un espacio de trabajo dedicado para comunicar, consultar y gestionar sesiones.',
+                  pt: 'O Social Vote é uma plataforma de participação: descubra o que está a acontecer, partilhe a sua Voce e participe em Vote. As organizações podem usar um espaço de trabalho dedicado para comunicar, consultar e gerir sessões.',
+                  fr: 'Social Vote est une plateforme de participation : découvrez ce qui se passe, partagez votre Voce et participez à Vote. Les organisations peuvent utiliser un espace de travail dédié pour communiquer, consulter et gérer des sessions.',
+                  ar: 'Social Vote منصة للمشاركة: اكتشف ما يحدث، وشارك Voce الخاصة بك، وشارك في Vote. ويمكن للمنظمات استخدام مساحة عمل مخصصة للتواصل والتشاور وإدارة الجلسات.',
+                  ro: 'Social Vote este o platformă de participare: descoperă ce se întâmplă, publică Voce și participă la Vote. Organizațiile pot folosi un spațiu de lucru dedicat pentru comunicare, consultare și gestionarea sesiunilor.',
                 
-                  ru: 'Social Vote — платформа участия: узнавайте, что происходит, делитесь своей Voce и участвуйте в Vote. Организации могут использовать отдельный Workspace для коммуникации, консультаций и проведения Sessions.',
-                  zh: 'Social Vote 是一个参与平台：了解正在发生的事情、分享你的 Voce 并参与 Vote。组织可以使用专属 Workspace 进行沟通、咨询和运行 Sessions。',
+                  ru: 'Social Vote — платформа участия: узнавайте, что происходит, делитесь своей Voce и участвуйте в Vote. Организации могут использовать отдельное рабочее пространство для коммуникации, консультаций и проведения сессий.',
+                  zh: 'Social Vote 是一个参与平台：了解正在发生的事情、分享你的 Voce 并参与 Vote。组织可以使用专属工作区进行沟通、咨询和开展会议。',
 ),
               ),
               const SizedBox(height: 16),
@@ -401,18 +381,18 @@ class HowSocialVoteWorksPage extends StatelessWidget {
 ),
                       _text(
                         context,
-                        it: 'Civic Map: esplora attraverso i luoghi',
+                        it: 'Mappa civica: esplora attraverso i luoghi',
                         en: 'Civic Map: explore through places',
-                        de: 'Civic Map: über Orte entdecken',
-                        fa: 'Civic Map: از طریق مکان‌ها کاوش کنید',
-                        es: 'Civic Map: explora a través de los lugares',
-                        pt: 'Civic Map: explore através dos lugares',
-                        fr: 'Civic Map : explorez à travers les lieux',
-                        ar: 'Civic Map: استكشف عبر الأماكن',
-                        ro: 'Civic Map: explorează prin locuri',
+                        de: 'Bürgerkarte: über Orte entdecken',
+                        fa: 'نقشه مدنی: از طریق مکان‌ها کاوش کنید',
+                        es: 'Mapa cívico: explora a través de los lugares',
+                        pt: 'Mapa cívico: explore através dos lugares',
+                        fr: 'Carte civique : explorez à travers les lieux',
+                        ar: 'الخريطة المدنية: استكشف عبر الأماكن',
+                        ro: 'Hartă civică: explorează prin locuri',
                       
-                        ru: 'Civic Map: исследуйте через места',
-                        zh: 'Civic Map：通过地点探索',
+                        ru: 'Гражданская карта: исследуйте через места',
+                        zh: '公民地图：通过地点探索',
 ),
                       _text(
                         context,
@@ -479,7 +459,20 @@ class HowSocialVoteWorksPage extends StatelessWidget {
                       ru: 'Для организаций',
                       zh: '面向组织',
 ),
-                    badge: 'BUSINESS',
+                    badge: _text(
+                      context,
+                      it: 'PROFESSIONALE',
+                      en: 'BUSINESS',
+                      de: 'GESCHÄFTLICH',
+                      fa: 'حرفه‌ای',
+                      es: 'EMPRESARIAL',
+                      pt: 'PROFISSIONAL',
+                      fr: 'PROFESSIONNEL',
+                      ar: 'احترافي',
+                      ro: 'PROFESIONAL',
+                      ru: 'ДЛЯ БИЗНЕСА',
+                      zh: '专业',
+                    ),
                     body: _text(
                       context,
                       it: 'Il tuo account personale resta l’accesso. Se gestisci un’organizzazione, il tuo ruolo ti permette di amministrare la sua identità pubblica separata.',
@@ -528,63 +521,63 @@ class HowSocialVoteWorksPage extends StatelessWidget {
 ),
                       _text(
                         context,
-                        it: 'Sessions con QR e partecipazione live',
+                        it: 'sessioni con QR e partecipazione live',
                         en: 'Sessions with QR and live participation',
-                        de: 'Sessions mit QR und Live-Teilnahme',
-                        fa: 'Sessions با QR و مشارکت زنده',
-                        es: 'Sessions con QR y participación en directo',
-                        pt: 'Sessions com QR e participação em direto',
-                        fr: 'Sessions avec QR et participation en direct',
-                        ar: 'Sessions مع QR ومشاركة مباشرة',
-                        ro: 'Sessions cu QR și participare live',
+                        de: 'Sitzungen mit QR und Live-Teilnahme',
+                        fa: 'جلسه‌ها با QR و مشارکت زنده',
+                        es: 'sesiones con QR y participación en directo',
+                        pt: 'sessões com QR e participação em direto',
+                        fr: 'sessions avec QR et participation en direct',
+                        ar: 'الجلسات مع QR ومشاركة مباشرة',
+                        ro: 'sesiuni cu QR și participare live',
                       
-                        ru: 'Sessions с QR и участием в реальном времени',
-                        zh: '带 QR 和实时参与的 Sessions',
+                        ru: 'сессии с QR и участием в реальном времени',
+                        zh: '带 QR 和实时参与的会议',
 ),
                       _text(
                         context,
-                        it: 'Stage e risultati durante la Session',
-                        en: 'Stage and results during the Session',
-                        de: 'Stage und Ergebnisse während der Session',
-                        fa: 'Stage و نتایج در طول Session',
-                        es: 'Stage y resultados durante la Session',
-                        pt: 'Stage e resultados durante a Session',
-                        fr: 'Stage et résultats pendant la Session',
-                        ar: 'Stage والنتائج أثناء Session',
-                        ro: 'Stage și rezultate în timpul Session',
+                        it: 'Palco e risultati durante la sessione',
+                        en: 'Stage and results during the session',
+                        de: 'Bühne und Ergebnisse während der Sitzung',
+                        fa: 'صحنه و نتایج در طول جلسه',
+                        es: 'Escenario y resultados durante la sesión',
+                        pt: 'Palco e resultados durante a sessão',
+                        fr: 'Scène et résultats pendant la session',
+                        ar: 'المنصة والنتائج أثناء الجلسة',
+                        ro: 'Scenă și rezultate în timpul sesiunii',
                       
-                        ru: 'Stage и результаты во время Session',
-                        zh: 'Session 期间的 Stage 和结果',
+                        ru: 'Сцена и результаты во время сессии',
+                        zh: '会议期间的舞台和结果',
 ),
                       _text(
                         context,
-                        it: 'Verified Result con controllo di integrità',
+                        it: 'risultato verificato con controllo di integrità',
                         en: 'Verified Result with integrity checking',
-                        de: 'Verified Result mit Integritätsprüfung',
-                        fa: 'Verified Result با بررسی تمامیت',
-                        es: 'Verified Result con control de integridad',
-                        pt: 'Verified Result com verificação de integridade',
-                        fr: 'Verified Result avec contrôle d’intégrité',
-                        ar: 'Verified Result مع فحص السلامة',
-                        ro: 'Verified Result cu verificarea integrității',
+                        de: 'verifiziertes Ergebnis mit Integritätsprüfung',
+                        fa: 'نتیجه تأییدشده با بررسی تمامیت',
+                        es: 'resultado verificado con control de integridad',
+                        pt: 'resultado verificado com verificação de integridade',
+                        fr: 'résultat vérifié avec contrôle d’intégrité',
+                        ar: 'النتيجة المتحقق منها مع فحص السلامة',
+                        ro: 'rezultat verificat cu verificarea integrității',
                       
-                        ru: 'Verified Result с проверкой целостности',
-                        zh: '带完整性检查的 Verified Result',
+                        ru: 'проверенный результат с проверкой целостности',
+                        zh: '带完整性检查的已验证结果',
 ),
                       _text(
                         context,
-                        it: 'Workspace unico per gestire il flusso Business',
-                        en: 'One Workspace for the Business workflow',
-                        de: 'Ein Workspace für den Business-Ablauf',
-                        fa: 'یک Workspace برای مدیریت جریان Business',
-                        es: 'Un Workspace para gestionar el flujo Business',
-                        pt: 'Um Workspace para gerir o fluxo Business',
-                        fr: 'Un Workspace unique pour gérer le flux Business',
-                        ar: 'Workspace واحد لإدارة مسار Business',
-                        ro: 'Un singur Workspace pentru fluxul Business',
+                        it: 'un unico spazio di lavoro per gestire il flusso professionale',
+                        en: 'One workspace for the professional workflow',
+                        de: 'Ein Arbeitsbereich für den professionellen Ablauf',
+                        fa: 'یک فضای کاری برای مدیریت فرایند حرفه‌ای',
+                        es: 'Un espacio de trabajo para gestionar el flujo profesional',
+                        pt: 'Um espaço de trabalho para gerir o fluxo profissional',
+                        fr: 'Un espace de travail unique pour gérer le flux professionnel',
+                        ar: 'مساحة عمل واحدة لإدارة سير العمل الاحترافي',
+                        ro: 'Un singur spațiu de lucru pentru fluxul profesional',
                       
-                        ru: 'Один Workspace для рабочего процесса Business',
-                        zh: '一个 Workspace 支持 Business 工作流',
+                        ru: 'Единое рабочее пространство для профессионального процесса',
+                        zh: '一个工作区支持专业工作流程',
 ),
                     ],
                   );
@@ -684,21 +677,34 @@ class HowSocialVoteWorksPage extends StatelessWidget {
                         width: width,
                         child: _ToolCard(
                           icon: Icons.groups_2_outlined,
-                          title: 'Session',
+                          title: _text(
+                            context,
+                            it: 'Sessione',
+                            en: 'Session',
+                            de: 'Sitzung',
+                            fa: 'جلسه',
+                            es: 'Sesión',
+                            pt: 'Sessão',
+                            fr: 'Session',
+                            ar: 'جلسة',
+                            ro: 'Sesiune',
+                            ru: 'Сессия',
+                            zh: '会议',
+                          ),
                           body: _text(
                             context,
-                            it: 'Per riunioni, assemblee o consultazioni organizzate: domanda, QR, partecipazione, risultati e Verified Result.',
+                            it: 'Per riunioni, assemblee o consultazioni organizzate: domanda, QR, partecipazione, risultati e risultato verificato.',
                             en: 'For meetings, assemblies or organized consultations: question, QR, participation, results and Verified Result.',
-                            de: 'Für Sitzungen, Versammlungen oder organisierte Konsultationen: Frage, QR, Teilnahme, Ergebnisse und Verified Result.',
-                            fa: 'برای نشست‌ها، مجامع یا مشورت‌های سازمان‌یافته: پرسش، QR، مشارکت، نتایج و Verified Result.',
-                            es: 'Para reuniones, asambleas o consultas organizadas: pregunta, QR, participación, resultados y Verified Result.',
-                            pt: 'Para reuniões, assembleias ou consultas organizadas: pergunta, QR, participação, resultados e Verified Result.',
-                            fr: 'Pour les réunions, assemblées ou consultations organisées : question, QR, participation, résultats et Verified Result.',
-                            ar: 'للاجتماعات أو الجمعيات أو الاستشارات المنظمة: سؤال وQR ومشاركة ونتائج وVerified Result.',
-                            ro: 'Pentru întâlniri, adunări sau consultări organizate: întrebare, QR, participare, rezultate și Verified Result.',
+                            de: 'Für Sitzungen, Versammlungen oder organisierte Konsultationen: Frage, QR, Teilnahme, Ergebnisse und verifiziertes Ergebnis.',
+                            fa: 'برای نشست‌ها، مجامع یا مشورت‌های سازمان‌یافته: پرسش، QR، مشارکت، نتایج و نتیجه تأییدشده.',
+                            es: 'Para reuniones, asambleas o consultas organizadas: pregunta, QR, participación, resultados y resultado verificado.',
+                            pt: 'Para reuniões, assembleias ou consultas organizadas: pergunta, QR, participação, resultados e resultado verificado.',
+                            fr: 'Pour les réunions, assemblées ou consultations organisées : question, QR, participation, résultats et résultat vérifié.',
+                            ar: 'للاجتماعات أو الجمعيات أو الاستشارات المنظمة: سؤال وQR ومشاركة ونتائج والنتيجة المتحقق منها.',
+                            ro: 'Pentru întâlniri, adunări sau consultări organizate: întrebare, QR, participare, rezultate și rezultat verificat.',
                           
-                            ru: 'Для встреч, собраний или организованных консультаций: вопрос, QR, участие, результаты и Verified Result.',
-                            zh: '用于会议、集会或有组织的咨询：问题、QR、参与、结果和 Verified Result。',
+                            ru: 'Для встреч, собраний или организованных консультаций: вопрос, QR, участие, результаты и проверенный результат.',
+                            zh: '用于会议、集会或有组织的咨询：问题、QR、参与、结果和已验证结果。',
 ),
                         ),
                       ),
@@ -793,21 +799,34 @@ class HowSocialVoteWorksPage extends StatelessWidget {
               const SizedBox(height: 16),
               _NoticeCard(
                 icon: Icons.verified_outlined,
-                title: 'Verified Result',
+                title: _text(
+                  context,
+                  it: 'Risultato verificato',
+                  en: 'Verified Result',
+                  de: 'Verifiziertes Ergebnis',
+                  fa: 'نتیجه تأییدشده',
+                  es: 'Resultado verificado',
+                  pt: 'Resultado verificado',
+                  fr: 'Résultat vérifié',
+                  ar: 'النتيجة المتحقق منها',
+                  ro: 'Rezultat verificat',
+                  ru: 'Проверенный результат',
+                  zh: '已验证结果',
+                ),
                 body: _text(
                   context,
-                  it: 'Il Verified Result documenta il risultato prodotto dalla Session e consente di verificarne l’integrità tecnica. Non costituisce automaticamente certificazione notarile, elettorale o validità legale.',
+                  it: 'Il risultato verificato documenta il risultato prodotto dalla sessione e consente di verificarne l’integrità tecnica. Non costituisce automaticamente certificazione notarile, elettorale o validità legale.',
                   en: 'Verified Result documents the result produced by a Session and allows its technical integrity to be checked. It does not automatically constitute notarization, electoral certification or legal validity.',
-                  de: 'Verified Result dokumentiert das Ergebnis einer Session und ermöglicht die Prüfung seiner technischen Integrität. Es stellt nicht automatisch eine notarielle, wahlrechtliche oder rechtliche Zertifizierung dar.',
-                  fa: 'Verified Result نتیجه تولیدشده توسط Session را ثبت می‌کند و امکان بررسی تمامیت فنی آن را می‌دهد. این مورد به‌طور خودکار به معنای گواهی محضری، انتخاباتی یا اعتبار قانونی نیست.',
-                  es: 'Verified Result documenta el resultado producido por una Session y permite comprobar su integridad técnica. No constituye automáticamente una certificación notarial, electoral ni validez legal.',
-                  pt: 'Verified Result documenta o resultado produzido por uma Session e permite verificar a sua integridade técnica. Não constitui automaticamente certificação notarial, eleitoral ou validade legal.',
-                  fr: 'Verified Result documente le résultat produit par une Session et permet d’en vérifier l’intégrité technique. Il ne constitue pas automatiquement une certification notariale, électorale ou une validité juridique.',
-                  ar: 'يوثّق Verified Result النتيجة التي تنتجها Session ويتيح التحقق من سلامتها التقنية. ولا يشكّل تلقائيًا توثيقًا قانونيًا أو اعتمادًا انتخابيًا أو صلاحية قانونية.',
-                  ro: 'Verified Result documentează rezultatul produs de o Session și permite verificarea integrității tehnice. Nu reprezintă automat autentificare notarială, certificare electorală sau validitate juridică.',
+                  de: 'verifiziertes Ergebnis dokumentiert das Ergebnis einer Sitzung und ermöglicht die Prüfung seiner technischen Integrität. Es stellt nicht automatisch eine notarielle, wahlrechtliche oder rechtliche Zertifizierung dar.',
+                  fa: 'نتیجه تأییدشده نتیجه تولیدشده توسط جلسه را ثبت می‌کند و امکان بررسی تمامیت فنی آن را می‌دهد. این مورد به‌طور خودکار به معنای گواهی محضری، انتخاباتی یا اعتبار قانونی نیست.',
+                  es: 'resultado verificado documenta el resultado producido por una sesión y permite comprobar su integridad técnica. No constituye automáticamente una certificación notarial, electoral ni validez legal.',
+                  pt: 'resultado verificado documenta o resultado produzido por uma sessão e permite verificar a sua integridade técnica. Não constitui automaticamente certificação notarial, eleitoral ou validade legal.',
+                  fr: 'résultat vérifié documente le résultat produit par une session et permet d’en vérifier l’intégrité technique. Il ne constitue pas automatiquement une certification notariale, électorale ou une validité juridique.',
+                  ar: 'يوثّق النتيجة المتحقق منها النتيجة التي تنتجها الجلسة ويتيح التحقق من سلامتها التقنية. ولا يشكّل تلقائيًا توثيقًا قانونيًا أو اعتمادًا انتخابيًا أو صلاحية قانونية.',
+                  ro: 'rezultat verificat documentează rezultatul produs de o sesiune și permite verificarea integrității tehnice. Nu reprezintă automat autentificare notarială, certificare electorală sau validitate juridică.',
                 
-                  ru: 'Verified Result документирует результат Session и позволяет проверить его техническую целостность. Он не является автоматически нотариальным заверением, электоральной сертификацией или юридической действительностью.',
-                  zh: 'Verified Result 记录 Session 产生的结果，并允许检查其技术完整性。它不会自动构成公证、选举认证或法律效力。',
+                  ru: 'Проверенный результат документирует результат сессии и позволяет проверить его техническую целостность. Он не является автоматически нотариальным заверением, электоральной сертификацией или юридической действительностью.',
+                  zh: '已验证结果记录会议产生的结果，并允许检查其技术完整性。它不会自动构成公证、选举认证或法律效力。',
 ),
               ),
               const SizedBox(height: 16),
@@ -830,18 +849,18 @@ class HowSocialVoteWorksPage extends StatelessWidget {
 ),
                 body: _text(
                   context,
-                  it: 'Le persone partecipano gratuitamente. Gli strumenti professionali Business possono sostenere i costi della piattaforma. Pagare non compra verifica, peso nei Vote o priorità artificiale in Pulse/Pulse Now.',
-                  en: 'People participate for free. Professional Business tools can support the platform’s costs. Paying does not buy verification, weight in Vote or artificial priority in Pulse/Pulse Now.',
-                  de: 'Menschen nehmen kostenlos teil. Professionelle Business-Werkzeuge können die Plattformkosten tragen. Bezahlen kauft weder Verifizierung noch mehr Gewicht in Vote oder künstliche Priorität in Pulse/Pulse Now.',
-                  fa: 'مردم رایگان مشارکت می‌کنند. ابزارهای حرفه‌ای Business می‌توانند به تأمین هزینه‌های پلتفرم کمک کنند. پرداخت پول تأیید هویت، وزن بیشتر در Vote یا اولویت مصنوعی در Pulse/Pulse Now نمی‌خرد.',
-                  es: 'Las personas participan gratis. Las herramientas profesionales Business pueden sostener los costes de la plataforma. Pagar no compra verificación, peso en Vote ni prioridad artificial en Pulse/Pulse Now.',
-                  pt: 'As pessoas participam gratuitamente. As ferramentas profissionais Business podem ajudar a suportar os custos da plataforma. Pagar não compra verificação, peso em Vote nem prioridade artificial em Pulse/Pulse Now.',
-                  fr: 'Les personnes participent gratuitement. Les outils professionnels Business peuvent contribuer aux coûts de la plateforme. Payer n’achète ni vérification, ni poids dans Vote, ni priorité artificielle dans Pulse/Pulse Now.',
-                  ar: 'يشارك الناس مجانًا. ويمكن لأدوات Business الاحترافية المساهمة في تكاليف المنصة. الدفع لا يشتري التحقق أو وزنًا أكبر في Vote أو أولوية مصطنعة في Pulse/Pulse Now.',
-                  ro: 'Oamenii participă gratuit. Instrumentele profesionale Business pot susține costurile platformei. Plata nu cumpără verificare, greutate în Vote sau prioritate artificială în Pulse/Pulse Now.',
+                  it: 'Le persone partecipano gratuitamente. Gli strumenti professionali per le organizzazioni possono sostenere i costi della piattaforma. Pagare non compra verifica, peso nei Vote o priorità artificiale in Pulse/Pulse Now.',
+                  en: 'People participate for free. Professional tools for organizations can support the platform’s costs. Paying does not buy verification, weight in Vote or artificial priority in Pulse/Pulse Now.',
+                  de: 'Menschen nehmen kostenlos teil. Professionelle Werkzeuge für Organisationen können die Plattformkosten tragen. Bezahlen kauft weder Verifizierung noch mehr Gewicht in Vote oder künstliche Priorität in Pulse/Pulse Now.',
+                  fa: 'مردم رایگان مشارکت می‌کنند. ابزارهای حرفه‌ای سازمان‌ها می‌توانند به تأمین هزینه‌های پلتفرم کمک کنند. پرداخت پول تأیید هویت، وزن بیشتر در Vote یا اولویت مصنوعی در Pulse/Pulse Now نمی‌خرد.',
+                  es: 'Las personas participan gratis. Las herramientas profesionales para organizaciones pueden sostener los costes de la plataforma. Pagar no compra verificación, peso en Vote ni prioridad artificial en Pulse/Pulse Now.',
+                  pt: 'As pessoas participam gratuitamente. As ferramentas profissionais para organizações podem ajudar a suportar os custos da plataforma. Pagar não compra verificação, peso em Vote nem prioridade artificial em Pulse/Pulse Now.',
+                  fr: 'Les personnes participent gratuitement. Les outils professionnels destinés aux organisations peuvent contribuer aux coûts de la plateforme. Payer n’achète ni vérification, ni poids dans Vote, ni priorité artificielle dans Pulse/Pulse Now.',
+                  ar: 'يشارك الناس مجانًا. ويمكن للأدوات الاحترافية للمنظمات المساهمة في تكاليف المنصة. الدفع لا يشتري التحقق أو وزنًا أكبر في Vote أو أولوية مصطنعة في Pulse/Pulse Now.',
+                  ro: 'Oamenii participă gratuit. Instrumentele profesionale pentru organizații pot susține costurile platformei. Plata nu cumpără verificare, greutate în Vote sau prioritate artificială în Pulse/Pulse Now.',
                 
-                  ru: 'Люди участвуют бесплатно. Профессиональные Business-инструменты могут покрывать расходы платформы. Оплата не покупает проверку, вес в Vote или искусственный приоритет в Pulse/Pulse Now.',
-                  zh: '个人免费参与。专业 Business 工具可以支持平台成本。付费不会购买验证、Vote 权重或 Pulse/Pulse Now 中的人为优先级。',
+                  ru: 'Люди участвуют бесплатно. Профессиональные инструменты для организаций могут покрывать расходы платформы. Оплата не покупает проверку, вес в Vote или искусственный приоритет в Pulse/Pulse Now.',
+                  zh: '个人免费参与。面向组织的专业工具可以支持平台成本。付费不会购买验证、Vote 权重或 Pulse/Pulse Now 中的人为优先级。',
 ),
               ),
               const SizedBox(height: 10),
@@ -887,18 +906,18 @@ class HowSocialVoteWorksPage extends StatelessWidget {
                       label: Text(
                         _text(
                           context,
-                          it: 'Apri Workspace Business',
-                          en: 'Open Business Workspace',
-                          de: 'Business Workspace öffnen',
-                          fa: 'Workspace Business را باز کنید',
-                          es: 'Abrir Workspace Business',
-                          pt: 'Abrir Workspace Business',
-                          fr: 'Ouvrir le Workspace Business',
-                          ar: 'افتح Workspace Business',
-                          ro: 'Deschide Workspace Business',
+                          it: 'Apri lo spazio di lavoro professionale',
+                          en: 'Open professional workspace',
+                          de: 'Professionellen Arbeitsbereich öffnen',
+                          fa: 'فضای کاری حرفه‌ای را باز کنید',
+                          es: 'Abrir espacio de trabajo profesional',
+                          pt: 'Abrir espaço de trabalho profissional',
+                          fr: 'Ouvrir l’espace de travail professionnel',
+                          ar: 'افتح مساحة العمل الاحترافية',
+                          ro: 'Deschide spațiul de lucru profesional',
                         
-                          ru: 'Открыть Business Workspace',
-                          zh: '打开 Business Workspace',
+                          ru: 'Открыть профессиональное рабочее пространство',
+                          zh: '打开专业工作区',
 ),
                       ),
                     )
@@ -949,23 +968,37 @@ class HowSocialVoteWorksPage extends StatelessWidget {
 ),
               ),
               const SizedBox(height: 10),
-              _VisionPosterCard(
-                assetPath: _posterAssetForLocale(context),
-                tapHint: _text(
+              _DynamicVisionHero(
+                progress: _productProgress,
+                version: _principlesVersion,
+                title: _text(
                   context,
-                  it: 'Tocca l’immagine per ingrandire',
-                  en: 'Tap the image to enlarge',
-                  de: 'Tippe auf das Bild zum Vergrößern',
-                  fa: 'برای بزرگ‌نمایی روی تصویر بزنید',
-                  es: 'Toca la imagen para ampliarla',
-                  pt: 'Toque na imagem para ampliar',
-                  fr: 'Touchez l’image pour l’agrandir',
-                  ar: 'اضغط على الصورة لتكبيرها',
-                  ro: 'Atinge imaginea pentru a o mări',
-                
-                  ru: 'Нажмите на изображение, чтобы увеличить',
-                  zh: '点击图片放大',
-),
+                  it: 'NEL NOSTRO MONDO',
+                  en: 'IN OUR WORLD',
+                  de: 'IN UNSERER WELT',
+                  fa: 'در دنیای ما',
+                  es: 'EN NUESTRO MUNDO',
+                  pt: 'NO NOSSO MUNDO',
+                  fr: 'DANS NOTRE MONDE',
+                  ar: 'في عالمنا',
+                  ro: 'ÎN LUMEA NOASTRĂ',
+                  ru: 'В НАШЕМ МИРЕ',
+                  zh: '在我们的世界',
+                ),
+                subtitle: _text(
+                  context,
+                  it: 'Una persona, una voce. Dieci principi leggibili, localizzati e responsive.',
+                  en: 'One person, one voice. Ten readable, localized and responsive principles.',
+                  de: 'Eine Person, eine Stimme. Zehn lesbare, lokalisierte und responsive Prinzipien.',
+                  fa: 'هر شخص، یک صدا. ده اصل خوانا، بومی‌سازی‌شده و واکنش‌گرا.',
+                  es: 'Una persona, una voz. Diez principios legibles, localizados y adaptables.',
+                  pt: 'Uma pessoa, uma voz. Dez princípios legíveis, localizados e responsivos.',
+                  fr: 'Une personne, une voix. Dix principes lisibles, localisés et adaptatifs.',
+                  ar: 'شخص واحد، صوت واحد. عشرة مبادئ مقروءة ومترجمة ومتجاوبة.',
+                  ro: 'O persoană, o voce. Zece principii lizibile, localizate și responsive.',
+                  ru: 'Один человек, один голос. Десять читаемых, локализованных и адаптивных принципов.',
+                  zh: '一人一票。十条清晰、本地化且自适应的原则。',
+                ),
               ),
               const SizedBox(height: 16),
               _ProgressVisionCard(
@@ -1100,94 +1133,129 @@ class _RuleData {
   });
 }
 
-class _VisionPosterCard extends StatelessWidget {
-  final String assetPath;
-  final String tapHint;
+class _DynamicVisionHero extends StatelessWidget {
+  final double progress;
+  final String version;
+  final String title;
+  final String subtitle;
 
-  const _VisionPosterCard({
-    required this.assetPath,
-    required this.tapHint,
+  const _DynamicVisionHero({
+    required this.progress,
+    required this.version,
+    required this.title,
+    required this.subtitle,
   });
-
-  void _showFullscreen(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.94),
-      builder: (dialogContext) {
-        return Dialog.fullscreen(
-          backgroundColor: Colors.black,
-          child: SafeArea(
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: InteractiveViewer(
-                    minScale: 0.7,
-                    maxScale: 5,
-                    child: Center(
-                      child: Image.asset(
-                        assetPath,
-                        fit: BoxFit.contain,
-                        filterQuality: FilterQuality.high,
-                      ),
-                    ),
-                  ),
-                ),
-                PositionedDirectional(
-                  top: 8,
-                  end: 8,
-                  child: IconButton.filledTonal(
-                    tooltip: MaterialLocalizations.of(dialogContext).closeButtonTooltip,
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    icon: const Icon(Icons.close_rounded),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => _showFullscreen(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AspectRatio(
-              aspectRatio: 1672 / 941,
-              child: Image.asset(
-                assetPath,
-                fit: BoxFit.cover,
-                filterQuality: FilterQuality.high,
+    final colors = theme.colorScheme;
+    final percent = (progress * 100).round();
+    return Semantics(
+      label: 'Social Vote Principles v$version, $percent%',
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 250),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colors.surfaceContainerHighest,
+              colors.surface,
+            ],
+          ),
+          border: Border.all(color: colors.outlineVariant),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxWidth < 620;
+            final emblem = Container(
+              width: compact ? 110 : 150,
+              height: compact ? 110 : 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: colors.primary, width: 2),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              child: Row(
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  Icon(Icons.zoom_in_rounded, size: 18, color: theme.colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      tapHint,
-                      textDirection: socialVoteLocaleTextDirection(context),
-                      textAlign: socialVoteLocaleTextAlign(context),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                  Icon(Icons.public_rounded, size: compact ? 72 : 98, color: colors.primary),
+                  Positioned(
+                    bottom: compact ? 14 : 18,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: colors.surface.withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        '$percent%',
+                        textDirection: TextDirection.ltr,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: colors.primary,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+            );
+            final copy = Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Social Vote',
+                  textDirection: TextDirection.ltr,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.7,
+                    color: colors.primary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  textDirection: socialVoteContentDirection(title),
+                  textAlign: socialVoteContentTextAlign(title),
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  subtitle,
+                  textDirection: socialVoteContentDirection(subtitle),
+                  textAlign: socialVoteContentTextAlign(subtitle),
+                  style: theme.textTheme.bodyLarge?.copyWith(height: 1.45),
+                ),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    Chip(label: Text('Principles v$version', textDirection: TextDirection.ltr)),
+                    const Chip(label: Text('10', textDirection: TextDirection.ltr)),
+                  ],
+                ),
+              ],
+            );
+            if (compact) {
+              return Column(
+                children: [emblem, const SizedBox(height: 18), copy],
+              );
+            }
+            return Row(
+              children: [
+                emblem,
+                const SizedBox(width: 28),
+                Expanded(child: copy),
+              ],
+            );
+          },
         ),
       ),
     );

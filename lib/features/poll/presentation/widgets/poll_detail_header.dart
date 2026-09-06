@@ -122,18 +122,8 @@ class PollDetailHeader extends StatelessWidget {
     final createdAt = _tryGetCreatedAt(poll);
     final minQuorum = config.quorumRules.minAbsoluteVotes;
 
-    final shareLabel = _localizedText(
-      l10n,
-      it: 'Condividi',
-      en: 'Share',
-      de: 'Teilen',
-    );
-    final saveLabel = _localizedText(
-      l10n,
-      it: 'Salva',
-      en: 'Save',
-      de: 'Speichern',
-    );
+    final shareLabel = l10n.postDetail_shareAction;
+    final saveLabel = l10n.commonSaveButton;
 
     final representativeLabel =
         _hasRepresentativePublisher ? _mapRepresentativeLabel(l10n) : null;
@@ -150,33 +140,14 @@ class PollDetailHeader extends StatelessWidget {
       endAt: poll.endAt,
     );
     final typeLabel = _mapTypeToLabel(l10n, poll.type);
-    final voteChangeLabel = config.allowVoteChange
-        ? _localizedText(
-            l10n,
-            it: 'Voto modificabile',
-            en: 'Vote can change',
-            de: 'Stimme änderbar',
-          )
-        : _localizedText(
-            l10n,
-            it: 'Voto non modificabile',
-            en: 'Vote locked',
-            de: 'Stimme gesperrt',
-          );
+    final voteChangeLabel = _mapVoteChangeLabel(
+      l10n,
+      allowVoteChange: config.allowVoteChange,
+    );
     final anonymityLabel =
         config.anonymityRules.level == AnonymityLevel.anonymous
-            ? _localizedText(
-                l10n,
-                it: 'Voto anonimo',
-                en: 'Anonymous vote',
-                de: 'Anonyme Abstimmung',
-              )
-            : _localizedText(
-                l10n,
-                it: 'Voto pubblico',
-                en: 'Public vote',
-                de: 'Öffentliche Abstimmung',
-              );
+            ? l10n.pollDetail_chipAnonymous
+            : l10n.pollDetail_chipPublic;
     final resultsVisibilityLabel = _mapResultsVisibilityLabel(
       l10n,
       config.visibilityRules.resultsVisibility,
@@ -184,18 +155,8 @@ class PollDetailHeader extends StatelessWidget {
 
     final String? quorumInfoText = (minQuorum != null && isQuorumApplicable)
         ? (isQuorumReached
-            ? _localizedText(
-                l10n,
-                it: 'Quorum raggiunto • $totalVotes/$minQuorum',
-                en: 'Quorum reached • $totalVotes/$minQuorum',
-                de: 'Quorum erreicht • $totalVotes/$minQuorum',
-              )
-            : _localizedText(
-                l10n,
-                it: 'Quorum non raggiunto • $totalVotes/$minQuorum',
-                en: 'Quorum not reached • $totalVotes/$minQuorum',
-                de: 'Quorum nicht erreicht • $totalVotes/$minQuorum',
-              ))
+            ? l10n.pollDetail_quorumReached(totalVotes, minQuorum)
+            : l10n.pollDetail_quorumNotReached(totalVotes, minQuorum))
         : null;
 
     final titleColor = colorScheme.onSurface;
@@ -338,12 +299,7 @@ class PollDetailHeader extends StatelessWidget {
             if (createdAt != null) ...[
               const SizedBox(height: 10),
               Text(
-                _localizedText(
-                  l10n,
-                  it: 'Creato il ${_formatDateTime(createdAt)}',
-                  en: 'Created on ${_formatDateTime(createdAt)}',
-                  de: 'Erstellt am ${_formatDateTime(createdAt)}',
-                ),
+                _mapCreatedOnLabel(l10n, createdAt),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: metaTextColor,
                   fontWeight: FontWeight.w600,
@@ -354,12 +310,7 @@ class PollDetailHeader extends StatelessWidget {
               const SizedBox(height: 18),
               _buildVotingRulesSummary(
                 context,
-                title: _localizedText(
-                  l10n,
-                  it: 'Regole di voto',
-                  en: 'Voting rules',
-                  de: 'Abstimmungsregeln',
-                ),
+                title: _mapVotingRulesLabel(l10n),
                 values: ruleSummaryValues,
               ),
             ],
@@ -1137,12 +1088,7 @@ class PollDetailHeader extends StatelessWidget {
     final primaryLabel = displayName ??
         (username != null
             ? '@$username'
-            : _localizedText(
-                l10n,
-                it: 'Utente',
-                en: 'User',
-                de: 'Benutzer',
-              ));
+            : l10n.pollDetail_publicVotesUserFallback);
     final usernameLabel =
         displayName != null && username != null ? '@$username' : null;
     final canOpen = onAuthorTap != null;
@@ -1178,7 +1124,7 @@ class PollDetailHeader extends StatelessWidget {
     final cityName = _normalizeString(contentLocation?.cityName) ??
         _normalizeString(poll.cityId);
 
-    final country = _resolveCountryName(countryCode);
+    final country = _resolveCountryName(l10n, countryCode);
 
     if (country == null && cityName == null) {
       return l10n.pollGeo_global;
@@ -1197,19 +1143,9 @@ class PollDetailHeader extends StatelessWidget {
       case VerificationLevel.none:
         return null;
       case VerificationLevel.level1:
-        return _localizedText(
-          l10n,
-          it: 'Verifica minima: Livello 1',
-          en: 'Minimum verification: Level 1',
-          de: 'Mindestverifizierung: Stufe 1',
-        );
+        return _mapMinimumVerificationLabel(l10n, level: 1);
       case VerificationLevel.level2:
-        return _localizedText(
-          l10n,
-          it: 'Verifica minima: Livello 2',
-          en: 'Minimum verification: Level 2',
-          de: 'Mindestverifizierung: Stufe 2',
-        );
+        return _mapMinimumVerificationLabel(l10n, level: 2);
     }
   }
 
@@ -1220,64 +1156,35 @@ class PollDetailHeader extends StatelessWidget {
       return null;
     }
 
-    final countryName = _resolveCountryName(rules.countryCode);
+    final countryName = _resolveCountryName(l10n, rules.countryCode);
     if (countryName != null) {
-      return _localizedText(
-        l10n,
-        it: 'Solo utenti $countryName',
-        en: 'Only $countryName users',
-        de: 'Nur Nutzer aus $countryName',
-      );
+      return l10n.pollCard_restrictedToCountry(countryName);
     }
 
-    return _localizedText(
-      l10n,
-      it: 'Partecipazione ristretta',
-      en: 'Restricted access',
-      de: 'Eingeschränkte Teilnahme',
-    );
+    return l10n.pollCard_countryRestricted;
   }
 
   String _mapRepresentativeLabel(AppLocalizations l10n) {
     switch (poll.publishedAsActorType) {
       case ActorType.publicOfficial:
-        return _localizedText(
-          l10n,
-          it: 'Funzionario pubblico',
-          en: 'Public Official',
-          de: 'Amtsträger',
-        );
+        return l10n.pollCard_publicOfficialPublisher;
       case ActorType.institution:
-        return _localizedText(
-          l10n,
-          it: 'Istituzione pubblica',
-          en: 'Public Institution',
-          de: 'Öffentliche Institution',
-        );
+        return l10n.pollCard_institutionPublisher;
       case ActorType.organization:
         return l10n.identityBadgeVerifiedOrganization;
       default:
-        return _localizedText(
-          l10n,
-          it: 'Rappresentante',
-          en: 'Representative',
-          de: 'Vertreter',
-        );
+        return l10n.pollCard_representativePublisher;
     }
   }
 
-  String? _resolveCountryName(String? code) {
+  String? _resolveCountryName(AppLocalizations l10n, String? code) {
     if (code == null) return null;
 
-    final upper = code.toUpperCase();
-
-    try {
-      final country =
-          Countries.all.firstWhere((c) => c.code.toUpperCase() == upper);
-      return country.name;
-    } catch (_) {
-      return code;
-    }
+    return Countries.nameForCode(
+      code,
+      languageCode: l10n.localeName,
+      fallback: code,
+    );
   }
 
   String? _mapTimeWindowLabel(
@@ -1294,20 +1201,10 @@ class PollDetailHeader extends StatelessWidget {
     }
 
     if (startAt != null) {
-      return _localizedText(
-        l10n,
-        it: 'Da ${_formatShortDate(startAt)}',
-        en: 'From ${_formatShortDate(startAt)}',
-        de: 'Ab ${_formatShortDate(startAt)}',
-      );
+      return _mapFromDateLabel(l10n, _formatShortDate(startAt));
     }
 
-    return _localizedText(
-      l10n,
-      it: 'Fino ${_formatShortDate(endAt!)}',
-      en: 'Until ${_formatShortDate(endAt)}',
-      de: 'Bis ${_formatShortDate(endAt)}',
-    );
+    return _mapUntilDateLabel(l10n, _formatShortDate(endAt!));
   }
 
   String _formatShortDate(DateTime value) {
@@ -1361,39 +1258,122 @@ class PollDetailHeader extends StatelessWidget {
   ) {
     switch (mode) {
       case ResultsVisibilityMode.always:
-        return _localizedText(
-          l10n,
-          it: 'Risultati sempre visibili',
-          en: 'Results always visible',
-          de: 'Ergebnisse immer sichtbar',
-        );
+        return l10n.pollCard_resultsVisibleChip;
       case ResultsVisibilityMode.afterVote:
-        return _localizedText(
-          l10n,
-          it: 'Risultati visibili dopo voto',
-          en: 'Results visible after vote',
-          de: 'Ergebnisse nach der Abstimmung sichtbar',
-        );
+        return l10n.pollCard_resultsAfterVoteChip;
       case ResultsVisibilityMode.afterClose:
-        return _localizedText(
-          l10n,
-          it: 'Risultati visibili dopo chiusura',
-          en: 'Results visible after close',
-          de: 'Ergebnisse nach Schließung sichtbar',
-        );
+        return l10n.pollCard_resultsAfterCloseChip;
     }
   }
 
-  String _localizedText(
+  String _mapVoteChangeLabel(
     AppLocalizations l10n, {
-    required String it,
-    required String en,
-    required String de,
+    required bool allowVoteChange,
   }) {
-    final locale = l10n.localeName.toLowerCase();
-    if (locale.startsWith('it')) return it;
-    if (locale.startsWith('de')) return de;
-    return en;
+    final language = l10n.localeName.toLowerCase().split('_').first;
+    final labels = switch (language) {
+      'it' => ('Voto modificabile', 'Voto non modificabile'),
+      'de' => ('Stimme änderbar', 'Stimme gesperrt'),
+      'fa' => ('امکان تغییر رأی', 'رأی قفل‌شده'),
+      'es' => ('Voto modificable', 'Voto bloqueado'),
+      'pt' => ('Voto alterável', 'Voto bloqueado'),
+      'fr' => ('Vote modifiable', 'Vote verrouillé'),
+      'ar' => ('يمكن تغيير التصويت', 'التصويت مقفل'),
+      'ro' => ('Vot modificabil', 'Vot blocat'),
+      'ru' => ('Голос можно изменить', 'Голос заблокирован'),
+      'zh' => ('可修改投票', '投票已锁定'),
+      _ => ('Vote can change', 'Vote locked'),
+    };
+    return allowVoteChange ? labels.$1 : labels.$2;
+  }
+
+  String _mapCreatedOnLabel(AppLocalizations l10n, DateTime value) {
+    final date = _formatDateTime(value);
+    final language = l10n.localeName.toLowerCase().split('_').first;
+    return switch (language) {
+      'it' => 'Creato il $date',
+      'de' => 'Erstellt am $date',
+      'fa' => 'ایجادشده در $date',
+      'es' => 'Creado el $date',
+      'pt' => 'Criado em $date',
+      'fr' => 'Créé le $date',
+      'ar' => 'أُنشئ في $date',
+      'ro' => 'Creat la $date',
+      'ru' => 'Создано $date',
+      'zh' => '创建于 $date',
+      _ => 'Created on $date',
+    };
+  }
+
+  String _mapVotingRulesLabel(AppLocalizations l10n) {
+    final language = l10n.localeName.toLowerCase().split('_').first;
+    return switch (language) {
+      'it' => 'Regole di voto',
+      'de' => 'Abstimmungsregeln',
+      'fa' => 'قوانین رأی‌گیری',
+      'es' => 'Reglas de votación',
+      'pt' => 'Regras de votação',
+      'fr' => 'Règles de vote',
+      'ar' => 'قواعد التصويت',
+      'ro' => 'Reguli de vot',
+      'ru' => 'Правила голосования',
+      'zh' => '投票规则',
+      _ => 'Voting rules',
+    };
+  }
+
+  String _mapMinimumVerificationLabel(
+    AppLocalizations l10n, {
+    required int level,
+  }) {
+    final language = l10n.localeName.toLowerCase().split('_').first;
+    return switch (language) {
+      'it' => 'Verifica minima: Livello $level',
+      'de' => 'Mindestverifizierung: Stufe $level',
+      'fa' => 'حداقل احراز هویت: سطح $level',
+      'es' => 'Verificación mínima: Nivel $level',
+      'pt' => 'Verificação mínima: Nível $level',
+      'fr' => 'Vérification minimale : Niveau $level',
+      'ar' => 'الحد الأدنى للتحقق: المستوى $level',
+      'ro' => 'Verificare minimă: Nivel $level',
+      'ru' => 'Минимальная проверка: уровень $level',
+      'zh' => '最低验证：级别 $level',
+      _ => 'Minimum verification: Level $level',
+    };
+  }
+
+  String _mapFromDateLabel(AppLocalizations l10n, String date) {
+    final language = l10n.localeName.toLowerCase().split('_').first;
+    return switch (language) {
+      'it' => 'Da $date',
+      'de' => 'Ab $date',
+      'fa' => 'از $date',
+      'es' => 'Desde $date',
+      'pt' => 'Desde $date',
+      'fr' => 'À partir du $date',
+      'ar' => 'من $date',
+      'ro' => 'Din $date',
+      'ru' => 'С $date',
+      'zh' => '自 $date',
+      _ => 'From $date',
+    };
+  }
+
+  String _mapUntilDateLabel(AppLocalizations l10n, String date) {
+    final language = l10n.localeName.toLowerCase().split('_').first;
+    return switch (language) {
+      'it' => 'Fino $date',
+      'de' => 'Bis $date',
+      'fa' => 'تا $date',
+      'es' => 'Hasta $date',
+      'pt' => 'Até $date',
+      'fr' => 'Jusqu’au $date',
+      'ar' => 'حتى $date',
+      'ro' => 'Până la $date',
+      'ru' => 'До $date',
+      'zh' => '至 $date',
+      _ => 'Until $date',
+    };
   }
 
   String? _normalizeString(String? value) {

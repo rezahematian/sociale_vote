@@ -20,6 +20,7 @@ import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/widgets/engagement_bar.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 import 'package:sociale_vote/shared/widgets/content_directionality.dart';
+import 'package:sociale_vote/shared/widgets/content_language_field.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 /// Pagina di dettaglio per un singolo post del social feed.
@@ -197,15 +198,16 @@ class _PostDetailViewState extends State<_PostDetailView> {
     return currentUserId == createdByUserId;
   }
 
-  Future<({String title, String content})?> _showEditPostDialog(
+  Future<({String title, String content, String languageCode})?> _showEditPostDialog(
     Post post,
   ) async {
     final titleController = TextEditingController(text: post.title);
     final contentController = TextEditingController(text: post.content);
     String? validationMessage;
+    var selectedLanguageCode = normalizeContentLanguageCode(post.languageCode);
 
     try {
-      final result = await showDialog<({String title, String content})>(
+      final result = await showDialog<({String title, String content, String languageCode})>(
         context: context,
         builder: (dialogContext) {
           return StatefulBuilder(
@@ -256,6 +258,16 @@ class _PostDetailViewState extends State<_PostDetailView> {
                           alignLabelWithHint: true,
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      ContentLanguageField(
+                        selectedCode: selectedLanguageCode,
+                        onChanged: (value) {
+                          setDialogState(() {
+                            selectedLanguageCode = value;
+                          });
+                        },
+                        includeUndetermined: true,
+                      ),
                       if (validationMessage != null) ...[
                         const SizedBox(height: 12),
                         Text(
@@ -291,6 +303,7 @@ class _PostDetailViewState extends State<_PostDetailView> {
                       Navigator.of(dialogContext).pop((
                         title: title,
                         content: content,
+                        languageCode: selectedLanguageCode,
                       ));
                     },
                     child: Text(
@@ -326,6 +339,7 @@ class _PostDetailViewState extends State<_PostDetailView> {
       await context.read<PostDetailController>().update(
             title: edited.title,
             content: edited.content,
+            languageCode: edited.languageCode,
           );
 
       if (!mounted) return;

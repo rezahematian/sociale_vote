@@ -6,6 +6,7 @@ import 'package:sociale_vote/features/discovery/application/for_you_feed_control
 import 'package:sociale_vote/features/home/application/feed_item.dart';
 import 'package:sociale_vote/features/home/presentation/widgets/home_trending_section.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/widgets/product_signature_label.dart';
 
 class HomeForYouSection extends StatelessWidget {
   final String scopeShortLabel;
@@ -48,13 +49,15 @@ class HomeForYouSection extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            l10n.homeForYouTitle(scopeShortLabel),
-            style: theme.textTheme.titleMedium?.copyWith(
+          child: ProductSignatureLabel(
+            kind: ProductSignatureKind.pulse,
+            brandStyle: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            descriptorStyle: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
         if (controller.isLoading)

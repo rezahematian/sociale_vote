@@ -14,6 +14,7 @@ import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
 import 'package:sociale_vote/shared/widgets/user_identity_mark.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
 import 'package:sociale_vote/shared/widgets/content_directionality.dart';
+import 'package:sociale_vote/shared/widgets/content_language_field.dart';
 
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/identity/entities/user_profile.dart';
@@ -355,6 +356,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
         userId: userId,
         title: result.title,
         description: result.description,
+        languageCode: result.languageCode,
       );
 
       if (!mounted) return;
@@ -379,6 +381,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
         return _EditPollDialog(
           initialTitle: poll.title,
           initialDescription: poll.description ?? '',
+          initialLanguageCode: poll.languageCode,
         );
       },
     );
@@ -636,7 +639,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
             const SizedBox(width: 8),
             Flexible(
               child: Text(
-                l10n.pollDetail_title,
+                socialVoteIsolateFixedProductNames(l10n.pollDetail_title),
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.2,
@@ -2384,10 +2387,12 @@ class _PublicVoteTileState extends State<_PublicVoteTile> {
 class _EditPollDialog extends StatefulWidget {
   final String initialTitle;
   final String initialDescription;
+  final String initialLanguageCode;
 
   const _EditPollDialog({
     required this.initialTitle,
     required this.initialDescription,
+    required this.initialLanguageCode,
   });
 
   @override
@@ -2399,6 +2404,7 @@ class _EditPollDialogState extends State<_EditPollDialog> {
 
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
+  late String _languageCode;
 
   @override
   void initState() {
@@ -2407,6 +2413,7 @@ class _EditPollDialogState extends State<_EditPollDialog> {
     _descriptionController = TextEditingController(
       text: widget.initialDescription,
     );
+    _languageCode = normalizeContentLanguageCode(widget.initialLanguageCode);
     _titleController.addListener(_refreshEditableDirection);
     _descriptionController.addListener(_refreshEditableDirection);
   }
@@ -2439,6 +2446,7 @@ class _EditPollDialogState extends State<_EditPollDialog> {
         title: title,
         description:
             normalizedDescription.isEmpty ? null : normalizedDescription,
+        languageCode: _languageCode,
       ),
     );
   }
@@ -2495,6 +2503,16 @@ class _EditPollDialogState extends State<_EditPollDialog> {
                   labelText: l10n.pollDetail_editDescriptionFieldLabel,
                 ),
               ),
+              const SizedBox(height: 14),
+              ContentLanguageField(
+                selectedCode: _languageCode,
+                onChanged: (value) {
+                  setState(() {
+                    _languageCode = value;
+                  });
+                },
+                includeUndetermined: true,
+              ),
             ],
           ),
         ),
@@ -2516,10 +2534,12 @@ class _EditPollDialogState extends State<_EditPollDialog> {
 class _EditPollFormResult {
   final String title;
   final String? description;
+  final String languageCode;
 
   const _EditPollFormResult({
     required this.title,
     this.description,
+    required this.languageCode,
   });
 }
 

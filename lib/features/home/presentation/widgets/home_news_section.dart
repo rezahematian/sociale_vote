@@ -13,6 +13,7 @@ import 'package:sociale_vote/features/news/presentation/pages/news_detail_page.d
 import 'package:sociale_vote/features/news/presentation/widgets/news_card.dart'
     as shared_news;
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/widgets/product_signature_label.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/ui/app_card.dart';
 import 'package:sociale_vote/shared/ui/loading_indicator.dart';
@@ -514,6 +515,14 @@ class _HomeNewsHeader extends StatelessWidget {
         return 'AR';
       case NewsLanguage.fa:
         return 'FA';
+      case NewsLanguage.pt:
+        return 'PT';
+      case NewsLanguage.ro:
+        return 'RO';
+      case NewsLanguage.ru:
+        return 'RU';
+      case NewsLanguage.zh:
+        return 'ZH';
     }
   }
 
@@ -543,13 +552,20 @@ class _HomeNewsHeader extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  l10n.homeNewsTitle(scopeShortLabel),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ProductSignatureLabel(
+                      kind: ProductSignatureKind.news,
+                      brandStyle: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      descriptorStyle: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -612,6 +628,22 @@ class _HomeNewsHeader extends StatelessWidget {
               PopupMenuItem<NewsLanguage>(
                 value: NewsLanguage.fa,
                 child: Text('FA'),
+              ),
+              PopupMenuItem<NewsLanguage>(
+                value: NewsLanguage.pt,
+                child: Text('PT'),
+              ),
+              PopupMenuItem<NewsLanguage>(
+                value: NewsLanguage.ro,
+                child: Text('RO'),
+              ),
+              PopupMenuItem<NewsLanguage>(
+                value: NewsLanguage.ru,
+                child: Text('RU'),
+              ),
+              PopupMenuItem<NewsLanguage>(
+                value: NewsLanguage.zh,
+                child: Text('ZH'),
               ),
             ],
             child: Container(

@@ -5,6 +5,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/core/localization/app_language_state.dart';
+import 'package:sociale_vote/core/localization/content_language_code.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/app/theme/app_theme.dart';
 import 'package:sociale_vote/domain/identity/repositories/session_repository.dart';
@@ -207,6 +209,9 @@ class AppLocaleController {
     };
 
     for (final platformLocale in platformLocales ?? const <Locale>[]) {
+      if (isExplicitTraditionalChineseLocale(platformLocale)) {
+        continue;
+      }
       final match =
           supportedByLanguage[platformLocale.languageCode.toLowerCase()];
       if (match != null) {
@@ -227,6 +232,7 @@ class AppLocaleController {
     _activeUserId = userId;
 
     if (userId == null) {
+      AppLanguageState.selectedLanguageCode = null;
       locale.value = null;
       return;
     }
@@ -263,6 +269,7 @@ class AppLocaleController {
     }
 
     final languageCode = _normalizedSupportedLanguageCode(saved);
+    AppLanguageState.selectedLanguageCode = languageCode;
     locale.value = languageCode == null ? null : Locale(languageCode);
   }
 
@@ -274,6 +281,7 @@ class AppLocaleController {
     final normalized = _normalizedSupportedLanguageCode(value?.languageCode);
     final nextLocale = normalized == null ? null : Locale(normalized);
     final userId = _activeUserId;
+    AppLanguageState.selectedLanguageCode = normalized;
 
     if (locale.value != nextLocale) {
       locale.value = nextLocale;

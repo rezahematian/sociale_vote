@@ -291,7 +291,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get homeScopeLabelCity => 'Città – Votazioni e notizie locali';
 
   @override
-  String get homeScopeShortWorld => 'Mondo';
+  String get homeScopeShortWorld => 'World';
 
   @override
   String get homeScopeShortCountry => 'Paese';
@@ -300,7 +300,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get homeScopeShortCity => 'Città';
 
   @override
-  String get homeScopeChipWorld => 'Mondo';
+  String get homeScopeChipWorld => 'World';
 
   @override
   String get homeScopeChipItaly => 'Italia';
@@ -512,7 +512,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get pollList_title => 'Vote';
 
   @override
-  String get pollList_scopeWorld => 'Mondo';
+  String get pollList_scopeWorld => 'World';
 
   @override
   String get pollList_scopeCountryFallback => 'Paese';
@@ -694,7 +694,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get commentSection_youBadge => 'Tu';
 
   @override
-  String get newsDetail_title => 'Dettaglio notizia';
+  String get newsDetail_title => 'News · Dettaglio';
 
   @override
   String get newsDetail_breakingBadge => 'ULTIM\'ORA';
@@ -712,10 +712,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get newsDetail_footerMoreContext => 'Altri contesti e fonti saranno disponibili a breve.';
 
   @override
-  String get newsFeed_title => 'Notizie';
+  String get newsFeed_title => 'News';
 
   @override
-  String get newsFeed_scopeWorld => 'Mondo';
+  String get newsFeed_scopeWorld => 'World';
 
   @override
   String get newsFeed_scopeCountry => 'Paese';
@@ -761,7 +761,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get newsFeed_retryButton => 'Riprova';
 
   @override
-  String get newsCard_headerTitle => 'Notizia';
+  String get newsCard_headerTitle => 'News';
 
   @override
   String get newsFeed_errorUnauthorized => 'Configurazione delle notizie non valida (chiave API).';
@@ -794,7 +794,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get newsFeed_languageTooltip => 'Lingua notizie';
 
   @override
-  String get newsFeed_languageAuto => 'AUTO';
+  String get newsFeed_languageAuto => 'Automatico';
 
   @override
   String get newsFeed_languageIt => 'IT';
@@ -824,7 +824,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get newsTopic_all => 'Tutte';
 
   @override
-  String get newsTopic_world => 'Mondo';
+  String get newsTopic_world => 'World';
 
   @override
   String get newsTopic_nation => 'Nazione';
@@ -1114,7 +1114,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get authPersonalAccountOwnershipTitle => 'L’accesso è sempre personale';
 
   @override
-  String get authPersonalAccountOwnershipBody => 'Se rappresenti un’organizzazione, crea il tuo account personale. Dopo l’accesso potrai richiedere un’Organization verificata e gestirla dal Workspace.';
+  String get authPersonalAccountOwnershipBody => 'Se rappresenti un’organizzazione, crea il tuo account personale. Dopo l’accesso potrai richiedere un’Organizzazione verificata e gestirla dal Spazio di lavoro.';
 
   @override
   String get authOrganizationPathAction => 'Come funziona per le organizzazioni';
@@ -2904,7 +2904,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get onboardingHeatIceDescription => 'Usa Heat e Ice per indicare quanto un contenuto sta attirando il tuo interesse.';
 
   @override
-  String get onboardingCivicMapTitle => 'Civic Map';
+  String get onboardingCivicMapTitle => 'Mappa civica';
 
   @override
   String get onboardingCivicMapDescription => 'Esplora Vote, Voce e News sulla mappa e scopri cosa succede nei diversi territori.';
@@ -3077,13 +3077,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get discoveryPageTitle => 'Esplora';
 
   @override
-  String get organizationWorkspaceTitle => 'Workspace organizzazione';
+  String get organizationWorkspaceTitle => 'Spazio di lavoro dell\'organizzazione';
 
   @override
   String get organizationPilotBannerTitle => 'Pilot gratuito';
 
   @override
-  String get organizationPilotBannerBody => 'Durante il pilot le Sessions sono gratuite. Alcune funzioni professionali potranno diventare a pagamento in futuro; il billing non è attivo ora.';
+  String get organizationPilotBannerBody => 'Durante il pilot le Sessioni sono gratuite. Alcune funzioni professionali potranno diventare a pagamento in futuro; il billing non è attivo ora.';
 
   @override
   String get organizationVerifiedLabel => 'Organizzazione verificata';
@@ -3092,19 +3092,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get organizationEditProfile => 'Modifica profilo organizzazione';
 
   @override
-  String get organizationCreateSession => 'Nuova Session';
+  String get organizationCreateSession => 'Nuova Sessione';
 
   @override
-  String get organizationNoSessions => 'Nessuna Session. Creane una per una riunione, workshop o evento.';
+  String get organizationNoSessions => 'Nessuna Sessione. Creane una per una riunione, workshop o evento.';
 
   @override
-  String get organizationSessionsTitle => 'Sessions live';
+  String get organizationSessionsTitle => 'Sessioni live';
 
   @override
   String get organizationRequiresVerificationTitle => 'Serve un’organizzazione verificata';
 
   @override
-  String get organizationRequiresVerificationBody => 'Questo workspace è disponibile solo agli account approvati da Social Vote come organizzazione verificata.';
+  String get organizationRequiresVerificationBody => 'Questo spazio di lavoro è disponibile solo agli account approvati da Social Vote come organizzazione verificata.';
 
   @override
   String get organizationProfileEditorTitle => 'Profilo organizzazione';
@@ -3167,10 +3167,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get organizationTypeOther => 'Altro';
 
   @override
-  String get sessionCreateTitle => 'Crea Session live';
+  String get sessionCreateTitle => 'Crea Sessione live';
 
   @override
-  String get sessionTitleLabel => 'Titolo Session';
+  String get sessionTitleLabel => 'Titolo Sessione';
 
   @override
   String get sessionExpectedParticipants => 'Partecipanti previsti';
@@ -3188,7 +3188,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sessionAccessControlled => 'Anonima controllata';
 
   @override
-  String get sessionAccessControlledHint => 'Usa Access Pass anonimi monouso. Social Vote conserva solo l’hash dell’Access Pass e non collega le scelte di voto alle credenziali dei partecipanti.';
+  String get sessionAccessControlledHint => 'Usa Pass di accesso anonimi monouso. Social Vote conserva solo l’hash dell’Pass di accesso e non collega le scelte di voto alle credenziali dei partecipanti.';
 
   @override
   String get sessionResultsVisibility => 'Visibilità risultati';
@@ -3206,10 +3206,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sessionResultsOrganizerOnly => 'Solo organizzatore';
 
   @override
-  String get sessionCreateAction => 'Crea Session';
+  String get sessionCreateAction => 'Crea Sessione';
 
   @override
-  String get sessionPilotLimit => 'Limite pilot: da 1 a 250 partecipanti per Session.';
+  String get sessionPilotLimit => 'Limite pilot: da 1 a 250 partecipanti per Sessione.';
 
   @override
   String get sessionStatusDraft => 'Bozza';
@@ -3230,16 +3230,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sessionCopyJoinLink => 'Copia link';
 
   @override
-  String get sessionGenerateTokens => 'Genera Access Pass';
+  String get sessionGenerateTokens => 'Genera Pass di accesso';
 
   @override
-  String get sessionGenerateTokensCount => 'Numero di Access Pass';
+  String get sessionGenerateTokensCount => 'Numero di Pass di accesso';
 
   @override
   String get sessionTokensOneTimeTitle => 'Salva ora queste credenziali';
 
   @override
-  String get sessionTokensOneTimeBody => 'Gli Access Pass in chiaro vengono mostrati solo in questo risultato del batch. Social Vote conserva solo gli hash. Copiali e distribuiscili in modo sicuro.';
+  String get sessionTokensOneTimeBody => 'Gli Pass di accesso in chiaro vengono mostrati solo in questo risultato del batch. Social Vote conserva solo gli hash. Copiali e distribuiscili in modo sicuro.';
 
   @override
   String get sessionCopyTokens => 'Copia tutti i link';
@@ -3248,13 +3248,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sessionTokensSavedAction => 'Li ho salvati';
 
   @override
-  String get sessionOpenAction => 'Apri Session';
+  String get sessionOpenAction => 'Apri Sessione';
 
   @override
-  String get sessionCloseAction => 'Chiudi Session';
+  String get sessionCloseAction => 'Chiudi Sessione';
 
   @override
-  String get sessionCloseConfirm => 'Chiudere le votazioni e creare lo snapshot immutabile del Verified Result?';
+  String get sessionCloseConfirm => 'Chiudere le votazioni e creare lo snapshot immutabile del Risultato verificato?';
 
   @override
   String get sessionQuestionsTitle => 'Domande';
@@ -3308,7 +3308,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sessionParticipantTitle => 'Social Vote Live';
 
   @override
-  String get sessionJoinAction => 'Entra nella Session';
+  String get sessionJoinAction => 'Entra nella Sessione';
 
   @override
   String get sessionTokenLabel => 'Token partecipante';
@@ -3326,13 +3326,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sessionVoteReceived => 'Voto ricevuto';
 
   @override
-  String get sessionResultsUnavailable => 'I risultati non sono ancora visibili secondo la regola scelta per questa Session.';
+  String get sessionResultsUnavailable => 'I risultati non sono ancora visibili secondo la regola scelta per questa Sessione.';
 
   @override
-  String get sessionPrivacyNotice => 'L’organizzatore definisce finalità operative e domande della Session. Social Vote tratta i dati tecnici necessari a fornire e proteggere il servizio. Le modalità anonime non mostrano all’organizzatore il collegamento tra credenziale e scelta. I ruoli privacy possono dipendere dal contesto e dagli accordi applicabili.';
+  String get sessionPrivacyNotice => 'L’organizzatore definisce finalità operative e domande della Sessione. Social Vote tratta i dati tecnici necessari a fornire e proteggere il servizio. Le modalità anonime non mostrano all’organizzatore il collegamento tra credenziale e scelta. I ruoli privacy possono dipendere dal contesto e dagli accordi applicabili.';
 
   @override
-  String get sessionNonBindingNotice => 'Le Sessions pilot servono per consultazione e partecipazione. Non sono elezioni legali, votazioni statutarie o certificazioni legalmente vincolanti.';
+  String get sessionNonBindingNotice => 'Le Sessioni pilot servono per consultazione e partecipazione. Non sono elezioni legali, votazioni statutarie o certificazioni legalmente vincolanti.';
 
   @override
   String get sessionOptionYes => 'Sì';
@@ -3341,7 +3341,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sessionOptionNo => 'No';
 
   @override
-  String get verifiedResultTitle => 'Verified Result';
+  String get verifiedResultTitle => 'Risultato verificato';
 
   @override
   String get verifiedResultValid => 'Controllo integrità superato';
@@ -3378,7 +3378,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get organizationVerifiedIdentityLocked => 'Nome e Paese fanno parte dell’identità verificata dell’organizzazione. Per modificarli sarà necessaria una nuova verifica. Puoi cambiare liberamente copertina, logo, tipo, città, sito e descrizione.';
 
   @override
-  String get verifiedResultOpenedAt => 'Apertura Session';
+  String get verifiedResultOpenedAt => 'Apertura Sessione';
 
   @override
   String get verifiedResultEligibleCredentials => 'Credenziali abilitate';
@@ -3416,7 +3416,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get verifiedResultRestrictedTitle => 'Risultato riservato';
 
   @override
-  String get verifiedResultRestrictedBody => 'Questo Verified Result non è disponibile pubblicamente. Accedi con un account autorizzato dell’organizzazione per visualizzarlo.';
+  String get verifiedResultRestrictedBody => 'Questo Risultato verificato non è disponibile pubblicamente. Accedi con un account autorizzato dell’organizzazione per visualizzarlo.';
 
   @override
   String get verifiedResultPrivateVerificationTitle => 'Verifica pubblica non disponibile';
@@ -3476,7 +3476,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get organizationVerificationRequired => 'Campo obbligatorio.';
 
   @override
-  String get sessionControlRoomTitle => 'Regia Session';
+  String get sessionControlRoomTitle => 'Regia Sessione';
 
   @override
   String get sessionSectionLive => 'Live';
@@ -3491,13 +3491,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sessionSectionSettings => 'Impostazioni';
 
   @override
-  String get sessionStageAction => 'Apri Stage';
+  String get sessionStageAction => 'Apri Palco';
 
   @override
   String get sessionAccessPassesTitle => 'Pass di accesso partecipanti';
 
   @override
-  String get sessionAccessPassesSubtitle => 'Ogni pass apre questa Session Anonima controllata senza obbligare il partecipante a digitare la credenziale lunga. Social Vote non conserva il pass in chiaro.';
+  String get sessionAccessPassesSubtitle => 'Ogni pass apre questa Sessione Anonima controllata senza obbligare il partecipante a digitare la credenziale lunga. Social Vote non conserva il pass in chiaro.';
 
   @override
   String get sessionAccessPass => 'Pass di accesso';
@@ -3506,19 +3506,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sessionAccessPassDetected => 'Pass di accesso rilevato';
 
   @override
-  String get sessionAccessPassAutomatic => 'Il tuo pass personale è pronto. Continua per entrare nella Session in modo anonimo.';
+  String get sessionAccessPassAutomatic => 'Il tuo pass personale è pronto. Continua per entrare nella Sessione in modo anonimo.';
 
   @override
   String get sessionAccessPassFallback => 'Inserisci il pass manualmente';
 
   @override
-  String get sessionAccessPassInvalid => 'Questo pass non è valido, non è più disponibile oppure la Session non è aperta.';
+  String get sessionAccessPassInvalid => 'Questo pass non è valido, non è più disponibile oppure la Sessione non è aperta.';
 
   @override
   String get sessionAccessPassPrintWarning => 'Stampa, salva o distribuisci ora questi pass. Uscendo da questa schermata Social Vote non potrà mostrare di nuovo i pass in chiaro.';
 
   @override
-  String get sessionExistingPassesHidden => 'Per sicurezza i Pass già generati non possono essere mostrati di nuovo in chiaro. Per ottenere nuovi link o QR personali, genera nuovi Access Pass.';
+  String get sessionExistingPassesHidden => 'Per sicurezza i Pass già generati non possono essere mostrati di nuovo in chiaro. Per ottenere nuovi link o QR personali, genera nuovi Pass di accesso.';
 
   @override
   String get sessionCopyPassLinks => 'Copia tutti i link';
@@ -3527,7 +3527,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sessionCopyPassLink => 'Copia questo link';
 
   @override
-  String get sessionControlledNeedsAccessPass => 'Prima di aprire una Session controllata, genera almeno un Access Pass.';
+  String get sessionControlledNeedsAccessPass => 'Prima di aprire una Sessione controllata, genera almeno un Pass di accesso.';
 
   @override
   String get sessionJoinedParticipants => 'Credenziali entrate';
@@ -3551,10 +3551,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sessionNoOpenQuestionBody => 'I partecipanti sono collegati e in attesa. Apri la prossima domanda quando sei pronto.';
 
   @override
-  String get sessionNotStartedTitle => 'Session non ancora iniziata';
+  String get sessionNotStartedTitle => 'Sessione non ancora iniziata';
 
   @override
-  String get sessionNotStartedBody => 'La Session esiste ma non è ancora aperta. Tieni questa pagina aperta e attendi che l’organizzatore la avvii.';
+  String get sessionNotStartedBody => 'La Sessione esiste ma non è ancora aperta. Tieni questa pagina aperta e attendi che l’organizzatore la avvii.';
 
   @override
   String get sessionNoAccountRequired => 'Nessun account Social Vote richiesto';
@@ -3563,25 +3563,25 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sessionReceiptDetails => 'Dettagli ricevuta';
 
   @override
-  String get sessionOpenAccessInstructions => 'Mostra o condividi questo QR. Chiunque abbia il link può entrare mentre la Session è aperta.';
+  String get sessionOpenAccessInstructions => 'Mostra o condividi questo QR. Chiunque abbia il link può entrare mentre la Sessione è aperta.';
 
   @override
   String get sessionControlledAccessInstructions => 'Crea pass personali e consegnane uno a ogni partecipante. Il QR di ogni pass contiene automaticamente la credenziale.';
 
   @override
-  String get sessionControlRoomHint => 'Gestisci accessi, domande, Stage da proiettare e Verified Result finale da un unico punto.';
+  String get sessionControlRoomHint => 'Gestisci accessi, domande, Palco da proiettare e Risultato verificato finale da un unico punto.';
 
   @override
-  String get sessionPresenterScreenTitle => 'Stage live';
+  String get sessionPresenterScreenTitle => 'Palco live';
 
   @override
   String get sessionStageWaiting => 'In attesa della prossima domanda';
 
   @override
-  String get sessionStageScan => 'Scansiona per entrare nella Session';
+  String get sessionStageScan => 'Scansiona per entrare nella Sessione';
 
   @override
-  String get sessionConfigurationTitle => 'Configurazione Session';
+  String get sessionConfigurationTitle => 'Configurazione Sessione';
 
   @override
   String get sessionAccessRecommended => 'Consigliata per riunioni controllate';
@@ -3608,7 +3608,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get verifiedCertificateOrganizationSection => 'Organizzazione';
 
   @override
-  String get verifiedCertificateSessionSection => 'Session';
+  String get verifiedCertificateSessionSection => 'Sessione';
 
   @override
   String get verifiedCertificateParticipationSection => 'Partecipazione';
@@ -3665,13 +3665,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get organizationDashboardTitle => 'Panoramica organizzazione';
 
   @override
-  String get organizationActiveSessions => 'Sessions live';
+  String get organizationActiveSessions => 'Sessioni live';
 
   @override
   String get organizationVerifiedReports => 'Report verificati';
 
   @override
-  String get organizationTotalSessions => 'Sessions totali';
+  String get organizationTotalSessions => 'Sessioni totali';
 
   @override
   String get sessionPrivacyPolicyAction => 'Leggi l’informativa sulla privacy';
@@ -3710,7 +3710,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get adminCenterEditorialNavigation => 'World Brief';
 
   @override
-  String get worldBriefEditorTitle => 'World Brief di Social Vote';
+  String get worldBriefEditorTitle => 'Social Vote · World Brief';
 
   @override
   String get worldBriefEditorDescription => 'Prepara notizie ragionate, mostra ciò che è incerto e decidi cosa appare nelle News e sul Globe.';
@@ -3865,7 +3865,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get profileHowItWorksTitle => 'Come funziona Social Vote';
 
   @override
-  String get profileHowItWorksSubtitle => 'Persone, Organization, Voce, Vote, Sessions e verifica.';
+  String get profileHowItWorksSubtitle => 'Persone, Organizzazione, Voce, Vote, Sessioni e verifica.';
 
   @override
   String get profileMyPostsLoginRequired => 'Devi accedere per vedere le tue Voci.';

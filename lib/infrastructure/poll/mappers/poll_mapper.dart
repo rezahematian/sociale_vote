@@ -17,6 +17,7 @@ class PollMapper {
       id: PollId(dto.id),
       title: dto.title,
       description: dto.description,
+      languageCode: dto.languageCode,
       type: PollType.values.firstWhere((e) => e.name == dto.type),
       status: PollStatus.values.firstWhere((e) => e.name == dto.status),
       options: dto.options
@@ -57,6 +58,7 @@ class PollMapper {
       id: poll.id.value,
       title: poll.title,
       description: poll.description,
+      languageCode: poll.languageCode,
       type: poll.type.name,
       status: poll.status.name,
       options: poll.options

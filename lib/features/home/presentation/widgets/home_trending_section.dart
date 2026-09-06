@@ -5,6 +5,7 @@ import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/features/discovery/application/trending_controller.dart';
 import 'package:sociale_vote/features/home/application/feed_item.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/widgets/product_signature_label.dart';
 
 class HomeTrendingSection extends StatelessWidget {
   final int? maxItems;
@@ -40,10 +41,14 @@ class HomeTrendingSection extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            l10n.homeTrendingTitle,
-            style: theme.textTheme.titleMedium?.copyWith(
+          child: ProductSignatureLabel(
+            kind: ProductSignatureKind.pulseNow,
+            brandStyle: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
+            ),
+            descriptorStyle: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),

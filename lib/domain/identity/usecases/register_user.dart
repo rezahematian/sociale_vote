@@ -80,6 +80,8 @@ class RegisterUser {
       'fr' => 'fr',
       'ar' => 'ar',
       'ro' => 'ro',
+      'ru' => 'ru',
+      'zh' => 'zh',
       _ => 'en',
     };
   }

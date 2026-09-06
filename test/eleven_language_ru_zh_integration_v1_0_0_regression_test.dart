@@ -53,7 +53,7 @@ void main() {
     }
   });
 
-  test('RU and ZH are wired through selector, legacy surfaces and posters', () {
+  test('RU and ZH are wired through selector, legacy surfaces and retained assets', () {
     final profile = File(
       'lib/features/profile/presentation/pages/my_profile_page.dart',
     ).readAsStringSync();
@@ -71,8 +71,9 @@ void main() {
     expect(profile, contains("label: '中文（简体）'"));
     expect(fallback, contains('_legacyRu'));
     expect(fallback, contains('_legacyZh'));
-    expect(how, contains('social_vote_rules_vision_ru.jpg'));
-    expect(how, contains('social_vote_rules_vision_zh.jpg'));
+    expect(how, contains('_DynamicVisionHero('));
+    expect(how, isNot(contains('social_vote_rules_vision_ru.jpg')));
+    expect(how, isNot(contains('social_vote_rules_vision_zh.jpg')));
 
     for (final code in <String>['ru', 'zh']) {
       final asset = 'assets/vision/social_vote_rules_vision_$code.jpg';

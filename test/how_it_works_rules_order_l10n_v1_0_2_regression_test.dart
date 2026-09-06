@@ -15,10 +15,8 @@ void main() {
 
     expect(howIndex, greaterThanOrEqualTo(0));
     expect(rulesIndex, greaterThan(howIndex));
-    expect(
-      source,
-      contains("assetPath: _posterAssetForLocale(context)"),
-    );
+    expect(source, contains('_DynamicVisionHero('));
+    expect(source, isNot(contains('_posterAssetForLocale(context)')));
   });
 
   test('Legacy How Social Vote works copy covers all eleven locales', () {
@@ -68,25 +66,13 @@ void main() {
     expect(File(italianPoster).existsSync(), isTrue);
   });
 
-  test('Poster selection maps every supported locale without mirroring layout', () {
+  test('Rules runtime no longer depends on localized bitmap text', () {
     final source = File(pagePath).readAsStringSync();
 
-    for (final code in ['de', 'fa', 'es', 'pt', 'fr', 'ar', 'ro', 'ru', 'zh']) {
-      expect(
-        source,
-        contains("'$code' => 'assets/vision/social_vote_rules_vision_$code.jpg'"),
-        reason: code,
-      );
-    }
-    expect(
-      source,
-      contains("_ => 'assets/vision/social_vote_rules_vision_en.jpg'"),
-    );
-
-    expect(
-      source,
-      contains('textDirection: socialVoteLocaleTextDirection(context)'),
-    );
+    expect(source, contains('_DynamicVisionHero('));
+    expect(source, contains('_RulesGrid(rules: _buildRules(context))'));
+    expect(source, isNot(contains('_VisionPosterCard(')));
+    expect(source, isNot(contains('assets/vision/')));
     expect(source, isNot(contains('Directionality(textDirection: TextDirection.rtl')));
   });
 }

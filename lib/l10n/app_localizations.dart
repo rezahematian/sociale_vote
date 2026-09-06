@@ -1574,7 +1574,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsFeed_languageAuto.
   ///
   /// In en, this message translates to:
-  /// **'AUTO'**
+  /// **'Auto'**
   String get newsFeed_languageAuto;
 
   /// No description provided for @newsFeed_languageIt.
