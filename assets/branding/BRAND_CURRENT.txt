@@ -1,0 +1,32 @@
+SOCIAL VOTE BRAND CURRENT — FROZEN 2026-09-07 — HEADER NEON EXACT LOCKUP V1.0.0
+
+AUTHORITATIVE PLATFORM SYMBOL
+assets/branding/social_vote_symbol.png
+
+AUTHORITATIVE HOME HEADER LOCKUP
+assets/branding/social_vote_header_neon_lockup.png
+- exact accepted coloured symbol + coloured Social Vote wordmark;
+- transparent PNG;
+- cropped from the accepted high-resolution source without rescaling;
+- native asset size: 2095x496;
+- no white/opaque background strip;
+- no Flutter text reconstruction;
+- no recolouring;
+- no regenerated logo inside Flutter.
+
+RUNTIME HOME HEADER
+lib/shared/widgets/social_vote_brand_lockup.dart
+- renders only the exact frozen header lockup asset;
+- default displayed height: 48 logical px;
+- high quality filtering + anti-aliasing;
+- aligned to the left of the existing black Home AppBar;
+- existing narrow Web/Android FittedBox remains responsible for safe scale-down.
+
+SINGLE-BRAND RULE
+- Home header is the only Social Vote lockup in the first Home dashboard viewport.
+- Home Hero MUST NOT render a second Social Vote wordmark/logo.
+- Admin Center keeps its localized Admin Center title and MUST NOT render a second Social Vote lockup.
+
+PLATFORM ICON RULE
+- favicon/PWA/Android launcher/adaptive/splash remain a separate later step derived from the accepted platform symbol.
+- this patch does NOT modify those platform icon derivatives.

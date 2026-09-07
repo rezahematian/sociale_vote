@@ -217,7 +217,7 @@ class HomeHeroSection extends StatelessWidget {
                           ],
                         ],
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: desktopCompact ? 9 : 12),
                       Text(
                         l10n.homeHeroHeadline,
                         textDirection: localeTextDirection,
@@ -431,6 +431,7 @@ class HomeHeroSection extends StatelessWidget {
     );
   }
 }
+
 
 class _DashboardActionButton extends StatelessWidget {
   final IconData icon;

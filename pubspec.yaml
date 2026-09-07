@@ -121,6 +121,7 @@ flutter:
   generate: true
   uses-material-design: true
   assets:
+    - assets/branding/
     - assets/vision/social_vote_regole_del_gioco_33.png
     - assets/vision/social_vote_rules_vision_en.jpg
     - assets/vision/social_vote_rules_vision_de.jpg

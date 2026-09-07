@@ -1,0 +1,41 @@
+SOCIAL VOTE HEADER BRAND CURRENT — FROZEN 2026-09-07 — NEON EXACT LOCKUP V1.0.0
+
+RUNTIME HOME HEADER SOURCE
+lib/shared/widgets/social_vote_brand_lockup.dart
+
+AUTHORITATIVE HEADER ASSET
+assets/branding/social_vote_header_neon_lockup.png
+
+ASSET CONTRACT
+- exact accepted coloured Social Vote lockup;
+- symbol and wordmark are one image;
+- native PNG size: 2095x496;
+- RGBA / transparent background;
+- cropped only; no resize of the source artwork;
+- preserves the cyan/blue/purple/magenta/green glossy detail;
+- no white strip/background around the lockup.
+
+FLUTTER RENDER CONTRACT
+- default height: 48 logical px;
+- left aligned;
+- BoxFit.contain;
+- FilterQuality.high;
+- anti-aliasing enabled;
+- no Text('Social Vote') reconstruction;
+- no separate symbol + text composition.
+
+HISTORICAL HEADER ASSETS — RETAINED, NOT RUNTIME
+assets/branding/social_vote_header_reference_exact_original.png
+assets/branding/social_vote_header_wordmark_exact.png
+They remain only for traceability.
+
+HERO RULE
+Home Hero MUST NOT render another Social Vote logo/wordmark.
+
+ADMIN RULE
+Admin Center remains a separate surface titled by adminCenterTitle/current destination. It does not render the Home lockup again.
+
+NO-TOUCH SCOPE
+No Globe, Civic Map, auth, responsive geometry, GeoScopeController, AuthGuard,
+ParticipationPolicy, backend, SQL, Firebase, package, versionCode, launcher,
+favicon or splash changes.

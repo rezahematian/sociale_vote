@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -11,6 +12,11 @@ import 'package:sociale_vote/shared/services/pdf_file_delivery.dart';
 
 class SessionPdfService {
   SessionPdfService._();
+
+  static const String _officialSignatureAsset =
+      'assets/branding/social_vote_official_signature.png';
+  static const String _verifiedResultSealAsset =
+      'assets/branding/social_vote_verified_result_seal.png';
 
   static Future<bool> printVerifiedReport({
     required VerifiedSessionReport report,
@@ -115,10 +121,20 @@ class SessionPdfService {
       }
     }
 
+    // SOCIAL VOTE VERIFIED RESULT AUTOMATIC BRAND SEALS V1.0.0
+    // The two approved seals are bundled with the app and therefore require no
+    // operator upload or manual certificate step. They are intentionally loaded
+    // only for a report whose immutable snapshot hash validates successfully.
+    final officialSignature = report.hashValid
+        ? await _loadBundledPdfImage(_officialSignatureAsset)
+        : null;
+    final verifiedResultSeal = report.hashValid
+        ? await _loadBundledPdfImage(_verifiedResultSealAsset)
+        : null;
+
     final document = pw.Document();
 
     const accent = PdfColor.fromInt(0xFF2467F4);
-    const accentSoft = PdfColor.fromInt(0xFFEAF1FF);
     const ink = PdfColor.fromInt(0xFF172033);
     const muted = PdfColor.fromInt(0xFF647084);
     const line = PdfColor.fromInt(0xFFD8DFEA);
@@ -213,15 +229,25 @@ class SessionPdfService {
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text(
-                        'SOCIAL VOTE',
-                        style: boldStyle.copyWith(
-                          fontSize: 10,
-                          color: accent,
-                          letterSpacing: 1.5,
+                      if (officialSignature != null)
+                        pw.SizedBox(
+                          height: 34,
+                          child: pw.Image(
+                            officialSignature,
+                            fit: pw.BoxFit.contain,
+                            alignment: pw.Alignment.centerLeft,
+                          ),
+                        )
+                      else
+                        pw.Text(
+                          'SOCIAL VOTE',
+                          style: boldStyle.copyWith(
+                            fontSize: 10,
+                            color: accent,
+                            letterSpacing: 1.5,
+                          ),
                         ),
-                      ),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 5),
                       pw.Text(
                         l10n.verifiedResultTitle.toUpperCase(),
                         style: boldStyle.copyWith(fontSize: 22),
@@ -235,37 +261,66 @@ class SessionPdfService {
                   ),
                 ),
                 pw.SizedBox(width: 14),
-                pw.Container(
-                  width: 190,
-                  padding: const pw.EdgeInsets.all(12),
-                  decoration: pw.BoxDecoration(
-                    color: report.hashValid ? accentSoft : PdfColors.red50,
-                    borderRadius: pw.BorderRadius.circular(8),
-                    border: pw.Border.all(
-                      color: report.hashValid ? accent : PdfColors.red700,
-                      width: 0.9,
+                if (verifiedResultSeal != null)
+                  pw.SizedBox(
+                    width: 126,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.center,
+                      children: [
+                        pw.Image(
+                          verifiedResultSeal,
+                          width: 78,
+                          height: 78,
+                          fit: pw.BoxFit.contain,
+                        ),
+                        pw.SizedBox(height: 4),
+                        pw.Text(
+                          l10n.verifiedCertificateIntegrityVerified,
+                          textAlign: pw.TextAlign.center,
+                          style: boldStyle.copyWith(
+                            fontSize: 8.5,
+                            color: accent,
+                          ),
+                        ),
+                        pw.SizedBox(height: 3),
+                        pw.Text(
+                          '${l10n.verifiedCertificateNumber}: $certificateNumber',
+                          textAlign: pw.TextAlign.center,
+                          style: baseStyle.copyWith(fontSize: 7.2),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  pw.Container(
+                    width: 190,
+                    padding: const pw.EdgeInsets.all(12),
+                    decoration: pw.BoxDecoration(
+                      color: PdfColors.red50,
+                      borderRadius: pw.BorderRadius.circular(8),
+                      border: pw.Border.all(
+                        color: PdfColors.red700,
+                        width: 0.9,
+                      ),
+                    ),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          l10n.verifiedCertificateIntegrityFailed,
+                          style: boldStyle.copyWith(
+                            fontSize: 9,
+                            color: PdfColors.red700,
+                          ),
+                        ),
+                        pw.SizedBox(height: 5),
+                        pw.Text(
+                          '${l10n.verifiedCertificateNumber}: $certificateNumber',
+                          style: baseStyle.copyWith(fontSize: 8),
+                        ),
+                      ],
                     ),
                   ),
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text(
-                        report.hashValid
-                            ? l10n.verifiedCertificateIntegrityVerified
-                            : l10n.verifiedCertificateIntegrityFailed,
-                        style: boldStyle.copyWith(
-                          fontSize: 9,
-                          color: report.hashValid ? accent : PdfColors.red700,
-                        ),
-                      ),
-                      pw.SizedBox(height: 5),
-                      pw.Text(
-                        '${l10n.verifiedCertificateNumber}: $certificateNumber',
-                        style: baseStyle.copyWith(fontSize: 8),
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),
@@ -556,6 +611,17 @@ class SessionPdfService {
       dynamicLayout: false,
       onLayout: (_) async => bytes,
     );
+  }
+
+  static Future<pw.ImageProvider?> _loadBundledPdfImage(String assetPath) async {
+    try {
+      final data = await rootBundle.load(assetPath);
+      return pw.MemoryImage(
+        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   static Future<Uint8List> _buildAccessPassesPdf({

@@ -527,13 +527,17 @@ Deno.serve(async (req: Request) => {
     })
   }
 
+  // ADMIN_MODERATOR_ACCESS_V1: moderators get operational read access to
+  // dashboard, reports and user detail only. Escalated reports and audit
+  // remain administrator-only.
   if (
+    callerRole !== 'admin' &&
     operation !== 'dashboard' &&
     operation !== 'reports' &&
-    callerRole !== 'admin'
+    operation !== 'user_detail'
   ) {
     return jsonResponse(403, {
-      error: 'Administrator access is required.',
+      error: 'Administrator access is required for this operation.',
     })
   }
 
@@ -701,11 +705,13 @@ Deno.serve(async (req: Request) => {
       })
     }
 
+    const canViewEmail = callerRole === 'admin'
+
     return jsonResponse(200, {
       success: true,
       user: {
         userId: row.user_id,
-        email: row.email,
+        email: canViewEmail ? row.email : null,
         emailConfirmedAt: row.email_confirmed_at,
         lastSignInAt: row.last_sign_in_at,
         displayName: row.display_name,
@@ -735,7 +741,7 @@ Deno.serve(async (req: Request) => {
       },
       permissions: {
         role: callerRole,
-        canViewEmail: true,
+        canViewEmail,
       },
     })
   }

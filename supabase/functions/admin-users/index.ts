@@ -222,9 +222,11 @@ Deno.serve(async (req: Request) => {
 
   const callerRole = readStaffRole(caller.app_metadata?.role)
 
-  if (callerRole !== 'admin') {
+  // ADMIN_MODERATOR_ACCESS_V1: moderators may search the staff user
+  // directory, but privacy-sensitive email data remains admin-only.
+  if (callerRole == null) {
     return jsonResponse(403, {
-      error: 'Administrator access is required.',
+      error: 'Staff access is required.',
     })
   }
 
@@ -258,7 +260,7 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  const includeEmail = true
+  const includeEmail = callerRole === 'admin'
   const { data, error: searchError } = await adminClient.rpc(
     'admin_search_users',
     {

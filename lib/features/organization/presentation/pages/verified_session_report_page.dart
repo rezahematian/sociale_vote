@@ -439,6 +439,11 @@ class _VerifiedSessionReportPageState extends State<VerifiedSessionReportPage> {
 }
 
 class _CertificateHeader extends StatelessWidget {
+  static const String _officialSignatureAsset =
+      'assets/branding/social_vote_official_signature.png';
+  static const String _verifiedResultSealAsset =
+      'assets/branding/social_vote_verified_result_seal.png';
+
   final String organizationName;
   final String organizationLogoUrl;
   final String certificateNumber;
@@ -455,96 +460,140 @@ class _CertificateHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final identity = Row(
-          children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundImage: organizationLogoUrl.isNotEmpty
-                  ? NetworkImage(organizationLogoUrl)
-                  : null,
-              child: organizationLogoUrl.isEmpty
-                  ? const Icon(Icons.apartment_rounded, size: 28)
-                  : null,
+
+    final identity = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 28,
+          backgroundImage:
+              organizationLogoUrl.isNotEmpty ? NetworkImage(organizationLogoUrl) : null,
+          child: organizationLogoUrl.isEmpty
+              ? const Icon(Icons.apartment_rounded, size: 28)
+              : null,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // SOCIAL VOTE VERIFIED RESULT AUTOMATIC BRAND SEALS V1.0.0
+              // The approved Official signature is shown only when the frozen
+              // report integrity is valid. A failed integrity check must never
+              // receive an official/verified visual endorsement.
+              if (valid)
+                SizedBox(
+                  height: 44,
+                  child: Image.asset(
+                    _officialSignatureAsset,
+                    fit: BoxFit.contain,
+                    alignment: AlignmentDirectional.centerStart,
+                    filterQuality: FilterQuality.high,
+                    isAntiAlias: true,
+                  ),
+                )
+              else
+                Text(
+                  'SOCIAL VOTE',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    letterSpacing: 1.7,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              const SizedBox(height: 5),
+              Text(
+                l10n.verifiedResultTitle,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              if (organizationName.isNotEmpty) Text(organizationName),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    final validityPanel = valid
+        ? SizedBox(
+            width: 150,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  _verifiedResultSealAsset,
+                  width: 112,
+                  height: 112,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                  isAntiAlias: true,
+                ),
+                const SizedBox(height: 7),
+                Text(
+                  l10n.verifiedCertificateIntegrityVerified,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  '${l10n.verifiedCertificateNumber}: $certificateNumber',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
+          )
+        : DecoratedBox(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.errorContainer,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: theme.colorScheme.error),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'SOCIAL VOTE',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      letterSpacing: 1.7,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.error_outline_rounded,
+                        color: theme.colorScheme.error,
+                      ),
+                      const SizedBox(width: 7),
+                      Text(
+                        l10n.verifiedCertificateIntegrityFailed,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: theme.colorScheme.error,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    l10n.verifiedResultTitle,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  if (organizationName.isNotEmpty) Text(organizationName),
+                  const SizedBox(height: 5),
+                  Text('${l10n.verifiedCertificateNumber}: $certificateNumber'),
                 ],
               ),
             ),
-          ],
-        );
-        final seal = DecoratedBox(
-          decoration: BoxDecoration(
-            color: valid
-                ? theme.colorScheme.primaryContainer.withValues(alpha: 0.65)
-                : theme.colorScheme.errorContainer,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color:
-                  valid ? theme.colorScheme.primary : theme.colorScheme.error,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      valid
-                          ? Icons.verified_rounded
-                          : Icons.error_outline_rounded,
-                      color: valid
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.error,
-                    ),
-                    const SizedBox(width: 7),
-                    Text(
-                      valid
-                          ? l10n.verifiedCertificateIntegrityVerified
-                          : l10n.verifiedCertificateIntegrityFailed,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        color: valid
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.error,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 5),
-                Text('${l10n.verifiedCertificateNumber}: $certificateNumber'),
-              ],
-            ),
-          ),
-        );
+          );
 
+    return LayoutBuilder(
+      builder: (context, constraints) {
         if (constraints.maxWidth < 650) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [identity, const SizedBox(height: 14), seal],
+            children: [
+              identity,
+              const SizedBox(height: 14),
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: validityPanel,
+              ),
+            ],
           );
         }
         return Row(
@@ -552,7 +601,7 @@ class _CertificateHeader extends StatelessWidget {
           children: [
             Expanded(child: identity),
             const SizedBox(width: 18),
-            seal
+            validityPanel,
           ],
         );
       },

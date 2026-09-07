@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sociale_vote/app/app.dart';
 import 'package:sociale_vote/app/localization/appearance_label.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_brand_lockup.dart';
 
 enum _AccountMenuAction {
   account,
@@ -48,107 +49,128 @@ class HomeTopBar extends StatelessWidget {
 
     if (!isLoggedIn) {
       // Social Vote final guest header: keep brand + auth on one compact row.
-      final guestUtilityActions = <Widget>[
-        if (onHowItWorksPressed != null)
-          _HowItWorksIconButton(onPressed: onHowItWorksPressed!),
-        if (onDiscoveryPressed != null)
-          _DiscoverIconButton(
-            scopeShortLabel: scopeShortLabel,
-            onPressed: onDiscoveryPressed!,
-          ),
-      ];
+      List<Widget> guestUtilityActions({double size = 36}) => <Widget>[
+            if (onHowItWorksPressed != null)
+              _HowItWorksIconButton(
+                onPressed: onHowItWorksPressed!,
+                size: size,
+              ),
+            if (onDiscoveryPressed != null)
+              _DiscoverIconButton(
+                scopeShortLabel: scopeShortLabel,
+                onPressed: onDiscoveryPressed!,
+                size: size,
+              ),
+          ];
 
-      final guestAuthActions = Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          OutlinedButton(
-            onPressed: onLoginPressed,
-            style: OutlinedButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-              minimumSize: const Size(0, 36),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      Widget guestAuthActions({bool compact = false}) {
+        final horizontalPadding = compact ? 7.0 : 10.0;
+        final height = compact ? 34.0 : 36.0;
+        final textStyle = compact ? Theme.of(context).textTheme.labelLarge : null;
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            OutlinedButton(
+              onPressed: onLoginPressed,
+              style: OutlinedButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                minimumSize: Size(0, height),
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                textStyle: textStyle,
+              ),
+              child: Text(l10n.homeLoginButton),
             ),
-            child: Text(l10n.homeLoginButton),
-          ),
-          const SizedBox(width: 4),
-          FilledButton(
-            onPressed: onRegisterPressed,
-            style: FilledButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-              minimumSize: const Size(0, 36),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            const SizedBox(width: 4),
+            FilledButton(
+              onPressed: onRegisterPressed,
+              style: FilledButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                minimumSize: Size(0, height),
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                textStyle: textStyle,
+              ),
+              child: Text(l10n.homeRegisterButton),
             ),
-            child: Text(l10n.homeRegisterButton),
-          ),
-        ],
-      );
+          ],
+        );
+      }
 
       return LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth < 430) {
-            // Narrow Android / narrow Web: keep utility actions beside the
-            // brand instead of leaving detached circles under authentication.
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            // SOCIAL VOTE GUEST HEADER ONE-LINE CONTRACT V1.0.0
+            // Keep brand + help + discovery + login + register on the same
+            // optical baseline on Android and narrow Web. The two flex zones
+            // may scale down slightly for long localized auth labels, but the
+            // header never creates a second authentication row.
+            final compactUtilities = guestUtilityActions(size: 34);
+            final compactActions = Row(
+              mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    const Expanded(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: AlignmentDirectional.centerStart,
-                        child: _ColorfulBrand(),
-                      ),
-                    ),
-                    if (guestUtilityActions.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Wrap(
-                        spacing: 4,
-                        runSpacing: 4,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: guestUtilityActions,
-                      ),
-                    ],
-                  ],
+                ...compactUtilities.expand(
+                  (widget) => <Widget>[widget, const SizedBox(width: 3)],
                 ),
-                const SizedBox(height: 7),
-                Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: guestAuthActions,
+                guestAuthActions(compact: true),
+              ],
+            );
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                const Expanded(
+                  flex: 5,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.centerStart,
+                    child: SocialVoteHeaderBrand(height: 40),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  flex: 7,
+                  child: Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: compactActions,
+                    ),
+                  ),
                 ),
               ],
             );
           }
 
+          final utilities = guestUtilityActions();
           return Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              const Expanded(child: _ColorfulBrand()),
+              const Expanded(child: SocialVoteHeaderBrand()),
               const SizedBox(width: 8),
-              if (guestUtilityActions.isNotEmpty) ...[
+              if (utilities.isNotEmpty) ...[
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
                   crossAxisAlignment: WrapCrossAlignment.center,
-                  children: guestUtilityActions,
+                  children: utilities,
                 ),
                 const SizedBox(width: 6),
               ],
-              guestAuthActions,
+              guestAuthActions(),
             ],
           );
         },
       );
     }
 
+    // SOCIAL VOTE AUTHENTICATED HEADER OPTICAL ALIGNMENT V1.0.0
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const Expanded(
-          child: _ColorfulBrand(),
+          child: SocialVoteHeaderBrand(),
         ),
         const SizedBox(width: 8),
         if (onHowItWorksPressed != null) ...[
@@ -178,65 +200,14 @@ class HomeTopBar extends StatelessWidget {
   }
 }
 
-class _ColorfulBrand extends StatelessWidget {
-  const _ColorfulBrand();
-
-  static const List<Color> _brandColors = [
-    Color(0xFF4F8CFF),
-    Color(0xFF8B5CF6),
-    Color(0xFF12B981),
-    Color(0xFFFF7A59),
-    Color(0xFFF59E0B),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    const brandText = 'Social Vote';
-
-    final spans = <TextSpan>[];
-    var colorIndex = 0;
-
-    for (final rune in brandText.runes) {
-      final char = String.fromCharCode(rune);
-
-      if (char == ' ') {
-        spans.add(const TextSpan(text: ' '));
-        continue;
-      }
-
-      spans.add(
-        TextSpan(
-          text: char,
-          style: TextStyle(
-            color: _brandColors[colorIndex % _brandColors.length],
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      );
-      colorIndex++;
-    }
-
-    return RichText(
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      text: TextSpan(
-        style: theme.textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.w800,
-          letterSpacing: -0.25,
-          fontSize: 28,
-          height: 1.0,
-        ),
-        children: spans,
-      ),
-    );
-  }
-}
-
 class _HowItWorksIconButton extends StatelessWidget {
   final VoidCallback onPressed;
+  final double size;
 
-  const _HowItWorksIconButton({required this.onPressed});
+  const _HowItWorksIconButton({
+    required this.onPressed,
+    this.size = 36,
+  });
 
   String _label(BuildContext context) {
     final language = Localizations.localeOf(context).languageCode.toLowerCase();
@@ -252,7 +223,7 @@ class _HowItWorksIconButton extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(999),
-        child: const _TopBarQuestionShell(),
+        child: _TopBarQuestionShell(size: size),
       ),
     );
   }
@@ -261,21 +232,24 @@ class _HowItWorksIconButton extends StatelessWidget {
 class _DiscoverIconButton extends StatelessWidget {
   final String scopeShortLabel;
   final VoidCallback onPressed;
+  final double size;
 
   const _DiscoverIconButton({
     required this.scopeShortLabel,
     required this.onPressed,
+    this.size = 36,
   });
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Discovery · $scopeShortLabel',
+      message: 'Discovery Â· $scopeShortLabel',
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(999),
-        child: const _TopBarIconShell(
+        child: _TopBarIconShell(
           icon: Icons.explore_outlined,
+          size: size,
         ),
       ),
     );
@@ -401,16 +375,18 @@ class _AccountMenuButton extends StatelessWidget {
 
 class _TopBarIconShell extends StatelessWidget {
   final IconData icon;
+  final double size;
 
   const _TopBarIconShell({
     required this.icon,
+    this.size = 36,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 36,
-      height: 36,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(999),
@@ -420,7 +396,7 @@ class _TopBarIconShell extends StatelessWidget {
       ),
       child: Icon(
         icon,
-        size: 18,
+        size: size * 0.5,
         color: Colors.white.withValues(alpha: 0.92),
       ),
     );
@@ -428,13 +404,15 @@ class _TopBarIconShell extends StatelessWidget {
 }
 
 class _TopBarQuestionShell extends StatelessWidget {
-  const _TopBarQuestionShell();
+  final double size;
+
+  const _TopBarQuestionShell({this.size = 36});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 36,
-      height: 36,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(999),
@@ -526,3 +504,4 @@ class _NotificationsButton extends StatelessWidget {
     );
   }
 }
+

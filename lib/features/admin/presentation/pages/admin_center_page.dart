@@ -165,13 +165,14 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           selectedIcon: Icons.newspaper_rounded,
           label: _adminL10n(context).adminCenterEditorialNavigation,
         ),
-      if (widget.currentRole == Role.admin)
-        _AdminDestination(
-          section: AdminCenterSection.users,
-          icon: Icons.people_outline,
-          selectedIcon: Icons.people,
-          label: _adminL10n(context).adminCenterUsersNavigation,
-        ),
+      // ADMIN_MODERATOR_ACCESS_V1: staff user directory is available to
+      // moderators as read-only context; account mutations remain admin-only.
+      _AdminDestination(
+        section: AdminCenterSection.users,
+        icon: Icons.people_outline,
+        selectedIcon: Icons.people,
+        label: _adminL10n(context).adminCenterUsersNavigation,
+      ),
       _AdminDestination(
         section: AdminCenterSection.verification,
         icon: Icons.verified_user_outlined,
@@ -1549,7 +1550,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       return;
     }
 
-    if (widget.currentRole == Role.admin) {
+    if (widget.currentRole == Role.admin ||
+        widget.currentRole == Role.moderator) {
       AdminUserDetail detail;
       try {
         detail = await _adminRepository.getUserDetail(userId: reportedUserId);
@@ -2724,6 +2726,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           const SizedBox(height: 4),
           _AdminUserCommandCard(
             detail: detail,
+            canManageAdminActions: widget.currentRole == Role.admin,
             workspaceEntitlement: _workspaceEntitlement,
             workspaceEntitlementLoadFailed: _workspaceEntitlementLoadFailed,
             onChangeRole: () => _openChangeRoleDialog(detail),
@@ -2854,15 +2857,13 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         label: _adminL10n(context).adminCenterSuspendedAccountsIndicator,
         value: summary.suspendedAccounts,
         icon: Icons.person_off_outlined,
-        section:
-            widget.currentRole == Role.admin ? AdminCenterSection.users : null,
+        section: AdminCenterSection.users,
       ),
       _AdminIndicator(
         label: _adminL10n(context).adminCenterUsersNavigation,
         value: summary.totalUsers,
         icon: Icons.people_outline,
-        section:
-            widget.currentRole == Role.admin ? AdminCenterSection.users : null,
+        section: AdminCenterSection.users,
       ),
       _AdminIndicator(
         label: _adminL10n(context).adminCenterStaffIndicator,
@@ -4349,6 +4350,7 @@ class _AdminUserCard extends StatelessWidget {
 
 class _AdminUserCommandCard extends StatelessWidget {
   final AdminUserDetail detail;
+  final bool canManageAdminActions;
   final AdminWorkspaceEntitlement? workspaceEntitlement;
   final bool workspaceEntitlementLoadFailed;
   final Future<void> Function() onChangeRole;
@@ -4362,6 +4364,7 @@ class _AdminUserCommandCard extends StatelessWidget {
 
   const _AdminUserCommandCard({
     required this.detail,
+    required this.canManageAdminActions,
     required this.workspaceEntitlement,
     required this.workspaceEntitlementLoadFailed,
     required this.onChangeRole,
@@ -4585,10 +4588,24 @@ class _AdminUserCommandCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 9),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
+            if (!canManageAdminActions)
+              Text(
+                _adminControlText(
+                  context,
+                  it: 'Vista operativa in sola lettura. Le azioni account e i ruoli restano riservati agli Admin.',
+                  en: 'Read-only operational view. Account actions and role changes remain Admin-only.',
+                  de: 'Schreibgeschützte operative Ansicht. Kontoaktionen und Rollenänderungen bleiben Admin vorbehalten.',
+                  fa: 'نمای عملیاتی فقط‌خواندنی است. اقدامات حساب و تغییر نقش فقط برای Admin باقی می‌ماند.',
+                ),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
                 actionButton(
                   icon: Icons.manage_accounts_outlined,
                   label: _adminL10n(context).adminCenterChangeRoleAction,
