@@ -37,27 +37,67 @@ void main() {
     );
   });
 
-  test('Verified Result UI uses both approved seals only for valid integrity', () {
+  test('Verified Result UI uses centralized certificate assets and no organizer logo in header', () {
     final source = File(
       'lib/features/organization/presentation/pages/verified_session_report_page.dart',
     ).readAsStringSync();
+    final assets = File(
+      'lib/shared/branding/social_vote_certificate_brand_assets.dart',
+    ).readAsStringSync();
 
-    expect(source, contains('assets/branding/social_vote_official_signature.png'));
-    expect(source, contains('assets/branding/social_vote_verified_result_seal.png'));
+    expect(
+      assets,
+      contains('assets/branding/social_vote_official_signature.png'),
+    );
+    expect(
+      assets,
+      contains('assets/branding/social_vote_verified_result_seal.png'),
+    );
+    expect(
+      source,
+      contains('SocialVoteCertificateBrandAssets.officialSignature'),
+    );
+    expect(
+      source,
+      contains('SocialVoteCertificateBrandAssets.verifiedResultSeal'),
+    );
+    expect(
+      source,
+      contains('SOCIAL VOTE VERIFIED CERTIFICATE BRAND LAYOUT V1.0.1'),
+    );
     expect(source, contains('if (valid)'));
     expect(source, contains('verifiedCertificateIntegrityFailed'));
+
+    final headerStart = source.indexOf('class _CertificateHeader');
+    final headerEnd = source.indexOf('class _SectionTitle', headerStart);
+    final header = source.substring(headerStart, headerEnd);
+    expect(header, isNot(contains('organizationLogoUrl')));
+    expect(header, isNot(contains('NetworkImage')));
+    expect(header, isNot(contains('CircleAvatar')));
+    expect(header, isNot(contains('organizationName')));
   });
 
-  test('Verified Result PDF automatically embeds both approved seals', () {
+  test('Verified Result PDF uses the same centralized two-mark header', () {
     final source = File(
       'lib/shared/services/session_pdf_service.dart',
     ).readAsStringSync();
 
     expect(source, contains("import 'package:flutter/services.dart';"));
-    expect(source, contains('_loadBundledPdfImage(_officialSignatureAsset)'));
-    expect(source, contains('_loadBundledPdfImage(_verifiedResultSealAsset)'));
+    expect(
+      source,
+      contains('SocialVoteCertificateBrandAssets.officialSignature'),
+    );
+    expect(
+      source,
+      contains('SocialVoteCertificateBrandAssets.verifiedResultSeal'),
+    );
     expect(source, contains('report.hashValid'));
     expect(source, contains('pw.MemoryImage'));
+    expect(
+      source,
+      contains('SOCIAL VOTE VERIFIED CERTIFICATE BRAND LAYOUT V1.0.1'),
+    );
+    expect(source, isNot(contains('organizationLogo = await networkImage')));
   });
 
   test('approved seal asset files are bundled and non-trivial', () {

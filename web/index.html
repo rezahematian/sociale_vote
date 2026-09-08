@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <!--
@@ -102,6 +102,40 @@
 
   <title>Social Vote</title>
   <link rel="manifest" href="manifest.json">
+  <!-- SOCIAL VOTE GOOGLE ORGANIZATION SAMEAS YOUTUBE V1.0.0 -->
+  <!-- SOCIAL VOTE GOOGLE SEARCH STRUCTURED DATA V1.0.0
+       sameAs intentionally omitted until official channel URLs are confirmed. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://socialevote.com/#organization",
+        "name": "Social Vote",
+        "url": "https://socialevote.com/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://socialevote.com/icons/Icon-512.png",
+          "width": 512,
+          "height": 512
+        },
+              "sameAs": [
+          "https://www.youtube.com/channel/UCEr7IeQkKGDlL5cI4dZXTIQ"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://socialevote.com/#website",
+        "url": "https://socialevote.com/",
+        "name": "Social Vote",
+        "publisher": {
+          "@id": "https://socialevote.com/#organization"
+        }
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
   <!--
@@ -122,3 +156,5 @@
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
+
+

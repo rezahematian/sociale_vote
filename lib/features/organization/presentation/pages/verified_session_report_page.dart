@@ -6,6 +6,7 @@ import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/domain/organization/entities/live_session_models.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/branding/social_vote_certificate_brand_assets.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
 import 'package:sociale_vote/shared/services/session_pdf_service.dart';
 
@@ -129,7 +130,6 @@ class _VerifiedSessionReportPageState extends State<VerifiedSessionReportPage> {
     );
     final city = _text(snapshot['organization_city']);
     final website = _text(snapshot['organization_website_url']);
-    final logo = _text(snapshot['organization_logo_url']);
     final verification = _verificationLabel(
       l10n,
       _text(snapshot['organization_verification_status']),
@@ -190,8 +190,6 @@ class _VerifiedSessionReportPageState extends State<VerifiedSessionReportPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _CertificateHeader(
-                        organizationName: orgName,
-                        organizationLogoUrl: logo,
                         certificateNumber: certificateNumber,
                         valid: report.hashValid,
                       ),
@@ -439,19 +437,10 @@ class _VerifiedSessionReportPageState extends State<VerifiedSessionReportPage> {
 }
 
 class _CertificateHeader extends StatelessWidget {
-  static const String _officialSignatureAsset =
-      'assets/branding/social_vote_official_signature.png';
-  static const String _verifiedResultSealAsset =
-      'assets/branding/social_vote_verified_result_seal.png';
-
-  final String organizationName;
-  final String organizationLogoUrl;
   final String certificateNumber;
   final bool valid;
 
   const _CertificateHeader({
-    required this.organizationName,
-    required this.organizationLogoUrl,
     required this.certificateNumber,
     required this.valid,
   });
@@ -461,54 +450,44 @@ class _CertificateHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    final identity = Row(
+    // SOCIAL VOTE VERIFIED CERTIFICATE BRAND LAYOUT V1.0.1
+    // The certificate header deliberately contains only the Social Vote
+    // Official signature and the VERIFIED RESULT seal. The organizer logo and
+    // organizer name belong to the Organization section below, so a Social Vote
+    // organizer cannot accidentally create a three-logo/three-brand header.
+    final identity = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CircleAvatar(
-          radius: 28,
-          backgroundImage:
-              organizationLogoUrl.isNotEmpty ? NetworkImage(organizationLogoUrl) : null,
-          child: organizationLogoUrl.isEmpty
-              ? const Icon(Icons.apartment_rounded, size: 28)
-              : null,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // SOCIAL VOTE VERIFIED RESULT AUTOMATIC BRAND SEALS V1.0.0
-              // The approved Official signature is shown only when the frozen
-              // report integrity is valid. A failed integrity check must never
-              // receive an official/verified visual endorsement.
-              if (valid)
-                SizedBox(
-                  height: 44,
-                  child: Image.asset(
-                    _officialSignatureAsset,
-                    fit: BoxFit.contain,
-                    alignment: AlignmentDirectional.centerStart,
-                    filterQuality: FilterQuality.high,
-                    isAntiAlias: true,
-                  ),
-                )
-              else
-                Text(
-                  'SOCIAL VOTE',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    letterSpacing: 1.7,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              const SizedBox(height: 5),
-              Text(
-                l10n.verifiedResultTitle,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+        // The Official signature is an integrity endorsement and therefore is
+        // shown only when the immutable report hash validates successfully.
+        if (valid)
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 260),
+            child: SizedBox(
+              height: 56,
+              child: Image.asset(
+                SocialVoteCertificateBrandAssets.officialSignature,
+                fit: BoxFit.contain,
+                alignment: AlignmentDirectional.centerStart,
+                filterQuality: FilterQuality.high,
+                isAntiAlias: true,
+                gaplessPlayback: true,
               ),
-              if (organizationName.isNotEmpty) Text(organizationName),
-            ],
+            ),
+          )
+        else
+          Text(
+            'SOCIAL VOTE',
+            style: theme.textTheme.labelLarge?.copyWith(
+              letterSpacing: 1.7,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        const SizedBox(height: 10),
+        Text(
+          l10n.verifiedResultTitle,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w900,
           ),
         ),
       ],
@@ -521,12 +500,13 @@ class _CertificateHeader extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(
-                  _verifiedResultSealAsset,
+                  SocialVoteCertificateBrandAssets.verifiedResultSeal,
                   width: 112,
                   height: 112,
                   fit: BoxFit.contain,
                   filterQuality: FilterQuality.high,
                   isAntiAlias: true,
+                  gaplessPlayback: true,
                 ),
                 const SizedBox(height: 7),
                 Text(
@@ -597,10 +577,10 @@ class _CertificateHeader extends StatelessWidget {
           );
         }
         return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(child: identity),
-            const SizedBox(width: 18),
+            const SizedBox(width: 28),
             validityPanel,
           ],
         );

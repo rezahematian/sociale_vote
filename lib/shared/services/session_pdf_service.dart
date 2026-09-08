@@ -7,16 +7,12 @@ import 'package:printing/printing.dart';
 import 'package:sociale_vote/app/router.dart';
 import 'package:sociale_vote/domain/organization/entities/live_session_models.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
+import 'package:sociale_vote/shared/branding/social_vote_certificate_brand_assets.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
 import 'package:sociale_vote/shared/services/pdf_file_delivery.dart';
 
 class SessionPdfService {
   SessionPdfService._();
-
-  static const String _officialSignatureAsset =
-      'assets/branding/social_vote_official_signature.png';
-  static const String _verifiedResultSealAsset =
-      'assets/branding/social_vote_verified_result_seal.png';
 
   static Future<bool> printVerifiedReport({
     required VerifiedSessionReport report,
@@ -76,7 +72,6 @@ class SessionPdfService {
         .where((value) => value.trim().isNotEmpty)
         .join(' - ');
     final website = _text(snapshot['organization_website_url']);
-    final logoUrl = _text(snapshot['organization_logo_url']);
     final verification = _verificationLabel(
         l10n, _text(snapshot['organization_verification_status']));
     final sessionTitle = _text(snapshot['session_title']);
@@ -112,24 +107,19 @@ class SessionPdfService {
         ? _prettyDate(snapshot['certificate_issued_at'])
         : _prettyDate(report.createdAt);
 
-    pw.ImageProvider? organizationLogo;
-    if (logoUrl.isNotEmpty) {
-      try {
-        organizationLogo = await networkImage(logoUrl);
-      } catch (_) {
-        organizationLogo = null;
-      }
-    }
-
     // SOCIAL VOTE VERIFIED RESULT AUTOMATIC BRAND SEALS V1.0.0
     // The two approved seals are bundled with the app and therefore require no
     // operator upload or manual certificate step. They are intentionally loaded
     // only for a report whose immutable snapshot hash validates successfully.
     final officialSignature = report.hashValid
-        ? await _loadBundledPdfImage(_officialSignatureAsset)
+        ? await _loadBundledPdfImage(
+            SocialVoteCertificateBrandAssets.officialSignature,
+          )
         : null;
     final verifiedResultSeal = report.hashValid
-        ? await _loadBundledPdfImage(_verifiedResultSealAsset)
+        ? await _loadBundledPdfImage(
+            SocialVoteCertificateBrandAssets.verifiedResultSeal,
+          )
         : null;
 
     final document = pw.Document();
@@ -214,24 +204,19 @@ class SessionPdfService {
             child: pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                if (organizationLogo != null)
-                  pw.Container(
-                    width: 54,
-                    height: 54,
-                    margin: const pw.EdgeInsets.only(right: 13),
-                    decoration: pw.BoxDecoration(
-                      shape: pw.BoxShape.circle,
-                      border: pw.Border.all(color: line, width: 0.8),
-                    ),
-                    child: pw.Image(organizationLogo, fit: pw.BoxFit.contain),
-                  ),
+                // SOCIAL VOTE VERIFIED CERTIFICATE BRAND LAYOUT V1.0.1
+                // Keep the first-page certificate header deterministic: the
+                // organizer identity is listed in its own section below, while
+                // the header contains only the Social Vote Official signature
+                // plus the integrity seal when hashValid is true.
                 pw.Expanded(
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       if (officialSignature != null)
                         pw.SizedBox(
-                          height: 34,
+                          width: 190,
+                          height: 42,
                           child: pw.Image(
                             officialSignature,
                             fit: pw.BoxFit.contain,
@@ -247,15 +232,10 @@ class SessionPdfService {
                             letterSpacing: 1.5,
                           ),
                         ),
-                      pw.SizedBox(height: 5),
+                      pw.SizedBox(height: 7),
                       pw.Text(
                         l10n.verifiedResultTitle.toUpperCase(),
                         style: boldStyle.copyWith(fontSize: 22),
-                      ),
-                      pw.SizedBox(height: 3),
-                      pw.Text(
-                        organizationName,
-                        style: baseStyle.copyWith(fontSize: 10.5, color: muted),
                       ),
                     ],
                   ),
