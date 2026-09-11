@@ -95,7 +95,8 @@ void main() {
     expect(find.byType(PremiumRadioControlVisual), findsNWidgets(5));
     expect(find.byType(PremiumRotationPreview), findsNWidgets(5));
 
-    expect(find.textContaining('Modern'), findsWidgets);
-    expect(find.textContaining('Night'), findsWidgets);
+    expect(find.textContaining('Civic Blue'), findsWidgets);
+    expect(find.textContaining('Elias'), findsWidgets);
+    expect(find.textContaining('Elena'), findsWidgets);
   });
 }

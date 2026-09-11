@@ -760,9 +760,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
         // WEB-G1B: use logical CSS pixels. 900 keeps ordinary desktop
         // windows in the split layout even with 125% display/browser scaling.
         final isDesktopWeb = kIsWeb && screenWidth >= 900.0;
-        final isCompactGuestTopBar = !isLoggedIn && screenWidth < 520.0;
-        final appBarToolbarHeight =
-            isLoggedIn ? 74.0 : (isCompactGuestTopBar ? 104.0 : 74.0);
+        // The guest header is now a true one-line layout as well, so the
+        // historical 104 px compact height is no longer needed.
+        const appBarToolbarHeight = 74.0;
 
         final backgroundGradient = isDark
             ? const [
@@ -1007,10 +1007,10 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                 )
                               else ...[
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    30,
+                                  padding: EdgeInsets.fromLTRB(
+                                    screenWidth < 480 ? 16 : 30,
                                     14,
-                                    30,
+                                    screenWidth < 480 ? 16 : 30,
                                     0,
                                   ),
                                   child: HomeHeroSection(

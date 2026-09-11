@@ -31,6 +31,116 @@ enum GlobeRotationVisualStyle {
   premium,
 }
 
+/// V1.0.7 presentation contract. Stored enum IDs and the preference key stay
+/// unchanged. Native, Web and previews all read this same texture/palette map.
+class GlobePresetVisual {
+  static const String dayAsset =
+      'assets/globe/earth_day_nasa_blue_marble_2048.png';
+  static const String satelliteAsset =
+      'assets/globe/earth_day_nasa_bmng_august_4096.jpg';
+  static const String nightAsset =
+      'assets/globe/earth_night_nasa_black_marble_2016_3600.jpg';
+
+  final String code;
+  final String name;
+  final String asset;
+  final int atmosphereRgb;
+  final double atmosphereOpacity;
+  final double atmosphereBlur;
+  final double atmosphereThickness;
+  final bool unlit;
+  final double lightAngle;
+  final double lightIntensity;
+  final double ambientLight;
+  final double webEmissiveIntensity;
+  final double webShininess;
+
+  const GlobePresetVisual({
+    required this.code,
+    required this.name,
+    required this.asset,
+    required this.atmosphereRgb,
+    required this.atmosphereOpacity,
+    this.atmosphereBlur = 16,
+    this.atmosphereThickness = 0.009,
+    this.unlit = false,
+    this.lightAngle = -28,
+    this.lightIntensity = 1.18,
+    this.ambientLight = 0.68,
+    this.webEmissiveIntensity = 0.34,
+    this.webShininess = 1.0,
+  });
+
+  String get shortLabel => code == 'D' || code == 'E' ? name : code;
+
+  static GlobePresetVisual forName(String name) {
+    for (final style in WorldAppearanceService.selectableGlobeStyles) {
+      if (style.name == name) return forStyle(style);
+    }
+    return forStyle(WorldAppearanceService.defaultGlobeStyle);
+  }
+
+  static GlobePresetVisual forStyle(GlobeVisualStyle style) {
+    return switch (style) {
+      GlobeVisualStyle.classic => const GlobePresetVisual(
+          code: 'A', name: 'Natural', asset: dayAsset,
+          atmosphereRgb: 0x69B5FF, atmosphereOpacity: 0.18,
+        ),
+      GlobeVisualStyle.realistic => const GlobePresetVisual(
+          code: 'B', name: 'Relief', asset: satelliteAsset,
+          atmosphereRgb: 0x6FAFFF, atmosphereOpacity: 0.15,
+          lightAngle: -42, lightIntensity: 1.36, ambientLight: 0.54,
+          webEmissiveIntensity: 0.22, webShininess: 0.6,
+        ),
+      GlobeVisualStyle.bright || GlobeVisualStyle.minimalDay =>
+        const GlobePresetVisual(
+          code: 'C', name: 'Civic Blue', asset: satelliteAsset,
+          atmosphereRgb: 0x55C8FF, atmosphereOpacity: 0.24,
+          atmosphereBlur: 18, atmosphereThickness: 0.011,
+          lightAngle: -24, lightIntensity: 0.96, ambientLight: 0.82,
+          webEmissiveIntensity: 0.48, webShininess: 0.6,
+        ),
+      GlobeVisualStyle.nightLights => const GlobePresetVisual(
+          code: 'D', name: 'Elias', asset: nightAsset,
+          atmosphereRgb: 0x4D7EC8, atmosphereOpacity: 0.15,
+          atmosphereBlur: 14, atmosphereThickness: 0.008,
+          unlit: true, ambientLight: 1.0,
+          webEmissiveIntensity: 1.0, webShininess: 0.0,
+        ),
+      GlobeVisualStyle.techNeon => const GlobePresetVisual(
+          code: 'E', name: 'Elena', asset: dayAsset,
+          atmosphereRgb: 0xA78CFF, atmosphereOpacity: 0.24,
+          atmosphereBlur: 19, atmosphereThickness: 0.011,
+          lightAngle: -20, lightIntensity: 1.08, ambientLight: 0.92,
+          webEmissiveIntensity: 0.50, webShininess: 1.0,
+        ),
+      GlobeVisualStyle.terrainRelief => const GlobePresetVisual(
+          code: 'F', name: 'Satellite', asset: satelliteAsset,
+          atmosphereRgb: 0x64B7E8, atmosphereOpacity: 0.15,
+          lightAngle: -32, lightIntensity: 1.42, ambientLight: 0.56,
+          webEmissiveIntensity: 0.12, webShininess: 1.65,
+        ),
+    };
+  }
+
+  Map<String, Object?> webAppearance(String styleName) => <String, Object?>{
+        'visualStyle': styleName,
+        'textureUrl': 'assets/$asset',
+        'nightTextureUrl': 'assets/$nightAsset',
+        'material': <String, Object?>{
+          // Violet belongs to Elena's rim, never to the entire surface.
+          'color': unlit ? 0x000000 : 0xFFFFFF,
+          'emissive': 0xFFFFFF,
+          'emissiveIntensity': webEmissiveIntensity,
+          'shininess': webShininess,
+          'specular': unlit ? 0x000000 : 0x020408,
+          'toneMapped': !unlit,
+          'atmosphereColor': atmosphereRgb,
+          'atmosphereStrength': atmosphereOpacity,
+        },
+      };
+}
+
 /// Device-local appearance preferences for the World experience.
 ///
 /// This service is intentionally presentation-only. It never changes GeoScope,
@@ -60,6 +170,16 @@ class WorldAppearanceService extends ChangeNotifier {
     GlobeVisualStyle.techNeon,
     GlobeVisualStyle.terrainRelief,
   ];
+
+  /// Fixed product names for branded globe presets.
+  /// Enum names stay unchanged to preserve stored preferences.
+  static String? brandedGlobeName(GlobeVisualStyle style) {
+    return switch (style) {
+      GlobeVisualStyle.nightLights => 'Elias',
+      GlobeVisualStyle.techNeon => 'Elena',
+      _ => null,
+    };
+  }
 
   static const List<RadioVisualStyle> selectableRadioStyles =
       <RadioVisualStyle>[

@@ -1,13 +1,14 @@
-/// Canonical Social Vote assets reserved for formal Verified Result surfaces.
+import 'package:sociale_vote/shared/branding/social_vote_brand_assets.dart';
+
+/// Compatibility facade for formal Verified Result surfaces.
 ///
-/// Keep these filenames stable. Future artwork refreshes should replace the
-/// canonical files in assets/branding rather than spreading new asset paths
-/// through UI/PDF code.
+/// Do not add asset paths here. [SocialVoteBrandAssets] is authoritative.
 class SocialVoteCertificateBrandAssets {
   SocialVoteCertificateBrandAssets._();
 
   static const String officialSignature =
-      'assets/branding/social_vote_official_signature.png';
+      SocialVoteBrandAssets.officialSignature;
+
   static const String verifiedResultSeal =
-      'assets/branding/social_vote_verified_result_seal.png';
+      SocialVoteBrandAssets.verifiedResultSeal;
 }

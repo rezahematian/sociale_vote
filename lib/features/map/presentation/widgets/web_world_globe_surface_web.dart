@@ -10,6 +10,7 @@ import 'package:web/web.dart' as web;
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
+import 'package:sociale_vote/shared/services/world_appearance_service.dart';
 
 SocialVoteContentKind _contentKindForWebMapType(CivicMapItemType type) {
   return switch (type) {
@@ -45,6 +46,7 @@ class WebWorldGlobeSurface extends StatefulWidget {
   final int homeMarkerLimit;
   final ValueChanged<CivicMapItem> onMarkerTap;
   final void Function(double latitude, double longitude) onSurfaceTap;
+  final VoidCallback onSurfaceLongPress;
   final ValueChanged<Offset>? onOrientationChanged;
   final void Function(double latitude, double longitude)? onDeepZoom;
   final ValueListenable<WebGlobeFocus?>? focusListenable;
@@ -64,6 +66,7 @@ class WebWorldGlobeSurface extends StatefulWidget {
     this.homeMarkerLimit = 9,
     required this.onMarkerTap,
     required this.onSurfaceTap,
+    required this.onSurfaceLongPress,
     required this.onUnavailable,
     this.onOrientationChanged,
     this.onDeepZoom,
@@ -81,16 +84,12 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
   static const int _maxAutomaticRendererRetries = 2;
   static const Duration _rendererReadyTimeout = Duration(seconds: 10);
 
-  static const String _earthTextureUrl =
-      'assets/assets/globe/earth_day_nasa_bmng_august_4096.jpg';
-  static const String _nightTextureUrl =
-      'assets/assets/globe/earth_night_nasa_black_marble_2016_3600.jpg';
-
   web.HTMLElement? _element;
 
   JSFunction? _readyListener;
   JSFunction? _markerTapListener;
   JSFunction? _surfaceTapListener;
+  JSFunction? _surfaceLongPressListener;
   JSFunction? _orientationListener;
   JSFunction? _deepZoomListener;
   JSFunction? _diagnosticsListener;
@@ -326,6 +325,10 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       widget.onSurfaceTap(latitude, longitude);
     }).toJS;
 
+    _surfaceLongPressListener = ((web.Event event) {
+      widget.onSurfaceLongPress();
+    }).toJS;
+
     _orientationListener = ((web.Event event) {
       final callback = widget.onOrientationChanged;
       if (callback == null) {
@@ -424,6 +427,10 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     element.addEventListener(
       'socialvote-surface-tap',
       _surfaceTapListener,
+    );
+    element.addEventListener(
+      'socialvote-surface-long-press',
+      _surfaceLongPressListener,
     );
     element.addEventListener(
       'socialvote-globe-orientation',
@@ -549,6 +556,12 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
         _surfaceTapListener,
       );
     }
+    if (_surfaceLongPressListener != null) {
+      element.removeEventListener(
+        'socialvote-surface-long-press',
+        _surfaceLongPressListener,
+      );
+    }
     if (_orientationListener != null) {
       element.removeEventListener(
         'socialvote-globe-orientation',
@@ -645,19 +658,8 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
   }
 
   Map<String, Object?> _buildAppearance() {
-    final textureUrl = switch (widget.visualStyle) {
-      'realistic' => 'assets/assets/globe/earth_day_nasa_bmng_august_4096.jpg',
-      'terrainRelief' =>
-        'assets/assets/globe/earth_day_nasa_bmng_august_4096.jpg',
-      'nightLights' => _nightTextureUrl,
-      _ => _earthTextureUrl,
-    };
-
-    return <String, Object?>{
-      'visualStyle': widget.visualStyle,
-      'textureUrl': textureUrl,
-      'nightTextureUrl': _nightTextureUrl,
-    };
+    return GlobePresetVisual.forName(widget.visualStyle)
+        .webAppearance(widget.visualStyle);
   }
 
   void _applyFocusIfPossible({bool force = false}) {

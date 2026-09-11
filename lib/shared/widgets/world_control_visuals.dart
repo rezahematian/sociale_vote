@@ -54,38 +54,14 @@ class PremiumRadioControlVisual extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = _RadioControlPalette.forStyle(
-      context,
-      style,
-      active: active,
-    );
-
-    return SizedBox.square(
-      dimension: size,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        curve: Curves.easeOut,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: palette.gradient,
-          color: palette.gradient == null ? palette.background : null,
-          border: Border.all(color: palette.border, width: palette.borderWidth),
-          boxShadow: palette.shadows,
+    final appearance = WorldAppearanceService.instance;
+    return IgnorePointer(
+      child: ExcludeSemantics(
+        child: WorldRoundControl(
+          icon: _radioIcon(style), label: 'Radio', active: active,
+          loading: loading, globeStyle: appearance.globeStyle,
+          visualStyle: appearance.rotationStyle, onTap: null, size: size,
         ),
-        alignment: Alignment.center,
-        child: loading
-            ? SizedBox.square(
-                dimension: size * 0.38,
-                child: CircularProgressIndicator(
-                  strokeWidth: math.max(1.7, size * 0.04).toDouble(),
-                  color: palette.foreground,
-                ),
-              )
-            : Icon(
-                _radioIcon(style),
-                size: size * 0.48,
-                color: palette.foreground,
-              ),
       ),
     );
   }
@@ -103,6 +79,8 @@ class PremiumRadioControlVisual extends StatelessWidget {
   }
 }
 
+/// A bounded texture preview of the same family used by the live renderers.
+/// No independent recolouring or decorative network layer is applied here.
 class PremiumGlobePreview extends StatelessWidget {
   final GlobeVisualStyle style;
   final double size;
@@ -111,86 +89,152 @@ class PremiumGlobePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config = _GlobePreviewConfig.forStyle(style);
-
-    Widget image = Image.asset(
-      config.asset,
-      width: size,
-      height: size,
-      fit: BoxFit.cover,
-      alignment: const Alignment(0.0, 0.02),
-      filterQuality: FilterQuality.high,
-      errorBuilder: (_, __, ___) => DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(colors: config.fallback),
-        ),
-      ),
-    );
-
-    if (config.colorFilter != null) {
-      image = ColorFiltered(colorFilter: config.colorFilter!, child: image);
-    }
-
-    final globeFace = ClipOval(
-      clipBehavior: Clip.antiAlias,
-      child: SizedBox.square(
-        dimension: size,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            image,
-            if (style == GlobeVisualStyle.techNeon)
-              const IgnorePointer(
-                child: CustomPaint(
-                  painter: _NeonLatitudePainter(color: Color(0xFFA989FF)),
-                ),
-              ),
-            if (style == GlobeVisualStyle.minimalDay)
-              IgnorePointer(
-                child: ColoredBox(
-                  color: const Color(0xFFE9F7F7).withValues(alpha: 0.12),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-
+    final preset = GlobePresetVisual.forStyle(style);
+    final rim = Color(0xFF000000 | preset.atmosphereRgb);
     return RepaintBoundary(
       child: SizedBox.square(
-        dimension: size + 18,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: size + 10,
-              height: size + 10,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: config.glow.withValues(alpha: 0.30),
-                    blurRadius: 22,
-                    spreadRadius: 1,
-                  ),
-                ],
+        dimension: size,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: rim.withValues(alpha: preset.atmosphereOpacity),
+                blurRadius: size * 0.16,
               ),
-            ),
-            globeFace,
-            IgnorePointer(
-              child: Container(
-                width: size,
-                height: size,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: config.rim.withValues(alpha: 0.76),
-                    width: 1.4,
+            ],
+          ),
+          child: ClipOval(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  preset.asset,
+                  cacheWidth: math.max(96,
+                    (size * MediaQuery.devicePixelRatioOf(context)).ceil()),
+                  fit: BoxFit.cover,
+                  filterQuality: FilterQuality.high,
+                ),
+                if (!preset.unlit)
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topRight,
+                        end: Alignment.bottomLeft,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 1 - preset.ambientLight),
+                        ],
+                      ),
+                    ),
+                  ),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: rim.withValues(alpha: 0.50)),
                   ),
                 ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Home-only sizing; content and gestures remain in the existing globe widget.
+class WorldHomeGlobeGeometry {
+  static const double controlSize = 48;
+  static const double controlInset = 12;
+  // PerspectiveCamera fov=38 degrees, Home distance=3.50, Earth radius=1.
+  static const double webSphereFraction = 0.865868392463662;
+
+  static double frameSize(double width, double height) =>
+      math.max(1.0, math.min(width, height) - 4);
+
+  static double sphereDiameter(double width, double frame) => math.min(
+        (width * 0.72).clamp(218.0, 390.0).toDouble(),
+        frame * 0.86,
+      );
+}
+
+/// Identical hit target, ink feedback, border, icon size and active-state
+/// language for Radio and Rotate. Existing control-style preferences apply to
+/// the pair; the globe supplies a restrained colour accent.
+class WorldRoundControl extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool active;
+  final bool loading;
+  final GlobeVisualStyle globeStyle;
+  final GlobeRotationVisualStyle visualStyle;
+  final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final double size;
+
+  const WorldRoundControl({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.globeStyle,
+    required this.visualStyle,
+    required this.onTap,
+    this.onLongPress,
+    this.loading = false,
+    this.size = WorldHomeGlobeGeometry.controlSize,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = _RotationVisualPalette.forStyle(context, visualStyle,
+        active: active);
+    final accent = Color(0xFF000000 |
+        GlobePresetVisual.forStyle(globeStyle).atmosphereRgb);
+    final foreground = active ? accent : palette.foreground;
+    return Semantics(
+      button: true,
+      toggled: active,
+      label: label,
+      child: Tooltip(
+        message: label,
+        child: SizedBox.square(
+          dimension: size,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: palette.shadows,
+            ),
+            child: Material(
+              color: palette.background,
+              clipBehavior: Clip.antiAlias,
+              shape: CircleBorder(side: BorderSide(
+                color: active ? accent : palette.border,
+                width: palette.borderWidth,
+              )),
+              child: Ink(
+                decoration: BoxDecoration(gradient: palette.gradient),
+                child: InkWell(
+                customBorder: const CircleBorder(),
+                splashColor: accent.withValues(alpha: 0.22),
+                hoverColor: accent.withValues(alpha: 0.12),
+                focusColor: accent.withValues(alpha: 0.16),
+                onTap: loading ? null : onTap,
+                onLongPress: loading ? null : onLongPress,
+                child: Center(
+                  child: loading
+                      ? SizedBox.square(
+                          dimension: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2, color: foreground),
+                        )
+                      : Icon(icon, size: 24, color: foreground),
+                ),
+              ),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -211,36 +255,12 @@ class PremiumRotationPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = _RotationVisualPalette.forStyle(
-      context,
-      style,
-      active: active,
-    );
-
-    return SizedBox.square(
-      dimension: size,
-      child: Center(
-        child: Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: palette.gradient,
-            color: palette.gradient == null ? palette.background : null,
-            border: Border.all(
-              color: palette.border,
-              width: palette.borderWidth,
-            ),
-            boxShadow: palette.shadows,
-          ),
-          alignment: Alignment.center,
-          child: CustomPaint(
-            size: Size.square(size * 0.52),
-            painter: _PremiumCircularArrowPainter(
-              color: palette.foreground,
-              strokeWidth: math.max(2.0, size * 0.045).toDouble(),
-            ),
-          ),
+    return IgnorePointer(
+      child: ExcludeSemantics(
+        child: WorldRoundControl(
+          icon: Icons.rotate_right_rounded, label: 'Rotate', active: active,
+          globeStyle: WorldAppearanceService.instance.globeStyle,
+          visualStyle: style, onTap: null, size: size,
         ),
       ),
     );
@@ -670,247 +690,6 @@ class _GramophoneVisualPalette {
   }
 }
 
-class _RadioControlPalette {
-  final Color foreground;
-  final Color background;
-  final Color border;
-  final double borderWidth;
-  final Gradient? gradient;
-  final List<BoxShadow> shadows;
-
-  const _RadioControlPalette({
-    required this.foreground,
-    required this.background,
-    required this.border,
-    required this.borderWidth,
-    required this.gradient,
-    required this.shadows,
-  });
-
-  static _RadioControlPalette forStyle(
-    BuildContext context,
-    RadioVisualStyle style, {
-    required bool active,
-  }) {
-    final c = Theme.of(context).colorScheme;
-    final shadow = c.shadow;
-
-    return switch (style) {
-      RadioVisualStyle.vintageClassic => _RadioControlPalette(
-          foreground: active ? c.primary : c.onSurfaceVariant,
-          background: c.surface.withValues(alpha: 0.96),
-          border: active ? c.primary : c.outline.withValues(alpha: 0.55),
-          borderWidth: active ? 2 : 1.2,
-          gradient: null,
-          shadows: [
-            BoxShadow(
-              color: shadow.withValues(alpha: active ? 0.20 : 0.10),
-              blurRadius: active ? 8 : 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-      RadioVisualStyle.oldStyle => _RadioControlPalette(
-          foreground: c.onSurface,
-          background: Colors.transparent,
-          border: c.outlineVariant.withValues(alpha: 0.75),
-          borderWidth: 1,
-          gradient: null,
-          shadows: const [],
-        ),
-      RadioVisualStyle.retroElegant => _RadioControlPalette(
-          foreground:
-              active ? const Color(0xFF7B4E16) : const Color(0xFF8C6B3D),
-          background: const Color(0xFFFFF6E7),
-          border: const Color(0xFFD5B27A),
-          borderWidth: active ? 1.8 : 1.1,
-          gradient: null,
-          shadows: [
-            BoxShadow(
-              color: const Color(0xFF8C6B3D).withValues(alpha: 0.16),
-              blurRadius: 8,
-            ),
-          ],
-        ),
-      RadioVisualStyle.woodMinimal => _RadioControlPalette(
-          foreground: const Color(0xFFF0C47B),
-          background: const Color(0xFF332219),
-          border: const Color(0xFF9B673C),
-          borderWidth: 1.2,
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF583A28), Color(0xFF241811)],
-          ),
-          shadows: [
-            BoxShadow(
-              color: const Color(0xFF241811).withValues(alpha: 0.24),
-              blurRadius: 8,
-            ),
-          ],
-        ),
-      RadioVisualStyle.modernVintage => _RadioControlPalette(
-          foreground:
-              active ? const Color(0xFF6CC6FF) : const Color(0xFF9CB3C8),
-          background: const Color(0xFF111822),
-          border: active ? const Color(0xFF58B8FF) : const Color(0xFF445467),
-          borderWidth: active ? 1.8 : 1.1,
-          gradient: null,
-          shadows: [
-            BoxShadow(
-              color: const Color(
-                0xFF58B8FF,
-              ).withValues(alpha: active ? 0.30 : 0.10),
-              blurRadius: active ? 12 : 7,
-            ),
-          ],
-        ),
-      RadioVisualStyle.steampunk => _RadioControlPalette(
-          foreground: const Color(0xFFF0B16E),
-          background: const Color(0xFF281A13),
-          border: const Color(0xFFC8793E),
-          borderWidth: 1.3,
-          gradient: const RadialGradient(
-            colors: [Color(0xFF4D2E1D), Color(0xFF21140F)],
-          ),
-          shadows: [
-            BoxShadow(
-              color: const Color(
-                0xFFC8793E,
-              ).withValues(alpha: active ? 0.30 : 0.14),
-              blurRadius: active ? 12 : 7,
-            ),
-          ],
-        ),
-      RadioVisualStyle.minimalChic => _RadioControlPalette(
-          foreground: active ? c.primary : c.onSurfaceVariant,
-          background: c.surface.withValues(alpha: 0.58),
-          border: c.outline.withValues(alpha: 0.36),
-          borderWidth: 1.1,
-          gradient: LinearGradient(
-            colors: [
-              Colors.white.withValues(alpha: 0.18),
-              c.surface.withValues(alpha: 0.24),
-            ],
-          ),
-          shadows: [
-            BoxShadow(color: shadow.withValues(alpha: 0.08), blurRadius: 12),
-          ],
-        ),
-    };
-  }
-}
-
-class _GlobePreviewConfig {
-  final String asset;
-  final Color glow;
-  final Color rim;
-  final List<Color> fallback;
-  final ColorFilter? colorFilter;
-
-  const _GlobePreviewConfig({
-    required this.asset,
-    required this.glow,
-    required this.rim,
-    required this.fallback,
-    this.colorFilter,
-  });
-
-  static _GlobePreviewConfig forStyle(GlobeVisualStyle style) {
-    const day = 'assets/globe/earth_day_nasa_blue_marble_2048.png';
-    const realistic = 'assets/globe/earth_day_nasa_bmng_august_4096.jpg';
-    const night = 'assets/globe/earth_night_nasa_black_marble_2016_3600.jpg';
-
-    return switch (style) {
-      GlobeVisualStyle.classic => const _GlobePreviewConfig(
-          asset: day,
-          glow: Color(0xFF376FA9),
-          rim: Color(0xFFB8D6F3),
-          fallback: [Color(0xFF4F8B62), Color(0xFF17395F)],
-        ),
-      GlobeVisualStyle.realistic => const _GlobePreviewConfig(
-          asset: realistic,
-          glow: Color(0xFF92764E),
-          rim: Color(0xFFD6C6A1),
-          fallback: [Color(0xFF8A744B), Color(0xFF0C2744)],
-        ),
-      GlobeVisualStyle.bright => const _GlobePreviewConfig(
-          asset: day,
-          glow: Color(0xFF38A4FF),
-          rim: Color(0xFF7ED0FF),
-          fallback: [Color(0xFF60B77A), Color(0xFF257DD4)],
-          colorFilter: ColorFilter.mode(Color(0x334AB8FF), BlendMode.screen),
-        ),
-      GlobeVisualStyle.nightLights => const _GlobePreviewConfig(
-          asset: night,
-          glow: Color(0xFFF2B84C),
-          rim: Color(0xFFE1BE72),
-          fallback: [Color(0xFFF2B84C), Color(0xFF071326)],
-        ),
-      GlobeVisualStyle.techNeon => const _GlobePreviewConfig(
-          asset: day,
-          glow: Color(0xFFA06EFF),
-          rim: Color(0xFFB39BFF),
-          fallback: [Color(0xFF93B7FF), Color(0xFF3E4A86)],
-          colorFilter: ColorFilter.mode(Color(0x264A64FF), BlendMode.screen),
-        ),
-      GlobeVisualStyle.terrainRelief => const _GlobePreviewConfig(
-          asset: realistic,
-          glow: Color(0xFF4AA7CF),
-          rim: Color(0xFF7BC9E6),
-          fallback: [Color(0xFF8D7A4D), Color(0xFF22577A)],
-          colorFilter: ColorFilter.mode(Color(0x1E4EC3FF), BlendMode.softLight),
-        ),
-      GlobeVisualStyle.minimalDay => const _GlobePreviewConfig(
-          asset: day,
-          glow: Color(0xFF79C8D3),
-          rim: Color(0xFFA4DCE4),
-          fallback: [Color(0xFFE8E1B8), Color(0xFF8FD0E5)],
-          colorFilter: ColorFilter.mode(Color(0x66D8F2ED), BlendMode.screen),
-        ),
-    };
-  }
-}
-
-class _NeonLatitudePainter extends CustomPainter {
-  final Color color;
-  const _NeonLatitudePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.8
-      ..color = color.withValues(alpha: 0.42);
-    final rect = Rect.fromLTWH(9, 9, size.width - 18, size.height - 18);
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: rect.center,
-        width: rect.width,
-        height: rect.height * 0.38,
-      ),
-      paint,
-    );
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: rect.center,
-        width: rect.width * 0.45,
-        height: rect.height,
-      ),
-      paint,
-    );
-    canvas.drawCircle(
-      rect.center,
-      rect.width / 2,
-      paint..color = color.withValues(alpha: 0.26),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _NeonLatitudePainter oldDelegate) =>
-      oldDelegate.color != color;
-}
-
 class _RotationVisualPalette {
   final Color foreground;
   final Color background;
@@ -1020,42 +799,3 @@ class _RotationVisualPalette {
   }
 }
 
-class _PremiumCircularArrowPainter extends CustomPainter {
-  final Color color;
-  final double strokeWidth;
-  const _PremiumCircularArrowPainter({
-    required this.color,
-    required this.strokeWidth,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.shortestSide * 0.34;
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -2.75,
-      4.65,
-      false,
-      paint,
-    );
-    const tipAngle = 1.90;
-    final tip =
-        center + Offset(math.cos(tipAngle), math.sin(tipAngle)) * radius;
-    final path = Path()
-      ..moveTo(tip.dx, tip.dy)
-      ..lineTo(tip.dx - 6, tip.dy - 1)
-      ..lineTo(tip.dx - 1, tip.dy - 6)
-      ..close();
-    canvas.drawPath(path, Paint()..color = color);
-  }
-
-  @override
-  bool shouldRepaint(covariant _PremiumCircularArrowPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
-}

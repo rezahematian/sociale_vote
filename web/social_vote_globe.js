@@ -408,6 +408,8 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._raycaster = new THREE.Raycaster();
     this._pointer = new THREE.Vector2();
     this._pointerDown = null;
+    this._longPressTimer = null;
+    this._longPressTriggered = false;
 
     this._resizeObserver = null;
     this._animationFrame = null;
@@ -417,6 +419,7 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._lastDiagnosticSignature = '';
 
     this._onPointerDown = this._onPointerDown.bind(this);
+    this._onPointerMove = this._onPointerMove.bind(this);
     this._onPointerUp = this._onPointerUp.bind(this);
     this._onPointerCancel = this._onPointerCancel.bind(this);
     this._onControlsStart = this._onControlsStart.bind(this);
@@ -581,6 +584,11 @@ class SocialVoteGlobeElement extends HTMLElement {
       canvas.addEventListener(
         'pointerdown',
         this._onPointerDown,
+        { passive: true },
+      );
+      canvas.addEventListener(
+        'pointermove',
+        this._onPointerMove,
         { passive: true },
       );
       canvas.addEventListener(
@@ -1270,71 +1278,29 @@ class SocialVoteGlobeElement extends HTMLElement {
       return;
     }
 
-    const style = typeof this._appearance.visualStyle === 'string'
-      ? this._appearance.visualStyle
-      : 'bright';
-
+    // V1.0.7: the Dart preset map owns both texture and material identity.
+    // Neutral surface emission keeps Elena blue/cyan on both renderers;
+    // its violet accent is limited to the atmosphere.
+    const preset = this._appearance.material || {};
+    const number = (key, fallback, min, max) => {
+      const value = preset[key];
+      return typeof value === 'number' && Number.isFinite(value)
+        ? clamp(value, min, max)
+        : fallback;
+    };
     const material = this._earth.material;
     const atmosphereUniforms = this._atmosphere?.material?.uniforms;
-
-    let color = 0xffffff;
-    let emissive = 0xffffff;
-    let emissiveIntensity = 0.34;
-    let shininess = 1.0;
-    let specular = 0x020408;
-    let atmosphereColor = 0x5e9dff;
-    let atmosphereStrength = 0.16;
-    let showNightLights = true;
-
-    if (style === 'realistic') {
-      emissiveIntensity = 0.24;
-      shininess = 1.8;
-      atmosphereColor = 0x6faeff;
-      atmosphereStrength = 0.13;
-    } else if (style === 'bright') {
-      color = 0xffffff;
-      emissiveIntensity = 0.48;
-      shininess = 0.6;
-      atmosphereColor = 0x55c8ff;
-      atmosphereStrength = 0.24;
-    } else if (style === 'nightLights') {
-      color = 0xd6e2ff;
-      emissive = 0xffffff;
-      emissiveIntensity = 0.72;
-      shininess = 0.0;
-      specular = 0x000000;
-      atmosphereColor = 0x4d7ec8;
-      atmosphereStrength = 0.12;
-      showNightLights = false;
-    } else if (style === 'techNeon') {
-      // Keep the tech identity without turning the whole Earth into a dark
-      // purple silhouette. Geography remains readable and distinct from the
-      // dedicated Night Lights preset.
-      color = 0xe5e9ff;
-      emissive = 0x7264cc;
-      emissiveIntensity = 0.44;
-      shininess = 1.15;
-      specular = 0x8f83ff;
-      atmosphereColor = 0xa78cff;
-      atmosphereStrength = 0.18;
-    } else if (style === 'terrainRelief') {
-      color = 0xf3f8ff;
-      emissive = 0x3a5363;
-      emissiveIntensity = 0.12;
-      shininess = 1.65;
-      specular = 0x13222c;
-      atmosphereColor = 0x64b7e8;
-      atmosphereStrength = 0.10;
-    } else if (style === 'minimalDay') {
-      color = 0xf2f5e8;
-      emissive = 0xffffff;
-      emissiveIntensity = 0.56;
-      shininess = 0.0;
-      specular = 0x000000;
-      atmosphereColor = 0x8fd0e5;
-      atmosphereStrength = 0.04;
-      showNightLights = false;
-    }
+    const color = number('color', 0xffffff, 0, 0xffffff);
+    const emissive = number('emissive', 0xffffff, 0, 0xffffff);
+    const emissiveIntensity = number('emissiveIntensity', 0.48, 0, 1);
+    const shininess = number('shininess', 0.6, 0, 8);
+    const specular = number('specular', 0x020408, 0, 0xffffff);
+    const atmosphereColor = number('atmosphereColor', 0x55c8ff, 0, 0xffffff);
+    const atmosphereStrength = number('atmosphereStrength', 0.24, 0, 0.35);
+    const showNightLights = false;
+    // Elias uses the same self-lit Black Marble source as native. Avoid
+    // tone mapping only for this unlit texture so city lights stay natural.
+    material.toneMapped = preset.toneMapped !== false;
 
     material.color.setHex(color);
     material.emissive.setHex(emissive);
@@ -2007,15 +1973,61 @@ class SocialVoteGlobeElement extends HTMLElement {
     return vectorToLatLng(hits[0].point);
   }
 
+  _isClientPointOnEarth(clientX, clientY) {
+    if (!this._renderer || !this._camera || !this._earth) {
+      return false;
+    }
+
+    const rect = this._renderer.domElement.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) {
+      return false;
+    }
+
+    this._pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    this._pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    this._raycaster.setFromCamera(this._pointer, this._camera);
+    return this._raycaster.intersectObject(this._earth, false).length > 0;
+  }
+
+  _cancelLongPressTimer() {
+    if (this._longPressTimer != null) {
+      clearTimeout(this._longPressTimer);
+      this._longPressTimer = null;
+    }
+  }
+
+  _scheduleLongPress(event) {
+    this._cancelLongPressTimer();
+    this._longPressTriggered = false;
+
+    if (!this._isClientPointOnEarth(event.clientX, event.clientY)) {
+      return;
+    }
+
+    const pointerId = event.pointerId;
+    this._longPressTimer = setTimeout(() => {
+      const down = this._pointerDown;
+      if (!down || down.pointerId !== pointerId) {
+        return;
+      }
+
+      this._longPressTimer = null;
+      this._longPressTriggered = true;
+      dispatch(this, 'socialvote-surface-long-press', {});
+    }, 460);
+  }
+
   _onPointerDown(event) {
     if (this._guestHomeIsReadOnly()) {
       // Guest Home remains non-draggable because OrbitControls is disabled,
-      // but a short tap must still reach Flutter and open Civic Map.
+      // but tap and long-press still reach Flutter.
       this._pointerDown = {
         x: event.clientX,
         y: event.clientY,
+        pointerId: event.pointerId,
         time: performance.now(),
       };
+      this._scheduleLongPress(event);
       return;
     }
 
@@ -2028,20 +2040,40 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._pointerDown = {
       x: event.clientX,
       y: event.clientY,
+      pointerId: event.pointerId,
       time: performance.now(),
     };
+    this._scheduleLongPress(event);
+  }
+
+  _onPointerMove(event) {
+    const down = this._pointerDown;
+    if (!down || down.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const movement = Math.hypot(
+      event.clientX - down.x,
+      event.clientY - down.y,
+    );
+    if (movement > 9) {
+      this._cancelLongPressTimer();
+    }
   }
 
   _onPointerUp(event) {
     const down = this._pointerDown;
+    const longPressTriggered = this._longPressTriggered;
     this._pointerDown = null;
+    this._cancelLongPressTimer();
+    this._longPressTriggered = false;
 
     if (!this._guestHomeIsReadOnly() && this._controls) {
       this._controls.rotateSpeed = 0.38;
       this._controls.zoomSpeed = 0.52;
     }
 
-    if (!down) {
+    if (!down || longPressTriggered) {
       return;
     }
 
@@ -2050,13 +2082,9 @@ class SocialVoteGlobeElement extends HTMLElement {
       event.clientY - down.y,
     );
 
-    const elapsed =
-        performance.now() - down.time;
+    const elapsed = performance.now() - down.time;
 
-    if (
-      movement > 6 ||
-      elapsed > 550
-    ) {
+    if (movement > 6 || elapsed > 550) {
       return;
     }
 
@@ -2064,12 +2092,13 @@ class SocialVoteGlobeElement extends HTMLElement {
   }
 
   _onPointerCancel() {
+    this._pointerDown = null;
+    this._cancelLongPressTimer();
+    this._longPressTriggered = false;
+
     if (this._guestHomeIsReadOnly()) {
-      this._pointerDown = null;
       return;
     }
-
-    this._pointerDown = null;
 
     if (this._controls) {
       this._controls.rotateSpeed = 0.38;
@@ -2239,6 +2268,10 @@ class SocialVoteGlobeElement extends HTMLElement {
       this._onPointerDown,
     );
     canvas?.removeEventListener(
+      'pointermove',
+      this._onPointerMove,
+    );
+    canvas?.removeEventListener(
       'pointerup',
       this._onPointerUp,
     );
@@ -2246,6 +2279,8 @@ class SocialVoteGlobeElement extends HTMLElement {
       'pointercancel',
       this._onPointerCancel,
     );
+
+    this._cancelLongPressTimer();
     canvas?.removeEventListener(
       'webglcontextlost',
       this._onContextLost,

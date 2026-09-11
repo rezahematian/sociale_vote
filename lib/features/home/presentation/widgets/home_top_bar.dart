@@ -49,7 +49,8 @@ class HomeTopBar extends StatelessWidget {
 
     if (!isLoggedIn) {
       // Social Vote final guest header: keep brand + auth on one compact row.
-      List<Widget> guestUtilityActions({double size = 36}) => <Widget>[
+      // ignore: no_leading_underscores_for_local_identifiers
+      List<Widget> _buildGuestUtilityActions({double size = 38}) => <Widget>[
             if (onHowItWorksPressed != null)
               _HowItWorksIconButton(
                 onPressed: onHowItWorksPressed!,
@@ -63,7 +64,8 @@ class HomeTopBar extends StatelessWidget {
               ),
           ];
 
-      Widget guestAuthActions({bool compact = false}) {
+      // ignore: no_leading_underscores_for_local_identifiers
+      Widget _buildGuestAuthActions({bool compact = false}) {
         final horizontalPadding = compact ? 7.0 : 10.0;
         final height = compact ? 34.0 : 36.0;
         final textStyle = compact ? Theme.of(context).textTheme.labelLarge : null;
@@ -105,14 +107,24 @@ class HomeTopBar extends StatelessWidget {
             // optical baseline on Android and narrow Web. The two flex zones
             // may scale down slightly for long localized auth labels, but the
             // header never creates a second authentication row.
-            final compactUtilities = guestUtilityActions(size: 34);
+            final guestUtilityActions =
+                _buildGuestUtilityActions(size: 35);
+            final guestAuthActions =
+                _buildGuestAuthActions(compact: true);
             final compactActions = Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                ...compactUtilities.expand(
-                  (widget) => <Widget>[widget, const SizedBox(width: 3)],
+                if (guestUtilityActions.isNotEmpty) ...[
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: guestUtilityActions,
+                  ),
+                  const SizedBox(width: 3),
+                ],
+                Padding(
+                  padding: EdgeInsets.zero,
+                  child: guestAuthActions,
                 ),
-                guestAuthActions(compact: true),
               ],
             );
 
@@ -124,7 +136,7 @@ class HomeTopBar extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: AlignmentDirectional.centerStart,
-                    child: SocialVoteHeaderBrand(height: 40),
+                    child: SocialVoteHeaderBrand(height: 43),
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -143,11 +155,11 @@ class HomeTopBar extends StatelessWidget {
             );
           }
 
-          final utilities = guestUtilityActions();
+          final utilities = _buildGuestUtilityActions();
           return Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              const Expanded(child: SocialVoteHeaderBrand()),
+              const Expanded(child: SocialVoteHeaderBrand(height: 50)),
               const SizedBox(width: 8),
               if (utilities.isNotEmpty) ...[
                 Wrap(
@@ -158,7 +170,7 @@ class HomeTopBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
               ],
-              guestAuthActions(),
+              _buildGuestAuthActions(),
             ],
           );
         },
@@ -170,7 +182,7 @@ class HomeTopBar extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const Expanded(
-          child: SocialVoteHeaderBrand(),
+          child: SocialVoteHeaderBrand(height: 50),
         ),
         const SizedBox(width: 8),
         if (onHowItWorksPressed != null) ...[
@@ -206,7 +218,7 @@ class _HowItWorksIconButton extends StatelessWidget {
 
   const _HowItWorksIconButton({
     required this.onPressed,
-    this.size = 36,
+    this.size = 38,
   });
 
   String _label(BuildContext context) {
@@ -237,7 +249,7 @@ class _DiscoverIconButton extends StatelessWidget {
   const _DiscoverIconButton({
     required this.scopeShortLabel,
     required this.onPressed,
-    this.size = 36,
+    this.size = 38,
   });
 
   @override
@@ -379,7 +391,7 @@ class _TopBarIconShell extends StatelessWidget {
 
   const _TopBarIconShell({
     required this.icon,
-    this.size = 36,
+    this.size = 38,
   });
 
   @override
@@ -406,7 +418,7 @@ class _TopBarIconShell extends StatelessWidget {
 class _TopBarQuestionShell extends StatelessWidget {
   final double size;
 
-  const _TopBarQuestionShell({this.size = 36});
+  const _TopBarQuestionShell({this.size = 38});
 
   @override
   Widget build(BuildContext context) {
@@ -454,8 +466,8 @@ class _NotificationsButton extends StatelessWidget {
         onTap: onPressed,
         borderRadius: BorderRadius.circular(999),
         child: SizedBox(
-          width: 36,
-          height: 36,
+          width: 38,
+          height: 38,
           child: Stack(
             clipBehavior: Clip.none,
             children: [

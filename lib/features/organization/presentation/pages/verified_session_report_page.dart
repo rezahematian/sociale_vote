@@ -189,9 +189,21 @@ class _VerifiedSessionReportPageState extends State<VerifiedSessionReportPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _CertificateHeader(
-                        certificateNumber: certificateNumber,
-                        valid: report.hashValid,
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme.primary.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: Theme.of(context)
+                                .colorScheme.primary.withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: _CertificateHeader(
+                          certificateNumber: certificateNumber,
+                          valid: report.hashValid,
+                        ),
                       ),
                       const SizedBox(height: 22),
                       _SectionTitle(
@@ -464,7 +476,7 @@ class _CertificateHeader extends StatelessWidget {
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 260),
             child: SizedBox(
-              height: 56,
+              height: 76,
               child: Image.asset(
                 SocialVoteCertificateBrandAssets.officialSignature,
                 fit: BoxFit.contain,
@@ -495,14 +507,14 @@ class _CertificateHeader extends StatelessWidget {
 
     final validityPanel = valid
         ? SizedBox(
-            width: 150,
+            width: 182,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(
                   SocialVoteCertificateBrandAssets.verifiedResultSeal,
-                  width: 112,
-                  height: 112,
+                  width: 132,
+                  height: 132,
                   fit: BoxFit.contain,
                   filterQuality: FilterQuality.high,
                   isAntiAlias: true,
@@ -517,11 +529,28 @@ class _CertificateHeader extends StatelessWidget {
                     color: theme.colorScheme.primary,
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 5),
                 Text(
-                  '${l10n.verifiedCertificateNumber}: $certificateNumber',
+                  l10n.verifiedCertificateNumber,
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodySmall,
+                  style: theme.textTheme.labelSmall,
+                ),
+                const SizedBox(height: 2),
+                SizedBox(
+                  width: double.infinity,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.center,
+                    child: SelectableText(
+                      certificateNumber,
+                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -555,7 +584,15 @@ class _CertificateHeader extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 5),
-                  Text('${l10n.verifiedCertificateNumber}: $certificateNumber'),
+                  Text(l10n.verifiedCertificateNumber),
+                  const SizedBox(height: 2),
+                  SelectableText(
+                    certificateNumber,
+                    maxLines: 1,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -983,7 +1020,8 @@ class _IntegrityPanel extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 _IntegrityLine(
-                    l10n.verifiedCertificateNumber, certificateNumber),
+                    l10n.verifiedCertificateNumber, certificateNumber,
+                    singleLine: true),
                 _IntegrityLine(l10n.verifiedResultReportId, reportId),
                 _IntegrityLine(l10n.verifiedCertificateIssuedAt, issuedAt),
                 _IntegrityLine(l10n.verifiedCertificateAlgorithm, algorithm),
@@ -1035,7 +1073,9 @@ class _IntegrityLine extends StatelessWidget {
   final String label;
   final String value;
 
-  const _IntegrityLine(this.label, this.value);
+  final bool singleLine;
+
+  const _IntegrityLine(this.label, this.value, {this.singleLine = false});
 
   @override
   Widget build(BuildContext context) {
@@ -1049,7 +1089,15 @@ class _IntegrityLine extends StatelessWidget {
             child: Text(label,
                 style: const TextStyle(fontWeight: FontWeight.w700)),
           ),
-          Expanded(child: SelectableText(value)),
+          Expanded(
+            child: singleLine
+                ? FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: SelectableText(value, maxLines: 1),
+                  )
+                : SelectableText(value),
+          ),
         ],
       ),
     );

@@ -12,9 +12,10 @@ void main() {
       source,
       contains('SOCIAL VOTE GUEST HEADER ONE-LINE CONTRACT V1.0.0'),
     );
-    expect(source, contains('SocialVoteHeaderBrand(height: 40)'));
-    expect(source, contains('guestAuthActions(compact: true)'));
-    expect(source, contains('compactUtilities = guestUtilityActions(size: 34)'));
+    expect(source, contains('SocialVoteHeaderBrand(height: 43)'));
+    expect(source, contains('_buildGuestAuthActions(compact: true)'));
+    expect(
+        source, contains('guestUtilityActions =\n                _buildGuestUtilityActions(size: 35)'));
     expect(source, isNot(contains('const SizedBox(height: 7)')));
   });
 
@@ -37,22 +38,29 @@ void main() {
     );
   });
 
-  test('Verified Result UI uses centralized certificate assets and no organizer logo in header', () {
+  test(
+      'Verified Result UI uses centralized certificate assets and no organizer logo in header',
+      () {
     final source = File(
       'lib/features/organization/presentation/pages/verified_session_report_page.dart',
     ).readAsStringSync();
     final assets = File(
       'lib/shared/branding/social_vote_certificate_brand_assets.dart',
     ).readAsStringSync();
+    final registry = File(
+      'lib/shared/branding/social_vote_brand_assets.dart',
+    ).readAsStringSync();
 
     expect(
-      assets,
-      contains('assets/branding/social_vote_official_signature.png'),
+      registry,
+      contains('assets/branding/social_vote_official_signature_master.png'),
     );
     expect(
-      assets,
-      contains('assets/branding/social_vote_verified_result_seal.png'),
+      registry,
+      contains('assets/branding/social_vote_verified_result_seal_master.png'),
     );
+    expect(assets, contains('SocialVoteBrandAssets.officialSignature'));
+    expect(assets, contains('SocialVoteBrandAssets.verifiedResultSeal'));
     expect(
       source,
       contains('SocialVoteCertificateBrandAssets.officialSignature'),

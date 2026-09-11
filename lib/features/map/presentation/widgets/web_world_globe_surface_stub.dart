@@ -29,6 +29,7 @@ class WebWorldGlobeSurface extends StatelessWidget {
   final int homeMarkerLimit;
   final ValueChanged<CivicMapItem> onMarkerTap;
   final void Function(double latitude, double longitude) onSurfaceTap;
+  final VoidCallback onSurfaceLongPress;
   final ValueChanged<Offset>? onOrientationChanged;
   final void Function(double latitude, double longitude)? onDeepZoom;
   final ValueListenable<WebGlobeFocus?>? focusListenable;
@@ -48,6 +49,7 @@ class WebWorldGlobeSurface extends StatelessWidget {
     this.homeMarkerLimit = 9,
     required this.onMarkerTap,
     required this.onSurfaceTap,
+    required this.onSurfaceLongPress,
     required this.onUnavailable,
     this.onOrientationChanged,
     this.onDeepZoom,

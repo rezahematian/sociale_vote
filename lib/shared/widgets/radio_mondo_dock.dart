@@ -14,11 +14,15 @@ import 'package:sociale_vote/shared/widgets/world_control_visuals.dart';
 class RadioMondoDock extends StatelessWidget {
   final RadioVisualStyle visualStyle;
   final double size;
+  final GlobeVisualStyle? globeStyle;
+  final GlobeRotationVisualStyle rotationVisualStyle;
 
   const RadioMondoDock({
     super.key,
     this.visualStyle = RadioVisualStyle.oldStyle,
     this.size = 44,
+    this.globeStyle,
+    this.rotationVisualStyle = GlobeRotationVisualStyle.classic,
   });
 
   @override
@@ -35,6 +39,26 @@ class RadioMondoDock extends StatelessWidget {
             ? '${l10n.radioMondoTitle}. ${l10n.radioMondoPlaying}. '
                 '${_stationLabel(l10n, station)}'
             : '${l10n.radioMondoTitle}. ${_stationLabel(l10n, station)}';
+
+        if (globeStyle != null) {
+          return WorldRoundControl(
+            key: const ValueKey<String>('radio-mondo-open'),
+            icon: switch (visualStyle) {
+              RadioVisualStyle.vintageClassic => Icons.music_note_rounded,
+              RadioVisualStyle.retroElegant => Icons.equalizer_rounded,
+              RadioVisualStyle.woodMinimal => Icons.graphic_eq_rounded,
+              _ => Icons.radio_rounded,
+            },
+            label: label,
+            active: active,
+            loading: radio.isLoading,
+            globeStyle: globeStyle!,
+            visualStyle: rotationVisualStyle,
+            size: size,
+            onTap: () => _togglePlayback(context, radio),
+            onLongPress: () => _showTrackPicker(context, radio),
+          );
+        }
 
         return Semantics(
           button: true,

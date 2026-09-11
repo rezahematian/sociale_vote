@@ -18,10 +18,18 @@ void main() {
 
     expect(home, contains('backgroundColor: Colors.black'));
     expect(topBar, contains('SocialVoteHeaderBrand'));
-    expect(
-      brand,
-      contains('assets/branding/social_vote_header_neon_lockup.png'),
+    final registry = _read(
+      'lib/shared/branding/social_vote_brand_assets.dart',
     );
+    expect(
+      registry,
+      contains('assets/branding/social_vote_header_lockup_master.png'),
+    );
+    expect(
+      registry,
+      contains('assets/branding/social_vote_header_neon_glow_lockup.png'),
+    );
+    expect(brand, contains('SocialVoteBrandAssets.headerLockup'));
     expect(brand, contains('this.height = 48'));
     expect(brand, contains('FilterQuality.high'));
     expect(brand, contains('isAntiAlias: true'));

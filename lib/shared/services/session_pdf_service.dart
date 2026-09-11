@@ -156,15 +156,47 @@ class SessionPdfService {
             : pw.Padding(
                 padding: const pw.EdgeInsets.only(bottom: 10),
                 child: pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
-                    pw.Text(
-                      'SOCIAL VOTE - ${l10n.verifiedResultTitle}',
-                      style: boldStyle.copyWith(fontSize: 8, color: muted),
+                    if (officialSignature != null)
+                      pw.SizedBox(
+                        width: 92,
+                        height: 24,
+                        child: pw.Image(
+                          officialSignature,
+                          fit: pw.BoxFit.contain,
+                          alignment: pw.Alignment.centerLeft,
+                        ),
+                      )
+                    else
+                      pw.Text(
+                        'SOCIAL VOTE',
+                        style: boldStyle.copyWith(
+                          fontSize: 8,
+                          color: accent,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    pw.SizedBox(width: 10),
+                    pw.Expanded(
+                      child: pw.Text(
+                        l10n.verifiedResultTitle,
+                        maxLines: 1,
+                        style: boldStyle.copyWith(fontSize: 8, color: muted),
+                      ),
                     ),
-                    pw.Text(
-                      certificateNumber,
-                      style: baseStyle.copyWith(fontSize: 8, color: muted),
+                    pw.SizedBox(width: 10),
+                    pw.SizedBox(
+                      width: 200,
+                      child: pw.FittedBox(
+                        fit: pw.BoxFit.scaleDown,
+                        alignment: pw.Alignment.centerRight,
+                        child: pw.Text(
+                          certificateNumber,
+                          maxLines: 1,
+                          style: baseStyle.copyWith(fontSize: 8, color: muted),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -197,9 +229,9 @@ class SessionPdfService {
           pw.Container(
             padding: const pw.EdgeInsets.all(18),
             decoration: pw.BoxDecoration(
-              color: panel,
+              color: const PdfColor.fromInt(0xFFF0F5FF),
               borderRadius: pw.BorderRadius.circular(10),
-              border: pw.Border.all(color: line, width: 0.8),
+              border: pw.Border.all(color: accent, width: 1.1),
             ),
             child: pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -215,8 +247,8 @@ class SessionPdfService {
                     children: [
                       if (officialSignature != null)
                         pw.SizedBox(
-                          width: 190,
-                          height: 42,
+                          width: 228,
+                          height: 76,
                           child: pw.Image(
                             officialSignature,
                             fit: pw.BoxFit.contain,
@@ -243,14 +275,14 @@ class SessionPdfService {
                 pw.SizedBox(width: 14),
                 if (verifiedResultSeal != null)
                   pw.SizedBox(
-                    width: 126,
+                    width: 142,
                     child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.center,
                       children: [
                         pw.Image(
                           verifiedResultSeal,
-                          width: 78,
-                          height: 78,
+                          width: 100,
+                          height: 100,
                           fit: pw.BoxFit.contain,
                         ),
                         pw.SizedBox(height: 4),
@@ -262,11 +294,27 @@ class SessionPdfService {
                             color: accent,
                           ),
                         ),
-                        pw.SizedBox(height: 3),
+                        pw.SizedBox(height: 4),
                         pw.Text(
-                          '${l10n.verifiedCertificateNumber}: $certificateNumber',
+                          l10n.verifiedCertificateNumber,
                           textAlign: pw.TextAlign.center,
-                          style: baseStyle.copyWith(fontSize: 7.2),
+                          style: baseStyle.copyWith(
+                            fontSize: 6.8,
+                            color: muted,
+                          ),
+                        ),
+                        pw.SizedBox(height: 1.5),
+                        pw.FittedBox(
+                          fit: pw.BoxFit.scaleDown,
+                          child: pw.Text(
+                            certificateNumber,
+                            maxLines: 1,
+                            textAlign: pw.TextAlign.center,
+                            style: boldStyle.copyWith(
+                              fontSize: 7.4,
+                              letterSpacing: 0.15,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -295,8 +343,20 @@ class SessionPdfService {
                         ),
                         pw.SizedBox(height: 5),
                         pw.Text(
-                          '${l10n.verifiedCertificateNumber}: $certificateNumber',
-                          style: baseStyle.copyWith(fontSize: 8),
+                          l10n.verifiedCertificateNumber,
+                          style: baseStyle.copyWith(
+                            fontSize: 7.2,
+                            color: muted,
+                          ),
+                        ),
+                        pw.SizedBox(height: 2),
+                        pw.FittedBox(
+                          fit: pw.BoxFit.scaleDown,
+                          child: pw.Text(
+                            certificateNumber,
+                            maxLines: 1,
+                            style: boldStyle.copyWith(fontSize: 8),
+                          ),
                         ),
                       ],
                     ),
@@ -397,14 +457,36 @@ class SessionPdfService {
             ],
           ),
           pw.SizedBox(height: 18),
-          _sectionTitle(l10n.verifiedCertificateResultsSection, accent, line),
-          pw.SizedBox(height: 8),
           if (questions.isEmpty)
-            pw.Text(l10n.sessionNoQuestions, style: baseStyle)
-          else
-            ...questions.asMap().entries.map(
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+              children: [
+                _sectionTitle(
+                  l10n.verifiedCertificateResultsSection,
+                  accent,
+                  line,
+                ),
+                pw.SizedBox(height: 8),
+                pw.Text(l10n.sessionNoQuestions, style: baseStyle),
+              ],
+            )
+          else ...[
+            _questionBlock(
+              sectionTitle: l10n.verifiedCertificateResultsSection,
+              number: 1,
+              question: questions.first is Map
+                  ? Map<String, dynamic>.from(questions.first as Map)
+                  : const <String, dynamic>{},
+              l10n: l10n,
+              baseStyle: baseStyle,
+              boldStyle: boldStyle,
+              accent: accent,
+              line: line,
+              panel: panel,
+            ),
+            ...questions.skip(1).toList().asMap().entries.map(
                   (entry) => _questionBlock(
-                    number: entry.key + 1,
+                    number: entry.key + 2,
                     question: entry.value is Map
                         ? Map<String, dynamic>.from(entry.value as Map)
                         : const <String, dynamic>{},
@@ -416,6 +498,7 @@ class SessionPdfService {
                     panel: panel,
                   ),
                 ),
+          ],
           pw.SizedBox(height: 14),
           _sectionTitle(l10n.verifiedCertificateIntegritySection, accent, line),
           pw.SizedBox(height: 8),
@@ -447,6 +530,7 @@ class SessionPdfService {
                         certificateNumber,
                         baseStyle,
                         boldStyle,
+                        singleLine: true,
                       ),
                       _integrityLine(
                         l10n.verifiedResultReportId,
@@ -593,7 +677,8 @@ class SessionPdfService {
     );
   }
 
-  static Future<pw.ImageProvider?> _loadBundledPdfImage(String assetPath) async {
+  static Future<pw.ImageProvider?> _loadBundledPdfImage(
+      String assetPath) async {
     try {
       final data = await rootBundle.load(assetPath);
       return pw.MemoryImage(
@@ -840,6 +925,7 @@ class SessionPdfService {
   }
 
   static pw.Widget _questionBlock({
+    String? sectionTitle,
     required int number,
     required Map<String, dynamic> question,
     required AppLocalizations l10n,
@@ -866,6 +952,10 @@ class SessionPdfService {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.stretch,
         children: [
+          if (sectionTitle != null) ...[
+            _sectionTitle(sectionTitle, accent, line),
+            pw.SizedBox(height: 10),
+          ],
           pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
@@ -934,8 +1024,9 @@ class SessionPdfService {
     String label,
     String value,
     pw.TextStyle baseStyle,
-    pw.TextStyle boldStyle,
-  ) {
+    pw.TextStyle boldStyle, {
+    bool singleLine = false,
+  }) {
     if (value.trim().isEmpty) return pw.SizedBox();
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 3),
@@ -943,7 +1034,15 @@ class SessionPdfService {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.SizedBox(width: 108, child: pw.Text(label, style: boldStyle)),
-          pw.Expanded(child: pw.Text(value, style: baseStyle)),
+          pw.Expanded(
+            child: singleLine
+                ? pw.FittedBox(
+                    fit: pw.BoxFit.scaleDown,
+                    alignment: pw.Alignment.centerLeft,
+                    child: pw.Text(value, maxLines: 1, style: baseStyle),
+                  )
+                : pw.Text(value, style: baseStyle),
+          ),
         ],
       ),
     );

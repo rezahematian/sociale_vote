@@ -19,6 +19,7 @@ import 'package:sociale_vote/shared/services/world_appearance_service.dart';
 import 'package:sociale_vote/shared/services/world_marker_policy_service.dart';
 import 'package:sociale_vote/shared/widgets/radio_mondo_dock.dart';
 import 'package:sociale_vote/shared/widgets/social_vote_symbols.dart';
+import 'package:sociale_vote/shared/widgets/world_control_visuals.dart';
 
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 
@@ -157,6 +158,211 @@ class WorldGlobeMapHandoff {
   });
 }
 
+/// Exercises the actual overlay in widget tests without bootstrapping map data
+/// or a platform renderer. Production callers still use the existing widget.
+@visibleForTesting
+Widget worldGlobeStylePickerForTest({
+  required GlobeVisualStyle selectedStyle,
+  required double diameter,
+  required ValueChanged<GlobeVisualStyle> onSelected,
+  required VoidCallback onDismiss,
+}) => _GlobeStyleRadialPicker(
+      selectedStyle: selectedStyle,
+      diameter: diameter,
+      onSelected: onSelected,
+      onDismiss: onDismiss,
+    );
+
+class _GlobeStyleRadialPicker extends StatelessWidget {
+  final GlobeVisualStyle selectedStyle;
+  final double diameter;
+  final ValueChanged<GlobeVisualStyle> onSelected;
+  final VoidCallback onDismiss;
+
+  const _GlobeStyleRadialPicker({
+    required this.selectedStyle,
+    required this.diameter,
+    required this.onSelected,
+    required this.onDismiss,
+  });
+
+  String _label(GlobeVisualStyle style) {
+    return GlobePresetVisual.forStyle(style).shortLabel;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    const styles = WorldAppearanceService.selectableGlobeStyles;
+    final itemExtent = (diameter * 0.20).clamp(56.0, 82.0).toDouble();
+    final previewSize = math.max(28.0, itemExtent - 36.0);
+    final orbitRadius = math.min(
+      (diameter * 0.315).clamp(0.0, 180.0).toDouble(),
+      math.max(0.0, (diameter - itemExtent) / 2 - 8),
+    );
+
+    return Semantics(
+      container: true,
+      label: 'Globe style selector',
+      child: Material(
+        color: Colors.transparent,
+        child: SizedBox.expand(
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Keep dismiss hit-testing BEHIND the preset buttons.
+              //
+              // A parent GestureDetector used to compete in the same gesture
+              // arena as each InkWell. On Web this made a normal tap dismiss
+              // the picker before the preset reliably received the tap, so a
+              // long press appeared necessary. As a background sibling, this
+              // detector receives only taps outside a preset.
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onDismiss,
+                  child: const SizedBox.expand(),
+                ),
+              ),
+              IgnorePointer(
+                child: Container(
+                  width: orbitRadius * 2.20,
+                  height: orbitRadius * 2.20,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.18),
+                      width: 1.1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                        blurRadius: 28,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              for (var index = 0; index < styles.length; index++)
+                TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0, end: 1),
+                  duration: Duration(milliseconds: 150 + (index * 24)),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, progress, child) {
+                    final angle = (-math.pi / 2) +
+                        ((math.pi * 2 * index) / styles.length);
+                    final offset = Offset(
+                      math.cos(angle) * orbitRadius * progress,
+                      math.sin(angle) * orbitRadius * progress,
+                    );
+                    return Transform.translate(
+                      offset: offset,
+                      child: Transform.scale(
+                        scale: 0.72 + (0.28 * progress),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: _GlobeStyleRadialButton(
+                    style: styles[index],
+                    label: _label(styles[index]),
+                    selected: styles[index] == selectedStyle,
+                    extent: itemExtent,
+                    previewSize: previewSize,
+                    onTap: () => onSelected(styles[index]),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GlobeStyleRadialButton extends StatelessWidget {
+  final GlobeVisualStyle style;
+  final String label;
+  final bool selected;
+  final double extent;
+  final double previewSize;
+  final VoidCallback onTap;
+
+  const _GlobeStyleRadialButton({
+    required this.style,
+    required this.label,
+    required this.selected,
+    required this.extent,
+    required this.previewSize,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: GlobePresetVisual.forStyle(style).name,
+      child: Tooltip(
+        message: GlobePresetVisual.forStyle(style).name,
+        child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            width: extent,
+            height: extent,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: colors.surface.withValues(alpha: 0.92),
+              border: Border.all(
+                color: selected
+                    ? colors.primary
+                    : colors.outlineVariant.withValues(alpha: 0.78),
+                width: selected ? 2.2 : 1.1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: selected
+                      ? colors.primary.withValues(alpha: 0.28)
+                      : colors.shadow.withValues(alpha: 0.14),
+                  blurRadius: selected ? 16 : 9,
+                  spreadRadius: selected ? 1.0 : 0,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                PremiumGlobePreview(style: style, size: previewSize),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: selected ? colors.primary : colors.onSurface,
+                    fontSize: label.length > 3 ? 9.2 : 10.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      ),
+    );
+  }
+}
+
 class WorldGlobeWidget extends StatefulWidget {
   final List<CivicMapItem> items;
   final ValueChanged<CivicMapItem> onItemTap;
@@ -232,6 +438,8 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
   int _countrySelectionRequestId = 0;
   bool _deepZoomHandoffTriggered = false;
   bool _autoRotateEnabled = true;
+  bool _stylePickerOpen = false;
+  DateTime? _suppressHomeSurfaceTapUntil;
   String? _lastWebLayoutDiagnostic;
   final WorldMarkerPolicyService _markerPolicy =
       WorldMarkerPolicyService.instance;
@@ -239,6 +447,37 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
 
   bool get _isHomeProfile =>
       widget.interactionProfile == WorldGlobeInteractionProfile.home;
+
+  void _openGlobeStylePicker() {
+    if (!mounted || _stylePickerOpen) return;
+    setState(() {
+      _stylePickerOpen = true;
+    });
+  }
+
+  void _dismissGlobeStylePicker() {
+    if (!mounted || !_stylePickerOpen) return;
+
+    // WEB HOME RADIAL TAP GUARD V1.0.6
+    //
+    // The Web 3D globe is an HtmlElementView. A pointer used on the Flutter
+    // radial overlay can also reach the underlying DOM globe surface. On Home
+    // that surface tap means "open Civic Map". Keep a very short guard after
+    // closing/selecting the radial picker so the SAME pointer cannot navigate.
+    if (_isHomeProfile) {
+      _suppressHomeSurfaceTapUntil =
+          DateTime.now().add(const Duration(milliseconds: 420));
+    }
+
+    setState(() {
+      _stylePickerOpen = false;
+    });
+  }
+
+  void _selectGlobeStyle(GlobeVisualStyle style) {
+    _dismissGlobeStylePicker();
+    unawaited(WorldAppearanceService.instance.setGlobeStyle(style));
+  }
 
   @override
   void initState() {
@@ -295,6 +534,14 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
         final available = math.max(1.0, math.min(finiteWidth, finiteHeight));
         final inset = _isHomeProfile ? 12.0 : 8.0;
         final squareSize = math.max(1.0, available - inset);
+        final narrowHome = _isHomeProfile &&
+            MediaQuery.sizeOf(context).width < 900;
+        final surfaceSize = narrowHome
+            ? WorldHomeGlobeGeometry.sphereDiameter(finiteWidth, squareSize) /
+                WorldHomeGlobeGeometry.webSphereFraction
+            : squareSize;
+        final controlInset = narrowHome
+            ? WorldHomeGlobeGeometry.controlInset : 18.0;
 
         final diagnostic = '${finiteWidth.toStringAsFixed(1)}x'
             '${finiteHeight.toStringAsFixed(1)}'
@@ -317,7 +564,10 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
                   fit: StackFit.expand,
                   clipBehavior: Clip.none,
                   children: [
-                    WebWorldGlobeSurface(
+                    Center(
+                      child: SizedBox.square(
+                        dimension: surfaceSize,
+                        child: WebWorldGlobeSurface(
                       items: widget.items,
                       homeProfile: _isHomeProfile,
                       isAuthenticated: isAuthenticated,
@@ -329,6 +579,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
                       ),
                       onMarkerTap: _handleMarkerTap,
                       onSurfaceTap: _handleSurfaceTap,
+                      onSurfaceLongPress: _openGlobeStylePicker,
                       onOrientationChanged: widget.onOrientationChanged,
                       onDeepZoom: _isHomeProfile ? null : _handleDeepZoom,
                       focusListenable: _focusNotifier,
@@ -336,28 +587,42 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
                       initialFocusLongitude: widget.initialFocusLongitude,
                       initialFocusZoom: widget.initialFocusZoom,
                       onUnavailable: widget.onUseClassicMap,
+                        ),
+                      ),
                     ),
                     if (widget.showHomeRadioControl)
                       Positioned(
-                        left: 18,
-                        bottom: 18,
+                        left: controlInset,
+                        bottom: controlInset,
                         child: RadioMondoDock(
                           visualStyle: widget.radioVisualStyle,
-                          size: 44,
+                          globeStyle: widget.visualStyle,
+                          rotationVisualStyle: widget.rotationVisualStyle,
+                          size: WorldHomeGlobeGeometry.controlSize,
                         ),
                       ),
                     if (isAuthenticated)
                       Positioned(
-                        right: 18,
-                        bottom: 18,
+                        right: controlInset,
+                        bottom: controlInset,
                         child: _GlobeRotationButton(
                           isRotating: _autoRotateEnabled,
+                          globeStyle: widget.visualStyle,
                           visualStyle: widget.rotationVisualStyle,
                           onPressed: () {
                             setState(() {
                               _autoRotateEnabled = !_autoRotateEnabled;
                             });
                           },
+                        ),
+                      ),
+                    if (_stylePickerOpen)
+                      Positioned.fill(
+                        child: _GlobeStyleRadialPicker(
+                          selectedStyle: widget.visualStyle,
+                          diameter: squareSize,
+                          onSelected: _selectGlobeStyle,
+                          onDismiss: _dismissGlobeStylePicker,
                         ),
                       ),
                   ],
@@ -492,6 +757,13 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
 
   void _handleSurfaceTap(double latitude, double longitude) {
     if (_isHomeProfile) {
+      final suppressUntil = _suppressHomeSurfaceTapUntil;
+      if (_stylePickerOpen ||
+          (suppressUntil != null &&
+              DateTime.now().isBefore(suppressUntil))) {
+        return;
+      }
+
       widget.onUseClassicMap();
       return;
     }
@@ -667,11 +939,11 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
   static const bool _isWasmBuild = bool.fromEnvironment('dart.tool.dart2wasm');
 
   static const String _earthTextureClassicAsset =
-      'assets/globe/earth_day_nasa_blue_marble_2048.png';
+      GlobePresetVisual.dayAsset;
   static const String _earthTextureRealisticAsset =
-      'assets/globe/earth_day_nasa_bmng_august_4096.jpg';
+      GlobePresetVisual.satelliteAsset;
   static const String _earthTextureNightAsset =
-      'assets/globe/earth_night_nasa_black_marble_2016_3600.jpg';
+      GlobePresetVisual.nightAsset;
 
   static const double _approvedPanSensitivity = 0.58;
   static const double _gestureIntentThreshold = 7.0;
@@ -684,6 +956,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
   static const double _countryFocusZoom = 0.055;
   static const Duration _countryFocusDuration = Duration(milliseconds: 480);
   static const double _exploreTapMovementTolerance = 12.0;
+  static const Duration _styleLongPressDuration = Duration(milliseconds: 460);
+  static const double _styleLongPressMoveTolerance = 9.0;
 
   // Use the renderer's own AnimationController for passive rotation. This is
   // the same controller that already pauses during a gesture and resumes on
@@ -724,6 +998,11 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
       WorldMarkerPolicyService.instance;
   bool _texturePrecached = false;
   bool _autoRotateEnabled = true;
+  bool _stylePickerOpen = false;
+  bool _suppressTapAfterStyleLongPress = false;
+  Timer? _styleLongPressTimer;
+  int? _styleLongPressPointer;
+  Offset? _styleLongPressStart;
   String? _nativeTextureAsset;
   String? _lastNativeMarkerInputSignature;
 
@@ -775,6 +1054,68 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
 
   bool get _isHomeProfile =>
       widget.interactionProfile == WorldGlobeInteractionProfile.home;
+
+  void _cancelNativeStyleLongPress() {
+    _styleLongPressTimer?.cancel();
+    _styleLongPressTimer = null;
+    _styleLongPressPointer = null;
+    _styleLongPressStart = null;
+  }
+
+  void _startNativeStyleLongPress(PointerDownEvent event) {
+    if (_stylePickerOpen || !_isInsideVisibleSphere(event.localPosition)) {
+      return;
+    }
+
+    _cancelNativeStyleLongPress();
+    _styleLongPressPointer = event.pointer;
+    _styleLongPressStart = event.localPosition;
+    _styleLongPressTimer = Timer(_styleLongPressDuration, () {
+      if (!mounted || _styleLongPressPointer != event.pointer) return;
+      _openNativeGlobeStylePicker();
+    });
+  }
+
+  void _trackNativeStyleLongPress(PointerMoveEvent event) {
+    if (event.pointer != _styleLongPressPointer ||
+        _styleLongPressStart == null) {
+      return;
+    }
+
+    if ((event.localPosition - _styleLongPressStart!).distance >
+        _styleLongPressMoveTolerance) {
+      _cancelNativeStyleLongPress();
+    }
+  }
+
+  void _openNativeGlobeStylePicker() {
+    if (!mounted || _stylePickerOpen) return;
+    _cancelNativeStyleLongPress();
+    _suppressTapAfterStyleLongPress = true;
+    _globeController.panSensitivity = 0.0;
+    if (_isHomeProfile) {
+      _setPageScrollLocked(true);
+    }
+    setState(() {
+      _stylePickerOpen = true;
+    });
+  }
+
+  void _dismissNativeGlobeStylePicker() {
+    if (!mounted || !_stylePickerOpen) return;
+    setState(() {
+      _stylePickerOpen = false;
+    });
+    _globeController.panSensitivity = _approvedPanSensitivity;
+    if (_isHomeProfile) {
+      _setPageScrollLocked(false);
+    }
+  }
+
+  void _selectNativeGlobeStyle(GlobeVisualStyle style) {
+    _dismissNativeGlobeStylePicker();
+    unawaited(WorldAppearanceService.instance.setGlobeStyle(style));
+  }
 
   @override
   void initState() {
@@ -931,7 +1272,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
     _applyNativeRotationPolicy();
   }
 
-  double get _nativeRotationSpeed => _nativeApprovedRotationSpeed;
+  double get _nativeRotationSpeed =>
+      _isHomeProfile ? 0.0080 : _nativeApprovedRotationSpeed;
 
   void _applyNativeRotationPolicy() {
     if (!_globeController.isReady || !_nativeRotationWarmupComplete) {
@@ -1034,6 +1376,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
     _nativeRotationWarmupTimer?.cancel();
     _nativeNaturalTiltTimer?.cancel();
     _countrySelectionDismissTimer?.cancel();
+    _cancelNativeStyleLongPress();
     _scientificSkyOrientation.dispose();
 
     if (_pageScrollLocked) {
@@ -1139,12 +1482,16 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
         final maxViewport =
             _isHomeProfile ? _homeMaxViewport : _exploreMaxViewport;
 
-        final viewportSize = math
-            .min(availableWidth, availableHeight)
-            .clamp(1.0, maxViewport)
-            .toDouble();
+        final narrowHome = _isHomeProfile && screenSize.width < 900;
+        final viewportSize = narrowHome
+            ? WorldHomeGlobeGeometry.frameSize(availableWidth, availableHeight)
+            : math.min(availableWidth, availableHeight)
+                .clamp(1.0, maxViewport).toDouble();
 
-        final radius = viewportSize * 0.46;
+        final radius = narrowHome
+            ? WorldHomeGlobeGeometry.sphereDiameter(
+                availableWidth, viewportSize) / 2
+            : viewportSize * 0.46;
 
         _viewportSize = viewportSize;
         _baseRadius = radius;
@@ -1189,7 +1536,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
         );
 
         return Align(
-          alignment: _isHomeProfile ? Alignment.topCenter : Alignment.center,
+          alignment: _isHomeProfile && !narrowHome
+              ? Alignment.topCenter : Alignment.center,
           child: SizedBox.square(
             dimension: viewportSize,
             child: RepaintBoundary(
@@ -1203,6 +1551,11 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
                           onTapUp: (details) {
                             if (_isInsideVisibleSphere(details.localPosition)) {
                               widget.onUseClassicMap();
+                            }
+                          },
+                          onLongPressStart: (details) {
+                            if (_isInsideVisibleSphere(details.localPosition)) {
+                              _openNativeGlobeStylePicker();
                             }
                           },
                           child: IgnorePointer(child: globe),
@@ -1226,28 +1579,40 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
                             ),
                   if (widget.showHomeRadioControl || isAuthenticated)
                     Positioned(
-                      left: 12,
-                      right: 12,
-                      bottom: 12,
+                      left: WorldHomeGlobeGeometry.controlInset,
+                      right: WorldHomeGlobeGeometry.controlInset,
+                      bottom: WorldHomeGlobeGeometry.controlInset,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           if (widget.showHomeRadioControl)
                             RadioMondoDock(
                               visualStyle: widget.radioVisualStyle,
-                              size: 44,
+                              globeStyle: widget.visualStyle,
+                              rotationVisualStyle: widget.rotationVisualStyle,
+                              size: WorldHomeGlobeGeometry.controlSize,
                             )
                           else
-                            const SizedBox(width: 44, height: 44),
+                            const SizedBox.square(dimension: WorldHomeGlobeGeometry.controlSize),
                           if (isAuthenticated)
                             _GlobeRotationButton(
                               isRotating: _autoRotateEnabled,
+                              globeStyle: widget.visualStyle,
                               visualStyle: widget.rotationVisualStyle,
                               onPressed: _toggleNativeAutoRotation,
                             )
                           else
-                            const SizedBox(width: 44, height: 44),
+                            const SizedBox.square(dimension: WorldHomeGlobeGeometry.controlSize),
                         ],
+                      ),
+                    ),
+                  if (_stylePickerOpen)
+                    Positioned.fill(
+                      child: _GlobeStyleRadialPicker(
+                        selectedStyle: widget.visualStyle,
+                        diameter: viewportSize,
+                        onSelected: _selectNativeGlobeStyle,
+                        onDismiss: _dismissNativeGlobeStylePicker,
                       ),
                     ),
                   if (!_isHomeProfile &&
@@ -1379,6 +1744,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
     _exploreTapPointers.add(event.pointer);
 
     if (_exploreTapPointers.length == 1) {
+      _startNativeStyleLongPress(event);
       _exploreTapCandidatePointer = event.pointer;
       _exploreTapDownPosition = event.localPosition;
       _exploreTapMoved = false;
@@ -1386,11 +1752,13 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
       return;
     }
 
+    _cancelNativeStyleLongPress();
     // Pinch/multi-touch can zoom the globe but must never select a country.
     _resetExploreTapCandidate(keepPointers: true);
   }
 
   void _handleExplorePointerMove(PointerMoveEvent event) {
+    _trackNativeStyleLongPress(event);
     if (event.pointer != _exploreTapCandidatePointer ||
         _exploreTapDownPosition == null) {
       return;
@@ -1403,9 +1771,11 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
   }
 
   void _handleExplorePointerUp(PointerUpEvent event) {
+    _cancelNativeStyleLongPress();
     final confirmedTap = event.pointer == _exploreTapCandidatePointer &&
         _exploreTapPointers.length == 1 &&
         !_exploreTapMoved &&
+        !_suppressTapAfterStyleLongPress &&
         _exploreTapStartedOnSphere;
 
     _exploreTapPointers.remove(event.pointer);
@@ -1417,12 +1787,14 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
       }
       if (interactionFinished) {
         _scheduleNativeNaturalTiltRecovery();
+        _suppressTapAfterStyleLongPress = false;
       }
       return;
     }
 
     final globalPosition = event.position;
     _resetExploreTapCandidate();
+    _suppressTapAfterStyleLongPress = false;
     _handleExploreSurfaceTap(globalPosition);
   }
 
@@ -1596,104 +1968,28 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
   }
 
   String _textureAssetForStyle(GlobeVisualStyle style) {
-    return switch (style) {
-      GlobeVisualStyle.realistic => _earthTextureRealisticAsset,
-      GlobeVisualStyle.nightLights => _earthTextureNightAsset,
-      GlobeVisualStyle.terrainRelief => _earthTextureRealisticAsset,
-      GlobeVisualStyle.bright => _earthTextureRealisticAsset,
-      _ => _earthTextureClassicAsset,
-    };
+    return GlobePresetVisual.forStyle(style).asset;
   }
 
   void _applyNativeVisualStyle(
     GlobeVisualStyle style, {
     bool reloadTexture = true,
   }) {
-    final textureAsset = _textureAssetForStyle(style);
-    if (reloadTexture && _nativeTextureAsset != textureAsset) {
-      _nativeTextureAsset = textureAsset;
-      _globeController.loadSurface(AssetImage(textureAsset));
+    final preset = GlobePresetVisual.forStyle(style);
+    if (reloadTexture && _nativeTextureAsset != preset.asset) {
+      _nativeTextureAsset = preset.asset;
+      _globeController.loadSurface(AssetImage(preset.asset));
     }
-
-    switch (style) {
-      case GlobeVisualStyle.classic:
-        _globeController
-          ..surfaceLightingEnabled = true
-          ..lightAngle = -28
-          ..lightIntensity = 1.18
-          ..ambientLight = 0.68
-          ..showAtmosphere = true
-          ..atmosphereColor = const Color(0xFF69B5FF)
-          ..atmosphereBlur = 15
-          ..atmosphereThickness = 0.008
-          ..atmosphereOpacity = 0.20;
-        break;
-      case GlobeVisualStyle.realistic:
-        _globeController
-          ..surfaceLightingEnabled = true
-          ..lightAngle = -32
-          ..lightIntensity = 1.30
-          ..ambientLight = 0.58
-          ..showAtmosphere = true
-          ..atmosphereColor = const Color(0xFF6FAFFF)
-          ..atmosphereBlur = 18
-          ..atmosphereThickness = 0.010
-          ..atmosphereOpacity = 0.18;
-        break;
-      case GlobeVisualStyle.bright:
-        _globeController
-          ..surfaceLightingEnabled = true
-          ..lightAngle = -24
-          ..lightIntensity = 0.96
-          ..ambientLight = 0.82
-          ..showAtmosphere = true
-          ..atmosphereColor = const Color(0xFF55C8FF)
-          ..atmosphereBlur = 20
-          ..atmosphereThickness = 0.012
-          ..atmosphereOpacity = 0.30;
-        break;
-      case GlobeVisualStyle.nightLights:
-        _globeController
-          ..surfaceLightingEnabled = false
-          ..ambientLight = 0.92
-          ..showAtmosphere = true
-          ..atmosphereColor = const Color(0xFF4D7EC8)
-          ..atmosphereBlur = 14
-          ..atmosphereThickness = 0.008
-          ..atmosphereOpacity = 0.15;
-        break;
-      case GlobeVisualStyle.techNeon:
-        _globeController
-          ..surfaceLightingEnabled = true
-          ..lightAngle = -20
-          ..lightIntensity = 1.08
-          ..ambientLight = 0.92
-          ..showAtmosphere = true
-          ..atmosphereColor = const Color(0xFFA78CFF)
-          ..atmosphereBlur = 19
-          ..atmosphereThickness = 0.011
-          ..atmosphereOpacity = 0.21;
-        break;
-      case GlobeVisualStyle.terrainRelief:
-        _globeController
-          ..surfaceLightingEnabled = true
-          ..lightAngle = -38
-          ..lightIntensity = 1.42
-          ..ambientLight = 0.56
-          ..showAtmosphere = true
-          ..atmosphereColor = const Color(0xFF64B7E8)
-          ..atmosphereBlur = 16
-          ..atmosphereThickness = 0.009
-          ..atmosphereOpacity = 0.15;
-        break;
-      case GlobeVisualStyle.minimalDay:
-        _globeController
-          ..surfaceLightingEnabled = false
-          ..ambientLight = 1.0
-          ..showAtmosphere = false
-          ..atmosphereOpacity = 0.0;
-        break;
-    }
+    _globeController
+      ..surfaceLightingEnabled = !preset.unlit
+      ..lightAngle = preset.lightAngle
+      ..lightIntensity = preset.lightIntensity
+      ..ambientLight = preset.ambientLight
+      ..showAtmosphere = true
+      ..atmosphereColor = Color(0xFF000000 | preset.atmosphereRgb)
+      ..atmosphereBlur = preset.atmosphereBlur
+      ..atmosphereThickness = preset.atmosphereThickness
+      ..atmosphereOpacity = preset.atmosphereOpacity;
   }
 
   void _syncGlobeContentPoints() {
@@ -2062,6 +2358,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
   }
 
   void _handleExplorePointerCancel(PointerCancelEvent event) {
+    _cancelNativeStyleLongPress();
+    _suppressTapAfterStyleLongPress = false;
     _exploreTapPointers.remove(event.pointer);
     if (event.pointer == _exploreTapCandidatePointer) {
       _resetExploreTapCandidate();
@@ -2257,6 +2555,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
     _activePointers[event.pointer] = event.localPosition;
 
     if (_activePointers.length == 1) {
+      _startNativeStyleLongPress(event);
       _primaryPointer = event.pointer;
       _primaryStartPosition = event.localPosition;
       _primaryStartedOnSphere = _isInsideVisibleSphere(event.localPosition);
@@ -2274,6 +2573,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
       return;
     }
 
+    _cancelNativeStyleLongPress();
+
     // A second finger that lands on the Earth before a page-scroll decision
     // means pinch zoom. Lock the Home page until all fingers are released.
     if (_homeGestureIntent != _HomeGestureIntent.page &&
@@ -2285,6 +2586,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
   }
 
   void _handleHomePointerMove(PointerMoveEvent event) {
+    _trackNativeStyleLongPress(event);
     if (!_activePointers.containsKey(event.pointer)) {
       return;
     }
@@ -2378,12 +2680,14 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
   }
 
   void _handleHomePointerUp(PointerUpEvent event) {
+    _cancelNativeStyleLongPress();
     final start = _primaryStartPosition;
     final wasGlobeGesture = _homeGestureIntent == _HomeGestureIntent.globe;
     final wasSinglePointer = _activePointers.length == 1;
     final shouldHandleHomeTap = wasSinglePointer &&
         event.pointer == _primaryPointer &&
         _primaryStartedOnSphere &&
+        !_suppressTapAfterStyleLongPress &&
         _homeGestureIntent == _HomeGestureIntent.undecided &&
         start != null &&
         (event.localPosition - start).distance < _gestureIntentThreshold;
@@ -2410,6 +2714,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
         });
       }
 
+      _suppressTapAfterStyleLongPress = false;
       return;
     }
 
@@ -2423,6 +2728,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
   }
 
   void _handleHomePointerCancel(PointerCancelEvent event) {
+    _cancelNativeStyleLongPress();
+    _suppressTapAfterStyleLongPress = false;
     final wasGlobeGesture = _homeGestureIntent == _HomeGestureIntent.globe;
     _activePointers.remove(event.pointer);
 
@@ -2499,19 +2806,19 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
 
 class _GlobeRotationButton extends StatelessWidget {
   final bool isRotating;
+  final GlobeVisualStyle globeStyle;
   final GlobeRotationVisualStyle visualStyle;
   final VoidCallback onPressed;
 
   const _GlobeRotationButton({
     required this.isRotating,
+    required this.globeStyle,
     required this.visualStyle,
     required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
     final languageCode = Localizations.localeOf(context).languageCode;
     final label = isRotating
         ? switch (languageCode) {
@@ -2537,231 +2844,14 @@ class _GlobeRotationButton extends StatelessWidget {
             _ => 'Start rotation',
           };
 
-    final style = _rotationPalette(colors, visualStyle, isRotating);
-
-    return Semantics(
-      button: true,
-      toggled: isRotating,
+    return WorldRoundControl(
+      icon: Icons.rotate_right_rounded,
       label: label,
-      child: Material(
-        color: Colors.transparent,
-        shape: const CircleBorder(),
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: onPressed,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            curve: Curves.easeOut,
-            width: style.size,
-            height: style.size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: style.background,
-              border: Border.all(
-                width: style.borderWidth,
-                color: style.border,
-              ),
-              boxShadow: style.shadows,
-            ),
-            alignment: Alignment.center,
-            child: CustomPaint(
-              size: Size.square(style.iconSize),
-              painter: _CircularArrowPainter(
-                color: style.foreground,
-                strokeWidth: style.strokeWidth,
-              ),
-            ),
-          ),
-        ),
-      ),
+      active: isRotating,
+      globeStyle: globeStyle,
+      visualStyle: visualStyle,
+      onTap: onPressed,
     );
-  }
-
-  _RotationButtonPalette _rotationPalette(
-    ColorScheme colors,
-    GlobeRotationVisualStyle style,
-    bool active,
-  ) {
-    final shadow = colors.shadow;
-
-    return switch (style) {
-      GlobeRotationVisualStyle.classic => _RotationButtonPalette(
-          background: colors.surface.withValues(alpha: 0.96),
-          foreground: active ? colors.primary : colors.onSurfaceVariant,
-          border:
-              active ? colors.primary : colors.outline.withValues(alpha: 0.55),
-          borderWidth: active ? 2 : 1.2,
-          size: 44,
-          iconSize: 24,
-          strokeWidth: 2.25,
-          shadows: [
-            BoxShadow(
-              color: shadow.withValues(alpha: active ? 0.20 : 0.10),
-              blurRadius: active ? 8 : 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-      GlobeRotationVisualStyle.minimal => _RotationButtonPalette(
-          background: Colors.transparent,
-          foreground: active ? colors.primary : colors.onSurfaceVariant,
-          border: colors.outlineVariant.withValues(alpha: 0.65),
-          borderWidth: 1,
-          size: 44,
-          iconSize: 25,
-          strokeWidth: 2,
-          shadows: const [],
-        ),
-      GlobeRotationVisualStyle.subtle => _RotationButtonPalette(
-          background: colors.surfaceContainerLow.withValues(alpha: 0.72),
-          foreground: active ? colors.primary : colors.onSurfaceVariant,
-          border: colors.outlineVariant.withValues(alpha: 0.35),
-          borderWidth: 1,
-          size: 44,
-          iconSize: 22,
-          strokeWidth: 1.8,
-          shadows: const [],
-        ),
-      GlobeRotationVisualStyle.neon => _RotationButtonPalette(
-          background: const Color(0xFF151124).withValues(alpha: 0.94),
-          foreground:
-              active ? const Color(0xFFE09BFF) : const Color(0xFFB767E5),
-          border: const Color(0xFFB84DFF),
-          borderWidth: active ? 1.8 : 1.2,
-          size: 44,
-          iconSize: 24,
-          strokeWidth: 2.2,
-          shadows: [
-            BoxShadow(
-              color: const Color(
-                0xFFB84DFF,
-              ).withValues(alpha: active ? 0.46 : 0.24),
-              blurRadius: active ? 13 : 8,
-            ),
-          ],
-        ),
-      GlobeRotationVisualStyle.filled => _RotationButtonPalette(
-          background:
-              active ? const Color(0xFFD6A34D) : const Color(0xFFB88A43),
-          foreground: const Color(0xFF24170F),
-          border: const Color(0xFFF1CE8A),
-          borderWidth: 1.2,
-          size: 44,
-          iconSize: 24,
-          strokeWidth: 2.3,
-          shadows: [
-            BoxShadow(
-              color: const Color(0xFFB88335).withValues(alpha: 0.24),
-              blurRadius: 9,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-      GlobeRotationVisualStyle.glass => _RotationButtonPalette(
-          background: colors.surface.withValues(alpha: 0.58),
-          foreground: active ? colors.primary : colors.onSurface,
-          border: colors.outline.withValues(alpha: 0.38),
-          borderWidth: 1.1,
-          size: 44,
-          iconSize: 24,
-          strokeWidth: 2.1,
-          shadows: [
-            BoxShadow(color: shadow.withValues(alpha: 0.08), blurRadius: 12),
-          ],
-        ),
-      GlobeRotationVisualStyle.premium => _RotationButtonPalette(
-          background: const Color(0xFF1D1812).withValues(alpha: 0.96),
-          foreground: const Color(0xFFFFD88C),
-          border: active ? const Color(0xFFF2BF5D) : const Color(0xFFC9963E),
-          borderWidth: active ? 2 : 1.3,
-          size: 44,
-          iconSize: 25,
-          strokeWidth: 2.35,
-          shadows: [
-            BoxShadow(
-              color: const Color(
-                0xFFD7A344,
-              ).withValues(alpha: active ? 0.34 : 0.18),
-              blurRadius: active ? 14 : 8,
-            ),
-          ],
-        ),
-    };
-  }
-}
-
-class _RotationButtonPalette {
-  final Color background;
-  final Color foreground;
-  final Color border;
-  final double borderWidth;
-  final double size;
-  final double iconSize;
-  final double strokeWidth;
-  final List<BoxShadow> shadows;
-
-  const _RotationButtonPalette({
-    required this.background,
-    required this.foreground,
-    required this.border,
-    required this.borderWidth,
-    required this.size,
-    required this.iconSize,
-    required this.strokeWidth,
-    required this.shadows,
-  });
-}
-
-class _CircularArrowPainter extends CustomPainter {
-  final Color color;
-  final double strokeWidth;
-
-  const _CircularArrowPainter({required this.color, this.strokeWidth = 2.25});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.shortestSide * 0.31;
-    const startAngle = -math.pi * 0.72;
-    const sweepAngle = math.pi * 1.48;
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      startAngle,
-      sweepAngle,
-      false,
-      paint,
-    );
-
-    const endAngle = startAngle + sweepAngle;
-    final arrowPoint = center +
-        Offset(math.cos(endAngle) * radius, math.sin(endAngle) * radius);
-
-    canvas.save();
-    canvas.translate(arrowPoint.dx, arrowPoint.dy);
-    canvas.rotate(endAngle + math.pi / 2);
-    final arrow = Path()
-      ..moveTo(4.2, 0)
-      ..lineTo(-2.8, -3.3)
-      ..lineTo(-2.8, 3.3)
-      ..close();
-    canvas.drawPath(
-      arrow,
-      Paint()
-        ..color = color
-        ..style = PaintingStyle.fill,
-    );
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant _CircularArrowPainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
   }
 }
 

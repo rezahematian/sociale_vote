@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sociale_vote/shared/services/world_appearance_service.dart';
 
 String _read(String path) => File(path).readAsStringSync();
 
@@ -91,7 +92,7 @@ void main() {
 
     expect(
       source,
-      contains('GlobeVisualStyle.bright => _earthTextureRealisticAsset'),
+      contains('GlobePresetVisual.forStyle(style).asset'),
     );
     expect(source, contains('_approvedPanSensitivity = 0.58'));
     expect(source, contains('_gestureIntentThreshold = 7.0'));
@@ -111,14 +112,12 @@ void main() {
     // 4096 filename to be duplicated in the JS implementation.
     expect(source, contains('const configuredDay = this._appearance.textureUrl;'));
     expect(
-      webSurface,
-      contains('earth_day_nasa_bmng_august_4096.jpg'),
-      reason: 'Web Globe appearance must keep the high-resolution Earth texture',
+      GlobePresetVisual.forStyle(GlobeVisualStyle.bright).asset,
+      'assets/globe/earth_day_nasa_bmng_august_4096.jpg',
+      reason: 'Both renderers retain the high-resolution Earth source',
     );
-    expect(
-      webSurface,
-      contains("static const String _earthTextureUrl ="),
-    );
+    expect(webSurface,
+        contains('GlobePresetVisual.forName(widget.visualStyle)'));
     expect(
       source,
       contains('Math.min(window.devicePixelRatio || 1, 2.0)'),

@@ -33,24 +33,46 @@ void main() {
       'web/social-vote-og.png': (width: 1200, height: 630),
       'assets/icons/app_icon.png': (width: 1024, height: 1024),
       'assets/branding/social_vote_symbol.png': (width: 1024, height: 1024),
-      'assets/branding/social_vote_wordmark_horizontal.png':
-          (width: 2400, height: 600),
-      'assets/branding/social_vote_logo_stacked.png':
-          (width: 1600, height: 1600),
-      'assets/branding/social_vote_header_neon_lockup.png':
-          (width: 2095, height: 496),
-      'android/app/src/main/res/mipmap-mdpi/ic_launcher.png':
-          (width: 48, height: 48),
-      'android/app/src/main/res/mipmap-hdpi/ic_launcher.png':
-          (width: 72, height: 72),
-      'android/app/src/main/res/mipmap-xhdpi/ic_launcher.png':
-          (width: 96, height: 96),
-      'android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png':
-          (width: 144, height: 144),
-      'android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png':
-          (width: 192, height: 192),
-      'android/app/src/main/res/drawable/launch_image.png':
-          (width: 1280, height: 1280),
+      'assets/branding/social_vote_wordmark_horizontal.png': (
+        width: 2400,
+        height: 600
+      ),
+      'assets/branding/social_vote_logo_stacked.png': (
+        width: 1600,
+        height: 1600
+      ),
+      'assets/branding/social_vote_header_neon_lockup.png': (
+        width: 2048,
+        height: 682
+      ),
+      'assets/branding/social_vote_header_neon_glow_lockup.png': (
+        width: 2048,
+        height: 682
+      ),
+      'android/app/src/main/res/mipmap-mdpi/ic_launcher.png': (
+        width: 48,
+        height: 48
+      ),
+      'android/app/src/main/res/mipmap-hdpi/ic_launcher.png': (
+        width: 72,
+        height: 72
+      ),
+      'android/app/src/main/res/mipmap-xhdpi/ic_launcher.png': (
+        width: 96,
+        height: 96
+      ),
+      'android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png': (
+        width: 144,
+        height: 144
+      ),
+      'android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png': (
+        width: 192,
+        height: 192
+      ),
+      'android/app/src/main/res/drawable/launch_image.png': (
+        width: 1280,
+        height: 1280
+      ),
     };
 
     for (final entry in expected.entries) {
@@ -67,10 +89,18 @@ void main() {
       'lib/shared/widgets/social_vote_brand_lockup.dart',
     ).readAsStringSync();
     expect(topBar, contains('SocialVoteHeaderBrand'));
+    final registry = File(
+      'lib/shared/branding/social_vote_brand_assets.dart',
+    ).readAsStringSync();
     expect(
-      brand,
-      contains('assets/branding/social_vote_header_neon_lockup.png'),
+      registry,
+      contains('assets/branding/social_vote_header_lockup_master.png'),
     );
+    expect(
+      registry,
+      contains('assets/branding/social_vote_header_neon_glow_lockup.png'),
+    );
+    expect(brand, contains('SocialVoteBrandAssets.headerLockup'));
     expect(brand, isNot(contains('assets/branding/social_vote_symbol.png')));
     expect(brand, isNot(contains("fontFamily: 'sans-serif'")));
   });

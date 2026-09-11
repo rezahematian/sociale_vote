@@ -14,7 +14,7 @@ void main() {
     expect(source, contains('radioVisualStyle: appearance.radioStyle'));
   });
 
-  test('Explore Globe uses centered larger viewport while Home stays unchanged', () {
+  test('Explore remains centered while narrow Home uses centered presentation geometry', () {
     final source = _read(
       'lib/features/map/presentation/widgets/world_globe_widget.dart',
     );
@@ -23,7 +23,8 @@ void main() {
     expect(
       source,
       contains(
-        'alignment: _isHomeProfile ? Alignment.topCenter : Alignment.center',
+        'alignment: _isHomeProfile && !narrowHome'
+        '\n              ? Alignment.topCenter : Alignment.center',
       ),
     );
     expect(source, contains('final inset = _isHomeProfile ? 12.0 : 8.0'));
