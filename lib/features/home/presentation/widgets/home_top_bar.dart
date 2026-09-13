@@ -67,7 +67,7 @@ class HomeTopBar extends StatelessWidget {
       // ignore: no_leading_underscores_for_local_identifiers
       Widget _buildGuestAuthActions({bool compact = false}) {
         final horizontalPadding = compact ? 7.0 : 10.0;
-        final height = compact ? 34.0 : 36.0;
+        const height = 38.0;
         final textStyle = compact ? Theme.of(context).textTheme.labelLarge : null;
         return Row(
           mainAxisSize: MainAxisSize.min,
@@ -76,7 +76,7 @@ class HomeTopBar extends StatelessWidget {
               onPressed: onLoginPressed,
               style: OutlinedButton.styleFrom(
                 visualDensity: VisualDensity.compact,
-                minimumSize: Size(0, height),
+                minimumSize: const Size(0, height),
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 textStyle: textStyle,
@@ -88,7 +88,7 @@ class HomeTopBar extends StatelessWidget {
               onPressed: onRegisterPressed,
               style: FilledButton.styleFrom(
                 visualDensity: VisualDensity.compact,
-                minimumSize: Size(0, height),
+                minimumSize: const Size(0, height),
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 textStyle: textStyle,
@@ -108,7 +108,7 @@ class HomeTopBar extends StatelessWidget {
             // may scale down slightly for long localized auth labels, but the
             // header never creates a second authentication row.
             final guestUtilityActions =
-                _buildGuestUtilityActions(size: 35);
+                _buildGuestUtilityActions(size: 38);
             final guestAuthActions =
                 _buildGuestAuthActions(compact: true);
             final compactActions = Row(
@@ -136,7 +136,7 @@ class HomeTopBar extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: AlignmentDirectional.centerStart,
-                    child: SocialVoteHeaderBrand(height: 43),
+                    child: SocialVoteHeaderBrand(height: 50),
                   ),
                 ),
                 const SizedBox(width: 4),

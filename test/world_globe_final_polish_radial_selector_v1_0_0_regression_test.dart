@@ -60,9 +60,9 @@ void main() {
 
     expect(brand, contains('this.height = 48'));
     expect(brand, contains('One static, canonical lockup'));
-    expect(topBar, contains('SocialVoteHeaderBrand(height: 43)'));
-    expect(topBar, contains('SocialVoteHeaderBrand(height: 50)'));
-    expect(topBar, contains('_buildGuestUtilityActions(size: 35)'));
+        expect(topBar, contains('SocialVoteHeaderBrand(height: 50)'));
+    expect(topBar, contains('const height = 38.0;'));
+    expect(topBar, contains('_buildGuestUtilityActions(size: 38)'));
     expect(topBar, contains('guestUtilityActions.isNotEmpty'));
     expect(topBar, contains('children: guestUtilityActions'));
     expect(topBar, contains('child: guestAuthActions'));

@@ -541,7 +541,8 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
                 WorldHomeGlobeGeometry.webSphereFraction
             : squareSize;
         final controlInset = narrowHome
-            ? WorldHomeGlobeGeometry.controlInset : 18.0;
+            ? WorldHomeGlobeGeometry.narrowHomeControlInset
+            : 18.0;
 
         final diagnostic = '${finiteWidth.toStringAsFixed(1)}x'
             '${finiteHeight.toStringAsFixed(1)}'
@@ -601,7 +602,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
                           size: WorldHomeGlobeGeometry.controlSize,
                         ),
                       ),
-                    if (isAuthenticated)
+                    if (widget.showHomeRadioControl || isAuthenticated)
                       Positioned(
                         right: controlInset,
                         bottom: controlInset,
@@ -1492,6 +1493,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
             ? WorldHomeGlobeGeometry.sphereDiameter(
                 availableWidth, viewportSize) / 2
             : viewportSize * 0.46;
+        final controlInset = narrowHome
+            ? WorldHomeGlobeGeometry.narrowHomeControlInset
+            : WorldHomeGlobeGeometry.controlInset;
 
         _viewportSize = viewportSize;
         _baseRadius = radius;
@@ -1579,9 +1583,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
                             ),
                   if (widget.showHomeRadioControl || isAuthenticated)
                     Positioned(
-                      left: WorldHomeGlobeGeometry.controlInset,
-                      right: WorldHomeGlobeGeometry.controlInset,
-                      bottom: WorldHomeGlobeGeometry.controlInset,
+                      left: controlInset,
+                      right: controlInset,
+                      bottom: controlInset,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -1594,7 +1598,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
                             )
                           else
                             const SizedBox.square(dimension: WorldHomeGlobeGeometry.controlSize),
-                          if (isAuthenticated)
+                          if (widget.showHomeRadioControl || isAuthenticated)
                             _GlobeRotationButton(
                               isRotating: _autoRotateEnabled,
                               globeStyle: widget.visualStyle,

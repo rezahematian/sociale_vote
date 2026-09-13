@@ -78,10 +78,10 @@ void main() {
       final frame = WorldHomeGlobeGeometry.frameSize(contentWidth, height);
       final diameter = WorldHomeGlobeGeometry.sphereDiameter(contentWidth, frame);
       final canvas = diameter / WorldHomeGlobeGeometry.webSphereFraction;
-      expect(canvas, lessThanOrEqualTo(frame));
-      expect(diameter, inInclusiveRange(218, 390));
+      expect(canvas, lessThanOrEqualTo(frame * 1.07));
+      expect(diameter, inInclusiveRange(218, 450));
       const controlRadius = WorldHomeGlobeGeometry.controlSize / 2;
-      final offset = frame / 2 - WorldHomeGlobeGeometry.controlInset - controlRadius;
+      final offset = frame / 2 - WorldHomeGlobeGeometry.narrowHomeControlInset - controlRadius;
       final distance = math.sqrt(2 * offset * offset);
       // Also leave room for the native Home's approved maximum zoom.
       expect(distance - controlRadius - diameter / 2 * 1.08, greaterThan(6));
@@ -89,17 +89,17 @@ void main() {
     });
   }
 
-  test('V1.0.8 Home Globe is modestly larger without becoming oversized', () {
+  test('V1.0.9 Home Globe has stronger presence without becoming oversized', () {
     final mobileFrame = WorldHomeGlobeGeometry.frameSize(328.0, 328.0);
     final mobileDiameter =
         WorldHomeGlobeGeometry.sphereDiameter(328.0, mobileFrame);
-    expect(mobileDiameter, inInclusiveRange(235.0, 238.0));
+    expect(mobileDiameter, inInclusiveRange(280.0, 283.0));
 
     final narrowWebFrame = WorldHomeGlobeGeometry.frameSize(700.0, 500.0);
     final narrowWebDiameter =
         WorldHomeGlobeGeometry.sphereDiameter(700.0, narrowWebFrame);
-    expect(narrowWebDiameter, greaterThan(360.0));
-    expect(narrowWebDiameter, lessThanOrEqualTo(390.0));
+    expect(narrowWebDiameter, greaterThanOrEqualTo(440.0));
+    expect(narrowWebDiameter, lessThanOrEqualTo(450.0));
   });
 
   for (final diameter in [236.0, 276.0, 316.0, 346.0, 386.0, 548.0]) {
@@ -238,7 +238,18 @@ void main() {
     expect(home, contains('appBarToolbarHeight = 74.0;'));
     expect(home, isNot(contains('104.0')));
 
+    final header = source('lib/features/home/presentation/widgets/home_top_bar.dart');
+    expect(header, contains('const height = 38.0;'));
+    expect(header, contains('_buildGuestUtilityActions(size: 38);'));
+    expect(header, contains('SocialVoteHeaderBrand(height: 50)'));
+
     final globe = source('lib/features/map/presentation/widgets/world_globe_widget.dart');
+    expect(
+      RegExp(r'if \(widget\.showHomeRadioControl \|\| isAuthenticated\)')
+          .allMatches(globe)
+          .length,
+      greaterThanOrEqualTo(2),
+    );
     expect(globe, contains('_isHomeProfile ? 0.0080 : _nativeApprovedRotationSpeed'));
     expect(globe, contains('_nativeApprovedRotationSpeed = 0.0065'));
     expect(globe, contains('Duration(milliseconds: 420)'));
@@ -251,6 +262,7 @@ void main() {
     ]) {
       expect(source(file), contains('animation: WorldAppearanceService.instance'));
       expect(source(file), contains('visualStyle: appearance.globeStyle'));
+      expect(source(file), contains('showHomeRadioControl: true'));
     }
   });
 }

@@ -58,9 +58,14 @@ class PremiumRadioControlVisual extends StatelessWidget {
     return IgnorePointer(
       child: ExcludeSemantics(
         child: WorldRoundControl(
-          icon: _radioIcon(style), label: 'Radio', active: active,
-          loading: loading, globeStyle: appearance.globeStyle,
-          visualStyle: appearance.rotationStyle, onTap: null, size: size,
+          icon: _radioIcon(style),
+          label: 'Radio',
+          active: active,
+          loading: loading,
+          globeStyle: appearance.globeStyle,
+          visualStyle: appearance.rotationStyle,
+          onTap: null,
+          size: size,
         ),
       ),
     );
@@ -111,7 +116,7 @@ class PremiumGlobePreview extends StatelessWidget {
                 Image.asset(
                   preset.asset,
                   cacheWidth: math.max(96,
-                    (size * MediaQuery.devicePixelRatioOf(context)).ceil()),
+                      (size * MediaQuery.devicePixelRatioOf(context)).ceil()),
                   fit: BoxFit.cover,
                   filterQuality: FilterQuality.high,
                 ),
@@ -123,7 +128,8 @@ class PremiumGlobePreview extends StatelessWidget {
                         end: Alignment.bottomLeft,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withValues(alpha: 1 - preset.ambientLight),
+                          Colors.black
+                              .withValues(alpha: 1 - preset.ambientLight),
                         ],
                       ),
                     ),
@@ -147,6 +153,7 @@ class PremiumGlobePreview extends StatelessWidget {
 class WorldHomeGlobeGeometry {
   static const double controlSize = 48;
   static const double controlInset = 12;
+  static const double narrowHomeControlInset = 0;
   // PerspectiveCamera fov=38 degrees, Home distance=3.50, Earth radius=1.
   static const double webSphereFraction = 0.865868392463662;
 
@@ -154,8 +161,8 @@ class WorldHomeGlobeGeometry {
       math.max(1.0, math.min(width, height) - 4);
 
   static double sphereDiameter(double width, double frame) => math.min(
-        (width * 0.72).clamp(218.0, 390.0).toDouble(),
-        frame * 0.86,
+        (width * 0.86).clamp(218.0, 450.0).toDouble(),
+        frame * 0.92,
       );
 }
 
@@ -188,10 +195,10 @@ class WorldRoundControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = _RotationVisualPalette.forStyle(context, visualStyle,
-        active: active);
-    final accent = Color(0xFF000000 |
-        GlobePresetVisual.forStyle(globeStyle).atmosphereRgb);
+    final palette =
+        _RotationVisualPalette.forStyle(context, visualStyle, active: active);
+    final accent = Color(
+        0xFF000000 | GlobePresetVisual.forStyle(globeStyle).atmosphereRgb);
     final foreground = active ? accent : palette.foreground;
     return Semantics(
       button: true,
@@ -209,29 +216,30 @@ class WorldRoundControl extends StatelessWidget {
             child: Material(
               color: palette.background,
               clipBehavior: Clip.antiAlias,
-              shape: CircleBorder(side: BorderSide(
+              shape: CircleBorder(
+                  side: BorderSide(
                 color: active ? accent : palette.border,
                 width: palette.borderWidth,
               )),
               child: Ink(
                 decoration: BoxDecoration(gradient: palette.gradient),
                 child: InkWell(
-                customBorder: const CircleBorder(),
-                splashColor: accent.withValues(alpha: 0.22),
-                hoverColor: accent.withValues(alpha: 0.12),
-                focusColor: accent.withValues(alpha: 0.16),
-                onTap: loading ? null : onTap,
-                onLongPress: loading ? null : onLongPress,
-                child: Center(
-                  child: loading
-                      ? SizedBox.square(
-                          dimension: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2, color: foreground),
-                        )
-                      : Icon(icon, size: 24, color: foreground),
+                  customBorder: const CircleBorder(),
+                  splashColor: accent.withValues(alpha: 0.22),
+                  hoverColor: accent.withValues(alpha: 0.12),
+                  focusColor: accent.withValues(alpha: 0.16),
+                  onTap: loading ? null : onTap,
+                  onLongPress: loading ? null : onLongPress,
+                  child: Center(
+                    child: loading
+                        ? SizedBox.square(
+                            dimension: 24,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: foreground),
+                          )
+                        : Icon(icon, size: 24, color: foreground),
+                  ),
                 ),
-              ),
               ),
             ),
           ),
@@ -258,9 +266,13 @@ class PremiumRotationPreview extends StatelessWidget {
     return IgnorePointer(
       child: ExcludeSemantics(
         child: WorldRoundControl(
-          icon: Icons.rotate_right_rounded, label: 'Rotate', active: active,
+          icon: Icons.rotate_right_rounded,
+          label: 'Rotate',
+          active: active,
           globeStyle: WorldAppearanceService.instance.globeStyle,
-          visualStyle: style, onTap: null, size: size,
+          visualStyle: style,
+          onTap: null,
+          size: size,
         ),
       ),
     );
@@ -798,4 +810,3 @@ class _RotationVisualPalette {
     };
   }
 }
-

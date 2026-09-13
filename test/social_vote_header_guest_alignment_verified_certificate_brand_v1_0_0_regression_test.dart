@@ -12,11 +12,12 @@ void main() {
       source,
       contains('SOCIAL VOTE GUEST HEADER ONE-LINE CONTRACT V1.0.0'),
     );
-    expect(source, contains('SocialVoteHeaderBrand(height: 43)'));
+    expect(source, contains('SocialVoteHeaderBrand(height: 50)'));
     expect(source, contains('_buildGuestAuthActions(compact: true)'));
     expect(
-        source, contains('guestUtilityActions =\n                _buildGuestUtilityActions(size: 35)'));
+        source, contains('guestUtilityActions =\n                _buildGuestUtilityActions(size: 38)'));
     expect(source, isNot(contains('const SizedBox(height: 7)')));
+    expect(source, contains('const height = 38.0;'));
   });
 
   test('authenticated Home header uses centered optical baseline', () {
