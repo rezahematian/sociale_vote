@@ -4,6 +4,7 @@ import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 import 'package:sociale_vote/domain/admin/entities/admin_entities.dart';
 import 'package:sociale_vote/domain/admin/repositories/admin_repository.dart';
+import 'package:sociale_vote/shared/services/radio_mondo_admin_storage_service.dart';
 import 'package:sociale_vote/shared/services/radio_mondo_service.dart';
 
 class AdminRadioMondoControlSection extends StatefulWidget {
@@ -68,11 +69,21 @@ class _AdminRadioMondoControlSectionState
     if (draft == null || _saving) return;
 
     setState(() => _saving = true);
+    RadioMondoUploadedAudio? uploaded;
     try {
+      var audioUrl = draft.audioUrl;
+      final pickedAudio = draft.pickedAudio;
+      if (pickedAudio != null) {
+        uploaded = await RadioMondoAdminStorageService.instance.upload(
+          pickedAudio,
+        );
+        audioUrl = uploaded.publicUrl;
+      }
+
       await widget.repository.upsertRadioMondoTrack(
         trackId: existing?.id,
         title: draft.title,
-        audioUrl: draft.audioUrl,
+        audioUrl: audioUrl,
         sortOrder: draft.sortOrder,
         isEnabled: draft.isEnabled,
         attribution: draft.attribution,
@@ -80,6 +91,12 @@ class _AdminRadioMondoControlSectionState
         rightsConfirmed: draft.rightsConfirmed,
         reason: draft.reason,
       );
+
+      if (uploaded != null && existing != null && existing.audioUrl != audioUrl) {
+        await RadioMondoAdminStorageService.instance
+            .removeManagedUrlBestEffort(existing.audioUrl);
+      }
+
       await _load();
       await RadioMondoService.instance.reloadCatalog();
       if (!mounted) return;
@@ -94,6 +111,10 @@ class _AdminRadioMondoControlSectionState
         ),
       );
     } catch (error) {
+      if (uploaded != null) {
+        await RadioMondoAdminStorageService.instance
+            .removeManagedUrlBestEffort(uploaded.publicUrl);
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -170,10 +191,10 @@ class _AdminRadioMondoControlSectionState
                       Text(
                         _radioText(
                           context,
-                          'Aggiungi audio remoto tramite URL HTTPS. Le tre tracce originali integrate restano sempre disponibili. Pubblica solo contenuti per cui possiedi i diritti.',
-                          'Add remote audio through an HTTPS URL. The three original built-in tracks remain available. Publish only audio you have rights to use.',
-                          'Füge Remote-Audio über eine HTTPS-URL hinzu. Die drei integrierten Originaltitel bleiben verfügbar. Veröffentliche nur Audio mit Nutzungsrechten.',
-                          'صدا را با نشانی HTTPS اضافه کنید. سه قطعه اصلی همیشه باقی می‌مانند. فقط محتوایی را منتشر کنید که حق استفاده از آن را دارید.',
+                          'Carica direttamente MP3, M4A o OGG oppure usa un URL HTTPS. Le tracce pubblicate compaiono su Web e Android. Pubblica solo contenuti per cui possiedi i diritti.',
+                          'Upload MP3, M4A or OGG directly, or use an HTTPS URL. Published tracks appear on Web and Android. Publish only audio you have rights to use.',
+                          'Lade MP3, M4A oder OGG direkt hoch oder verwende eine HTTPS-URL. Veröffentlichte Titel erscheinen im Web und auf Android. Veröffentliche nur Audio mit Nutzungsrechten.',
+                          'فایل MP3، M4A یا OGG را مستقیم بارگذاری کنید یا از نشانی HTTPS استفاده کنید. قطعات منتشرشده در وب و اندروید نمایش داده می‌شوند. فقط محتوایی را منتشر کنید که حق استفاده از آن را دارید.',
                         ),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: colors.onSurfaceVariant,
@@ -297,10 +318,10 @@ class _AdminRadioMondoControlSectionState
                   child: Text(
                     _radioText(
                       context,
-                      'V1 non carica file dal dispositivo: usa un URL HTTPS pubblico stabile, per esempio un oggetto audio pubblicato nello Storage. Disattivare una traccia la rimuove subito dal catalogo pubblico senza cancellare l’audit.',
-                      'V1 does not upload files from the device: use a stable public HTTPS URL, such as an audio object published in Storage. Disabling a track removes it from the public catalog without deleting its audit trail.',
-                      'V1 lädt keine Dateien vom Gerät hoch: Verwende eine stabile öffentliche HTTPS-URL, etwa ein Audioobjekt im Storage. Deaktivieren entfernt den Titel aus dem öffentlichen Katalog, ohne die Auditspur zu löschen.',
-                      'نسخه اول فایل را از دستگاه بارگذاری نمی‌کند؛ از یک نشانی عمومی و پایدار HTTPS استفاده کنید. غیرفعال‌سازی قطعه را از فهرست عمومی حذف می‌کند، بدون حذف سابقه.',
+                      'Caricamento gestito: MP3/M4A/OGG fino a 25 MB vengono salvati nello Storage Radio Mondo. Ordine 0–99 li mette prima delle tracce integrate (100/200/300). Disattivare una traccia la rimuove subito dal catalogo pubblico senza cancellare l’audit.',
+                      'Managed upload: MP3/M4A/OGG up to 25 MB are stored in Radio Mondo Storage. Order 0–99 places them before the built-in tracks (100/200/300). Disabling a track removes it from the public catalog immediately without deleting the audit trail.',
+                      'Verwalteter Upload: MP3/M4A/OGG bis 25 MB werden im Radio-Mondo-Storage gespeichert. Reihenfolge 0–99 platziert sie vor den integrierten Titeln (100/200/300). Deaktivieren entfernt einen Titel sofort aus dem öffentlichen Katalog, ohne die Auditspur zu löschen.',
+                      'بارگذاری مدیریت‌شده: فایل‌های MP3/M4A/OGG تا ۲۵ مگابایت در فضای Radio Mondo ذخیره می‌شوند. ترتیب ۰ تا ۹۹ آن‌ها را قبل از قطعات داخلی (۱۰۰/۲۰۰/۳۰۰) قرار می‌دهد. غیرفعال‌سازی، قطعه را فوری از فهرست عمومی حذف می‌کند و سابقه حسابرسی حفظ می‌شود.',
                     ),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
@@ -394,6 +415,7 @@ class _RadioTrackDraft {
   final String? licenseUrl;
   final bool rightsConfirmed;
   final String reason;
+  final RadioMondoPickedAudio? pickedAudio;
 
   const _RadioTrackDraft({
     required this.title,
@@ -404,6 +426,7 @@ class _RadioTrackDraft {
     required this.licenseUrl,
     required this.rightsConfirmed,
     required this.reason,
+    required this.pickedAudio,
   });
 }
 
@@ -426,6 +449,8 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
   final _reason = TextEditingController();
   late bool _enabled;
   bool _rightsConfirmed = false;
+  bool _pickingAudio = false;
+  RadioMondoPickedAudio? _pickedAudio;
 
   @override
   void initState() {
@@ -469,6 +494,32 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
     return null;
   }
 
+  Future<void> _pickAudio() async {
+    if (_pickingAudio) return;
+    setState(() => _pickingAudio = true);
+    try {
+      final picked = await RadioMondoAdminStorageService.instance.pickAudio();
+      if (picked == null || !mounted) return;
+      setState(() {
+        _pickedAudio = picked;
+        if (_title.text.trim().isEmpty) {
+          _title.text = picked.suggestedTitle;
+        }
+      });
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${_radioText(context, 'File audio non valido', 'Invalid audio file', 'Ungültige Audiodatei', 'فایل صوتی نامعتبر')}: $error',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _pickingAudio = false);
+    }
+  }
+
   void _submit() {
     if (!_formKey.currentState!.validate() || !_rightsConfirmed) {
       setState(() {});
@@ -488,6 +539,7 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
             _licenseUrl.text.trim().isEmpty ? null : _licenseUrl.text.trim(),
         rightsConfirmed: _rightsConfirmed,
         reason: _reason.text.trim(),
+        pickedAudio: _pickedAudio,
       ),
     );
   }
@@ -519,12 +571,91 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                           'Public title', 'Öffentlicher Titel', 'عنوان عمومی')),
                   validator: _required,
                 ),
+                Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        FilledButton.tonalIcon(
+                          onPressed: _pickingAudio ? null : _pickAudio,
+                          icon: _pickingAudio
+                              ? const SizedBox.square(
+                                  dimension: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.upload_file_rounded),
+                          label: Text(
+                            _radioText(
+                              context,
+                              'Carica file audio',
+                              'Upload audio file',
+                              'Audiodatei hochladen',
+                              'بارگذاری فایل صوتی',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _radioText(
+                            context,
+                            'MP3, M4A o OGG · massimo 25 MB',
+                            'MP3, M4A or OGG · maximum 25 MB',
+                            'MP3, M4A oder OGG · maximal 25 MB',
+                            'MP3، M4A یا OGG · حداکثر ۲۵ مگابایت',
+                          ),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        if (_pickedAudio != null) ...[
+                          const SizedBox(height: 10),
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.audio_file_rounded),
+                            title: Text(_pickedAudio!.originalName),
+                            subtitle: Text(
+                              '${(_pickedAudio!.sizeBytes / (1024 * 1024)).toStringAsFixed(2)} MB',
+                            ),
+                            trailing: IconButton(
+                              tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
+                              onPressed: () => setState(() => _pickedAudio = null),
+                              icon: const Icon(Icons.close_rounded),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
                 TextFormField(
                   controller: _audioUrl,
                   maxLength: 2048,
-                  decoration:
-                      const InputDecoration(labelText: 'Audio URL HTTPS'),
-                  validator: _https,
+                  decoration: InputDecoration(
+                    labelText: _radioText(
+                      context,
+                      'URL HTTPS alternativo',
+                      'Alternative HTTPS URL',
+                      'Alternative HTTPS-URL',
+                      'نشانی HTTPS جایگزین',
+                    ),
+                    helperText: _pickedAudio == null
+                        ? _radioText(
+                            context,
+                            'Obbligatorio solo se non carichi un file',
+                            'Required only when no file is uploaded',
+                            'Nur erforderlich, wenn keine Datei hochgeladen wird',
+                            'فقط وقتی فایل بارگذاری نمی‌شود اجباری است',
+                          )
+                        : _radioText(
+                            context,
+                            'Il file caricato verrà usato al salvataggio',
+                            'The uploaded file will be used when saving',
+                            'Die hochgeladene Datei wird beim Speichern verwendet',
+                            'فایل بارگذاری‌شده هنگام ذخیره استفاده می‌شود',
+                          ),
+                  ),
+                  validator: (value) =>
+                      _pickedAudio != null ? null : _https(value),
                 ),
                 TextFormField(
                   controller: _sortOrder,

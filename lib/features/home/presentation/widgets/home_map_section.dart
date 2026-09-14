@@ -188,17 +188,32 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
                 ? (isCompact ? 360.0 : 430.0)
                 : (isCompact ? 300.0 : 330.0);
 
-        final horizontalPadding =
-            widget.desktopHeroMode ? 0.0 : (isVeryNarrow ? 16.0 : 30.0);
+        // SOCIAL VOTE HOME GLOBE SIZE PARITY V1.0.11
+        // Preserve the approved Web size and give Android Home
+        // the same available-space policy. Civic Map is unchanged.
+        final homeGlobeSizePolish =
+            showHomeGlobe &&
+            !widget.desktopHeroMode &&
+            (kIsWeb ||
+                defaultTargetPlatform == TargetPlatform.android);
+
+        final horizontalPadding = widget.desktopHeroMode
+            ? 0.0
+            : homeGlobeSizePolish && isVeryNarrow
+                ? 8.0
+                : (isVeryNarrow ? 16.0 : 30.0);
+
+        final verticalPadding =
+            homeGlobeSizePolish ? 4.0 : 16.0;
 
         return SizedBox(
           height: sectionHeight,
           child: Padding(
             padding: EdgeInsets.fromLTRB(
               horizontalPadding,
-              16,
+              verticalPadding,
               horizontalPadding,
-              16,
+              verticalPadding,
             ),
             child: showHomeGlobe
                 ? AnimatedBuilder(

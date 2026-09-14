@@ -57,6 +57,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   final ValueNotifier<Offset> _homeSkyOrientation =
       ValueNotifier<Offset>(Offset.zero);
 
+  final ScrollController _homeScrollController = ScrollController();
+
   GeoScopeController get _geoScopeController =>
       AppDI.instance.geoScopeController;
 
@@ -96,12 +98,26 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   void dispose() {
     _sessionSub?.cancel();
     _disposeHomeNotificationsController();
+    _homeScrollController.dispose();
     _homeSkyOrientation.dispose();
     super.dispose();
   }
 
   void _handleHomeGlobeOrientationChanged(Offset orientation) {
     _homeSkyOrientation.value = orientation;
+  }
+
+  // SOCIAL VOTE BRAND RETURN TO HOME TOP V1.0.10 R1
+  void _handleHomeBrandPressed() {
+    if (!_homeScrollController.hasClients) return;
+
+    unawaited(
+      _homeScrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 420),
+        curve: Curves.easeOutCubic,
+      ),
+    );
   }
 
   void _handleHomeGlobeScrollLockChanged(bool locked) {
@@ -846,6 +862,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                     onLogoutPressed: _onLogoutPressed,
                     onDiscoveryPressed: _onDiscoveryPressed,
                     onHowItWorksPressed: _onHowItWorksPressed,
+                    onBrandPressed: _handleHomeBrandPressed,
                     onNotificationsPressed:
                         isLoggedIn ? _onNotificationsPressed : null,
                     currentAppearanceMode:
@@ -913,6 +930,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                         child: RefreshIndicator(
                           onRefresh: _onRefreshHome,
                           child: ListView(
+                            controller: _homeScrollController,
                             physics: _isHomeGlobeScrollLocked
                                 ? const NeverScrollableScrollPhysics()
                                 : const AlwaysScrollableScrollPhysics(),

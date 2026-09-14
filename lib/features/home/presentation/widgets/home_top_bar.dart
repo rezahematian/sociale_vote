@@ -23,6 +23,7 @@ class HomeTopBar extends StatelessWidget {
   final VoidCallback onLogoutPressed;
   final VoidCallback? onDiscoveryPressed;
   final VoidCallback? onHowItWorksPressed;
+  final VoidCallback? onBrandPressed;
   final VoidCallback? onNotificationsPressed;
   final AppAppearanceMode? currentAppearanceMode;
   final ValueChanged<AppAppearanceMode>? onAppearanceModeChanged;
@@ -38,6 +39,7 @@ class HomeTopBar extends StatelessWidget {
     required this.onLogoutPressed,
     this.onDiscoveryPressed,
     this.onHowItWorksPressed,
+    this.onBrandPressed,
     this.onNotificationsPressed,
     this.currentAppearanceMode,
     this.onAppearanceModeChanged,
@@ -46,6 +48,13 @@ class HomeTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
+    // SOCIAL VOTE BRAND RETURN TO HOME TOP V1.0.10 R1
+    Widget buildBrand() => GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onBrandPressed,
+          child: const SocialVoteHeaderBrand(height: 50),
+        );
 
     if (!isLoggedIn) {
       // Social Vote final guest header: keep brand + auth on one compact row.
@@ -131,12 +140,12 @@ class HomeTopBar extends StatelessWidget {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                const Expanded(
+                Expanded(
                   flex: 5,
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: AlignmentDirectional.centerStart,
-                    child: SocialVoteHeaderBrand(height: 50),
+                    child: buildBrand(),
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -159,7 +168,7 @@ class HomeTopBar extends StatelessWidget {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              const Expanded(child: SocialVoteHeaderBrand(height: 50)),
+              Expanded(child: buildBrand()),
               const SizedBox(width: 8),
               if (utilities.isNotEmpty) ...[
                 Wrap(
@@ -181,8 +190,8 @@ class HomeTopBar extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Expanded(
-          child: SocialVoteHeaderBrand(height: 50),
+        Expanded(
+          child: buildBrand(),
         ),
         const SizedBox(width: 8),
         if (onHowItWorksPressed != null) ...[

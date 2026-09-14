@@ -19,6 +19,7 @@ extension RadioMondoTrackX on RadioMondoTrack {
 class RadioMondoStation {
   final String id;
   final String title;
+  final int sortOrder;
   final RadioMondoTrack? builtInTrack;
   final String? audioUrl;
   final String? attribution;
@@ -27,6 +28,7 @@ class RadioMondoStation {
   const RadioMondoStation({
     required this.id,
     required this.title,
+    this.sortOrder = 100,
     this.builtInTrack,
     this.audioUrl,
     this.attribution,
@@ -51,16 +53,19 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
     RadioMondoStation(
       id: 'builtin-classical-orbit',
       title: 'Classical Orbit',
+      sortOrder: 100,
       builtInTrack: RadioMondoTrack.classicalOrbit,
     ),
     RadioMondoStation(
       id: 'builtin-world-rain',
       title: 'Rain over the World',
+      sortOrder: 200,
       builtInTrack: RadioMondoTrack.worldRain,
     ),
     RadioMondoStation(
       id: 'builtin-young-pulse',
       title: 'Young Pulse',
+      sortOrder: 300,
       builtInTrack: RadioMondoTrack.youngPulse,
     ),
   ];
@@ -73,6 +78,7 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
   List<RadioMondoStation> _stations = _builtInStations;
   RadioMondoStation _selectedStation = _builtInStations.first;
   RadioMondoStation? _currentStation;
+  bool _selectionExplicit = false;
 
   bool get isLoading => _isLoading || _catalogLoading;
   bool get isPlaying => _isPlaying;
@@ -117,10 +123,13 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
               !audioUrl.startsWith('https://')) {
             continue;
           }
+          final rawSortOrder = row['sort_order'];
+          final sortOrder = rawSortOrder is num ? rawSortOrder.toInt() : 100;
           remoteStations.add(
             RadioMondoStation(
               id: 'remote-$id',
               title: title,
+              sortOrder: sortOrder.clamp(0, 1000).toInt(),
               audioUrl: audioUrl,
               attribution: _nullable(row['attribution']),
               licenseUrl: _nullable(row['license_url']),
@@ -132,14 +141,20 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
       final nextStations = <RadioMondoStation>[
         ..._builtInStations,
         ...remoteStations,
-      ];
+      ]..sort((a, b) {
+          final order = a.sortOrder.compareTo(b.sortOrder);
+          if (order != 0) return order;
+          return a.id.compareTo(b.id);
+        });
       final selectedMatch = _findById(nextStations, _selectedStation.id);
       final currentId = _currentStation?.id;
       final currentMatch =
           currentId == null ? null : _findById(nextStations, currentId);
 
       _stations = nextStations;
-      _selectedStation = selectedMatch ?? nextStations.first;
+      _selectedStation = _selectionExplicit
+          ? (selectedMatch ?? nextStations.first)
+          : nextStations.first;
 
       if (_currentStation != null && currentMatch == null) {
         await stop();
@@ -202,6 +217,7 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       _selectedStation = station;
+      _selectionExplicit = true;
       await _player.stop();
       await _player.setReleaseMode(ReleaseMode.loop);
       await _player.setVolume(_volume);

@@ -85,6 +85,7 @@ dependencies:
   # RADIO MONDO (FOREGROUND ONLY)
   # =========================
   audioplayers: ^6.8.1
+  file_picker: ^11.0.3
 
   # =========================
   # LOCAL QR (SESSIONS / VERIFIED RESULT)
