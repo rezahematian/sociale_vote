@@ -50,6 +50,7 @@ Future<void> _showHomeGlobeMarkerPreview({
   required BuildContext context,
   required CivicMapItem item,
   required ValueChanged<CivicMapItem> onOpen,
+  ValueChanged<BuildContext>? onSheetBuilt,
 }) async {
   final kind = _contentKindForMapType(item.type);
   final typeColor = SocialVoteSymbols.contentColor(kind);
@@ -71,6 +72,7 @@ Future<void> _showHomeGlobeMarkerPreview({
     context: context,
     showDragHandle: true,
     builder: (sheetContext) {
+      onSheetBuilt?.call(sheetContext);
       final theme = Theme.of(sheetContext);
       return SafeArea(
         child: Padding(
@@ -444,9 +446,62 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
   final WorldMarkerPolicyService _markerPolicy =
       WorldMarkerPolicyService.instance;
   bool _markerPolicyRebuildScheduled = false;
+  BuildContext? _homeMarkerModalContext;
+  int _homeMarkerModalTicket = 0;
 
   bool get _isHomeProfile =>
       widget.interactionProfile == WorldGlobeInteractionProfile.home;
+
+  Future<void> _replaceHomeMarkerModal(
+    Future<void> Function(ValueChanged<BuildContext> onSheetBuilt) showModal,
+  ) async {
+    final ticket = ++_homeMarkerModalTicket;
+    final existing = _homeMarkerModalContext;
+
+    if (existing != null && existing.mounted) {
+      _homeMarkerModalContext = null;
+      await Navigator.of(existing).maybePop();
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    if (!mounted || ticket != _homeMarkerModalTicket) {
+      return;
+    }
+
+    await showModal((sheetContext) {
+      if (!mounted || ticket != _homeMarkerModalTicket) {
+        return;
+      }
+      _homeMarkerModalContext = sheetContext;
+    });
+
+    // A Flutter modal barrier and the underlying HtmlElementView can observe
+    // the same physical pointer on Web. Suppress the trailing surface tap
+    // briefly after any Home marker modal closes so dismiss never becomes
+    // an accidental Civic Map navigation.
+    _suppressHomeSurfaceTapUntil =
+        DateTime.now().add(const Duration(milliseconds: 360));
+
+    if (!mounted || ticket != _homeMarkerModalTicket) {
+      return;
+    }
+    _homeMarkerModalContext = null;
+  }
+
+  bool _dismissHomeMarkerModal() {
+    final existing = _homeMarkerModalContext;
+    if (existing == null || !existing.mounted) {
+      _homeMarkerModalContext = null;
+      return false;
+    }
+
+    _homeMarkerModalTicket += 1;
+    _homeMarkerModalContext = null;
+    _suppressHomeSurfaceTapUntil =
+        DateTime.now().add(const Duration(milliseconds: 360));
+    unawaited(Navigator.of(existing).maybePop());
+    return true;
+  }
 
   void _openGlobeStylePicker() {
     if (!mounted || _stylePickerOpen) return;
@@ -737,10 +792,13 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
 
     if (_isHomeProfile) {
       unawaited(
-        _showHomeGlobeMarkerPreview(
-          context: context,
-          item: item,
-          onOpen: widget.onItemTap,
+        _replaceHomeMarkerModal(
+          (onSheetBuilt) => _showHomeGlobeMarkerPreview(
+            context: context,
+            item: item,
+            onOpen: widget.onItemTap,
+            onSheetBuilt: onSheetBuilt,
+          ),
         ),
       );
       return;
@@ -762,6 +820,14 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
       if (_stylePickerOpen ||
           (suppressUntil != null &&
               DateTime.now().isBefore(suppressUntil))) {
+        return;
+      }
+
+      // HtmlElementView can still receive the same pointer behind a Flutter
+      // modal barrier. While a Home marker sheet is open, an outside tap must
+      // dismiss that sheet only; it must never navigate to Civic Map or leave
+      // an older preview route underneath the next one.
+      if (_dismissHomeMarkerModal()) {
         return;
       }
 
@@ -1038,6 +1104,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
       <String, CivicMapItem>{};
   final Map<String, List<CivicMapItem>> _globeMarkerGroupsByPointId =
       <String, List<CivicMapItem>>{};
+  BuildContext? _homeMarkerModalContext;
+  int _homeMarkerModalTicket = 0;
   int _lastMarkerZoomBucket = -1;
   bool _globeToMapHandoffTriggered = false;
   bool _initialFocusApplied = false;
@@ -1047,6 +1115,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
   Timer? _nativeNaturalTiltTimer;
   int _nativeNaturalTiltToken = 0;
   Timer? _countrySelectionDismissTimer;
+  Timer? _homeRouteReturnWatchTimer;
+  bool _homeRouteWasCovered = false;
 
   double _viewportSize = 0.0;
   double _baseRadius = 0.0;
@@ -1055,6 +1125,48 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
 
   bool get _isHomeProfile =>
       widget.interactionProfile == WorldGlobeInteractionProfile.home;
+
+  Future<void> _replaceHomeMarkerModal(
+    Future<void> Function(ValueChanged<BuildContext> onSheetBuilt) showModal,
+  ) async {
+    final ticket = ++_homeMarkerModalTicket;
+    final existing = _homeMarkerModalContext;
+
+    if (existing != null && existing.mounted) {
+      _homeMarkerModalContext = null;
+      await Navigator.of(existing).maybePop();
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    if (!mounted || ticket != _homeMarkerModalTicket) {
+      return;
+    }
+
+    await showModal((sheetContext) {
+      if (!mounted || ticket != _homeMarkerModalTicket) {
+        return;
+      }
+      _homeMarkerModalContext = sheetContext;
+    });
+
+    if (!mounted || ticket != _homeMarkerModalTicket) {
+      return;
+    }
+    _homeMarkerModalContext = null;
+  }
+
+  bool _dismissHomeMarkerModal() {
+    final existing = _homeMarkerModalContext;
+    if (existing == null || !existing.mounted) {
+      _homeMarkerModalContext = null;
+      return false;
+    }
+
+    _homeMarkerModalTicket += 1;
+    _homeMarkerModalContext = null;
+    unawaited(Navigator.of(existing).maybePop());
+    return true;
+  }
 
   void _cancelNativeStyleLongPress() {
     _styleLongPressTimer?.cancel();
@@ -1205,6 +1317,64 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
 
     _lastNativeMarkerInputSignature = null;
     _syncGlobeContentPoints();
+  }
+
+  void _openHomeMarkerDetail(CivicMapItem item) {
+    if (!_isHomeProfile) {
+      widget.onItemTap(item);
+      return;
+    }
+
+    _homeRouteReturnWatchTimer?.cancel();
+    _homeRouteWasCovered = false;
+    var currentRouteTicks = 0;
+
+    // Pushing a detail page does not trigger AppLifecycleState.resumed because
+    // the app never leaves the foreground. Watch only this one navigation
+    // hand-off, then republish the same stable marker snapshot when Home is
+    // current again. This avoids a permanent recovery timer while Home is
+    // covered by another route.
+    _homeRouteReturnWatchTimer = Timer.periodic(
+      const Duration(milliseconds: 250),
+      (timer) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
+
+        final isCurrent = ModalRoute.of(context)?.isCurrent ?? true;
+        if (!isCurrent) {
+          _homeRouteWasCovered = true;
+          currentRouteTicks = 0;
+          return;
+        }
+
+        if (!_homeRouteWasCovered) {
+          currentRouteTicks += 1;
+          if (currentRouteTicks >= 32) {
+            timer.cancel();
+          }
+          return;
+        }
+
+        timer.cancel();
+        _homeRouteWasCovered = false;
+        _lastNativeMarkerInputSignature = null;
+        _syncGlobeContentPoints();
+        _applyNativeRotationPolicy();
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? true)) {
+            return;
+          }
+          _lastNativeMarkerInputSignature = null;
+          _syncGlobeContentPoints();
+          _applyNativeRotationPolicy();
+        });
+      },
+    );
+
+    widget.onItemTap(item);
   }
 
   @override
@@ -1377,6 +1547,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
     _nativeRotationWarmupTimer?.cancel();
     _nativeNaturalTiltTimer?.cancel();
     _countrySelectionDismissTimer?.cancel();
+    _homeRouteReturnWatchTimer?.cancel();
     _cancelNativeStyleLongPress();
     _scientificSkyOrientation.dispose();
 
@@ -2075,7 +2246,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
           // taps select the marker the user actually sees.
           hitTestOffset: Offset(
             -group.visualOffset.dx,
-            -group.visualOffset.dy,
+            (markerVisualSize / 2) - group.visualOffset.dy,
           ),
           labelTextStyle: TextStyle(
             color: const Color(0xFFF7FAFF),
@@ -2218,7 +2389,10 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
     }
   }
 
-  Future<void> _showGlobeMarkerGroupPicker(List<CivicMapItem> items) async {
+  Future<void> _showGlobeMarkerGroupPicker(
+    List<CivicMapItem> items, {
+    ValueChanged<BuildContext>? onSheetBuilt,
+  }) async {
     if (!mounted || items.isEmpty) {
       return;
     }
@@ -2237,6 +2411,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
       context: context,
       showDragHandle: true,
       builder: (sheetContext) {
+        onSheetBuilt?.call(sheetContext);
         return SafeArea(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 460),
@@ -2286,8 +2461,23 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
                         ),
                         trailing: const Icon(Icons.chevron_right_rounded),
                         onTap: () {
+                          if (_isHomeProfile &&
+                              identical(
+                                _homeMarkerModalContext,
+                                sheetContext,
+                              )) {
+                            _homeMarkerModalContext = null;
+                          }
                           Navigator.of(sheetContext).pop();
-                          _handleGlobeMarkerTap(item);
+                          if (_isHomeProfile) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) {
+                                _handleGlobeMarkerTap(item);
+                              }
+                            });
+                          } else {
+                            _handleGlobeMarkerTap(item);
+                          }
                         },
                       );
                     },
@@ -2324,10 +2514,13 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
 
     if (_isHomeProfile) {
       unawaited(
-        _showHomeGlobeMarkerPreview(
-          context: context,
-          item: item,
-          onOpen: widget.onItemTap,
+        _replaceHomeMarkerModal(
+          (onSheetBuilt) => _showHomeGlobeMarkerPreview(
+            context: context,
+            item: item,
+            onOpen: _openHomeMarkerDetail,
+            onSheetBuilt: onSheetBuilt,
+          ),
         ),
       );
       return;
@@ -2676,7 +2869,14 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
     }
 
     if (group != null && group.length > 1) {
-      unawaited(_showGlobeMarkerGroupPicker(group));
+      unawaited(
+        _replaceHomeMarkerModal(
+          (onSheetBuilt) => _showGlobeMarkerGroupPicker(
+            group,
+            onSheetBuilt: onSheetBuilt,
+          ),
+        ),
+      );
     } else {
       _handleGlobeMarkerTap(item);
     }
@@ -2713,6 +2913,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
           if (!mounted) return;
           final markerHandled = _tryHandleHomeMarkerTap(tapGlobalPosition);
           if (!markerHandled) {
+            if (_dismissHomeMarkerModal()) {
+              return;
+            }
             widget.onUseClassicMap();
           }
         });

@@ -1,9 +1,14 @@
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:sociale_vote/core/supabase/supabase_client.dart';
+
+import 'radio_mondo_web_audio_picker_stub.dart'
+    if (dart.library.html) 'radio_mondo_web_audio_picker_html.dart'
+    as web_audio_picker;
 
 class RadioMondoPickedAudio {
   final String originalName;
@@ -58,30 +63,62 @@ class RadioMondoAdminStorageService {
   };
 
   Future<RadioMondoPickedAudio?> pickAudio() async {
-    final result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: allowedExtensions,
-      allowMultiple: false,
-      withData: true,
-    );
-    if (result == null || result.files.isEmpty) return null;
+    late String name;
+    late Uint8List bytes;
 
-    final file = result.files.single;
-    final name = file.name.trim();
+    if (kIsWeb) {
+      final browserFile = await web_audio_picker.pickBrowserAudio();
+      if (browserFile == null) return null;
+
+      name = browserFile.name.trim();
+      bytes = browserFile.bytes;
+    } else {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: allowedExtensions,
+        allowMultiple: false,
+        withData: true,
+      );
+
+      if (result == null || result.files.isEmpty) return null;
+
+      final file = result.files.single;
+      name = file.name.trim();
+
+      final fileBytes = file.bytes;
+      if (fileBytes == null) {
+        throw const FormatException(
+          'Could not read the selected audio file.',
+        );
+      }
+
+      bytes = fileBytes;
+    }
+
     final extension = _extension(name);
+
     if (!allowedExtensions.contains(extension)) {
-      throw const FormatException('Unsupported Radio Mondo audio format.');
+      throw const FormatException(
+        'Unsupported Radio Mondo audio format.',
+      );
     }
 
-    final bytes = file.bytes;
-    if (bytes == null || bytes.isEmpty) {
-      throw const FormatException('Could not read the selected audio file.');
+    if (bytes.isEmpty) {
+      throw const FormatException(
+        'Could not read the selected audio file.',
+      );
     }
+
     if (bytes.lengthInBytes > maxBytes) {
-      throw const FormatException('Radio Mondo audio exceeds the 25 MB limit.');
+      throw const FormatException(
+        'Radio Mondo audio exceeds the 25 MB limit.',
+      );
     }
+
     if (!_signatureMatches(extension, bytes)) {
-      throw const FormatException('The selected file does not match its audio extension.');
+      throw const FormatException(
+        'The selected file does not match its audio extension.',
+      );
     }
 
     return RadioMondoPickedAudio(

@@ -717,7 +717,9 @@ class _PostDetailViewState extends State<_PostDetailView> {
               },
             )..loadComments(),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(
+                MediaQuery.sizeOf(context).width < 600 ? 12 : 16,
+              ),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 960),
@@ -767,7 +769,9 @@ class _PostDetailViewState extends State<_PostDetailView> {
                               .toggleIce(userId: userId);
                         },
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(
+                        height: MediaQuery.sizeOf(context).width < 600 ? 12 : 20,
+                      ),
                       CommentSection(
                         userId: AppDI.instance.currentUserId ?? 'guest',
                       ),
@@ -815,6 +819,7 @@ class _PostDetailHeroCard extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final isDark = theme.brightness == Brightness.dark;
+    final isPhoneWidth = MediaQuery.sizeOf(context).width < 600;
 
     final cardTopColor =
         isDark ? const Color(0xFF162130) : const Color(0xFFFCFDFE);
@@ -895,7 +900,12 @@ class _PostDetailHeroCard extends StatelessWidget {
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(18, 20, 18, 16),
+            padding: EdgeInsets.fromLTRB(
+              isPhoneWidth ? 14 : 18,
+              isPhoneWidth ? 15 : 20,
+              isPhoneWidth ? 14 : 18,
+              isPhoneWidth ? 13 : 16,
+            ),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final isCompact = constraints.maxWidth < 640;
@@ -907,46 +917,57 @@ class _PostDetailHeroCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
-                          child: Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: PublisherSignature(
-                              displayName: authorName,
-                              username: post.authorUsername,
-                              imageUrl: post.authorAvatarUrl,
-                              actorType: publisherActorType,
-                              verificationLevel: post.authorVerificationLevel,
-                              institutionLevel: post.authorInstitutionLevel,
-                              density: PublisherSignatureDensity.regular,
-                              maxWidth: 440,
-                              onTap: onOpenAuthorProfile,
-                            ),
+                          child: PublisherSignature(
+                            displayName: authorName,
+                            username: post.authorUsername,
+                            imageUrl: post.authorAvatarUrl,
+                            actorType: publisherActorType,
+                            verificationLevel: post.authorVerificationLevel,
+                            institutionLevel: post.authorInstitutionLevel,
+                            density: PublisherSignatureDensity.regular,
+                            maxWidth: isCompact
+                                ? constraints.maxWidth * 0.54
+                                : 440,
+                            onTap: onOpenAuthorProfile,
                           ),
                         ),
-                        const SizedBox(width: 18),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
+                        SizedBox(width: isCompact ? 8 : 18),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: isCompact ? 156 : 240,
+                          ),
                           child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text(
-                                _formatDateTime(post.createdAt),
-                                textAlign: TextAlign.right,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: metaTextColor,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.2,
-                                ),
-                              ),
-                              if (post.isEdited && post.updatedAt != null) ...[
-                                const SizedBox(height: 3),
-                                Text(
-                                  '${_editedLabel(context)} ${_formatDateTime(post.updatedAt!)}',
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: AlignmentDirectional.centerEnd,
+                                child: Text(
+                                  _formatDateTime(post.createdAt),
                                   textAlign: TextAlign.right,
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: metaTextColor,
                                     fontWeight: FontWeight.w600,
-                                    fontStyle: FontStyle.italic,
-                                    height: 1.2,
+                                    height: 1.15,
+                                  ),
+                                ),
+                              ),
+                              if (post.isEdited && post.updatedAt != null) ...[
+                                const SizedBox(height: 2),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: AlignmentDirectional.centerEnd,
+                                  child: Text(
+                                    '${_editedLabel(context)} ${_formatDateTime(post.updatedAt!)}',
+                                    textAlign: TextAlign.right,
+                                    style:
+                                        theme.textTheme.bodySmall?.copyWith(
+                                      color: metaTextColor,
+                                      fontWeight: FontWeight.w600,
+                                      fontStyle: FontStyle.italic,
+                                      height: 1.15,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -956,30 +977,32 @@ class _PostDetailHeroCard extends StatelessWidget {
                       ],
                     ),
                     if (title.isNotEmpty) ...[
-                      const SizedBox(height: 16),
+                      SizedBox(height: isCompact ? 12 : 16),
                       SocialVoteDirectionalText(
                         title,
                         style: theme.textTheme.headlineSmall?.copyWith(
+                          fontSize: isCompact ? 22.0 : null,
                           fontWeight: FontWeight.w800,
-                          height: 1.08,
-                          letterSpacing: -0.3,
+                          height: isCompact ? 1.12 : 1.08,
+                          letterSpacing: isCompact ? -0.1 : -0.3,
                         ),
                       ),
                     ],
                     if (content.isNotEmpty) ...[
-                      const SizedBox(height: 14),
+                      SizedBox(height: isCompact ? 10 : 14),
                       SocialVoteDirectionalText(
                         content,
                         style: theme.textTheme.bodyLarge?.copyWith(
-                          height: 1.56,
+                          fontSize: isCompact ? 15.5 : null,
+                          height: isCompact ? 1.48 : 1.56,
                           color: contentTextColor,
                         ),
                       ),
                     ],
-                    const SizedBox(height: 18),
+                    SizedBox(height: isCompact ? 14 : 18),
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.only(top: 14),
+                      padding: EdgeInsets.only(top: isCompact ? 11 : 14),
                       decoration: BoxDecoration(
                         border: Border(
                           top: BorderSide(

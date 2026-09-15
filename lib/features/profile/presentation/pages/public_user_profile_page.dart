@@ -1223,7 +1223,8 @@ class _OrganizationPublicActions extends StatelessWidget {
         ? null
         : _OfficialChannelIconAction(
             tooltip: l10n.organizationOfficialWebsiteAction,
-            icon: const OrganizationWebsiteIcon(size: 36),
+            label: l10n.organizationOfficialWebsiteAction,
+            icon: const OrganizationWebsiteIcon(size: 30),
             onPressed: () async {
               final normalized = website.startsWith('http://') ||
                       website.startsWith('https://')
@@ -1244,9 +1245,10 @@ class _OrganizationPublicActions extends StatelessWidget {
         .map(
           (link) => _OfficialChannelIconAction(
             tooltip: link.provider.label,
+            label: link.provider.label,
             icon: OrganizationExternalChannelIcon(
               provider: link.provider,
-              size: 36,
+              size: 30,
             ),
             onPressed: () => _openExternalLink(link.canonicalUrl),
           ),
@@ -1294,49 +1296,45 @@ class _OrganizationPublicActions extends StatelessWidget {
             ],
           );
 
-          if (compact) {
-            return Padding(
-              padding: const EdgeInsets.all(12),
-              child: Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  if (showType) typeWidget,
-                  followSummary,
-                  ...actions,
-                ],
-              ),
-            );
-          }
-
           return Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(compact ? 12 : 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 10,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    if (showType) typeWidget,
-                    followSummary,
+                if (compact) ...[
+                  if (showType) ...[
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: typeWidget,
+                    ),
+                    const SizedBox(height: 8),
                   ],
-                ),
+                  followSummary,
+                ] else
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 10,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (showType) typeWidget,
+                      followSummary,
+                    ],
+                  ),
                 if (actions.isNotEmpty) ...[
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
                   Divider(
                     height: 1,
                     color: theme.colorScheme.outlineVariant.withValues(
                       alpha: 0.55,
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: actions,
+                    children: [
+                      ...actions,
+                    ],
                   ),
                 ],
               ],
@@ -1352,37 +1350,59 @@ class _OrganizationPublicActions extends StatelessWidget {
     if (uri == null || uri.scheme != 'https') return;
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
-
 }
 
 class _OfficialChannelIconAction extends StatelessWidget {
   final String tooltip;
+  final String label;
   final Widget icon;
   final VoidCallback onPressed;
 
   const _OfficialChannelIconAction({
     required this.tooltip,
+    required this.label,
     required this.icon,
     required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: Colors.transparent,
+        color: colors.surfaceContainerLow,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(13),
           side: BorderSide(color: colors.outlineVariant),
         ),
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(13),
           child: Padding(
-            padding: const EdgeInsets.all(5),
-            child: icon,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                icon,
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(width: 3),
+                Icon(
+                  Icons.open_in_new_rounded,
+                  size: 14,
+                  color: colors.onSurfaceVariant,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1442,54 +1462,90 @@ class _OrganizationFollowSummary extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final followCount = _FollowCount(
+      value: currentState.followerCount,
+      label: l10n.publicProfileFollowersLabel,
+    );
+
+    Widget? action;
+    if (showAction) {
+      action = FilledButton.tonalIcon(
+        onPressed: isActionLoading ? null : onToggle,
+        style: FilledButton.styleFrom(
+          minimumSize: Size(0, compact ? 34 : 38),
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 11 : 14,
+            vertical: compact ? 5 : 7,
+          ),
+          tapTargetSize: compact
+              ? MaterialTapTargetSize.shrinkWrap
+              : MaterialTapTargetSize.padded,
+          visualDensity:
+              compact ? VisualDensity.compact : VisualDensity.standard,
+        ),
+        icon: isActionLoading
+            ? const SizedBox.square(
+                dimension: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(
+                currentState.isFollowing
+                    ? Icons.notifications_active_outlined
+                    : Icons.add_circle_outline_rounded,
+                size: 18,
+              ),
+        label: Text(
+          currentState.isFollowing
+              ? l10n.publicProfileUnfollowAction
+              : l10n.publicProfileFollowAction,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      );
+    }
+
+    final retry = hasError && state != null
+        ? IconButton(
+            onPressed: onRetry,
+            tooltip: l10n.publicProfileFollowRetry,
+            visualDensity: VisualDensity.compact,
+            icon: Icon(
+              Icons.refresh_rounded,
+              color: theme.colorScheme.error,
+            ),
+          )
+        : null;
+
+    if (compact) {
+      return Row(
+        children: [
+          followCount,
+          if (action != null) ...[
+            const SizedBox(width: 8),
+            Expanded(
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: action,
+              ),
+            ),
+          ] else
+            const Spacer(),
+          if (retry != null) ...[
+            const SizedBox(width: 4),
+            retry,
+          ],
+        ],
+      );
+    }
+
     return Wrap(
       spacing: 12,
       runSpacing: 10,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        _FollowCount(
-          value: currentState.followerCount,
-          label: l10n.publicProfileFollowersLabel,
-        ),
-        if (showAction)
-          FilledButton.tonalIcon(
-            onPressed: isActionLoading ? null : onToggle,
-            style: FilledButton.styleFrom(
-              minimumSize: Size(0, compact ? 36 : 40),
-              padding: EdgeInsets.symmetric(
-                horizontal: compact ? 10 : 14,
-                vertical: compact ? 6 : 8,
-              ),
-              tapTargetSize: compact
-                  ? MaterialTapTargetSize.shrinkWrap
-                  : MaterialTapTargetSize.padded,
-              visualDensity: compact ? VisualDensity.compact : VisualDensity.standard,
-            ),
-            icon: isActionLoading
-                ? const SizedBox.square(
-                    dimension: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Icon(
-                    currentState.isFollowing
-                        ? Icons.notifications_active_outlined
-                        : Icons.add_circle_outline_rounded,
-                  ),
-            label: Text(
-              currentState.isFollowing
-                  ? l10n.publicProfileUnfollowAction
-                  : l10n.publicProfileFollowAction,
-            ),
-          ),
-        if (hasError && state != null)
-          IconButton(
-            onPressed: onRetry,
-            tooltip: l10n.publicProfileFollowRetry,
-            icon: Icon(
-              Icons.refresh_rounded,
-              color: theme.colorScheme.error,
-            ),
-          ),
+        followCount,
+        if (action != null) action,
+        if (retry != null) retry,
       ],
     );
   }
@@ -1533,129 +1589,137 @@ class _PublicProfileHeader extends StatelessWidget {
 
     return Card(
       margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final compact = constraints.maxWidth < 620;
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 620;
 
-            final identity = Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                PublisherAvatar(
-                  displayName: nameLabel,
-                  imageUrl: _normalize(profile.avatarUrl),
-                  actorType: profile.actorType,
-                  verificationLevel: profile.verificationLevel,
-                  institutionLevel: profile.institutionLevel,
-                  size: compact ? 68 : 78,
-                  showTooltip: false,
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Text(
-                            nameLabel,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
+          final identity = Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              PublisherAvatar(
+                displayName: nameLabel,
+                imageUrl: _normalize(profile.avatarUrl),
+                actorType: profile.actorType,
+                verificationLevel: profile.verificationLevel,
+                institutionLevel: profile.institutionLevel,
+                size: compact ? 60 : 76,
+                showTooltip: false,
+              ),
+              SizedBox(width: compact ? 12 : 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          nameLabel,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: (compact
+                                  ? theme.textTheme.titleMedium
+                                  : theme.textTheme.titleLarge)
+                              ?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            height: 1.08,
                           ),
-                          if (UserIdentityMark.shouldShowForProfile(profile))
-                            UserIdentityMark.fromProfile(
-                              profile,
-                              size: 18,
-                            ),
-                        ],
+                        ),
+                        if (UserIdentityMark.shouldShowForProfile(profile))
+                          UserIdentityMark.fromProfile(
+                            profile,
+                            size: 18,
+                          ),
+                      ],
+                    ),
+                    if (username != null) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        '@$username',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                      if (username != null) ...[
-                        const SizedBox(height: 3),
-                        Text(
-                          '@$username',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                      if (identityDetail != null) ...[
-                        const SizedBox(height: 5),
-                        Text(
-                          identityDetail,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.70,
-                            ),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
                     ],
-                  ),
+                    if (identityDetail != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        identityDetail,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.70,
+                          ),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-              ],
-            );
+              ),
+            ],
+          );
 
-            final follow = _AccountFollowSummary(
-              state: followState,
-              isLoading: followStateLoading,
-              hasError: followStateLoadError,
-              isActionLoading: followActionLoading,
-              l10n: l10n,
-              onToggle: onToggleFollow,
-              onRetry: onRetryFollow,
-            );
+          final follow = _AccountFollowSummary(
+            state: followState,
+            isLoading: followStateLoading,
+            hasError: followStateLoadError,
+            isActionLoading: followActionLoading,
+            compact: compact,
+            l10n: l10n,
+            onToggle: onToggleFollow,
+            onRetry: onRetryFollow,
+          );
 
-            return Column(
+          return Padding(
+            padding: EdgeInsets.all(compact ? 14 : 18),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 identity,
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
                 follow,
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
                 Text(
                   bio ?? l10n.publicProfileNoBio,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    height: 1.4,
+                    height: 1.38,
                     color: bio == null
                         ? theme.colorScheme.onSurface.withValues(alpha: 0.56)
                         : null,
                     fontStyle: bio == null ? FontStyle.italic : null,
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
                 Divider(
                   height: 1,
-                  color:
-                      theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
+                  color: theme.colorScheme.outlineVariant.withValues(
+                    alpha: 0.55,
+                  ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Wrap(
-                  spacing: 18,
-                  runSpacing: 10,
+                  spacing: 16,
+                  runSpacing: 8,
                   children: [
                     _PublicProfileMeta(
                       icon: Icons.location_on_outlined,
+                      label: l10n.publicProfileResidenceLabel,
                       value: residence,
                     ),
                     _PublicProfileMeta(
                       icon: Icons.calendar_today_outlined,
+                      label: l10n.publicProfileMemberSinceLabel,
                       value: memberSince,
                     ),
                   ],
                 ),
               ],
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -1696,6 +1760,7 @@ class _AccountFollowSummary extends StatelessWidget {
   final bool isLoading;
   final bool hasError;
   final bool isActionLoading;
+  final bool compact;
   final AppLocalizations l10n;
   final VoidCallback onToggle;
   final VoidCallback onRetry;
@@ -1705,6 +1770,7 @@ class _AccountFollowSummary extends StatelessWidget {
     required this.isLoading,
     required this.hasError,
     required this.isActionLoading,
+    required this.compact,
     required this.l10n,
     required this.onToggle,
     required this.onRetry,
@@ -1716,7 +1782,7 @@ class _AccountFollowSummary extends StatelessWidget {
 
     if (isLoading && state == null) {
       return const SizedBox(
-        height: 40,
+        height: 36,
         child: Center(
           child: SizedBox.square(
             dimension: 20,
@@ -1742,47 +1808,97 @@ class _AccountFollowSummary extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return Wrap(
-      spacing: 12,
-      runSpacing: 10,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        _FollowCount(
-          value: currentState.followerCount,
-          label: l10n.publicProfileFollowersLabel,
-        ),
-        _FollowCount(
-          value: currentState.followingCount,
-          label: l10n.publicProfileFollowingLabel,
-        ),
-        if (currentState.canFollow)
-          FilledButton.tonalIcon(
-            onPressed: isActionLoading ? null : onToggle,
-            icon: isActionLoading
-                ? const SizedBox.square(
-                    dimension: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Icon(
-                    currentState.isFollowing
-                        ? Icons.person_remove_outlined
-                        : Icons.person_add_alt_1_outlined,
-                  ),
-            label: Text(
-              currentState.isFollowing
-                  ? l10n.publicProfileUnfollowAction
-                  : l10n.publicProfileFollowAction,
-            ),
+    final counts = <Widget>[
+      _FollowCount(
+        value: currentState.followerCount,
+        label: l10n.publicProfileFollowersLabel,
+      ),
+      _FollowCount(
+        value: currentState.followingCount,
+        label: l10n.publicProfileFollowingLabel,
+      ),
+    ];
+
+    Widget? action;
+    if (currentState.canFollow) {
+      action = FilledButton.tonalIcon(
+        onPressed: isActionLoading ? null : onToggle,
+        style: FilledButton.styleFrom(
+          minimumSize: Size(0, compact ? 34 : 38),
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 11 : 14,
+            vertical: compact ? 5 : 7,
           ),
-        if (hasError && state != null)
-          IconButton(
+          tapTargetSize: compact
+              ? MaterialTapTargetSize.shrinkWrap
+              : MaterialTapTargetSize.padded,
+          visualDensity:
+              compact ? VisualDensity.compact : VisualDensity.standard,
+        ),
+        icon: isActionLoading
+            ? const SizedBox.square(
+                dimension: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(
+                currentState.isFollowing
+                    ? Icons.person_remove_outlined
+                    : Icons.person_add_alt_1_outlined,
+                size: 18,
+              ),
+        label: Text(
+          currentState.isFollowing
+              ? l10n.publicProfileUnfollowAction
+              : l10n.publicProfileFollowAction,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      );
+    }
+
+    final retry = hasError && state != null
+        ? IconButton(
             onPressed: onRetry,
             tooltip: l10n.publicProfileFollowRetry,
+            visualDensity: VisualDensity.compact,
             icon: Icon(
               Icons.refresh_rounded,
               color: theme.colorScheme.error,
             ),
+          )
+        : null;
+
+    if (compact) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: counts,
+            ),
           ),
+          if (action != null) ...[
+            const SizedBox(width: 8),
+            Flexible(child: action),
+          ],
+          if (retry != null) ...[
+            const SizedBox(width: 4),
+            retry,
+          ],
+        ],
+      );
+    }
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        ...counts,
+        if (action != null) action,
+        if (retry != null) retry,
       ],
     );
   }
@@ -1800,27 +1916,46 @@ class _FollowCount extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(
-            text: '$value ',
-            style: const TextStyle(fontWeight: FontWeight.w800),
-          ),
-          TextSpan(text: label),
-        ],
+    final colors = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: colors.outlineVariant.withValues(alpha: 0.72),
+        ),
       ),
-      style: theme.textTheme.bodyMedium,
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: '$value ',
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+            TextSpan(text: label),
+          ],
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: colors.onSurface,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 }
 
 class _PublicProfileMeta extends StatelessWidget {
   final IconData icon;
+  final String label;
   final String value;
 
   const _PublicProfileMeta({
     required this.icon,
+    required this.label,
     required this.value,
   });
 
@@ -1834,15 +1969,22 @@ class _PublicProfileMeta extends StatelessWidget {
       children: [
         Icon(
           icon,
-          size: 17,
+          size: 16,
           color: secondary,
         ),
-        const SizedBox(width: 6),
-        Text(
-          value,
+        const SizedBox(width: 5),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: '$label: ',
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+              TextSpan(text: value),
+            ],
+          ),
           style: theme.textTheme.bodySmall?.copyWith(
             color: secondary,
-            fontWeight: FontWeight.w700,
           ),
         ),
       ],

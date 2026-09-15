@@ -62,11 +62,11 @@ class PollDetailHeader extends StatelessWidget {
   );
 
   static const _PollChipMetrics _mobileHeroChipMetrics = _PollChipMetrics(
-    height: 30,
-    horizontalPadding: 9,
-    iconSize: 13,
-    contentGap: 4,
-    fontSize: 11.5,
+    height: 28,
+    horizontalPadding: 8,
+    iconSize: 12,
+    contentGap: 3,
+    fontSize: 10.75,
   );
 
   static const Color _neutralSoftBlueBg = Color(0xFFF2F7FF);
@@ -231,7 +231,6 @@ class PollDetailHeader extends StatelessWidget {
         ];
 
         final ruleSummaryValues = <String>[
-          if (timeWindowLabel != null) timeWindowLabel,
           if (verificationRequirementLabel != null)
             verificationRequirementLabel,
           typeLabel,
@@ -246,8 +245,8 @@ class PollDetailHeader extends StatelessWidget {
           children: [
             if (isMobileLayout)
               Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: 6,
+                runSpacing: 6,
                 children: heroChips,
               )
             else
@@ -256,15 +255,16 @@ class PollDetailHeader extends StatelessWidget {
                 runSpacing: 10,
                 children: desktopChips,
               ),
-            const SizedBox(height: 22),
+            SizedBox(height: isMobileLayout ? 12 : 22),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 760),
               child: SocialVoteDirectionalText(
                 poll.title,
                 style: theme.textTheme.headlineSmall?.copyWith(
+                  fontSize: isMobileLayout ? 21.0 : null,
                   fontWeight: FontWeight.w800,
                   height: 1.06,
-                  letterSpacing: -0.4,
+                  letterSpacing: isMobileLayout ? -0.2 : -0.4,
                   color: titleColor,
                 ),
               ),
@@ -276,38 +276,78 @@ class PollDetailHeader extends StatelessWidget {
                 child: SocialVoteDirectionalText(
                   description,
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    height: 1.48,
+                    fontSize: isMobileLayout ? 14.5 : null,
+                    height: isMobileLayout ? 1.38 : 1.48,
                     color: descriptionColor,
                   ),
                 ),
               ),
             ],
-            if (_hasRepresentativePublisher && representativeLabel != null) ...[
-              const SizedBox(height: 14),
-              _buildPublishedIdentityRow(
-                actorLabel: representativeLabel,
-                displayName: representativeDisplayName,
-              ),
-            ],
-            if (authorProfile != null && !_hasRepresentativePublisher) ...[
-              const SizedBox(height: 10),
-              _buildCreatorRow(
-                l10n,
-                authorProfile!,
-              ),
-            ],
-            if (createdAt != null) ...[
-              const SizedBox(height: 10),
-              Text(
-                _mapCreatedOnLabel(l10n, createdAt),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: metaTextColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+            if ((_hasRepresentativePublisher && representativeLabel != null) ||
+                (authorProfile != null && !_hasRepresentativePublisher) ||
+                createdAt != null) ...[
+              SizedBox(height: isMobileLayout ? 10 : 14),
+              if (isMobileLayout)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (_hasRepresentativePublisher &&
+                        representativeLabel != null)
+                      Expanded(
+                        child: _buildPublishedIdentityRow(
+                          actorLabel: representativeLabel,
+                          displayName: representativeDisplayName,
+                        ),
+                      )
+                    else if (authorProfile != null)
+                      Expanded(
+                        child: _buildCreatorRow(l10n, authorProfile!),
+                      )
+                    else
+                      const Spacer(),
+                    if (createdAt != null) ...[
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: Text(
+                            _mapCreatedOnLabel(l10n, createdAt),
+                            textAlign: TextAlign.end,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: metaTextColor,
+                              fontWeight: FontWeight.w600,
+                              height: 1.15,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                )
+              else ...[
+                if (_hasRepresentativePublisher &&
+                    representativeLabel != null)
+                  _buildPublishedIdentityRow(
+                    actorLabel: representativeLabel,
+                    displayName: representativeDisplayName,
+                  )
+                else if (authorProfile != null)
+                  _buildCreatorRow(l10n, authorProfile!),
+                if (createdAt != null) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    _mapCreatedOnLabel(l10n, createdAt),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: metaTextColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ],
             ],
             if (isMobileLayout && ruleSummaryValues.isNotEmpty) ...[
-              const SizedBox(height: 18),
+              SizedBox(height: isMobileLayout ? 10 : 18),
               _buildVotingRulesSummary(
                 context,
                 title: _mapVotingRulesLabel(l10n),
@@ -326,10 +366,10 @@ class PollDetailHeader extends StatelessWidget {
                     : Icons.info_outline,
               ),
             ],
-            const SizedBox(height: 20),
+            SizedBox(height: isMobileLayout ? 10 : 20),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.only(top: 16),
+              padding: EdgeInsets.only(top: isMobileLayout ? 10 : 16),
               decoration: BoxDecoration(
                 border: Border(
                   top: BorderSide(
@@ -419,7 +459,7 @@ class PollDetailHeader extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: colorScheme.primary.withValues(alpha: isDark ? 0.08 : 0.045),
         borderRadius: BorderRadius.circular(16),
@@ -432,15 +472,15 @@ class PollDetailHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: 28,
+            height: 28,
             decoration: BoxDecoration(
               color: colorScheme.primary.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               Icons.rule_outlined,
-              size: 17,
+              size: 15,
               color: colorScheme.primary,
             ),
           ),
@@ -463,8 +503,9 @@ class PollDetailHeader extends StatelessWidget {
                     color: colorScheme.onSurface.withValues(
                       alpha: isDark ? 0.72 : 0.66,
                     ),
+                    fontSize: 12.0,
                     fontWeight: FontWeight.w600,
-                    height: 1.45,
+                    height: 1.30,
                   ),
                 ),
               ],

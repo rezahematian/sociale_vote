@@ -75,8 +75,8 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
   bool _isLoading = false;
   bool _isPlaying = false;
   double _volume = 0.34;
-  List<RadioMondoStation> _stations = _builtInStations;
-  RadioMondoStation _selectedStation = _builtInStations.first;
+  List<RadioMondoStation> _stations = const [];
+  RadioMondoStation? _selectedStation;
   RadioMondoStation? _currentStation;
   bool _selectionExplicit = false;
 
@@ -85,12 +85,12 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
   double get volume => _volume;
   List<RadioMondoStation> get stations =>
       List<RadioMondoStation>.unmodifiable(_stations);
-  RadioMondoStation get selectedStation => _selectedStation;
+  RadioMondoStation? get selectedStation => _selectedStation;
   RadioMondoStation? get currentStation => _currentStation;
 
   // Compatibilità per i test e per eventuali chiamanti legacy.
   RadioMondoTrack get selectedTrack =>
-      _selectedStation.builtInTrack ?? RadioMondoTrack.classicalOrbit;
+      _selectedStation?.builtInTrack ?? RadioMondoTrack.classicalOrbit;
   RadioMondoTrack? get currentTrack => _currentStation?.builtInTrack;
 
   Future<void> initialize() async {
@@ -139,22 +139,26 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       final nextStations = <RadioMondoStation>[
-        ..._builtInStations,
         ...remoteStations,
       ]..sort((a, b) {
           final order = a.sortOrder.compareTo(b.sortOrder);
           if (order != 0) return order;
           return a.id.compareTo(b.id);
         });
-      final selectedMatch = _findById(nextStations, _selectedStation.id);
+
+      final selectedId = _selectedStation?.id;
+      final selectedMatch =
+          selectedId == null ? null : _findById(nextStations, selectedId);
       final currentId = _currentStation?.id;
       final currentMatch =
           currentId == null ? null : _findById(nextStations, currentId);
 
       _stations = nextStations;
-      _selectedStation = _selectionExplicit
-          ? (selectedMatch ?? nextStations.first)
-          : nextStations.first;
+      _selectedStation = nextStations.isEmpty
+          ? null
+          : (_selectionExplicit
+              ? (selectedMatch ?? nextStations.first)
+              : nextStations.first);
 
       if (_currentStation != null && currentMatch == null) {
         await stop();
@@ -165,7 +169,7 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
       if (kDebugMode) {
         debugPrint('Radio Mondo catalog error: $error\n$stackTrace');
       }
-      // Le tre tracce integrate restano sempre disponibili offline.
+      // Nessun fallback integrato: Radio Mondo usa il catalogo amministrato.
     } finally {
       _catalogLoading = false;
       notifyListeners();

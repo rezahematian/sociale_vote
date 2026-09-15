@@ -2173,64 +2173,148 @@ class _EnterpriseActionCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
 
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(17),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = MediaQuery.sizeOf(context).width < 600;
+
+        return Card(
+          margin: EdgeInsets.zero,
+          clipBehavior: Clip.antiAlias,
+          child: Padding(
+            padding: EdgeInsets.all(compact ? 13 : 17),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: colors.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
+                if (compact)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: colors.primaryContainer,
+                          borderRadius: BorderRadius.circular(11),
+                        ),
+                        child: Icon(
+                          icon,
+                          size: 21,
+                          color: colors.onPrimaryContainer,
+                        ),
+                      ),
+                      const SizedBox(width: 11),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                height: 1.05,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              subtitle,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: colors.primary,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        enabled
+                            ? Icons.lock_open_rounded
+                            : Icons.lock_outline_rounded,
+                        size: 18,
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ],
+                  )
+                else ...[
+                  Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: colors.primaryContainer,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(icon, color: colors.onPrimaryContainer),
+                      ),
+                      const Spacer(),
+                      Icon(
+                        enabled
+                            ? Icons.lock_open_rounded
+                            : Icons.lock_outline_rounded,
+                        size: 18,
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ],
                   ),
-                  child: Icon(icon, color: colors.onPrimaryContainer),
+                  const SizedBox(height: 14),
+                  Text(
+                    title,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: colors.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Text(
+                  body,
+                  maxLines: compact ? 2 : null,
+                  overflow: compact ? TextOverflow.ellipsis : null,
+                  style: compact
+                      ? theme.textTheme.bodySmall?.copyWith(height: 1.3)
+                      : null,
                 ),
-                const Spacer(),
-                Icon(
-                  enabled
-                      ? Icons.lock_open_rounded
-                      : Icons.lock_outline_rounded,
-                  size: 18,
-                  color: colors.onSurfaceVariant,
+                SizedBox(height: compact ? 9 : 14),
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: FilledButton.tonalIcon(
+                    onPressed: enabled ? onPressed : null,
+                    style: FilledButton.styleFrom(
+                      minimumSize: Size(0, compact ? 36 : 40),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: compact ? 13 : 16,
+                        vertical: compact ? 7 : 9,
+                      ),
+                      tapTargetSize: compact
+                          ? MaterialTapTargetSize.shrinkWrap
+                          : MaterialTapTargetSize.padded,
+                      visualDensity: compact
+                          ? VisualDensity.compact
+                          : VisualDensity.standard,
+                    ),
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                    label: Text(
+                      actionLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 14),
-            Text(
-              title,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: colors.primary,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(body),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.tonalIcon(
-                onPressed: enabled ? onPressed : null,
-                icon: const Icon(Icons.arrow_forward_rounded),
-                label: Text(actionLabel),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -2246,7 +2330,7 @@ class _MetricGrid extends StatelessWidget {
       builder: (context, constraints) {
         final columns = constraints.maxWidth >= 880
             ? 4
-            : constraints.maxWidth >= 520
+            : constraints.maxWidth >= 320
                 ? 2
                 : 1;
         const gap = 10.0;
@@ -2258,7 +2342,10 @@ class _MetricGrid extends StatelessWidget {
               .map(
                 (metric) => SizedBox(
                   width: width,
-                  child: _MetricCard(metric: metric),
+                  child: _MetricCard(
+                    metric: metric,
+                    compact: columns == 2 && constraints.maxWidth < 520,
+                  ),
                 ),
               )
               .toList(growable: false),
@@ -2270,8 +2357,12 @@ class _MetricGrid extends StatelessWidget {
 
 class _MetricCard extends StatelessWidget {
   final _MetricData metric;
+  final bool compact;
 
-  const _MetricCard({required this.metric});
+  const _MetricCard({
+    required this.metric,
+    required this.compact,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -2279,25 +2370,37 @@ class _MetricCard extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(15),
+        padding: EdgeInsets.all(compact ? 11 : 15),
         child: Row(
           children: [
-            Icon(metric.icon, color: theme.colorScheme.primary),
-            const SizedBox(width: 11),
+            Icon(
+              metric.icon,
+              size: compact ? 21 : 24,
+              color: theme.colorScheme.primary,
+            ),
+            SizedBox(width: compact ? 8 : 11),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     metric.value,
-                    style: theme.textTheme.headlineSmall?.copyWith(
+                    style: (compact
+                            ? theme.textTheme.titleLarge
+                            : theme.textTheme.headlineSmall)
+                        ?.copyWith(
                       fontWeight: FontWeight.w900,
+                      height: 1,
                     ),
                   ),
-                  const SizedBox(height: 1),
+                  const SizedBox(height: 3),
                   Text(
                     metric.label,
-                    style: theme.textTheme.bodySmall,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      height: 1.15,
+                    ),
                   ),
                 ],
               ),
@@ -2592,72 +2695,168 @@ class _SessionTile extends StatelessWidget {
       _ => l10n.sessionStatusDraft,
     };
 
-    return Card(
-      margin: EdgeInsets.zero,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                child: Icon(
-                  session.status == 'open'
-                      ? Icons.sensors_rounded
-                      : session.status == 'closed'
-                          ? Icons.task_alt_rounded
-                          : Icons.edit_calendar_outlined,
-                ),
-              ),
-              const SizedBox(width: 13),
-              Expanded(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 600;
+        final leadingIcon = session.status == 'open'
+            ? Icons.sensors_rounded
+            : session.status == 'closed'
+                ? Icons.task_alt_rounded
+                : Icons.edit_calendar_outlined;
+
+        if (compact) {
+          return Card(
+            margin: EdgeInsets.zero,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      session.title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          child: Icon(leadingIcon, size: 19),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            session.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              height: 1.12,
+                            ),
+                          ),
+                        ),
+                        if (onReport != null)
+                          IconButton(
+                            onPressed: onReport,
+                            tooltip: l10n.verifiedResultTitle,
+                            visualDensity: VisualDensity.compact,
+                            icon: const Icon(Icons.verified_rounded, size: 20),
+                          )
+                        else
+                          const Icon(Icons.chevron_right_rounded),
+                      ],
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 9),
                     Wrap(
-                      spacing: 8,
+                      spacing: 6,
                       runSpacing: 6,
                       children: [
-                        Chip(label: Text(status)),
-                        Chip(
-                          label: Text(
-                            '${l10n.sessionJoinCode}: ${session.joinCode}',
-                          ),
+                        _SessionMetaPill(label: status),
+                        _SessionMetaPill(
+                          label: '${l10n.sessionJoinCode}: ${session.joinCode}',
                         ),
-                        Chip(
-                          label: Text(
-                            '${session.participantCount} · ${l10n.sessionJoinedParticipants}',
-                          ),
+                        _SessionMetaPill(
+                          label:
+                              '${session.participantCount} · ${l10n.sessionJoinedParticipants}',
                         ),
-                        Chip(
-                          label: Text(
-                            '${session.responseCount} · ${l10n.sessionBallotsRecorded}',
-                          ),
+                        _SessionMetaPill(
+                          label:
+                              '${session.responseCount} · ${l10n.sessionBallotsRecorded}',
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-              if (onReport != null)
-                IconButton(
-                  onPressed: onReport,
-                  tooltip: l10n.verifiedResultTitle,
-                  icon: const Icon(Icons.verified_rounded),
-                )
-              else
-                const Icon(Icons.chevron_right_rounded),
-            ],
+            ),
+          );
+        }
+
+        return Card(
+          margin: EdgeInsets.zero,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(child: Icon(leadingIcon)),
+                  const SizedBox(width: 13),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          session.title,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            Chip(label: Text(status)),
+                            Chip(
+                              label: Text(
+                                '${l10n.sessionJoinCode}: ${session.joinCode}',
+                              ),
+                            ),
+                            Chip(
+                              label: Text(
+                                '${session.participantCount} · ${l10n.sessionJoinedParticipants}',
+                              ),
+                            ),
+                            Chip(
+                              label: Text(
+                                '${session.responseCount} · ${l10n.sessionBallotsRecorded}',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (onReport != null)
+                    IconButton(
+                      onPressed: onReport,
+                      tooltip: l10n.verifiedResultTitle,
+                      icon: const Icon(Icons.verified_rounded),
+                    )
+                  else
+                    const Icon(Icons.chevron_right_rounded),
+                ],
+              ),
+            ),
           ),
+        );
+      },
+    );
+  }
+}
+
+class _SessionMetaPill extends StatelessWidget {
+  final String label;
+
+  const _SessionMetaPill({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.w700,
+          height: 1,
         ),
       ),
     );

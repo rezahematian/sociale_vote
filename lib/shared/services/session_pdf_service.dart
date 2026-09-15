@@ -178,13 +178,7 @@ class SessionPdfService {
                         ),
                       ),
                     pw.SizedBox(width: 10),
-                    pw.Expanded(
-                      child: pw.Text(
-                        l10n.verifiedResultTitle,
-                        maxLines: 1,
-                        style: boldStyle.copyWith(fontSize: 8, color: muted),
-                      ),
-                    ),
+                    pw.Spacer(),
                     pw.SizedBox(width: 10),
                     pw.SizedBox(
                       width: 200,
@@ -227,7 +221,7 @@ class SessionPdfService {
         ),
         build: (context) => [
           pw.Container(
-            padding: const pw.EdgeInsets.all(18),
+            padding: const pw.EdgeInsets.all(12),
             decoration: pw.BoxDecoration(
               color: const PdfColor.fromInt(0xFFF0F5FF),
               borderRadius: pw.BorderRadius.circular(10),
@@ -247,8 +241,8 @@ class SessionPdfService {
                     children: [
                       if (officialSignature != null)
                         pw.SizedBox(
-                          width: 228,
-                          height: 76,
+                          width: 190,
+                          height: 54,
                           child: pw.Image(
                             officialSignature,
                             fit: pw.BoxFit.contain,
@@ -264,25 +258,21 @@ class SessionPdfService {
                             letterSpacing: 1.5,
                           ),
                         ),
-                      pw.SizedBox(height: 7),
-                      pw.Text(
-                        l10n.verifiedResultTitle.toUpperCase(),
-                        style: boldStyle.copyWith(fontSize: 22),
-                      ),
+
                     ],
                   ),
                 ),
                 pw.SizedBox(width: 14),
                 if (verifiedResultSeal != null)
                   pw.SizedBox(
-                    width: 142,
+                    width: 116,
                     child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.center,
                       children: [
                         pw.Image(
                           verifiedResultSeal,
-                          width: 100,
-                          height: 100,
+                          width: 78,
+                          height: 78,
                           fit: pw.BoxFit.contain,
                         ),
                         pw.SizedBox(height: 4),
@@ -364,7 +354,7 @@ class SessionPdfService {
               ],
             ),
           ),
-          pw.SizedBox(height: 18),
+          pw.SizedBox(height: 12),
           _sectionTitle(
               l10n.verifiedCertificateOrganizationSection, accent, line),
           pw.SizedBox(height: 8),
@@ -381,7 +371,7 @@ class SessionPdfService {
             boldStyle: boldStyle,
             line: line,
           ),
-          pw.SizedBox(height: 16),
+          pw.SizedBox(height: 12),
           _sectionTitle(l10n.verifiedCertificateSessionSection, accent, line),
           pw.SizedBox(height: 8),
           _fieldTable(
@@ -397,7 +387,7 @@ class SessionPdfService {
             boldStyle: boldStyle,
             line: line,
           ),
-          pw.SizedBox(height: 16),
+          pw.SizedBox(height: 12),
           _sectionTitle(
               l10n.verifiedCertificateParticipationSection, accent, line),
           pw.SizedBox(height: 8),
@@ -456,13 +446,36 @@ class SessionPdfService {
               ),
             ],
           ),
-          pw.SizedBox(height: 18),
+          pw.SizedBox(height: 12),
+          pw.Container(
+            padding: const pw.EdgeInsets.all(10),
+            decoration: pw.BoxDecoration(
+              color: panel,
+              borderRadius: pw.BorderRadius.circular(8),
+              border: pw.Border.all(color: line, width: 0.7),
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  l10n.verifiedCertificatePrivacyModel,
+                  style: boldStyle,
+                ),
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  l10n.verifiedCertificatePrivacyText,
+                  style: baseStyle,
+                ),
+              ],
+            ),
+          ),
+          pw.NewPage(),
           if (questions.isEmpty)
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.stretch,
               children: [
                 _sectionTitle(
-                  l10n.verifiedCertificateResultsSection,
+                  l10n.pollDetail_resultsTitle,
                   accent,
                   line,
                 ),
@@ -472,7 +485,7 @@ class SessionPdfService {
             )
           else ...[
             _questionBlock(
-              sectionTitle: l10n.verifiedCertificateResultsSection,
+              sectionTitle: l10n.pollDetail_resultsTitle,
               number: 1,
               question: questions.first is Map
                   ? Map<String, dynamic>.from(questions.first as Map)
@@ -626,22 +639,7 @@ class SessionPdfService {
             ),
           ),
           pw.SizedBox(height: 12),
-          pw.Container(
-            padding: const pw.EdgeInsets.all(12),
-            decoration: pw.BoxDecoration(
-              color: panel,
-              borderRadius: pw.BorderRadius.circular(8),
-              border: pw.Border.all(color: line, width: 0.7),
-            ),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text(l10n.verifiedCertificatePrivacyModel, style: boldStyle),
-                pw.SizedBox(height: 4),
-                pw.Text(l10n.verifiedCertificatePrivacyText, style: baseStyle),
-              ],
-            ),
-          ),
+
           pw.SizedBox(height: 10),
           pw.Text(l10n.verifiedResultGeneratedBy, style: boldStyle),
           pw.SizedBox(height: 3),
@@ -1086,7 +1084,14 @@ class SessionPdfService {
     };
   }
 
-  static String _text(dynamic value) => value?.toString().trim() ?? '';
+  static String _text(dynamic value) {
+    return (value?.toString().trim() ?? '')
+        .replaceAll('\u2018', "'")
+        .replaceAll('\u2019', "'")
+        .replaceAll('\u2013', '-')
+        .replaceAll('\u2014', '-')
+        .replaceAll('\u00A0', ' ');
+  }
 
   static int _int(dynamic value) {
     if (value is int) return value;

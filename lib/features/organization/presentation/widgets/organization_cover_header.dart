@@ -74,8 +74,8 @@ class _OrganizationCoverHeaderState extends State<OrganizationCoverHeader> {
         .where((value) => value.isNotEmpty)
         .join(' · ');
     final description = organization.description?.trim() ?? '';
-    final coverHeight = widget.compact ? 126.0 : 174.0;
-    final logoRadius = widget.compact ? 34.0 : 40.0;
+    final coverHeight = widget.compact ? 108.0 : 174.0;
+    final logoRadius = widget.compact ? 31.0 : 40.0;
 
     return Card(
       margin: EdgeInsets.zero,
@@ -118,13 +118,13 @@ class _OrganizationCoverHeaderState extends State<OrganizationCoverHeader> {
               16,
               0,
               16,
-              widget.compact ? 14 : 16,
+              widget.compact ? 12 : 16,
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Transform.translate(
-                  offset: const Offset(0, -24),
+                  offset: Offset(0, widget.compact ? -20 : -24),
                   child: PublisherAvatar(
                     displayName: organization.publicName,
                     imageUrl: logo.isEmpty ? null : _freshUrl(logo),

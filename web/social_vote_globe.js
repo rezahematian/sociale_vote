@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-WORLD-V10.6-ROUTE-LIFECYCLE-V1.0.2';
+const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-WORLD-V10.8-CONTINUOUS-ROTATION-V1.0.17';
 
 const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
@@ -404,6 +404,7 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._markerResources = [];
     this._lastMarkersSignature = null;
     this._lastEarthTextureUrl = null;
+
 
     this._raycaster = new THREE.Raycaster();
     this._pointer = new THREE.Vector2();
@@ -1834,9 +1835,9 @@ class SocialVoteGlobeElement extends HTMLElement {
       const markerDirection = sprite.position.clone().normalize();
       const facing = markerDirection.dot(cameraDirection);
 
-      // Do not render markers through the Earth or exactly on the limb. This
-      // prevents the lower half of a billboard from being depth-clipped by
-      // the sphere and looking as if it falls into a hole.
+      // Markers follow geographic truth: they disappear naturally on the
+      // back side of the Earth and reappear as passive rotation continues.
+      // Marker visibility must never change camera longitude or rotation.
       const visible = facing > 0.055;
       sprite.visible = visible;
 

@@ -9,7 +9,7 @@ import 'package:sociale_vote/shared/widgets/world_control_visuals.dart';
 /// Compact Radio Mondo control beside the Home Globe.
 ///
 /// Home intentionally shows one circular control only. Tap toggles playback;
-/// long-press opens the original tracks and the enabled Admin catalog. Playback policy remains owned by
+/// long-press opens the enabled Admin catalog. Playback policy remains owned by
 /// [RadioMondoService]: no autoplay, no background service, no GeoScope coupling.
 class RadioMondoDock extends StatelessWidget {
   final RadioVisualStyle visualStyle;
@@ -35,10 +35,12 @@ class RadioMondoDock extends StatelessWidget {
         final l10n = AppLocalizations.of(context)!;
         final station = radio.selectedStation;
         final active = radio.isPlaying;
-        final label = active
-            ? '${l10n.radioMondoTitle}. ${l10n.radioMondoPlaying}. '
-                '${_stationLabel(l10n, station)}'
-            : '${l10n.radioMondoTitle}. ${_stationLabel(l10n, station)}';
+        final label = station == null
+            ? l10n.radioMondoTitle
+            : active
+                ? '${l10n.radioMondoTitle}. ${l10n.radioMondoPlaying}. '
+                    '${_stationLabel(l10n, station)}'
+                : '${l10n.radioMondoTitle}. ${_stationLabel(l10n, station)}';
 
         if (globeStyle != null) {
           return WorldRoundControl(
@@ -103,7 +105,20 @@ class RadioMondoDock extends StatelessWidget {
       return;
     }
 
-    await _playStation(context, radio, radio.selectedStation);
+    var station = radio.selectedStation;
+
+    if (station == null) {
+      await radio.reloadCatalog();
+      if (!context.mounted) return;
+
+      station = radio.selectedStation;
+      if (station == null) {
+        SocialVoteHud.showError(l10n.radioMondoPlaybackError);
+        return;
+      }
+    }
+
+    await _playStation(context, radio, station);
   }
 
   Future<void> _showTrackPicker(
@@ -149,7 +164,7 @@ class RadioMondoDock extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                        trailing: station.id == radio.selectedStation.id
+                        trailing: station.id == radio.selectedStation?.id
                             ? Icon(
                                 radio.isPlaying
                                     ? Icons.equalizer_rounded

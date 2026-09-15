@@ -203,6 +203,11 @@ class RotatingGlobeState extends State<RotatingGlobe>
   Offset? hoveringPoint; // The current hovering point on the sphere.
   Offset? clickPoint; // The current click point on the sphere.
 
+  // The renderer may be larger than the visible viewport and then be cropped
+  // symmetrically by the outer Stack. Outer Social Vote hit tests arrive in
+  // viewport coordinates, so retain the viewport -> renderer translation.
+  Offset _viewportToRendererOffset = Offset.zero;
+
   Map<String, VisiblePoint> visiblePoints =
       {}; // The map of visible points on the sphere.
   Map<String, VisibleConnection> visibleConnections =
@@ -1030,7 +1035,11 @@ class RotatingGlobeState extends State<RotatingGlobe>
       widget.alignment.x * center.dx,
       widget.alignment.y * center.dy,
     );
-    final foregroundLocalPosition = localPosition - foregroundOffset;
+    final rendererLocalPosition = localPosition + _viewportToRendererOffset;
+    final foregroundLocalPosition = rendererLocalPosition - foregroundOffset;
+
+    String? nearestPointId;
+    var nearestDistanceSquared = double.infinity;
 
     for (final point in _pointRenderData.reversed) {
       if (!point.isVisible) {
@@ -1040,22 +1049,36 @@ class RotatingGlobeState extends State<RotatingGlobe>
       final scaledSize = point.point.style.size * (0.7 + 0.6 * point.depth);
       final markerHitPadding =
           point.id.startsWith('social-vote:') ? 34.0 : 18.0;
+      final hitCenter = point.position2D + point.point.hitTestOffset;
       final hitRect = Rect.fromCenter(
         // Custom Social Vote marker labels can be fanned apart in screen
         // space so Vote/Voce/News at the same geographic point remain
         // independently visible. Keep pointer hit testing aligned with that
         // rendered position without falsifying latitude/longitude.
-        center: point.position2D + point.point.hitTestOffset,
+        center: hitCenter,
         width: scaledSize * 2 + markerHitPadding,
         height: scaledSize * 2 + markerHitPadding,
       );
 
-      if (hitRect.contains(foregroundLocalPosition)) {
-        return point.id;
+      if (!hitRect.contains(foregroundLocalPosition)) {
+        continue;
+      }
+
+      // Expanded touch targets can overlap when Vote, Voce and News are
+      // visually fanned around the same geographic anchor. Returning the
+      // first rectangle in paint order makes one content type win even when
+      // the user taps another visible marker. Resolve all overlapping hits by
+      // the nearest rendered marker center; reversed paint order remains the
+      // tie-breaker for genuinely coincident points.
+      final delta = foregroundLocalPosition - hitCenter;
+      final distanceSquared = delta.dx * delta.dx + delta.dy * delta.dy;
+      if (distanceSquared < nearestDistanceSquared) {
+        nearestDistanceSquared = distanceSquared;
+        nearestPointId = point.id;
       }
     }
 
-    return null;
+    return nearestPointId;
   }
 
   /// Handle a confirmed raw-pointer tap.
@@ -2061,6 +2084,11 @@ class RotatingGlobeState extends State<RotatingGlobe>
     final panOffsetY = widget.controller.zoomToMousePosition
         ? widget.controller.panOffsetY
         : 0.0;
+
+    _viewportToRendererOffset = Offset(
+      left - panOffsetX,
+      top - panOffsetY,
+    );
 
     return Stack(
       children: [

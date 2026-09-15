@@ -959,13 +959,13 @@ class _PollDetailPageState extends State<PollDetailPage> {
                       : null,
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: isCompactLayout ? 12 : 20),
               _buildVotingAndResultsCard(
                 context,
                 poll: poll,
                 visibilityMode: visibilityMode,
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: isCompactLayout ? 12 : 20),
               Container(
                 key: _commentSectionKey,
                 child: CommentSection(
@@ -1476,7 +1476,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(
-        isCompactLayout ? AppSpacing.m : AppSpacing.l,
+        isCompactLayout ? 12 : AppSpacing.l,
       ),
       decoration: BoxDecoration(
         color: surfaceColor,
@@ -1633,6 +1633,7 @@ class _PollChoiceResultRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isPhoneWidth = MediaQuery.sizeOf(context).width < 600;
     final resultValue = result;
     final percentage = resultValue?.percentage.clamp(0.0, 100.0) ?? 0.0;
     final progress = percentage / 100.0;
@@ -1651,11 +1652,13 @@ class _PollChoiceResultRow extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 68),
+            constraints: BoxConstraints(
+              minHeight: isPhoneWidth ? 52 : 68,
+            ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
+              padding: EdgeInsets.symmetric(
+                horizontal: isPhoneWidth ? 10 : 16,
+                vertical: isPhoneWidth ? 7 : 14,
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1671,12 +1674,12 @@ class _PollChoiceResultRow extends StatelessWidget {
                                 : (isSelected
                                     ? Icons.radio_button_checked_rounded
                                     : Icons.radio_button_unchecked_rounded),
-                            size: 23,
+                            size: isPhoneWidth ? 19 : 23,
                             color: controlColor,
                           )
                         : Container(
-                            width: 32,
-                            height: 32,
+                            width: isPhoneWidth ? 28 : 32,
+                            height: isPhoneWidth ? 28 : 32,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: colorScheme.surfaceContainerHighest
@@ -1696,7 +1699,7 @@ class _PollChoiceResultRow extends StatelessWidget {
                             ),
                           ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: isPhoneWidth ? 9 : 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1717,7 +1720,7 @@ class _PollChoiceResultRow extends StatelessWidget {
                               ),
                             ),
                             if (resultValue != null) ...[
-                              const SizedBox(width: 12),
+                              SizedBox(width: isPhoneWidth ? 9 : 12),
                               Text(
                                 '${percentage.round()}%',
                                 style: theme.textTheme.titleSmall?.copyWith(
@@ -1730,11 +1733,11 @@ class _PollChoiceResultRow extends StatelessWidget {
                           ],
                         ),
                         if (resultValue != null) ...[
-                          const SizedBox(height: 10),
+                          SizedBox(height: isPhoneWidth ? 5 : 10),
                           ClipRRect(
                             borderRadius: BorderRadius.circular(999),
                             child: SizedBox(
-                              height: 8,
+                              height: isPhoneWidth ? 6 : 8,
                               child: LinearProgressIndicator(
                                 value: progress,
                                 backgroundColor:
@@ -1745,7 +1748,7 @@ class _PollChoiceResultRow extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 7),
+                          SizedBox(height: isPhoneWidth ? 4 : 7),
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
