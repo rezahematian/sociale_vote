@@ -21,11 +21,12 @@ void main() {
 
     expect(source, contains('_exploreMaxViewport = 820.0'));
     expect(
-      source,
-      contains(
-        'alignment: _isHomeProfile && !narrowHome'
-        '\n              ? Alignment.topCenter : Alignment.center',
-      ),
+      RegExp(
+        r'alignment:\s*_isHomeProfile && !narrowHome\s*'
+        r'\?\s*Alignment\.topCenter\s*:\s*Alignment\.center',
+      ).hasMatch(source),
+      isTrue,
+      reason: 'preserve Explore/Home alignment independent of dart format wrapping',
     );
     expect(source, contains('final inset = _isHomeProfile ? 12.0 : 8.0'));
   });

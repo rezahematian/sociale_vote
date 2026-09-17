@@ -884,10 +884,10 @@ class SocialVoteGlobeElement extends HTMLElement {
   }
 
   _guestHomeIsReadOnly() {
-    return (
-      !this._isAuthenticated &&
-      this._config.profile === 'home'
-    );
+    // Home globe interaction is intentionally identical for Guest and
+    // authenticated users. Authentication gates account actions elsewhere,
+    // not marker hit-testing, preview dismissal, drag/zoom or Globe controls.
+    return false;
   }
 
   _refreshAuthenticationState(force = false) {
@@ -912,8 +912,8 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._isAuthenticated = authenticated;
     this._naturalSettleToken += 1;
 
-    // Flutter owns the authenticated rotation control. Guest Home remains
-    // read-only while keeping the approved passive rotation baseline.
+    // Flutter owns the rotation control. Home interaction remains identical
+    // for Guest and authenticated users.
     this._autoRotatePreference = autoRotatePreference;
     this._autoRotateButton?.remove?.();
     this._autoRotateButton = null;
@@ -1440,8 +1440,8 @@ class SocialVoteGlobeElement extends HTMLElement {
       this._applyInteractionPolicy();
     }
 
-    // Authentication changes gesture ownership, never the approved rotation.
-    // Guest Home is read-only; Guest Civic Map remains interactive.
+    // Authentication does not change Globe gesture ownership. Guest and
+    // authenticated users share the same Home/Civic interaction contract.
   }
 
   _rebuildMarkers(markers) {
@@ -2020,8 +2020,8 @@ class SocialVoteGlobeElement extends HTMLElement {
 
   _onPointerDown(event) {
     if (this._guestHomeIsReadOnly()) {
-      // Guest Home remains non-draggable because OrbitControls is disabled,
-      // but tap and long-press still reach Flutter.
+      // Legacy compatibility branch. The current parity policy makes this
+      // unreachable, but keeping the branch is harmless for older configs.
       this._pointerDown = {
         x: event.clientX,
         y: event.clientY,

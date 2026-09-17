@@ -93,7 +93,9 @@ void main() {
       final brief = WorldBrief(
         id: 'brief-1',
         status: WorldBriefStatus.published,
+        contentKind: WorldBriefContentKind.reported,
         languageCode: 'it',
+        primaryLanguageCode: 'it',
         title: 'Titolo',
         whatHappened: 'Fatti',
         whyItMatters: 'Contesto',

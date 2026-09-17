@@ -157,13 +157,17 @@ class RadioMondoDock extends StatelessWidget {
                       return ListTile(
                         leading: Icon(_stationIcon(station)),
                         title: Text(_stationLabel(l10n, station)),
-                        subtitle: station.attribution == null
-                            ? null
-                            : Text(
-                                station.attribution!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                        subtitle: Text(
+                          [
+                            if (station.isLive) 'LIVE',
+                            _channelLabel(station),
+                            if (station.languageCode != null)
+                              station.languageCode!.toUpperCase(),
+                            if (station.attribution != null) station.attribution!,
+                          ].join(' · '),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         trailing: station.id == radio.selectedStation?.id
                             ? Icon(
                                 radio.isPlaying
@@ -221,13 +225,27 @@ class RadioMondoDock extends StatelessWidget {
     };
   }
 
+  static String _channelLabel(RadioMondoStation station) {
+    return switch (station.channelType) {
+      RadioMondoChannelType.worldLive => 'World Live',
+      RadioMondoChannelType.nature => 'Nature',
+      RadioMondoChannelType.worldBrief => 'World Brief Audio',
+      RadioMondoChannelType.liveEvent => 'Live Event',
+      RadioMondoChannelType.special => 'Special',
+    };
+  }
+
   static IconData _stationIcon(RadioMondoStation station) {
-    final track = station.builtInTrack;
-    if (track == null) return Icons.library_music_outlined;
-    return switch (track) {
-      RadioMondoTrack.classicalOrbit => Icons.piano_rounded,
-      RadioMondoTrack.worldRain => Icons.water_drop_outlined,
-      RadioMondoTrack.youngPulse => Icons.graphic_eq_rounded,
+    if (station.isLive ||
+        station.sourceType == RadioMondoSourceType.stream) {
+      return Icons.cell_tower_rounded;
+    }
+    return switch (station.channelType) {
+      RadioMondoChannelType.worldLive => Icons.public_rounded,
+      RadioMondoChannelType.nature => Icons.spa_outlined,
+      RadioMondoChannelType.worldBrief => Icons.campaign_outlined,
+      RadioMondoChannelType.liveEvent => Icons.sensors_rounded,
+      RadioMondoChannelType.special => Icons.graphic_eq_rounded,
     };
   }
 }

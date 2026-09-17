@@ -354,6 +354,7 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
     required LiveSessionResultsVisibility resultsVisibility,
     required String rawRetention,
     required int expectedParticipants,
+    required String reportLanguage,
   }) async {
     final raw = await _client.rpc(
       'session_create',
@@ -363,6 +364,7 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
         'p_results_visibility': resultsVisibility.storageKey,
         'p_raw_retention': rawRetention,
         'p_expected_participants': expectedParticipants,
+        'p_report_language': reportLanguage.trim().toLowerCase(),
       },
     );
     final id = raw?.toString().trim() ?? '';

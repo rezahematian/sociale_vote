@@ -8,7 +8,7 @@ abstract class WorldBriefRepository {
     int limit = 50,
   });
 
-  Future<WorldBrief?> getPublishedById(String id);
+  Future<WorldBrief?> getPublishedById(String id, {String? languageCode});
 
   Future<List<WorldBrief>> listForAdmin({
     WorldBriefStatus? status,
@@ -22,4 +22,12 @@ abstract class WorldBriefRepository {
   Future<WorldBrief> withdraw(String id);
 
   Future<void> deleteDraft(String id);
+
+  Future<List<WorldBriefTranslation>> listTranslationsForAdmin(String briefId);
+
+  Future<WorldBriefTranslation> saveTranslation(
+    WorldBriefTranslationDraft draft,
+  );
+
+  Future<void> deleteTranslation(String briefId, String languageCode);
 }

@@ -205,6 +205,7 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                                 return WorldGlobeWidget(
                                   items: controller.visibleItems,
                                   onItemTap: controller.selectItem,
+                                  onSurfaceTap: controller.clearSelection,
                                   onUseClassicMap: () =>
                                       _setWorldGlobeEnabled(false),
                                   onZoomIntoClassicMap:
@@ -303,15 +304,18 @@ class _CivicMapPageViewState extends State<_CivicMapPageView> {
                           alignment: Alignment.bottomCenter,
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 720),
-                            child: _MarkerPreviewCard(
-                              key: ValueKey<String>(
-                                controller.selectedItem!.id,
-                              ),
-                              item: controller.selectedItem!,
-                              onClose: controller.clearSelection,
-                              onOpen: () => _openTarget(
-                                context,
-                                controller.selectedItem!,
+                            child: TapRegion(
+                              onTapOutside: (_) => controller.clearSelection(),
+                              child: _MarkerPreviewCard(
+                                key: ValueKey<String>(
+                                  controller.selectedItem!.id,
+                                ),
+                                item: controller.selectedItem!,
+                                onClose: controller.clearSelection,
+                                onOpen: () => _openTarget(
+                                  context,
+                                  controller.selectedItem!,
+                                ),
                               ),
                             ),
                           ),

@@ -124,6 +124,48 @@ class AdminFinanceSnapshot {
   }) : entries = List<AdminFinanceEntry>.unmodifiable(entries);
 }
 
+enum AdminRadioMondoSourceType { audio, stream }
+
+extension AdminRadioMondoSourceTypeX on AdminRadioMondoSourceType {
+  String get storageKey => switch (this) {
+        AdminRadioMondoSourceType.audio => 'audio',
+        AdminRadioMondoSourceType.stream => 'stream',
+      };
+
+  static AdminRadioMondoSourceType fromStorageKey(String? value) =>
+      switch (value?.trim().toLowerCase()) {
+        'stream' => AdminRadioMondoSourceType.stream,
+        _ => AdminRadioMondoSourceType.audio,
+      };
+}
+
+enum AdminRadioMondoChannelType {
+  worldLive,
+  nature,
+  worldBrief,
+  liveEvent,
+  special,
+}
+
+extension AdminRadioMondoChannelTypeX on AdminRadioMondoChannelType {
+  String get storageKey => switch (this) {
+        AdminRadioMondoChannelType.worldLive => 'world_live',
+        AdminRadioMondoChannelType.nature => 'nature',
+        AdminRadioMondoChannelType.worldBrief => 'world_brief',
+        AdminRadioMondoChannelType.liveEvent => 'live_event',
+        AdminRadioMondoChannelType.special => 'special',
+      };
+
+  static AdminRadioMondoChannelType fromStorageKey(String? value) =>
+      switch (value?.trim().toLowerCase()) {
+        'nature' => AdminRadioMondoChannelType.nature,
+        'world_brief' => AdminRadioMondoChannelType.worldBrief,
+        'live_event' => AdminRadioMondoChannelType.liveEvent,
+        'special' => AdminRadioMondoChannelType.special,
+        _ => AdminRadioMondoChannelType.worldLive,
+      };
+}
+
 class AdminRadioMondoTrack {
   final String id;
   final String title;
@@ -132,6 +174,12 @@ class AdminRadioMondoTrack {
   final bool isEnabled;
   final String attribution;
   final String? licenseUrl;
+  final AdminRadioMondoSourceType sourceType;
+  final AdminRadioMondoChannelType channelType;
+  final String? languageCode;
+  final String? worldBriefId;
+  final bool isDefault;
+  final bool isLive;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -143,6 +191,12 @@ class AdminRadioMondoTrack {
     required this.isEnabled,
     required this.attribution,
     required this.licenseUrl,
+    required this.sourceType,
+    required this.channelType,
+    required this.languageCode,
+    required this.worldBriefId,
+    required this.isDefault,
+    required this.isLive,
     required this.createdAt,
     required this.updatedAt,
   });

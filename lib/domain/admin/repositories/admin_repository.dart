@@ -145,6 +145,12 @@ abstract class AdminRepository {
     required bool isEnabled,
     required String attribution,
     String? licenseUrl,
+    required AdminRadioMondoSourceType sourceType,
+    required AdminRadioMondoChannelType channelType,
+    String? languageCode,
+    String? worldBriefId,
+    required bool isDefault,
+    required bool isLive,
     required bool rightsConfirmed,
     required String reason,
   });

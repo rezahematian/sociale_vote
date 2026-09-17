@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'package:sociale_vote/app/di.dart';
 import 'package:sociale_vote/app/localization/de_fallback.dart';
 
 import 'package:sociale_vote/domain/admin/entities/admin_entities.dart';
 import 'package:sociale_vote/domain/admin/repositories/admin_repository.dart';
+import 'package:sociale_vote/domain/content/news/entities/world_brief.dart';
 import 'package:sociale_vote/shared/services/radio_mondo_admin_storage_service.dart';
 import 'package:sociale_vote/shared/services/radio_mondo_service.dart';
 
@@ -62,9 +64,22 @@ class _AdminRadioMondoControlSectionState
   }
 
   Future<void> _edit([AdminRadioMondoTrack? existing]) async {
+    List<WorldBrief> worldBriefs = const <WorldBrief>[];
+    try {
+      worldBriefs = await AppDI.instance.worldBriefRepository.listForAdmin(
+        limit: 200,
+      );
+    } catch (_) {
+      // Radio Mondo remains editable even if World Brief lookup is unavailable.
+    }
+    if (!mounted) return;
+
     final draft = await showDialog<_RadioTrackDraft>(
       context: context,
-      builder: (_) => _RadioTrackDialog(existing: existing),
+      builder: (_) => _RadioTrackDialog(
+        existing: existing,
+        worldBriefs: worldBriefs,
+      ),
     );
     if (draft == null || _saving) return;
 
@@ -88,6 +103,12 @@ class _AdminRadioMondoControlSectionState
         isEnabled: draft.isEnabled,
         attribution: draft.attribution,
         licenseUrl: draft.licenseUrl,
+        sourceType: draft.sourceType,
+        channelType: draft.channelType,
+        languageCode: draft.languageCode,
+        worldBriefId: draft.worldBriefId,
+        isDefault: draft.isDefault,
+        isLive: draft.isLive,
         rightsConfirmed: draft.rightsConfirmed,
         reason: draft.reason,
       );
@@ -281,10 +302,10 @@ class _AdminRadioMondoControlSectionState
                     child: Text(
                       _radioText(
                         context,
-                        'Nessuna traccia remota. La Radio Mondo usa le tre tracce integrate.',
-                        'No remote tracks. World Radio uses the three built-in tracks.',
-                        'Keine Remote-Titel. Weltradio nutzt die drei integrierten Titel.',
-                        'قطعه راه دوری ثبت نشده؛ رادیو از سه قطعه داخلی استفاده می‌کند.',
+                        'Nessuna stazione gestita. Aggiungi un audio o uno stream live HTTPS.',
+                        'No managed stations yet. Add an audio item or HTTPS live stream.',
+                        'Noch keine verwaltete Station. Audio oder HTTPS-Livestream hinzufügen.',
+                        'هنوز ایستگاه مدیریت‌شده‌ای وجود ندارد. صدا یا پخش زنده HTTPS اضافه کنید.',
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -318,10 +339,10 @@ class _AdminRadioMondoControlSectionState
                   child: Text(
                     _radioText(
                       context,
-                      'Caricamento gestito: MP3/M4A/OGG fino a 25 MB vengono salvati nello Storage Radio Mondo. Ordine 0–99 li mette prima delle tracce integrate (100/200/300). Disattivare una traccia la rimuove subito dal catalogo pubblico senza cancellare l’audit.',
-                      'Managed upload: MP3/M4A/OGG up to 25 MB are stored in Radio Mondo Storage. Order 0–99 places them before the built-in tracks (100/200/300). Disabling a track removes it from the public catalog immediately without deleting the audit trail.',
-                      'Verwalteter Upload: MP3/M4A/OGG bis 25 MB werden im Radio-Mondo-Storage gespeichert. Reihenfolge 0–99 platziert sie vor den integrierten Titeln (100/200/300). Deaktivieren entfernt einen Titel sofort aus dem öffentlichen Katalog, ohne die Auditspur zu löschen.',
-                      'بارگذاری مدیریت‌شده: فایل‌های MP3/M4A/OGG تا ۲۵ مگابایت در فضای Radio Mondo ذخیره می‌شوند. ترتیب ۰ تا ۹۹ آن‌ها را قبل از قطعات داخلی (۱۰۰/۲۰۰/۳۰۰) قرار می‌دهد. غیرفعال‌سازی، قطعه را فوری از فهرست عمومی حذف می‌کند و سابقه حسابرسی حفظ می‌شود.',
+                      'Audio gestiti e stream HTTPS condividono un unico catalogo Radio Mondo. Puoi impostare una sola stazione predefinita; LIVE è solo un indicatore editoriale e non avvia mai l’audio automaticamente. World Brief Audio può essere collegato a un World Brief canonico.',
+                      'Managed audio and HTTPS streams share one World Radio catalog. Mark one station as default; LIVE is an editorial indicator and never starts playback automatically. World Brief Audio can be linked to a canonical World Brief ID.',
+                      'Verwaltete Audios und HTTPS-Streams teilen einen World-Radio-Katalog. Eine Station kann Standard sein; LIVE ist nur ein redaktioneller Hinweis und startet nie automatisch. World Brief Audio kann mit einer kanonischen World-Brief-ID verknüpft werden.',
+                      'صداهای مدیریت‌شده و پخش‌های HTTPS در یک فهرست World Radio قرار می‌گیرند. فقط یک ایستگاه پیش‌فرض است؛ LIVE فقط نشانگر ویرایشی است و هرگز پخش خودکار ایجاد نمی‌کند. World Brief Audio می‌تواند به شناسه World Brief متصل شود.',
                     ),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
@@ -354,13 +375,21 @@ class _RadioTrackTile extends StatelessWidget {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
       leading: CircleAvatar(
-        backgroundColor: track.isEnabled
-            ? colors.primaryContainer
-            : colors.surfaceContainerHighest,
-        foregroundColor: track.isEnabled
-            ? colors.onPrimaryContainer
-            : colors.onSurfaceVariant,
-        child: const Icon(Icons.library_music_outlined),
+        backgroundColor: track.isLive
+            ? colors.errorContainer
+            : track.isEnabled
+                ? colors.primaryContainer
+                : colors.surfaceContainerHighest,
+        foregroundColor: track.isLive
+            ? colors.onErrorContainer
+            : track.isEnabled
+                ? colors.onPrimaryContainer
+                : colors.onSurfaceVariant,
+        child: Icon(
+          track.sourceType == AdminRadioMondoSourceType.stream
+              ? Icons.cell_tower_rounded
+              : Icons.library_music_outlined,
+        ),
       ),
       title: Row(
         children: [
@@ -368,7 +397,21 @@ class _RadioTrackTile extends StatelessWidget {
             child:
                 Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
-          const SizedBox(width: 8),
+          if (track.isLive) ...[
+            const SizedBox(width: 6),
+            const Chip(
+              visualDensity: VisualDensity.compact,
+              label: Text('LIVE'),
+            ),
+          ],
+          if (track.isDefault) ...[
+            const SizedBox(width: 6),
+            const Chip(
+              visualDensity: VisualDensity.compact,
+              label: Text('DEFAULT'),
+            ),
+          ],
+          const SizedBox(width: 6),
           Chip(
             visualDensity: VisualDensity.compact,
             label: Text('#${track.sortOrder}'),
@@ -378,7 +421,21 @@ class _RadioTrackTile extends StatelessWidget {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            '${_channelTypeLabel(context, track.channelType)} · '
+            '${track.sourceType == AdminRadioMondoSourceType.stream ? 'STREAM' : 'AUDIO'}'
+            '${track.languageCode == null ? '' : ' · ${track.languageCode!.toUpperCase()}'}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           Text(track.attribution, maxLines: 1, overflow: TextOverflow.ellipsis),
+          if (track.worldBriefId != null)
+            Text(
+              'World Brief: ${track.worldBriefId}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           Text(
             track.audioUrl,
             maxLines: 1,
@@ -413,6 +470,12 @@ class _RadioTrackDraft {
   final bool isEnabled;
   final String attribution;
   final String? licenseUrl;
+  final AdminRadioMondoSourceType sourceType;
+  final AdminRadioMondoChannelType channelType;
+  final String? languageCode;
+  final String? worldBriefId;
+  final bool isDefault;
+  final bool isLive;
   final bool rightsConfirmed;
   final String reason;
   final RadioMondoPickedAudio? pickedAudio;
@@ -424,6 +487,12 @@ class _RadioTrackDraft {
     required this.isEnabled,
     required this.attribution,
     required this.licenseUrl,
+    required this.sourceType,
+    required this.channelType,
+    required this.languageCode,
+    required this.worldBriefId,
+    required this.isDefault,
+    required this.isLive,
     required this.rightsConfirmed,
     required this.reason,
     required this.pickedAudio,
@@ -432,8 +501,12 @@ class _RadioTrackDraft {
 
 class _RadioTrackDialog extends StatefulWidget {
   final AdminRadioMondoTrack? existing;
+  final List<WorldBrief> worldBriefs;
 
-  const _RadioTrackDialog({this.existing});
+  const _RadioTrackDialog({
+    this.existing,
+    required this.worldBriefs,
+  });
 
   @override
   State<_RadioTrackDialog> createState() => _RadioTrackDialogState();
@@ -446,8 +519,14 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
   late final TextEditingController _sortOrder;
   late final TextEditingController _attribution;
   late final TextEditingController _licenseUrl;
+  late String _worldBriefId;
   final _reason = TextEditingController();
   late bool _enabled;
+  late bool _isDefault;
+  late bool _isLive;
+  late AdminRadioMondoSourceType _sourceType;
+  late AdminRadioMondoChannelType _channelType;
+  late String _languageCode;
   bool _rightsConfirmed = false;
   bool _pickingAudio = false;
   RadioMondoPickedAudio? _pickedAudio;
@@ -463,7 +542,14 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
     );
     _attribution = TextEditingController(text: existing?.attribution);
     _licenseUrl = TextEditingController(text: existing?.licenseUrl);
+    _worldBriefId = existing?.worldBriefId ?? '';
     _enabled = existing?.isEnabled ?? false;
+    _isDefault = existing?.isDefault ?? false;
+    _isLive = existing?.isLive ?? false;
+    _sourceType = existing?.sourceType ?? AdminRadioMondoSourceType.audio;
+    _channelType =
+        existing?.channelType ?? AdminRadioMondoChannelType.worldLive;
+    _languageCode = existing?.languageCode ?? '';
   }
 
   @override
@@ -520,6 +606,52 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
     }
   }
 
+  List<DropdownMenuItem<String>> _worldBriefItems(BuildContext context) {
+    final items = <DropdownMenuItem<String>>[
+      DropdownMenuItem<String>(
+        value: '',
+        child: Text(_radioText(
+          context,
+          'Nessun World Brief',
+          'No World Brief',
+          'Kein World Brief',
+          'بدون World Brief',
+        )),
+      ),
+      for (final brief in widget.worldBriefs)
+        DropdownMenuItem<String>(
+          value: brief.id,
+          child: Text(
+            '${brief.title} · ${brief.primaryLanguageCode.toUpperCase()}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+    ];
+
+    final current = _worldBriefId.trim();
+    if (current.isNotEmpty &&
+        !widget.worldBriefs.any((brief) => brief.id == current)) {
+      items.add(
+        DropdownMenuItem<String>(
+          value: current,
+          child: Text(
+            _radioText(
+              context,
+              'Brief collegato non presente nell’elenco · $current',
+              'Linked Brief not present in the list · $current',
+              'Verknüpfter Brief nicht in der Liste · $current',
+              'Brief مرتبط در فهرست نیست · $current',
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      );
+    }
+    return items;
+  }
+
   void _submit() {
     if (!_formKey.currentState!.validate() || !_rightsConfirmed) {
       setState(() {});
@@ -537,6 +669,14 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
         attribution: _attribution.text.trim(),
         licenseUrl:
             _licenseUrl.text.trim().isEmpty ? null : _licenseUrl.text.trim(),
+        sourceType: _sourceType,
+        channelType: _channelType,
+        languageCode: _languageCode.isEmpty ? null : _languageCode,
+        worldBriefId: _worldBriefId.trim().isEmpty
+            ? null
+            : _worldBriefId.trim(),
+        isDefault: _isDefault,
+        isLive: _isLive,
         rightsConfirmed: _rightsConfirmed,
         reason: _reason.text.trim(),
         pickedAudio: _pickedAudio,
@@ -571,6 +711,121 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                           'Public title', 'Öffentlicher Titel', 'عنوان عمومی')),
                   validator: _required,
                 ),
+                DropdownButtonFormField<AdminRadioMondoSourceType>(
+                  initialValue: _sourceType,
+                  decoration: InputDecoration(
+                    labelText: _radioText(
+                      context,
+                      'Sorgente',
+                      'Source',
+                      'Quelle',
+                      'منبع',
+                    ),
+                  ),
+                  items: AdminRadioMondoSourceType.values
+                      .map(
+                        (value) => DropdownMenuItem(
+                          value: value,
+                          child: Text(
+                            value == AdminRadioMondoSourceType.stream
+                                ? _radioText(context, 'Stream live HTTPS',
+                                    'HTTPS live stream', 'HTTPS-Livestream',
+                                    'پخش زنده HTTPS')
+                                : _radioText(context, 'Audio / traccia',
+                                    'Audio / track', 'Audio / Titel',
+                                    'صدا / قطعه'),
+                          ),
+                        ),
+                      )
+                      .toList(growable: false),
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() {
+                      _sourceType = value;
+                      if (value == AdminRadioMondoSourceType.stream) {
+                        _pickedAudio = null;
+                      }
+                    });
+                  },
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<AdminRadioMondoChannelType>(
+                  initialValue: _channelType,
+                  decoration: InputDecoration(
+                    labelText: _radioText(
+                      context,
+                      'Tipo canale',
+                      'Channel type',
+                      'Kanaltyp',
+                      'نوع کانال',
+                    ),
+                  ),
+                  items: AdminRadioMondoChannelType.values
+                      .map(
+                        (value) => DropdownMenuItem(
+                          value: value,
+                          child: Text(_channelTypeLabel(context, value)),
+                        ),
+                      )
+                      .toList(growable: false),
+                  onChanged: (value) {
+                    if (value != null) setState(() => _channelType = value);
+                  },
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  initialValue: _languageCode,
+                  decoration: InputDecoration(
+                    labelText: _radioText(
+                      context,
+                      'Lingua (opzionale)',
+                      'Language (optional)',
+                      'Sprache (optional)',
+                      'زبان (اختیاری)',
+                    ),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: '', child: Text('—')),
+                    DropdownMenuItem(value: 'en', child: Text('EN')),
+                    DropdownMenuItem(value: 'it', child: Text('IT')),
+                    DropdownMenuItem(value: 'de', child: Text('DE')),
+                    DropdownMenuItem(value: 'fa', child: Text('FA')),
+                    DropdownMenuItem(value: 'es', child: Text('ES')),
+                    DropdownMenuItem(value: 'pt', child: Text('PT')),
+                    DropdownMenuItem(value: 'fr', child: Text('FR')),
+                    DropdownMenuItem(value: 'ar', child: Text('AR')),
+                    DropdownMenuItem(value: 'ro', child: Text('RO')),
+                    DropdownMenuItem(value: 'ru', child: Text('RU')),
+                    DropdownMenuItem(value: 'zh', child: Text('ZH')),
+                  ],
+                  onChanged: (value) =>
+                      setState(() => _languageCode = value ?? ''),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  initialValue: _worldBriefId,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: _radioText(
+                      context,
+                      'World Brief collegato (opzionale)',
+                      'Linked World Brief (optional)',
+                      'Verknüpfter World Brief (optional)',
+                      'World Brief مرتبط (اختیاری)',
+                    ),
+                    helperText: _radioText(
+                      context,
+                      'Scegli il Brief per titolo: non serve più copiare UUID.',
+                      'Choose the Brief by title; no UUID copy is required.',
+                      'Wähle den Brief nach Titel; keine UUID muss kopiert werden.',
+                      'Brief را با عنوان انتخاب کنید؛ نیازی به کپی UUID نیست.',
+                    ),
+                  ),
+                  items: _worldBriefItems(context),
+                  onChanged: (value) =>
+                      setState(() => _worldBriefId = value ?? ''),
+                ),
+                if (_sourceType == AdminRadioMondoSourceType.audio)
                 Card(
                   margin: const EdgeInsets.only(bottom: 12),
                   child: Padding(
@@ -728,6 +983,44 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                       'Im Weltradio sichtbar',
                       'نمایش در رادیوی جهان')),
                 ),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  value: _isDefault,
+                  onChanged: (value) => setState(() => _isDefault = value),
+                  title: Text(_radioText(
+                    context,
+                    'Stazione predefinita World Live',
+                    'Default World Live station',
+                    'Standardstation World Live',
+                    'ایستگاه پیش‌فرض World Live',
+                  )),
+                  subtitle: Text(_radioText(
+                    context,
+                    'Una sola stazione può essere predefinita.',
+                    'Only one station can be the default.',
+                    'Nur eine Station kann Standard sein.',
+                    'فقط یک ایستگاه می‌تواند پیش‌فرض باشد.',
+                  )),
+                ),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  value: _isLive,
+                  onChanged: (value) => setState(() => _isLive = value),
+                  title: Text(_radioText(
+                    context,
+                    'LIVE adesso',
+                    'LIVE now',
+                    'JETZT LIVE',
+                    'اکنون زنده',
+                  )),
+                  subtitle: Text(_radioText(
+                    context,
+                    'Mostra un indicatore LIVE agli utenti; non avvia automaticamente l’audio.',
+                    'Shows a LIVE indicator to users; audio never autoplays.',
+                    'Zeigt LIVE an; Audio startet niemals automatisch.',
+                    'نشان LIVE نمایش داده می‌شود؛ صدا هرگز خودکار پخش نمی‌شود.',
+                  )),
+                ),
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
                   value: _rightsConfirmed,
@@ -838,6 +1131,24 @@ class _RadioEnabledReasonDialogState extends State<_RadioEnabledReasonDialog> {
       ],
     );
   }
+}
+
+String _channelTypeLabel(
+  BuildContext context,
+  AdminRadioMondoChannelType type,
+) {
+  return switch (type) {
+    AdminRadioMondoChannelType.worldLive => 'World Live',
+    AdminRadioMondoChannelType.nature =>
+      _radioText(context, 'Natura / atmosfera', 'Nature / atmosphere',
+          'Natur / Atmosphäre', 'طبیعت / فضا'),
+    AdminRadioMondoChannelType.worldBrief => 'World Brief Audio',
+    AdminRadioMondoChannelType.liveEvent =>
+      _radioText(context, 'Evento live', 'Live event', 'Live-Ereignis',
+          'رویداد زنده'),
+    AdminRadioMondoChannelType.special =>
+      _radioText(context, 'Speciale', 'Special', 'Spezial', 'ویژه'),
+  };
 }
 
 String _radioText(

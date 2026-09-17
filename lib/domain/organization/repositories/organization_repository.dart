@@ -60,6 +60,7 @@ abstract class OrganizationRepository {
     required LiveSessionResultsVisibility resultsVisibility,
     required String rawRetention,
     required int expectedParticipants,
+    required String reportLanguage,
   });
   Future<LiveSessionDetail> getOrganizerSession(String sessionId);
   Future<String> addQuestion({

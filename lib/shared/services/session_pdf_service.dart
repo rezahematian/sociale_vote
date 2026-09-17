@@ -1,3 +1,5 @@
+import 'dart:ui' show Locale;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
@@ -14,11 +16,102 @@ import 'package:sociale_vote/shared/services/pdf_file_delivery.dart';
 class SessionPdfService {
   SessionPdfService._();
 
+  static const Set<String> _supportedReportLanguages = {
+    'ar',
+    'de',
+    'en',
+    'es',
+    'fa',
+    'fr',
+    'it',
+    'pt',
+    'ro',
+    'ru',
+    'zh',
+  };
+
+  static String reportLanguageCode(
+    VerifiedSessionReport report, {
+    required String fallbackLanguageCode,
+  }) {
+    final stored = _text(report.snapshot['report_language']).toLowerCase();
+    if (_supportedReportLanguages.contains(stored)) return stored;
+
+    final normalizedFallback = fallbackLanguageCode
+        .trim()
+        .toLowerCase()
+        .split(RegExp(r'[-_]'))
+        .first;
+    return _supportedReportLanguages.contains(normalizedFallback)
+        ? normalizedFallback
+        : 'en';
+  }
+
+  static AppLocalizations reportLocalizations(
+    VerifiedSessionReport report, {
+    required AppLocalizations fallback,
+  }) {
+    final code = reportLanguageCode(
+      report,
+      fallbackLanguageCode: fallback.localeName,
+    );
+    return lookupAppLocalizations(Locale(code));
+  }
+
+  static String responseCountLabel(AppLocalizations l10n, int count) {
+    final code = l10n.localeName.split(RegExp(r'[-_]')).first;
+    return switch (code) {
+      'en' => '$count ${count == 1 ? 'response' : 'responses'}',
+      'it' => '$count ${count == 1 ? 'risposta' : 'risposte'}',
+      'de' => '$count ${count == 1 ? 'Antwort' : 'Antworten'}',
+      'es' => '$count ${count == 1 ? 'respuesta' : 'respuestas'}',
+      'pt' => '$count ${count == 1 ? 'resposta' : 'respostas'}',
+      'fr' => '$count ${count == 1 ? 'réponse' : 'réponses'}',
+      'ro' => '$count ${count == 1 ? 'răspuns' : 'răspunsuri'}',
+      'ru' => '$count ${_russianPlural(count, 'ответ', 'ответа', 'ответов')}',
+      _ => l10n.sessionResponses(count),
+    };
+  }
+
+  static String voteCountLabel(AppLocalizations l10n, int count) {
+    final code = l10n.localeName.split(RegExp(r'[-_]')).first;
+    return switch (code) {
+      'en' => '$count ${count == 1 ? 'vote' : 'votes'}',
+      'it' => '$count ${count == 1 ? 'voto' : 'voti'}',
+      'de' => '$count ${count == 1 ? 'Stimme' : 'Stimmen'}',
+      'es' => '$count ${count == 1 ? 'voto' : 'votos'}',
+      'pt' => '$count ${count == 1 ? 'voto' : 'votos'}',
+      'fr' => '$count ${count == 1 ? 'vote' : 'votes'}',
+      'ro' => '$count ${count == 1 ? 'vot' : 'voturi'}',
+      'ru' => '$count ${_russianPlural(count, 'голос', 'голоса', 'голосов')}',
+      _ => l10n.sessionResultVotes(count),
+    };
+  }
+
+  static String _russianPlural(
+    int count,
+    String one,
+    String few,
+    String many,
+  ) {
+    final value = count.abs();
+    final mod100 = value % 100;
+    final mod10 = value % 10;
+    if (mod100 >= 11 && mod100 <= 14) return many;
+    if (mod10 == 1) return one;
+    if (mod10 >= 2 && mod10 <= 4) return few;
+    return many;
+  }
+
+  static bool _isRtlLanguage(String languageCode) =>
+      languageCode == 'ar' || languageCode == 'fa';
+
   static Future<bool> printVerifiedReport({
     required VerifiedSessionReport report,
     required AppLocalizations l10n,
   }) async {
     final snapshot = report.snapshot;
+    final effectiveL10n = reportLocalizations(report, fallback: l10n);
     final certificateNumber = _text(snapshot['certificate_number']).isNotEmpty
         ? _text(snapshot['certificate_number'])
         : 'SVR-${report.reportId.toUpperCase()}';
@@ -28,7 +121,10 @@ class SessionPdfService {
     // a same-page Blob download. This avoids the browser print-preview path,
     // which can fail before opening its popup. The downloaded PDF can then be
     // opened, saved or printed normally. Native platforms keep the OS print UI.
-    final bytes = await _buildVerifiedReportPdf(report: report, l10n: l10n);
+    final bytes = await buildVerifiedReportPdf(
+      report: report,
+      l10n: effectiveL10n,
+    );
     if (kIsWeb) {
       return savePdfFile(bytes: bytes, fileName: fileName);
     }
@@ -41,7 +137,7 @@ class SessionPdfService {
     );
   }
 
-  static Future<Uint8List> _buildVerifiedReportPdf({
+  static Future<Uint8List> buildVerifiedReportPdf({
     required VerifiedSessionReport report,
     required AppLocalizations l10n,
   }) async {
@@ -54,6 +150,12 @@ class SessionPdfService {
     final questions = snapshot['questions'] is List
         ? snapshot['questions'] as List
         : const <dynamic>[];
+
+    final reportLanguage = reportLanguageCode(
+      report,
+      fallbackLanguageCode: l10n.localeName,
+    );
+    final pdfFonts = await _loadVerifiedReportFonts(reportLanguage);
 
     final organizationName = _text(snapshot['organization_name']);
     final organizationLegalName = _text(snapshot['organization_legal_name']);
@@ -131,12 +233,14 @@ class SessionPdfService {
     const panel = PdfColor.fromInt(0xFFF8FAFD);
 
     final baseStyle = pw.TextStyle(
-      font: pw.Font.helvetica(),
+      font: pdfFonts.base,
+      fontFallback: pdfFonts.baseFallback,
       fontSize: 9.5,
       color: ink,
     );
     final boldStyle = pw.TextStyle(
-      font: pw.Font.helveticaBold(),
+      font: pdfFonts.bold,
+      fontFallback: pdfFonts.boldFallback,
       fontSize: 9.5,
       color: ink,
     );
@@ -147,14 +251,15 @@ class SessionPdfService {
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.fromLTRB(34, 34, 34, 32),
           theme: pw.ThemeData.withFont(
-            base: pw.Font.helvetica(),
-            bold: pw.Font.helveticaBold(),
+            base: pdfFonts.base,
+            bold: pdfFonts.bold,
+            fontFallback: pdfFonts.baseFallback,
           ),
         ),
         header: (context) => context.pageNumber == 1
             ? pw.SizedBox()
             : pw.Padding(
-                padding: const pw.EdgeInsets.only(bottom: 10),
+                padding: const pw.EdgeInsets.only(bottom: 16),
                 child: pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
@@ -236,30 +341,29 @@ class SessionPdfService {
                 // the header contains only the Social Vote Official signature
                 // plus the integrity seal when hashValid is true.
                 pw.Expanded(
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      if (officialSignature != null)
-                        pw.SizedBox(
-                          width: 190,
-                          height: 54,
-                          child: pw.Image(
-                            officialSignature,
-                            fit: pw.BoxFit.contain,
-                            alignment: pw.Alignment.centerLeft,
-                          ),
-                        )
-                      else
-                        pw.Text(
-                          'SOCIAL VOTE',
-                          style: boldStyle.copyWith(
-                            fontSize: 10,
-                            color: accent,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-
-                    ],
+                  child: pw.SizedBox(
+                    height: 112,
+                    child: pw.Align(
+                      alignment: pw.Alignment.centerLeft,
+                      child: officialSignature != null
+                          ? pw.SizedBox(
+                              width: 190,
+                              height: 54,
+                              child: pw.Image(
+                                officialSignature,
+                                fit: pw.BoxFit.contain,
+                                alignment: pw.Alignment.centerLeft,
+                              ),
+                            )
+                          : pw.Text(
+                              'SOCIAL VOTE',
+                              style: boldStyle.copyWith(
+                                fontSize: 10,
+                                color: accent,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                    ),
                   ),
                 ),
                 pw.SizedBox(width: 14),
@@ -356,7 +460,11 @@ class SessionPdfService {
           ),
           pw.SizedBox(height: 12),
           _sectionTitle(
-              l10n.verifiedCertificateOrganizationSection, accent, line),
+              l10n.verifiedCertificateOrganizationSection,
+              accent,
+              line,
+              boldStyle,
+            ),
           pw.SizedBox(height: 8),
           _fieldTable(
             [
@@ -372,7 +480,12 @@ class SessionPdfService {
             line: line,
           ),
           pw.SizedBox(height: 12),
-          _sectionTitle(l10n.verifiedCertificateSessionSection, accent, line),
+          _sectionTitle(
+            l10n.verifiedCertificateSessionSection,
+            accent,
+            line,
+            boldStyle,
+          ),
           pw.SizedBox(height: 8),
           _fieldTable(
             [
@@ -389,7 +502,11 @@ class SessionPdfService {
           ),
           pw.SizedBox(height: 12),
           _sectionTitle(
-              l10n.verifiedCertificateParticipationSection, accent, line),
+              l10n.verifiedCertificateParticipationSection,
+              accent,
+              line,
+              boldStyle,
+            ),
           pw.SizedBox(height: 8),
           pw.Wrap(
             spacing: 8,
@@ -478,6 +595,7 @@ class SessionPdfService {
                   l10n.pollDetail_resultsTitle,
                   accent,
                   line,
+                  boldStyle,
                 ),
                 pw.SizedBox(height: 8),
                 pw.Text(l10n.sessionNoQuestions, style: baseStyle),
@@ -512,138 +630,159 @@ class SessionPdfService {
                   ),
                 ),
           ],
-          pw.SizedBox(height: 14),
-          _sectionTitle(l10n.verifiedCertificateIntegritySection, accent, line),
-          pw.SizedBox(height: 8),
-          pw.Container(
-            padding: const pw.EdgeInsets.all(14),
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: line, width: 0.8),
-              borderRadius: pw.BorderRadius.circular(8),
-            ),
-            child: pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
+          pw.SizedBox(height: 4),
+          pw.Inseparable(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.stretch,
               children: [
-                pw.Expanded(
-                  child: pw.Column(
+                _sectionTitle(
+                  l10n.verifiedCertificateIntegritySection,
+                  accent,
+                  line,
+                  boldStyle,
+                ),
+                pw.SizedBox(height: 6),
+                pw.Container(
+                  padding: const pw.EdgeInsets.all(10),
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border.all(color: line, width: 0.8),
+                    borderRadius: pw.BorderRadius.circular(8),
+                  ),
+                  child: pw.Row(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text(
-                        report.hashValid
-                            ? l10n.verifiedCertificateIntegrityVerified
-                            : l10n.verifiedCertificateIntegrityFailed,
-                        style: boldStyle.copyWith(
-                          fontSize: 12,
-                          color: report.hashValid ? accent : PdfColors.red700,
+                      pw.Expanded(
+                        child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Text(
+                              report.hashValid
+                                  ? l10n.verifiedCertificateIntegrityVerified
+                                  : l10n.verifiedCertificateIntegrityFailed,
+                              style: boldStyle.copyWith(
+                                fontSize: 12,
+                                color: report.hashValid
+                                    ? accent
+                                    : PdfColors.red700,
+                              ),
+                            ),
+                            pw.SizedBox(height: 6),
+                            _integrityLine(
+                              l10n.verifiedCertificateNumber,
+                              certificateNumber,
+                              baseStyle,
+                              boldStyle,
+                              singleLine: true,
+                            ),
+                            _integrityLine(
+                              l10n.verifiedResultReportId,
+                              report.reportId,
+                              baseStyle,
+                              boldStyle,
+                            ),
+                            _integrityLine(
+                              l10n.verifiedCertificateIssuedAt,
+                              issuedAt,
+                              baseStyle,
+                              boldStyle,
+                            ),
+                            _integrityLine(
+                              l10n.verifiedCertificateAlgorithm,
+                              algorithm,
+                              baseStyle,
+                              boldStyle,
+                            ),
+                            _integrityLine(
+                              l10n.verifiedCertificateSchema,
+                              schemaVersion,
+                              baseStyle,
+                              boldStyle,
+                            ),
+                            pw.SizedBox(height: 4),
+                            pw.Text(l10n.verifiedResultHash, style: boldStyle),
+                            pw.SizedBox(height: 2),
+                            pw.Text(
+                              report.sha256,
+                              style: baseStyle.copyWith(fontSize: 7.6),
+                            ),
+                            if (!organizerOnly) ...[
+                              pw.SizedBox(height: 4),
+                              pw.Text(
+                                verifyUrl,
+                                style: baseStyle.copyWith(
+                                  fontSize: 7.6,
+                                  color: muted,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
-                      pw.SizedBox(height: 9),
-                      _integrityLine(
-                        l10n.verifiedCertificateNumber,
-                        certificateNumber,
-                        baseStyle,
-                        boldStyle,
-                        singleLine: true,
-                      ),
-                      _integrityLine(
-                        l10n.verifiedResultReportId,
-                        report.reportId,
-                        baseStyle,
-                        boldStyle,
-                      ),
-                      _integrityLine(
-                        l10n.verifiedCertificateIssuedAt,
-                        issuedAt,
-                        baseStyle,
-                        boldStyle,
-                      ),
-                      _integrityLine(
-                        l10n.verifiedCertificateAlgorithm,
-                        algorithm,
-                        baseStyle,
-                        boldStyle,
-                      ),
-                      _integrityLine(
-                        l10n.verifiedCertificateSchema,
-                        schemaVersion,
-                        baseStyle,
-                        boldStyle,
-                      ),
-                      pw.SizedBox(height: 6),
-                      pw.Text(l10n.verifiedResultHash, style: boldStyle),
-                      pw.SizedBox(height: 3),
-                      pw.Text(
-                        report.sha256,
-                        style: baseStyle.copyWith(fontSize: 7.6),
-                      ),
-                      if (!organizerOnly) ...[
-                        pw.SizedBox(height: 6),
-                        pw.Text(
-                          verifyUrl,
-                          style:
-                              baseStyle.copyWith(fontSize: 7.6, color: muted),
+                      pw.SizedBox(width: 16),
+                      if (!organizerOnly)
+                        pw.Column(
+                          children: [
+                            pw.BarcodeWidget(
+                              data: verifyUrl,
+                              barcode: pw.Barcode.qrCode(),
+                              width: 98,
+                              height: 98,
+                            ),
+                            pw.SizedBox(height: 4),
+                            pw.SizedBox(
+                              width: 116,
+                              child: pw.Text(
+                                l10n.verifiedCertificateVerifyQr,
+                                textAlign: pw.TextAlign.center,
+                                style: baseStyle.copyWith(
+                                  fontSize: 7.4,
+                                  color: muted,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      else
+                        pw.Container(
+                          width: 132,
+                          padding: const pw.EdgeInsets.all(10),
+                          decoration: pw.BoxDecoration(
+                            color: panel,
+                            borderRadius: pw.BorderRadius.circular(8),
+                            border: pw.Border.all(color: line, width: 0.7),
+                          ),
+                          child: pw.Column(
+                            children: [
+                              pw.Text(
+                                l10n.verifiedResultPrivateVerificationTitle,
+                                textAlign: pw.TextAlign.center,
+                                style: boldStyle,
+                              ),
+                              pw.SizedBox(height: 4),
+                              pw.Text(
+                                l10n.verifiedResultPrivateVerificationBody,
+                                textAlign: pw.TextAlign.center,
+                                style: baseStyle.copyWith(
+                                  fontSize: 7.4,
+                                  color: muted,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
                     ],
                   ),
                 ),
-                pw.SizedBox(width: 16),
-                if (!organizerOnly)
-                  pw.Column(
-                    children: [
-                      pw.BarcodeWidget(
-                        data: verifyUrl,
-                        barcode: pw.Barcode.qrCode(),
-                        width: 98,
-                        height: 98,
-                      ),
-                      pw.SizedBox(height: 6),
-                      pw.SizedBox(
-                        width: 116,
-                        child: pw.Text(
-                          l10n.verifiedCertificateVerifyQr,
-                          textAlign: pw.TextAlign.center,
-                          style:
-                              baseStyle.copyWith(fontSize: 7.4, color: muted),
-                        ),
-                      ),
-                    ],
-                  )
-                else
-                  pw.Container(
-                    width: 132,
-                    padding: const pw.EdgeInsets.all(10),
-                    decoration: pw.BoxDecoration(
-                      color: panel,
-                      borderRadius: pw.BorderRadius.circular(8),
-                      border: pw.Border.all(color: line, width: 0.7),
-                    ),
-                    child: pw.Column(
-                      children: [
-                        pw.Text(
-                          l10n.verifiedResultPrivateVerificationTitle,
-                          textAlign: pw.TextAlign.center,
-                          style: boldStyle,
-                        ),
-                        pw.SizedBox(height: 4),
-                        pw.Text(
-                          l10n.verifiedResultPrivateVerificationBody,
-                          textAlign: pw.TextAlign.center,
-                          style:
-                              baseStyle.copyWith(fontSize: 7.4, color: muted),
-                        ),
-                      ],
-                    ),
-                  ),
+                pw.SizedBox(height: 6),
+                pw.Text(l10n.verifiedResultGeneratedBy, style: boldStyle),
+                pw.SizedBox(height: 2),
+                pw.Text(
+                  l10n.verifiedResultNotLegalCertificate,
+                  style: baseStyle,
+                ),
               ],
             ),
           ),
-          pw.SizedBox(height: 12),
-
-          pw.SizedBox(height: 10),
-          pw.Text(l10n.verifiedResultGeneratedBy, style: boldStyle),
-          pw.SizedBox(height: 3),
-          pw.Text(l10n.verifiedResultNotLegalCertificate, style: baseStyle),
         ],
       ),
     );
@@ -836,6 +975,7 @@ class SessionPdfService {
     String title,
     PdfColor accent,
     PdfColor line,
+    pw.TextStyle boldStyle,
   ) {
     return pw.Row(
       children: [
@@ -843,8 +983,7 @@ class SessionPdfService {
         pw.SizedBox(width: 8),
         pw.Text(
           title,
-          style: pw.TextStyle(
-            font: pw.Font.helveticaBold(),
+          style: boldStyle.copyWith(
             fontSize: 12,
             color: const PdfColor.fromInt(0xFF172033),
           ),
@@ -939,82 +1078,104 @@ class SessionPdfService {
         ? question['options'] as List
         : const <dynamic>[];
 
-    return pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 10),
-      padding: const pw.EdgeInsets.all(12),
+    final optionWidgets = options.map<pw.Widget>((raw) {
+      final option = raw is Map
+          ? Map<String, dynamic>.from(raw)
+          : const <String, dynamic>{};
+      final key = _text(option['option_key']);
+      final label = switch (key) {
+        'yes' => l10n.sessionOptionYes,
+        'no' => l10n.sessionOptionNo,
+        _ => _text(option['label']),
+      };
+      final votes = _int(option['votes']);
+      final ratio = responses == 0 ? 0.0 : votes / responses;
+      return pw.Padding(
+        padding: const pw.EdgeInsets.fromLTRB(10, 4, 10, 2),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Expanded(child: pw.Text(label, style: baseStyle)),
+                pw.SizedBox(width: 10),
+                pw.Text(
+                  '${voteCountLabel(l10n, votes)} - ${(ratio * 100).toStringAsFixed(1)}%',
+                  style: boldStyle.copyWith(fontSize: 8.5),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 3),
+            pw.Container(height: 2, color: votes > 0 ? accent : line),
+          ],
+        ),
+      );
+    }).toList(growable: false);
+
+    final header = pw.Container(
+      padding: const pw.EdgeInsets.fromLTRB(10, 8, 10, 8),
       decoration: pw.BoxDecoration(
         color: panel,
         border: pw.Border.all(color: line, width: 0.7),
         borderRadius: pw.BorderRadius.circular(7),
       ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          if (sectionTitle != null) ...[
-            _sectionTitle(sectionTitle, accent, line),
-            pw.SizedBox(height: 10),
-          ],
-          pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Container(
-                width: 22,
-                height: 22,
-                alignment: pw.Alignment.center,
-                decoration: pw.BoxDecoration(
-                  color: accent,
-                  shape: pw.BoxShape.circle,
-                ),
-                child: pw.Text(
-                  '$number',
-                  style:
-                      boldStyle.copyWith(fontSize: 9, color: PdfColors.white),
-                ),
+          pw.Container(
+            width: 22,
+            height: 22,
+            alignment: pw.Alignment.center,
+            decoration: pw.BoxDecoration(
+              color: accent,
+              shape: pw.BoxShape.circle,
+            ),
+            child: pw.Text(
+              '$number',
+              style: boldStyle.copyWith(
+                fontSize: 9,
+                color: PdfColors.white,
               ),
-              pw.SizedBox(width: 8),
-              pw.Expanded(
-                  child: pw.Text(title,
-                      style: boldStyle.copyWith(fontSize: 10.5))),
-              pw.SizedBox(width: 8),
-              pw.Text(l10n.sessionResponses(responses),
-                  style: baseStyle.copyWith(fontSize: 8)),
-            ],
+            ),
           ),
-          pw.SizedBox(height: 10),
-          ...options.map((raw) {
-            final option = raw is Map
-                ? Map<String, dynamic>.from(raw)
-                : const <String, dynamic>{};
-            final key = _text(option['option_key']);
-            final label = switch (key) {
-              'yes' => l10n.sessionOptionYes,
-              'no' => l10n.sessionOptionNo,
-              _ => _text(option['label']),
-            };
-            final votes = _int(option['votes']);
-            final ratio = responses == 0 ? 0.0 : votes / responses;
-            return pw.Padding(
-              padding: const pw.EdgeInsets.only(bottom: 7),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-                children: [
-                  pw.Row(
-                    children: [
-                      pw.Expanded(child: pw.Text(label, style: baseStyle)),
-                      pw.Text(
-                        '${l10n.sessionResultVotes(votes)} - ${(ratio * 100).toStringAsFixed(1)}%',
-                        style: boldStyle.copyWith(fontSize: 8.5),
-                      ),
-                    ],
-                  ),
-                  pw.SizedBox(height: 3),
-                  pw.Container(height: 2, color: votes > 0 ? accent : line),
-                ],
-              ),
-            );
-          }),
+          pw.SizedBox(width: 8),
+          pw.Expanded(
+            child: pw.Text(
+              title,
+              style: boldStyle.copyWith(fontSize: 10.5),
+            ),
+          ),
+          pw.SizedBox(width: 8),
+          pw.Text(
+            responseCountLabel(l10n, responses),
+            style: baseStyle.copyWith(fontSize: 8),
+          ),
         ],
       ),
+    );
+
+    final firstUnitChildren = <pw.Widget>[header];
+    if (optionWidgets.isNotEmpty) {
+      firstUnitChildren.add(optionWidgets.first);
+    }
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+      children: [
+        if (sectionTitle != null) ...[
+          _sectionTitle(sectionTitle, accent, line, boldStyle),
+          pw.SizedBox(height: 12),
+        ],
+        pw.Inseparable(
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+            children: firstUnitChildren,
+          ),
+        ),
+        if (optionWidgets.length > 1) ...optionWidgets.skip(1),
+        pw.SizedBox(height: 12),
+      ],
     );
   }
 
@@ -1027,7 +1188,7 @@ class SessionPdfService {
   }) {
     if (value.trim().isEmpty) return pw.SizedBox();
     return pw.Padding(
-      padding: const pw.EdgeInsets.only(bottom: 3),
+      padding: const pw.EdgeInsets.only(bottom: 2),
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
@@ -1043,6 +1204,47 @@ class SessionPdfService {
           ),
         ],
       ),
+    );
+  }
+
+  static Future<_VerifiedReportPdfFonts> _loadVerifiedReportFonts(
+    String languageCode,
+  ) async {
+    // Verified Result must render both the fixed report language and authored
+    // question/option text. A Session may therefore contain Latin/Cyrillic,
+    // Chinese and Arabic/Persian text in the same immutable report.
+    // PdfGoogleFonts caches downloaded fonts; no font binaries are added to the
+    // Social Vote source tree by this patch.
+    final latinRegular = await PdfGoogleFonts.notoSansRegular();
+    final latinBold = await PdfGoogleFonts.notoSansBold();
+    final cjkRegular = await PdfGoogleFonts.notoSansSCRegular();
+    final cjkBold = await PdfGoogleFonts.notoSansSCBold();
+    final rtlRegular = await PdfGoogleFonts.notoSansArabicRegular();
+    final rtlBold = await PdfGoogleFonts.notoSansArabicBold();
+
+    if (languageCode == 'zh') {
+      return _VerifiedReportPdfFonts(
+        base: cjkRegular,
+        bold: cjkBold,
+        baseFallback: [latinRegular, rtlRegular],
+        boldFallback: [latinBold, rtlBold],
+      );
+    }
+
+    if (_isRtlLanguage(languageCode)) {
+      return _VerifiedReportPdfFonts(
+        base: rtlRegular,
+        bold: rtlBold,
+        baseFallback: [latinRegular, cjkRegular],
+        boldFallback: [latinBold, cjkBold],
+      );
+    }
+
+    return _VerifiedReportPdfFonts(
+      base: latinRegular,
+      bold: latinBold,
+      baseFallback: [cjkRegular, rtlRegular],
+      boldFallback: [cjkBold, rtlBold],
     );
   }
 
@@ -1122,4 +1324,18 @@ class SessionPdfService {
         input.trim().replaceAll(RegExp(r'[^A-Za-z0-9._-]+'), '_');
     return normalized.isEmpty ? 'social_vote' : normalized;
   }
+}
+
+class _VerifiedReportPdfFonts {
+  final pw.Font base;
+  final pw.Font bold;
+  final List<pw.Font> baseFallback;
+  final List<pw.Font> boldFallback;
+
+  const _VerifiedReportPdfFonts({
+    required this.base,
+    required this.bold,
+    required this.baseFallback,
+    required this.boldFallback,
+  });
 }

@@ -70,6 +70,7 @@ Future<void> _showHomeGlobeMarkerPreview({
 
   await showModalBottomSheet<void>(
     context: context,
+    useRootNavigator: true,
     showDragHandle: true,
     builder: (sheetContext) {
       onSheetBuilt?.call(sheetContext);
@@ -133,7 +134,7 @@ Future<void> _showHomeGlobeMarkerPreview({
                 width: double.infinity,
                 child: FilledButton.icon(
                   onPressed: () {
-                    Navigator.of(sheetContext).pop();
+                    Navigator.of(sheetContext, rootNavigator: true).pop();
                     onOpen(item);
                   },
                   icon: const Icon(Icons.open_in_new_rounded),
@@ -168,7 +169,8 @@ Widget worldGlobeStylePickerForTest({
   required double diameter,
   required ValueChanged<GlobeVisualStyle> onSelected,
   required VoidCallback onDismiss,
-}) => _GlobeStyleRadialPicker(
+}) =>
+    _GlobeStyleRadialPicker(
       selectedStyle: selectedStyle,
       diameter: diameter,
       onSelected: onSelected,
@@ -238,7 +240,8 @@ class _GlobeStyleRadialPicker extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                        color:
+                            theme.colorScheme.primary.withValues(alpha: 0.08),
                         blurRadius: 28,
                         spreadRadius: 2,
                       ),
@@ -312,54 +315,54 @@ class _GlobeStyleRadialButton extends StatelessWidget {
       child: Tooltip(
         message: GlobePresetVisual.forStyle(style).name,
         child: Material(
-        color: Colors.transparent,
-        shape: const CircleBorder(),
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            width: extent,
-            height: extent,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: colors.surface.withValues(alpha: 0.92),
-              border: Border.all(
-                color: selected
-                    ? colors.primary
-                    : colors.outlineVariant.withValues(alpha: 0.78),
-                width: selected ? 2.2 : 1.1,
-              ),
-              boxShadow: [
-                BoxShadow(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onTap,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              width: extent,
+              height: extent,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colors.surface.withValues(alpha: 0.92),
+                border: Border.all(
                   color: selected
-                      ? colors.primary.withValues(alpha: 0.28)
-                      : colors.shadow.withValues(alpha: 0.14),
-                  blurRadius: selected ? 16 : 9,
-                  spreadRadius: selected ? 1.0 : 0,
+                      ? colors.primary
+                      : colors.outlineVariant.withValues(alpha: 0.78),
+                  width: selected ? 2.2 : 1.1,
                 ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                PremiumGlobePreview(style: style, size: previewSize),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.fade,
-                  softWrap: false,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: selected ? colors.primary : colors.onSurface,
-                    fontSize: label.length > 3 ? 9.2 : 10.5,
+                boxShadow: [
+                  BoxShadow(
+                    color: selected
+                        ? colors.primary.withValues(alpha: 0.28)
+                        : colors.shadow.withValues(alpha: 0.14),
+                    blurRadius: selected ? 16 : 9,
+                    spreadRadius: selected ? 1.0 : 0,
                   ),
-                ),
-              ],
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  PremiumGlobePreview(style: style, size: previewSize),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.fade,
+                    softWrap: false,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: selected ? colors.primary : colors.onSurface,
+                      fontSize: label.length > 3 ? 9.2 : 10.5,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
       ),
     );
   }
@@ -373,6 +376,7 @@ class WorldGlobeWidget extends StatefulWidget {
   final ValueChanged<bool>? onPageScrollLockChanged;
   final ValueChanged<WorldGlobeMapHandoff>? onZoomIntoClassicMap;
   final ValueChanged<Offset>? onOrientationChanged;
+  final VoidCallback? onSurfaceTap;
   final double? initialFocusLatitude;
   final double? initialFocusLongitude;
   final double? initialFocusZoom;
@@ -401,6 +405,7 @@ class WorldGlobeWidget extends StatefulWidget {
     this.onPageScrollLockChanged,
     this.onZoomIntoClassicMap,
     this.onOrientationChanged,
+    this.onSurfaceTap,
     this.initialFocusLatitude,
     this.initialFocusLongitude,
     this.initialFocusZoom,
@@ -460,7 +465,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
 
     if (existing != null && existing.mounted) {
       _homeMarkerModalContext = null;
-      await Navigator.of(existing).maybePop();
+      await Navigator.of(existing, rootNavigator: true).maybePop();
       await Future<void>.delayed(Duration.zero);
     }
 
@@ -499,7 +504,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
     _homeMarkerModalContext = null;
     _suppressHomeSurfaceTapUntil =
         DateTime.now().add(const Duration(milliseconds: 360));
-    unawaited(Navigator.of(existing).maybePop());
+    unawaited(Navigator.of(existing, rootNavigator: true).maybePop());
     return true;
   }
 
@@ -589,15 +594,14 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
         final available = math.max(1.0, math.min(finiteWidth, finiteHeight));
         final inset = _isHomeProfile ? 12.0 : 8.0;
         final squareSize = math.max(1.0, available - inset);
-        final narrowHome = _isHomeProfile &&
-            MediaQuery.sizeOf(context).width < 900;
+        final narrowHome =
+            _isHomeProfile && MediaQuery.sizeOf(context).width < 900;
         final surfaceSize = narrowHome
             ? WorldHomeGlobeGeometry.sphereDiameter(finiteWidth, squareSize) /
                 WorldHomeGlobeGeometry.webSphereFraction
             : squareSize;
-        final controlInset = narrowHome
-            ? WorldHomeGlobeGeometry.narrowHomeControlInset
-            : 18.0;
+        final controlInset =
+            narrowHome ? WorldHomeGlobeGeometry.narrowHomeControlInset : 18.0;
 
         final diagnostic = '${finiteWidth.toStringAsFixed(1)}x'
             '${finiteHeight.toStringAsFixed(1)}'
@@ -624,25 +628,26 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
                       child: SizedBox.square(
                         dimension: surfaceSize,
                         child: WebWorldGlobeSurface(
-                      items: widget.items,
-                      homeProfile: _isHomeProfile,
-                      isAuthenticated: isAuthenticated,
-                      autoRotateEnabled: _autoRotateEnabled,
-                      visualStyle: widget.visualStyle.name,
-                      markerDataSettled: widget.markerDataSettled,
-                      homeMarkerLimit: _markerPolicy.homeMarkerLimitForDensity(
-                        widget.homeMarkerDensityOverride,
-                      ),
-                      onMarkerTap: _handleMarkerTap,
-                      onSurfaceTap: _handleSurfaceTap,
-                      onSurfaceLongPress: _openGlobeStylePicker,
-                      onOrientationChanged: widget.onOrientationChanged,
-                      onDeepZoom: _isHomeProfile ? null : _handleDeepZoom,
-                      focusListenable: _focusNotifier,
-                      initialFocusLatitude: widget.initialFocusLatitude,
-                      initialFocusLongitude: widget.initialFocusLongitude,
-                      initialFocusZoom: widget.initialFocusZoom,
-                      onUnavailable: widget.onUseClassicMap,
+                          items: widget.items,
+                          homeProfile: _isHomeProfile,
+                          isAuthenticated: isAuthenticated,
+                          autoRotateEnabled: _autoRotateEnabled,
+                          visualStyle: widget.visualStyle.name,
+                          markerDataSettled: widget.markerDataSettled,
+                          homeMarkerLimit:
+                              _markerPolicy.homeMarkerLimitForDensity(
+                            widget.homeMarkerDensityOverride,
+                          ),
+                          onMarkerTap: _handleMarkerTap,
+                          onSurfaceTap: _handleSurfaceTap,
+                          onSurfaceLongPress: _openGlobeStylePicker,
+                          onOrientationChanged: widget.onOrientationChanged,
+                          onDeepZoom: _isHomeProfile ? null : _handleDeepZoom,
+                          focusListenable: _focusNotifier,
+                          initialFocusLatitude: widget.initialFocusLatitude,
+                          initialFocusLongitude: widget.initialFocusLongitude,
+                          initialFocusZoom: widget.initialFocusZoom,
+                          onUnavailable: widget.onUseClassicMap,
                         ),
                       ),
                     ),
@@ -818,8 +823,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
     if (_isHomeProfile) {
       final suppressUntil = _suppressHomeSurfaceTapUntil;
       if (_stylePickerOpen ||
-          (suppressUntil != null &&
-              DateTime.now().isBefore(suppressUntil))) {
+          (suppressUntil != null && DateTime.now().isBefore(suppressUntil))) {
         return;
       }
 
@@ -834,6 +838,8 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
       widget.onUseClassicMap();
       return;
     }
+
+    widget.onSurfaceTap?.call();
 
     if (_enableCountrySurfaceSelection) {
       _resolveCountryFromTap(latitude, longitude);
@@ -1005,12 +1011,10 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
     with WidgetsBindingObserver {
   static const bool _isWasmBuild = bool.fromEnvironment('dart.tool.dart2wasm');
 
-  static const String _earthTextureClassicAsset =
-      GlobePresetVisual.dayAsset;
+  static const String _earthTextureClassicAsset = GlobePresetVisual.dayAsset;
   static const String _earthTextureRealisticAsset =
       GlobePresetVisual.satelliteAsset;
-  static const String _earthTextureNightAsset =
-      GlobePresetVisual.nightAsset;
+  static const String _earthTextureNightAsset = GlobePresetVisual.nightAsset;
 
   static const double _approvedPanSensitivity = 0.58;
   static const double _gestureIntentThreshold = 7.0;
@@ -1106,6 +1110,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
       <String, List<CivicMapItem>>{};
   BuildContext? _homeMarkerModalContext;
   int _homeMarkerModalTicket = 0;
+  BuildContext? _exploreMarkerModalContext;
+  int _exploreMarkerModalTicket = 0;
   int _lastMarkerZoomBucket = -1;
   bool _globeToMapHandoffTriggered = false;
   bool _initialFocusApplied = false;
@@ -1134,7 +1140,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
 
     if (existing != null && existing.mounted) {
       _homeMarkerModalContext = null;
-      await Navigator.of(existing).maybePop();
+      await Navigator.of(existing, rootNavigator: true).maybePop();
       await Future<void>.delayed(Duration.zero);
     }
 
@@ -1164,7 +1170,49 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
 
     _homeMarkerModalTicket += 1;
     _homeMarkerModalContext = null;
-    unawaited(Navigator.of(existing).maybePop());
+    unawaited(Navigator.of(existing, rootNavigator: true).maybePop());
+    return true;
+  }
+
+  Future<void> _replaceExploreMarkerModal(
+    Future<void> Function(ValueChanged<BuildContext> onSheetBuilt) showModal,
+  ) async {
+    final ticket = ++_exploreMarkerModalTicket;
+    final existing = _exploreMarkerModalContext;
+
+    if (existing != null && existing.mounted) {
+      _exploreMarkerModalContext = null;
+      await Navigator.of(existing, rootNavigator: true).maybePop();
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    if (!mounted || ticket != _exploreMarkerModalTicket) {
+      return;
+    }
+
+    await showModal((sheetContext) {
+      if (!mounted || ticket != _exploreMarkerModalTicket) {
+        return;
+      }
+      _exploreMarkerModalContext = sheetContext;
+    });
+
+    if (!mounted || ticket != _exploreMarkerModalTicket) {
+      return;
+    }
+    _exploreMarkerModalContext = null;
+  }
+
+  bool _dismissExploreMarkerModal() {
+    final existing = _exploreMarkerModalContext;
+    if (existing == null || !existing.mounted) {
+      _exploreMarkerModalContext = null;
+      return false;
+    }
+
+    _exploreMarkerModalTicket += 1;
+    _exploreMarkerModalContext = null;
+    unawaited(Navigator.of(existing, rootNavigator: true).maybePop());
     return true;
   }
 
@@ -1657,12 +1705,15 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
         final narrowHome = _isHomeProfile && screenSize.width < 900;
         final viewportSize = narrowHome
             ? WorldHomeGlobeGeometry.frameSize(availableWidth, availableHeight)
-            : math.min(availableWidth, availableHeight)
-                .clamp(1.0, maxViewport).toDouble();
+            : math
+                .min(availableWidth, availableHeight)
+                .clamp(1.0, maxViewport)
+                .toDouble();
 
         final radius = narrowHome
             ? WorldHomeGlobeGeometry.sphereDiameter(
-                availableWidth, viewportSize) / 2
+                    availableWidth, viewportSize) /
+                2
             : viewportSize * 0.46;
         final controlInset = narrowHome
             ? WorldHomeGlobeGeometry.narrowHomeControlInset
@@ -1712,7 +1763,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
 
         return Align(
           alignment: _isHomeProfile && !narrowHome
-              ? Alignment.topCenter : Alignment.center,
+              ? Alignment.topCenter
+              : Alignment.center,
           child: SizedBox.square(
             dimension: viewportSize,
             child: RepaintBoundary(
@@ -1720,38 +1772,23 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
                 fit: StackFit.expand,
                 clipBehavior: Clip.none,
                 children: [
-                  _isHomeProfile && !isAuthenticated
-                      ? GestureDetector(
+                  _isHomeProfile
+                      ? Listener(
                           behavior: HitTestBehavior.opaque,
-                          onTapUp: (details) {
-                            if (_isInsideVisibleSphere(details.localPosition)) {
-                              widget.onUseClassicMap();
-                            }
-                          },
-                          onLongPressStart: (details) {
-                            if (_isInsideVisibleSphere(details.localPosition)) {
-                              _openNativeGlobeStylePicker();
-                            }
-                          },
-                          child: IgnorePointer(child: globe),
+                          onPointerDown: _handleHomePointerDown,
+                          onPointerMove: _handleHomePointerMove,
+                          onPointerUp: _handleHomePointerUp,
+                          onPointerCancel: _handleHomePointerCancel,
+                          child: globe,
                         )
-                      : _isHomeProfile
-                          ? Listener(
-                              behavior: HitTestBehavior.opaque,
-                              onPointerDown: _handleHomePointerDown,
-                              onPointerMove: _handleHomePointerMove,
-                              onPointerUp: _handleHomePointerUp,
-                              onPointerCancel: _handleHomePointerCancel,
-                              child: globe,
-                            )
-                          : Listener(
-                              behavior: HitTestBehavior.opaque,
-                              onPointerDown: _handleExplorePointerDown,
-                              onPointerMove: _handleExplorePointerMove,
-                              onPointerUp: _handleExplorePointerUp,
-                              onPointerCancel: _handleExplorePointerCancel,
-                              child: globe,
-                            ),
+                      : Listener(
+                          behavior: HitTestBehavior.opaque,
+                          onPointerDown: _handleExplorePointerDown,
+                          onPointerMove: _handleExplorePointerMove,
+                          onPointerUp: _handleExplorePointerUp,
+                          onPointerCancel: _handleExplorePointerCancel,
+                          child: globe,
+                        ),
                   if (widget.showHomeRadioControl || isAuthenticated)
                     Positioned(
                       left: controlInset,
@@ -1768,7 +1805,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
                               size: WorldHomeGlobeGeometry.controlSize,
                             )
                           else
-                            const SizedBox.square(dimension: WorldHomeGlobeGeometry.controlSize),
+                            const SizedBox.square(
+                                dimension: WorldHomeGlobeGeometry.controlSize),
                           if (widget.showHomeRadioControl || isAuthenticated)
                             _GlobeRotationButton(
                               isRotating: _autoRotateEnabled,
@@ -1777,7 +1815,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
                               onPressed: _toggleNativeAutoRotation,
                             )
                           else
-                            const SizedBox.square(dimension: WorldHomeGlobeGeometry.controlSize),
+                            const SizedBox.square(
+                                dimension: WorldHomeGlobeGeometry.controlSize),
                         ],
                       ),
                     ),
@@ -2002,13 +2041,35 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
       if (markerItem != null) {
         debugPrint('[WorldGlobe] G5 marker hit: $markerPointId');
         if (markerGroup != null && markerGroup.length > 1) {
-          _showGlobeMarkerGroupPicker(markerGroup);
+          unawaited(
+            _replaceExploreMarkerModal(
+              (onSheetBuilt) => _showGlobeMarkerGroupPicker(
+                markerGroup,
+                onSheetBuilt: onSheetBuilt,
+              ),
+            ),
+          );
         } else {
-          _handleGlobeMarkerTap(markerItem);
+          final dismissedGroupPicker = _dismissExploreMarkerModal();
+          if (dismissedGroupPicker) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                _handleGlobeMarkerTap(markerItem);
+              }
+            });
+          } else {
+            _handleGlobeMarkerTap(markerItem);
+          }
         }
         return;
       }
     }
+
+    if (_dismissExploreMarkerModal()) {
+      return;
+    }
+
+    widget.onSurfaceTap?.call();
 
     if (_enableCountrySurfaceSelection) {
       final coordinates = globeState.coordinatesAtLocalPosition(
@@ -2409,6 +2470,7 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
 
     await showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       showDragHandle: true,
       builder: (sheetContext) {
         onSheetBuilt?.call(sheetContext);
@@ -2468,7 +2530,14 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
                               )) {
                             _homeMarkerModalContext = null;
                           }
-                          Navigator.of(sheetContext).pop();
+                          if (!_isHomeProfile &&
+                              identical(
+                                _exploreMarkerModalContext,
+                                sheetContext,
+                              )) {
+                            _exploreMarkerModalContext = null;
+                          }
+                          Navigator.of(sheetContext, rootNavigator: true).pop();
                           if (_isHomeProfile) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               if (mounted) {

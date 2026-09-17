@@ -76,6 +76,30 @@ class _VerifiedSessionReportPageState extends State<VerifiedSessionReportPage> {
     return l10n.publicProfileLoadError;
   }
 
+  Widget _buildCanonicalReport(
+    BuildContext context,
+    AppLocalizations appL10n,
+    VerifiedSessionReport report,
+  ) {
+    final reportL10n = SessionPdfService.reportLocalizations(
+      report,
+      fallback: appL10n,
+    );
+    final reportLanguage = SessionPdfService.reportLanguageCode(
+      report,
+      fallbackLanguageCode: appL10n.localeName,
+    );
+    return Localizations.override(
+      context: context,
+      locale: Locale(reportLanguage),
+      delegates: AppLocalizations.localizationsDelegates,
+      child: Builder(
+        builder: (localizedContext) =>
+            _buildReport(localizedContext, reportL10n, report),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -100,7 +124,7 @@ class _VerifiedSessionReportPageState extends State<VerifiedSessionReportPage> {
                       message: _friendlyLoadError(l10n, _error!),
                     ),
             )
-          : _buildReport(context, l10n, report),
+          : _buildCanonicalReport(context, l10n, report),
     );
   }
 
@@ -495,13 +519,6 @@ class _CertificateHeader extends StatelessWidget {
               fontWeight: FontWeight.w900,
             ),
           ),
-        const SizedBox(height: 10),
-        Text(
-          l10n.verifiedResultTitle,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w900,
-          ),
-        ),
       ],
     );
 
@@ -809,7 +826,7 @@ class _QuestionResultBlock extends StatelessWidget {
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ),
-                Text(l10n.sessionResponses(responses)),
+                Text(SessionPdfService.responseCountLabel(l10n, responses)),
               ],
             ),
             const SizedBox(height: 14),
@@ -834,7 +851,7 @@ class _QuestionResultBlock extends StatelessWidget {
                       children: [
                         Expanded(child: Text(label)),
                         Text(
-                          '${l10n.sessionResultVotes(votes)} · ${(ratio * 100).toStringAsFixed(1)}%',
+                          '${SessionPdfService.voteCountLabel(l10n, votes)} · ${(ratio * 100).toStringAsFixed(1)}%',
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                       ],

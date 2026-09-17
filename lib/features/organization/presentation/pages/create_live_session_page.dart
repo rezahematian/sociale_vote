@@ -5,6 +5,7 @@ import 'package:sociale_vote/domain/organization/repositories/organization_repos
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/anti_abuse_error_service.dart';
 import 'package:sociale_vote/shared/widgets/content_directionality.dart';
+import 'package:sociale_vote/shared/widgets/content_language_field.dart';
 
 class CreateLiveSessionPage extends StatefulWidget {
   final OrganizationRepository repository;
@@ -25,6 +26,7 @@ class _CreateLiveSessionPageState extends State<CreateLiveSessionPage> {
   LiveSessionResultsVisibility _visibility =
       LiveSessionResultsVisibility.afterClose;
   String _retention = '7d';
+  String? _reportLanguage;
   bool _saving = false;
 
   @override
@@ -40,6 +42,13 @@ class _CreateLiveSessionPageState extends State<CreateLiveSessionPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reportLanguage ??=
+        defaultContentLanguageCodeForLocale(Localizations.localeOf(context));
+  }
+
+  @override
   void dispose() {
     _title.removeListener(_refreshEditableDirection);
     _title.dispose();
@@ -50,6 +59,11 @@ class _CreateLiveSessionPageState extends State<CreateLiveSessionPage> {
   Future<void> _create() async {
     final l10n = AppLocalizations.of(context)!;
     final expected = int.tryParse(_expected.text.trim()) ?? 0;
+    final reportLanguage = normalizeContentLanguageCode(
+      _reportLanguage,
+      fallback:
+          defaultContentLanguageCodeForLocale(Localizations.localeOf(context)),
+    );
     if (_title.text.trim().isEmpty || expected < 1 || expected > 250) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.sessionPilotLimit)),
@@ -65,6 +79,7 @@ class _CreateLiveSessionPageState extends State<CreateLiveSessionPage> {
         resultsVisibility: _visibility,
         rawRetention: _retention,
         expectedParticipants: expected,
+        reportLanguage: reportLanguage,
       );
       if (!mounted) return;
       Navigator.of(context).pop(id);
@@ -247,6 +262,32 @@ class _CreateLiveSessionPageState extends State<CreateLiveSessionPage> {
                                 () => _retention = value ?? _retention,
                               ),
                     ),
+                    const SizedBox(height: 14),
+                    DropdownButtonFormField<String>(
+                      initialValue: _reportLanguage,
+                      decoration: InputDecoration(
+                        labelText: _reportLanguageLabel(l10n),
+                        helperText: _reportLanguageHelper(l10n),
+                        prefixIcon: const Icon(Icons.translate_rounded),
+                      ),
+                      items: supportedContentLanguages
+                          .map(
+                            (language) => DropdownMenuItem<String>(
+                              value: language.code,
+                              child: Text(
+                                '${language.label} · ${language.code.toUpperCase()}',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(growable: false),
+                      onChanged: _saving
+                          ? null
+                          : (value) => setState(
+                                () => _reportLanguage =
+                                    value ?? _reportLanguage,
+                              ),
+                    ),
                   ],
                 ),
               ),
@@ -277,6 +318,45 @@ class _CreateLiveSessionPageState extends State<CreateLiveSessionPage> {
         ),
       ),
     );
+  }
+
+  String _reportLanguageLabel(AppLocalizations l10n) {
+    return switch (l10n.localeName.split('_').first) {
+      'it' => 'Lingua del report',
+      'de' => 'Berichtssprache',
+      'fa' => 'زبان گزارش',
+      'es' => 'Idioma del informe',
+      'pt' => 'Idioma do relatório',
+      'fr' => 'Langue du rapport',
+      'ar' => 'لغة التقرير',
+      'ro' => 'Limba raportului',
+      'ru' => 'Язык отчёта',
+      'zh' => '报告语言',
+      _ => 'Report language',
+    };
+  }
+
+  String _reportLanguageHelper(AppLocalizations l10n) {
+    return switch (l10n.localeName.split('_').first) {
+      'it' =>
+        'Viene salvata nella Sessione e resta fissa nel Verified Result.',
+      'de' =>
+        'Wird mit der Session gespeichert und bleibt im Verified Result fest.',
+      'fa' => 'با Session ذخیره می‌شود و در Verified Result ثابت می‌ماند.',
+      'es' =>
+        'Se guarda con la Session y queda fijo en el Verified Result.',
+      'pt' =>
+        'É guardado com a Session e fica fixo no Verified Result.',
+      'fr' =>
+        'Enregistrée avec la Session et conservée dans le Verified Result.',
+      'ar' => 'تُحفظ مع Session وتبقى ثابتة في Verified Result.',
+      'ro' =>
+        'Se salvează cu Session și rămâne fixă în Verified Result.',
+      'ru' =>
+        'Сохраняется с Session и остаётся фиксированным в Verified Result.',
+      'zh' => '与 Session 一起保存，并在 Verified Result 中保持固定。',
+      _ => 'Saved with the Session and kept fixed in the Verified Result.',
+    };
   }
 
   String _visibilityLabel(

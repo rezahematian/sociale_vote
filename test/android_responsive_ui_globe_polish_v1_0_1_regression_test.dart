@@ -54,7 +54,8 @@ void main() {
     );
   });
 
-  test('public profile and Account organization actions are compact on mobile', () {
+  test('public profile and Account organization actions are compact on mobile',
+      () {
     final publicProfile = _read(
       'lib/features/profile/presentation/pages/public_user_profile_page.dart',
     );
@@ -62,10 +63,11 @@ void main() {
       'lib/features/profile/presentation/pages/my_profile_page.dart',
     );
 
-    expect(publicProfile, contains('final compact = constraints.maxWidth < 560'));
+    expect(
+        publicProfile, contains('final compact = constraints.maxWidth < 560'));
     expect(publicProfile, contains('compact: compact'));
     expect(publicProfile, contains('...actions'));
-    expect(publicProfile, contains('compact ? 36 : 40'));
+    expect(publicProfile, contains('compact ? 34 : 38'));
 
     expect(account, contains('margin: EdgeInsets.zero'));
     expect(account, contains('constraints.maxWidth >= 340'));
@@ -85,7 +87,9 @@ void main() {
     expect(source, contains('children: chips'));
   });
 
-  test('native bright Globe uses high resolution texture and faster gesture handoff', () {
+  test(
+      'native bright Globe uses high resolution texture and faster gesture handoff',
+      () {
     final source = _read(
       'lib/features/map/presentation/widgets/world_globe_widget.dart',
     );
@@ -100,7 +104,9 @@ void main() {
     expect(source, contains('_axisDominance = 1.08'));
   });
 
-  test('Web Globe preserves high-resolution appearance mapping and desktop renderer while improving touch', () {
+  test(
+      'Web Globe preserves high-resolution appearance mapping and desktop renderer while improving touch',
+      () {
     final source = _read('web/social_vote_globe.js');
     final webSurface = _read(
       'lib/features/map/presentation/widgets/web_world_globe_surface_web.dart',
@@ -110,14 +116,15 @@ void main() {
     // 2048 local fallback. The authoritative Web 4096 texture is supplied by
     // the Flutter Web surface; guard that contract instead of requiring the
     // 4096 filename to be duplicated in the JS implementation.
-    expect(source, contains('const configuredDay = this._appearance.textureUrl;'));
+    expect(
+        source, contains('const configuredDay = this._appearance.textureUrl;'));
     expect(
       GlobePresetVisual.forStyle(GlobeVisualStyle.bright).asset,
       'assets/globe/earth_day_nasa_bmng_august_4096.jpg',
       reason: 'Both renderers retain the high-resolution Earth source',
     );
-    expect(webSurface,
-        contains('GlobePresetVisual.forName(widget.visualStyle)'));
+    expect(
+        webSurface, contains('GlobePresetVisual.forName(widget.visualStyle)'));
     expect(
       source,
       contains('Math.min(window.devicePixelRatio || 1, 2.0)'),

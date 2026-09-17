@@ -110,6 +110,10 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
   final Map<String, List<CivicMapItem>> _markerGroupLookup =
       <String, List<CivicMapItem>>{};
 
+  BuildContext? _markerGroupModalContext;
+  int _markerGroupModalTicket = 0;
+  DateTime? _suppressMarkerGroupSurfaceTapUntil;
+
   @override
   void initState() {
     super.initState();
@@ -306,9 +310,18 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       final group = _markerGroupLookup[markerId];
       if (item != null) {
         if (group != null && group.length > 1) {
-          _showMarkerGroupPicker(group);
+          unawaited(_replaceMarkerGroupModal(group));
         } else {
-          widget.onMarkerTap(item);
+          final dismissedGroupPicker = _dismissMarkerGroupModal();
+          if (dismissedGroupPicker) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                widget.onMarkerTap(item);
+              }
+            });
+          } else {
+            widget.onMarkerTap(item);
+          }
         }
       }
     }).toJS;
@@ -319,6 +332,15 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       final longitude = _readDouble(detail?['longitude']);
 
       if (latitude == null || longitude == null) {
+        return;
+      }
+
+      final suppressUntil = _suppressMarkerGroupSurfaceTapUntil;
+      if (suppressUntil != null && DateTime.now().isBefore(suppressUntil)) {
+        return;
+      }
+
+      if (_dismissMarkerGroupModal()) {
         return;
       }
 
@@ -814,7 +836,64 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
     }
   }
 
-  Future<void> _showMarkerGroupPicker(List<CivicMapItem> items) async {
+  Future<void> _replaceMarkerGroupModal(List<CivicMapItem> items) async {
+    if (!mounted || items.isEmpty) {
+      return;
+    }
+
+    final ticket = ++_markerGroupModalTicket;
+    final existing = _markerGroupModalContext;
+
+    if (existing != null && existing.mounted) {
+      _markerGroupModalContext = null;
+      await Navigator.of(existing, rootNavigator: true).maybePop();
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    if (!mounted || ticket != _markerGroupModalTicket) {
+      return;
+    }
+
+    await _showMarkerGroupPicker(
+      items,
+      onSheetBuilt: (sheetContext) {
+        if (!mounted || ticket != _markerGroupModalTicket) {
+          return;
+        }
+        _markerGroupModalContext = sheetContext;
+      },
+    );
+
+    _suppressMarkerGroupSurfaceTapUntil =
+        DateTime.now().add(const Duration(milliseconds: 360));
+
+    if (!mounted || ticket != _markerGroupModalTicket) {
+      return;
+    }
+    _markerGroupModalContext = null;
+  }
+
+  bool _dismissMarkerGroupModal() {
+    final existing = _markerGroupModalContext;
+    if (existing == null || !existing.mounted) {
+      _markerGroupModalContext = null;
+      return false;
+    }
+
+    _markerGroupModalTicket += 1;
+    _markerGroupModalContext = null;
+    _suppressMarkerGroupSurfaceTapUntil =
+        DateTime.now().add(const Duration(milliseconds: 360));
+    unawaited(
+      Navigator.of(existing, rootNavigator: true).maybePop(),
+    );
+    return true;
+  }
+
+  Future<void> _showMarkerGroupPicker(
+    List<CivicMapItem> items, {
+    ValueChanged<BuildContext>? onSheetBuilt,
+  }) async {
     if (!mounted || items.isEmpty) {
       return;
     }
@@ -831,8 +910,10 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
 
     await showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       showDragHandle: true,
       builder: (sheetContext) {
+        onSheetBuilt?.call(sheetContext);
         return SafeArea(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 460),
@@ -882,7 +963,20 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
                         ),
                         trailing: const Icon(Icons.chevron_right_rounded),
                         onTap: () {
-                          Navigator.of(sheetContext).pop();
+                          if (identical(
+                            _markerGroupModalContext,
+                            sheetContext,
+                          )) {
+                            _markerGroupModalContext = null;
+                          }
+                          _suppressMarkerGroupSurfaceTapUntil =
+                              DateTime.now().add(
+                            const Duration(milliseconds: 360),
+                          );
+                          Navigator.of(
+                            sheetContext,
+                            rootNavigator: true,
+                          ).pop();
                           widget.onMarkerTap(item);
                         },
                       );

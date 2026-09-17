@@ -10,7 +10,7 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
   SupabaseClient get _client => AppSupabase.client;
 
   static const String _columns =
-      'id, status, language_code, title, what_happened, why_it_matters, '
+      'id, status, content_kind, language_code, title, what_happened, why_it_matters, '
       'what_is_uncertain, social_vote_view, source_urls, country_code, city_id, location_label, '
       'latitude, longitude, map_visible, featured, breaking, priority, '
       'published_at, expires_at, created_at, updated_at';
@@ -23,26 +23,16 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
     int limit = 50,
   }) async {
     try {
-      final requestedLanguage = _language(languageCode);
-      dynamic query =
-          _client.from(_table).select(_columns).eq('status', 'published');
-      if (requestedLanguage != null) {
-        query = query.eq('language_code', requestedLanguage);
-      }
-      final rows = await query
-          .order('featured', ascending: false)
-          .order('priority', ascending: false)
-          .order('published_at', ascending: false)
-          .limit(limit.clamp(1, 100).toInt());
-
+      final rows = await _client.rpc(
+        'world_brief_public_catalog_v3',
+        params: <String, dynamic>{
+          'p_language_code': _language(languageCode) ?? 'en',
+          'p_limit': limit.clamp(1, 100).toInt(),
+        },
+      );
       final requestedCountry = _country(countryCode);
       final requestedCity = _text(cityId)?.toLowerCase();
-
       return _briefsFromRows(rows).where((brief) {
-        if (requestedLanguage != null &&
-            brief.languageCode != requestedLanguage) {
-          return false;
-        }
         return _matchesScope(
           brief,
           countryCode: requestedCountry,
@@ -50,7 +40,7 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
         );
       }).toList(growable: false);
     } on PostgrestException catch (error) {
-      if (error.code == '42P01' || error.code == 'PGRST205') {
+      if (error.code == '42883' || error.code == 'PGRST202') {
         return const <WorldBrief>[];
       }
       rethrow;
@@ -58,22 +48,27 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
   }
 
   @override
-  Future<WorldBrief?> getPublishedById(String id) async {
+  Future<WorldBrief?> getPublishedById(
+    String id, {
+    String? languageCode,
+  }) async {
     final normalized = _text(id);
     if (normalized == null) return null;
-
     try {
-      final row = await _client
-          .from(_table)
-          .select(_columns)
-          .eq('id', normalized)
-          .eq('status', 'published')
-          .maybeSingle();
-      return row == null ? null : _fromRow(row);
-    } on PostgrestException catch (error) {
-      if (error.code == '42P01' || error.code == 'PGRST205') {
-        return null;
+      final row = await _client.rpc(
+        'world_brief_public_get_v3',
+        params: <String, dynamic>{
+          'p_id': normalized,
+          'p_language_code': _language(languageCode) ?? 'en',
+        },
+      );
+      if (row == null) return null;
+      if (row is Map) {
+        return _fromRow(Map<String, dynamic>.from(row));
       }
+      return null;
+    } on PostgrestException catch (error) {
+      if (error.code == '42883' || error.code == 'PGRST202') return null;
       rethrow;
     }
   }
@@ -103,10 +98,11 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
     final payload = <String, dynamic>{
       if (_text(draft.id) != null) 'id': _text(draft.id),
       'status': 'draft',
+      'content_kind': draft.contentKind.storageKey,
       'language_code': _language(draft.languageCode) ?? 'en',
       'title': draft.title.trim(),
-      'what_happened': draft.whatHappened.trim(),
-      'why_it_matters': draft.whyItMatters.trim(),
+      'what_happened': _text(draft.whatHappened),
+      'why_it_matters': _text(draft.whyItMatters),
       'what_is_uncertain': _text(draft.whatIsUncertain),
       'social_vote_view': _text(draft.socialVoteView),
       'source_urls': draft.sourceUrls
@@ -154,6 +150,58 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
     );
   }
 
+  @override
+  Future<List<WorldBriefTranslation>> listTranslationsForAdmin(
+    String briefId,
+  ) async {
+    final normalized = _text(briefId);
+    if (normalized == null) return const <WorldBriefTranslation>[];
+    final data = await _client.rpc(
+      'admin_world_brief_translation_list',
+      params: <String, dynamic>{'p_brief_id': normalized},
+    );
+    if (data is! List) return const <WorldBriefTranslation>[];
+    return data.whereType<Map>().map((row) {
+      return _translationFromRow(Map<String, dynamic>.from(row));
+    }).toList(growable: false);
+  }
+
+  @override
+  Future<WorldBriefTranslation> saveTranslation(
+    WorldBriefTranslationDraft draft,
+  ) async {
+    final data = await _client.rpc(
+      'admin_world_brief_translation_save',
+      params: <String, dynamic>{
+        'p_payload': <String, dynamic>{
+          'brief_id': draft.briefId,
+          'language_code': _language(draft.languageCode) ?? 'en',
+          'title': draft.title.trim(),
+          'what_happened': _text(draft.whatHappened),
+          'why_it_matters': _text(draft.whyItMatters),
+          'what_is_uncertain': _text(draft.whatIsUncertain),
+          'social_vote_view': _text(draft.socialVoteView),
+          'is_enabled': draft.isEnabled,
+        },
+      },
+    );
+    return _translationFromRow(_rpcRow(data));
+  }
+
+  @override
+  Future<void> deleteTranslation(String briefId, String languageCode) async {
+    final normalized = _text(briefId);
+    final language = _language(languageCode);
+    if (normalized == null || language == null) return;
+    await _client.rpc(
+      'admin_world_brief_translation_delete',
+      params: <String, dynamic>{
+        'p_brief_id': normalized,
+        'p_language_code': language,
+      },
+    );
+  }
+
   Future<WorldBrief> _setStatus(
     String id,
     WorldBriefStatus status,
@@ -196,6 +244,20 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
     throw StateError('Invalid World Brief backend response.');
   }
 
+  WorldBriefTranslation _translationFromRow(Map<String, dynamic> row) {
+    return WorldBriefTranslation(
+      briefId: _text(row['brief_id']) ?? '',
+      languageCode: _language(row['language_code']?.toString()) ?? 'en',
+      title: _text(row['title']) ?? '',
+      whatHappened: _text(row['what_happened']) ?? '',
+      whyItMatters: _text(row['why_it_matters']) ?? '',
+      whatIsUncertain: _text(row['what_is_uncertain']),
+      socialVoteView: _text(row['social_vote_view']),
+      isEnabled: row['is_enabled'] == true,
+      updatedAt: _date(row['updated_at']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+
   bool _matchesScope(
     WorldBrief brief, {
     required String? countryCode,
@@ -223,7 +285,11 @@ class WorldBriefRepositorySupabase implements WorldBriefRepository {
     return WorldBrief(
       id: _text(row['id']) ?? '',
       status: WorldBriefStatusX.fromStorageKey(_text(row['status'])),
+      contentKind: WorldBriefContentKindX.fromStorageKey(_text(row['content_kind'])),
       languageCode: _language(row['language_code']?.toString()) ?? 'en',
+      primaryLanguageCode: _language(row['primary_language_code']?.toString()) ??
+          _language(row['language_code']?.toString()) ??
+          'en',
       title: _text(row['title']) ?? '',
       whatHappened: _text(row['what_happened']) ?? '',
       whyItMatters: _text(row['why_it_matters']) ?? '',

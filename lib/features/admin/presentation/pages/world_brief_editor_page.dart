@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/di.dart';
+import 'package:sociale_vote/domain/admin/entities/admin_entities.dart';
 import 'package:sociale_vote/domain/content/news/entities/world_brief.dart';
 import 'package:sociale_vote/domain/content/news/repositories/world_brief_repository.dart';
 import 'package:sociale_vote/domain/geo/value_objects/content_location.dart';
@@ -81,6 +82,52 @@ class _WorldBriefEditorPageState extends State<WorldBriefEditorPage> {
     );
   }
 
+  Future<void> _openTranslations(WorldBrief brief) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _WorldBriefTranslationsDialog(
+        brief: brief,
+        repository: _repository,
+      ),
+    );
+  }
+
+  Future<void> _openRadio(WorldBrief brief) async {
+    try {
+      final tracks = await AppDI.instance.adminRepository.getRadioMondoTracks();
+      if (!mounted) return;
+      final linked = tracks
+          .where((track) => track.worldBriefId == brief.id)
+          .toList(growable: false)
+        ..sort((a, b) {
+          final liveOrder = (b.isLive ? 1 : 0).compareTo(a.isLive ? 1 : 0);
+          if (liveOrder != 0) return liveOrder;
+          final defaultOrder =
+              (b.isDefault ? 1 : 0).compareTo(a.isDefault ? 1 : 0);
+          if (defaultOrder != 0) return defaultOrder;
+          return a.sortOrder.compareTo(b.sortOrder);
+        });
+      await showDialog<void>(
+        context: context,
+        builder: (_) => _WorldBriefRadioDialog(
+          brief: brief,
+          tracks: linked,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      SocialVoteHud.showError(
+        _worldBriefV3Text(
+          context,
+          it: 'Radio Mondo non disponibile',
+          en: 'World Radio unavailable',
+        ),
+        detail: error.toString(),
+      );
+    }
+  }
+
   Future<bool> _saveDraftFromDialog(WorldBriefDraft draft) async {
     final l10n = AppLocalizations.of(context)!;
     if (_actionInProgress) return false;
@@ -133,13 +180,18 @@ class _WorldBriefEditorPageState extends State<WorldBriefEditorPage> {
                       ?.copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  '${l10n.worldBriefWhatHappened}: ${brief.whatHappened}',
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${l10n.worldBriefWhyItMatters}: ${brief.whyItMatters}',
-                ),
+                if (brief.whatHappened.trim().isNotEmpty) ...[
+                  Text(
+                    '${l10n.worldBriefWhatHappened}: ${brief.whatHappened.trim()}',
+                  ),
+                ],
+                if (brief.whyItMatters.trim().isNotEmpty) ...[
+                  if (brief.whatHappened.trim().isNotEmpty)
+                    const SizedBox(height: 8),
+                  Text(
+                    '${l10n.worldBriefWhyItMatters}: ${brief.whyItMatters.trim()}',
+                  ),
+                ],
                 if (brief.whatIsUncertain?.trim().isNotEmpty == true) ...[
                   const SizedBox(height: 8),
                   Text(
@@ -156,9 +208,17 @@ class _WorldBriefEditorPageState extends State<WorldBriefEditorPage> {
                 ],
                 const SizedBox(height: 12),
                 Text(
-                  l10n.worldBriefPublishConfirmSources(
-                    brief.sourceUrls.length,
-                  ),
+                  brief.contentKind.requiresIndependentSources
+                      ? l10n.worldBriefPublishConfirmSources(brief.sourceUrls.length)
+                      : _worldBriefV3Text(
+                          dialogContext,
+                          it: brief.sourceUrls.isEmpty
+                              ? 'Articolo originale Social Vote · fonti esterne facoltative'
+                              : 'Articolo originale Social Vote · ${brief.sourceUrls.length} fonti facoltative',
+                          en: brief.sourceUrls.isEmpty
+                              ? 'Social Vote original · external sources optional'
+                              : 'Social Vote original · ${brief.sourceUrls.length} optional sources',
+                        ),
                 ),
               ],
             ),
@@ -209,7 +269,7 @@ class _WorldBriefEditorPageState extends State<WorldBriefEditorPage> {
     if (validUris.length != brief.sourceUrls.length) {
       return l10n.worldBriefHttpsSourcesRequired;
     }
-    if (hosts.length < 2) {
+    if (brief.contentKind.requiresIndependentSources && hosts.length < 2) {
       return l10n.worldBriefIndependentSourcesRequired;
     }
     if (brief.mapVisible && !brief.hasMapPoint) {
@@ -380,6 +440,8 @@ class _WorldBriefEditorPageState extends State<WorldBriefEditorPage> {
           onPublish: () => _publish(brief),
           onWithdraw: () => _withdraw(brief),
           onDeleteDraft: () => _deleteDraft(brief),
+          onTranslations: () => _openTranslations(brief),
+          onRadio: () => _openRadio(brief),
         );
       },
     );
@@ -401,6 +463,8 @@ class _WorldBriefCard extends StatelessWidget {
   final VoidCallback onPublish;
   final VoidCallback onWithdraw;
   final VoidCallback onDeleteDraft;
+  final VoidCallback onTranslations;
+  final VoidCallback onRadio;
 
   const _WorldBriefCard({
     required this.brief,
@@ -409,6 +473,8 @@ class _WorldBriefCard extends StatelessWidget {
     required this.onPublish,
     required this.onWithdraw,
     required this.onDeleteDraft,
+    required this.onTranslations,
+    required this.onRadio,
   });
 
   @override
@@ -435,6 +501,19 @@ class _WorldBriefCard extends StatelessWidget {
               children: [
                 Chip(label: Text(statusLabel)),
                 Chip(label: Text(brief.languageCode.toUpperCase())),
+                Chip(
+                  avatar: Icon(
+                    brief.contentKind == WorldBriefContentKind.socialVoteOriginal
+                        ? Icons.edit_note_rounded
+                        : Icons.fact_check_outlined,
+                    size: 16,
+                  ),
+                  label: Text(
+                    brief.contentKind == WorldBriefContentKind.socialVoteOriginal
+                        ? _worldBriefV3Text(context, it: 'Originale Social Vote', en: 'Social Vote original')
+                        : _worldBriefV3Text(context, it: 'Brief con fonti', en: 'Sourced brief'),
+                  ),
+                ),
                 if (brief.featured)
                   Chip(
                     avatar: const Icon(Icons.star_rounded, size: 16),
@@ -458,17 +537,33 @@ class _WorldBriefCard extends StatelessWidget {
                   .titleLarge
                   ?.copyWith(fontWeight: FontWeight.w800),
             ),
-            const SizedBox(height: 6),
-            Text(
-              brief.whatHappened,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
+            if (brief.whatHappened.trim().isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                brief.whatHappened.trim(),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
+                OutlinedButton.icon(
+                  onPressed: actionInProgress ? null : onTranslations,
+                  icon: const Icon(Icons.translate_rounded),
+                  label: Text(_worldBriefV3Text(context, it: 'Lingue', en: 'Languages')),
+                ),
+                OutlinedButton.icon(
+                  onPressed: actionInProgress ? null : onRadio,
+                  icon: const Icon(Icons.radio_rounded),
+                  label: Text(_worldBriefV3Text(
+                    context,
+                    it: 'Radio',
+                    en: 'Radio',
+                  )),
+                ),
                 if (brief.status == WorldBriefStatus.draft) ...[
                   OutlinedButton.icon(
                     onPressed: actionInProgress ? null : onEdit,
@@ -501,6 +596,69 @@ class _WorldBriefCard extends StatelessWidget {
   }
 }
 
+class _WorldBriefRadioDialog extends StatelessWidget {
+  final WorldBrief brief;
+  final List<AdminRadioMondoTrack> tracks;
+
+  const _WorldBriefRadioDialog({
+    required this.brief,
+    required this.tracks,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(_worldBriefV3Text(
+        context,
+        it: 'Radio Mondo · ${brief.title}',
+        en: 'World Radio · ${brief.title}',
+      )),
+      content: SizedBox(
+        width: 680,
+        child: tracks.isEmpty
+            ? Text(_worldBriefV3Text(
+                context,
+                it: 'Nessun audio o live collegato. Vai in Admin Center → Radio Mondo e scegli questo World Brief per titolo nel campo “World Brief collegato”.',
+                en: 'No linked audio or live item. Open Admin Center → World Radio and choose this World Brief by title in the “Linked World Brief” field.',
+              ))
+            : ListView.separated(
+                shrinkWrap: true,
+                itemCount: tracks.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final track = tracks[index];
+                  final flags = <String>[
+                    track.channelType.storageKey.replaceAll('_', ' ').toUpperCase(),
+                    track.sourceType.storageKey.toUpperCase(),
+                    if (track.languageCode != null)
+                      track.languageCode!.toUpperCase(),
+                    if (track.isDefault) 'DEFAULT',
+                    if (track.isLive) 'LIVE',
+                    if (!track.isEnabled) 'OFF',
+                  ];
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      track.isLive
+                          ? Icons.podcasts_rounded
+                          : Icons.radio_rounded,
+                    ),
+                    title: Text(track.title),
+                    subtitle: Text(flags.join(' · ')),
+                  );
+                },
+              ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(MaterialLocalizations.of(context).closeButtonLabel),
+        ),
+      ],
+    );
+  }
+}
+
 enum _WorldBriefPlacementMode {
   city,
   country,
@@ -529,6 +687,7 @@ class _WorldBriefFormDialogState extends State<_WorldBriefFormDialog> {
   late final TextEditingController _sources;
   late final TextEditingController _city;
   late String _language;
+  late WorldBriefContentKind _contentKind;
   String? _countryCode;
   late _WorldBriefPlacementMode _placementMode;
   late bool _mapVisible;
@@ -563,6 +722,7 @@ class _WorldBriefFormDialogState extends State<_WorldBriefFormDialog> {
       controller.addListener(_refreshEditableDirection);
     }
     _language = brief?.languageCode ?? 'it';
+    _contentKind = brief?.contentKind ?? WorldBriefContentKind.reported;
     _countryCode = brief?.countryCode;
     _placementMode = brief?.cityId?.trim().isNotEmpty == true
         ? _WorldBriefPlacementMode.city
@@ -709,13 +869,13 @@ class _WorldBriefFormDialogState extends State<_WorldBriefFormDialog> {
                           maxLines: 2,
                         ),
                         const SizedBox(height: 14),
-                        _requiredField(
+                        _optionalField(
                           _whatHappened,
                           l10n.worldBriefWhatHappened,
                           maxLines: 6,
                         ),
                         const SizedBox(height: 14),
-                        _requiredField(
+                        _optionalField(
                           _whyItMatters,
                           l10n.worldBriefWhyItMatters,
                           maxLines: 6,
@@ -763,9 +923,43 @@ class _WorldBriefFormDialogState extends State<_WorldBriefFormDialog> {
                   const SizedBox(height: 16),
                   _sectionCard(
                     context,
+                    icon: Icons.article_outlined,
+                    title: _worldBriefV3Text(context, it: 'Tipo di contenuto', en: 'Content type'),
+                    subtitle: _worldBriefV3Text(
+                      context,
+                      it: 'Scegli se il contenuto riporta fatti da fonti esterne oppure è un articolo originale prodotto da Social Vote.',
+                      en: 'Choose whether this reports externally sourced facts or is original content produced by Social Vote.',
+                    ),
+                    child: DropdownButtonFormField<WorldBriefContentKind>(
+                      initialValue: _contentKind,
+                      decoration: const InputDecoration(border: OutlineInputBorder()),
+                      items: [
+                        DropdownMenuItem(
+                          value: WorldBriefContentKind.reported,
+                          child: Text(_worldBriefV3Text(context, it: 'Brief con fonti', en: 'Sourced brief')),
+                        ),
+                        DropdownMenuItem(
+                          value: WorldBriefContentKind.socialVoteOriginal,
+                          child: Text(_worldBriefV3Text(context, it: 'Originale Social Vote', en: 'Social Vote original')),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) setState(() => _contentKind = value);
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _sectionCard(
+                    context,
                     icon: Icons.fact_check_outlined,
                     title: l10n.worldBriefSourcesSection,
-                    subtitle: l10n.worldBriefSourcesSectionHelp,
+                    subtitle: _contentKind.requiresIndependentSources
+                        ? l10n.worldBriefSourcesSectionHelp
+                        : _worldBriefV3Text(
+                            context,
+                            it: 'Per un Originale Social Vote le fonti esterne sono facoltative. Se le aggiungi devono essere URL HTTPS validi.',
+                            en: 'External sources are optional for a Social Vote original. If provided, they must be valid HTTPS URLs.',
+                          ),
                     child: TextFormField(
                       controller: _sources,
                       textDirection: TextDirection.ltr,
@@ -773,7 +967,9 @@ class _WorldBriefFormDialogState extends State<_WorldBriefFormDialog> {
                       maxLines: 6,
                       decoration: InputDecoration(
                         labelText: l10n.worldBriefSources,
-                        helperText: l10n.worldBriefSourcesHint,
+                        helperText: _contentKind.requiresIndependentSources
+                            ? l10n.worldBriefSourcesHint
+                            : _worldBriefV3Text(context, it: 'Facoltative per Originale Social Vote', en: 'Optional for Social Vote original'),
                         border: const OutlineInputBorder(),
                         alignLabelWithHint: true,
                       ),
@@ -1275,6 +1471,30 @@ class _WorldBriefFormDialogState extends State<_WorldBriefFormDialog> {
     );
   }
 
+  Widget _optionalField(
+    TextEditingController controller,
+    String label, {
+    required int maxLines,
+  }) {
+    return TextFormField(
+      controller: controller,
+      textDirection: socialVoteEditableTextDirection(
+        context,
+        controller.text,
+      ),
+      textAlign: socialVoteEditableTextAlign(
+        context,
+        controller.text,
+      ),
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        alignLabelWithHint: maxLines > 1,
+      ),
+    );
+  }
+
   List<String> _sourceUrls(String? value) {
     return (value ?? '')
         .split(RegExp(r'[\r\n]+'))
@@ -1363,6 +1583,7 @@ class _WorldBriefFormDialogState extends State<_WorldBriefFormDialog> {
 
     final draft = WorldBriefDraft(
       id: widget.brief?.id,
+      contentKind: _contentKind,
       languageCode: _language,
       title: _title.text,
       whatHappened: _whatHappened.text,
@@ -1393,6 +1614,335 @@ class _WorldBriefFormDialogState extends State<_WorldBriefFormDialog> {
       return;
     }
     setState(() => _isSaving = false);
+  }
+}
+
+const _worldBriefV3Languages = <String>['en', 'it', 'de', 'fa', 'es', 'pt', 'fr', 'ar', 'ro', 'ru', 'zh'];
+
+String _worldBriefV3Text(
+  BuildContext context, {
+  required String it,
+  required String en,
+}) {
+  return Localizations.localeOf(context).languageCode.toLowerCase() == 'it' ? it : en;
+}
+
+class _WorldBriefTranslationsDialog extends StatefulWidget {
+  final WorldBrief brief;
+  final WorldBriefRepository repository;
+
+  const _WorldBriefTranslationsDialog({
+    required this.brief,
+    required this.repository,
+  });
+
+  @override
+  State<_WorldBriefTranslationsDialog> createState() =>
+      _WorldBriefTranslationsDialogState();
+}
+
+class _WorldBriefTranslationsDialogState
+    extends State<_WorldBriefTranslationsDialog> {
+  List<WorldBriefTranslation> _items = const <WorldBriefTranslation>[];
+  bool _loading = true;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final items = await widget.repository
+          .listTranslationsForAdmin(widget.brief.id);
+      if (!mounted) return;
+      setState(() {
+        _items = items;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      SocialVoteHud.showError('World Brief translations', detail: error.toString());
+    }
+  }
+
+  WorldBriefTranslation? _forLanguage(String code) {
+    for (final item in _items) {
+      if (item.languageCode == code) return item;
+    }
+    return null;
+  }
+
+  Future<void> _edit(String languageCode) async {
+    final existing = _forLanguage(languageCode);
+    final draft = await showDialog<WorldBriefTranslationDraft>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _WorldBriefTranslationFormDialog(
+        brief: widget.brief,
+        languageCode: languageCode,
+        existing: existing,
+      ),
+    );
+    if (!mounted || draft == null) return;
+    setState(() => _saving = true);
+    try {
+      await widget.repository.saveTranslation(draft);
+      await _load();
+    } catch (error) {
+      if (!mounted) return;
+      SocialVoteHud.showError('World Brief translation', detail: error.toString());
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _delete(WorldBriefTranslation item) async {
+    setState(() => _saving = true);
+    try {
+      await widget.repository.deleteTranslation(
+        widget.brief.id,
+        item.languageCode,
+      );
+      await _load();
+    } catch (error) {
+      if (!mounted) return;
+      SocialVoteHud.showError('World Brief translation', detail: error.toString());
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final languages = _worldBriefV3Languages
+        .where((code) => code != widget.brief.primaryLanguageCode)
+        .toList(growable: false);
+    return AlertDialog(
+      title: Text(_worldBriefV3Text(
+        context,
+        it: 'Versioni linguistiche',
+        en: 'Language versions',
+      )),
+      content: SizedBox(
+        width: 720,
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      _worldBriefV3Text(
+                        context,
+                        it: 'Lingua principale: ${widget.brief.primaryLanguageCode.toUpperCase()}. Aggiungi solo le lingue che vuoi pubblicare; le altre useranno la lingua principale.',
+                        en: 'Primary language: ${widget.brief.primaryLanguageCode.toUpperCase()}. Add only the languages you want to publish; the others fall back to the primary language.',
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    for (final code in languages)
+                      Builder(builder: (context) {
+                        final item = _forLanguage(code);
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: CircleAvatar(child: Text(code.toUpperCase())),
+                          title: Text(code.toUpperCase()),
+                          subtitle: Text(
+                            item == null
+                                ? _worldBriefV3Text(context, it: 'Non aggiunta', en: 'Not added')
+                                : item.isEnabled
+                                    ? _worldBriefV3Text(context, it: 'Attiva', en: 'Active')
+                                    : _worldBriefV3Text(context, it: 'Salvata ma nascosta', en: 'Saved but hidden'),
+                          ),
+                          trailing: Wrap(
+                            spacing: 4,
+                            children: [
+                              IconButton(
+                                tooltip: _worldBriefV3Text(context, it: 'Modifica', en: 'Edit'),
+                                onPressed: _saving ? null : () => _edit(code),
+                                icon: Icon(item == null ? Icons.add_rounded : Icons.edit_outlined),
+                              ),
+                              if (item != null)
+                                IconButton(
+                                  tooltip: _worldBriefV3Text(context, it: 'Elimina', en: 'Delete'),
+                                  onPressed: _saving ? null : () => _delete(item),
+                                  icon: const Icon(Icons.delete_outline_rounded),
+                                ),
+                            ],
+                          ),
+                        );
+                      }),
+                  ],
+                ),
+              ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.of(context).pop(),
+          child: Text(MaterialLocalizations.of(context).closeButtonLabel),
+        ),
+      ],
+    );
+  }
+}
+
+class _WorldBriefTranslationFormDialog extends StatefulWidget {
+  final WorldBrief brief;
+  final String languageCode;
+  final WorldBriefTranslation? existing;
+
+  const _WorldBriefTranslationFormDialog({
+    required this.brief,
+    required this.languageCode,
+    required this.existing,
+  });
+
+  @override
+  State<_WorldBriefTranslationFormDialog> createState() =>
+      _WorldBriefTranslationFormDialogState();
+}
+
+class _WorldBriefTranslationFormDialogState
+    extends State<_WorldBriefTranslationFormDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _title;
+  late final TextEditingController _what;
+  late final TextEditingController _why;
+  late final TextEditingController _uncertain;
+  late final TextEditingController _view;
+  late bool _enabled;
+
+  @override
+  void initState() {
+    super.initState();
+    final item = widget.existing;
+    _title = TextEditingController(text: item?.title);
+    _what = TextEditingController(text: item?.whatHappened);
+    _why = TextEditingController(text: item?.whyItMatters);
+    _uncertain = TextEditingController(text: item?.whatIsUncertain);
+    _view = TextEditingController(text: item?.socialVoteView);
+    _enabled = item?.isEnabled ?? true;
+  }
+
+  @override
+  void dispose() {
+    _title.dispose();
+    _what.dispose();
+    _why.dispose();
+    _uncertain.dispose();
+    _view.dispose();
+    super.dispose();
+  }
+
+  String? _required(String? value) => value == null || value.trim().isEmpty
+      ? _worldBriefV3Text(context, it: 'Campo obbligatorio', en: 'Required field')
+      : null;
+
+  void _submit() {
+    if (_formKey.currentState?.validate() != true) return;
+    Navigator.of(context).pop(
+      WorldBriefTranslationDraft(
+        briefId: widget.brief.id,
+        languageCode: widget.languageCode,
+        title: _title.text,
+        whatHappened: _what.text,
+        whyItMatters: _why.text,
+        whatIsUncertain: _uncertain.text,
+        socialVoteView: _view.text,
+        isEnabled: _enabled,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('${widget.languageCode.toUpperCase()} · ${widget.brief.title}'),
+      content: SizedBox(
+        width: 700,
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _title,
+                  maxLength: 240,
+                  decoration: const InputDecoration(
+                    labelText: 'Title',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: _required,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _what,
+                  maxLines: 6,
+                  decoration: const InputDecoration(
+                    labelText: 'What happened',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _why,
+                  maxLines: 6,
+                  decoration: const InputDecoration(
+                    labelText: 'Why it matters',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _uncertain,
+                  maxLines: 5,
+                  decoration: const InputDecoration(
+                    labelText: 'What is still uncertain',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _view,
+                  maxLines: 5,
+                  decoration: const InputDecoration(
+                    labelText: 'Social Vote view',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  value: _enabled,
+                  onChanged: (value) => setState(() => _enabled = value),
+                  title: Text(_worldBriefV3Text(
+                    context,
+                    it: 'Versione attiva',
+                    en: 'Version active',
+                  )),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+        ),
+        FilledButton.icon(
+          onPressed: _submit,
+          icon: const Icon(Icons.save_outlined),
+          label: Text(_worldBriefV3Text(context, it: 'Salva', en: 'Save')),
+        ),
+      ],
+    );
   }
 }
 

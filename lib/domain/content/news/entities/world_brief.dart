@@ -16,10 +16,30 @@ extension WorldBriefStatusX on WorldBriefStatus {
   }
 }
 
+enum WorldBriefContentKind { reported, socialVoteOriginal }
+
+extension WorldBriefContentKindX on WorldBriefContentKind {
+  String get storageKey => switch (this) {
+        WorldBriefContentKind.reported => 'reported',
+        WorldBriefContentKind.socialVoteOriginal => 'social_vote_original',
+      };
+
+  bool get requiresIndependentSources => this == WorldBriefContentKind.reported;
+
+  static WorldBriefContentKind fromStorageKey(String? value) {
+    return switch (value?.trim().toLowerCase()) {
+      'social_vote_original' => WorldBriefContentKind.socialVoteOriginal,
+      _ => WorldBriefContentKind.reported,
+    };
+  }
+}
+
 class WorldBrief {
   final String id;
   final WorldBriefStatus status;
+  final WorldBriefContentKind contentKind;
   final String languageCode;
+  final String primaryLanguageCode;
   final String title;
   final String whatHappened;
   final String whyItMatters;
@@ -43,7 +63,9 @@ class WorldBrief {
   const WorldBrief({
     required this.id,
     required this.status,
+    required this.contentKind,
     required this.languageCode,
+    required this.primaryLanguageCode,
     required this.title,
     required this.whatHappened,
     required this.whyItMatters,
@@ -66,10 +88,12 @@ class WorldBrief {
   });
 
   bool get hasMapPoint => latitude != null && longitude != null;
+  bool get usesTranslatedContent => languageCode != primaryLanguageCode;
 }
 
 class WorldBriefDraft {
   final String? id;
+  final WorldBriefContentKind contentKind;
   final String languageCode;
   final String title;
   final String whatHappened;
@@ -90,6 +114,7 @@ class WorldBriefDraft {
 
   const WorldBriefDraft({
     this.id,
+    required this.contentKind,
     required this.languageCode,
     required this.title,
     required this.whatHappened,
@@ -107,5 +132,51 @@ class WorldBriefDraft {
     required this.breaking,
     required this.priority,
     required this.expiresAt,
+  });
+}
+
+class WorldBriefTranslation {
+  final String briefId;
+  final String languageCode;
+  final String title;
+  final String whatHappened;
+  final String whyItMatters;
+  final String? whatIsUncertain;
+  final String? socialVoteView;
+  final bool isEnabled;
+  final DateTime updatedAt;
+
+  const WorldBriefTranslation({
+    required this.briefId,
+    required this.languageCode,
+    required this.title,
+    required this.whatHappened,
+    required this.whyItMatters,
+    required this.whatIsUncertain,
+    required this.socialVoteView,
+    required this.isEnabled,
+    required this.updatedAt,
+  });
+}
+
+class WorldBriefTranslationDraft {
+  final String briefId;
+  final String languageCode;
+  final String title;
+  final String whatHappened;
+  final String whyItMatters;
+  final String? whatIsUncertain;
+  final String? socialVoteView;
+  final bool isEnabled;
+
+  const WorldBriefTranslationDraft({
+    required this.briefId,
+    required this.languageCode,
+    required this.title,
+    required this.whatHappened,
+    required this.whyItMatters,
+    required this.whatIsUncertain,
+    required this.socialVoteView,
+    required this.isEnabled,
   });
 }

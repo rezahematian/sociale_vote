@@ -6,6 +6,28 @@ import 'package:flutter/widgets.dart';
 
 import 'package:sociale_vote/core/supabase/supabase_client.dart';
 
+enum RadioMondoSourceType { audio, stream }
+
+extension RadioMondoSourceTypeX on RadioMondoSourceType {
+  static RadioMondoSourceType fromStorageKey(String? value) =>
+      value?.trim().toLowerCase() == 'stream'
+          ? RadioMondoSourceType.stream
+          : RadioMondoSourceType.audio;
+}
+
+enum RadioMondoChannelType { worldLive, nature, worldBrief, liveEvent, special }
+
+extension RadioMondoChannelTypeX on RadioMondoChannelType {
+  static RadioMondoChannelType fromStorageKey(String? value) =>
+      switch (value?.trim().toLowerCase()) {
+        'nature' => RadioMondoChannelType.nature,
+        'world_brief' => RadioMondoChannelType.worldBrief,
+        'live_event' => RadioMondoChannelType.liveEvent,
+        'special' => RadioMondoChannelType.special,
+        _ => RadioMondoChannelType.worldLive,
+      };
+}
+
 enum RadioMondoTrack { classicalOrbit, worldRain, youngPulse }
 
 extension RadioMondoTrackX on RadioMondoTrack {
@@ -24,6 +46,12 @@ class RadioMondoStation {
   final String? audioUrl;
   final String? attribution;
   final String? licenseUrl;
+  final RadioMondoSourceType sourceType;
+  final RadioMondoChannelType channelType;
+  final String? languageCode;
+  final String? worldBriefId;
+  final bool isDefault;
+  final bool isLive;
 
   const RadioMondoStation({
     required this.id,
@@ -33,6 +61,12 @@ class RadioMondoStation {
     this.audioUrl,
     this.attribution,
     this.licenseUrl,
+    this.sourceType = RadioMondoSourceType.audio,
+    this.channelType = RadioMondoChannelType.worldLive,
+    this.languageCode,
+    this.worldBriefId,
+    this.isDefault = false,
+    this.isLive = false,
   }) : assert(builtInTrack != null || audioUrl != null);
 
   bool get isBuiltIn => builtInTrack != null;
@@ -133,6 +167,16 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
               audioUrl: audioUrl,
               attribution: _nullable(row['attribution']),
               licenseUrl: _nullable(row['license_url']),
+              sourceType: RadioMondoSourceTypeX.fromStorageKey(
+                _nullable(row['source_type']),
+              ),
+              channelType: RadioMondoChannelTypeX.fromStorageKey(
+                _nullable(row['channel_type']),
+              ),
+              languageCode: _nullable(row['language_code']),
+              worldBriefId: _nullable(row['world_brief_id']),
+              isDefault: row['is_default'] == true,
+              isLive: row['is_live'] == true,
             ),
           );
         }
@@ -141,6 +185,11 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
       final nextStations = <RadioMondoStation>[
         ...remoteStations,
       ]..sort((a, b) {
+          final liveOrder = (b.isLive ? 1 : 0).compareTo(a.isLive ? 1 : 0);
+          if (liveOrder != 0) return liveOrder;
+          final defaultOrder =
+              (b.isDefault ? 1 : 0).compareTo(a.isDefault ? 1 : 0);
+          if (defaultOrder != 0) return defaultOrder;
           final order = a.sortOrder.compareTo(b.sortOrder);
           if (order != 0) return order;
           return a.id.compareTo(b.id);
@@ -154,11 +203,18 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
           currentId == null ? null : _findById(nextStations, currentId);
 
       _stations = nextStations;
+      RadioMondoStation? defaultStation;
+      for (final station in nextStations) {
+        if (station.isDefault) {
+          defaultStation = station;
+          break;
+        }
+      }
       _selectedStation = nextStations.isEmpty
           ? null
           : (_selectionExplicit
-              ? (selectedMatch ?? nextStations.first)
-              : nextStations.first);
+              ? (selectedMatch ?? defaultStation ?? nextStations.first)
+              : (defaultStation ?? nextStations.first));
 
       if (_currentStation != null && currentMatch == null) {
         await stop();
@@ -223,7 +279,11 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
       _selectedStation = station;
       _selectionExplicit = true;
       await _player.stop();
-      await _player.setReleaseMode(ReleaseMode.loop);
+      await _player.setReleaseMode(
+        station.sourceType == RadioMondoSourceType.stream
+            ? ReleaseMode.stop
+            : ReleaseMode.loop,
+      );
       await _player.setVolume(_volume);
       final builtInTrack = station.builtInTrack;
       if (builtInTrack != null) {

@@ -616,11 +616,17 @@ class AdminRepositoryImpl implements AdminRepository {
     required bool isEnabled,
     required String attribution,
     String? licenseUrl,
+    required AdminRadioMondoSourceType sourceType,
+    required AdminRadioMondoChannelType channelType,
+    String? languageCode,
+    String? worldBriefId,
+    required bool isDefault,
+    required bool isLive,
     required bool rightsConfirmed,
     required String reason,
   }) async {
     final raw = await _client.rpc(
-      'admin_radio_mondo_upsert',
+      'admin_radio_mondo_upsert_v3',
       params: <String, dynamic>{
         'p_track_id': _nullableString(trackId),
         'p_title': title.trim(),
@@ -629,12 +635,18 @@ class AdminRepositoryImpl implements AdminRepository {
         'p_is_enabled': isEnabled,
         'p_attribution': attribution.trim(),
         'p_license_url': _nullableString(licenseUrl),
+        'p_source_type': sourceType.storageKey,
+        'p_channel_type': channelType.storageKey,
+        'p_language_code': _nullableString(languageCode),
+        'p_world_brief_id': _nullableString(worldBriefId),
+        'p_is_default': isDefault,
+        'p_is_live': isLive,
         'p_rights_confirmed': rightsConfirmed,
         'p_reason': reason.trim(),
       },
     );
     return _mapRadioMondoTrack(
-      _asObject(raw, context: 'admin_radio_mondo_upsert'),
+      _asObject(raw, context: 'admin_radio_mondo_upsert_v3'),
     );
   }
 
@@ -679,6 +691,20 @@ class AdminRepositoryImpl implements AdminRepository {
       isEnabled: _readRequiredBool(row, 'is_enabled'),
       attribution: _readRequiredString(row, 'attribution'),
       licenseUrl: _readOptionalString(row, 'license_url'),
+      sourceType: AdminRadioMondoSourceTypeX.fromStorageKey(
+        _readOptionalString(row, 'source_type'),
+      ),
+      channelType: AdminRadioMondoChannelTypeX.fromStorageKey(
+        _readOptionalString(row, 'channel_type'),
+      ),
+      languageCode: _readOptionalString(row, 'language_code'),
+      worldBriefId: _readOptionalString(row, 'world_brief_id'),
+      isDefault: row.containsKey('is_default')
+          ? _readRequiredBool(row, 'is_default')
+          : false,
+      isLive: row.containsKey('is_live')
+          ? _readRequiredBool(row, 'is_live')
+          : false,
       createdAt: _readRequiredDateTime(row, 'created_at'),
       updatedAt: _readRequiredDateTime(row, 'updated_at'),
     );

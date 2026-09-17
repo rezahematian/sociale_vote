@@ -45,6 +45,83 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
   final ScrollController _scrollController = ScrollController();
 
   GeoScope? _lastScope;
+  bool _worldBriefSevenDaysOnly = false;
+
+  List<NewsItem> _visibleNews(List<NewsItem> allNews) {
+    if (!_worldBriefSevenDaysOnly) return allNews;
+    final cutoff = DateTime.now().subtract(const Duration(days: 7));
+    final items = allNews
+        .where(
+          (item) =>
+              item.worldBrief != null && !item.publishedAt.isBefore(cutoff),
+        )
+        .toList(growable: false);
+    final sorted = List<NewsItem>.of(items)
+      ..sort((a, b) {
+        final breaking =
+            (b.isBreaking ? 1 : 0).compareTo(a.isBreaking ? 1 : 0);
+        if (breaking != 0) return breaking;
+        final featured = (b.editorialFeatured ? 1 : 0)
+            .compareTo(a.editorialFeatured ? 1 : 0);
+        if (featured != 0) return featured;
+        final priority = b.editorialPriority.compareTo(a.editorialPriority);
+        if (priority != 0) return priority;
+        return b.publishedAt.compareTo(a.publishedAt);
+      });
+    return sorted;
+  }
+
+  String _worldBriefSevenDaysLabel(BuildContext context) {
+    return switch (Localizations.localeOf(context).languageCode.toLowerCase()) {
+      'it' => 'World Brief · 7 giorni',
+      'de' => 'World Brief · 7 Tage',
+      'fa' => 'World Brief · ۷ روز',
+      'es' => 'World Brief · 7 días',
+      'pt' => 'World Brief · 7 dias',
+      'fr' => 'World Brief · 7 jours',
+      'ar' => 'World Brief · ٧ أيام',
+      'ro' => 'World Brief · 7 zile',
+      'ru' => 'World Brief · 7 дней',
+      'zh' => 'World Brief · 7 天',
+      _ => 'World Brief · 7 days',
+    };
+  }
+
+  String _worldBriefSevenDaysEmpty(BuildContext context) {
+    return switch (Localizations.localeOf(context).languageCode.toLowerCase()) {
+      'it' => 'Nessun World Brief pubblicato negli ultimi 7 giorni per questo ambito.',
+      'de' => 'Keine World Briefs in den letzten 7 Tagen für diesen Bereich.',
+      'fa' => 'در ۷ روز گذشته World Briefی برای این محدوده منتشر نشده است.',
+      'es' => 'No hay World Briefs publicados en los últimos 7 días para este ámbito.',
+      'pt' => 'Nenhum World Brief foi publicado nos últimos 7 dias para este âmbito.',
+      'fr' => 'Aucun World Brief publié ces 7 derniers jours pour ce périmètre.',
+      'ar' => 'لا توجد World Briefs منشورة خلال آخر ٧ أيام لهذا النطاق.',
+      'ro' => 'Niciun World Brief publicat în ultimele 7 zile pentru acest domeniu.',
+      'ru' => 'За последние 7 дней для этой области World Brief не опубликованы.',
+      'zh' => '此范围在过去 7 天内没有发布 World Brief。',
+      _ => 'No World Briefs were published in the last 7 days for this scope.',
+    };
+  }
+
+  Widget _buildWorldBriefSevenDaysToggle(BuildContext context) {
+    final theme = Theme.of(context);
+    final selected = _worldBriefSevenDaysOnly;
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: FilterChip(
+        selected: selected,
+        avatar: Icon(
+          Icons.public_rounded,
+          size: 18,
+          color: selected ? theme.colorScheme.primary : null,
+        ),
+        label: Text(_worldBriefSevenDaysLabel(context)),
+        onSelected: (value) {
+          setState(() => _worldBriefSevenDaysOnly = value);
+        },
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -63,6 +140,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
   }
 
   void _onScroll() {
+    if (_worldBriefSevenDaysOnly) return;
     final controller = context.read<NewsController>();
     if (controller.isLoading) return;
     if (!_scrollController.hasClients) return;
@@ -271,6 +349,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                 final currentUserId = AppDI.instance.currentUserId;
 
                 final allNews = controller.news;
+                final visibleNews = _visibleNews(allNews);
 
                 if (controller.isLoading && allNews.isEmpty) {
                   return const Center(
@@ -314,7 +393,12 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                             },
                           ),
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: _buildWorldBriefSevenDaysToggle(context),
+                        ),
+                        const SizedBox(height: 10),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           child: _buildTopicChips(context, controller),
@@ -334,7 +418,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                   child: ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                    itemCount: allNews.length + 2,
+                    itemCount: visibleNews.length + 2,
                     itemBuilder: (context, index) {
                       if (index == 0) {
                         return Column(
@@ -346,7 +430,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                                 context,
                                 scopeLabel: scopeLabel,
                                 scopeDescription: scopeDescription,
-                                newsCount: allNews.length,
+                                newsCount: visibleNews.length,
                                 canChangeLanguage: true,
                                 selectedLanguage: controller.selectedLanguage,
                                 onLanguageSelected: (lang) {
@@ -357,7 +441,13 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                                 },
                               ),
                             ),
-                            const SizedBox(height: 14),
+                            const SizedBox(height: 12),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 2),
+                              child: _buildWorldBriefSevenDaysToggle(context),
+                            ),
+                            const SizedBox(height: 10),
                             Padding(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 2),
@@ -368,7 +458,21 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                         );
                       }
 
-                      if (index == allNews.length + 1) {
+                      if (index == visibleNews.length + 1) {
+                        if (_worldBriefSevenDaysOnly && visibleNews.isEmpty) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            child: AppCard(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Text(
+                                  _worldBriefSevenDaysEmpty(context),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
                         if (controller.isLoading && allNews.isNotEmpty) {
                           return const Padding(
                             padding: EdgeInsets.symmetric(vertical: 12),
@@ -397,7 +501,7 @@ class _NewsFeedViewState extends State<_NewsFeedView> {
                         return const SizedBox.shrink();
                       }
 
-                      final news = allNews[index - 1];
+                      final news = visibleNews[index - 1];
                       return _NewsCard(news: news);
                     },
                   ),

@@ -10,6 +10,8 @@ import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/domain/common/value_objects/target_ref.dart';
 import 'package:sociale_vote/domain/content/news/entities/news_item.dart';
 import 'package:sociale_vote/domain/content/news/entities/world_brief.dart';
+import 'package:sociale_vote/domain/engagement/entities/reaction_summary.dart';
+import 'package:sociale_vote/domain/engagement/value_objects/reaction_type.dart';
 import 'package:sociale_vote/domain/moderation/entities/report.dart';
 import 'package:sociale_vote/domain/moderation/repositories/moderation_repository.dart';
 import 'package:sociale_vote/features/discussion/application/discussion_controller.dart';
@@ -54,6 +56,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
   bool _isFavorite = false;
   bool _favoriteLoading = false;
   int _commentCount = 0;
+  ReactionSummary? _standaloneReactionSummary;
   String? _initializedNewsId;
 
   @override
@@ -79,6 +82,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     _initializedNewsId = widget.news.id.value;
     _initFavoriteStatus();
     _loadCommentCount();
+    _loadStandaloneEngagement();
   }
 
   Future<void> _initFavoriteStatus() async {
@@ -121,6 +125,53 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
       setState(() {
         _commentCount = 0;
       });
+    }
+  }
+
+  Future<void> _loadStandaloneEngagement() async {
+    if (widget.news.worldBrief == null) return;
+
+    final newsId = widget.news.id.value;
+    try {
+      final summaries = await AppDI.instance.getReactionSummary(
+        [TargetRef.news(newsId)],
+        userId: AppDI.instance.currentUserId,
+      );
+      if (!mounted || widget.news.id.value != newsId) return;
+      setState(() {
+        _standaloneReactionSummary = summaries.isEmpty ? null : summaries.first;
+      });
+    } catch (_) {
+      if (!mounted || widget.news.id.value != newsId) return;
+      setState(() {
+        _standaloneReactionSummary = null;
+      });
+    }
+  }
+
+  Future<void> _toggleStandaloneReaction(ReactionType type) async {
+    final allowed = await AuthGuard.ensureCanPerformAction(
+      context,
+      ParticipationAction.react,
+    );
+    if (!allowed || !mounted) return;
+
+    final userId = AppDI.instance.currentUserId;
+    if (userId == null || userId.isEmpty) return;
+
+    final newsId = widget.news.id.value;
+    try {
+      final summary = await AppDI.instance.toggleReaction(
+        userId: userId,
+        target: TargetRef.news(newsId),
+        type: type,
+      );
+      if (!mounted || widget.news.id.value != newsId) return;
+      setState(() {
+        _standaloneReactionSummary = summary;
+      });
+    } catch (_) {
+      // Best-effort interaction: preserve current visible state.
     }
   }
 
@@ -423,11 +474,12 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     } catch (_) {
       newsController = null;
     }
-
-    final summary = newsController?.summaryForNews(news);
+    final summary =
+        newsController?.summaryForNews(news) ?? _standaloneReactionSummary;
     final fireCount = summary?.likeCount ?? 0;
     final iceCount = summary?.dislikeCount ?? 0;
     final userReaction = summary?.userReaction;
+    final showEngagement = newsController != null || news.worldBrief != null;
 
     return ChangeNotifierProvider<DiscussionController>(
       create: (_) => AppDI.instance.createDiscussionController(
@@ -485,7 +537,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                       publishedAtLabel: _formatPublishedAt(news.publishedAt),
                       isFavorite: _isFavorite,
                       favoriteLoading: _favoriteLoading,
-                      showEngagement: newsController != null,
+                      showEngagement: showEngagement,
                       fireCount: fireCount,
                       iceCount: iceCount,
                       commentCount: _commentCount,
@@ -497,9 +549,8 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                           ? _openOriginalArticle
                           : null,
                       onOpenWorldBriefSource: _openWorldBriefSource,
-                      onFireTap: newsController == null
-                          ? null
-                          : () async {
+                      onFireTap: newsController != null
+                          ? () async {
                               final allowed =
                                   await AuthGuard.ensureCanPerformAction(
                                 context,
@@ -510,14 +561,18 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                               final userId = AppDI.instance.currentUserId;
                               if (userId == null) return;
 
-                              newsController!.toggleFireForNews(
+                              await newsController!.toggleFireForNews(
                                 userId: userId,
                                 newsItem: news,
                               );
-                            },
-                      onIceTap: newsController == null
-                          ? null
-                          : () async {
+                            }
+                          : news.worldBrief != null
+                              ? () => _toggleStandaloneReaction(
+                                    ReactionType.like,
+                                  )
+                              : null,
+                      onIceTap: newsController != null
+                          ? () async {
                               final allowed =
                                   await AuthGuard.ensureCanPerformAction(
                                 context,
@@ -528,11 +583,16 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                               final userId = AppDI.instance.currentUserId;
                               if (userId == null) return;
 
-                              newsController!.toggleIceForNews(
+                              await newsController!.toggleIceForNews(
                                 userId: userId,
                                 newsItem: news,
                               );
-                            },
+                            }
+                          : news.worldBrief != null
+                              ? () => _toggleStandaloneReaction(
+                                    ReactionType.dislike,
+                                  )
+                              : null,
                     ),
                     const SizedBox(height: 20),
                     CommentSection(
@@ -921,6 +981,8 @@ class _WorldBriefBody extends StatelessWidget {
       );
     }
 
+    final whatHappened = brief.whatHappened.trim();
+    final whyItMatters = brief.whyItMatters.trim();
     final uncertain = brief.whatIsUncertain?.trim();
     final socialVoteView = brief.socialVoteView?.trim();
     final sources = brief.sourceUrls
@@ -928,30 +990,42 @@ class _WorldBriefBody extends StatelessWidget {
         .where((item) => item.isNotEmpty)
         .toList(growable: false);
 
+    final hasUncertain = uncertain != null && uncertain.isNotEmpty;
+    final hasSocialVoteView =
+        socialVoteView != null && socialVoteView.isNotEmpty;
+    final hasSources = sources.isNotEmpty;
+    final hasBeforeUncertain =
+        whatHappened.isNotEmpty || whyItMatters.isNotEmpty;
+    final hasBeforeView = hasBeforeUncertain || hasUncertain;
+    final hasBeforeSources = hasBeforeView || hasSocialVoteView;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        section(
-          l10n.worldBriefWhatHappened,
-          brief.whatHappened,
-          icon: Icons.fact_check_outlined,
-        ),
-        const SizedBox(height: 12),
-        section(
-          l10n.worldBriefWhyItMatters,
-          brief.whyItMatters,
-          icon: Icons.insights_outlined,
-        ),
-        if (uncertain != null && uncertain.isNotEmpty) ...[
+        if (whatHappened.isNotEmpty)
+          section(
+            l10n.worldBriefWhatHappened,
+            whatHappened,
+            icon: Icons.fact_check_outlined,
+          ),
+        if (whatHappened.isNotEmpty && whyItMatters.isNotEmpty)
           const SizedBox(height: 12),
+        if (whyItMatters.isNotEmpty)
+          section(
+            l10n.worldBriefWhyItMatters,
+            whyItMatters,
+            icon: Icons.insights_outlined,
+          ),
+        if (hasUncertain) ...[
+          if (hasBeforeUncertain) const SizedBox(height: 12),
           section(
             l10n.worldBriefWhatIsUncertain,
             uncertain,
             icon: Icons.help_outline_rounded,
           ),
         ],
-        if (socialVoteView != null && socialVoteView.isNotEmpty) ...[
-          const SizedBox(height: 12),
+        if (hasSocialVoteView) ...[
+          if (hasBeforeView) const SizedBox(height: 12),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -1002,41 +1076,43 @@ class _WorldBriefBody extends StatelessWidget {
             ),
           ),
         ],
-        const SizedBox(height: 12),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: sectionColor,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: borderColor),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.worldBriefSources,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 8),
-              for (var index = 0; index < sources.length; index++)
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: TextButton.icon(
-                    onPressed: () => onOpenSource(sources[index]),
-                    icon: const Icon(Icons.open_in_new_rounded, size: 17),
-                    label: Text(
-                      _sourceLabel(sources[index], index + 1),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+        if (hasSources) ...[
+          if (hasBeforeSources) const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: sectionColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: borderColor),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.worldBriefSources,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-            ],
+                const SizedBox(height: 8),
+                for (var index = 0; index < sources.length; index++)
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: TextButton.icon(
+                      onPressed: () => onOpenSource(sources[index]),
+                      icon: const Icon(Icons.open_in_new_rounded, size: 17),
+                      label: Text(
+                        _sourceLabel(sources[index], index + 1),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -1045,7 +1121,7 @@ class _WorldBriefBody extends StatelessWidget {
     final uri = Uri.tryParse(rawUrl);
     final host = uri?.host.trim();
     if (host == null || host.isEmpty) return 'Source $number';
-    return '$number · $host';
+    return '$number Ã‚Â· $host';
   }
 }
 

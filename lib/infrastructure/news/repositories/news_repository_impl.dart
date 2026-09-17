@@ -349,44 +349,37 @@ class NewsRepositoryImpl implements NewsRepository {
 
   NewsItem _worldBriefToNewsItem(WorldBrief brief) {
     final labels = switch (brief.languageCode) {
-      'it' => const <String>[
-          'Che cosa è successo',
-          'Perché conta',
-          'Che cosa non è ancora certo',
-          'Lettura Social Vote',
-          'Fonti',
-        ],
-      'de' => const <String>[
-          'Was passiert ist',
-          'Warum es wichtig ist',
-          'Was noch unklar ist',
-          'Social Vote Einordnung',
-          'Quellen',
-        ],
-      'fa' => const <String>[
-          'چه اتفاقی افتاده است',
-          'چرا اهمیت دارد',
-          'چه چیزی هنوز قطعی نیست',
-          'دیدگاه تحلیلی Social Vote',
-          'منابع',
-        ],
-      _ => const <String>[
-          'What happened',
-          'Why it matters',
-          'What is still uncertain',
-          'Social Vote view',
-          'Sources',
-        ],
+      'it' => const <String>['Che cosa è successo', 'Perché conta', 'Che cosa non è ancora certo', 'Lettura Social Vote', 'Fonti'],
+      'de' => const <String>['Was passiert ist', 'Warum es wichtig ist', 'Was noch unklar ist', 'Social Vote Einordnung', 'Quellen'],
+      'fa' => const <String>['چه اتفاقی افتاده است', 'چرا اهمیت دارد', 'چه چیزی هنوز قطعی نیست', 'دیدگاه تحلیلی Social Vote', 'منابع'],
+      'es' => const <String>['Qué ocurrió', 'Por qué importa', 'Qué sigue siendo incierto', 'Lectura de Social Vote', 'Fuentes'],
+      'pt' => const <String>['O que aconteceu', 'Por que importa', 'O que ainda é incerto', 'Leitura da Social Vote', 'Fontes'],
+      'fr' => const <String>['Ce qui s’est passé', 'Pourquoi c’est important', 'Ce qui reste incertain', 'Lecture de Social Vote', 'Sources'],
+      'ar' => const <String>['ما الذي حدث', 'لماذا يهم', 'ما الذي لا يزال غير مؤكد', 'قراءة Social Vote', 'المصادر'],
+      'ro' => const <String>['Ce s-a întâmplat', 'De ce contează', 'Ce rămâne incert', 'Perspectiva Social Vote', 'Surse'],
+      'ru' => const <String>['Что произошло', 'Почему это важно', 'Что пока неясно', 'Взгляд Social Vote', 'Источники'],
+      'zh' => const <String>['发生了什么', '为什么重要', '哪些仍不确定', 'Social Vote 解读', '来源'],
+      _ => const <String>['What happened', 'Why it matters', 'What is still uncertain', 'Social Vote view', 'Sources'],
     };
     final sections = <String>[
-      '${labels[0]}\n${brief.whatHappened}',
-      '${labels[1]}\n${brief.whyItMatters}',
+      if (brief.whatHappened.trim().isNotEmpty)
+        '${labels[0]}\n${brief.whatHappened.trim()}',
+      if (brief.whyItMatters.trim().isNotEmpty)
+        '${labels[1]}\n${brief.whyItMatters.trim()}',
       if (brief.whatIsUncertain?.trim().isNotEmpty == true)
         '${labels[2]}\n${brief.whatIsUncertain!.trim()}',
       if (brief.socialVoteView?.trim().isNotEmpty == true)
         '${labels[3]}\n${brief.socialVoteView!.trim()}',
-      '${labels[4]}\n${brief.sourceUrls.join('\n')}',
+      if (brief.sourceUrls.isNotEmpty)
+        '${labels[4]}\n${brief.sourceUrls.join('\n')}',
     ];
+    final summaryCandidates = <String>[
+      brief.whatHappened,
+      brief.whyItMatters,
+      brief.whatIsUncertain ?? '',
+      brief.socialVoteView ?? '',
+    ].map((item) => item.trim()).where((item) => item.isNotEmpty);
+    final summary = summaryCandidates.isEmpty ? null : summaryCandidates.first;
     final hasPoint = brief.latitude != null &&
         brief.longitude != null &&
         brief.latitude!.isFinite &&
@@ -396,7 +389,7 @@ class NewsRepositoryImpl implements NewsRepository {
       id: EntityId(brief.id),
       title: brief.title,
       content: sections.join('\n\n'),
-      summary: brief.whatHappened,
+      summary: summary,
       countryCode: brief.countryCode,
       cityId: brief.cityId,
       contentLocation: hasPoint
