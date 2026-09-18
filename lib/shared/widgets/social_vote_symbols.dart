@@ -176,7 +176,6 @@ abstract final class SocialVoteSymbols {
       _ => 'Open profile',
     };
   }
-
 }
 
 class ContentTypeMark extends StatelessWidget {
@@ -380,7 +379,7 @@ class PublisherAvatar extends StatelessWidget {
             alpha: theme.brightness == Brightness.dark ? 0.72 : 0.56,
           )
         : actorBorderColor;
-    final borderWidth = canShowImage ? 1.0 : (_isVerified ? 2.0 : 1.25);
+    final borderWidth = canShowImage ? 0.0 : (_isVerified ? 2.0 : 1.25);
     final imageScale = switch (actorType) {
       ActorType.organization => 1.14,
       ActorType.institution => 1.10,
@@ -528,10 +527,12 @@ class PublisherAvatar extends StatelessWidget {
         color: backgroundColor,
         shape: _isSquare ? BoxShape.rectangle : BoxShape.circle,
         borderRadius: _isSquare ? BorderRadius.circular(size * 0.24) : null,
-        border: Border.all(
-          color: borderColor,
-          width: borderWidth,
-        ),
+        border: borderWidth > 0
+            ? Border.all(
+                color: borderColor,
+                width: borderWidth,
+              )
+            : null,
         boxShadow: _isVerified
             ? [
                 BoxShadow(
@@ -857,14 +858,16 @@ class _TriangleFramePainter extends CustomPainter {
         ..style = PaintingStyle.fill,
     );
 
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = borderColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = borderWidth
-        ..strokeJoin = StrokeJoin.round,
-    );
+    if (borderWidth > 0) {
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = borderColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = borderWidth
+          ..strokeJoin = StrokeJoin.round,
+      );
+    }
   }
 
   @override

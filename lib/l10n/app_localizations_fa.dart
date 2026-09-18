@@ -1487,6 +1487,12 @@ class AppLocalizationsFa extends AppLocalizations {
   String get notificationsMentionTitle => 'از شما نام برده شد';
 
   @override
+  String get notificationsPollPublishedTitle => 'Vote جدید از Social Vote';
+
+  @override
+  String get notificationsPollPublishedSubtitle => 'Social Vote یک Vote جدید منتشر کرد.';
+
+  @override
   String get notificationsPollResultTitle => 'به‌روزرسانی Vote';
 
   @override

@@ -328,6 +328,8 @@ class _NotificationTile extends StatelessWidget {
         return l10n.notificationsMentionTitle;
       case AppNotificationType.pollResult:
         return l10n.notificationsPollResultTitle;
+      case AppNotificationType.pollPublished:
+        return l10n.notificationsPollPublishedTitle;
     }
   }
 
@@ -354,6 +356,8 @@ class _NotificationTile extends StatelessWidget {
         );
       case AppNotificationType.pollResult:
         return l10n.notificationsPollResultSubtitle(targetLabel);
+      case AppNotificationType.pollPublished:
+        return l10n.notificationsPollPublishedSubtitle;
     }
   }
 
@@ -406,6 +410,8 @@ class _NotificationTile extends StatelessWidget {
         return Icons.alternate_email;
       case AppNotificationType.pollResult:
         return Icons.poll;
+      case AppNotificationType.pollPublished:
+        return Icons.how_to_vote;
     }
   }
 }

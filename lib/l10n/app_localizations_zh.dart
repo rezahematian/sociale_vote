@@ -1487,6 +1487,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get notificationsMentionTitle => '有人提到了你';
 
   @override
+  String get notificationsPollPublishedTitle => 'Social Vote 发布了新的 Vote';
+
+  @override
+  String get notificationsPollPublishedSubtitle => 'Social Vote 发布了一个新的 Vote。';
+
+  @override
   String get notificationsPollResultTitle => 'Vote 更新';
 
   @override

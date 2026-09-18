@@ -2945,6 +2945,18 @@ abstract class AppLocalizations {
   /// **'You were mentioned'**
   String get notificationsMentionTitle;
 
+  /// No description provided for @notificationsPollPublishedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New Vote from Social Vote'**
+  String get notificationsPollPublishedTitle;
+
+  /// No description provided for @notificationsPollPublishedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Vote published a new Vote.'**
+  String get notificationsPollPublishedSubtitle;
+
   /// Notifications UI: notificationsPollResultTitle
   ///
   /// In en, this message translates to:

@@ -109,6 +109,8 @@ class NotificationRepositoryImpl implements NotificationRepository {
         return AppNotificationType.mention;
       case 'poll_result':
         return AppNotificationType.pollResult;
+      case 'poll_published':
+        return AppNotificationType.pollPublished;
       default:
         throw Exception('Tipo notifica non supportato: $raw');
     }
@@ -122,6 +124,8 @@ class NotificationRepositoryImpl implements NotificationRepository {
         return 'mention';
       case AppNotificationType.pollResult:
         return 'poll_result';
+      case AppNotificationType.pollPublished:
+        return 'poll_published';
     }
   }
 

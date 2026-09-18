@@ -1493,6 +1493,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get notificationsMentionTitle => 'Вас упомянули';
 
   @override
+  String get notificationsPollPublishedTitle => 'Новый Vote от Social Vote';
+
+  @override
+  String get notificationsPollPublishedSubtitle => 'Social Vote опубликовал новый Vote.';
+
+  @override
   String get notificationsPollResultTitle => 'Обновление Vote';
 
   @override

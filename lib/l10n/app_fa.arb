@@ -1259,6 +1259,8 @@
   "@notificationsMentionTitle": {
     "description": "Notifications UI: notificationsMentionTitle"
   },
+  "notificationsPollPublishedTitle": "Vote جدید از Social Vote",
+  "notificationsPollPublishedSubtitle": "Social Vote یک Vote جدید منتشر کرد.",
   "notificationsPollResultTitle": "به‌روزرسانی Vote",
   "@notificationsPollResultTitle": {
     "description": "Notifications UI: notificationsPollResultTitle"

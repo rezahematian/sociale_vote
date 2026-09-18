@@ -26,14 +26,14 @@ void main() {
 
   String source(String path) => File(path).readAsStringSync();
 
-  test('A. eleven ARB catalogs preserve exact 1309-key parity', () {
+  test('A. eleven ARB catalogs preserve exact 1311-key parity', () {
     Set<String>? expected;
     for (final code in languageCodes) {
       final keys = arb(code).keys.where((key) => !key.startsWith('@')).toSet();
       expected ??= keys;
       expect(keys, expected, reason: 'ARB key mismatch for $code');
     }
-    expect(expected, hasLength(1309));
+    expect(expected, hasLength(1311));
   });
 
   test('B. Home RTL ARB copy contains no bidi control code points', () {
@@ -44,8 +44,10 @@ void main() {
       final rawArb = source('lib/l10n/app_$code.arb');
       final purpose = arb(code)['homeHeroPurpose'] as String;
 
-      expect(rawArb, isNot(contains(r'\u2066')), reason: '$code ARB LRI escape');
-      expect(rawArb, isNot(contains(r'\u2069')), reason: '$code ARB PDI escape');
+      expect(rawArb, isNot(contains(r'\u2066')),
+          reason: '$code ARB LRI escape');
+      expect(rawArb, isNot(contains(r'\u2069')),
+          reason: '$code ARB PDI escape');
       expect(rawArb, isNot(contains(lri)), reason: '$code ARB raw LRI');
       expect(rawArb, isNot(contains(pdi)), reason: '$code ARB raw PDI');
       expect(purpose, contains('Voce'), reason: code);
@@ -79,14 +81,50 @@ void main() {
   test('E. Workspace core terms are localized across all 11 languages', () {
     const expected = <String, List<String>>{
       'en': <String>['Sessions', 'Session', 'Team', 'Organization', 'Business'],
-      'it': <String>['Sessioni', 'Sessione', 'Gruppo', 'Organizzazione', 'Professionale'],
-      'de': <String>['Sitzungen', 'Sitzung', 'Team', 'Organisation', 'Geschäftlich'],
+      'it': <String>[
+        'Sessioni',
+        'Sessione',
+        'Gruppo',
+        'Organizzazione',
+        'Professionale'
+      ],
+      'de': <String>[
+        'Sitzungen',
+        'Sitzung',
+        'Team',
+        'Organisation',
+        'Geschäftlich'
+      ],
       'fa': <String>['جلسه‌ها', 'جلسه', 'تیم', 'سازمان', 'کسب‌وکار'],
-      'es': <String>['Sesiones', 'Sesión', 'Equipo', 'Organización', 'Empresarial'],
-      'pt': <String>['Sessões', 'Sessão', 'Equipe', 'Organização', 'Empresarial'],
-      'fr': <String>['Sessions', 'Session', 'Équipe', 'Organisation', 'Professionnel'],
+      'es': <String>[
+        'Sesiones',
+        'Sesión',
+        'Equipo',
+        'Organización',
+        'Empresarial'
+      ],
+      'pt': <String>[
+        'Sessões',
+        'Sessão',
+        'Equipe',
+        'Organização',
+        'Empresarial'
+      ],
+      'fr': <String>[
+        'Sessions',
+        'Session',
+        'Équipe',
+        'Organisation',
+        'Professionnel'
+      ],
       'ar': <String>['الجلسات', 'جلسة', 'الفريق', 'المنظمة', 'الأعمال'],
-      'ro': <String>['Sesiuni', 'Sesiune', 'Echipă', 'Organizație', 'Profesional'],
+      'ro': <String>[
+        'Sesiuni',
+        'Sesiune',
+        'Echipă',
+        'Organizație',
+        'Profesional'
+      ],
       'ru': <String>['Сессии', 'Сессия', 'Команда', 'Организация', 'Бизнес'],
       'zh': <String>['会议', '会议', '团队', '组织', '商务'],
     };
@@ -103,7 +141,8 @@ void main() {
     }
   });
 
-  test('F. Workspace high-risk legacy copy no longer falls back to English', () {
+  test('F. Workspace high-risk legacy copy no longer falls back to English',
+      () {
     const checks = <String, Map<String, String>>{
       'zh': <String, String>{
         'Workspace active': '工作区已激活',
@@ -158,7 +197,9 @@ void main() {
     expect(workspace, contains('_roleLabel(context, data.membershipRole)'));
   });
 
-  test('H. Account and preferences localize globe and personal activity entry points', () {
+  test(
+      'H. Account and preferences localize globe and personal activity entry points',
+      () {
     final profile = source(
       'lib/features/profile/presentation/pages/my_profile_page.dart',
     );
@@ -168,7 +209,8 @@ void main() {
     expect(profile, isNot(contains("title: 'Globe'")));
   });
 
-  test('I. World appearance removes mixed legacy Radio Mondo and GeoScope copy', () {
+  test('I. World appearance removes mixed legacy Radio Mondo and GeoScope copy',
+      () {
     final world = source(
       'lib/features/profile/presentation/pages/world_appearance_settings_page.dart',
     );
@@ -178,7 +220,9 @@ void main() {
     expect(world, contains("zh: '地球仪风格'"));
   });
 
-  test('J. How-it-works localizes generic service terms but keeps Vote and Voce fixed', () {
+  test(
+      'J. How-it-works localizes generic service terms but keeps Vote and Voce fixed',
+      () {
     final how = source(
       'lib/features/onboarding/presentation/how_social_vote_works_page.dart',
     );
@@ -212,9 +256,10 @@ void main() {
     expect(header, isNot(contains("en: 'Vote locked'")));
     expect(header, isNot(contains("en: 'Anonymous vote'")));
     expect(header, isNot(contains("en: 'Results always visible'")));
-    expect(page, contains(
-      'socialVoteIsolateFixedProductNames(l10n.pollDetail_title)',
-    ));
+    expect(
+        page,
+        contains(
+          'socialVoteIsolateFixedProductNames(l10n.pollDetail_title)',
+        ));
   });
-
 }

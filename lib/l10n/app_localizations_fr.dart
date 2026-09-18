@@ -1487,6 +1487,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get notificationsMentionTitle => 'Vous avez été mentionné';
 
   @override
+  String get notificationsPollPublishedTitle => 'Nouveau Vote de Social Vote';
+
+  @override
+  String get notificationsPollPublishedSubtitle => 'Social Vote a publié un nouveau Vote.';
+
+  @override
   String get notificationsPollResultTitle => 'Mise à jour du Vote';
 
   @override

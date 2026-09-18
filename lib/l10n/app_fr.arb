@@ -1259,6 +1259,8 @@
   "@notificationsMentionTitle": {
     "description": "Notifications UI: notificationsMentionTitle"
   },
+  "notificationsPollPublishedTitle": "Nouveau Vote de Social Vote",
+  "notificationsPollPublishedSubtitle": "Social Vote a publié un nouveau Vote.",
   "notificationsPollResultTitle": "Mise à jour du Vote",
   "@notificationsPollResultTitle": {
     "description": "Notifications UI: notificationsPollResultTitle"

@@ -4,6 +4,7 @@ enum AppNotificationType {
   commentReply,
   mention,
   pollResult,
+  pollPublished,
 }
 
 class AppNotification {
