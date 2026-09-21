@@ -12,7 +12,9 @@
   "createPollVotingModelTitle": "Cum funcționează votarea",
   "createPollVotingModelSubtitle": "Alege dacă fiecare persoană poate selecta un singur răspuns sau mai multe răspunsuri.",
   "createPollTypeFieldLabel": "Tip Vote",
-  "createPollSelectionRules": "Reguli de selecție: minimum {min}, maximum {max} selecții (ajustate automat în funcție de tipul Vote și de opțiuni).",
+  "createPollSelectionRules": "Votanții pot selecta între {min} și {max} răspunsuri.",
+  "createPollMinimumAnswersLabel": "Număr minim de răspunsuri",
+  "createPollMaximumAnswersLabel": "Număr maxim de răspunsuri",
   "@createPollSelectionRules": {
     "placeholders": {
       "min": {

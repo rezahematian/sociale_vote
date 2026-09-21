@@ -182,7 +182,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
   bool _canVote(Poll poll) {
     return poll.status == PollStatus.open &&
         !_voteController.isSubmitting &&
-        _voteController.selectedOptionIds.isNotEmpty;
+        _voteController.hasValidSelectionCount(poll);
   }
 
   void _maybeAutoScrollToComments() {
@@ -1140,6 +1140,16 @@ class _PollDetailPageState extends State<PollDetailPage> {
               ),
             ),
           ],
+          if (poll.type == PollType.multipleChoice) ...[
+            const SizedBox(height: 12),
+            Text(
+              l10n.createPollSelectionRules(
+                poll.configuration.minSelections,
+                poll.configuration.maxSelections,
+              ),
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
           const SizedBox(height: 16),
           Container(
             width: double.infinity,
@@ -1159,16 +1169,27 @@ class _PollDetailPageState extends State<PollDetailPage> {
                     label: poll.options[index].label,
                     isSelected: _voteController.selectedOptionIds
                         .contains(poll.options[index].id),
-                    isSelectable: isSelectable,
+                    isSelectable: isSelectable &&
+                        _voteController.canSelectOption(
+                          poll.options[index].id,
+                          allowMultiple: allowMultiple,
+                          maxSelections: poll.configuration.maxSelections,
+                        ),
                     allowMultiple: allowMultiple,
                     result: showResultValues
                         ? resultByOptionId[poll.options[index].id]
                         : null,
-                    onTap: isSelectable
+                    onTap: isSelectable &&
+                            _voteController.canSelectOption(
+                              poll.options[index].id,
+                              allowMultiple: allowMultiple,
+                              maxSelections: poll.configuration.maxSelections,
+                            )
                         ? () {
                             _voteController.toggleOption(
                               poll.options[index].id,
                               allowMultiple: allowMultiple,
+                              maxSelections: poll.configuration.maxSelections,
                             );
                           }
                         : null,

@@ -12,7 +12,9 @@
   "createPollVotingModelTitle": "So wird abgestimmt",
   "createPollVotingModelSubtitle": "Wähle, ob jede Person eine oder mehrere Antworten auswählen kann.",
   "createPollTypeFieldLabel": "Vote-Typ",
-  "createPollSelectionRules": "Auswahlregeln: mindestens {min}, höchstens {max} Auswahlen (wird automatisch an Vote-Typ und Antworten angepasst).",
+  "createPollSelectionRules": "Abstimmende können {min} bis {max} Antworten auswählen.",
+  "createPollMinimumAnswersLabel": "Minimale Antwortanzahl",
+  "createPollMaximumAnswersLabel": "Maximale Antwortanzahl",
   "@createPollSelectionRules": {
     "placeholders": {
       "min": {

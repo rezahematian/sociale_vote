@@ -12,7 +12,9 @@
   "createPollVotingModelTitle": "Как проходит голосование",
   "createPollVotingModelSubtitle": "Выберите, сможет ли каждый человек выбрать один или несколько вариантов ответа.",
   "createPollTypeFieldLabel": "Тип Vote",
-  "createPollSelectionRules": "Правила выбора: минимум {min}, максимум {max} вариантов (автоматически корректируется в зависимости от типа Vote и вариантов ответа).",
+  "createPollSelectionRules": "Участники могут выбрать от {min} до {max} ответов.",
+  "createPollMinimumAnswersLabel": "Минимум ответов",
+  "createPollMaximumAnswersLabel": "Максимум ответов",
   "@createPollSelectionRules": {
     "placeholders": {
       "min": {

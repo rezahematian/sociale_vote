@@ -45,8 +45,14 @@ class AppLocalizationsRo extends AppLocalizations {
   String get createPollTypeFieldLabel => 'Tip Vote';
 
   @override
+  String get createPollMinimumAnswersLabel => 'Număr minim de răspunsuri';
+
+  @override
+  String get createPollMaximumAnswersLabel => 'Număr maxim de răspunsuri';
+
+  @override
   String createPollSelectionRules(int min, int max) {
-    return 'Reguli de selecție: minimum $min, maximum $max selecții (ajustate automat în funcție de tipul Vote și de opțiuni).';
+    return 'Votanții pot selecta între $min și $max răspunsuri.';
   }
 
   @override

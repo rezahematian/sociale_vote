@@ -15,6 +15,7 @@ import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
 import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 import 'package:sociale_vote/features/poll/application/create_poll_controller.dart';
+import 'package:sociale_vote/features/poll/presentation/widgets/create_poll_selection_limits.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
 import 'package:sociale_vote/shared/widgets/country_selector_field.dart';
@@ -34,8 +35,13 @@ class CreatePollPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final initialContentLanguage =
+        defaultContentLanguageCodeForLocale(Localizations.localeOf(context));
+
     return ChangeNotifierProvider(
-      create: (_) => AppDI.instance.createCreatePollController(),
+      // Initialize before the provider attaches its ChangeNotifier listener.
+      create: (_) => AppDI.instance.createCreatePollController()
+        ..setLanguageCode(initialContentLanguage),
       child: _CreatePollView(
         preferOrganizationPublisher: preferOrganizationPublisher,
       ),
@@ -62,23 +68,11 @@ class _CreatePollViewState extends State<_CreatePollView> {
   bool _publishingIdentityLoaded = false;
   bool _showAdvancedOptions = false;
   bool _showManualContentLocationFields = false;
-  bool _contentLanguageInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _loadPublishingIdentity();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_contentLanguageInitialized) {
-      context.read<CreatePollController>().setLanguageCode(
-            defaultContentLanguageCodeForLocale(Localizations.localeOf(context)),
-          );
-      _contentLanguageInitialized = true;
-    }
   }
 
   @override
@@ -211,13 +205,10 @@ class _CreatePollViewState extends State<_CreatePollView> {
               german: 'Abstimmende können eine Antwort auswählen.');
     }
 
-    return _isItalian
-        ? 'Chi vota può selezionare da 1 a ${controller.maxSelections} risposte.'
-        : deOrEnglish(context,
-            english:
-                'Voters can select from 1 to ${controller.maxSelections} answers.',
-            german:
-                'Abstimmende können 1 bis ${controller.maxSelections} Antworten auswählen.');
+    return AppLocalizations.of(context)!.createPollSelectionRules(
+      controller.minSelections,
+      controller.maxSelections,
+    );
   }
 
   void _selectPollType(
@@ -1562,6 +1553,18 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                   icon: Icons.check_box_outlined,
                                   enabled: !isSubmitting,
                                 ),
+                                if (controller.type ==
+                                    PollType.multipleChoice) ...[
+                                  const SizedBox(height: 12),
+                                  CreatePollSelectionLimits(
+                                    maxSelections: controller.maxSelections,
+                                    selectionLimit: controller.selectionLimit,
+                                    enabled: !isSubmitting &&
+                                        controller.canConfigureSelectionLimits,
+                                    onMaxChanged: controller.setMaxSelections,
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
                                 const SizedBox(height: 4),
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,

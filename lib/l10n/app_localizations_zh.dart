@@ -45,8 +45,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get createPollTypeFieldLabel => 'Vote 类型';
 
   @override
+  String get createPollMinimumAnswersLabel => '最少答案数';
+
+  @override
+  String get createPollMaximumAnswersLabel => '最多答案数';
+
+  @override
   String createPollSelectionRules(int min, int max) {
-    return '选择规则：最少 $min 个，最多 $max 个选项（会根据 Vote 类型和选项自动调整）。';
+    return '投票者可以选择 $min 至 $max 个答案。';
   }
 
   @override

@@ -12,7 +12,9 @@
   "createPollVotingModelTitle": "طريقة التصويت",
   "createPollVotingModelSubtitle": "اختر ما إذا كان بإمكان كل شخص تحديد إجابة واحدة أو عدة إجابات.",
   "createPollTypeFieldLabel": "نوع Vote",
-  "createPollSelectionRules": "قواعد الاختيار: حد أدنى {min} وحد أقصى {max} من الاختيارات (يتم ضبطها تلقائيًا وفقًا لنوع Vote والخيارات).",
+  "createPollSelectionRules": "يمكن للمصوّتين اختيار من {min} إلى {max} إجابات.",
+  "createPollMinimumAnswersLabel": "الحد الأدنى للإجابات",
+  "createPollMaximumAnswersLabel": "الحد الأقصى للإجابات",
   "@createPollSelectionRules": {
     "placeholders": {
       "min": {

@@ -12,7 +12,9 @@
   "createPollVotingModelTitle": "Como funciona a votação",
   "createPollVotingModelSubtitle": "Escolha se cada pessoa pode selecionar uma resposta ou várias respostas.",
   "createPollTypeFieldLabel": "Tipo de Vote",
-  "createPollSelectionRules": "Regras de seleção: mínimo {min}, máximo {max} seleções (ajustadas automaticamente com base no tipo de Vote e nas opções).",
+  "createPollSelectionRules": "Quem vota pode selecionar de {min} a {max} respostas.",
+  "createPollMinimumAnswersLabel": "Mínimo de respostas",
+  "createPollMaximumAnswersLabel": "Máximo de respostas",
   "@createPollSelectionRules": {
     "placeholders": {
       "min": {

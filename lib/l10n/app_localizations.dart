@@ -185,10 +185,16 @@ abstract class AppLocalizations {
   /// **'Vote type'**
   String get createPollTypeFieldLabel;
 
+  /// Minimum number of answers required for a multiple-choice Vote.
+  String get createPollMinimumAnswersLabel;
+
+  /// Maximum number of answers allowed for a multiple-choice Vote.
+  String get createPollMaximumAnswersLabel;
+
   /// No description provided for @createPollSelectionRules.
   ///
   /// In en, this message translates to:
-  /// **'Selection rules: minimum {min}, maximum {max} selections (automatically adjusted based on Vote type and options).'**
+  /// **'Voters can select from {min} to {max} answers.'**
   String createPollSelectionRules(int min, int max);
 
   /// No description provided for @createPollAllowVoteChangeTitle.

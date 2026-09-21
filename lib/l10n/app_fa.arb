@@ -12,7 +12,9 @@
   "createPollVotingModelTitle": "نحوه رأی‌دادن",
   "createPollVotingModelSubtitle": "انتخاب کنید که هر فرد بتواند یک پاسخ یا چند پاسخ را انتخاب کند.",
   "createPollTypeFieldLabel": "نوع Vote",
-  "createPollSelectionRules": "قواعد انتخاب: حداقل {min} و حداکثر {max} انتخاب (بر اساس نوع Vote و گزینه‌ها خودکار تنظیم می‌شود).",
+  "createPollSelectionRules": "رأی‌دهندگان می‌توانند بین {min} تا {max} پاسخ انتخاب کنند.",
+  "createPollMinimumAnswersLabel": "حداقل تعداد پاسخ‌ها",
+  "createPollMaximumAnswersLabel": "حداکثر تعداد پاسخ‌ها",
   "@createPollSelectionRules": {
     "placeholders": {
       "min": {

@@ -47,9 +47,39 @@ class VoteController extends ChangeNotifier {
   bool get submittedSuccessfully => _submittedSuccessfully;
   VoteErrorType get errorType => _errorType;
 
+  bool hasValidSelectionCount(Poll poll) {
+    final count = _selectedOptionIds.length;
+    return count > 0 &&
+        count >= poll.configuration.minSelections &&
+        count <= poll.configuration.maxSelections;
+  }
+
+  bool canSelectOption(
+    String optionId, {
+    required bool allowMultiple,
+    int? maxSelections,
+  }) {
+    return !_isSubmitting &&
+        !_isDisposed &&
+        (!allowMultiple ||
+            _selectedOptionIds.contains(optionId) ||
+            maxSelections == null ||
+            _selectedOptionIds.length < maxSelections);
+  }
+
   /// Seleziona/deseleziona un’opzione.
-  void toggleOption(String optionId, {required bool allowMultiple}) {
-    if (_isSubmitting || _isDisposed) return;
+  void toggleOption(
+    String optionId, {
+    required bool allowMultiple,
+    int? maxSelections,
+  }) {
+    if (!canSelectOption(
+      optionId,
+      allowMultiple: allowMultiple,
+      maxSelections: maxSelections,
+    )) {
+      return;
+    }
 
     _errorMessage = null;
     _errorType = VoteErrorType.none;

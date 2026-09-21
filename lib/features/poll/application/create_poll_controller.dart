@@ -90,6 +90,11 @@ class CreatePollController extends ChangeNotifier {
   PollType get type => _type;
   int get minSelections => _minSelections;
   int get maxSelections => _maxSelections;
+  // No fixed option cap exists for ordinary Vote in CURRENT. The available
+  // non-empty options are the upper bound; one is only a draft placeholder.
+  int get selectionLimit =>
+      _validNonEmptyOptionsCount < 1 ? 1 : _validNonEmptyOptionsCount;
+  bool get canConfigureSelectionLimits => _validNonEmptyOptionsCount >= 2;
   bool get allowVoteChange => _allowVoteChange;
 
   DateTime get startAt => _startAt;
@@ -142,9 +147,16 @@ class CreatePollController extends ChangeNotifier {
       !_isSubmitting &&
       _title.trim().isNotEmpty &&
       _validNonEmptyOptionsCount >= 2 &&
+      _hasValidSelectionLimits &&
       hasExplicitTimeWindow &&
       _hasValidDates &&
       _isTimeWindowWithinLimit;
+
+  bool get _hasValidSelectionLimits =>
+      _type != PollType.multipleChoice ||
+      (_minSelections == 1 &&
+          _maxSelections >= 2 &&
+          _maxSelections <= _validNonEmptyOptionsCount);
 
   ContentLocation get effectiveContentLocation {
     if (_contentLocation != null) {
@@ -219,6 +231,7 @@ class CreatePollController extends ChangeNotifier {
   }
 
   void setType(PollType type) {
+    if (_type == type) return;
     _type = type;
 
     switch (type) {
@@ -229,8 +242,7 @@ class CreatePollController extends ChangeNotifier {
         break;
       case PollType.multipleChoice:
         _minSelections = 1;
-        _maxSelections =
-            _validNonEmptyOptionsCount > 0 ? _validNonEmptyOptionsCount : 2;
+        _maxSelections = selectionLimit < 2 ? 1 : selectionLimit;
         break;
       case PollType.approval:
         _minSelections = 0;
@@ -261,7 +273,9 @@ class CreatePollController extends ChangeNotifier {
         break;
       case PollType.multipleChoice:
         _minSelections = 1;
-        _maxSelections = selectableCount;
+        _maxSelections = selectionLimit < 2
+            ? 1
+            : _maxSelections.clamp(2, selectionLimit).toInt();
         break;
       case PollType.approval:
         _minSelections = 1;
@@ -276,6 +290,11 @@ class CreatePollController extends ChangeNotifier {
   }
 
   void setMinSelections(int value) {
+    if (_type == PollType.singleChoice ||
+        _type == PollType.yesNo ||
+        _type == PollType.multipleChoice) {
+      return;
+    }
     if (value < 0) return;
     if (value > _maxSelections) {
       _maxSelections = value;
@@ -286,6 +305,11 @@ class CreatePollController extends ChangeNotifier {
   }
 
   void setMaxSelections(int value) {
+    if (_type == PollType.singleChoice || _type == PollType.yesNo) return;
+    if (_type == PollType.multipleChoice &&
+        (selectionLimit < 2 || value < 2 || value > selectionLimit)) {
+      return;
+    }
     if (value < _minSelections) return;
     _maxSelections = value;
     _errorMessage = null;
@@ -589,6 +613,12 @@ class CreatePollController extends ChangeNotifier {
 
     if (nonEmptyOptions.length < 2) {
       _errorMessage = 'At least two options are required.';
+      notifyListeners();
+      return null;
+    }
+
+    if (!_hasValidSelectionLimits) {
+      _errorMessage = 'Invalid selection limits.';
       notifyListeners();
       return null;
     }

@@ -45,8 +45,14 @@ class AppLocalizationsFa extends AppLocalizations {
   String get createPollTypeFieldLabel => 'نوع Vote';
 
   @override
+  String get createPollMinimumAnswersLabel => 'حداقل تعداد پاسخ‌ها';
+
+  @override
+  String get createPollMaximumAnswersLabel => 'حداکثر تعداد پاسخ‌ها';
+
+  @override
   String createPollSelectionRules(int min, int max) {
-    return 'قواعد انتخاب: حداقل $min و حداکثر $max انتخاب (بر اساس نوع Vote و گزینه‌ها خودکار تنظیم می‌شود).';
+    return 'رأی‌دهندگان می‌توانند بین $min تا $max پاسخ انتخاب کنند.';
   }
 
   @override

@@ -91,7 +91,7 @@ class VoteValidator {
     required Poll poll,
     required List<String> optionIds,
   }) {
-    if (optionIds.isEmpty) {
+    if (optionIds.isEmpty || optionIds.toSet().length != optionIds.length) {
       throw UnauthorizedVoteException();
     }
 
