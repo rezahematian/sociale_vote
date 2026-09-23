@@ -1263,7 +1263,7 @@
   },
   "notificationsPollPublishedTitle": "Nouveau Vote de Social Vote",
   "notificationsPollPublishedSubtitle": "Social Vote a publié un nouveau Vote.",
-  "notificationsPollResultTitle": "Mise à jour du Vote",
+  "notificationsPollResultTitle": "Résultat final du Vote",
   "@notificationsPollResultTitle": {
     "description": "Notifications UI: notificationsPollResultTitle"
   },
@@ -1291,7 +1291,7 @@
       }
     }
   },
-  "notificationsPollResultSubtitle": "Un nouveau résultat est disponible dans {target}",
+  "notificationsPollResultSubtitle": "Le résultat final est disponible dans {target}",
   "@notificationsPollResultSubtitle": {
     "description": "Notifications UI: notificationsPollResultSubtitle",
     "placeholders": {

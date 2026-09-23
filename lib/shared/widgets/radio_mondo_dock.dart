@@ -16,6 +16,9 @@ class RadioMondoDock extends StatelessWidget {
   final double size;
   final GlobeVisualStyle? globeStyle;
   final GlobeRotationVisualStyle rotationVisualStyle;
+  final VoidCallback? onPickerOpened;
+  final VoidCallback? onPickerDismissed;
+  final VoidCallback? onPickerClosed;
 
   const RadioMondoDock({
     super.key,
@@ -23,6 +26,9 @@ class RadioMondoDock extends StatelessWidget {
     this.size = 44,
     this.globeStyle,
     this.rotationVisualStyle = GlobeRotationVisualStyle.classic,
+    this.onPickerOpened,
+    this.onPickerDismissed,
+    this.onPickerClosed,
   });
 
   @override
@@ -127,6 +133,9 @@ class RadioMondoDock extends StatelessWidget {
   ) async {
     final l10n = AppLocalizations.of(context)!;
     final stations = radio.stations;
+    // Disable the underlying Web Globe before the Radio picker is shown.
+    onPickerOpened?.call();
+
     final selected = await showModalBottomSheet<RadioMondoStation>(
       context: context,
       showDragHandle: true,
@@ -163,7 +172,8 @@ class RadioMondoDock extends StatelessWidget {
                             _channelLabel(station),
                             if (station.languageCode != null)
                               station.languageCode!.toUpperCase(),
-                            if (station.attribution != null) station.attribution!,
+                            if (station.attribution != null)
+                              station.attribution!,
                           ].join(' · '),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -175,7 +185,14 @@ class RadioMondoDock extends StatelessWidget {
                                     : Icons.check_rounded,
                               )
                             : null,
-                        onTap: () => Navigator.pop(sheetContext, station),
+                        onTap: () {
+                          // Web mobile: arm the Home surface guard BEFORE the
+                          // station picker disappears. Otherwise the same
+                          // physical pointer can fall through to HtmlElementView
+                          // and open Civic Map.
+                          onPickerClosed?.call();
+                          Navigator.pop(sheetContext, station);
+                        },
                       );
                     },
                   ),
@@ -187,6 +204,17 @@ class RadioMondoDock extends StatelessWidget {
         );
       },
     );
+
+    // The modal route is now gone. The existing V3 trailing-tap guard
+    // remains active while Globe pointer handling is restored.
+    onPickerDismissed?.call();
+
+    // On mobile Web the Home globe is an HtmlElementView. Closing this
+    // Flutter bottom sheet on the same physical tap used to select a station
+    // can expose the underlying WebGL surface before the browser finishes
+    // dispatching that pointer. Give the Home globe a chance to suppress that
+    // trailing surface tap so station selection never becomes Civic Map nav.
+    onPickerClosed?.call();
 
     if (selected != null && context.mounted) {
       await _playStation(context, radio, selected);
@@ -236,8 +264,7 @@ class RadioMondoDock extends StatelessWidget {
   }
 
   static IconData _stationIcon(RadioMondoStation station) {
-    if (station.isLive ||
-        station.sourceType == RadioMondoSourceType.stream) {
+    if (station.isLive || station.sourceType == RadioMondoSourceType.stream) {
       return Icons.cell_tower_rounded;
     }
     return switch (station.channelType) {

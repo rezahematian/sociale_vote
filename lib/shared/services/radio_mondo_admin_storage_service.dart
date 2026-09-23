@@ -1,4 +1,3 @@
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -53,13 +52,33 @@ class RadioMondoAdminStorageService {
       RadioMondoAdminStorageService._();
 
   static const String bucket = 'radio-mondo';
-  static const int maxBytes = 25 * 1024 * 1024;
-  static const List<String> allowedExtensions = <String>['mp3', 'm4a', 'ogg'];
+  static const int maxBytes = 200 * 1024 * 1024;
+  static const List<String> allowedExtensions = <String>[
+    'mp3',
+    'm4a',
+    'mp4',
+    'aac',
+    'ogg',
+    'oga',
+    'opus',
+    'wav',
+    'wave',
+    'flac',
+    'webm',
+  ];
 
   static const Map<String, String> _contentTypes = <String, String>{
     'mp3': 'audio/mpeg',
     'm4a': 'audio/mp4',
+    'mp4': 'audio/mp4',
+    'aac': 'audio/aac',
     'ogg': 'audio/ogg',
+    'oga': 'audio/ogg',
+    'opus': 'audio/ogg',
+    'wav': 'audio/wav',
+    'wave': 'audio/wav',
+    'flac': 'audio/flac',
+    'webm': 'audio/webm',
   };
 
   Future<RadioMondoPickedAudio?> pickAudio() async {
@@ -111,7 +130,7 @@ class RadioMondoAdminStorageService {
 
     if (bytes.lengthInBytes > maxBytes) {
       throw const FormatException(
-        'Radio Mondo audio exceeds the 25 MB limit.',
+        'Radio Mondo audio exceeds the 200 MB limit.',
       );
     }
 
@@ -166,7 +185,8 @@ class RadioMondoAdminStorageService {
       return true;
     } catch (error, stackTrace) {
       if (kDebugMode) {
-        debugPrint('Radio Mondo managed audio cleanup error: $error\n$stackTrace');
+        debugPrint(
+            'Radio Mondo managed audio cleanup error: $error\n$stackTrace');
       }
       return false;
     }
@@ -199,26 +219,50 @@ class RadioMondoAdminStorageService {
   }
 
   static bool _signatureMatches(String extension, Uint8List bytes) {
+    bool hasAscii(int offset, String value) {
+      if (bytes.length < offset + value.length) return false;
+      for (var i = 0; i < value.length; i++) {
+        if (bytes[offset + i] != value.codeUnitAt(i)) return false;
+      }
+      return true;
+    }
+
     switch (extension) {
       case 'ogg':
-        return bytes.length >= 4 &&
-            bytes[0] == 0x4F &&
-            bytes[1] == 0x67 &&
-            bytes[2] == 0x67 &&
-            bytes[3] == 0x53;
+      case 'oga':
+      case 'opus':
+        return hasAscii(0, 'OggS');
+
       case 'm4a':
-        return bytes.length >= 12 &&
-            bytes[4] == 0x66 &&
-            bytes[5] == 0x74 &&
-            bytes[6] == 0x79 &&
-            bytes[7] == 0x70;
+      case 'mp4':
+        return bytes.length >= 12 && hasAscii(4, 'ftyp');
+
+      case 'aac':
+        return bytes.length >= 2 &&
+            bytes[0] == 0xFF &&
+            (bytes[1] & 0xF6) == 0xF0;
+
+      case 'wav':
+      case 'wave':
+        return bytes.length >= 12 && hasAscii(0, 'RIFF') && hasAscii(8, 'WAVE');
+
+      case 'flac':
+        return hasAscii(0, 'fLaC');
+
+      case 'webm':
+        return bytes.length >= 4 &&
+            bytes[0] == 0x1A &&
+            bytes[1] == 0x45 &&
+            bytes[2] == 0xDF &&
+            bytes[3] == 0xA3;
+
       case 'mp3':
         if (bytes.length < 3) return false;
         final id3 = bytes[0] == 0x49 && bytes[1] == 0x44 && bytes[2] == 0x33;
-        final frameSync = bytes.length >= 2 &&
-            bytes[0] == 0xFF &&
-            (bytes[1] & 0xE0) == 0xE0;
+        final frameSync =
+            bytes.length >= 2 && bytes[0] == 0xFF && (bytes[1] & 0xE0) == 0xE0;
         return id3 || frameSync;
+
       default:
         return false;
     }

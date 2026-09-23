@@ -19,7 +19,8 @@ Future<BrowserPickedAudio?> pickBrowserAudio() {
 
   final input = web.HTMLInputElement()
     ..type = 'file'
-    ..accept = '.mp3,.m4a,.ogg,audio/mpeg,audio/mp4,audio/ogg'
+    ..accept =
+        'audio/*,.mp3,.m4a,.mp4,.aac,.ogg,.oga,.opus,.wav,.wave,.flac,.webm'
     ..multiple = false;
 
   input.style.display = 'none';

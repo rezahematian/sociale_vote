@@ -37,6 +37,7 @@ class WebGlobeFocus {
 }
 
 class WebWorldGlobeSurface extends StatefulWidget {
+  final bool interactionEnabled;
   final List<CivicMapItem> items;
   final bool homeProfile;
   final bool isAuthenticated;
@@ -57,6 +58,7 @@ class WebWorldGlobeSurface extends StatefulWidget {
 
   const WebWorldGlobeSurface({
     super.key,
+    this.interactionEnabled = true,
     required this.items,
     required this.homeProfile,
     required this.isAuthenticated,
@@ -132,6 +134,8 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
   @override
   void didUpdateWidget(covariant WebWorldGlobeSurface oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    _applyInteractionEnabled();
 
     if (oldWidget.focusListenable != widget.focusListenable) {
       oldWidget.focusListenable?.removeListener(_handleFocusChanged);
@@ -253,7 +257,9 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       child: HtmlElementView.fromTagName(
         tagName: 'social-vote-globe',
         isVisible: true,
-        hitTestBehavior: PlatformViewHitTestBehavior.opaque,
+        hitTestBehavior: widget.interactionEnabled
+            ? PlatformViewHitTestBehavior.opaque
+            : PlatformViewHitTestBehavior.transparent,
         onElementCreated: _handleElementCreated,
       ),
     );
@@ -275,6 +281,7 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
       ..background = 'transparent';
     element.style.setProperty('clip-path', 'circle(50%)');
     element.style.setProperty('isolation', 'isolate');
+    _applyInteractionEnabled();
 
     _readyListener = ((web.Event event) {
       _readyTimeout?.cancel();
@@ -646,6 +653,21 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
 
     _routeActive = active;
     _element?.setAttribute('data-route-active', active ? 'true' : 'false');
+  }
+
+  void _applyInteractionEnabled() {
+    final element = _element;
+    if (element == null) {
+      return;
+    }
+
+    // Flutter Web platform views are real DOM nodes.
+    // While the Radio station picker is open they must not receive
+    // any pointer event underneath the Flutter modal.
+    element.style.setProperty(
+      'pointer-events',
+      widget.interactionEnabled ? 'auto' : 'none',
+    );
   }
 
   void _applyConfigIfPossible({bool force = false}) {

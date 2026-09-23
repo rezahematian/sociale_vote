@@ -1263,7 +1263,7 @@
   },
   "notificationsPollPublishedTitle": "Новый Vote от Social Vote",
   "notificationsPollPublishedSubtitle": "Social Vote опубликовал новый Vote.",
-  "notificationsPollResultTitle": "Обновление Vote",
+  "notificationsPollResultTitle": "Итоговый результат Vote",
   "@notificationsPollResultTitle": {
     "description": "Notifications UI: notificationsPollResultTitle"
   },
@@ -1291,7 +1291,7 @@
       }
     }
   },
-  "notificationsPollResultSubtitle": "В {target} доступен новый результат",
+  "notificationsPollResultSubtitle": "Итоговый результат доступен в {target}",
   "@notificationsPollResultSubtitle": {
     "description": "Notifications UI: notificationsPollResultSubtitle",
     "placeholders": {

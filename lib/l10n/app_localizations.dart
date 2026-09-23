@@ -185,17 +185,23 @@ abstract class AppLocalizations {
   /// **'Vote type'**
   String get createPollTypeFieldLabel;
 
-  /// Minimum number of answers required for a multiple-choice Vote.
-  String get createPollMinimumAnswersLabel;
-
-  /// Maximum number of answers allowed for a multiple-choice Vote.
-  String get createPollMaximumAnswersLabel;
-
   /// No description provided for @createPollSelectionRules.
   ///
   /// In en, this message translates to:
   /// **'Voters can select from {min} to {max} answers.'**
   String createPollSelectionRules(int min, int max);
+
+  /// No description provided for @createPollMinimumAnswersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum answers'**
+  String get createPollMinimumAnswersLabel;
+
+  /// No description provided for @createPollMaximumAnswersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum answers'**
+  String get createPollMaximumAnswersLabel;
 
   /// No description provided for @createPollAllowVoteChangeTitle.
   ///
@@ -2966,7 +2972,7 @@ abstract class AppLocalizations {
   /// Notifications UI: notificationsPollResultTitle
   ///
   /// In en, this message translates to:
-  /// **'Vote update'**
+  /// **'Final Vote result'**
   String get notificationsPollResultTitle;
 
   /// Notifications UI: notificationsCommentReplySubtitle
@@ -2984,7 +2990,7 @@ abstract class AppLocalizations {
   /// Notifications UI: notificationsPollResultSubtitle
   ///
   /// In en, this message translates to:
-  /// **'A new result is available in {target}'**
+  /// **'The final result is available in {target}'**
   String notificationsPollResultSubtitle(String target);
 
   /// Notifications UI: notificationsTargetPost

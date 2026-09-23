@@ -161,6 +161,11 @@ abstract class AdminRepository {
     required String reason,
   });
 
+  Future<void> deleteRadioMondoTrack({
+    required String trackId,
+    required String reason,
+  });
+
   Future<List<AdminAuditEntry>> getAuditEntries({
     String? actorUserId,
     String? action,

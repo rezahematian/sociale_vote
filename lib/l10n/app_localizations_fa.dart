@@ -45,15 +45,15 @@ class AppLocalizationsFa extends AppLocalizations {
   String get createPollTypeFieldLabel => 'نوع Vote';
 
   @override
+  String createPollSelectionRules(int min, int max) {
+    return 'رأی‌دهندگان می‌توانند بین $min تا $max پاسخ انتخاب کنند.';
+  }
+
+  @override
   String get createPollMinimumAnswersLabel => 'حداقل تعداد پاسخ‌ها';
 
   @override
   String get createPollMaximumAnswersLabel => 'حداکثر تعداد پاسخ‌ها';
-
-  @override
-  String createPollSelectionRules(int min, int max) {
-    return 'رأی‌دهندگان می‌توانند بین $min تا $max پاسخ انتخاب کنند.';
-  }
 
   @override
   String get createPollAllowVoteChangeTitle => 'اجازه تغییر رأی به رأی‌دهندگان';
@@ -1499,7 +1499,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get notificationsPollPublishedSubtitle => 'Social Vote یک Vote جدید منتشر کرد.';
 
   @override
-  String get notificationsPollResultTitle => 'به‌روزرسانی Vote';
+  String get notificationsPollResultTitle => 'نتیجه نهایی Vote';
 
   @override
   String notificationsCommentReplySubtitle(String actor, String target) {
@@ -1513,7 +1513,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String notificationsPollResultSubtitle(String target) {
-    return 'یک نتیجه جدید در $target موجود است';
+    return 'نتیجه نهایی در $target در دسترس است';
   }
 
   @override

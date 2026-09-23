@@ -45,15 +45,15 @@ class AppLocalizationsRo extends AppLocalizations {
   String get createPollTypeFieldLabel => 'Tip Vote';
 
   @override
+  String createPollSelectionRules(int min, int max) {
+    return 'Votanții pot selecta între $min și $max răspunsuri.';
+  }
+
+  @override
   String get createPollMinimumAnswersLabel => 'Număr minim de răspunsuri';
 
   @override
   String get createPollMaximumAnswersLabel => 'Număr maxim de răspunsuri';
-
-  @override
-  String createPollSelectionRules(int min, int max) {
-    return 'Votanții pot selecta între $min și $max răspunsuri.';
-  }
 
   @override
   String get createPollAllowVoteChangeTitle => 'Permite alegătorilor să își schimbe votul';
@@ -1499,7 +1499,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get notificationsPollPublishedSubtitle => 'Social Vote a publicat un Vote nou.';
 
   @override
-  String get notificationsPollResultTitle => 'Actualizare Vote';
+  String get notificationsPollResultTitle => 'Rezultatul final al Vote';
 
   @override
   String notificationsCommentReplySubtitle(String actor, String target) {
@@ -1513,7 +1513,7 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String notificationsPollResultSubtitle(String target) {
-    return 'Un rezultat nou este disponibil în $target';
+    return 'Rezultatul final este disponibil în $target';
   }
 
   @override

@@ -1263,7 +1263,7 @@
   },
   "notificationsPollPublishedTitle": "Vote جديد من Social Vote",
   "notificationsPollPublishedSubtitle": "نشرت Social Vote تصويت Vote جديدًا.",
-  "notificationsPollResultTitle": "تحديث Vote",
+  "notificationsPollResultTitle": "النتيجة النهائية لـ Vote",
   "@notificationsPollResultTitle": {
     "description": "Notifications UI: notificationsPollResultTitle"
   },
@@ -1291,7 +1291,7 @@
       }
     }
   },
-  "notificationsPollResultSubtitle": "توجد نتيجة جديدة في {target}",
+  "notificationsPollResultSubtitle": "النتيجة النهائية متاحة في {target}",
   "@notificationsPollResultSubtitle": {
     "description": "Notifications UI: notificationsPollResultSubtitle",
     "placeholders": {

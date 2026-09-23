@@ -1263,7 +1263,7 @@
   },
   "notificationsPollPublishedTitle": "Social Vote 发布了新的 Vote",
   "notificationsPollPublishedSubtitle": "Social Vote 发布了一个新的 Vote。",
-  "notificationsPollResultTitle": "Vote 更新",
+  "notificationsPollResultTitle": "Vote 最终结果",
   "@notificationsPollResultTitle": {
     "description": "Notifications UI: notificationsPollResultTitle"
   },
@@ -1291,7 +1291,7 @@
       }
     }
   },
-  "notificationsPollResultSubtitle": "{target} 中有新的结果",
+  "notificationsPollResultSubtitle": "{target} 中已提供最终结果",
   "@notificationsPollResultSubtitle": {
     "description": "Notifications UI: notificationsPollResultSubtitle",
     "placeholders": {

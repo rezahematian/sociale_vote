@@ -45,15 +45,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get createPollTypeFieldLabel => 'Vote 类型';
 
   @override
+  String createPollSelectionRules(int min, int max) {
+    return '投票者可以选择 $min 至 $max 个答案。';
+  }
+
+  @override
   String get createPollMinimumAnswersLabel => '最少答案数';
 
   @override
   String get createPollMaximumAnswersLabel => '最多答案数';
-
-  @override
-  String createPollSelectionRules(int min, int max) {
-    return '投票者可以选择 $min 至 $max 个答案。';
-  }
 
   @override
   String get createPollAllowVoteChangeTitle => '允许投票者更改投票';
@@ -1499,7 +1499,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get notificationsPollPublishedSubtitle => 'Social Vote 发布了一个新的 Vote。';
 
   @override
-  String get notificationsPollResultTitle => 'Vote 更新';
+  String get notificationsPollResultTitle => 'Vote 最终结果';
 
   @override
   String notificationsCommentReplySubtitle(String actor, String target) {
@@ -1513,7 +1513,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String notificationsPollResultSubtitle(String target) {
-    return '$target 中有新的结果';
+    return '$target 中已提供最终结果';
   }
 
   @override

@@ -666,6 +666,20 @@ class AdminRepositoryImpl implements AdminRepository {
     );
   }
 
+  @override
+  Future<void> deleteRadioMondoTrack({
+    required String trackId,
+    required String reason,
+  }) async {
+    await _client.rpc(
+      'admin_radio_mondo_delete_v1',
+      params: <String, dynamic>{
+        'p_track_id': trackId.trim(),
+        'p_reason': reason.trim(),
+      },
+    );
+  }
+
   AdminFinanceEntry _mapFinanceEntry(Map<String, Object?> row) {
     return AdminFinanceEntry(
       id: _readRequiredString(row, 'id'),

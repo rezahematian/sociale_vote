@@ -113,7 +113,9 @@ class _AdminRadioMondoControlSectionState
         reason: draft.reason,
       );
 
-      if (uploaded != null && existing != null && existing.audioUrl != audioUrl) {
+      if (uploaded != null &&
+          existing != null &&
+          existing.audioUrl != audioUrl) {
         await RadioMondoAdminStorageService.instance
             .removeManagedUrlBestEffort(existing.audioUrl);
       }
@@ -178,6 +180,81 @@ class _AdminRadioMondoControlSectionState
     }
   }
 
+  Future<void> _delete(AdminRadioMondoTrack track) async {
+    if (_saving) return;
+
+    if (track.isDefault) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _radioText(
+              context,
+              'Imposta prima un’altra stazione come predefinita.',
+              'Set another station as default first.',
+              'Lege zuerst eine andere Station als Standard fest.',
+              'ابتدا یک ایستگاه دیگر را به‌عنوان پیش‌فرض انتخاب کنید.',
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (_) => _RadioDeleteReasonDialog(track: track),
+    );
+    if (reason == null || _saving) return;
+
+    setState(() => _saving = true);
+    try {
+      await widget.repository.deleteRadioMondoTrack(
+        trackId: track.id,
+        reason: reason,
+      );
+
+      final storage = RadioMondoAdminStorageService.instance;
+      final managedAudio = storage.isManagedPublicUrl(track.audioUrl);
+      final managedAudioRemoved =
+          await storage.removeManagedUrlBestEffort(track.audioUrl);
+
+      await _load();
+      await RadioMondoService.instance.reloadCatalog();
+      if (!mounted) return;
+
+      final message = managedAudio && !managedAudioRemoved
+          ? _radioText(
+              context,
+              'Traccia eliminata. Il file audio gestito non è stato rimosso: controlla Storage.',
+              'Track deleted. The managed audio file was not removed; check Storage.',
+              'Titel gelöscht. Die verwaltete Audiodatei wurde nicht entfernt; prüfe Storage.',
+              'قطعه حذف شد. فایل صوتی مدیریت‌شده حذف نشد؛ Storage را بررسی کنید.',
+            )
+          : _radioText(
+              context,
+              'Traccia eliminata',
+              'Track deleted',
+              'Titel gelöscht',
+              'قطعه حذف شد',
+            );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${_radioText(context, 'Eliminazione non riuscita', 'Could not delete', 'Löschen fehlgeschlagen', 'حذف انجام نشد')}: $error',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -212,10 +289,10 @@ class _AdminRadioMondoControlSectionState
                       Text(
                         _radioText(
                           context,
-                          'Carica direttamente MP3, M4A o OGG oppure usa un URL HTTPS. Le tracce pubblicate compaiono su Web e Android. Pubblica solo contenuti per cui possiedi i diritti.',
-                          'Upload MP3, M4A or OGG directly, or use an HTTPS URL. Published tracks appear on Web and Android. Publish only audio you have rights to use.',
-                          'Lade MP3, M4A oder OGG direkt hoch oder verwende eine HTTPS-URL. Veröffentlichte Titel erscheinen im Web und auf Android. Veröffentliche nur Audio mit Nutzungsrechten.',
-                          'فایل MP3، M4A یا OGG را مستقیم بارگذاری کنید یا از نشانی HTTPS استفاده کنید. قطعات منتشرشده در وب و اندروید نمایش داده می‌شوند. فقط محتوایی را منتشر کنید که حق استفاده از آن را دارید.',
+                          'Carica direttamente un file audio oppure usa un URL HTTPS. Formati supportati: MP3, WAV, M4A/MP4, AAC, OGG/OPUS, FLAC e WEBM. Le tracce pubblicate compaiono su Web e Android. Pubblica solo contenuti per cui possiedi i diritti.',
+                          'Upload an audio file directly, or use an HTTPS URL. Supported formats: MP3, WAV, M4A/MP4, AAC, OGG/OPUS, FLAC and WEBM. Published tracks appear on Web and Android. Publish only audio you have rights to use.',
+                          'Lade eine Audiodatei direkt hoch oder verwende eine HTTPS-URL. Unterstützt werden MP3, WAV, M4A/MP4, AAC, OGG/OPUS, FLAC und WEBM. Veröffentlichte Titel erscheinen im Web und auf Android. Veröffentliche nur Audio mit Nutzungsrechten.',
+                          'فایل صوتی را مستقیم بارگذاری کنید یا از نشانی HTTPS استفاده کنید. فرمت‌های MP3، WAV، M4A/MP4، AAC، OGG/OPUS، FLAC و WEBM پشتیبانی می‌شوند. قطعات منتشرشده در وب و اندروید نمایش داده می‌شوند. فقط محتوایی را منتشر کنید که حق استفاده از آن را دارید.',
                         ),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: colors.onSurfaceVariant,
@@ -316,6 +393,7 @@ class _AdminRadioMondoControlSectionState
                       track: track,
                       saving: _saving,
                       onEdit: () => _edit(track),
+                      onDelete: () => _delete(track),
                       onEnabledChanged: (value) => _setEnabled(track, value),
                     ),
                     if (track != _tracks.last) const Divider(height: 1),
@@ -360,12 +438,14 @@ class _RadioTrackTile extends StatelessWidget {
   final AdminRadioMondoTrack track;
   final bool saving;
   final VoidCallback onEdit;
+  final VoidCallback onDelete;
   final ValueChanged<bool> onEnabledChanged;
 
   const _RadioTrackTile({
     required this.track,
     required this.saving,
     required this.onEdit,
+    required this.onDelete,
     required this.onEnabledChanged,
   });
 
@@ -452,6 +532,28 @@ class _RadioTrackTile extends StatelessWidget {
                 _radioText(context, 'Modifica', 'Edit', 'Bearbeiten', 'ویرایش'),
             onPressed: saving ? null : onEdit,
             icon: const Icon(Icons.edit_outlined),
+          ),
+          IconButton(
+            tooltip: track.isDefault
+                ? _radioText(
+                    context,
+                    'Imposta prima un’altra stazione come predefinita',
+                    'Set another station as default first',
+                    'Lege zuerst eine andere Station als Standard fest',
+                    'ابتدا یک ایستگاه دیگر را به‌عنوان پیش‌فرض انتخاب کنید',
+                  )
+                : _radioText(
+                    context,
+                    'Elimina',
+                    'Delete',
+                    'Löschen',
+                    'حذف',
+                  ),
+            onPressed: saving ? null : onDelete,
+            icon: Icon(
+              Icons.delete_outline,
+              color: track.isDefault ? colors.outline : colors.error,
+            ),
           ),
           Switch(
             value: track.isEnabled,
@@ -672,9 +774,8 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
         sourceType: _sourceType,
         channelType: _channelType,
         languageCode: _languageCode.isEmpty ? null : _languageCode,
-        worldBriefId: _worldBriefId.trim().isEmpty
-            ? null
-            : _worldBriefId.trim(),
+        worldBriefId:
+            _worldBriefId.trim().isEmpty ? null : _worldBriefId.trim(),
         isDefault: _isDefault,
         isLive: _isLive,
         rightsConfirmed: _rightsConfirmed,
@@ -728,11 +829,17 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                           value: value,
                           child: Text(
                             value == AdminRadioMondoSourceType.stream
-                                ? _radioText(context, 'Stream live HTTPS',
-                                    'HTTPS live stream', 'HTTPS-Livestream',
+                                ? _radioText(
+                                    context,
+                                    'Stream live HTTPS',
+                                    'HTTPS live stream',
+                                    'HTTPS-Livestream',
                                     'پخش زنده HTTPS')
-                                : _radioText(context, 'Audio / traccia',
-                                    'Audio / track', 'Audio / Titel',
+                                : _radioText(
+                                    context,
+                                    'Audio / traccia',
+                                    'Audio / track',
+                                    'Audio / Titel',
                                     'صدا / قطعه'),
                           ),
                         ),
@@ -826,62 +933,65 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                       setState(() => _worldBriefId = value ?? ''),
                 ),
                 if (_sourceType == AdminRadioMondoSourceType.audio)
-                Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        FilledButton.tonalIcon(
-                          onPressed: _pickingAudio ? null : _pickAudio,
-                          icon: _pickingAudio
-                              ? const SizedBox.square(
-                                  dimension: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Icon(Icons.upload_file_rounded),
-                          label: Text(
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          FilledButton.tonalIcon(
+                            onPressed: _pickingAudio ? null : _pickAudio,
+                            icon: _pickingAudio
+                                ? const SizedBox.square(
+                                    dimension: 16,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.upload_file_rounded),
+                            label: Text(
+                              _radioText(
+                                context,
+                                'Carica file audio',
+                                'Upload audio file',
+                                'Audiodatei hochladen',
+                                'بارگذاری فایل صوتی',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
                             _radioText(
                               context,
-                              'Carica file audio',
-                              'Upload audio file',
-                              'Audiodatei hochladen',
-                              'بارگذاری فایل صوتی',
+                              'MP3, WAV, M4A/MP4, AAC, OGG/OPUS, FLAC, WEBM · massimo 200 MB',
+                              'MP3, WAV, M4A/MP4, AAC, OGG/OPUS, FLAC, WEBM · maximum 200 MB',
+                              'MP3, WAV, M4A/MP4, AAC, OGG/OPUS, FLAC, WEBM · maximal 200 MB',
+                              'MP3، WAV، M4A/MP4، AAC، OGG/OPUS، FLAC، WEBM · حداکثر ۲۰۰ مگابایت',
                             ),
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _radioText(
-                            context,
-                            'MP3, M4A o OGG · massimo 25 MB',
-                            'MP3, M4A or OGG · maximum 25 MB',
-                            'MP3, M4A oder OGG · maximal 25 MB',
-                            'MP3، M4A یا OGG · حداکثر ۲۵ مگابایت',
-                          ),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        if (_pickedAudio != null) ...[
-                          const SizedBox(height: 10),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.audio_file_rounded),
-                            title: Text(_pickedAudio!.originalName),
-                            subtitle: Text(
-                              '${(_pickedAudio!.sizeBytes / (1024 * 1024)).toStringAsFixed(2)} MB',
+                          if (_pickedAudio != null) ...[
+                            const SizedBox(height: 10),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: const Icon(Icons.audio_file_rounded),
+                              title: Text(_pickedAudio!.originalName),
+                              subtitle: Text(
+                                '${(_pickedAudio!.sizeBytes / (1024 * 1024)).toStringAsFixed(2)} MB',
+                              ),
+                              trailing: IconButton(
+                                tooltip: MaterialLocalizations.of(context)
+                                    .deleteButtonTooltip,
+                                onPressed: () =>
+                                    setState(() => _pickedAudio = null),
+                                icon: const Icon(Icons.close_rounded),
+                              ),
                             ),
-                            trailing: IconButton(
-                              tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
-                              onPressed: () => setState(() => _pickedAudio = null),
-                              icon: const Icon(Icons.close_rounded),
-                            ),
-                          ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
-                ),
                 TextFormField(
                   controller: _audioUrl,
                   maxLength: 2048,
@@ -1068,6 +1178,103 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
   }
 }
 
+class _RadioDeleteReasonDialog extends StatefulWidget {
+  final AdminRadioMondoTrack track;
+
+  const _RadioDeleteReasonDialog({required this.track});
+
+  @override
+  State<_RadioDeleteReasonDialog> createState() =>
+      _RadioDeleteReasonDialogState();
+}
+
+class _RadioDeleteReasonDialogState extends State<_RadioDeleteReasonDialog> {
+  final _reason = TextEditingController();
+
+  @override
+  void dispose() {
+    _reason.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final valid = _reason.text.trim().isNotEmpty;
+    return AlertDialog(
+      title: Text(
+        _radioText(
+          context,
+          'Elimina traccia',
+          'Delete track',
+          'Titel löschen',
+          'حذف قطعه',
+        ),
+      ),
+      content: SizedBox(
+        width: 480,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              widget.track.title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _radioText(
+                context,
+                'L’eliminazione è definitiva. Se l’audio è stato caricato in Radio Mondo, verrà rimosso anche dallo Storage. Gli URL esterni non vengono toccati.',
+                'Deletion is permanent. If the audio was uploaded to World Radio, it will also be removed from Storage. External URLs are not touched.',
+                'Das Löschen ist endgültig. Hochgeladene World-Radio-Audiodateien werden auch aus Storage entfernt. Externe URLs bleiben unverändert.',
+                'حذف دائمی است. اگر فایل صوتی در World Radio بارگذاری شده باشد، از Storage نیز حذف می‌شود. نشانی‌های خارجی تغییر نمی‌کنند.',
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _reason,
+              maxLength: 1000,
+              maxLines: 3,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: _radioText(
+                  context,
+                  'Motivo obbligatorio',
+                  'Reason required',
+                  'Grund erforderlich',
+                  'دلیل اجباری',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+        ),
+        FilledButton.icon(
+          style: FilledButton.styleFrom(
+            backgroundColor: colors.error,
+            foregroundColor: colors.onError,
+          ),
+          onPressed: valid
+              ? () => Navigator.of(context).pop(_reason.text.trim())
+              : null,
+          icon: const Icon(Icons.delete_outline),
+          label: Text(
+            _radioText(context, 'Elimina', 'Delete', 'Löschen', 'حذف'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _RadioEnabledReasonDialog extends StatefulWidget {
   final AdminRadioMondoTrack track;
   final bool enabled;
@@ -1139,13 +1346,15 @@ String _channelTypeLabel(
 ) {
   return switch (type) {
     AdminRadioMondoChannelType.worldLive => 'World Live',
-    AdminRadioMondoChannelType.nature =>
-      _radioText(context, 'Natura / atmosfera', 'Nature / atmosphere',
-          'Natur / Atmosphäre', 'طبیعت / فضا'),
+    AdminRadioMondoChannelType.nature => _radioText(
+        context,
+        'Natura / atmosfera',
+        'Nature / atmosphere',
+        'Natur / Atmosphäre',
+        'طبیعت / فضا'),
     AdminRadioMondoChannelType.worldBrief => 'World Brief Audio',
-    AdminRadioMondoChannelType.liveEvent =>
-      _radioText(context, 'Evento live', 'Live event', 'Live-Ereignis',
-          'رویداد زنده'),
+    AdminRadioMondoChannelType.liveEvent => _radioText(
+        context, 'Evento live', 'Live event', 'Live-Ereignis', 'رویداد زنده'),
     AdminRadioMondoChannelType.special =>
       _radioText(context, 'Speciale', 'Special', 'Spezial', 'ویژه'),
   };

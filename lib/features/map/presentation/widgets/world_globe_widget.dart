@@ -447,6 +447,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
   bool _autoRotateEnabled = true;
   bool _stylePickerOpen = false;
   DateTime? _suppressHomeSurfaceTapUntil;
+  bool _radioPickerOpen = false;
   String? _lastWebLayoutDiagnostic;
   final WorldMarkerPolicyService _markerPolicy =
       WorldMarkerPolicyService.instance;
@@ -628,6 +629,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
                       child: SizedBox.square(
                         dimension: surfaceSize,
                         child: WebWorldGlobeSurface(
+                          interactionEnabled: !_radioPickerOpen,
                           items: widget.items,
                           homeProfile: _isHomeProfile,
                           isAuthenticated: isAuthenticated,
@@ -660,6 +662,27 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
                           globeStyle: widget.visualStyle,
                           rotationVisualStyle: widget.rotationVisualStyle,
                           size: WorldHomeGlobeGeometry.controlSize,
+                          onPickerOpened: () {
+                            if (!_radioPickerOpen && mounted) {
+                              setState(() {
+                                _radioPickerOpen = true;
+                              });
+                            }
+                          },
+                          onPickerDismissed: () {
+                            if (_radioPickerOpen && mounted) {
+                              setState(() {
+                                _radioPickerOpen = false;
+                              });
+                            }
+                          },
+                          onPickerClosed: () {
+                            if (_isHomeProfile) {
+                              _suppressHomeSurfaceTapUntil = DateTime.now().add(
+                                const Duration(milliseconds: 420),
+                              );
+                            }
+                          },
                         ),
                       ),
                     if (widget.showHomeRadioControl || isAuthenticated)

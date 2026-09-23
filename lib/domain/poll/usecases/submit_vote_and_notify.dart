@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/notifications/usecases/create_poll_result_notification.dart';
@@ -8,11 +7,13 @@ import 'package:sociale_vote/domain/poll/usecases/submit_vote.dart';
 
 class SubmitVoteAndNotify {
   final SubmitVote _submitVote;
-  final CreatePollResultNotification _createPollResultNotification;
 
+  /// The legacy notification dependency is intentionally kept in the
+  /// constructor for source compatibility with the current DI wiring.
+  /// Poll-result notifications are no longer created per submitted vote.
   SubmitVoteAndNotify(
     this._submitVote,
-    this._createPollResultNotification,
+    CreatePollResultNotification _,
   );
 
   Future<void> call(
@@ -31,20 +32,5 @@ class SubmitVoteAndNotify {
       actorType: actorType,
       verificationLevel: verificationLevel,
     );
-
-    try {
-      final notification = await _createPollResultNotification(
-        poll: poll,
-        actorUserId: userId,
-      );
-
-      debugPrint(
-        'SubmitVoteAndNotify poll notification result: '
-        '${notification == null ? 'null' : notification.id}',
-      );
-    } catch (e, st) {
-      debugPrint('SubmitVoteAndNotify poll notification error: $e');
-      debugPrint('$st');
-    }
   }
 }

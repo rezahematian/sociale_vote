@@ -20,6 +20,7 @@ class WebGlobeFocus {
 }
 
 class WebWorldGlobeSurface extends StatelessWidget {
+  final bool interactionEnabled;
   final List<CivicMapItem> items;
   final bool homeProfile;
   final bool isAuthenticated;
@@ -40,6 +41,7 @@ class WebWorldGlobeSurface extends StatelessWidget {
 
   const WebWorldGlobeSurface({
     super.key,
+    this.interactionEnabled = true,
     required this.items,
     required this.homeProfile,
     required this.isAuthenticated,

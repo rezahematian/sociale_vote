@@ -1263,7 +1263,7 @@
   },
   "notificationsPollPublishedTitle": "Vote جدید از Social Vote",
   "notificationsPollPublishedSubtitle": "Social Vote یک Vote جدید منتشر کرد.",
-  "notificationsPollResultTitle": "به‌روزرسانی Vote",
+  "notificationsPollResultTitle": "نتیجه نهایی Vote",
   "@notificationsPollResultTitle": {
     "description": "Notifications UI: notificationsPollResultTitle"
   },
@@ -1291,7 +1291,7 @@
       }
     }
   },
-  "notificationsPollResultSubtitle": "یک نتیجه جدید در {target} موجود است",
+  "notificationsPollResultSubtitle": "نتیجه نهایی در {target} در دسترس است",
   "@notificationsPollResultSubtitle": {
     "description": "Notifications UI: notificationsPollResultSubtitle",
     "placeholders": {

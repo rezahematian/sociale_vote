@@ -45,15 +45,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get createPollTypeFieldLabel => 'نوع Vote';
 
   @override
+  String createPollSelectionRules(int min, int max) {
+    return 'يمكن للمصوّتين اختيار من $min إلى $max إجابات.';
+  }
+
+  @override
   String get createPollMinimumAnswersLabel => 'الحد الأدنى للإجابات';
 
   @override
   String get createPollMaximumAnswersLabel => 'الحد الأقصى للإجابات';
-
-  @override
-  String createPollSelectionRules(int min, int max) {
-    return 'يمكن للمصوّتين اختيار من $min إلى $max إجابات.';
-  }
 
   @override
   String get createPollAllowVoteChangeTitle => 'السماح للمصوّتين بتغيير تصويتهم';
@@ -1509,7 +1509,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notificationsPollPublishedSubtitle => 'نشرت Social Vote تصويت Vote جديدًا.';
 
   @override
-  String get notificationsPollResultTitle => 'تحديث Vote';
+  String get notificationsPollResultTitle => 'النتيجة النهائية لـ Vote';
 
   @override
   String notificationsCommentReplySubtitle(String actor, String target) {
@@ -1523,7 +1523,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String notificationsPollResultSubtitle(String target) {
-    return 'توجد نتيجة جديدة في $target';
+    return 'النتيجة النهائية متاحة في $target';
   }
 
   @override

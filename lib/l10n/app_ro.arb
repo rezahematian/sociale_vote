@@ -1263,7 +1263,7 @@
   },
   "notificationsPollPublishedTitle": "Vote nou de la Social Vote",
   "notificationsPollPublishedSubtitle": "Social Vote a publicat un Vote nou.",
-  "notificationsPollResultTitle": "Actualizare Vote",
+  "notificationsPollResultTitle": "Rezultatul final al Vote",
   "@notificationsPollResultTitle": {
     "description": "Notifications UI: notificationsPollResultTitle"
   },
@@ -1291,7 +1291,7 @@
       }
     }
   },
-  "notificationsPollResultSubtitle": "Un rezultat nou este disponibil în {target}",
+  "notificationsPollResultSubtitle": "Rezultatul final este disponibil în {target}",
   "@notificationsPollResultSubtitle": {
     "description": "Notifications UI: notificationsPollResultSubtitle",
     "placeholders": {
