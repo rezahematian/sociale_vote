@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:sociale_vote/core/supabase/supabase_client.dart';
+
+import 'radio_mondo_web_audio.dart';
 
 enum RadioMondoSourceType { audio, stream }
 
@@ -72,16 +75,75 @@ class RadioMondoStation {
   bool get isBuiltIn => builtInTrack != null;
 }
 
-/// Player foreground-only condiviso da tutte le route dell'app.
+/// Player condiviso da tutte le route dell'app.
 ///
-/// Non salva una preferenza di auto-avvio, non riparte da solo e si arresta
-/// appena l'app va in background, la scheda Web viene nascosta o l'app termina.
+/// Non salva una preferenza di auto-avvio e non riparte da solo.
+/// Su Web e Android, dopo un avvio esplicito dell'utente, il playback può
+/// continuare quando la pagina/app passa in background o lo schermo si blocca.
+class _RadioMondoAudioHandler extends BaseAudioHandler {
+  _RadioMondoAudioHandler(this._owner);
+
+  final RadioMondoService _owner;
+
+  @override
+  Future<void> play() => _owner._resumeFromMediaSession();
+
+  @override
+  Future<void> pause() => _owner._pauseFromMediaSession();
+
+  @override
+  Future<void> stop() => _owner._stopFromMediaSession();
+
+  void publishStation(RadioMondoStation station) {
+    mediaItem.add(
+      MediaItem(
+        id: station.id,
+        title: station.title,
+        album: 'Social Vote · Radio Mondo',
+        artist: 'Social Vote',
+        extras: <String, dynamic>{
+          'attribution': station.attribution,
+          'channelType': station.channelType.name,
+          'isLive': station.isLive,
+        },
+      ),
+    );
+  }
+
+  void publishReady({required bool playing}) {
+    playbackState.add(
+      PlaybackState(
+        controls: <MediaControl>[
+          if (playing) MediaControl.pause else MediaControl.play,
+          MediaControl.stop,
+        ],
+        androidCompactActionIndices: const <int>[0, 1],
+        processingState: AudioProcessingState.ready,
+        playing: playing,
+        speed: 1.0,
+      ),
+    );
+  }
+
+  void publishIdle() {
+    mediaItem.add(null);
+    playbackState.add(
+      PlaybackState(
+        processingState: AudioProcessingState.idle,
+        playing: false,
+      ),
+    );
+  }
+}
+
 class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
   RadioMondoService._();
 
   static final RadioMondoService instance = RadioMondoService._();
 
   final AudioPlayer _player = AudioPlayer();
+  final RadioMondoWebAudio _webAudio = RadioMondoWebAudio();
+  _RadioMondoAudioHandler? _audioHandler;
 
   static const List<RadioMondoStation> _builtInStations = [
     RadioMondoStation(
@@ -239,8 +301,33 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
     try {
       WidgetsBinding.instance.addObserver(this);
       observerAdded = true;
-      await _player.setPlayerMode(PlayerMode.mediaPlayer);
-      await _player.setVolume(_volume);
+      if (kIsWeb) {
+        await _webAudio.setVolume(_volume);
+      } else {
+        await _player.setPlayerMode(PlayerMode.mediaPlayer);
+
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          _audioHandler ??= await AudioService.init<_RadioMondoAudioHandler>(
+            builder: () => _RadioMondoAudioHandler(this),
+            config: const AudioServiceConfig(
+              androidNotificationChannelId:
+                  'com.hematianapps.socialvote.radio_mondo',
+              androidNotificationChannelName: 'Social Vote · Radio Mondo',
+              androidNotificationChannelDescription:
+                  'Radio Mondo playback controls',
+              androidStopForegroundOnPause: false,
+            ),
+          );
+
+          await _player.setAudioContext(
+            AudioContextConfig(
+              stayAwake: true,
+            ).build(),
+          );
+        }
+
+        await _player.setVolume(_volume);
+      }
       _initialized = true;
       return true;
     } catch (error, stackTrace) {
@@ -278,25 +365,51 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
 
       _selectedStation = station;
       _selectionExplicit = true;
-      await _player.stop();
-      await _player.setReleaseMode(
-        station.sourceType == RadioMondoSourceType.stream
-            ? ReleaseMode.stop
-            : ReleaseMode.loop,
-      );
-      await _player.setVolume(_volume);
       final builtInTrack = station.builtInTrack;
-      if (builtInTrack != null) {
-        await _player.play(AssetSource(builtInTrack.assetPath));
-      } else {
-        final audioUrl = station.audioUrl;
-        if (audioUrl == null || !audioUrl.startsWith('https://')) {
+
+      if (kIsWeb) {
+        final sourceUrl = builtInTrack != null
+            ? 'assets/assets/${builtInTrack.assetPath}'
+            : station.audioUrl;
+
+        if (sourceUrl == null ||
+            (builtInTrack == null && !sourceUrl.startsWith('https://'))) {
           return false;
         }
-        await _player.play(UrlSource(audioUrl));
+
+        await _webAudio.stop();
+        await _webAudio.playUrl(
+          sourceUrl,
+          loop: station.sourceType != RadioMondoSourceType.stream,
+          volume: _volume,
+        );
+      } else {
+        await _player.stop();
+        await _player.setReleaseMode(
+          station.sourceType == RadioMondoSourceType.stream
+              ? ReleaseMode.stop
+              : ReleaseMode.loop,
+        );
+        await _player.setVolume(_volume);
+
+        if (builtInTrack != null) {
+          await _player.play(AssetSource(builtInTrack.assetPath));
+        } else {
+          final audioUrl = station.audioUrl;
+          if (audioUrl == null || !audioUrl.startsWith('https://')) {
+            return false;
+          }
+          await _player.play(UrlSource(audioUrl));
+        }
       }
       _currentStation = station;
       _isPlaying = true;
+
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        _audioHandler?.publishStation(station);
+        _audioHandler?.publishReady(playing: true);
+      }
+
       return true;
     } catch (error, stackTrace) {
       if (kDebugMode) {
@@ -316,7 +429,11 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
     try {
       // Keep the AudioPlayer reusable during the app lifetime.
       // Releasing on every stop caused unstable native re-entry on some Android devices.
-      await _player.stop();
+      if (kIsWeb) {
+        await _webAudio.stop();
+      } else {
+        await _player.stop();
+      }
     } catch (error, stackTrace) {
       if (kDebugMode) {
         debugPrint('Radio Mondo stop error: $error\n$stackTrace');
@@ -325,14 +442,63 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
       _currentStation = null;
       _isPlaying = false;
       _isLoading = false;
+
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        _audioHandler?.publishIdle();
+      }
+
       notifyListeners();
     }
+  }
+
+  Future<void> _pauseFromMediaSession() async {
+    if (!_initialized || !_isPlaying || _currentStation == null) return;
+
+    try {
+      await _player.pause();
+      _isPlaying = false;
+      _audioHandler?.publishReady(playing: false);
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint(
+          'Radio Mondo media pause error: $error\n$stackTrace',
+        );
+      }
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<void> _resumeFromMediaSession() async {
+    if (!_initialized || _isPlaying || _currentStation == null) return;
+
+    try {
+      await _player.resume();
+      _isPlaying = true;
+      _audioHandler?.publishReady(playing: true);
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint(
+          'Radio Mondo media resume error: $error\n$stackTrace',
+        );
+      }
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<void> _stopFromMediaSession() async {
+    await stop();
   }
 
   Future<void> setVolume(double value) async {
     _volume = value.clamp(0.0, 1.0).toDouble();
     if (_initialized) {
-      await _player.setVolume(_volume);
+      if (kIsWeb) {
+        await _webAudio.setVolume(_volume);
+      } else {
+        await _player.setVolume(_volume);
+      }
     }
     notifyListeners();
   }
@@ -342,6 +508,12 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
     switch (state) {
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:
+        // Web and Android Radio are user-started media: keep playback alive
+        // while the browser/app is backgrounded or the screen is locked.
+        if (!(kIsWeb || defaultTargetPlatform == TargetPlatform.android)) {
+          unawaited(stop());
+        }
+        break;
       case AppLifecycleState.detached:
         unawaited(stop());
         break;
