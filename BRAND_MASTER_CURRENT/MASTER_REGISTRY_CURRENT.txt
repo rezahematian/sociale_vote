@@ -1,0 +1,23 @@
+﻿SOCIAL VOTE BRAND MASTER CURRENT
+Authority date: 2026-09-25
+
+SOURCE OF TRUTH:
+C:\Users\rezah\Desktop\flutter\Sociale Vote\icons\Social Vote Master
+
+RULE:
+These originals are copied byte-for-byte.
+Runtime derivatives may be resized/cropped as required by platform.
+Do not re-render or AI-regenerate these masters.
+
+HEADER:
+clean = OFF / normal state
+glow  = ON / illuminated state
+Both: 2048x682
+
+FILES:
+social_vote_app_icon_tile_master_1254x1254_RGBA.png | 1460734 bytes | SHA256 AC70FA5463326B9757354631D176C0859EFD25D1B63BA118F4CE00CA831F56B8
+social_vote_header_lockup_clean_2048x682_RGBA.png | 880791 bytes | SHA256 39BC8DF2E6FC6C5E7954947691A38CFD249DCED02FA3D48C4E2CBCD5FF677408
+social_vote_header_lockup_glow_2048x682_RGBA.png | 1238742 bytes | SHA256 5CD47A776434D78303063DCD455B2D74C2BA1ABCF2FA4E0CA1F771237C97B6A4
+social_vote_master.png | 1292434 bytes | SHA256 8F00038A9A687BF79090077A3261E1F055CB9686728A8FB6B640617766FEACC8
+social_vote_master_symbol_1254x1254_RGBA.png | 1240794 bytes | SHA256 E6D8F0E06055E3E8BB6414DF5CB412B98A4C780CEEF58317C15ECE3E43C46C4C
+social_vote_verified_result_seal_master_1254x1254_RGBA.png | 1960377 bytes | SHA256 6D85E19CBEDF830A55EEFCBBDC1E73E658C6F69C61598BDF72E312CBFF612B9C

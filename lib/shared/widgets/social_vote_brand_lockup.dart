@@ -1,19 +1,26 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/shared/branding/social_vote_brand_assets.dart';
+import 'package:sociale_vote/shared/services/brand_header_mode_service.dart';
 
 import 'social_vote_header_web_image_stub.dart'
     if (dart.library.html) 'social_vote_header_web_image_web.dart';
 
-/// One static, canonical lockup. Neon is suspended on every platform.
-class SocialVoteHeaderBrand extends StatelessWidget {
+/// Canonical Social Vote header.
+///
+/// OFF     = clean master.
+/// GLOW    = stable neon illumination.
+/// PULSE   = smooth neon breathing.
+/// FLICKER = restrained neon intensity variation; the base logo never hides.
+class SocialVoteHeaderBrand extends StatefulWidget {
   static const String lockupAsset = SocialVoteBrandAssets.headerLockup;
+  static const String glowAsset = SocialVoteBrandAssets.headerGlowLockup;
   static const double _assetAspectRatio = 2048 / 682;
 
   final double height;
-
-  /// Retained for source compatibility; all effects are deliberately ignored.
   final SocialVoteBrandEffect? effect;
 
   const SocialVoteHeaderBrand({
@@ -23,10 +30,146 @@ class SocialVoteHeaderBrand extends StatelessWidget {
   });
 
   @override
+  State<SocialVoteHeaderBrand> createState() => _SocialVoteHeaderBrandState();
+}
+
+class _SocialVoteHeaderBrandState extends State<SocialVoteHeaderBrand> {
+  Timer? _timer;
+  double _glowIntensity = 0.0;
+  int _flickerStep = 0;
+
+  final BrandHeaderModeService _brandHeaderMode =
+      BrandHeaderModeService.instance;
+
+  SocialVoteBrandEffect get _effect =>
+      widget.effect ??
+      switch (_brandHeaderMode.mode) {
+        BrandHeaderMode.normal => SocialVoteBrandEffect.off,
+        BrandHeaderMode.flicker => SocialVoteBrandEffect.flicker,
+      };
+
+  static const List<_FlickerStep> _flickerSteps = <_FlickerStep>[
+    // Real neon rhythm: clearly ON, clearly OFF, then a short tube strike.
+    // The clean master always stays visible underneath.
+    _FlickerStep(Duration(milliseconds: 2600), 0.0),
+    _FlickerStep(Duration(milliseconds: 1200), 1.0),
+    _FlickerStep(Duration(milliseconds: 110), 0.0),
+    _FlickerStep(Duration(milliseconds: 170), 1.0),
+    _FlickerStep(Duration(milliseconds: 90), 0.18),
+    _FlickerStep(Duration(milliseconds: 150), 1.0),
+    _FlickerStep(Duration(milliseconds: 2400), 0.0),
+    _FlickerStep(Duration(milliseconds: 1050), 1.0),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _brandHeaderMode.addListener(_handleBrandHeaderModeChanged);
+    unawaited(_brandHeaderMode.ensureLoaded());
+    _configureEffect();
+  }
+
+  void _handleBrandHeaderModeChanged() {
+    if (widget.effect != null) return;
+    _configureEffect(rebuild: true);
+  }
+
+  @override
+  void didUpdateWidget(covariant SocialVoteHeaderBrand oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.effect != widget.effect) {
+      _configureEffect(rebuild: true);
+    }
+  }
+
+  void _configureEffect({bool rebuild = false}) {
+    _timer?.cancel();
+    _timer = null;
+    _flickerStep = 0;
+
+    switch (_effect) {
+      case SocialVoteBrandEffect.off:
+        _glowIntensity = 0.0;
+
+      case SocialVoteBrandEffect.steadyGlow:
+        _glowIntensity = 1.0;
+
+      case SocialVoteBrandEffect.pulse:
+        _glowIntensity = 0.62;
+        _timer = Timer.periodic(const Duration(milliseconds: 1800), (_) {
+          if (!mounted || _effect != SocialVoteBrandEffect.pulse) return;
+          setState(() {
+            _glowIntensity = _glowIntensity > 0.80 ? 0.62 : 1.0;
+          });
+        });
+
+      case SocialVoteBrandEffect.flicker:
+        _glowIntensity = 0.0;
+        _scheduleNextFlicker();
+    }
+
+    if (rebuild && mounted) {
+      setState(() {});
+    }
+  }
+
+  void _scheduleNextFlicker() {
+    final step = _flickerSteps[_flickerStep];
+
+    _timer = Timer(step.delay, () {
+      if (!mounted || _effect != SocialVoteBrandEffect.flicker) return;
+
+      setState(() {
+        _glowIntensity = step.intensity;
+      });
+
+      _flickerStep = (_flickerStep + 1) % _flickerSteps.length;
+      _scheduleNextFlicker();
+    });
+  }
+
+  Widget _nativeImage(String assetPath) {
+    return Image.asset(
+      assetPath,
+      fit: BoxFit.contain,
+      alignment: AlignmentDirectional.centerStart,
+      filterQuality: FilterQuality.high,
+      isAntiAlias: true,
+      gaplessPlayback: true,
+      excludeFromSemantics: true,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
     final snappedHeight =
-        (height * devicePixelRatio).roundToDouble() / devicePixelRatio;
+        (widget.height * devicePixelRatio).roundToDouble() / devicePixelRatio;
+
+    final glowTransitionDuration = switch (_effect) {
+      SocialVoteBrandEffect.pulse => const Duration(milliseconds: 900),
+      SocialVoteBrandEffect.flicker => const Duration(milliseconds: 55),
+      _ => const Duration(milliseconds: 180),
+    };
+
+    final header = kIsWeb
+        ? SocialVoteHeaderWebImage(
+            assetPath: SocialVoteHeaderBrand.lockupAsset,
+            glowIntensity: _glowIntensity,
+          )
+        : Stack(
+            fit: StackFit.expand,
+            children: <Widget>[
+              _nativeImage(SocialVoteHeaderBrand.lockupAsset),
+              AnimatedOpacity(
+                opacity: _glowIntensity,
+                duration: glowTransitionDuration,
+                curve: Curves.easeOutCubic,
+                child: _nativeImage(SocialVoteHeaderBrand.glowAsset),
+              ),
+            ],
+          );
 
     return Semantics(
       label: 'Social Vote',
@@ -34,22 +177,26 @@ class SocialVoteHeaderBrand extends StatelessWidget {
       child: ExcludeSemantics(
         child: RepaintBoundary(
           child: SizedBox(
-            width: snappedHeight * _assetAspectRatio,
+            width: snappedHeight * SocialVoteHeaderBrand._assetAspectRatio,
             height: snappedHeight,
-            child: kIsWeb
-                ? const SocialVoteHeaderWebImage(assetPath: lockupAsset)
-                : Image.asset(
-                    lockupAsset,
-                    fit: BoxFit.contain,
-                    alignment: AlignmentDirectional.centerStart,
-                    filterQuality: FilterQuality.high,
-                    isAntiAlias: true,
-                    gaplessPlayback: true,
-                    excludeFromSemantics: true,
-                  ),
+            child: header,
           ),
         ),
       ),
     );
   }
+
+  @override
+  void dispose() {
+    _brandHeaderMode.removeListener(_handleBrandHeaderModeChanged);
+    _timer?.cancel();
+    super.dispose();
+  }
+}
+
+class _FlickerStep {
+  final Duration delay;
+  final double intensity;
+
+  const _FlickerStep(this.delay, this.intensity);
 }

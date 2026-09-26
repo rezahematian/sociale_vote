@@ -47,5 +47,5 @@ class SocialVoteBrandPresentation {
   SocialVoteBrandPresentation._();
 
   static const SocialVoteBrandEffect homeHeaderEffect =
-      SocialVoteBrandEffect.off;
+      SocialVoteBrandEffect.flicker;
 }

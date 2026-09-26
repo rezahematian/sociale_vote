@@ -35,6 +35,7 @@ import 'package:sociale_vote/features/admin/presentation/widgets/admin_radio_mon
 import 'package:sociale_vote/shared/services/world_appearance_service.dart';
 import 'package:sociale_vote/shared/services/world_marker_policy_service.dart';
 import 'package:sociale_vote/shared/services/egress_policy_service.dart';
+import 'package:sociale_vote/shared/services/brand_header_mode_service.dart';
 
 enum AdminCenterSection {
   dashboard,
@@ -195,7 +196,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             it: 'Finanze',
             en: 'Finance',
             de: 'Finanzen',
-            fa: 'مالی',
+            fa: 'Ù…Ø§Ù„ÛŒ',
           ),
         ),
       if (widget.currentRole == Role.admin)
@@ -332,10 +333,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           content: Text(
             _adminControlText(
               context,
-              it: 'Impossibile salvare la modalità traffico.',
+              it: 'Impossibile salvare la modalitÃ  traffico.',
               en: 'Unable to save the traffic mode.',
               de: 'Der Datenmodus konnte nicht gespeichert werden.',
-              fa: 'ذخیره حالت ترافیک ممکن نیست.',
+              fa: 'Ø°Ø®ÛŒØ±Ù‡ Ø­Ø§Ù„Øª ØªØ±Ø§ÙÛŒÚ© Ù…Ù…Ú©Ù† Ù†ÛŒØ³Øª.',
             ),
           ),
         ),
@@ -450,7 +451,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             children: [
               Icon(Icons.language),
               SizedBox(width: 12),
-              Text('فارسی'),
+              Text('ÙØ§Ø±Ø³ÛŒ'),
             ],
           ),
         ),
@@ -460,7 +461,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             children: [
               Icon(Icons.language),
               SizedBox(width: 12),
-              Text('Español'),
+              Text('EspaÃ±ol'),
             ],
           ),
         ),
@@ -470,7 +471,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             children: [
               Icon(Icons.language),
               SizedBox(width: 12),
-              Text('Português'),
+              Text('PortuguÃªs'),
             ],
           ),
         ),
@@ -480,7 +481,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             children: [
               Icon(Icons.language),
               SizedBox(width: 12),
-              Text('Français'),
+              Text('FranÃ§ais'),
             ],
           ),
         ),
@@ -490,7 +491,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             children: [
               Icon(Icons.language),
               SizedBox(width: 12),
-              Text('العربية'),
+              Text('Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©'),
             ],
           ),
         ),
@@ -500,7 +501,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             children: [
               Icon(Icons.language),
               SizedBox(width: 12),
-              Text('Română'),
+              Text('RomÃ¢nÄƒ'),
             ],
           ),
         ),
@@ -827,9 +828,9 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Verifica: ${currentEntitlement.verificationStatus} · '
-                  'Piano: ${currentEntitlement.planKey} · '
-                  'Modalità: ${currentEntitlement.commercialMode}',
+                  'Verifica: ${currentEntitlement.verificationStatus} Â· '
+                  'Piano: ${currentEntitlement.planKey} Â· '
+                  'ModalitÃ : ${currentEntitlement.commercialMode}',
                 ),
                 const SizedBox(height: 18),
                 _AdminWorkspaceStateSummary(
@@ -893,7 +894,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  'La verifica dell’identità resta separata dallo stato Workspace.',
+                  'La verifica dellâ€™identitÃ  resta separata dallo stato Workspace.',
                 ),
               ],
             ),
@@ -1719,7 +1720,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     final localizations = MaterialLocalizations.of(context);
     final from = localizations.formatMediumDate(range.start);
     final to = localizations.formatMediumDate(range.end);
-    return from == to ? from : '$from – $to';
+    return from == to ? from : '$from â€“ $to';
   }
 
   Widget _buildAuditSection(BuildContext context) {
@@ -2611,10 +2612,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                   icon: Icons.verified_rounded,
                   label: _adminControlText(
                     context,
-                    it: 'Identità pubblica',
+                    it: 'IdentitÃ  pubblica',
                     en: 'Public identity',
-                    de: 'Öffentliche Identität',
-                    fa: 'هویت عمومی',
+                    de: 'Ã–ffentliche IdentitÃ¤t',
+                    fa: 'Ù‡ÙˆÛŒØª Ø¹Ù…ÙˆÙ…ÛŒ',
                   ),
                   value: _actorTypeLabel(context, detail.actorType),
                 ),
@@ -2625,14 +2626,14 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                     it: 'Livelli persona',
                     en: 'Person levels',
                     de: 'Personenstufen',
-                    fa: 'سطوح شخصی',
+                    fa: 'Ø³Ø·ÙˆØ­ Ø´Ø®ØµÛŒ',
                   ),
                   value: _adminControlText(
                     context,
-                    it: 'Non applicabili a questa identità',
+                    it: 'Non applicabili a questa identitÃ ',
                     en: 'Not applicable to this identity',
-                    de: 'Für diese Identität nicht anwendbar',
-                    fa: 'برای این هویت کاربرد ندارد',
+                    de: 'FÃ¼r diese IdentitÃ¤t nicht anwendbar',
+                    fa: 'Ø¨Ø±Ø§ÛŒ Ø§ÛŒÙ† Ù‡ÙˆÛŒØª Ú©Ø§Ø±Ø¨Ø±Ø¯ Ù†Ø¯Ø§Ø±Ø¯',
                   ),
                 ),
               ],
@@ -3223,6 +3224,80 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       );
     }
 
+    Widget buildHeaderBrandModeControl() {
+      final service = BrandHeaderModeService.instance;
+      unawaited(service.ensureLoaded());
+
+      return AnimatedBuilder(
+        animation: service,
+        builder: (context, _) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _adminControlText(
+                      context,
+                      it: 'Logo Social Vote',
+                      en: 'Social Vote logo',
+                      de: 'Social Vote Logo',
+                      fa: 'لوگوی Social Vote',
+                    ),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  SegmentedButton<BrandHeaderMode>(
+                    segments: [
+                      ButtonSegment(
+                        value: BrandHeaderMode.normal,
+                        icon: const Icon(Icons.image_outlined),
+                        label: Text(
+                          _adminControlText(
+                            context,
+                            it: 'Normale',
+                            en: 'Normal',
+                            de: 'Normal',
+                            fa: 'عادی',
+                          ),
+                        ),
+                      ),
+                      ButtonSegment(
+                        value: BrandHeaderMode.flicker,
+                        icon: const Icon(Icons.flash_on_outlined),
+                        label: Text(
+                          _adminControlText(
+                            context,
+                            it: 'Lampeggiante',
+                            en: 'Flicker',
+                            de: 'Flackernd',
+                            fa: 'چشمک‌زن',
+                          ),
+                        ),
+                      ),
+                    ],
+                    selected: <BrandHeaderMode>{service.mode},
+                    onSelectionChanged: service.isSaving
+                        ? null
+                        : (selection) {
+                            unawaited(
+                              service.setModeFromAdmin(selection.first),
+                            );
+                          },
+                  ),
+                  if (service.isLoading || service.isSaving) ...[
+                    const SizedBox(height: 10),
+                    const LinearProgressIndicator(),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
     Widget buildMarkerDensityControl() {
       final density =
           (_markerDensityDraft ?? _worldMarkerPolicy.markerDensity.toDouble())
@@ -3433,7 +3508,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                             it: 'Traffico automatico',
                             en: 'Automatic traffic',
                             de: 'Automatischer Datenverkehr',
-                            fa: 'ترافیک خودکار',
+                            fa: 'ØªØ±Ø§ÙÛŒÚ© Ø®ÙˆØ¯Ú©Ø§Ø±',
                           ),
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w900,
@@ -3445,8 +3520,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                             context,
                             it: 'Controlla Home, News, Realtime e polling Session. Login, voto e azioni manuali restano disponibili.',
                             en: 'Controls Home, News, Realtime and Session polling. Login, voting and manual actions stay available.',
-                            de: 'Steuert Home, News, Realtime und Sitzungsabfragen. Anmeldung, Abstimmung und manuelle Aktionen bleiben verfügbar.',
-                            fa: 'خانه، اخبار، بلادرنگ و نظرسنجی جلسه را کنترل می‌کند. ورود، رأی و اقدامات دستی فعال می‌مانند.',
+                            de: 'Steuert Home, News, Realtime und Sitzungsabfragen. Anmeldung, Abstimmung und manuelle Aktionen bleiben verfÃ¼gbar.',
+                            fa: 'Ø®Ø§Ù†Ù‡ØŒ Ø§Ø®Ø¨Ø§Ø±ØŒ Ø¨Ù„Ø§Ø¯Ø±Ù†Ú¯ Ùˆ Ù†Ø¸Ø±Ø³Ù†Ø¬ÛŒ Ø¬Ù„Ø³Ù‡ Ø±Ø§ Ú©Ù†ØªØ±Ù„ Ù…ÛŒâ€ŒÚ©Ù†Ø¯. ÙˆØ±ÙˆØ¯ØŒ Ø±Ø£ÛŒ Ùˆ Ø§Ù‚Ø¯Ø§Ù…Ø§Øª Ø¯Ø³ØªÛŒ ÙØ¹Ø§Ù„ Ù…ÛŒâ€ŒÙ…Ø§Ù†Ù†Ø¯.',
                           ),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colors.onSurfaceVariant,
@@ -3474,7 +3549,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                         it: 'Normale',
                         en: 'Normal',
                         de: 'Normal',
-                        fa: 'عادی',
+                        fa: 'Ø¹Ø§Ø¯ÛŒ',
                       ),
                     ),
                   ),
@@ -3487,7 +3562,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                         it: 'Risparmio',
                         en: 'Conservative',
                         de: 'Sparmodus',
-                        fa: 'کم‌مصرف',
+                        fa: 'Ú©Ù…â€ŒÙ…ØµØ±Ù',
                       ),
                     ),
                   ),
@@ -3500,7 +3575,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                         it: 'Emergenza',
                         en: 'Emergency',
                         de: 'Notfall',
-                        fa: 'اضطراری',
+                        fa: 'Ø§Ø¶Ø·Ø±Ø§Ø±ÛŒ',
                       ),
                     ),
                   ),
@@ -3534,11 +3609,11 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                         context,
                         it: 'Aggiornamenti automatici sospesi. Sono consentiti gli aggiornamenti manuali.',
                         en: 'Automatic refreshes are paused. Manual refreshes remain available.',
-                        de: 'Automatische Aktualisierungen sind pausiert. Manuelle Aktualisierungen bleiben verfügbar.',
-                        fa: 'به‌روزرسانی خودکار متوقف است. به‌روزرسانی دستی فعال می‌ماند.',
+                        de: 'Automatische Aktualisierungen sind pausiert. Manuelle Aktualisierungen bleiben verfÃ¼gbar.',
+                        fa: 'Ø¨Ù‡â€ŒØ±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ Ø®ÙˆØ¯Ú©Ø§Ø± Ù…ØªÙˆÙ‚Ù Ø§Ø³Øª. Ø¨Ù‡â€ŒØ±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ Ø¯Ø³ØªÛŒ ÙØ¹Ø§Ù„ Ù…ÛŒâ€ŒÙ…Ø§Ù†Ø¯.',
                       )
                     : '${formatBudgetMiB(used)} / ${formatBudgetMiB(budget)} MiB '
-                        '${_adminControlText(context, it: 'stimati oggi per installazione', en: 'estimated today per installation', de: 'heute pro Installation geschätzt', fa: 'برآورد امروز برای هر نصب')}',
+                        '${_adminControlText(context, it: 'stimati oggi per installazione', en: 'estimated today per installation', de: 'heute pro Installation geschÃ¤tzt', fa: 'Ø¨Ø±Ø¢ÙˆØ±Ø¯ Ø§Ù…Ø±ÙˆØ² Ø¨Ø±Ø§ÛŒ Ù‡Ø± Ù†ØµØ¨')}',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colors.onSurfaceVariant,
                   fontWeight: FontWeight.w700,
@@ -3555,10 +3630,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                       child: Text(
                         _adminControlText(
                           context,
-                          it: 'Configurazione backend non disponibile: resta attiva la modalità Risparmio.',
+                          it: 'Configurazione backend non disponibile: resta attiva la modalitÃ  Risparmio.',
                           en: 'Backend configuration unavailable: Conservative mode remains active.',
-                          de: 'Backend-Konfiguration nicht verfügbar: Der Sparmodus bleibt aktiv.',
-                          fa: 'پیکربندی سرور در دسترس نیست؛ حالت کم‌مصرف فعال می‌ماند.',
+                          de: 'Backend-Konfiguration nicht verfÃ¼gbar: Der Sparmodus bleibt aktiv.',
+                          fa: 'Ù¾ÛŒÚ©Ø±Ø¨Ù†Ø¯ÛŒ Ø³Ø±ÙˆØ± Ø¯Ø± Ø¯Ø³ØªØ±Ø³ Ù†ÛŒØ³ØªØ› Ø­Ø§Ù„Øª Ú©Ù…â€ŒÙ…ØµØ±Ù ÙØ¹Ø§Ù„ Ù…ÛŒâ€ŒÙ…Ø§Ù†Ø¯.',
                         ),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colors.error,
@@ -3752,6 +3827,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                 buildMarkerDensityControl(),
                 const SizedBox(height: 14),
                 buildEgressModeControl(),
+                const SizedBox(height: 14),
+                buildHeaderBrandModeControl(),
               ],
             ],
           ),
@@ -4485,7 +4562,7 @@ class _AdminUserCommandCard extends StatelessWidget {
                           it: 'Stato attuale',
                           en: 'Current state',
                           de: 'Aktueller Status',
-                          fa: 'وضعیت فعلی',
+                          fa: 'ÙˆØ¶Ø¹ÛŒØª ÙØ¹Ù„ÛŒ',
                         ),
                         style: theme.textTheme.labelMedium?.copyWith(
                           color: colors.onSurfaceVariant,
@@ -4542,16 +4619,16 @@ class _AdminUserCommandCard extends StatelessWidget {
                                       context,
                                       it: 'Workspace non disponibile',
                                       en: 'Workspace unavailable',
-                                      de: 'Workspace nicht verfügbar',
-                                      fa: 'فضای کاری در دسترس نیست',
+                                      de: 'Workspace nicht verfÃ¼gbar',
+                                      fa: 'ÙØ¶Ø§ÛŒ Ú©Ø§Ø±ÛŒ Ø¯Ø± Ø¯Ø³ØªØ±Ø³ Ù†ÛŒØ³Øª',
                                     )
                                   : workspaceEntitlement == null
                                       ? _adminControlText(
                                           context,
                                           it: 'Workspace non associato',
                                           en: 'No linked Workspace',
-                                          de: 'Kein Workspace verknüpft',
-                                          fa: 'فضای کاری متصل نیست',
+                                          de: 'Kein Workspace verknÃ¼pft',
+                                          fa: 'ÙØ¶Ø§ÛŒ Ú©Ø§Ø±ÛŒ Ù…ØªØµÙ„ Ù†ÛŒØ³Øª',
                                         )
                                       : 'Workspace: ${_adminWorkspaceEntitlementLabel(context, workspaceEntitlement!.entitlementStatus)}',
                               color: workspaceEntitlementLoadFailed
@@ -4580,8 +4657,8 @@ class _AdminUserCommandCard extends StatelessWidget {
                 context,
                 it: 'Azioni disponibili',
                 en: 'Available actions',
-                de: 'Verfügbare Aktionen',
-                fa: 'اقدام‌های موجود',
+                de: 'VerfÃ¼gbare Aktionen',
+                fa: 'Ø§Ù‚Ø¯Ø§Ù…â€ŒÙ‡Ø§ÛŒ Ù…ÙˆØ¬ÙˆØ¯',
               ),
               style: theme.textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w800,
@@ -4594,8 +4671,8 @@ class _AdminUserCommandCard extends StatelessWidget {
                   context,
                   it: 'Vista operativa in sola lettura. Le azioni account e i ruoli restano riservati agli Admin.',
                   en: 'Read-only operational view. Account actions and role changes remain Admin-only.',
-                  de: 'Schreibgeschützte operative Ansicht. Kontoaktionen und Rollenänderungen bleiben Admin vorbehalten.',
-                  fa: 'نمای عملیاتی فقط‌خواندنی است. اقدامات حساب و تغییر نقش فقط برای Admin باقی می‌ماند.',
+                  de: 'SchreibgeschÃ¼tzte operative Ansicht. Kontoaktionen und RollenÃ¤nderungen bleiben Admin vorbehalten.',
+                  fa: 'Ù†Ù…Ø§ÛŒ Ø¹Ù…Ù„ÛŒØ§ØªÛŒ ÙÙ‚Ø·â€ŒØ®ÙˆØ§Ù†Ø¯Ù†ÛŒ Ø§Ø³Øª. Ø§Ù‚Ø¯Ø§Ù…Ø§Øª Ø­Ø³Ø§Ø¨ Ùˆ ØªØºÛŒÛŒØ± Ù†Ù‚Ø´ ÙÙ‚Ø· Ø¨Ø±Ø§ÛŒ Admin Ø¨Ø§Ù‚ÛŒ Ù…ÛŒâ€ŒÙ…Ø§Ù†Ø¯.',
                 ),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colors.onSurfaceVariant,
@@ -4606,63 +4683,63 @@ class _AdminUserCommandCard extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                actionButton(
-                  icon: Icons.manage_accounts_outlined,
-                  label: _adminL10n(context).adminCenterChangeRoleAction,
-                  onPressed:
-                      canChangeRole ? () => unawaited(onChangeRole()) : null,
-                ),
-                actionButton(
-                  icon: detail.isSuspended
-                      ? Icons.person_outline
-                      : Icons.person_off_outlined,
-                  label: detail.isSuspended
-                      ? _adminL10n(context).adminCenterReactivateAccountAction
-                      : _adminL10n(context).adminCenterSuspendAccountAction,
-                  onPressed: canManageAccount
-                      ? () => unawaited(
-                            detail.isSuspended ? onReactivate() : onSuspend(),
-                          )
-                      : null,
-                  primary: true,
-                ),
-                actionButton(
-                  icon: Icons.logout,
-                  label: _adminL10n(context).adminCenterForceLogoutAction,
-                  onPressed: canManageAccount && !detail.isSuspended
-                      ? () => unawaited(onForceLogout())
-                      : null,
-                ),
-                actionButton(
-                  icon: Icons.verified_user_outlined,
-                  label: _adminL10n(context).adminCenterChangeIdentityAction,
-                  onPressed: canManageAccount
-                      ? () => unawaited(onChangeIdentity())
-                      : null,
-                ),
-                actionButton(
-                  icon: Icons.business_center_outlined,
-                  label: _adminControlText(
-                    context,
-                    it: 'Gestisci Workspace',
-                    en: 'Manage Workspace',
-                    de: 'Workspace verwalten',
-                    fa: 'مدیریت فضای کاری',
+                  actionButton(
+                    icon: Icons.manage_accounts_outlined,
+                    label: _adminL10n(context).adminCenterChangeRoleAction,
+                    onPressed:
+                        canChangeRole ? () => unawaited(onChangeRole()) : null,
                   ),
-                  onPressed: canManageWorkspace
-                      ? () => unawaited(onWorkspaceEntitlement())
-                      : null,
-                ),
-                actionButton(
-                  icon: Icons.delete_forever_outlined,
-                  label: _adminL10n(context)
-                      .adminCenterDeleteAccountPermanentlyAction,
-                  onPressed:
-                      canManageAccount ? () => unawaited(onDelete()) : null,
-                  danger: true,
-                ),
-              ],
-            ),
+                  actionButton(
+                    icon: detail.isSuspended
+                        ? Icons.person_outline
+                        : Icons.person_off_outlined,
+                    label: detail.isSuspended
+                        ? _adminL10n(context).adminCenterReactivateAccountAction
+                        : _adminL10n(context).adminCenterSuspendAccountAction,
+                    onPressed: canManageAccount
+                        ? () => unawaited(
+                              detail.isSuspended ? onReactivate() : onSuspend(),
+                            )
+                        : null,
+                    primary: true,
+                  ),
+                  actionButton(
+                    icon: Icons.logout,
+                    label: _adminL10n(context).adminCenterForceLogoutAction,
+                    onPressed: canManageAccount && !detail.isSuspended
+                        ? () => unawaited(onForceLogout())
+                        : null,
+                  ),
+                  actionButton(
+                    icon: Icons.verified_user_outlined,
+                    label: _adminL10n(context).adminCenterChangeIdentityAction,
+                    onPressed: canManageAccount
+                        ? () => unawaited(onChangeIdentity())
+                        : null,
+                  ),
+                  actionButton(
+                    icon: Icons.business_center_outlined,
+                    label: _adminControlText(
+                      context,
+                      it: 'Gestisci Workspace',
+                      en: 'Manage Workspace',
+                      de: 'Workspace verwalten',
+                      fa: 'Ù…Ø¯ÛŒØ±ÛŒØª ÙØ¶Ø§ÛŒ Ú©Ø§Ø±ÛŒ',
+                    ),
+                    onPressed: canManageWorkspace
+                        ? () => unawaited(onWorkspaceEntitlement())
+                        : null,
+                  ),
+                  actionButton(
+                    icon: Icons.delete_forever_outlined,
+                    label: _adminL10n(context)
+                        .adminCenterDeleteAccountPermanentlyAction,
+                    onPressed:
+                        canManageAccount ? () => unawaited(onDelete()) : null,
+                    danger: true,
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -4724,7 +4801,7 @@ class _AdminUserInsightPanel extends StatelessWidget {
 
   const _AdminUserInsightPanel({required this.detail});
 
-  String _value(int? value) => value == null ? '—' : '$value';
+  String _value(int? value) => value == null ? 'â€”' : '$value';
 
   String _formatDateTime(BuildContext context, DateTime value) {
     final localValue = value.toLocal();
@@ -6092,7 +6169,7 @@ class _AdminIdentitySummaryCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${_actorTypeLabel(context, actorType)} · '
+                    '${_actorTypeLabel(context, actorType)} Â· '
                     '${_verificationLevelLabel(context, verificationLevel)}',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: emphasized
@@ -6179,7 +6256,7 @@ String _adminWorkspaceEntitlementLabel(
         it: 'Non attivo',
         en: 'Not active',
         de: 'Nicht aktiv',
-        fa: 'غیرفعال',
+        fa: 'ØºÛŒØ±ÙØ¹Ø§Ù„',
       ),
     AdminWorkspaceEntitlementStatus.pilot => 'Pilot',
     AdminWorkspaceEntitlementStatus.active => _adminControlText(
@@ -6187,21 +6264,21 @@ String _adminWorkspaceEntitlementLabel(
         it: 'Attivo',
         en: 'Active',
         de: 'Aktiv',
-        fa: 'فعال',
+        fa: 'ÙØ¹Ø§Ù„',
       ),
     AdminWorkspaceEntitlementStatus.suspended => _adminControlText(
         context,
         it: 'Sospeso',
         en: 'Suspended',
         de: 'Gesperrt',
-        fa: 'تعلیق‌شده',
+        fa: 'ØªØ¹Ù„ÛŒÙ‚â€ŒØ´Ø¯Ù‡',
       ),
     AdminWorkspaceEntitlementStatus.expired => _adminControlText(
         context,
         it: 'Scaduto',
         en: 'Expired',
         de: 'Abgelaufen',
-        fa: 'منقضی',
+        fa: 'Ù…Ù†Ù‚Ø¶ÛŒ',
       ),
   };
 }
@@ -7055,7 +7132,7 @@ class _AdminReportDecisionSummary extends StatelessWidget {
                   if (reviewedBy != null && reviewedBy.isNotEmpty)
                     '${_adminL10n(context).adminCenterReviewerLabel}: $reviewedBy',
                   if (reviewedLabel != null) reviewedLabel,
-                ].join(' · '),
+                ].join(' Â· '),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(

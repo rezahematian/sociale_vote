@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
-/// Non-Web compile-time stub. It is not selected at runtime when kIsWeb=false,
-/// but keeps the conditional import type-safe for Android and other targets.
+/// Non-Web compile-time stub. The actual Android/native header rendering is
+/// handled by SocialVoteHeaderBrand; this keeps the conditional import typed.
 class SocialVoteHeaderWebImage extends StatelessWidget {
   final String assetPath;
+  final double glowIntensity;
 
   const SocialVoteHeaderWebImage({
     super.key,
     required this.assetPath,
+    required this.glowIntensity,
   });
 
   @override
