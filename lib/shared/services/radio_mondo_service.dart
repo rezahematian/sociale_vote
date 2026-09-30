@@ -144,6 +144,8 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
   final AudioPlayer _player = AudioPlayer();
   final RadioMondoWebAudio _webAudio = RadioMondoWebAudio();
   _RadioMondoAudioHandler? _audioHandler;
+  StreamSubscription<void>? _playerCompleteSubscription;
+  bool _advancingPlaylist = false;
 
   static const List<RadioMondoStation> _builtInStations = [
     RadioMondoStation(
@@ -302,9 +304,15 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
       WidgetsBinding.instance.addObserver(this);
       observerAdded = true;
       if (kIsWeb) {
+        _webAudio.setOnEnded(() {
+          unawaited(_handleTrackCompleted());
+        });
         await _webAudio.setVolume(_volume);
       } else {
         await _player.setPlayerMode(PlayerMode.mediaPlayer);
+        _playerCompleteSubscription ??= _player.onPlayerComplete.listen((_) {
+          unawaited(_handleTrackCompleted());
+        });
 
         if (defaultTargetPlatform == TargetPlatform.android) {
           _audioHandler ??= await AudioService.init<_RadioMondoAudioHandler>(
@@ -380,16 +388,12 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
         await _webAudio.stop();
         await _webAudio.playUrl(
           sourceUrl,
-          loop: station.sourceType != RadioMondoSourceType.stream,
+          loop: false,
           volume: _volume,
         );
       } else {
         await _player.stop();
-        await _player.setReleaseMode(
-          station.sourceType == RadioMondoSourceType.stream
-              ? ReleaseMode.stop
-              : ReleaseMode.loop,
-        );
+        await _player.setReleaseMode(ReleaseMode.stop);
         await _player.setVolume(_volume);
 
         if (builtInTrack != null) {
@@ -421,6 +425,42 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> _handleTrackCompleted() async {
+    final current = _currentStation;
+    if (!_initialized ||
+        current == null ||
+        current.sourceType == RadioMondoSourceType.stream ||
+        _advancingPlaylist) {
+      return;
+    }
+
+    _advancingPlaylist = true;
+    try {
+      final catalog = _stations
+          .where((station) => station.sourceType == RadioMondoSourceType.audio)
+          .toList(growable: false);
+      if (catalog.isEmpty) {
+        await stop();
+        return;
+      }
+
+      var currentIndex = catalog.indexWhere((item) => item.id == current.id);
+      if (currentIndex < 0) currentIndex = -1;
+
+      for (var offset = 1; offset <= catalog.length; offset += 1) {
+        final next = catalog[(currentIndex + offset) % catalog.length];
+        final started = await playStation(next);
+        if (started) {
+          return;
+        }
+      }
+
+      await stop();
+    } finally {
+      _advancingPlaylist = false;
     }
   }
 
@@ -527,6 +567,9 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
     if (!_initialized) return;
     WidgetsBinding.instance.removeObserver(this);
     await stop();
+    await _playerCompleteSubscription?.cancel();
+    _playerCompleteSubscription = null;
+    await _webAudio.dispose();
     _initialized = false;
     await _player.dispose();
   }

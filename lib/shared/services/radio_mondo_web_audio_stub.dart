@@ -1,4 +1,6 @@
 class RadioMondoWebAudio {
+  void setOnEnded(void Function()? callback) {}
+
   Future<void> playUrl(
     String url, {
     required bool loop,
@@ -10,4 +12,6 @@ class RadioMondoWebAudio {
   Future<void> stop() async {}
 
   Future<void> setVolume(double value) async {}
+
+  Future<void> dispose() async {}
 }

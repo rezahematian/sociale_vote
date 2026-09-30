@@ -154,6 +154,7 @@ class RotatingGlobeState extends State<RotatingGlobe>
   ui.FragmentShader? _cachedShader;
   ui.Image? _cachedDaySurface;
   ui.Image? _cachedNightSurface;
+  ui.Image? _cachedCloudSurface;
   bool _sphereShaderNeedsRecreation = false;
 
   // Cached background shader
@@ -253,36 +254,13 @@ class RotatingGlobeState extends State<RotatingGlobe>
     // Uses a simple repeating animation to drive frame updates
     _lineMovingController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 16), // ~60fps
-    )
-      ..addListener(() {
+      duration: const Duration(milliseconds: 16), // ~60fps when actually needed
+    )..addListener(() {
         if (mounted) {
-          // Check if there are any moving connections or connections with dashAnimateTime
-          bool hasAnimatingConnections = false;
-          for (var connection in widget.controller.connections) {
-            if (connection.isMoving || connection.style.dashAnimateTime > 0) {
-              hasAnimatingConnections = true;
-              break;
-            }
-          }
-
-          // Check if there are any orbiting satellites
-          bool hasOrbitingSatellites = false;
-          for (var satellite in widget.controller.satellites) {
-            if (satellite.orbit != null) {
-              hasOrbitingSatellites = true;
-              break;
-            }
-          }
-
-          // Trigger foreground repaint for animations
-          // Use modulo to prevent integer overflow after long runtime
-          if (hasAnimatingConnections || hasOrbitingSatellites) {
-            _animationNotifier.value = (_animationNotifier.value + 1) % 1000000;
-          }
+          _animationNotifier.value = (_animationNotifier.value + 1) % 1000000;
         }
-      })
-      ..repeat();
+      });
+    _syncLineMovingTicker();
 
     rotationX = 0;
     rotationY = 0; // Initialize rotationY
@@ -627,7 +605,34 @@ class RotatingGlobeState extends State<RotatingGlobe>
   }
 
   /// Update the state of the sphere
+  bool get _hasContinuousForegroundAnimation {
+    for (final connection in widget.controller.connections) {
+      if (connection.isMoving || connection.style.dashAnimateTime > 0) {
+        return true;
+      }
+    }
+
+    for (final satellite in widget.controller.satellites) {
+      if (satellite.orbit != null) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  void _syncLineMovingTicker() {
+    final shouldRun = _hasContinuousForegroundAnimation;
+
+    if (shouldRun && !_lineMovingController.isAnimating) {
+      _lineMovingController.repeat();
+    } else if (!shouldRun && _lineMovingController.isAnimating) {
+      _lineMovingController.stop();
+    }
+  }
+
   void _update() {
+    _syncLineMovingTicker();
     if (mounted) setState(() {});
   }
 
@@ -1324,10 +1329,13 @@ class RotatingGlobeState extends State<RotatingGlobe>
     final nightSurface =
         hasDayNightCycle ? widget.controller.nightSurface : null;
 
+    final cloudSurface = widget.controller.cloudSurface;
+
     final needsRecreation = _cachedShader == null ||
         _sphereShaderNeedsRecreation ||
         _cachedDaySurface != daySurface ||
-        _cachedNightSurface != nightSurface;
+        _cachedNightSurface != nightSurface ||
+        _cachedCloudSurface != cloudSurface;
 
     if (needsRecreation) {
       try {
@@ -1335,12 +1343,14 @@ class RotatingGlobeState extends State<RotatingGlobe>
         final newShader = _shaderManager.createShaderWithTextures(
           daySurface: daySurface,
           nightSurface: nightSurface,
+          cloudSurface: cloudSurface,
         );
         // Only update if we successfully got a new shader
         if (newShader != null) {
           _cachedShader = newShader;
           _cachedDaySurface = daySurface;
           _cachedNightSurface = nightSurface;
+          _cachedCloudSurface = cloudSurface;
           _sphereShaderNeedsRecreation = false;
           // Reset error count on successful creation
           _sphereShaderErrorCount = 0;
@@ -1398,6 +1408,10 @@ class RotatingGlobeState extends State<RotatingGlobe>
         lightAngle: widget.controller.lightAngle * 3.14159265359 / 180.0,
         lightIntensity: widget.controller.lightIntensity,
         ambientLight: widget.controller.ambientLight,
+        cloudsEnabled: widget.controller.cloudsEnabled &&
+            widget.controller.cloudSurface != null,
+        cloudDensity: widget.controller.cloudDensity,
+        cloudRotationOffset: widget.controller.cloudRotationOffset,
         onPaintError: _handleSphereShaderPaintError,
       ),
       size: Size(constraints.maxWidth, constraints.maxHeight),

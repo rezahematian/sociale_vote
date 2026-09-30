@@ -15,6 +15,7 @@ import 'package:sociale_vote/domain/geo/value_objects/content_location_source.da
 import 'package:sociale_vote/domain/geo/value_objects/geo_scope.dart';
 import 'package:sociale_vote/features/map/application/civic_map_controller.dart';
 import 'package:sociale_vote/shared/data/countries.dart';
+import 'package:sociale_vote/shared/services/globe_clouds_service.dart';
 import 'package:sociale_vote/shared/services/world_appearance_service.dart';
 import 'package:sociale_vote/shared/services/world_marker_policy_service.dart';
 import 'package:sociale_vote/shared/widgets/radio_mondo_dock.dart';
@@ -396,6 +397,13 @@ class WorldGlobeWidget extends StatefulWidget {
   /// the backend-authoritative WorldMarkerPolicyService value.
   final int? homeMarkerDensityOverride;
 
+  /// Admin-only live preview overrides for the cloud presentation profile.
+  /// Public surfaces leave these null and keep using GlobeCloudsService.
+  final bool? cloudsEnabledOverride;
+  final double? cloudDensityOverride;
+  final double? cloudSpeedOverride;
+  final int? cloudDirectionOverride;
+
   const WorldGlobeWidget({
     super.key,
     required this.items,
@@ -415,6 +423,10 @@ class WorldGlobeWidget extends StatefulWidget {
     this.radioVisualStyle = RadioVisualStyle.oldStyle,
     this.markerDataSettled = true,
     this.homeMarkerDensityOverride,
+    this.cloudsEnabledOverride,
+    this.cloudDensityOverride,
+    this.cloudSpeedOverride,
+    this.cloudDirectionOverride,
   });
 
   @override
@@ -451,6 +463,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
   String? _lastWebLayoutDiagnostic;
   final WorldMarkerPolicyService _markerPolicy =
       WorldMarkerPolicyService.instance;
+  final GlobeCloudsService _clouds = GlobeCloudsService.instance;
   bool _markerPolicyRebuildScheduled = false;
   BuildContext? _homeMarkerModalContext;
   int _homeMarkerModalTicket = 0;
@@ -545,6 +558,8 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _markerPolicy.addListener(_handleMarkerPolicyChanged);
+    _clouds.addListener(_handleCloudsChanged);
+    unawaited(_clouds.ensureLoaded(forceRefresh: true));
     // Refresh on each newly attached Web globe so a backend Admin density
     // change is picked up when the user revisits/reloads the surface. The
     // service de-duplicates concurrent requests across Admin/Home/Civic Map.
@@ -560,12 +575,17 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
     });
   }
 
+  void _handleCloudsChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Another Web tab/window may have changed the backend-authoritative
-      // density. Refresh only the marker budget when this surface resumes.
+      // Another tab/window may have changed backend-authoritative presentation
+      // settings. Refresh only the two small policy rows used by this surface.
       unawaited(_markerPolicy.ensureLoaded(forceRefresh: true));
+      unawaited(_clouds.ensureLoaded(forceRefresh: true));
     }
   }
 
@@ -573,6 +593,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _markerPolicy.removeListener(_handleMarkerPolicyChanged);
+    _clouds.removeListener(_handleCloudsChanged);
     _focusNotifier.dispose();
     super.dispose();
   }
@@ -635,6 +656,14 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
                           isAuthenticated: isAuthenticated,
                           autoRotateEnabled: _autoRotateEnabled,
                           visualStyle: widget.visualStyle.name,
+                          cloudsEnabled:
+                              widget.cloudsEnabledOverride ?? _clouds.enabled,
+                          cloudDensity:
+                              widget.cloudDensityOverride ?? _clouds.density,
+                          cloudSpeed:
+                              widget.cloudSpeedOverride ?? _clouds.speed,
+                          cloudDirection: widget.cloudDirectionOverride ??
+                              _clouds.direction,
                           markerDataSettled: widget.markerDataSettled,
                           homeMarkerLimit:
                               _markerPolicy.homeMarkerLimitForDensity(
@@ -1090,6 +1119,19 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
   late final FlutterEarthGlobeController _globeController;
   final WorldMarkerPolicyService _markerPolicy =
       WorldMarkerPolicyService.instance;
+  final GlobeCloudsService _clouds = GlobeCloudsService.instance;
+
+  bool get _effectiveCloudsEnabled =>
+      widget.cloudsEnabledOverride ?? _clouds.enabled;
+  double get _effectiveCloudDensity =>
+      (widget.cloudDensityOverride ?? _clouds.density)
+          .clamp(0.0, 1.0)
+          .toDouble();
+  double get _effectiveCloudSpeed =>
+      (widget.cloudSpeedOverride ?? _clouds.speed).clamp(0.0, 1.0).toDouble();
+  int get _effectiveCloudDirection =>
+      (widget.cloudDirectionOverride ?? _clouds.direction) < 0 ? -1 : 1;
+
   bool _texturePrecached = false;
   bool _autoRotateEnabled = true;
   bool _stylePickerOpen = false;
@@ -1107,6 +1149,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
     Offset.zero,
   );
   Timer? _scientificSkyTimer;
+  Timer? _cloudMotionTimer;
+  DateTime? _cloudMotionLastTick;
+  double _cloudRotationOffset = 0.0;
 
   final Map<int, Offset> _activePointers = <int, Offset>{};
 
@@ -1307,7 +1352,11 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
 
     _nativeTextureAsset = _textureAssetForStyle(widget.visualStyle);
     _globeController = FlutterEarthGlobeController(
-      surface: Image.asset(_nativeTextureAsset!).image,
+      surface: _nativeSurfaceProvider(_nativeTextureAsset!),
+      cloudSurface: _nativeSurfaceProvider(GlobePresetVisual.cloudLayerAsset),
+      cloudsEnabled: _effectiveCloudsEnabled,
+      cloudDensity: _effectiveCloudDensity,
+      cloudRotationOffset: _cloudRotationOffset,
 
       // G5E: the renderer owns only Earth + markers + circular atmosphere.
       // Any page/Space background must live outside the square globe viewport.
@@ -1378,7 +1427,10 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
     _syncGlobeContentPoints();
     WidgetsBinding.instance.addObserver(this);
     _markerPolicy.addListener(_handleMarkerPolicyChanged);
+    _clouds.addListener(_handleCloudsChanged);
     unawaited(_markerPolicy.ensureLoaded(forceRefresh: true));
+    unawaited(_clouds.ensureLoaded(forceRefresh: true));
+    _syncNativeCloudMotion();
   }
 
   void _handleMarkerPolicyChanged() {
@@ -1388,6 +1440,46 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
 
     _lastNativeMarkerInputSignature = null;
     _syncGlobeContentPoints();
+  }
+
+  void _handleCloudsChanged() {
+    if (!mounted) return;
+    _applyNativeVisualStyle(widget.visualStyle);
+    _syncNativeCloudMotion();
+  }
+
+  void _syncNativeCloudMotion() {
+    final shouldRun = _effectiveCloudsEnabled && _effectiveCloudSpeed > 0;
+    if (!shouldRun) {
+      _cloudMotionTimer?.cancel();
+      _cloudMotionTimer = null;
+      _cloudMotionLastTick = null;
+      return;
+    }
+
+    if (_cloudMotionTimer != null) return;
+    _cloudMotionLastTick = DateTime.now();
+    _cloudMotionTimer = Timer.periodic(
+      const Duration(milliseconds: 100),
+      (_) {
+        if (!mounted || !_effectiveCloudsEnabled || _effectiveCloudSpeed <= 0) {
+          _cloudMotionTimer?.cancel();
+          _cloudMotionTimer = null;
+          _cloudMotionLastTick = null;
+          return;
+        }
+
+        final now = DateTime.now();
+        final previous = _cloudMotionLastTick ?? now;
+        _cloudMotionLastTick = now;
+        final seconds = now.difference(previous).inMicroseconds / 1000000.0;
+        final radiansPerSecond = 0.001 + (_effectiveCloudSpeed * 0.009);
+        _cloudRotationOffset = (_cloudRotationOffset +
+                seconds * radiansPerSecond * _effectiveCloudDirection) %
+            (2 * math.pi);
+        _globeController.cloudRotationOffset = _cloudRotationOffset;
+      },
+    );
   }
 
   void _openHomeMarkerDetail(CivicMapItem item) {
@@ -1452,6 +1544,17 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(_markerPolicy.ensureLoaded(forceRefresh: true));
+      unawaited(_clouds.ensureLoaded(forceRefresh: true));
+      _syncNativeCloudMotion();
+      return;
+    }
+
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached) {
+      _cloudMotionTimer?.cancel();
+      _cloudMotionTimer = null;
+      _cloudMotionLastTick = null;
     }
   }
 
@@ -1614,7 +1717,9 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _markerPolicy.removeListener(_handleMarkerPolicyChanged);
+    _clouds.removeListener(_handleCloudsChanged);
     _scientificSkyTimer?.cancel();
+    _cloudMotionTimer?.cancel();
     _nativeRotationWarmupTimer?.cancel();
     _nativeNaturalTiltTimer?.cancel();
     _countrySelectionDismissTimer?.cancel();
@@ -1673,6 +1778,14 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
         widget.homeMarkerDensityOverride) {
       _lastNativeMarkerInputSignature = null;
       _syncGlobeContentPoints();
+    }
+
+    if (oldWidget.cloudsEnabledOverride != widget.cloudsEnabledOverride ||
+        oldWidget.cloudDensityOverride != widget.cloudDensityOverride ||
+        oldWidget.cloudSpeedOverride != widget.cloudSpeedOverride ||
+        oldWidget.cloudDirectionOverride != widget.cloudDirectionOverride) {
+      _applyNativeVisualStyle(widget.visualStyle, reloadTexture: false);
+      _syncNativeCloudMotion();
     }
 
     if (oldWidget.onOrientationChanged != widget.onOrientationChanged) {
@@ -2230,16 +2343,34 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
     return GlobePresetVisual.forStyle(style).asset;
   }
 
+  ImageProvider _nativeSurfaceProvider(String asset) {
+    final source = AssetImage(asset);
+
+    // Android smoothness: the native globe never needs a 3600/4096 px
+    // equirectangular texture for the on-screen sphere size. Decode larger
+    // presets to 2048 px on Android only, preserving the same source asset and
+    // visual preset while reducing texture memory/bandwidth on older devices.
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      return ResizeImage(source, width: 2048);
+    }
+
+    return source;
+  }
+
   void _applyNativeVisualStyle(
     GlobeVisualStyle style, {
     bool reloadTexture = true,
   }) {
     final preset = GlobePresetVisual.forStyle(style);
-    if (reloadTexture && _nativeTextureAsset != preset.asset) {
-      _nativeTextureAsset = preset.asset;
-      _globeController.loadSurface(AssetImage(preset.asset));
+    final targetAsset = preset.asset;
+    if (reloadTexture && _nativeTextureAsset != targetAsset) {
+      _nativeTextureAsset = targetAsset;
+      _globeController.loadSurface(_nativeSurfaceProvider(targetAsset));
     }
     _globeController
+      ..cloudsEnabled = _effectiveCloudsEnabled
+      ..cloudDensity = _effectiveCloudDensity
+      ..cloudRotationOffset = _cloudRotationOffset
       ..surfaceLightingEnabled = !preset.unlit
       ..lightAngle = preset.lightAngle
       ..lightIntensity = preset.lightIntensity

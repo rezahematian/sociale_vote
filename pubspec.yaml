@@ -138,6 +138,10 @@ flutter:
     - assets/globe/earth_day_nasa_blue_marble_2048.png
     - assets/globe/earth_day_nasa_bmng_august_4096.jpg
     - assets/globe/earth_night_nasa_black_marble_2016_3600.jpg
+    - assets/globe/earth_day_nasa_blue_marble_2048_clouds_v1.png
+    - assets/globe/earth_day_nasa_bmng_august_4096_clouds_v1.jpg
+    - assets/globe/earth_night_nasa_black_marble_2016_3600_clouds_v1.jpg
+    - assets/globe/earth_clouds_nasa_2048.jpg
     - assets/globe/gaia_edr3_sky_equirectangular_2160.png
     - assets/audio/orbita_classica.ogg
     - assets/audio/pioggia_sul_mondo.ogg

@@ -22,6 +22,9 @@ class SphereShaderPainter extends CustomPainter {
   final double lightAngle;
   final double lightIntensity;
   final double ambientLight;
+  final bool cloudsEnabled;
+  final double cloudDensity;
+  final double cloudRotationOffset;
   final void Function()? onPaintError;
 
   SphereShaderPainter({
@@ -41,6 +44,9 @@ class SphereShaderPainter extends CustomPainter {
     this.lightAngle = -0.785,
     this.lightIntensity = 0.3,
     this.ambientLight = 0.7,
+    this.cloudsEnabled = false,
+    this.cloudDensity = 0.42,
+    this.cloudRotationOffset = 0.0,
     this.onPaintError,
   });
 
@@ -122,6 +128,15 @@ class SphereShaderPainter extends CustomPainter {
       // uAmbientLight
       shader.setFloat(idx++, ambientLight);
 
+      // uCloudEnabled
+      shader.setFloat(idx++, cloudsEnabled ? 1.0 : 0.0);
+
+      // uCloudDensity
+      shader.setFloat(idx++, cloudDensity.clamp(0.0, 1.0).toDouble());
+
+      // uCloudRotationOffset
+      shader.setFloat(idx++, cloudRotationOffset);
+
       // Draw using the shader with proper alpha blending for anti-aliased edges
       final paint = Paint()
         ..shader = shader
@@ -157,7 +172,10 @@ class SphereShaderPainter extends CustomPainter {
         oldDelegate.lightingEnabled != lightingEnabled ||
         oldDelegate.lightAngle != lightAngle ||
         oldDelegate.lightIntensity != lightIntensity ||
-        oldDelegate.ambientLight != ambientLight;
+        oldDelegate.ambientLight != ambientLight ||
+        oldDelegate.cloudsEnabled != cloudsEnabled ||
+        oldDelegate.cloudDensity != cloudDensity ||
+        oldDelegate.cloudRotationOffset != cloudRotationOffset;
   }
 }
 
@@ -239,6 +257,7 @@ class SphereShaderManager {
   ui.FragmentShader? createShaderWithTextures({
     required ui.Image daySurface,
     ui.Image? nightSurface,
+    ui.Image? cloudSurface,
   }) {
     if (_program == null) return null;
 
@@ -252,6 +271,10 @@ class SphereShaderManager {
       // If night surface is not available, use day surface as a fallback
       // (the shader will only use this when day/night cycle is enabled)
       shader.setImageSampler(1, nightSurface ?? daySurface);
+
+      // Bind the independent cloud texture (sampler index 2). If unavailable,
+      // reuse daySurface; uCloudEnabled keeps the fallback invisible.
+      shader.setImageSampler(2, cloudSurface ?? daySurface);
 
       return shader;
     } catch (e) {

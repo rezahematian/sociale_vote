@@ -5,9 +5,19 @@ import 'package:web/web.dart' as web;
 class RadioMondoWebAudio {
   RadioMondoWebAudio() {
     _audio.preload = 'auto';
+    _endedListener = ((web.Event _) {
+      _onEnded?.call();
+    }).toJS;
+    _audio.addEventListener('ended', _endedListener);
   }
 
   final web.HTMLAudioElement _audio = web.HTMLAudioElement();
+  late final JSFunction _endedListener;
+  void Function()? _onEnded;
+
+  void setOnEnded(void Function()? callback) {
+    _onEnded = callback;
+  }
 
   Future<void> playUrl(
     String url, {
@@ -30,5 +40,11 @@ class RadioMondoWebAudio {
 
   Future<void> setVolume(double value) async {
     _audio.volume = value;
+  }
+
+  Future<void> dispose() async {
+    _audio.removeEventListener('ended', _endedListener);
+    _onEnded = null;
+    await stop();
   }
 }

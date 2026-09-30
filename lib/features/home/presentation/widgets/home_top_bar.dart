@@ -50,11 +50,14 @@ class HomeTopBar extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     // SOCIAL VOTE BRAND RETURN TO HOME TOP V1.0.10 R1
-    Widget buildBrand() => GestureDetector(
+    Widget buildBrand({double height = 50}) => GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onBrandPressed,
-          child: const SocialVoteHeaderBrand(height: 50),
+          child: SocialVoteHeaderBrand(height: height),
         );
+
+    final desktopBrandHeight =
+        MediaQuery.sizeOf(context).width >= 900.0 ? 64.0 : 50.0;
 
     if (!isLoggedIn) {
       // Social Vote final guest header: keep brand + auth on one compact row.
@@ -77,7 +80,8 @@ class HomeTopBar extends StatelessWidget {
       Widget _buildGuestAuthActions({bool compact = false}) {
         final horizontalPadding = compact ? 7.0 : 10.0;
         const height = 38.0;
-        final textStyle = compact ? Theme.of(context).textTheme.labelLarge : null;
+        final textStyle =
+            compact ? Theme.of(context).textTheme.labelLarge : null;
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -116,10 +120,8 @@ class HomeTopBar extends StatelessWidget {
             // optical baseline on Android and narrow Web. The two flex zones
             // may scale down slightly for long localized auth labels, but the
             // header never creates a second authentication row.
-            final guestUtilityActions =
-                _buildGuestUtilityActions(size: 38);
-            final guestAuthActions =
-                _buildGuestAuthActions(compact: true);
+            final guestUtilityActions = _buildGuestUtilityActions(size: 38);
+            final guestAuthActions = _buildGuestAuthActions(compact: true);
             final compactActions = Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -168,7 +170,7 @@ class HomeTopBar extends StatelessWidget {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              Expanded(child: buildBrand()),
+              Expanded(child: buildBrand(height: desktopBrandHeight)),
               const SizedBox(width: 8),
               if (utilities.isNotEmpty) ...[
                 Wrap(
@@ -191,7 +193,7 @@ class HomeTopBar extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
-          child: buildBrand(),
+          child: buildBrand(height: desktopBrandHeight),
         ),
         const SizedBox(width: 8),
         if (onHowItWorksPressed != null) ...[
@@ -525,4 +527,3 @@ class _NotificationsButton extends StatelessWidget {
     );
   }
 }
-

@@ -18,10 +18,13 @@ class BrandHeaderModeService extends ChangeNotifier {
   static const String _table = 'social_vote_world_surface_settings';
   static const String _rowId = 'global';
   static const String _adminSetRpc = 'admin_set_header_brand_mode';
+  static const String _adminSetProfileRpc = 'admin_set_header_flicker_profile';
 
   final SupabaseClient _client;
 
   BrandHeaderMode _mode = BrandHeaderMode.normal;
+  int _flickerIntensityPercent = 100;
+  int _flickerSpeedPercent = 100;
   bool _loaded = false;
   bool _loading = false;
   bool _saving = false;
@@ -29,6 +32,10 @@ class BrandHeaderModeService extends ChangeNotifier {
   Future<void>? _loadFuture;
 
   BrandHeaderMode get mode => _mode;
+  int get flickerIntensityPercent => _flickerIntensityPercent;
+  int get flickerSpeedPercent => _flickerSpeedPercent;
+  double get flickerIntensity => _flickerIntensityPercent / 100.0;
+  double get flickerSpeedMultiplier => _flickerSpeedPercent / 100.0;
   bool get isLoaded => _loaded;
   bool get isLoading => _loading;
   bool get isSaving => _saving;
@@ -59,7 +66,9 @@ class BrandHeaderModeService extends ChangeNotifier {
     try {
       final row = await _client
           .from(_table)
-          .select('header_brand_mode')
+          .select(
+            'header_brand_mode,header_flicker_intensity,header_flicker_speed',
+          )
           .eq('id', _rowId)
           .maybeSingle();
 
@@ -79,12 +88,26 @@ class BrandHeaderModeService extends ChangeNotifier {
           ),
       };
 
+      _flickerIntensityPercent = _readPercent(
+        row['header_flicker_intensity'],
+        fallback: 100,
+        min: 20,
+        max: 100,
+      );
+      _flickerSpeedPercent = _readPercent(
+        row['header_flicker_speed'],
+        fallback: 100,
+        min: 50,
+        max: 200,
+      );
       _loaded = true;
     } catch (error) {
       _lastError = error.toString();
 
       if (!_loaded) {
         _mode = BrandHeaderMode.normal;
+        _flickerIntensityPercent = 100;
+        _flickerSpeedPercent = 100;
       }
     } finally {
       _loading = false;
@@ -123,5 +146,51 @@ class BrandHeaderModeService extends ChangeNotifier {
       _saving = false;
       notifyListeners();
     }
+  }
+
+  Future<void> setFlickerProfileFromAdmin({
+    required int intensityPercent,
+    required int speedPercent,
+  }) async {
+    if (_saving) return;
+
+    final nextIntensity = intensityPercent.clamp(20, 100).toInt();
+    final nextSpeed = speedPercent.clamp(50, 200).toInt();
+
+    _saving = true;
+    _lastError = null;
+    notifyListeners();
+
+    try {
+      await _client.rpc(
+        _adminSetProfileRpc,
+        params: <String, Object?>{
+          'p_intensity': nextIntensity,
+          'p_speed': nextSpeed,
+          'p_reason': 'Admin Center Social Vote header flicker tuning',
+        },
+      );
+
+      _flickerIntensityPercent = nextIntensity;
+      _flickerSpeedPercent = nextSpeed;
+      _loaded = true;
+    } catch (error) {
+      _lastError = error.toString();
+      rethrow;
+    } finally {
+      _saving = false;
+      notifyListeners();
+    }
+  }
+
+  static int _readPercent(
+    Object? raw, {
+    required int fallback,
+    required int min,
+    required int max,
+  }) {
+    final value = raw is num ? raw.toInt() : int.tryParse('$raw');
+    if (value == null) return fallback;
+    return value.clamp(min, max).toInt();
   }
 }

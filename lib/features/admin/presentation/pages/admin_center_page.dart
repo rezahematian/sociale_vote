@@ -36,6 +36,8 @@ import 'package:sociale_vote/shared/services/world_appearance_service.dart';
 import 'package:sociale_vote/shared/services/world_marker_policy_service.dart';
 import 'package:sociale_vote/shared/services/egress_policy_service.dart';
 import 'package:sociale_vote/shared/services/brand_header_mode_service.dart';
+import 'package:sociale_vote/shared/services/globe_clouds_service.dart';
+import 'package:sociale_vote/shared/widgets/social_vote_brand_lockup.dart';
 
 enum AdminCenterSection {
   dashboard,
@@ -150,6 +152,11 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   bool _markerDensitySaving = false;
   bool _egressModeSaving = false;
   bool _controlRebuildScheduled = false;
+  double? _headerFlickerIntensityDraft;
+  double? _headerFlickerSpeedDraft;
+  double? _cloudDensityDraft;
+  double? _cloudSpeedDraft;
+  int? _cloudDirectionDraft;
 
   List<_AdminDestination> _destinationsFor(BuildContext context) {
     return [
@@ -3154,9 +3161,23 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       return SizedBox.square(
         dimension: size,
         child: AnimatedBuilder(
-          animation: WorldAppearanceService.instance,
+          animation: Listenable.merge(<Listenable>[
+            WorldAppearanceService.instance,
+            GlobeCloudsService.instance,
+          ]),
           builder: (context, _) {
             final appearance = WorldAppearanceService.instance;
+            final clouds = GlobeCloudsService.instance;
+            final cloudDensity =
+                ((_cloudDensityDraft ?? clouds.densityPercent.toDouble()) / 100)
+                    .clamp(0.0, 1.0)
+                    .toDouble();
+            final cloudSpeed =
+                ((_cloudSpeedDraft ?? clouds.speedPercent.toDouble()) / 100)
+                    .clamp(0.0, 1.0)
+                    .toDouble();
+            final cloudDirection = _cloudDirectionDraft ?? clouds.direction;
+
             return WorldGlobeWidget(
               items: _adminGlobeController.visibleItems,
               interactionProfile: WorldGlobeInteractionProfile.home,
@@ -3165,6 +3186,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               homeMarkerDensityOverride: (_markerDensityDraft ??
                       _worldMarkerPolicy.markerDensity.toDouble())
                   .round(),
+              cloudsEnabledOverride: clouds.enabled,
+              cloudDensityOverride: cloudDensity,
+              cloudSpeedOverride: cloudSpeed,
+              cloudDirectionOverride: cloudDirection,
               visualStyle: appearance.globeStyle,
               rotationVisualStyle: appearance.rotationStyle,
               onItemTap: (item) {
@@ -3231,6 +3256,35 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       return AnimatedBuilder(
         animation: service,
         builder: (context, _) {
+          final intensity = _headerFlickerIntensityDraft ??
+              service.flickerIntensityPercent.toDouble();
+          final speed = _headerFlickerSpeedDraft ??
+              service.flickerSpeedPercent.toDouble();
+          final disabled = service.isLoading || service.isSaving;
+          final tuningDisabled =
+              disabled || service.mode != BrandHeaderMode.flicker;
+
+          Future<void> saveProfile({
+            double? intensityValue,
+            double? speedValue,
+          }) async {
+            final nextIntensity = (intensityValue ?? intensity).round();
+            final nextSpeed = (speedValue ?? speed).round();
+            try {
+              await service.setFlickerProfileFromAdmin(
+                intensityPercent: nextIntensity,
+                speedPercent: nextSpeed,
+              );
+            } finally {
+              if (mounted) {
+                setState(() {
+                  _headerFlickerIntensityDraft = null;
+                  _headerFlickerSpeedDraft = null;
+                });
+              }
+            }
+          }
+
           return Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -3278,7 +3332,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                       ),
                     ],
                     selected: <BrandHeaderMode>{service.mode},
-                    onSelectionChanged: service.isSaving
+                    onSelectionChanged: disabled
                         ? null
                         : (selection) {
                             unawaited(
@@ -3286,9 +3340,286 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                             );
                           },
                   ),
+                  const SizedBox(height: 14),
+                  Text(
+                    '${_adminControlText(context, it: 'Intensità lampeggio', en: 'Flicker intensity', de: 'Flackerintensität', fa: 'شدت چشمک')} · ${intensity.round()}%',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  Slider(
+                    value: intensity,
+                    min: 20,
+                    max: 100,
+                    divisions: 16,
+                    onChanged: tuningDisabled
+                        ? null
+                        : (value) {
+                            setState(() {
+                              _headerFlickerIntensityDraft = value;
+                            });
+                          },
+                    onChangeEnd: tuningDisabled
+                        ? null
+                        : (value) => unawaited(
+                              saveProfile(intensityValue: value),
+                            ),
+                  ),
+                  Text(
+                    '${_adminControlText(context, it: 'Velocità lampeggio', en: 'Flicker speed', de: 'Flackergeschwindigkeit', fa: 'سرعت چشمک')} · ${speed.round()}%',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  Slider(
+                    value: speed,
+                    min: 50,
+                    max: 200,
+                    divisions: 30,
+                    onChanged: tuningDisabled
+                        ? null
+                        : (value) {
+                            setState(() {
+                              _headerFlickerSpeedDraft = value;
+                            });
+                          },
+                    onChangeEnd: tuningDisabled
+                        ? null
+                        : (value) => unawaited(
+                              saveProfile(speedValue: value),
+                            ),
+                  ),
                   if (service.isLoading || service.isSaving) ...[
                     const SizedBox(height: 10),
                     const LinearProgressIndicator(),
+                  ],
+                  if (service.lastError != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      service.lastError!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    Widget buildGlobeCloudsControl() {
+      final service = GlobeCloudsService.instance;
+      unawaited(service.ensureLoaded());
+
+      return AnimatedBuilder(
+        animation: service,
+        builder: (context, _) {
+          final density =
+              _cloudDensityDraft ?? service.densityPercent.toDouble();
+          final speed = _cloudSpeedDraft ?? service.speedPercent.toDouble();
+          final direction = _cloudDirectionDraft ?? service.direction;
+          final disabled = service.isLoading || service.isSaving;
+          final tuningDisabled = disabled || !service.enabled;
+
+          Future<void> saveProfile({
+            double? densityValue,
+            double? speedValue,
+            int? directionValue,
+          }) async {
+            final nextDensity = (densityValue ?? density).round();
+            final nextSpeed = (speedValue ?? speed).round();
+            final nextDirection = directionValue ?? direction;
+            try {
+              await service.setProfileFromAdmin(
+                densityPercent: nextDensity,
+                speedPercent: nextSpeed,
+                direction: nextDirection,
+              );
+            } finally {
+              if (mounted) {
+                setState(() {
+                  _cloudDensityDraft = null;
+                  _cloudSpeedDraft = null;
+                  _cloudDirectionDraft = null;
+                });
+              }
+            }
+          }
+
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _adminControlText(
+                      context,
+                      it: 'Nuvole Globe',
+                      en: 'Globe clouds',
+                      de: 'Globus-Wolken',
+                      fa: 'ابرهای کره زمین',
+                    ),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _adminControlText(
+                      context,
+                      it: 'Layer nuvole indipendente dalla rotazione della Terra: copertura, velocità e direzione sono globali.',
+                      en: 'Cloud layer independent from Earth rotation: coverage, speed and direction are global.',
+                      de: 'Wolkenschicht unabhängig von der Erdrotation: Abdeckung, Geschwindigkeit und Richtung gelten global.',
+                      fa: 'لایه ابر مستقل از چرخش زمین است؛ پوشش، سرعت و جهت به‌صورت سراسری تنظیم می‌شوند.',
+                    ),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 12),
+                  SegmentedButton<bool>(
+                    segments: [
+                      ButtonSegment(
+                        value: false,
+                        icon: const Icon(Icons.cloud_off_outlined),
+                        label: Text(
+                          _adminControlText(
+                            context,
+                            it: 'Disattivate',
+                            en: 'Off',
+                            de: 'Aus',
+                            fa: 'خاموش',
+                          ),
+                        ),
+                      ),
+                      ButtonSegment(
+                        value: true,
+                        icon: const Icon(Icons.cloud_outlined),
+                        label: Text(
+                          _adminControlText(
+                            context,
+                            it: 'Attive',
+                            en: 'On',
+                            de: 'Ein',
+                            fa: 'روشن',
+                          ),
+                        ),
+                      ),
+                    ],
+                    selected: <bool>{service.enabled},
+                    onSelectionChanged: disabled
+                        ? null
+                        : (selection) {
+                            unawaited(
+                              service.setEnabledFromAdmin(selection.first),
+                            );
+                          },
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    '${_adminControlText(context, it: 'Copertura nuvole', en: 'Cloud coverage', de: 'Wolkenabdeckung', fa: 'پوشش ابر')} · ${density.round()}%',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  Slider(
+                    value: density,
+                    min: 0,
+                    max: 100,
+                    divisions: 20,
+                    onChanged: tuningDisabled
+                        ? null
+                        : (value) {
+                            setState(() {
+                              _cloudDensityDraft = value;
+                            });
+                          },
+                    onChangeEnd: tuningDisabled
+                        ? null
+                        : (value) => unawaited(
+                              saveProfile(densityValue: value),
+                            ),
+                  ),
+                  Text(
+                    '${_adminControlText(context, it: 'Velocità nuvole', en: 'Cloud speed', de: 'Wolkengeschwindigkeit', fa: 'سرعت ابر')} · ${speed.round()}%',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  Slider(
+                    value: speed,
+                    min: 0,
+                    max: 100,
+                    divisions: 20,
+                    onChanged: tuningDisabled
+                        ? null
+                        : (value) {
+                            setState(() {
+                              _cloudSpeedDraft = value;
+                            });
+                          },
+                    onChangeEnd: tuningDisabled
+                        ? null
+                        : (value) => unawaited(
+                              saveProfile(speedValue: value),
+                            ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _adminControlText(
+                      context,
+                      it: 'Direzione nuvole',
+                      en: 'Cloud direction',
+                      de: 'Wolkenrichtung',
+                      fa: 'جهت ابرها',
+                    ),
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  SegmentedButton<int>(
+                    segments: [
+                      ButtonSegment<int>(
+                        value: -1,
+                        icon: const Icon(Icons.west_rounded),
+                        label: Text(
+                          _adminControlText(
+                            context,
+                            it: 'Ovest',
+                            en: 'West',
+                            de: 'West',
+                            fa: 'غرب',
+                          ),
+                        ),
+                      ),
+                      ButtonSegment<int>(
+                        value: 1,
+                        icon: const Icon(Icons.east_rounded),
+                        label: Text(
+                          _adminControlText(
+                            context,
+                            it: 'Est',
+                            en: 'East',
+                            de: 'Ost',
+                            fa: 'شرق',
+                          ),
+                        ),
+                      ),
+                    ],
+                    selected: <int>{direction},
+                    onSelectionChanged: tuningDisabled
+                        ? null
+                        : (selection) {
+                            final next = selection.first;
+                            setState(() {
+                              _cloudDirectionDraft = next;
+                            });
+                            unawaited(saveProfile(directionValue: next));
+                          },
+                  ),
+                  if (service.isLoading || service.isSaving) ...[
+                    const SizedBox(height: 10),
+                    const LinearProgressIndicator(),
+                  ],
+                  if (service.lastError != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      service.lastError!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                    ),
                   ],
                 ],
               ),
@@ -3659,6 +3990,366 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       );
     }
 
+    Widget buildPresentationStudio(double width) {
+      final sideBySide = width >= 1040;
+      final compact = width < 560;
+      final headerService = BrandHeaderModeService.instance;
+      final cloudService = GlobeCloudsService.instance;
+      final markerDensity =
+          (_markerDensityDraft ?? _worldMarkerPolicy.markerDensity.toDouble())
+              .clamp(0.0, 100.0)
+              .toDouble();
+      final headerIntensity = (_headerFlickerIntensityDraft ??
+              headerService.flickerIntensityPercent.toDouble())
+          .clamp(20.0, 100.0)
+          .toDouble();
+      final headerSpeed = (_headerFlickerSpeedDraft ??
+              headerService.flickerSpeedPercent.toDouble())
+          .clamp(50.0, 200.0)
+          .toDouble();
+      final cloudDensity =
+          (_cloudDensityDraft ?? cloudService.densityPercent.toDouble())
+              .clamp(0.0, 100.0)
+              .toDouble();
+      final cloudSpeed =
+          (_cloudSpeedDraft ?? cloudService.speedPercent.toDouble())
+              .clamp(0.0, 100.0)
+              .toDouble();
+      final cloudDirection = _cloudDirectionDraft ?? cloudService.direction;
+
+      Widget statusChip({
+        required IconData icon,
+        required String text,
+      }) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          decoration: BoxDecoration(
+            color: colors.surfaceContainerHighest.withValues(alpha: 0.58),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: colors.outlineVariant.withValues(alpha: 0.48),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 15, color: colors.primary),
+              const SizedBox(width: 6),
+              Text(
+                text,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      Widget previewPanel() {
+        return Container(
+          height: compact ? 560 : 720,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF07111F),
+                colors.surfaceContainerHighest.withValues(alpha: 0.82),
+                colors.primaryContainer.withValues(alpha: 0.20),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: colors.primary.withValues(alpha: 0.28),
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(compact ? 14 : 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: colors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.visibility_outlined,
+                        color: colors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _adminControlText(
+                              context,
+                              it: 'Anteprima live',
+                              en: 'Live preview',
+                              de: 'Live-Vorschau',
+                              fa: 'پیش‌نمایش زنده',
+                            ),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          Text(
+                            _adminControlText(
+                              context,
+                              it: 'I cursori aggiornano questa anteprima mentre li sposti; il salvataggio avviene al rilascio.',
+                              en: 'Sliders update this preview while you drag; saving happens on release.',
+                              de: 'Die Regler aktualisieren diese Vorschau während des Ziehens; gespeichert wird beim Loslassen.',
+                              fa: 'هنگام حرکت دادن اسلایدرها، پیش‌نمایش زنده تغییر می‌کند و با رها کردن ذخیره می‌شود.',
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.primary.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.circle,
+                            size: 8,
+                            color: colors.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'LIVE',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: colors.primary,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.7,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  height: compact ? 72 : 82,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.78),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: colors.outlineVariant.withValues(alpha: 0.38),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: SocialVoteHeaderBrand(
+                            height: compact ? 42 : 50,
+                            flickerIntensityOverride: headerIntensity / 100,
+                            flickerSpeedMultiplierOverride: headerSpeed / 100,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        headerService.mode == BrandHeaderMode.flicker
+                            ? '${headerIntensity.round()}% · ${headerSpeed.round()}%'
+                            : _adminControlText(
+                                context,
+                                it: 'Normale',
+                                en: 'Normal',
+                                de: 'Normal',
+                                fa: 'عادی',
+                              ),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: colors.outlineVariant.withValues(alpha: 0.34),
+                      ),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return buildGlobeStage(
+                          constraints.maxWidth,
+                          constraints.maxHeight,
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    statusChip(
+                      icon: Icons.scatter_plot_rounded,
+                      text:
+                          '${_adminControlText(context, it: 'Marker', en: 'Markers', de: 'Marker', fa: 'نشانگر')} ${markerDensity.round()}%',
+                    ),
+                    statusChip(
+                      icon: cloudService.enabled
+                          ? Icons.cloud_outlined
+                          : Icons.cloud_off_outlined,
+                      text: cloudService.enabled
+                          ? '${_adminControlText(context, it: 'Nuvole', en: 'Clouds', de: 'Wolken', fa: 'ابر')} ${cloudDensity.round()}% · ${cloudSpeed.round()}%'
+                          : _adminControlText(
+                              context,
+                              it: 'Nuvole OFF',
+                              en: 'Clouds OFF',
+                              de: 'Wolken AUS',
+                              fa: 'ابر خاموش',
+                            ),
+                    ),
+                    if (cloudService.enabled)
+                      statusChip(
+                        icon: cloudDirection < 0
+                            ? Icons.west_rounded
+                            : Icons.east_rounded,
+                        text: cloudDirection < 0
+                            ? _adminControlText(
+                                context,
+                                it: 'Ovest',
+                                en: 'West',
+                                de: 'West',
+                                fa: 'غرب',
+                              )
+                            : _adminControlText(
+                                context,
+                                it: 'Est',
+                                en: 'East',
+                                de: 'Ost',
+                                fa: 'شرق',
+                              ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
+      Widget controlsPanel() {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              decoration: BoxDecoration(
+                color: colors.surface.withValues(alpha: 0.78),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: colors.outlineVariant.withValues(alpha: 0.52),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.tune_rounded, color: colors.primary),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _adminControlText(
+                            context,
+                            it: 'Studio presentazione',
+                            en: 'Presentation studio',
+                            de: 'Präsentationsstudio',
+                            fa: 'استودیوی نمایش',
+                          ),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        Text(
+                          _adminControlText(
+                            context,
+                            it: 'Marker, logo e nuvole nello stesso spazio di lavoro.',
+                            en: 'Markers, logo and clouds in one workspace.',
+                            de: 'Marker, Logo und Wolken in einem Arbeitsbereich.',
+                            fa: 'نشانگرها، لوگو و ابرها در یک فضای کاری.',
+                          ),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            buildMarkerDensityControl(),
+            const SizedBox(height: 10),
+            buildHeaderBrandModeControl(),
+            const SizedBox(height: 10),
+            buildGlobeCloudsControl(),
+          ],
+        );
+      }
+
+      if (sideBySide) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 11, child: previewPanel()),
+            const SizedBox(width: 16),
+            Expanded(flex: 9, child: controlsPanel()),
+          ],
+        );
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          previewPanel(),
+          const SizedBox(height: 14),
+          controlsPanel(),
+        ],
+      );
+    }
+
     Widget buildCommandDeck(double width) {
       final sideBySide = width >= 820;
       final compact = width < 520;
@@ -3771,7 +4462,21 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                 },
               ),
               const SizedBox(height: 14),
-              if (sideBySide)
+              if (widget.currentRole == Role.admin) ...[
+                LayoutBuilder(
+                  builder: (context, innerConstraints) {
+                    return buildPresentationStudio(innerConstraints.maxWidth);
+                  },
+                ),
+                const SizedBox(height: 16),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return buildOperationalPanel(constraints.maxWidth);
+                  },
+                ),
+                const SizedBox(height: 14),
+                buildEgressModeControl(),
+              ] else if (sideBySide)
                 SizedBox(
                   height: commandStageHeight,
                   child: Row(
@@ -3821,14 +4526,6 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                     return buildOperationalPanel(constraints.maxWidth);
                   },
                 ),
-              ],
-              if (widget.currentRole == Role.admin) ...[
-                const SizedBox(height: 14),
-                buildMarkerDensityControl(),
-                const SizedBox(height: 14),
-                buildEgressModeControl(),
-                const SizedBox(height: 14),
-                buildHeaderBrandModeControl(),
               ],
             ],
           ),

@@ -3,60 +3,55 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
-({int width, int height}) _pngSize(String path) {
+String _read(String path) => File(path).readAsStringSync();
+
+({int width, int height, int colorType}) _pngContract(String path) {
   final bytes = File(path).readAsBytesSync();
-  expect(bytes.length, greaterThanOrEqualTo(24), reason: path);
+  expect(bytes.length, greaterThanOrEqualTo(26), reason: path);
+  expect(bytes.sublist(0, 8), equals(<int>[137, 80, 78, 71, 13, 10, 26, 10]),
+      reason: '$path must be PNG');
   final data = ByteData.sublistView(Uint8List.fromList(bytes));
   return (
     width: data.getUint32(16, Endian.big),
     height: data.getUint32(20, Endian.big),
+    colorType: bytes[25]
   );
 }
 
 void main() {
-  const oldHeaderAsset =
-      'assets/branding/social_vote_header_wordmark_exact.png';
-  const currentHeaderAsset =
-      'assets/branding/social_vote_header_neon_lockup.png';
-
-  test('Home header uses the accepted neon exact-image runtime contract', () {
-    final topBar = File(
-      'lib/features/home/presentation/widgets/home_top_bar.dart',
-    ).readAsStringSync();
-    final brand = File(
-      'lib/shared/widgets/social_vote_brand_lockup.dart',
-    ).readAsStringSync();
-
-    expect(topBar, contains('SocialVoteHeaderBrand'));
-    expect(topBar, isNot(contains(oldHeaderAsset)));
-    expect(brand, contains(currentHeaderAsset));
-    expect(brand, contains('this.height = 48'));
-    expect(brand, isNot(contains('assets/branding/social_vote_symbol.png')));
-  });
-
-  test('Current and historical header images are retained with exact sizes', () {
-    const source =
-        'assets/branding/social_vote_header_reference_exact_original.png';
-
-    expect(File(currentHeaderAsset).existsSync(), isTrue);
-    expect(_pngSize(currentHeaderAsset), (width: 2095, height: 496));
-    expect(File(source).existsSync(), isTrue);
-    expect(_pngSize(source), (width: 2048, height: 682));
-    expect(File(oldHeaderAsset).existsSync(), isTrue);
-    expect(_pngSize(oldHeaderAsset), (width: 1705, height: 494));
+  test(
+      'Header V4 keeps clean logo visible and Admin normal/flicker modes wired',
+      () {
+    final brand = _read('lib/shared/widgets/social_vote_brand_lockup.dart');
+    final service = _read('lib/shared/services/brand_header_mode_service.dart');
     expect(
-      File('assets/branding/HEADER_BRAND_CURRENT.txt').existsSync(),
-      isTrue,
-    );
+        brand, contains('BrandHeaderMode.normal => SocialVoteBrandEffect.off'));
+    expect(brand,
+        contains('BrandHeaderMode.flicker => SocialVoteBrandEffect.flicker'));
+    expect(brand, contains('_nativeImage(SocialVoteHeaderBrand.lockupAsset)'));
+    expect(brand, contains('AnimatedOpacity('));
+    expect(service, contains("BrandHeaderMode _mode = BrandHeaderMode.normal"));
+    expect(service, contains("'normal' => BrandHeaderMode.normal"));
+    expect(service, contains("'flicker' => BrandHeaderMode.flicker"));
   });
 
-  test('Home Hero no longer renders a second Social Vote lockup', () {
-    final hero = File(
-      'lib/features/home/presentation/widgets/home_hero_section.dart',
-    ).readAsStringSync();
+  test('Current header assets are retained and compatible', () {
+    const clean = 'assets/branding/social_vote_header_lockup_master.png';
+    const glow = 'assets/branding/social_vote_header_neon_glow_lockup.png';
+    final c = _pngContract(clean);
+    final g = _pngContract(glow);
+    expect(c.colorType, 6);
+    expect(g.colorType, 6);
+    expect(
+        (width: g.width, height: g.height), (width: c.width, height: c.height));
+    expect(
+        File('assets/branding/HEADER_BRAND_CURRENT.txt').existsSync(), isTrue);
+  });
 
-    expect(hero, isNot(contains('social_vote_wordmark_horizontal.png')));
-    expect(hero, isNot(contains('social_vote_header_neon_lockup.png')));
+  test('Home Hero does not duplicate Social Vote header lockup', () {
+    final hero =
+        _read('lib/features/home/presentation/widgets/home_hero_section.dart');
     expect(hero, isNot(contains('_HeroBrandLockup')));
+    expect(hero, isNot(contains('SocialVoteHeaderBrand')));
   });
 }

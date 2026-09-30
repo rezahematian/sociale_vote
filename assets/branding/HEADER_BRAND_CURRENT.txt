@@ -1,41 +1,50 @@
-SOCIAL VOTE HEADER BRAND CURRENT — FROZEN 2026-09-07 — NEON EXACT LOCKUP V1.0.0
+SOCIAL VOTE HEADER BRAND CURRENT — 2026-09-27 — V4 FROZEN SOURCE CONTRACT
 
-RUNTIME HOME HEADER SOURCE
+RUNTIME
 lib/shared/widgets/social_vote_brand_lockup.dart
 
-AUTHORITATIVE HEADER ASSET
-assets/branding/social_vote_header_neon_lockup.png
+ASSETS
+Clean:
+assets/branding/social_vote_header_lockup_master.png
 
-ASSET CONTRACT
-- exact accepted coloured Social Vote lockup;
-- symbol and wordmark are one image;
-- native PNG size: 2095x496;
-- RGBA / transparent background;
-- cropped only; no resize of the source artwork;
-- preserves the cyan/blue/purple/magenta/green glossy detail;
-- no white strip/background around the lockup.
+Native glow layer:
+assets/branding/social_vote_header_neon_glow_lockup.png
 
-FLUTTER RENDER CONTRACT
-- default height: 48 logical px;
-- left aligned;
-- BoxFit.contain;
-- FilterQuality.high;
-- anti-aliasing enabled;
-- no Text('Social Vote') reconstruction;
-- no separate symbol + text composition.
+MODE AUTHORITY
+lib/shared/services/brand_header_mode_service.dart
+- normal -> SocialVoteBrandEffect.off
+- flicker -> SocialVoteBrandEffect.flicker
+- fallback locale sicuro -> normal
+- backend-authoritative setting già applicato/verificato
 
-HISTORICAL HEADER ASSETS — RETAINED, NOT RUNTIME
-assets/branding/social_vote_header_reference_exact_original.png
-assets/branding/social_vote_header_wordmark_exact.png
-They remain only for traceability.
+V4 CONTRACT
+- Il logo clean non viene mai nascosto.
+- Flicker modifica soltanto l'intensità neon.
+- Nessun cambio di dimensione bitmap durante il flicker.
+- Web mantiene una sola HTMLImageElement e modifica il filtro CSS.
+- Android/native mantiene il clean sotto e usa il glow sopra con AnimatedOpacity.
+- Nessun flash bianco o rimozione intenzionale del lockup.
 
-HERO RULE
-Home Hero MUST NOT render another Social Vote logo/wordmark.
+CURRENT TIMING
+- sequenza V4 definita in _flickerSteps;
+- transizione flicker 55 ms;
+- eventuali future modifiche timing richiedono richiesta esplicita dell'operatore.
 
-ADMIN RULE
-Admin Center remains a separate surface titled by adminCenterTitle/current destination. It does not render the Home lockup again.
+SIZE
+- SocialVoteHeaderBrand default = 48 logical px.
+- HomeTopBar wide/desktop CURRENT = 64 px dopo HEADER SIZE V1.
+- AppBar Home = invariata.
 
-NO-TOUCH SCOPE
-No Globe, Civic Map, auth, responsive geometry, GeoScopeController, AuthGuard,
-ParticipationPolicy, backend, SQL, Firebase, package, versionCode, launcher,
-favicon or splash changes.
+VISUAL STATUS
+- Header clean/size Web accettato 27/09/2026.
+- Header Mode Android riportato OK prima del polish Globe.
+- La modalità flicker resta selezionabile dall'Admin; non reinterpretare questo documento come giudizio estetico definitivo al posto dell'operatore.
+
+DO NOT INFER
+- Non sostituire automaticamente il glow runtime con un altro file soltanto perché un master glow esiste.
+- Non rigenerare il logo con testo Flutter.
+- Non duplicare il lockup nel Hero/Admin.
+
+RELEASE
+- Normal resta sempre la modalità release-safe selezionabile.
+- nessun AAB / nessun Play da questo cleanup.

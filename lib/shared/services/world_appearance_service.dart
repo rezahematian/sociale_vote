@@ -41,6 +41,11 @@ class GlobePresetVisual {
   static const String nightAsset =
       'assets/globe/earth_night_nasa_black_marble_2016_3600.jpg';
 
+  // Cloud V2 uses one independent cloud-only layer for every Earth preset.
+  // The Earth texture itself stays unchanged when clouds are enabled.
+  static const String cloudLayerAsset =
+      'assets/globe/earth_clouds_nasa_2048.jpg';
+
   final String code;
   final String name;
   final String asset;
@@ -73,6 +78,10 @@ class GlobePresetVisual {
 
   String get shortLabel => code == 'D' || code == 'E' ? name : code;
 
+  /// Kept for source compatibility with the V1 call sites/tests.
+  /// Cloud V2 never mutates the approved Earth texture.
+  String assetForClouds({required bool enabled}) => asset;
+
   static GlobePresetVisual forName(String name) {
     for (final style in WorldAppearanceService.selectableGlobeStyles) {
       if (style.name == name) return forStyle(style);
@@ -83,50 +92,100 @@ class GlobePresetVisual {
   static GlobePresetVisual forStyle(GlobeVisualStyle style) {
     return switch (style) {
       GlobeVisualStyle.classic => const GlobePresetVisual(
-          code: 'A', name: 'Natural', asset: dayAsset,
-          atmosphereRgb: 0x69B5FF, atmosphereOpacity: 0.18,
+          code: 'A',
+          name: 'Natural',
+          asset: dayAsset,
+          atmosphereRgb: 0x69B5FF,
+          atmosphereOpacity: 0.18,
         ),
       GlobeVisualStyle.realistic => const GlobePresetVisual(
-          code: 'B', name: 'Relief', asset: satelliteAsset,
-          atmosphereRgb: 0x6FAFFF, atmosphereOpacity: 0.15,
-          lightAngle: -42, lightIntensity: 1.36, ambientLight: 0.54,
-          webEmissiveIntensity: 0.22, webShininess: 0.6,
+          code: 'B',
+          name: 'Relief',
+          asset: satelliteAsset,
+          atmosphereRgb: 0x6FAFFF,
+          atmosphereOpacity: 0.15,
+          lightAngle: -42,
+          lightIntensity: 1.36,
+          ambientLight: 0.54,
+          webEmissiveIntensity: 0.22,
+          webShininess: 0.6,
         ),
-      GlobeVisualStyle.bright || GlobeVisualStyle.minimalDay =>
+      GlobeVisualStyle.bright ||
+      GlobeVisualStyle.minimalDay =>
         const GlobePresetVisual(
-          code: 'C', name: 'Civic Blue', asset: satelliteAsset,
-          atmosphereRgb: 0x55C8FF, atmosphereOpacity: 0.24,
-          atmosphereBlur: 18, atmosphereThickness: 0.011,
-          lightAngle: -24, lightIntensity: 0.96, ambientLight: 0.82,
-          webEmissiveIntensity: 0.48, webShininess: 0.6,
+          code: 'C',
+          name: 'Civic Blue',
+          asset: satelliteAsset,
+          atmosphereRgb: 0x55C8FF,
+          atmosphereOpacity: 0.24,
+          atmosphereBlur: 18,
+          atmosphereThickness: 0.011,
+          lightAngle: -24,
+          lightIntensity: 0.96,
+          ambientLight: 0.82,
+          webEmissiveIntensity: 0.48,
+          webShininess: 0.6,
         ),
       GlobeVisualStyle.nightLights => const GlobePresetVisual(
-          code: 'D', name: 'Elias', asset: nightAsset,
-          atmosphereRgb: 0x4D7EC8, atmosphereOpacity: 0.15,
-          atmosphereBlur: 14, atmosphereThickness: 0.008,
-          unlit: true, ambientLight: 1.0,
-          webEmissiveIntensity: 1.0, webShininess: 0.0,
+          code: 'D',
+          name: 'Elias',
+          asset: nightAsset,
+          atmosphereRgb: 0x4D7EC8,
+          atmosphereOpacity: 0.15,
+          atmosphereBlur: 14,
+          atmosphereThickness: 0.008,
+          unlit: true,
+          ambientLight: 1.0,
+          webEmissiveIntensity: 1.0,
+          webShininess: 0.0,
         ),
       GlobeVisualStyle.techNeon => const GlobePresetVisual(
-          code: 'E', name: 'Elena', asset: dayAsset,
-          atmosphereRgb: 0xA78CFF, atmosphereOpacity: 0.24,
-          atmosphereBlur: 19, atmosphereThickness: 0.011,
-          lightAngle: -20, lightIntensity: 1.08, ambientLight: 0.92,
-          webEmissiveIntensity: 0.50, webShininess: 1.0,
+          code: 'E',
+          name: 'Elena',
+          asset: dayAsset,
+          atmosphereRgb: 0xA78CFF,
+          atmosphereOpacity: 0.24,
+          atmosphereBlur: 19,
+          atmosphereThickness: 0.011,
+          lightAngle: -20,
+          lightIntensity: 1.08,
+          ambientLight: 0.92,
+          webEmissiveIntensity: 0.50,
+          webShininess: 1.0,
         ),
       GlobeVisualStyle.terrainRelief => const GlobePresetVisual(
-          code: 'F', name: 'Satellite', asset: satelliteAsset,
-          atmosphereRgb: 0x64B7E8, atmosphereOpacity: 0.15,
-          lightAngle: -32, lightIntensity: 1.42, ambientLight: 0.56,
-          webEmissiveIntensity: 0.12, webShininess: 1.65,
+          code: 'F',
+          name: 'Satellite',
+          asset: satelliteAsset,
+          atmosphereRgb: 0x64B7E8,
+          atmosphereOpacity: 0.15,
+          lightAngle: -32,
+          lightIntensity: 1.42,
+          ambientLight: 0.56,
+          webEmissiveIntensity: 0.12,
+          webShininess: 1.65,
         ),
     };
   }
 
-  Map<String, Object?> webAppearance(String styleName) => <String, Object?>{
+  Map<String, Object?> webAppearance(
+    String styleName, {
+    bool cloudsEnabled = false,
+    double cloudDensity = 0.42,
+    double cloudSpeed = 0.22,
+    int cloudDirection = 1,
+  }) =>
+      <String, Object?>{
         'visualStyle': styleName,
         'textureUrl': 'assets/$asset',
         'nightTextureUrl': 'assets/$nightAsset',
+        'clouds': <String, Object?>{
+          'enabled': cloudsEnabled,
+          'textureUrl': 'assets/$cloudLayerAsset',
+          'density': cloudDensity.clamp(0.0, 1.0),
+          'speed': cloudSpeed.clamp(0.0, 1.0),
+          'direction': cloudDirection < 0 ? -1 : 1,
+        },
         'material': <String, Object?>{
           // Violet belongs to Elena's rim, never to the entire surface.
           'color': unlit ? 0x000000 : 0xFFFFFF,

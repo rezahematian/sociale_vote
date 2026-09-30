@@ -23,10 +23,18 @@ class SocialVoteHeaderBrand extends StatefulWidget {
   final double height;
   final SocialVoteBrandEffect? effect;
 
+  /// Optional preview-only override used by Admin Center. Production header
+  /// instances leave this null and continue to use the backend-authoritative
+  /// BrandHeaderModeService values.
+  final double? flickerIntensityOverride;
+  final double? flickerSpeedMultiplierOverride;
+
   const SocialVoteHeaderBrand({
     super.key,
     this.height = 48,
     this.effect,
+    this.flickerIntensityOverride,
+    this.flickerSpeedMultiplierOverride,
   });
 
   @override
@@ -47,6 +55,16 @@ class _SocialVoteHeaderBrandState extends State<SocialVoteHeaderBrand> {
         BrandHeaderMode.normal => SocialVoteBrandEffect.off,
         BrandHeaderMode.flicker => SocialVoteBrandEffect.flicker,
       };
+
+  double get _effectiveFlickerIntensity =>
+      (widget.flickerIntensityOverride ?? _brandHeaderMode.flickerIntensity)
+          .clamp(0.0, 1.0)
+          .toDouble();
+
+  double get _effectiveFlickerSpeed => (widget.flickerSpeedMultiplierOverride ??
+          _brandHeaderMode.flickerSpeedMultiplier)
+      .clamp(0.5, 2.0)
+      .toDouble();
 
   static const List<_FlickerStep> _flickerSteps = <_FlickerStep>[
     // Real neon rhythm: clearly ON, clearly OFF, then a short tube strike.
@@ -78,7 +96,10 @@ class _SocialVoteHeaderBrandState extends State<SocialVoteHeaderBrand> {
   void didUpdateWidget(covariant SocialVoteHeaderBrand oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (oldWidget.effect != widget.effect) {
+    if (oldWidget.effect != widget.effect ||
+        oldWidget.flickerIntensityOverride != widget.flickerIntensityOverride ||
+        oldWidget.flickerSpeedMultiplierOverride !=
+            widget.flickerSpeedMultiplierOverride) {
       _configureEffect(rebuild: true);
     }
   }
@@ -116,12 +137,18 @@ class _SocialVoteHeaderBrandState extends State<SocialVoteHeaderBrand> {
 
   void _scheduleNextFlicker() {
     final step = _flickerSteps[_flickerStep];
+    final speed = _effectiveFlickerSpeed;
+    final scaledMilliseconds =
+        (step.delay.inMilliseconds / speed).round().clamp(40, 6000).toInt();
+    final delay = Duration(milliseconds: scaledMilliseconds);
 
-    _timer = Timer(step.delay, () {
+    _timer = Timer(delay, () {
       if (!mounted || _effect != SocialVoteBrandEffect.flicker) return;
 
       setState(() {
-        _glowIntensity = step.intensity;
+        _glowIntensity = (step.intensity * _effectiveFlickerIntensity)
+            .clamp(0.0, 1.0)
+            .toDouble();
       });
 
       _flickerStep = (_flickerStep + 1) % _flickerSteps.length;

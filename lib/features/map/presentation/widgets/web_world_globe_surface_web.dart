@@ -43,6 +43,10 @@ class WebWorldGlobeSurface extends StatefulWidget {
   final bool isAuthenticated;
   final bool autoRotateEnabled;
   final String visualStyle;
+  final bool cloudsEnabled;
+  final double cloudDensity;
+  final double cloudSpeed;
+  final int cloudDirection;
   final bool markerDataSettled;
   final int homeMarkerLimit;
   final ValueChanged<CivicMapItem> onMarkerTap;
@@ -64,6 +68,10 @@ class WebWorldGlobeSurface extends StatefulWidget {
     required this.isAuthenticated,
     required this.autoRotateEnabled,
     this.visualStyle = 'bright',
+    this.cloudsEnabled = false,
+    this.cloudDensity = 0.42,
+    this.cloudSpeed = 0.22,
+    this.cloudDirection = 1,
     this.markerDataSettled = true,
     this.homeMarkerLimit = 9,
     required this.onMarkerTap,
@@ -702,8 +710,13 @@ class _WebWorldGlobeSurfaceState extends State<WebWorldGlobeSurface> {
   }
 
   Map<String, Object?> _buildAppearance() {
-    return GlobePresetVisual.forName(widget.visualStyle)
-        .webAppearance(widget.visualStyle);
+    return GlobePresetVisual.forName(widget.visualStyle).webAppearance(
+      widget.visualStyle,
+      cloudsEnabled: widget.cloudsEnabled,
+      cloudDensity: widget.cloudDensity,
+      cloudSpeed: widget.cloudSpeed,
+      cloudDirection: widget.cloudDirection,
+    );
   }
 
   void _applyFocusIfPossible({bool force = false}) {

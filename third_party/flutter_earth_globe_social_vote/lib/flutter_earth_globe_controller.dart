@@ -24,6 +24,7 @@ import 'point_connection_style.dart';
 /// It is also used to listen to the events of the globe.
 class FlutterEarthGlobeController extends ChangeNotifier {
   int _surfaceLoadGeneration = 0;
+  int _cloudSurfaceLoadGeneration = 0;
   bool _isRotating = false; // Whether the globe is rotating.
   bool _isReady = false; // Whether the globe is ready.
   List<Point> points = []; // The points on the globe.
@@ -33,6 +34,7 @@ class FlutterEarthGlobeController extends ChangeNotifier {
   SphereStyle sphereStyle; // The style of the sphere.
   ui.Image? surface; // The surface image of the sphere.
   ui.Image? nightSurface; // The night surface image of the sphere.
+  ui.Image? cloudSurface; // Independent cloud-only texture.
   ui.Image? background; // The background image of the sphere.
   Uint32List? surfaceProcessed; // The processed surface image of the sphere.
   Uint32List?
@@ -43,6 +45,8 @@ class FlutterEarthGlobeController extends ChangeNotifier {
       surfaceConfiguration; // The configuration of the surface image.
   ImageConfiguration
       nightSurfaceConfiguration; // The configuration of the night surface image.
+  ImageConfiguration
+      cloudSurfaceConfiguration; // The configuration of the cloud image.
   ImageConfiguration
       backgroundConfiguration; // The configuration of the background image.
 
@@ -70,6 +74,12 @@ class FlutterEarthGlobeController extends ChangeNotifier {
   double
       _atmosphereThickness; // Thickness of the atmosphere relative to globe radius (default: 0.15)
   double _atmosphereOpacity; // Opacity of the atmospheric glow (default: 0.6)
+
+  // Optional independent cloud layer. The cloud map is sampled separately
+  // from the Earth surface so it can drift at a different speed/direction.
+  bool _cloudsEnabled;
+  double _cloudDensity;
+  double _cloudRotationOffset;
 
   // 3D Surface lighting properties (creates realistic 3D shading effect)
   bool _surfaceLightingEnabled; // Whether to enable 3D surface lighting
@@ -109,6 +119,7 @@ class FlutterEarthGlobeController extends ChangeNotifier {
   FlutterEarthGlobeController({
     ImageProvider? surface,
     ImageProvider? nightSurface,
+    ImageProvider? cloudSurface,
     ImageProvider? background,
     this.rotationSpeed = 0.2,
     this.isZoomEnabled = true,
@@ -119,6 +130,7 @@ class FlutterEarthGlobeController extends ChangeNotifier {
     this.isBackgroundFollowingSphereRotation = false,
     this.surfaceConfiguration = const ImageConfiguration(),
     this.nightSurfaceConfiguration = const ImageConfiguration(),
+    this.cloudSurfaceConfiguration = const ImageConfiguration(),
     this.backgroundConfiguration = const ImageConfiguration(),
     this.sphereStyle = const SphereStyle(),
     this.isDayNightCycleEnabled = false,
@@ -140,6 +152,9 @@ class FlutterEarthGlobeController extends ChangeNotifier {
     double atmosphereBlur = 30.0,
     double atmosphereThickness = 0.03,
     double atmosphereOpacity = 0.2,
+    bool cloudsEnabled = false,
+    double cloudDensity = 0.42,
+    double cloudRotationOffset = 0.0,
     bool surfaceLightingEnabled = true,
     double lightAngle = -45.0,
     double lightIntensity = 0.75,
@@ -149,6 +164,9 @@ class FlutterEarthGlobeController extends ChangeNotifier {
         _atmosphereBlur = atmosphereBlur,
         _atmosphereThickness = atmosphereThickness,
         _atmosphereOpacity = atmosphereOpacity,
+        _cloudsEnabled = cloudsEnabled,
+        _cloudDensity = cloudDensity.clamp(0.0, 1.0).toDouble(),
+        _cloudRotationOffset = cloudRotationOffset,
         _surfaceLightingEnabled = surfaceLightingEnabled,
         _lightAngle = lightAngle,
         _lightIntensity = lightIntensity,
@@ -165,6 +183,10 @@ class FlutterEarthGlobeController extends ChangeNotifier {
 
     if (nightSurface != null) {
       loadNightSurface(nightSurface);
+    }
+
+    if (cloudSurface != null) {
+      loadCloudSurface(cloudSurface);
     }
 
     if (background != null) {
@@ -243,6 +265,35 @@ class FlutterEarthGlobeController extends ChangeNotifier {
   set atmosphereOpacity(double value) {
     if (_atmosphereOpacity != value) {
       _atmosphereOpacity = value;
+      notifyListeners();
+    }
+  }
+
+  /// Whether the independent cloud layer is visible.
+  bool get cloudsEnabled => _cloudsEnabled;
+  set cloudsEnabled(bool value) {
+    if (_cloudsEnabled != value) {
+      _cloudsEnabled = value;
+      notifyListeners();
+    }
+  }
+
+  /// Cloud coverage control in the normalized 0..1 range.
+  double get cloudDensity => _cloudDensity;
+  set cloudDensity(double value) {
+    final normalized = value.clamp(0.0, 1.0).toDouble();
+    if (_cloudDensity != normalized) {
+      _cloudDensity = normalized;
+      notifyListeners();
+    }
+  }
+
+  /// Additional cloud longitude offset in radians, independent from Earth.
+  double get cloudRotationOffset => _cloudRotationOffset;
+  set cloudRotationOffset(double value) {
+    if (!value.isFinite) return;
+    if (_cloudRotationOffset != value) {
+      _cloudRotationOffset = value;
       notifyListeners();
     }
   }
@@ -769,6 +820,34 @@ class FlutterEarthGlobeController extends ChangeNotifier {
       nightSurfaceProcessed = await convertImageToUint32List(info.image);
       notifyListeners();
     }));
+  }
+
+  /// Loads the independent cloud-only texture. The native GPU shader uses
+  /// luminance as cloud alpha; if the GPU path is unavailable the approved
+  /// Earth surface still renders and clouds fail soft.
+  void loadCloudSurface(
+    ImageProvider image, {
+    ImageConfiguration configuration = const ImageConfiguration(),
+  }) {
+    final generation = ++_cloudSurfaceLoadGeneration;
+    final stream = image.resolve(configuration);
+    late final ImageStreamListener listener;
+
+    listener = ImageStreamListener(
+      (info, _) {
+        stream.removeListener(listener);
+        if (generation != _cloudSurfaceLoadGeneration) {
+          return;
+        }
+        cloudSurface = info.image;
+        cloudSurfaceConfiguration = configuration;
+        notifyListeners();
+      },
+      onError: (_, __) {
+        stream.removeListener(listener);
+      },
+    );
+    stream.addListener(listener);
   }
 
   /// Loads the background image for the rotating globe.

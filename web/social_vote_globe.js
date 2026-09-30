@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-WORLD-V10.8-CONTINUOUS-ROTATION-V1.0.17';
+const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-WORLD-V10.9-CLOUDS-V2-RADIO-PLAYLIST';
 
 const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
@@ -383,6 +383,11 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._earth = null;
     this._earthTexture = null;
     this._nightTexture = null;
+    this._cloudLayer = null;
+    this._cloudTexture = null;
+    this._cloudSpeed = 0.22;
+    this._cloudDirection = 1;
+    this._lastFrameAt = performance.now();
     this._nightLights = null;
     this._atmosphere = null;
     this._sunLight = null;
@@ -404,7 +409,7 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._markerResources = [];
     this._lastMarkersSignature = null;
     this._lastEarthTextureUrl = null;
-
+    this._lastCloudTextureUrl = null;
 
     this._raycaster = new THREE.Raycaster();
     this._pointer = new THREE.Vector2();
@@ -577,6 +582,7 @@ class SocialVoteGlobeElement extends HTMLElement {
 
       this._createEarth();
       this._createLights();
+      this._createCloudLayer();
       this._createAtmosphere();
       this._applyConfig();
       this._updateSun(true);
@@ -674,6 +680,29 @@ class SocialVoteGlobeElement extends HTMLElement {
     );
 
     this._scene.add(this._earth);
+  }
+
+  _createCloudLayer() {
+    const geometry = new THREE.SphereGeometry(
+      1.008,
+      144,
+      96,
+    );
+
+    const material = new THREE.MeshPhongMaterial({
+      color: 0xf7fbff,
+      transparent: true,
+      opacity: 0.58,
+      alphaTest: 0.45,
+      depthWrite: false,
+      shininess: 0.0,
+      specular: 0x000000,
+    });
+
+    this._cloudLayer = new THREE.Mesh(geometry, material);
+    this._cloudLayer.visible = false;
+    this._cloudLayer.renderOrder = 2;
+    this._scene.add(this._cloudLayer);
   }
 
   _createLights() {
@@ -1250,6 +1279,82 @@ class SocialVoteGlobeElement extends HTMLElement {
     );
   }
 
+  _loadCloudTexture() {
+    const clouds = this._appearance.clouds || {};
+    const enabled = clouds.enabled === true;
+    const configured = clouds.textureUrl;
+
+    if (!enabled || typeof configured !== 'string' || configured.length === 0) {
+      if (this._cloudLayer) this._cloudLayer.visible = false;
+      return;
+    }
+
+    const cloudUrl = new URL(configured, document.baseURI).href;
+    if (this._lastCloudTextureUrl === cloudUrl && this._cloudTexture) {
+      this._applyCloudAppearance();
+      return;
+    }
+    this._lastCloudTextureUrl = cloudUrl;
+
+    const loader = new THREE.TextureLoader();
+    loader.load(
+      cloudUrl,
+      (texture) => {
+        if (this._disposed) {
+          texture.dispose();
+          return;
+        }
+
+        const maxAnisotropy = this._renderer.capabilities.getMaxAnisotropy();
+        texture.anisotropy = Math.min(8, maxAnisotropy);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.ClampToEdgeWrapping;
+        texture.minFilter = THREE.LinearMipmapLinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = true;
+        texture.needsUpdate = true;
+
+        this._cloudTexture?.dispose?.();
+        this._cloudTexture = texture;
+        if (this._cloudLayer?.material) {
+          this._cloudLayer.material.alphaMap = texture;
+          this._cloudLayer.material.needsUpdate = true;
+        }
+        this._applyCloudAppearance();
+      },
+      undefined,
+      (error) => {
+        console.warn('[SocialVoteWebGlobe] cloud texture unavailable', error);
+        if (this._cloudLayer) this._cloudLayer.visible = false;
+      },
+    );
+  }
+
+  _applyCloudAppearance() {
+    if (!this._cloudLayer?.material) return;
+
+    const clouds = this._appearance.clouds || {};
+    const density = clamp(
+      typeof clouds.density === 'number' ? clouds.density : 0.42,
+      0,
+      1,
+    );
+    const speed = clamp(
+      typeof clouds.speed === 'number' ? clouds.speed : 0.22,
+      0,
+      1,
+    );
+    const direction = clouds.direction === -1 ? -1 : 1;
+    const enabled = clouds.enabled === true && density > 0.001;
+
+    this._cloudSpeed = speed;
+    this._cloudDirection = direction;
+    this._cloudLayer.material.alphaTest = 0.80 - density * 0.64;
+    this._cloudLayer.material.opacity = 0.42 + density * 0.36;
+    this._cloudLayer.material.needsUpdate = true;
+    this._cloudLayer.visible = enabled && this._cloudTexture != null;
+  }
+
   _prepareColorTexture(texture) {
     texture.colorSpace = THREE.SRGBColorSpace;
 
@@ -1271,6 +1376,8 @@ class SocialVoteGlobeElement extends HTMLElement {
     }
 
     this._loadEarthTexture();
+    this._loadCloudTexture();
+    this._applyCloudAppearance();
     this._applyAppearanceMaterial();
   }
 
@@ -1859,7 +1966,17 @@ class SocialVoteGlobeElement extends HTMLElement {
           );
 
       if (document.hidden || !this.isConnected || !this._routeActive) {
+        this._lastFrameAt = performance.now();
         return;
+      }
+
+      const frameNow = performance.now();
+      const deltaSeconds = clamp((frameNow - this._lastFrameAt) / 1000, 0, 0.25);
+      this._lastFrameAt = frameNow;
+      if (this._cloudLayer?.visible && this._cloudSpeed > 0) {
+        const radiansPerSecond = 0.001 + this._cloudSpeed * 0.009;
+        this._cloudLayer.rotation.y +=
+          deltaSeconds * radiansPerSecond * this._cloudDirection;
       }
 
       this._updateSun();
@@ -2314,9 +2431,13 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._markerResources = [];
     this._lastMarkersSignature = null;
     this._lastEarthTextureUrl = null;
+    this._lastCloudTextureUrl = null;
 
     this._earth?.geometry?.dispose?.();
     this._earth?.material?.dispose?.();
+
+    this._cloudLayer?.geometry?.dispose?.();
+    this._cloudLayer?.material?.dispose?.();
 
     this._nightLights?.geometry?.dispose?.();
     this._nightLights?.material?.dispose?.();
@@ -2326,6 +2447,7 @@ class SocialVoteGlobeElement extends HTMLElement {
 
     this._earthTexture?.dispose?.();
     this._nightTexture?.dispose?.();
+    this._cloudTexture?.dispose?.();
 
     this._autoRotateButton?.remove?.();
     this._autoRotateButton = null;

@@ -1,32 +1,51 @@
-SOCIAL VOTE BRAND CURRENT — FROZEN 2026-09-07 — HEADER NEON EXACT LOCKUP V1.0.0
+SOCIAL VOTE BRAND CURRENT — 2026-09-27 — HEADER V4 / ICONS V2
 
-AUTHORITATIVE PLATFORM SYMBOL
-assets/branding/social_vote_symbol.png
+AUTHORITY
+- Runtime/output reale più recente > progetto locale CURRENT > roadmap.
+- I sei master scelti dall'operatore restano il riferimento visivo del brand.
+- I derivati di piattaforma possono avere dimensioni diverse, ma non devono essere ridisegnati arbitrariamente.
 
-AUTHORITATIVE HOME HEADER LOCKUP
-assets/branding/social_vote_header_neon_lockup.png
-- exact accepted coloured symbol + coloured Social Vote wordmark;
-- transparent PNG;
-- cropped from the accepted high-resolution source without rescaling;
-- native asset size: 2095x496;
-- no white/opaque background strip;
-- no Flutter text reconstruction;
-- no recolouring;
-- no regenerated logo inside Flutter.
+CURRENT RUNTIME BRAND
+- Header normale: assets/branding/social_vote_header_lockup_master.png
+- Header glow nativo: assets/branding/social_vote_header_neon_glow_lockup.png
+- Simbolo runtime: assets/branding/social_vote_symbol.png
+- App icon source: assets/icons/app_icon.png
+- Verified Result seal: assets/branding/social_vote_verified_result_seal_master.png
+- Official signature: assets/branding/social_vote_official_signature_master.png
 
-RUNTIME HOME HEADER
-lib/shared/widgets/social_vote_brand_lockup.dart
-- renders only the exact frozen header lockup asset;
-- default displayed height: 48 logical px;
-- high quality filtering + anti-aliasing;
-- aligned to the left of the existing black Home AppBar;
-- existing narrow Web/Android FittedBox remains responsible for safe scale-down.
+HEADER MODE
+- Admin Center mantiene due modalità globali: normal / flicker.
+- Fallback sicuro del service = normal.
+- V4 mantiene sempre visibile il clean header; il flicker varia solo l'illuminazione.
+- Web: stessa immagine header sempre montata; l'intensità neon usa filtro CSS.
+- Android/native: clean header sempre visibile + glow layer con AnimatedOpacity.
+- Nessun ulteriore polish automatico del flicker: modifiche solo su richiesta dell'operatore.
+
+HEADER SIZE CURRENT
+- Default widget: 48 logical px.
+- Home desktop/Web wide usa 64 px dopo HEADER SIZE V1 del 27/09/2026.
+- Narrow/mobile resta compatto secondo HomeTopBar CURRENT.
+
+ICONS V2 — 27/09/2026
+- assets/icons/app_icon.png: 1254x1254, master selezionato.
+- assets/branding/social_vote_symbol.png: 1254x1254, master selezionato.
+- favicon Web: derivati dal simbolo selezionato.
+- PWA / Apple touch / legacy Android launcher: derivati dall'app icon selezionata.
+- Android adaptive foreground: derivato dal simbolo selezionato.
+
+RUNTIME VISUAL CONFIRMED 27/09/2026
+- Web header size: accettato dall'operatore come molto migliore.
+- Web favicon: visibile/coerente nel tab Chrome.
+- Android brand/launcher smoke: OK riportato dall'operatore.
+- Header flicker resta disponibile via Admin; la preferenza visuale finale resta decisione dell'operatore.
 
 SINGLE-BRAND RULE
-- Home header is the only Social Vote lockup in the first Home dashboard viewport.
-- Home Hero MUST NOT render a second Social Vote wordmark/logo.
-- Admin Center keeps its localized Admin Center title and MUST NOT render a second Social Vote lockup.
+- Home header è il lockup Social Vote principale nella prima viewport.
+- Home Hero non deve duplicare il wordmark.
+- Admin Center mantiene il proprio titolo e non duplica il lockup Home.
 
-PLATFORM ICON RULE
-- favicon/PWA/Android launcher/adaptive/splash remain a separate later step derived from the accepted platform symbol.
-- this patch does NOT modify those platform icon derivatives.
+RELEASE
+- package Android: com.hematianapps.socialvote
+- version: 1.0.0+5
+- Play v5 freeze
+- nessun AAB in questo ciclo

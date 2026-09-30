@@ -3,64 +3,50 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+String _read(String path) => File(path).readAsStringSync();
+
 ({int width, int height, int colorType}) _pngContract(String path) {
   final bytes = File(path).readAsBytesSync();
   expect(bytes.length, greaterThanOrEqualTo(26), reason: path);
-  expect(
-    bytes.sublist(0, 8),
-    equals(<int>[137, 80, 78, 71, 13, 10, 26, 10]),
-    reason: '$path must be PNG',
-  );
+  expect(bytes.sublist(0, 8), equals(<int>[137, 80, 78, 71, 13, 10, 26, 10]),
+      reason: '$path must be PNG');
   final data = ByteData.sublistView(Uint8List.fromList(bytes));
   return (
     width: data.getUint32(16, Endian.big),
     height: data.getUint32(20, Endian.big),
-    colorType: bytes[25],
+    colorType: bytes[25]
   );
 }
 
 void main() {
-  test('accepted neon lockup is exact RGBA high-resolution asset', () {
-    const path = 'assets/branding/social_vote_header_neon_lockup.png';
-    expect(File(path).existsSync(), isTrue);
-    expect(
-      _pngContract(path),
-      (width: 2095, height: 496, colorType: 6),
-    );
+  test('V4 flicker never removes the clean header base', () {
+    final brand = _read('lib/shared/widgets/social_vote_brand_lockup.dart');
+    expect(brand, contains('final header = kIsWeb'));
+    expect(brand, contains('SocialVoteHeaderBrand.lockupAsset'));
+    expect(brand, contains('SocialVoteHeaderBrand.glowAsset'));
+    expect(brand, contains('_flickerSteps'));
+    expect(brand, contains('Duration(milliseconds: 55)'));
+    expect(brand, contains('AnimatedOpacity('));
   });
 
-  test('Flutter renders only the exact lockup image in the Home header', () {
-    final brand = File(
-      'lib/shared/widgets/social_vote_brand_lockup.dart',
-    ).readAsStringSync();
-    final topBar = File(
-      'lib/features/home/presentation/widgets/home_top_bar.dart',
-    ).readAsStringSync();
-
-    expect(topBar, contains('SocialVoteHeaderBrand'));
-    expect(
-      brand,
-      contains('assets/branding/social_vote_header_neon_lockup.png'),
-    );
-    expect(brand, contains('this.height = 48'));
-    expect(brand, contains('alignment: AlignmentDirectional.centerStart'));
-    expect(brand, contains('filterQuality: FilterQuality.high'));
-    expect(brand, contains('isAntiAlias: true'));
-    expect(brand, isNot(contains('assets/branding/social_vote_symbol.png')));
-    expect(brand, isNot(contains("fontFamily: 'sans-serif'")));
+  test('Web V4 keeps one image mounted and changes filter only', () {
+    final web =
+        _read('lib/shared/widgets/social_vote_header_web_image_web.dart');
+    expect(web, contains('web.HTMLImageElement? _image'));
+    expect(web, contains("style.setProperty('filter'"));
+    expect(web, contains("style.setProperty('filter', 'none')"));
+    expect(web, contains('HtmlElementView.fromTagName'));
+    expect(web, contains("..src = 'assets/\${widget.assetPath}'"));
   });
 
-  test('Hero and Admin do not duplicate the Home header lockup', () {
-    final hero = File(
-      'lib/features/home/presentation/widgets/home_hero_section.dart',
-    ).readAsStringSync();
-    final admin = File(
-      'lib/features/admin/presentation/pages/admin_center_page.dart',
-    ).readAsStringSync();
-
-    expect(hero, isNot(contains('social_vote_header_neon_lockup.png')));
-    expect(hero, isNot(contains('_HeroBrandLockup')));
-    expect(admin, isNot(contains('SocialVoteHeaderBrand')));
-    expect(admin, isNot(contains('social_vote_header_neon_lockup.png')));
+  test('Header assets remain high resolution', () {
+    final clean =
+        _pngContract('assets/branding/social_vote_header_lockup_master.png');
+    final glow =
+        _pngContract('assets/branding/social_vote_header_neon_glow_lockup.png');
+    expect(clean.width, greaterThanOrEqualTo(2000));
+    expect(clean.height, greaterThanOrEqualTo(650));
+    expect((width: glow.width, height: glow.height),
+        (width: clean.width, height: clean.height));
   });
 }

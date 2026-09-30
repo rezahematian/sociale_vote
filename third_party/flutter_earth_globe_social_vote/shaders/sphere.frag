@@ -31,9 +31,15 @@ uniform float uLightAngle;     // Light source angle in radians (0 = from right)
 uniform float uLightIntensity; // Light intensity (0.0 - 1.0)
 uniform float uAmbientLight;   // Ambient light level (0.0 - 1.0), prevents total darkness
 
+// Uniforms - independent cloud layer
+uniform float uCloudEnabled;        // 1.0 when cloud layer is enabled
+uniform float uCloudDensity;        // 0.0 - 1.0 coverage control
+uniform float uCloudRotationOffset; // longitude offset in radians
+
 // Samplers for textures (must come after float uniforms)
 uniform sampler2D uDaySurface;
 uniform sampler2D uNightSurface;
+uniform sampler2D uCloudSurface;
 
 // Constants
 const float PI = 3.14159265359;
@@ -157,6 +163,23 @@ void main() {
         fragColor = dayColor;
     }
     
+    // Independent cloud layer. The cloud source is a grayscale map where
+    // brighter pixels represent thicker clouds. Density changes both the
+    // visibility threshold and opacity, while longitude offset lets clouds
+    // drift independently from the Earth texture.
+    if (uCloudEnabled > 0.5 && uCloudDensity > 0.001) {
+        vec2 cloudUv = uv;
+        cloudUv.x = fract(uv.x + (uCloudRotationOffset / TWO_PI) + 1.0);
+        vec3 cloudSample = texture(uCloudSurface, cloudUv).rgb;
+        float cloudLuma = dot(cloudSample, vec3(0.2126, 0.7152, 0.0722));
+        float threshold = mix(0.82, 0.16, clamp(uCloudDensity, 0.0, 1.0));
+        float softness = 0.18;
+        float cloudMask = smoothstep(threshold, min(1.0, threshold + softness), cloudLuma);
+        float cloudOpacity = mix(0.42, 0.78, clamp(uCloudDensity, 0.0, 1.0));
+        float cloudAlpha = cloudMask * cloudOpacity;
+        fragColor.rgb = mix(fragColor.rgb, vec3(0.97, 0.98, 1.0), cloudAlpha);
+    }
+
     // Apply 3D surface lighting if enabled
     // This creates the appearance of a light source illuminating the sphere
     if (uLightEnabled > 0.5) {

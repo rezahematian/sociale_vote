@@ -26,6 +26,10 @@ class WebWorldGlobeSurface extends StatelessWidget {
   final bool isAuthenticated;
   final bool autoRotateEnabled;
   final String visualStyle;
+  final bool cloudsEnabled;
+  final double cloudDensity;
+  final double cloudSpeed;
+  final int cloudDirection;
   final bool markerDataSettled;
   final int homeMarkerLimit;
   final ValueChanged<CivicMapItem> onMarkerTap;
@@ -47,6 +51,10 @@ class WebWorldGlobeSurface extends StatelessWidget {
     required this.isAuthenticated,
     required this.autoRotateEnabled,
     this.visualStyle = 'classic',
+    this.cloudsEnabled = false,
+    this.cloudDensity = 0.42,
+    this.cloudSpeed = 0.22,
+    this.cloudDirection = 1,
     this.markerDataSettled = true,
     this.homeMarkerLimit = 9,
     required this.onMarkerTap,
