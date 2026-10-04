@@ -31,16 +31,16 @@ void main() {
   });
 
   test('World Radio Live V3 source contracts stay additive', () {
-    final service = File('lib/shared/services/radio_mondo_service.dart')
-        .readAsStringSync();
+    final service =
+        File('lib/shared/services/radio_mondo_service.dart').readAsStringSync();
     final admin = File(
       'lib/features/admin/presentation/widgets/admin_radio_mondo_control_section.dart',
     ).readAsStringSync();
     final repo = File(
       'lib/infrastructure/admin/repositories/admin_repository_impl.dart',
     ).readAsStringSync();
-    final dock = File('lib/shared/widgets/radio_mondo_dock.dart')
-        .readAsStringSync();
+    final dock =
+        File('lib/shared/widgets/radio_mondo_dock.dart').readAsStringSync();
 
     expect(service, contains('RadioMondoSourceType.stream'));
     expect(service, contains('ReleaseMode.stop'));
@@ -51,7 +51,7 @@ void main() {
     expect(admin, contains('worldBriefs: worldBriefs'));
     expect(admin, contains('LIVE adesso'));
     expect(admin, contains('Stazione predefinita World Live'));
-    expect(repo, contains('admin_radio_mondo_upsert_v3'));
+    expect(repo, contains('admin_radio_mondo_upsert_v4'));
     expect(dock, contains("'LIVE'"));
 
     // Compile-only references for the modified presentation/repository units.

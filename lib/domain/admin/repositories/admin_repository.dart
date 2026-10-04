@@ -147,6 +147,7 @@ abstract class AdminRepository {
     String? licenseUrl,
     required AdminRadioMondoSourceType sourceType,
     required AdminRadioMondoChannelType channelType,
+    required AdminRadioMondoCategory category,
     String? languageCode,
     String? worldBriefId,
     required bool isDefault,

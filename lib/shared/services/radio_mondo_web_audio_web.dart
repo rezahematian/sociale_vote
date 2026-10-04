@@ -33,6 +33,14 @@ class RadioMondoWebAudio {
     await _audio.play().toDart;
   }
 
+  Future<void> pause() async {
+    _audio.pause();
+  }
+
+  Future<void> resume() async {
+    await _audio.play().toDart;
+  }
+
   Future<void> stop() async {
     _audio.pause();
     _audio.currentTime = 0.0;

@@ -9,6 +9,10 @@ class RadioMondoWebAudio {
     throw UnsupportedError('Web audio is available only on Web.');
   }
 
+  Future<void> pause() async {}
+
+  Future<void> resume() async {}
+
   Future<void> stop() async {}
 
   Future<void> setVolume(double value) async {}

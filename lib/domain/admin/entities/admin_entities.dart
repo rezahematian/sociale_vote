@@ -166,6 +166,45 @@ extension AdminRadioMondoChannelTypeX on AdminRadioMondoChannelType {
       };
 }
 
+enum AdminRadioMondoCategory {
+  reggae,
+  classical,
+  house,
+  jazzSoul,
+  worldMusic,
+  soundsAtmospheres,
+}
+
+extension AdminRadioMondoCategoryX on AdminRadioMondoCategory {
+  String get storageKey => switch (this) {
+        AdminRadioMondoCategory.reggae => 'reggae',
+        AdminRadioMondoCategory.classical => 'classical',
+        AdminRadioMondoCategory.house => 'house',
+        AdminRadioMondoCategory.jazzSoul => 'jazz_soul',
+        AdminRadioMondoCategory.worldMusic => 'world_music',
+        AdminRadioMondoCategory.soundsAtmospheres => 'sounds_atmospheres',
+      };
+
+  static AdminRadioMondoCategory fromStorageKey(
+    String? value, {
+    AdminRadioMondoChannelType? fallbackChannelType,
+  }) =>
+      switch (value?.trim().toLowerCase()) {
+        'reggae' => AdminRadioMondoCategory.reggae,
+        'classical' => AdminRadioMondoCategory.classical,
+        'house' => AdminRadioMondoCategory.house,
+        'jazz_soul' => AdminRadioMondoCategory.jazzSoul,
+        'sounds_atmospheres' => AdminRadioMondoCategory.soundsAtmospheres,
+        'world_music' => AdminRadioMondoCategory.worldMusic,
+        _ => switch (fallbackChannelType) {
+            AdminRadioMondoChannelType.nature ||
+            AdminRadioMondoChannelType.special =>
+              AdminRadioMondoCategory.soundsAtmospheres,
+            _ => AdminRadioMondoCategory.worldMusic,
+          },
+      };
+}
+
 class AdminRadioMondoTrack {
   final String id;
   final String title;
@@ -176,6 +215,7 @@ class AdminRadioMondoTrack {
   final String? licenseUrl;
   final AdminRadioMondoSourceType sourceType;
   final AdminRadioMondoChannelType channelType;
+  final AdminRadioMondoCategory category;
   final String? languageCode;
   final String? worldBriefId;
   final bool isDefault;
@@ -193,6 +233,7 @@ class AdminRadioMondoTrack {
     required this.licenseUrl,
     required this.sourceType,
     required this.channelType,
+    required this.category,
     required this.languageCode,
     required this.worldBriefId,
     required this.isDefault,

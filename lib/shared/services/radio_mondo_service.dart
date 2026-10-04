@@ -31,6 +31,50 @@ extension RadioMondoChannelTypeX on RadioMondoChannelType {
       };
 }
 
+enum RadioMondoCategory {
+  reggae,
+  classical,
+  house,
+  jazzSoul,
+  worldMusic,
+  soundsAtmospheres,
+}
+
+extension RadioMondoCategoryX on RadioMondoCategory {
+  String get storageKey => switch (this) {
+        RadioMondoCategory.reggae => 'reggae',
+        RadioMondoCategory.classical => 'classical',
+        RadioMondoCategory.house => 'house',
+        RadioMondoCategory.jazzSoul => 'jazz_soul',
+        RadioMondoCategory.worldMusic => 'world_music',
+        RadioMondoCategory.soundsAtmospheres => 'sounds_atmospheres',
+      };
+
+  static RadioMondoCategory fromStorageKey(
+    String? value, {
+    RadioMondoChannelType? fallbackChannelType,
+  }) =>
+      switch (value?.trim().toLowerCase()) {
+        'reggae' => RadioMondoCategory.reggae,
+        'classical' => RadioMondoCategory.classical,
+        'house' => RadioMondoCategory.house,
+        'jazz_soul' => RadioMondoCategory.jazzSoul,
+        'sounds_atmospheres' => RadioMondoCategory.soundsAtmospheres,
+        'world_music' => RadioMondoCategory.worldMusic,
+        _ => fromChannelType(fallbackChannelType),
+      };
+
+  static RadioMondoCategory fromChannelType(
+    RadioMondoChannelType? channelType,
+  ) =>
+      switch (channelType) {
+        RadioMondoChannelType.nature ||
+        RadioMondoChannelType.special =>
+          RadioMondoCategory.soundsAtmospheres,
+        _ => RadioMondoCategory.worldMusic,
+      };
+}
+
 enum RadioMondoTrack { classicalOrbit, worldRain, youngPulse }
 
 extension RadioMondoTrackX on RadioMondoTrack {
@@ -51,6 +95,7 @@ class RadioMondoStation {
   final String? licenseUrl;
   final RadioMondoSourceType sourceType;
   final RadioMondoChannelType channelType;
+  final RadioMondoCategory category;
   final String? languageCode;
   final String? worldBriefId;
   final bool isDefault;
@@ -66,6 +111,7 @@ class RadioMondoStation {
     this.licenseUrl,
     this.sourceType = RadioMondoSourceType.audio,
     this.channelType = RadioMondoChannelType.worldLive,
+    this.category = RadioMondoCategory.worldMusic,
     this.languageCode,
     this.worldBriefId,
     this.isDefault = false,
@@ -104,6 +150,7 @@ class _RadioMondoAudioHandler extends BaseAudioHandler {
         extras: <String, dynamic>{
           'attribution': station.attribution,
           'channelType': station.channelType.name,
+          'category': station.category.storageKey,
           'isLive': station.isLive,
         },
       ),
@@ -146,6 +193,7 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
   _RadioMondoAudioHandler? _audioHandler;
   StreamSubscription<void>? _playerCompleteSubscription;
   bool _advancingPlaylist = false;
+  bool _previewMode = false;
 
   static const List<RadioMondoStation> _builtInStations = [
     RadioMondoStation(
@@ -153,18 +201,21 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
       title: 'Classical Orbit',
       sortOrder: 100,
       builtInTrack: RadioMondoTrack.classicalOrbit,
+      category: RadioMondoCategory.classical,
     ),
     RadioMondoStation(
       id: 'builtin-world-rain',
       title: 'Rain over the World',
       sortOrder: 200,
       builtInTrack: RadioMondoTrack.worldRain,
+      category: RadioMondoCategory.soundsAtmospheres,
     ),
     RadioMondoStation(
       id: 'builtin-young-pulse',
       title: 'Young Pulse',
       sortOrder: 300,
       builtInTrack: RadioMondoTrack.youngPulse,
+      category: RadioMondoCategory.house,
     ),
   ];
 
@@ -176,6 +227,7 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
   List<RadioMondoStation> _stations = const [];
   RadioMondoStation? _selectedStation;
   RadioMondoStation? _currentStation;
+  RadioMondoCategory _selectedCategory = RadioMondoCategory.worldMusic;
   bool _selectionExplicit = false;
 
   bool get isLoading => _isLoading || _catalogLoading;
@@ -185,6 +237,15 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
       List<RadioMondoStation>.unmodifiable(_stations);
   RadioMondoStation? get selectedStation => _selectedStation;
   RadioMondoStation? get currentStation => _currentStation;
+  RadioMondoCategory get selectedCategory => _selectedCategory;
+
+  List<RadioMondoStation> stationsForCategory(RadioMondoCategory category) =>
+      List<RadioMondoStation>.unmodifiable(
+        _stations.where((station) => station.category == category),
+      );
+
+  int stationCountForCategory(RadioMondoCategory category) =>
+      _stations.where((station) => station.category == category).length;
 
   // Compatibilità per i test e per eventuali chiamanti legacy.
   RadioMondoTrack get selectedTrack =>
@@ -223,6 +284,9 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
           }
           final rawSortOrder = row['sort_order'];
           final sortOrder = rawSortOrder is num ? rawSortOrder.toInt() : 100;
+          final channelType = RadioMondoChannelTypeX.fromStorageKey(
+            _nullable(row['channel_type']),
+          );
           remoteStations.add(
             RadioMondoStation(
               id: 'remote-$id',
@@ -234,8 +298,10 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
               sourceType: RadioMondoSourceTypeX.fromStorageKey(
                 _nullable(row['source_type']),
               ),
-              channelType: RadioMondoChannelTypeX.fromStorageKey(
-                _nullable(row['channel_type']),
+              channelType: channelType,
+              category: RadioMondoCategoryX.fromStorageKey(
+                _nullable(row['category_key']),
+                fallbackChannelType: channelType,
               ),
               languageCode: _nullable(row['language_code']),
               worldBriefId: _nullable(row['world_brief_id']),
@@ -274,11 +340,32 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
           break;
         }
       }
+
+      final selectedCategoryStations = nextStations
+          .where((station) => station.category == _selectedCategory)
+          .toList(growable: false);
+      RadioMondoStation? selectedCategoryDefault;
+      for (final station in selectedCategoryStations) {
+        if (station.isDefault) {
+          selectedCategoryDefault = station;
+          break;
+        }
+      }
+
       _selectedStation = nextStations.isEmpty
           ? null
           : (_selectionExplicit
-              ? (selectedMatch ?? defaultStation ?? nextStations.first)
+              ? (selectedMatch ??
+                  selectedCategoryDefault ??
+                  (selectedCategoryStations.isEmpty
+                      ? null
+                      : selectedCategoryStations.first) ??
+                  defaultStation ??
+                  nextStations.first)
               : (defaultStation ?? nextStations.first));
+      if (_selectedStation != null) {
+        _selectedCategory = _selectedStation!.category;
+      }
 
       if (_currentStation != null && currentMatch == null) {
         await stop();
@@ -358,6 +445,17 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<bool> playStation(RadioMondoStation station) async {
+    return _playStationInternal(station, preview: false);
+  }
+
+  Future<bool> playPreviewStation(RadioMondoStation station) async {
+    return _playStationInternal(station, preview: true);
+  }
+
+  Future<bool> _playStationInternal(
+    RadioMondoStation station, {
+    required bool preview,
+  }) async {
     if (_isLoading) return false;
 
     _isLoading = true;
@@ -371,8 +469,12 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
         return false;
       }
 
-      _selectedStation = station;
-      _selectionExplicit = true;
+      if (!preview) {
+        _selectedStation = station;
+        _selectedCategory = station.category;
+        _selectionExplicit = true;
+      }
+      _previewMode = preview;
       final builtInTrack = station.builtInTrack;
 
       if (kIsWeb) {
@@ -428,6 +530,61 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  Future<void> selectCategory(RadioMondoCategory category) async {
+    if (_selectedCategory == category &&
+        _selectedStation?.category == category) {
+      return;
+    }
+
+    if (_currentStation != null && _currentStation?.category != category) {
+      await stop();
+    }
+
+    final candidates = _stations
+        .where((station) => station.category == category)
+        .toList(growable: false);
+    _selectedCategory = category;
+    _selectionExplicit = true;
+
+    if (candidates.isEmpty) {
+      _selectedStation = null;
+      notifyListeners();
+      return;
+    }
+
+    RadioMondoStation? preferred;
+    for (final station in candidates) {
+      if (station.isDefault) {
+        preferred = station;
+        break;
+      }
+    }
+    _selectedStation = preferred ?? candidates.first;
+    notifyListeners();
+  }
+
+  Future<bool> playPrevious() => _playAdjacent(-1);
+
+  Future<bool> playNext() => _playAdjacent(1);
+
+  Future<bool> _playAdjacent(int offset) async {
+    final anchor = _currentStation ?? _selectedStation;
+    final category = anchor?.category ?? _selectedCategory;
+    final catalog = _stations
+        .where((station) => station.category == category)
+        .toList(growable: false);
+    if (catalog.isEmpty) return false;
+
+    var currentIndex = anchor == null
+        ? -1
+        : catalog.indexWhere((station) => station.id == anchor.id);
+    if (currentIndex < 0) {
+      currentIndex = offset > 0 ? -1 : 0;
+    }
+    final nextIndex = (currentIndex + offset) % catalog.length;
+    return playStation(catalog[nextIndex]);
+  }
+
   Future<void> _handleTrackCompleted() async {
     final current = _currentStation;
     if (!_initialized ||
@@ -436,11 +593,19 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
         _advancingPlaylist) {
       return;
     }
+    if (_previewMode) {
+      await stop();
+      return;
+    }
 
     _advancingPlaylist = true;
     try {
       final catalog = _stations
-          .where((station) => station.sourceType == RadioMondoSourceType.audio)
+          .where(
+            (station) =>
+                station.sourceType == RadioMondoSourceType.audio &&
+                station.category == current.category,
+          )
           .toList(growable: false);
       if (catalog.isEmpty) {
         await stop();
@@ -482,6 +647,7 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
       _currentStation = null;
       _isPlaying = false;
       _isLoading = false;
+      _previewMode = false;
 
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
         _audioHandler?.publishIdle();
@@ -491,41 +657,53 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _pauseFromMediaSession() async {
+  Future<void> pause() async {
     if (!_initialized || !_isPlaying || _currentStation == null) return;
 
     try {
-      await _player.pause();
+      if (kIsWeb) {
+        await _webAudio.pause();
+      } else {
+        await _player.pause();
+      }
       _isPlaying = false;
-      _audioHandler?.publishReady(playing: false);
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        _audioHandler?.publishReady(playing: false);
+      }
     } catch (error, stackTrace) {
       if (kDebugMode) {
-        debugPrint(
-          'Radio Mondo media pause error: $error\n$stackTrace',
-        );
+        debugPrint('Radio Mondo pause error: $error\n$stackTrace');
       }
     } finally {
       notifyListeners();
     }
   }
 
-  Future<void> _resumeFromMediaSession() async {
+  Future<void> resume() async {
     if (!_initialized || _isPlaying || _currentStation == null) return;
 
     try {
-      await _player.resume();
+      if (kIsWeb) {
+        await _webAudio.resume();
+      } else {
+        await _player.resume();
+      }
       _isPlaying = true;
-      _audioHandler?.publishReady(playing: true);
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        _audioHandler?.publishReady(playing: true);
+      }
     } catch (error, stackTrace) {
       if (kDebugMode) {
-        debugPrint(
-          'Radio Mondo media resume error: $error\n$stackTrace',
-        );
+        debugPrint('Radio Mondo resume error: $error\n$stackTrace');
       }
     } finally {
       notifyListeners();
     }
   }
+
+  Future<void> _pauseFromMediaSession() => pause();
+
+  Future<void> _resumeFromMediaSession() => resume();
 
   Future<void> _stopFromMediaSession() async {
     await stop();

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/app/di.dart';
@@ -105,6 +107,7 @@ class _AdminRadioMondoControlSectionState
         licenseUrl: draft.licenseUrl,
         sourceType: draft.sourceType,
         channelType: draft.channelType,
+        category: draft.category,
         languageCode: draft.languageCode,
         worldBriefId: draft.worldBriefId,
         isDefault: draft.isDefault,
@@ -255,6 +258,63 @@ class _AdminRadioMondoControlSectionState
     }
   }
 
+  Future<void> _preview(AdminRadioMondoTrack track) async {
+    if (_saving) return;
+    final radio = RadioMondoService.instance;
+    final previewId = 'admin-preview-${track.id}';
+    if (radio.currentStation?.id == previewId) {
+      await radio.stop();
+      return;
+    }
+
+    final station = RadioMondoStation(
+      id: previewId,
+      title: track.title,
+      sortOrder: track.sortOrder,
+      audioUrl: track.audioUrl,
+      attribution: track.attribution,
+      licenseUrl: track.licenseUrl,
+      sourceType: track.sourceType == AdminRadioMondoSourceType.stream
+          ? RadioMondoSourceType.stream
+          : RadioMondoSourceType.audio,
+      channelType: switch (track.channelType) {
+        AdminRadioMondoChannelType.worldLive => RadioMondoChannelType.worldLive,
+        AdminRadioMondoChannelType.nature => RadioMondoChannelType.nature,
+        AdminRadioMondoChannelType.worldBrief =>
+          RadioMondoChannelType.worldBrief,
+        AdminRadioMondoChannelType.liveEvent => RadioMondoChannelType.liveEvent,
+        AdminRadioMondoChannelType.special => RadioMondoChannelType.special,
+      },
+      category: switch (track.category) {
+        AdminRadioMondoCategory.reggae => RadioMondoCategory.reggae,
+        AdminRadioMondoCategory.classical => RadioMondoCategory.classical,
+        AdminRadioMondoCategory.house => RadioMondoCategory.house,
+        AdminRadioMondoCategory.jazzSoul => RadioMondoCategory.jazzSoul,
+        AdminRadioMondoCategory.worldMusic => RadioMondoCategory.worldMusic,
+        AdminRadioMondoCategory.soundsAtmospheres =>
+          RadioMondoCategory.soundsAtmospheres,
+      },
+      languageCode: track.languageCode,
+      worldBriefId: track.worldBriefId,
+      isDefault: track.isDefault,
+      isLive: track.isLive,
+    );
+
+    final success = await radio.playPreviewStation(station);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? _radioText(context, 'Anteprima avviata', 'Preview started',
+                  'Vorschau gestartet', 'پیش‌نمایش شروع شد')
+              : _radioText(context, 'Anteprima non riuscita', 'Preview failed',
+                  'Vorschau fehlgeschlagen', 'پیش‌نمایش اجرا نشد'),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -289,10 +349,10 @@ class _AdminRadioMondoControlSectionState
                       Text(
                         _radioText(
                           context,
-                          'Carica direttamente un file audio oppure usa un URL HTTPS. Formati supportati: MP3, WAV, M4A/MP4, AAC, OGG/OPUS, FLAC e WEBM. Le tracce pubblicate compaiono su Web e Android. Pubblica solo contenuti per cui possiedi i diritti.',
-                          'Upload an audio file directly, or use an HTTPS URL. Supported formats: MP3, WAV, M4A/MP4, AAC, OGG/OPUS, FLAC and WEBM. Published tracks appear on Web and Android. Publish only audio you have rights to use.',
-                          'Lade eine Audiodatei direkt hoch oder verwende eine HTTPS-URL. Unterstützt werden MP3, WAV, M4A/MP4, AAC, OGG/OPUS, FLAC und WEBM. Veröffentlichte Titel erscheinen im Web und auf Android. Veröffentliche nur Audio mit Nutzungsrechten.',
-                          'فایل صوتی را مستقیم بارگذاری کنید یا از نشانی HTTPS استفاده کنید. فرمت‌های MP3، WAV، M4A/MP4، AAC، OGG/OPUS، FLAC و WEBM پشتیبانی می‌شوند. قطعات منتشرشده در وب و اندروید نمایش داده می‌شوند. فقط محتوایی را منتشر کنید که حق استفاده از آن را دارید.',
+                          'Carica direttamente un file audio oppure usa un URL HTTPS. Formati supportati: MP3, WAV, M4A/MP4, AAC, OGG/OPUS, FLAC e WEBM. Assegna ogni traccia a una categoria: la playlist continuerà solo dentro quella categoria. Le tracce pubblicate compaiono su Web e Android. Pubblica solo contenuti per cui possiedi i diritti.',
+                          'Upload an audio file directly, or use an HTTPS URL. Supported formats: MP3, WAV, M4A/MP4, AAC, OGG/OPUS, FLAC and WEBM. Assign every track to a category: the playlist continues only inside that category. Published tracks appear on Web and Android. Publish only audio you have rights to use.',
+                          'Lade eine Audiodatei direkt hoch oder verwende eine HTTPS-URL. Unterstützt werden MP3, WAV, M4A/MP4, AAC, OGG/OPUS, FLAC und WEBM. Ordne jeden Titel einer Kategorie zu: Die Playlist läuft nur innerhalb dieser Kategorie weiter. Veröffentlichte Titel erscheinen im Web und auf Android. Veröffentliche nur Audio mit Nutzungsrechten.',
+                          'فایل صوتی را مستقیم بارگذاری کنید یا از نشانی HTTPS استفاده کنید. فرمت‌های MP3، WAV، M4A/MP4، AAC، OGG/OPUS، FLAC و WEBM پشتیبانی می‌شوند. هر قطعه را به یک دسته اختصاص دهید؛ فهرست پخش فقط در همان دسته ادامه پیدا می‌کند. قطعات منتشرشده در وب و اندروید نمایش داده می‌شوند. فقط محتوایی را منتشر کنید که حق استفاده از آن را دارید.',
                         ),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: colors.onSurfaceVariant,
@@ -393,6 +453,7 @@ class _AdminRadioMondoControlSectionState
                       track: track,
                       saving: _saving,
                       onEdit: () => _edit(track),
+                      onPreview: () => _preview(track),
                       onDelete: () => _delete(track),
                       onEnabledChanged: (value) => _setEnabled(track, value),
                     ),
@@ -438,6 +499,7 @@ class _RadioTrackTile extends StatelessWidget {
   final AdminRadioMondoTrack track;
   final bool saving;
   final VoidCallback onEdit;
+  final VoidCallback onPreview;
   final VoidCallback onDelete;
   final ValueChanged<bool> onEnabledChanged;
 
@@ -445,6 +507,7 @@ class _RadioTrackTile extends StatelessWidget {
     required this.track,
     required this.saving,
     required this.onEdit,
+    required this.onPreview,
     required this.onDelete,
     required this.onEnabledChanged,
   });
@@ -494,7 +557,15 @@ class _RadioTrackTile extends StatelessWidget {
           const SizedBox(width: 6),
           Chip(
             visualDensity: VisualDensity.compact,
-            label: Text('#${track.sortOrder}'),
+            label: Text(
+              _radioText(
+                context,
+                'Ordine ${track.sortOrder}',
+                'Order ${track.sortOrder}',
+                'Reihenfolge ${track.sortOrder}',
+                'ترتیب ${track.sortOrder}',
+              ),
+            ),
           ),
         ],
       ),
@@ -502,6 +573,7 @@ class _RadioTrackTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
+            '${_categoryTypeLabel(context, track.category)} · '
             '${_channelTypeLabel(context, track.channelType)} · '
             '${track.sourceType == AdminRadioMondoSourceType.stream ? 'STREAM' : 'AUDIO'}'
             '${track.languageCode == null ? '' : ' · ${track.languageCode!.toUpperCase()}'}',
@@ -527,6 +599,12 @@ class _RadioTrackTile extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          IconButton(
+            tooltip: _radioText(
+                context, 'Anteprima', 'Preview', 'Vorschau', 'پیش‌نمایش'),
+            onPressed: saving ? null : onPreview,
+            icon: const Icon(Icons.play_circle_outline_rounded),
+          ),
           IconButton(
             tooltip:
                 _radioText(context, 'Modifica', 'Edit', 'Bearbeiten', 'ویرایش'),
@@ -574,6 +652,7 @@ class _RadioTrackDraft {
   final String? licenseUrl;
   final AdminRadioMondoSourceType sourceType;
   final AdminRadioMondoChannelType channelType;
+  final AdminRadioMondoCategory category;
   final String? languageCode;
   final String? worldBriefId;
   final bool isDefault;
@@ -591,6 +670,7 @@ class _RadioTrackDraft {
     required this.licenseUrl,
     required this.sourceType,
     required this.channelType,
+    required this.category,
     required this.languageCode,
     required this.worldBriefId,
     required this.isDefault,
@@ -628,9 +708,11 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
   late bool _isLive;
   late AdminRadioMondoSourceType _sourceType;
   late AdminRadioMondoChannelType _channelType;
+  late AdminRadioMondoCategory _category;
   late String _languageCode;
   bool _rightsConfirmed = false;
   bool _pickingAudio = false;
+  bool _previewing = false;
   RadioMondoPickedAudio? _pickedAudio;
 
   @override
@@ -651,11 +733,15 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
     _sourceType = existing?.sourceType ?? AdminRadioMondoSourceType.audio;
     _channelType =
         existing?.channelType ?? AdminRadioMondoChannelType.worldLive;
+    _category = existing?.category ?? AdminRadioMondoCategory.worldMusic;
     _languageCode = existing?.languageCode ?? '';
   }
 
   @override
   void dispose() {
+    if (_previewing) {
+      unawaited(RadioMondoService.instance.stop());
+    }
     _title.dispose();
     _audioUrl.dispose();
     _sortOrder.dispose();
@@ -708,6 +794,158 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
     }
   }
 
+  String? get _previewUrl {
+    if (_pickedAudio != null) {
+      final saved = widget.existing?.audioUrl.trim() ?? '';
+      return saved.startsWith('https://') ? saved : null;
+    }
+
+    final entered = _audioUrl.text.trim();
+    return entered.startsWith('https://') ? entered : null;
+  }
+
+  Future<void> _stopPreview() async {
+    final radio = RadioMondoService.instance;
+    final previewId = 'admin-form-preview-${widget.existing?.id ?? 'draft'}';
+    if (_previewing || radio.currentStation?.id == previewId) {
+      await radio.stop();
+    }
+    if (mounted && _previewing) {
+      setState(() => _previewing = false);
+    } else {
+      _previewing = false;
+    }
+  }
+
+  Future<void> _togglePreview() async {
+    final previewUrl = _previewUrl;
+    if (previewUrl == null) return;
+
+    final radio = RadioMondoService.instance;
+    final previewId = 'admin-form-preview-${widget.existing?.id ?? 'draft'}';
+    if (radio.currentStation?.id == previewId) {
+      await _stopPreview();
+      return;
+    }
+
+    final title = _title.text.trim();
+    final station = RadioMondoStation(
+      id: previewId,
+      title: title.isEmpty
+          ? _radioText(context, 'Anteprima Admin', 'Admin preview',
+              'Admin-Vorschau', 'پیش‌نمایش مدیریت')
+          : title,
+      sortOrder: int.tryParse(_sortOrder.text.trim()) ?? 100,
+      audioUrl: previewUrl,
+      attribution: _attribution.text.trim(),
+      licenseUrl:
+          _licenseUrl.text.trim().isEmpty ? null : _licenseUrl.text.trim(),
+      sourceType: _sourceType == AdminRadioMondoSourceType.stream
+          ? RadioMondoSourceType.stream
+          : RadioMondoSourceType.audio,
+      channelType: switch (_channelType) {
+        AdminRadioMondoChannelType.worldLive => RadioMondoChannelType.worldLive,
+        AdminRadioMondoChannelType.nature => RadioMondoChannelType.nature,
+        AdminRadioMondoChannelType.worldBrief =>
+          RadioMondoChannelType.worldBrief,
+        AdminRadioMondoChannelType.liveEvent => RadioMondoChannelType.liveEvent,
+        AdminRadioMondoChannelType.special => RadioMondoChannelType.special,
+      },
+      category: switch (_category) {
+        AdminRadioMondoCategory.reggae => RadioMondoCategory.reggae,
+        AdminRadioMondoCategory.classical => RadioMondoCategory.classical,
+        AdminRadioMondoCategory.house => RadioMondoCategory.house,
+        AdminRadioMondoCategory.jazzSoul => RadioMondoCategory.jazzSoul,
+        AdminRadioMondoCategory.worldMusic => RadioMondoCategory.worldMusic,
+        AdminRadioMondoCategory.soundsAtmospheres =>
+          RadioMondoCategory.soundsAtmospheres,
+      },
+      languageCode: _languageCode.isEmpty ? null : _languageCode,
+      worldBriefId: _worldBriefId.trim().isEmpty ? null : _worldBriefId.trim(),
+      isDefault: _isDefault,
+      isLive: _isLive,
+    );
+
+    final success = await radio.playPreviewStation(station);
+    if (!mounted) return;
+    setState(() => _previewing = success);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? _radioText(context, 'Anteprima avviata', 'Preview started',
+                  'Vorschau gestartet', 'پیش‌نمایش شروع شد')
+              : _radioText(
+                  context,
+                  'Anteprima non disponibile',
+                  'Preview unavailable',
+                  'Vorschau nicht verfügbar',
+                  'پیش‌نمایش در دسترس نیست'),
+        ),
+      ),
+    );
+  }
+
+  String _previewDescription(BuildContext context) {
+    if (_pickedAudio != null) {
+      if (widget.existing != null && _previewUrl != null) {
+        return _radioText(
+          context,
+          'Riproduce l’audio attualmente salvato. Il nuovo file selezionato sarà disponibile dopo Salva.',
+          'Plays the currently saved audio. The newly selected file will be available after Save.',
+          'Spielt das aktuell gespeicherte Audio. Die neu ausgewählte Datei ist nach dem Speichern verfügbar.',
+          'صدای ذخیره‌شده فعلی پخش می‌شود. فایل جدید پس از ذخیره قابل پخش خواهد بود.',
+        );
+      }
+      return _radioText(
+        context,
+        'Il file selezionato verrà caricato con Salva. Dopo il salvataggio potrai ascoltarlo qui.',
+        'The selected file will be uploaded with Save. After saving, you can preview it here.',
+        'Die ausgewählte Datei wird mit Speichern hochgeladen. Danach kannst du sie hier anhören.',
+        'فایل انتخاب‌شده با ذخیره بارگذاری می‌شود. پس از ذخیره می‌توانید آن را اینجا گوش کنید.',
+      );
+    }
+
+    if (_previewUrl != null) {
+      return _radioText(
+        context,
+        'Riproduce l’URL HTTPS indicato senza modificare il catalogo.',
+        'Plays the configured HTTPS URL without changing the catalog.',
+        'Spielt die angegebene HTTPS-URL ab, ohne den Katalog zu ändern.',
+        'نشانی HTTPS واردشده را بدون تغییر فهرست پخش می‌کند.',
+      );
+    }
+
+    return _radioText(
+      context,
+      'Inserisci un URL HTTPS valido oppure salva prima il file caricato.',
+      'Enter a valid HTTPS URL or save the uploaded file first.',
+      'Gib eine gültige HTTPS-URL ein oder speichere zuerst die hochgeladene Datei.',
+      'یک نشانی HTTPS معتبر وارد کنید یا ابتدا فایل بارگذاری‌شده را ذخیره کنید.',
+    );
+  }
+
+  Widget _sectionTitle(
+    BuildContext context,
+    String it,
+    String en,
+    String de,
+    String fa,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12, bottom: 8),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Text(
+          _radioText(context, it, en, de, fa),
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+      ),
+    );
+  }
+
   List<DropdownMenuItem<String>> _worldBriefItems(BuildContext context) {
     final items = <DropdownMenuItem<String>>[
       DropdownMenuItem<String>(
@@ -754,13 +992,16 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
     return items;
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate() || !_rightsConfirmed) {
       setState(() {});
       return;
     }
     final order = int.tryParse(_sortOrder.text.trim());
     if (order == null || order < 0 || order > 1000) return;
+
+    await _stopPreview();
+    if (!mounted) return;
 
     Navigator.of(context).pop(
       _RadioTrackDraft(
@@ -773,6 +1014,7 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
             _licenseUrl.text.trim().isEmpty ? null : _licenseUrl.text.trim(),
         sourceType: _sourceType,
         channelType: _channelType,
+        category: _category,
         languageCode: _languageCode.isEmpty ? null : _languageCode,
         worldBriefId:
             _worldBriefId.trim().isEmpty ? null : _worldBriefId.trim(),
@@ -804,6 +1046,13 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                _sectionTitle(
+                  context,
+                  'Identità, sorgente e classificazione',
+                  'Identity, source and classification',
+                  'Identität, Quelle und Klassifizierung',
+                  'هویت، منبع و دسته‌بندی',
+                ),
                 TextFormField(
                   controller: _title,
                   maxLength: 120,
@@ -817,10 +1066,10 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                   decoration: InputDecoration(
                     labelText: _radioText(
                       context,
-                      'Sorgente',
-                      'Source',
-                      'Quelle',
-                      'منبع',
+                      'Sorgente audio',
+                      'Audio source',
+                      'Audioquelle',
+                      'منبع صدا',
                     ),
                   ),
                   items: AdminRadioMondoSourceType.values
@@ -856,6 +1105,28 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                   },
                 ),
                 const SizedBox(height: 8),
+                DropdownButtonFormField<AdminRadioMondoCategory>(
+                  initialValue: _category,
+                  decoration: InputDecoration(
+                    labelText: _radioText(
+                      context,
+                      'Categoria musicale',
+                      'Music category',
+                      'Musikkategorie',
+                      'دسته موسیقی',
+                    ),
+                  ),
+                  items: AdminRadioMondoCategory.values
+                      .map(
+                        (value) => DropdownMenuItem<AdminRadioMondoCategory>(
+                          value: value,
+                          child: Text(_categoryTypeLabel(context, value)),
+                        ),
+                      )
+                      .toList(growable: false),
+                  onChanged: (value) =>
+                      setState(() => _category = value ?? _category),
+                ),
                 DropdownButtonFormField<AdminRadioMondoChannelType>(
                   initialValue: _channelType,
                   decoration: InputDecoration(
@@ -865,6 +1136,13 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                       'Channel type',
                       'Kanaltyp',
                       'نوع کانال',
+                    ),
+                    helperText: _radioText(
+                      context,
+                      'Funzione del canale, separata dalla categoria musicale.',
+                      'Channel function, separate from the music category.',
+                      'Kanalfunktion, getrennt von der Musikkategorie.',
+                      'کارکرد کانال، جدا از دسته موسیقی.',
                     ),
                   ),
                   items: AdminRadioMondoChannelType.values
@@ -931,6 +1209,13 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                   items: _worldBriefItems(context),
                   onChanged: (value) =>
                       setState(() => _worldBriefId = value ?? ''),
+                ),
+                _sectionTitle(
+                  context,
+                  'Audio e anteprima',
+                  'Audio and preview',
+                  'Audio und Vorschau',
+                  'صدا و پیش‌نمایش',
                 ),
                 if (_sourceType == AdminRadioMondoSourceType.audio)
                   Card(
@@ -1019,8 +1304,80 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                             'فایل بارگذاری‌شده هنگام ذخیره استفاده می‌شود',
                           ),
                   ),
+                  onChanged: (_) => setState(() {}),
                   validator: (value) =>
                       _pickedAudio != null ? null : _https(value),
+                ),
+                Card(
+                  margin: const EdgeInsets.only(top: 4, bottom: 12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.headphones_rounded),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _radioText(
+                                  context,
+                                  'Anteprima audio',
+                                  'Audio preview',
+                                  'Audio-Vorschau',
+                                  'پیش‌نمایش صدا',
+                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          _previewDescription(context),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 10),
+                        FilledButton.tonalIcon(
+                          onPressed:
+                              _previewUrl == null ? null : _togglePreview,
+                          icon: Icon(
+                            _previewing
+                                ? Icons.stop_circle_outlined
+                                : Icons.play_circle_outline_rounded,
+                          ),
+                          label: Text(
+                            _previewing
+                                ? _radioText(
+                                    context,
+                                    'Ferma anteprima',
+                                    'Stop preview',
+                                    'Vorschau stoppen',
+                                    'توقف پیش‌نمایش',
+                                  )
+                                : _radioText(
+                                    context,
+                                    'Riproduci anteprima',
+                                    'Play preview',
+                                    'Vorschau abspielen',
+                                    'پخش پیش‌نمایش',
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                _sectionTitle(
+                  context,
+                  'Pubblicazione e diritti',
+                  'Publishing and rights',
+                  'Veröffentlichung und Rechte',
+                  'انتشار و حقوق',
                 ),
                 TextFormField(
                   controller: _sortOrder,
@@ -1028,10 +1385,17 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                   decoration: InputDecoration(
                       labelText: _radioText(
                           context,
-                          'Ordine 0–1000',
-                          'Order 0–1000',
-                          'Reihenfolge 0–1000',
-                          'ترتیب ۰ تا ۱۰۰۰')),
+                          'Posizione nella categoria (0–1000)',
+                          'Position within category (0–1000)',
+                          'Position in der Kategorie (0–1000)',
+                          'جایگاه در دسته (۰ تا ۱۰۰۰)'),
+                      helperText: _radioText(
+                        context,
+                        'Usa 10, 20, 30…: 10 = prima, 20 = seconda. Per inserire una traccia tra 10 e 20 usa 15. Ogni categoria può ripartire da 10.',
+                        'Use 10, 20, 30…: 10 = first, 20 = second. To insert a track between 10 and 20 use 15. Each category can start again from 10.',
+                        'Nutze 10, 20, 30…: 10 = zuerst, 20 = danach. Für einen Titel zwischen 10 und 20 nutze 15. Jede Kategorie kann wieder bei 10 beginnen.',
+                        'از ۱۰، ۲۰، ۳۰… استفاده کنید: ۱۰ = اول، ۲۰ = دوم. برای قرار دادن قطعه‌ای بین ۱۰ و ۲۰ از ۱۵ استفاده کنید. هر دسته می‌تواند دوباره از ۱۰ شروع شود.',
+                      )),
                   validator: (value) {
                     final parsed = int.tryParse(value?.trim() ?? '');
                     return parsed == null || parsed < 0 || parsed > 1000
@@ -1088,10 +1452,10 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                   onChanged: (value) => setState(() => _enabled = value),
                   title: Text(_radioText(
                       context,
-                      'Visibile nella Radio Mondo',
-                      'Visible in World Radio',
-                      'Im Weltradio sichtbar',
-                      'نمایش در رادیوی جهان')),
+                      'Visibile / abilitata nella Radio Mondo',
+                      'Visible / enabled in World Radio',
+                      'Im Weltradio sichtbar / aktiviert',
+                      'نمایش / فعال در رادیوی جهان')),
                 ),
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
@@ -1165,13 +1529,23 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () async {
+            await _stopPreview();
+            if (!context.mounted) return;
+            Navigator.of(context).pop();
+          },
           child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
         ),
-        FilledButton(
+        FilledButton.icon(
           onPressed: _submit,
-          child:
-              Text(_radioText(context, 'Salva', 'Save', 'Speichern', 'ذخیره')),
+          icon: const Icon(Icons.save_outlined),
+          label: Text(_radioText(
+            context,
+            'Salva e ricarica',
+            'Save and reload',
+            'Speichern und neu laden',
+            'ذخیره و بارگذاری مجدد',
+          )),
         ),
       ],
     );
@@ -1338,6 +1712,28 @@ class _RadioEnabledReasonDialogState extends State<_RadioEnabledReasonDialog> {
       ],
     );
   }
+}
+
+String _categoryTypeLabel(
+  BuildContext context,
+  AdminRadioMondoCategory category,
+) {
+  return switch (category) {
+    AdminRadioMondoCategory.reggae => 'Reggae',
+    AdminRadioMondoCategory.classical =>
+      _radioText(context, 'Classica', 'Classical', 'Klassik', 'کلاسیک'),
+    AdminRadioMondoCategory.house => 'House',
+    AdminRadioMondoCategory.jazzSoul => 'Jazz & Soul',
+    AdminRadioMondoCategory.worldMusic => _radioText(context,
+        'Musiche del mondo', 'World music', 'Weltmusik', 'موسیقی جهان'),
+    AdminRadioMondoCategory.soundsAtmospheres => _radioText(
+        context,
+        'Suoni & Atmosfere',
+        'Sounds & Atmospheres',
+        'Klänge & Atmosphären',
+        'صداها و فضاها',
+      ),
+  };
 }
 
 String _channelTypeLabel(

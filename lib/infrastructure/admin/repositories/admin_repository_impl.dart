@@ -618,6 +618,7 @@ class AdminRepositoryImpl implements AdminRepository {
     String? licenseUrl,
     required AdminRadioMondoSourceType sourceType,
     required AdminRadioMondoChannelType channelType,
+    required AdminRadioMondoCategory category,
     String? languageCode,
     String? worldBriefId,
     required bool isDefault,
@@ -626,7 +627,7 @@ class AdminRepositoryImpl implements AdminRepository {
     required String reason,
   }) async {
     final raw = await _client.rpc(
-      'admin_radio_mondo_upsert_v3',
+      'admin_radio_mondo_upsert_v4',
       params: <String, dynamic>{
         'p_track_id': _nullableString(trackId),
         'p_title': title.trim(),
@@ -637,6 +638,7 @@ class AdminRepositoryImpl implements AdminRepository {
         'p_license_url': _nullableString(licenseUrl),
         'p_source_type': sourceType.storageKey,
         'p_channel_type': channelType.storageKey,
+        'p_category_key': category.storageKey,
         'p_language_code': _nullableString(languageCode),
         'p_world_brief_id': _nullableString(worldBriefId),
         'p_is_default': isDefault,
@@ -646,7 +648,7 @@ class AdminRepositoryImpl implements AdminRepository {
       },
     );
     return _mapRadioMondoTrack(
-      _asObject(raw, context: 'admin_radio_mondo_upsert_v3'),
+      _asObject(raw, context: 'admin_radio_mondo_upsert_v4'),
     );
   }
 
@@ -710,6 +712,12 @@ class AdminRepositoryImpl implements AdminRepository {
       ),
       channelType: AdminRadioMondoChannelTypeX.fromStorageKey(
         _readOptionalString(row, 'channel_type'),
+      ),
+      category: AdminRadioMondoCategoryX.fromStorageKey(
+        _readOptionalString(row, 'category_key'),
+        fallbackChannelType: AdminRadioMondoChannelTypeX.fromStorageKey(
+          _readOptionalString(row, 'channel_type'),
+        ),
       ),
       languageCode: _readOptionalString(row, 'language_code'),
       worldBriefId: _readOptionalString(row, 'world_brief_id'),
