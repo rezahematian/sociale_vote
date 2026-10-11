@@ -65,6 +65,45 @@ class _AdminRadioMondoControlSectionState
     }
   }
 
+  Future<void> _manageJahan() async {
+    final draft = await showDialog<_RadioJahanDraft>(
+      context: context,
+      builder: (_) => _RadioJahanDialog(tracks: _tracks),
+    );
+    if (draft == null || _saving) return;
+
+    setState(() => _saving = true);
+    try {
+      await widget.repository.setRadioJahanPlaylist(
+        items: draft.items,
+        reason: draft.reason,
+      );
+      await _load();
+      await RadioMondoService.instance.reloadCatalog();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _radioText(
+              context,
+              'Radio Jahan aggiornata',
+              'Radio Jahan updated',
+              'Radio Jahan aktualisiert',
+              'رادیو جهان به‌روزرسانی شد',
+            ),
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
   Future<void> _edit([AdminRadioMondoTrack? existing]) async {
     List<WorldBrief> worldBriefs = const <WorldBrief>[];
     try {
@@ -362,16 +401,29 @@ class _AdminRadioMondoControlSectionState
                   ),
                 ),
                 const SizedBox(width: 12),
-                FilledButton.icon(
-                  onPressed: _saving ? null : () => _edit(),
-                  icon: _saving
-                      ? const SizedBox.square(
-                          dimension: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.add),
-                  label: Text(_radioText(
-                      context, 'Aggiungi', 'Add', 'Hinzufügen', 'افزودن')),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.end,
+                  children: [
+                    FilledButton.tonalIcon(
+                      onPressed:
+                          _saving || _tracks.isEmpty ? null : _manageJahan,
+                      icon: const Icon(Icons.public_rounded),
+                      label: const Text('Radio Jahan'),
+                    ),
+                    FilledButton.icon(
+                      onPressed: _saving ? null : () => _edit(),
+                      icon: _saving
+                          ? const SizedBox.square(
+                              dimension: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.add),
+                      label: Text(_radioText(
+                          context, 'Aggiungi', 'Add', 'Hinzufügen', 'افزودن')),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -448,17 +500,57 @@ class _AdminRadioMondoControlSectionState
                     ),
                   )
                 else
-                  for (final track in _tracks) ...[
-                    _RadioTrackTile(
-                      track: track,
-                      saving: _saving,
-                      onEdit: () => _edit(track),
-                      onPreview: () => _preview(track),
-                      onDelete: () => _delete(track),
-                      onEnabledChanged: (value) => _setEnabled(track, value),
-                    ),
-                    if (track != _tracks.last) const Divider(height: 1),
-                  ],
+                  for (final category in AdminRadioMondoCategory.values)
+                    if (_tracks.any((track) => track.category == category))
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          color: colors.surfaceContainerLow,
+                          clipBehavior: Clip.antiAlias,
+                          child: ExpansionTile(
+                            key: PageStorageKey<String>(
+                              'radio-category-${category.name}',
+                            ),
+                            leading: CircleAvatar(
+                              backgroundColor: colors.primaryContainer,
+                              foregroundColor: colors.onPrimaryContainer,
+                              child: Icon(_adminCategoryIcon(category)),
+                            ),
+                            title: Text(
+                              _categoryTypeLabel(context, category),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            subtitle: Text(
+                              _radioText(
+                                context,
+                                '${_tracks.where((track) => track.category == category).length} elementi',
+                                '${_tracks.where((track) => track.category == category).length} items',
+                                '${_tracks.where((track) => track.category == category).length} Einträge',
+                                '${_tracks.where((track) => track.category == category).length} مورد',
+                              ),
+                            ),
+                            childrenPadding:
+                                const EdgeInsets.fromLTRB(10, 0, 10, 8),
+                            children: [
+                              for (final track in _tracks.where(
+                                (track) => track.category == category,
+                              ))
+                                _RadioTrackTile(
+                                  track: track,
+                                  saving: _saving,
+                                  onEdit: () => _edit(track),
+                                  onPreview: () => _preview(track),
+                                  onDelete: () => _delete(track),
+                                  onEnabledChanged: (value) =>
+                                      _setEnabled(track, value),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
               ],
             ),
           ),
@@ -516,7 +608,9 @@ class _RadioTrackTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
+      dense: true,
+      visualDensity: const VisualDensity(vertical: -1),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       leading: CircleAvatar(
         backgroundColor: track.isLive
             ? colors.errorContainer
@@ -573,27 +667,21 @@ class _RadioTrackTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${_categoryTypeLabel(context, track.category)} · '
             '${_channelTypeLabel(context, track.channelType)} · '
             '${track.sourceType == AdminRadioMondoSourceType.stream ? 'STREAM' : 'AUDIO'}'
             '${track.languageCode == null ? '' : ' · ${track.languageCode!.toUpperCase()}'}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          Text(track.attribution, maxLines: 1, overflow: TextOverflow.ellipsis),
-          if (track.worldBriefId != null)
+          if (track.attribution.trim().isNotEmpty)
             Text(
-              'World Brief: ${track.worldBriefId}',
+              track.attribution,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
             ),
-          Text(
-            track.audioUrl,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
         ],
       ),
       trailing: Row(
@@ -1030,185 +1118,247 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
   @override
   Widget build(BuildContext context) {
     final editing = widget.existing != null;
+    final advancedInitiallyOpen =
+        _sourceType == AdminRadioMondoSourceType.stream ||
+            _channelType != AdminRadioMondoChannelType.worldLive ||
+            _languageCode.isNotEmpty ||
+            _worldBriefId.trim().isNotEmpty ||
+            _isDefault ||
+            _isLive ||
+            _licenseUrl.text.trim().isNotEmpty;
+
+    final categoryField = DropdownButtonFormField<AdminRadioMondoCategory>(
+      initialValue: _category,
+      decoration: InputDecoration(
+        labelText: _radioText(
+          context,
+          'Categoria musicale',
+          'Music category',
+          'Musikkategorie',
+          'دسته موسیقی',
+        ),
+      ),
+      items: AdminRadioMondoCategory.values
+          .map(
+            (value) => DropdownMenuItem<AdminRadioMondoCategory>(
+              value: value,
+              child: Text(_categoryTypeLabel(context, value)),
+            ),
+          )
+          .toList(growable: false),
+      onChanged: (value) => setState(() => _category = value ?? _category),
+    );
+
+    final orderField = TextFormField(
+      controller: _sortOrder,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        labelText: _radioText(
+          context,
+          'Ordine categoria',
+          'Category order',
+          'Kategorie-Reihenfolge',
+          'ترتیب دسته',
+        ),
+        helperText: _radioText(
+          context,
+          '10, 20, 30…',
+          '10, 20, 30…',
+          '10, 20, 30…',
+          '۱۰، ۲۰، ۳۰…',
+        ),
+      ),
+      validator: (value) {
+        final parsed = int.tryParse(value?.trim() ?? '');
+        return parsed == null || parsed < 0 || parsed > 1000
+            ? _radioText(
+                context,
+                'Ordine non valido',
+                'Invalid order',
+                'Ungültige Reihenfolge',
+                'ترتیب نامعتبر',
+              )
+            : null;
+      },
+    );
+
+    final sourceField = DropdownButtonFormField<AdminRadioMondoSourceType>(
+      initialValue: _sourceType,
+      decoration: InputDecoration(
+        labelText: _radioText(
+          context,
+          'Sorgente audio',
+          'Audio source',
+          'Audioquelle',
+          'منبع صدا',
+        ),
+      ),
+      items: AdminRadioMondoSourceType.values
+          .map(
+            (value) => DropdownMenuItem(
+              value: value,
+              child: Text(
+                value == AdminRadioMondoSourceType.stream
+                    ? _radioText(
+                        context,
+                        'Stream live HTTPS',
+                        'HTTPS live stream',
+                        'HTTPS-Livestream',
+                        'پخش زنده HTTPS',
+                      )
+                    : _radioText(
+                        context,
+                        'Audio / traccia',
+                        'Audio / track',
+                        'Audio / Titel',
+                        'صدا / قطعه',
+                      ),
+              ),
+            ),
+          )
+          .toList(growable: false),
+      onChanged: (value) {
+        if (value == null) return;
+        setState(() {
+          _sourceType = value;
+          if (value == AdminRadioMondoSourceType.stream) {
+            _pickedAudio = null;
+          }
+        });
+      },
+    );
+
+    final channelField = DropdownButtonFormField<AdminRadioMondoChannelType>(
+      initialValue: _channelType,
+      decoration: InputDecoration(
+        labelText: _radioText(
+          context,
+          'Tipo canale',
+          'Channel type',
+          'Kanaltyp',
+          'نوع کانال',
+        ),
+        helperText: _radioText(
+          context,
+          'Separato dalla categoria musicale.',
+          'Separate from the music category.',
+          'Getrennt von der Musikkategorie.',
+          'جدا از دسته موسیقی.',
+        ),
+      ),
+      items: AdminRadioMondoChannelType.values
+          .map(
+            (value) => DropdownMenuItem(
+              value: value,
+              child: Text(_channelTypeLabel(context, value)),
+            ),
+          )
+          .toList(growable: false),
+      onChanged: (value) {
+        if (value != null) setState(() => _channelType = value);
+      },
+    );
+
     return AlertDialog(
       title: Text(
         editing
-            ? _radioText(context, 'Modifica traccia', 'Edit track',
-                'Titel bearbeiten', 'ویرایش قطعه')
-            : _radioText(context, 'Aggiungi traccia', 'Add track',
-                'Titel hinzufügen', 'افزودن قطعه'),
+            ? _radioText(
+                context,
+                'Modifica traccia',
+                'Edit track',
+                'Titel bearbeiten',
+                'ویرایش قطعه',
+              )
+            : _radioText(
+                context,
+                'Aggiungi traccia',
+                'Add track',
+                'Titel hinzufügen',
+                'افزودن قطعه',
+              ),
       ),
       content: SizedBox(
-        width: 580,
+        width: 640,
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest
+                        .withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: Icon(Icons.music_note_rounded, size: 20),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _radioText(
+                            context,
+                            'Per una normale traccia musicale: titolo, categoria, audio, ordine, attribuzione e visibilità. Il resto è nelle Opzioni avanzate.',
+                            'For a normal music track: title, category, audio, order, attribution and visibility. Everything else is under Advanced options.',
+                            'Für einen normalen Musiktitel: Titel, Kategorie, Audio, Reihenfolge, Attribution und Sichtbarkeit. Alles Weitere steht unter Erweiterte Optionen.',
+                            'برای یک قطعه موسیقی معمولی: عنوان، دسته، صدا، ترتیب، منبع و نمایش. بقیه در گزینه‌های پیشرفته است.',
+                          ),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 _sectionTitle(
                   context,
-                  'Identità, sorgente e classificazione',
-                  'Identity, source and classification',
-                  'Identität, Quelle und Klassifizierung',
-                  'هویت، منبع و دسته‌بندی',
+                  'Campi essenziali',
+                  'Essential fields',
+                  'Wesentliche Felder',
+                  'فیلدهای اصلی',
                 ),
                 TextFormField(
                   controller: _title,
                   maxLength: 120,
                   decoration: InputDecoration(
-                      labelText: _radioText(context, 'Titolo pubblico',
-                          'Public title', 'Öffentlicher Titel', 'عنوان عمومی')),
+                    labelText: _radioText(
+                      context,
+                      'Titolo pubblico',
+                      'Public title',
+                      'Öffentlicher Titel',
+                      'عنوان عمومی',
+                    ),
+                  ),
                   validator: _required,
                 ),
-                DropdownButtonFormField<AdminRadioMondoSourceType>(
-                  initialValue: _sourceType,
-                  decoration: InputDecoration(
-                    labelText: _radioText(
-                      context,
-                      'Sorgente audio',
-                      'Audio source',
-                      'Audioquelle',
-                      'منبع صدا',
-                    ),
-                  ),
-                  items: AdminRadioMondoSourceType.values
-                      .map(
-                        (value) => DropdownMenuItem(
-                          value: value,
-                          child: Text(
-                            value == AdminRadioMondoSourceType.stream
-                                ? _radioText(
-                                    context,
-                                    'Stream live HTTPS',
-                                    'HTTPS live stream',
-                                    'HTTPS-Livestream',
-                                    'پخش زنده HTTPS')
-                                : _radioText(
-                                    context,
-                                    'Audio / traccia',
-                                    'Audio / track',
-                                    'Audio / Titel',
-                                    'صدا / قطعه'),
-                          ),
-                        ),
-                      )
-                      .toList(growable: false),
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setState(() {
-                      _sourceType = value;
-                      if (value == AdminRadioMondoSourceType.stream) {
-                        _pickedAudio = null;
-                      }
-                    });
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (constraints.maxWidth < 520) {
+                      return Column(
+                        children: [
+                          categoryField,
+                          const SizedBox(height: 8),
+                          orderField,
+                        ],
+                      );
+                    }
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 2, child: categoryField),
+                        const SizedBox(width: 12),
+                        Expanded(child: orderField),
+                      ],
+                    );
                   },
-                ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<AdminRadioMondoCategory>(
-                  initialValue: _category,
-                  decoration: InputDecoration(
-                    labelText: _radioText(
-                      context,
-                      'Categoria musicale',
-                      'Music category',
-                      'Musikkategorie',
-                      'دسته موسیقی',
-                    ),
-                  ),
-                  items: AdminRadioMondoCategory.values
-                      .map(
-                        (value) => DropdownMenuItem<AdminRadioMondoCategory>(
-                          value: value,
-                          child: Text(_categoryTypeLabel(context, value)),
-                        ),
-                      )
-                      .toList(growable: false),
-                  onChanged: (value) =>
-                      setState(() => _category = value ?? _category),
-                ),
-                DropdownButtonFormField<AdminRadioMondoChannelType>(
-                  initialValue: _channelType,
-                  decoration: InputDecoration(
-                    labelText: _radioText(
-                      context,
-                      'Tipo canale',
-                      'Channel type',
-                      'Kanaltyp',
-                      'نوع کانال',
-                    ),
-                    helperText: _radioText(
-                      context,
-                      'Funzione del canale, separata dalla categoria musicale.',
-                      'Channel function, separate from the music category.',
-                      'Kanalfunktion, getrennt von der Musikkategorie.',
-                      'کارکرد کانال، جدا از دسته موسیقی.',
-                    ),
-                  ),
-                  items: AdminRadioMondoChannelType.values
-                      .map(
-                        (value) => DropdownMenuItem(
-                          value: value,
-                          child: Text(_channelTypeLabel(context, value)),
-                        ),
-                      )
-                      .toList(growable: false),
-                  onChanged: (value) {
-                    if (value != null) setState(() => _channelType = value);
-                  },
-                ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  initialValue: _languageCode,
-                  decoration: InputDecoration(
-                    labelText: _radioText(
-                      context,
-                      'Lingua (opzionale)',
-                      'Language (optional)',
-                      'Sprache (optional)',
-                      'زبان (اختیاری)',
-                    ),
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: '', child: Text('—')),
-                    DropdownMenuItem(value: 'en', child: Text('EN')),
-                    DropdownMenuItem(value: 'it', child: Text('IT')),
-                    DropdownMenuItem(value: 'de', child: Text('DE')),
-                    DropdownMenuItem(value: 'fa', child: Text('FA')),
-                    DropdownMenuItem(value: 'es', child: Text('ES')),
-                    DropdownMenuItem(value: 'pt', child: Text('PT')),
-                    DropdownMenuItem(value: 'fr', child: Text('FR')),
-                    DropdownMenuItem(value: 'ar', child: Text('AR')),
-                    DropdownMenuItem(value: 'ro', child: Text('RO')),
-                    DropdownMenuItem(value: 'ru', child: Text('RU')),
-                    DropdownMenuItem(value: 'zh', child: Text('ZH')),
-                  ],
-                  onChanged: (value) =>
-                      setState(() => _languageCode = value ?? ''),
-                ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  initialValue: _worldBriefId,
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    labelText: _radioText(
-                      context,
-                      'World Brief collegato (opzionale)',
-                      'Linked World Brief (optional)',
-                      'Verknüpfter World Brief (optional)',
-                      'World Brief مرتبط (اختیاری)',
-                    ),
-                    helperText: _radioText(
-                      context,
-                      'Scegli il Brief per titolo: non serve più copiare UUID.',
-                      'Choose the Brief by title; no UUID copy is required.',
-                      'Wähle den Brief nach Titel; keine UUID muss kopiert werden.',
-                      'Brief را با عنوان انتخاب کنید؛ نیازی به کپی UUID نیست.',
-                    ),
-                  ),
-                  items: _worldBriefItems(context),
-                  onChanged: (value) =>
-                      setState(() => _worldBriefId = value ?? ''),
                 ),
                 _sectionTitle(
                   context,
@@ -1219,7 +1369,7 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                 ),
                 if (_sourceType == AdminRadioMondoSourceType.audio)
                   Card(
-                    margin: const EdgeInsets.only(bottom: 12),
+                    margin: const EdgeInsets.only(bottom: 10),
                     child: Padding(
                       padding: const EdgeInsets.all(14),
                       child: Column(
@@ -1231,16 +1381,17 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                                 ? const SizedBox.square(
                                     dimension: 16,
                                     child: CircularProgressIndicator(
-                                        strokeWidth: 2),
+                                      strokeWidth: 2,
+                                    ),
                                   )
                                 : const Icon(Icons.upload_file_rounded),
                             label: Text(
                               _radioText(
                                 context,
-                                'Carica file audio',
-                                'Upload audio file',
-                                'Audiodatei hochladen',
-                                'بارگذاری فایل صوتی',
+                                'Carica / sostituisci file audio',
+                                'Upload / replace audio file',
+                                'Audiodatei hochladen / ersetzen',
+                                'بارگذاری / جایگزینی فایل صوتی',
                               ),
                             ),
                           ),
@@ -1277,39 +1428,41 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                       ),
                     ),
                   ),
-                TextFormField(
-                  controller: _audioUrl,
-                  maxLength: 2048,
-                  decoration: InputDecoration(
-                    labelText: _radioText(
-                      context,
-                      'URL HTTPS alternativo',
-                      'Alternative HTTPS URL',
-                      'Alternative HTTPS-URL',
-                      'نشانی HTTPS جایگزین',
+                if (_sourceType == AdminRadioMondoSourceType.stream ||
+                    _pickedAudio == null)
+                  TextFormField(
+                    controller: _audioUrl,
+                    maxLength: 2048,
+                    decoration: InputDecoration(
+                      labelText: _sourceType == AdminRadioMondoSourceType.stream
+                          ? _radioText(
+                              context,
+                              'URL HTTPS dello stream',
+                              'HTTPS stream URL',
+                              'HTTPS-Stream-URL',
+                              'نشانی HTTPS پخش زنده',
+                            )
+                          : _radioText(
+                              context,
+                              'Oppure URL HTTPS audio',
+                              'Or HTTPS audio URL',
+                              'Oder HTTPS-Audio-URL',
+                              'یا نشانی HTTPS صدا',
+                            ),
+                      helperText: _radioText(
+                        context,
+                        'Usalo solo se non carichi un file.',
+                        'Use it only when no file is uploaded.',
+                        'Nur verwenden, wenn keine Datei hochgeladen wird.',
+                        'فقط وقتی فایل بارگذاری نمی‌کنید استفاده کنید.',
+                      ),
                     ),
-                    helperText: _pickedAudio == null
-                        ? _radioText(
-                            context,
-                            'Obbligatorio solo se non carichi un file',
-                            'Required only when no file is uploaded',
-                            'Nur erforderlich, wenn keine Datei hochgeladen wird',
-                            'فقط وقتی فایل بارگذاری نمی‌شود اجباری است',
-                          )
-                        : _radioText(
-                            context,
-                            'Il file caricato verrà usato al salvataggio',
-                            'The uploaded file will be used when saving',
-                            'Die hochgeladene Datei wird beim Speichern verwendet',
-                            'فایل بارگذاری‌شده هنگام ذخیره استفاده می‌شود',
-                          ),
+                    onChanged: (_) => setState(() {}),
+                    validator: (value) =>
+                        _pickedAudio != null ? null : _https(value),
                   ),
-                  onChanged: (_) => setState(() {}),
-                  validator: (value) =>
-                      _pickedAudio != null ? null : _https(value),
-                ),
                 Card(
-                  margin: const EdgeInsets.only(top: 4, bottom: 12),
+                  margin: const EdgeInsets.only(top: 4, bottom: 10),
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Column(
@@ -1374,126 +1527,70 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                 ),
                 _sectionTitle(
                   context,
-                  'Pubblicazione e diritti',
-                  'Publishing and rights',
-                  'Veröffentlichung und Rechte',
-                  'انتشار و حقوق',
+                  'Pubblicazione',
+                  'Publishing',
+                  'Veröffentlichung',
+                  'انتشار',
                 ),
-                TextFormField(
-                  controller: _sortOrder,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                      labelText: _radioText(
-                          context,
-                          'Posizione nella categoria (0–1000)',
-                          'Position within category (0–1000)',
-                          'Position in der Kategorie (0–1000)',
-                          'جایگاه در دسته (۰ تا ۱۰۰۰)'),
-                      helperText: _radioText(
-                        context,
-                        'Usa 10, 20, 30…: 10 = prima, 20 = seconda. Per inserire una traccia tra 10 e 20 usa 15. Ogni categoria può ripartire da 10.',
-                        'Use 10, 20, 30…: 10 = first, 20 = second. To insert a track between 10 and 20 use 15. Each category can start again from 10.',
-                        'Nutze 10, 20, 30…: 10 = zuerst, 20 = danach. Für einen Titel zwischen 10 und 20 nutze 15. Jede Kategorie kann wieder bei 10 beginnen.',
-                        'از ۱۰، ۲۰، ۳۰… استفاده کنید: ۱۰ = اول، ۲۰ = دوم. برای قرار دادن قطعه‌ای بین ۱۰ و ۲۰ از ۱۵ استفاده کنید. هر دسته می‌تواند دوباره از ۱۰ شروع شود.',
-                      )),
-                  validator: (value) {
-                    final parsed = int.tryParse(value?.trim() ?? '');
-                    return parsed == null || parsed < 0 || parsed > 1000
-                        ? _radioText(
-                            context,
-                            'Ordine non valido',
-                            'Invalid order',
-                            'Ungültige Reihenfolge',
-                            'ترتیب نامعتبر')
-                        : null;
-                  },
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  value: _enabled,
+                  onChanged: (value) => setState(() => _enabled = value),
+                  title: Text(
+                    _radioText(
+                      context,
+                      'Visibile / abilitata nella Radio Mondo',
+                      'Visible / enabled in World Radio',
+                      'Im Weltradio sichtbar / aktiviert',
+                      'نمایش / فعال در رادیوی جهان',
+                    ),
+                  ),
+                  subtitle: Text(
+                    _radioText(
+                      context,
+                      'ON = appare nel catalogo pubblico.',
+                      'ON = appears in the public catalog.',
+                      'EIN = erscheint im öffentlichen Katalog.',
+                      'روشن = در فهرست عمومی نمایش داده می‌شود.',
+                    ),
+                  ),
                 ),
                 TextFormField(
                   controller: _attribution,
                   maxLength: 300,
                   maxLines: 2,
                   decoration: InputDecoration(
-                      labelText: _radioText(
-                          context,
-                          'Diritti / attribuzione',
-                          'Rights / attribution',
-                          'Rechte / Attribution',
-                          'حقوق / منبع')),
+                    labelText: _radioText(
+                      context,
+                      'Diritti / attribuzione',
+                      'Rights / attribution',
+                      'Rechte / Attribution',
+                      'حقوق / منبع',
+                    ),
+                    helperText: _radioText(
+                      context,
+                      'Esempio: Made with ElevenMusic',
+                      'Example: Made with ElevenMusic',
+                      'Beispiel: Made with ElevenMusic',
+                      'نمونه: Made with ElevenMusic',
+                    ),
+                  ),
                   validator: _required,
-                ),
-                TextFormField(
-                  controller: _licenseUrl,
-                  maxLength: 2048,
-                  decoration: InputDecoration(
-                      labelText: _radioText(
-                          context,
-                          'URL licenza (opzionale)',
-                          'License URL (optional)',
-                          'Lizenz-URL (optional)',
-                          'نشانی مجوز (اختیاری)')),
-                  validator: (value) => _https(value, optional: true),
                 ),
                 TextFormField(
                   controller: _reason,
                   maxLength: 1000,
                   maxLines: 2,
                   decoration: InputDecoration(
-                      labelText: _radioText(
-                          context,
-                          'Motivo amministrativo',
-                          'Administrative reason',
-                          'Administrativer Grund',
-                          'دلیل مدیریتی')),
-                  validator: _required,
-                ),
-                SwitchListTile.adaptive(
-                  contentPadding: EdgeInsets.zero,
-                  value: _enabled,
-                  onChanged: (value) => setState(() => _enabled = value),
-                  title: Text(_radioText(
+                    labelText: _radioText(
                       context,
-                      'Visibile / abilitata nella Radio Mondo',
-                      'Visible / enabled in World Radio',
-                      'Im Weltradio sichtbar / aktiviert',
-                      'نمایش / فعال در رادیوی جهان')),
-                ),
-                SwitchListTile.adaptive(
-                  contentPadding: EdgeInsets.zero,
-                  value: _isDefault,
-                  onChanged: (value) => setState(() => _isDefault = value),
-                  title: Text(_radioText(
-                    context,
-                    'Stazione predefinita World Live',
-                    'Default World Live station',
-                    'Standardstation World Live',
-                    'ایستگاه پیش‌فرض World Live',
-                  )),
-                  subtitle: Text(_radioText(
-                    context,
-                    'Una sola stazione può essere predefinita.',
-                    'Only one station can be the default.',
-                    'Nur eine Station kann Standard sein.',
-                    'فقط یک ایستگاه می‌تواند پیش‌فرض باشد.',
-                  )),
-                ),
-                SwitchListTile.adaptive(
-                  contentPadding: EdgeInsets.zero,
-                  value: _isLive,
-                  onChanged: (value) => setState(() => _isLive = value),
-                  title: Text(_radioText(
-                    context,
-                    'LIVE adesso',
-                    'LIVE now',
-                    'JETZT LIVE',
-                    'اکنون زنده',
-                  )),
-                  subtitle: Text(_radioText(
-                    context,
-                    'Mostra un indicatore LIVE agli utenti; non avvia automaticamente l’audio.',
-                    'Shows a LIVE indicator to users; audio never autoplays.',
-                    'Zeigt LIVE an; Audio startet niemals automatisch.',
-                    'نشان LIVE نمایش داده می‌شود؛ صدا هرگز خودکار پخش نمی‌شود.',
-                  )),
+                      'Motivo amministrativo',
+                      'Administrative reason',
+                      'Administrativer Grund',
+                      'دلیل مدیریتی',
+                    ),
+                  ),
+                  validator: _required,
                 ),
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
@@ -1503,24 +1600,190 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
                   title: Text(
                     _radioText(
                       context,
-                      'Confermo che Social Vote possiede o ha ottenuto i diritti necessari per pubblicare questo audio.',
-                      'I confirm that Social Vote owns or has obtained the rights required to publish this audio.',
-                      'Ich bestätige, dass Social Vote die erforderlichen Rechte zur Veröffentlichung dieses Audios besitzt.',
-                      'تأیید می‌کنم که Social Vote حق لازم برای انتشار این صدا را دارد.',
+                      'Confermo i diritti necessari alla pubblicazione.',
+                      'I confirm the rights required for publication.',
+                      'Ich bestätige die erforderlichen Veröffentlichungsrechte.',
+                      'حقوق لازم برای انتشار را تأیید می‌کنم.',
                     ),
                   ),
                   subtitle: _rightsConfirmed
                       ? null
                       : Text(
                           _radioText(
-                              context,
-                              'Conferma obbligatoria',
-                              'Confirmation required',
-                              'Bestätigung erforderlich',
-                              'تأیید اجباری'),
+                            context,
+                            'Conferma obbligatoria',
+                            'Confirmation required',
+                            'Bestätigung erforderlich',
+                            'تأیید اجباری',
+                          ),
                           style: TextStyle(
-                              color: Theme.of(context).colorScheme.error),
+                            color: Theme.of(context).colorScheme.error,
+                          ),
                         ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: ExpansionTile(
+                    initiallyExpanded: advancedInitiallyOpen,
+                    leading: const Icon(Icons.tune_rounded),
+                    title: Text(
+                      _radioText(
+                        context,
+                        'Opzioni avanzate',
+                        'Advanced options',
+                        'Erweiterte Optionen',
+                        'گزینه‌های پیشرفته',
+                      ),
+                    ),
+                    subtitle: Text(
+                      _radioText(
+                        context,
+                        'Stream, tipo canale, lingua, World Brief, licenza, default e LIVE.',
+                        'Stream, channel type, language, World Brief, license, default and LIVE.',
+                        'Stream, Kanaltyp, Sprache, World Brief, Lizenz, Standard und LIVE.',
+                        'پخش زنده، نوع کانال، زبان، World Brief، مجوز، پیش‌فرض و LIVE.',
+                      ),
+                    ),
+                    childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    children: [
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          if (constraints.maxWidth < 520) {
+                            return Column(
+                              children: [
+                                sourceField,
+                                const SizedBox(height: 8),
+                                channelField,
+                              ],
+                            );
+                          }
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(child: sourceField),
+                              const SizedBox(width: 12),
+                              Expanded(child: channelField),
+                            ],
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        initialValue: _languageCode,
+                        decoration: InputDecoration(
+                          labelText: _radioText(
+                            context,
+                            'Lingua (opzionale)',
+                            'Language (optional)',
+                            'Sprache (optional)',
+                            'زبان (اختیاری)',
+                          ),
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: '', child: Text('—')),
+                          DropdownMenuItem(value: 'en', child: Text('EN')),
+                          DropdownMenuItem(value: 'it', child: Text('IT')),
+                          DropdownMenuItem(value: 'de', child: Text('DE')),
+                          DropdownMenuItem(value: 'fa', child: Text('FA')),
+                          DropdownMenuItem(value: 'es', child: Text('ES')),
+                          DropdownMenuItem(value: 'pt', child: Text('PT')),
+                          DropdownMenuItem(value: 'fr', child: Text('FR')),
+                          DropdownMenuItem(value: 'ar', child: Text('AR')),
+                          DropdownMenuItem(value: 'ro', child: Text('RO')),
+                          DropdownMenuItem(value: 'ru', child: Text('RU')),
+                          DropdownMenuItem(value: 'zh', child: Text('ZH')),
+                        ],
+                        onChanged: (value) =>
+                            setState(() => _languageCode = value ?? ''),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        initialValue: _worldBriefId,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          labelText: _radioText(
+                            context,
+                            'World Brief collegato (opzionale)',
+                            'Linked World Brief (optional)',
+                            'Verknüpfter World Brief (optional)',
+                            'World Brief مرتبط (اختیاری)',
+                          ),
+                          helperText: _radioText(
+                            context,
+                            'Scegli per titolo; nessun UUID da copiare.',
+                            'Choose by title; no UUID copy is required.',
+                            'Nach Titel wählen; keine UUID muss kopiert werden.',
+                            'با عنوان انتخاب کنید؛ نیازی به کپی UUID نیست.',
+                          ),
+                        ),
+                        items: _worldBriefItems(context),
+                        onChanged: (value) =>
+                            setState(() => _worldBriefId = value ?? ''),
+                      ),
+                      TextFormField(
+                        controller: _licenseUrl,
+                        maxLength: 2048,
+                        decoration: InputDecoration(
+                          labelText: _radioText(
+                            context,
+                            'URL licenza (opzionale)',
+                            'License URL (optional)',
+                            'Lizenz-URL (optional)',
+                            'نشانی مجوز (اختیاری)',
+                          ),
+                        ),
+                        validator: (value) => _https(value, optional: true),
+                      ),
+                      SwitchListTile.adaptive(
+                        contentPadding: EdgeInsets.zero,
+                        value: _isDefault,
+                        onChanged: (value) =>
+                            setState(() => _isDefault = value),
+                        title: Text(
+                          _radioText(
+                            context,
+                            'Stazione predefinita World Live',
+                            'Default World Live station',
+                            'Standardstation World Live',
+                            'ایستگاه پیش‌فرض World Live',
+                          ),
+                        ),
+                        subtitle: Text(
+                          _radioText(
+                            context,
+                            'Una sola stazione può essere predefinita.',
+                            'Only one station can be the default.',
+                            'Nur eine Station kann Standard sein.',
+                            'فقط یک ایستگاه می‌تواند پیش‌فرض باشد.',
+                          ),
+                        ),
+                      ),
+                      SwitchListTile.adaptive(
+                        contentPadding: EdgeInsets.zero,
+                        value: _isLive,
+                        onChanged: (value) => setState(() => _isLive = value),
+                        title: Text(
+                          _radioText(
+                            context,
+                            'LIVE adesso',
+                            'LIVE now',
+                            'JETZT LIVE',
+                            'اکنون زنده',
+                          ),
+                        ),
+                        subtitle: Text(
+                          _radioText(
+                            context,
+                            'Solo indicatore editoriale; non avvia automaticamente l’audio.',
+                            'Editorial indicator only; audio never autoplays.',
+                            'Nur redaktioneller Hinweis; Audio startet nie automatisch.',
+                            'فقط نشانگر ویرایشی است؛ صدا خودکار پخش نمی‌شود.',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -1539,13 +1802,355 @@ class _RadioTrackDialogState extends State<_RadioTrackDialog> {
         FilledButton.icon(
           onPressed: _submit,
           icon: const Icon(Icons.save_outlined),
-          label: Text(_radioText(
-            context,
-            'Salva e ricarica',
-            'Save and reload',
-            'Speichern und neu laden',
-            'ذخیره و بارگذاری مجدد',
-          )),
+          label: Text(
+            _radioText(
+              context,
+              'Salva e ricarica',
+              'Save and reload',
+              'Speichern und neu laden',
+              'ذخیره و بارگذاری مجدد',
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RadioJahanDraft {
+  final List<AdminRadioJahanPlaylistItem> items;
+  final String reason;
+
+  const _RadioJahanDraft({
+    required this.items,
+    required this.reason,
+  });
+}
+
+class _RadioJahanEditorItem {
+  final AdminRadioMondoTrack track;
+  bool included;
+
+  _RadioJahanEditorItem({
+    required this.track,
+    required this.included,
+  });
+}
+
+class _RadioJahanDialog extends StatefulWidget {
+  final List<AdminRadioMondoTrack> tracks;
+
+  const _RadioJahanDialog({required this.tracks});
+
+  @override
+  State<_RadioJahanDialog> createState() => _RadioJahanDialogState();
+}
+
+class _RadioJahanDialogState extends State<_RadioJahanDialog> {
+  late final List<_RadioJahanEditorItem> _items;
+  late final TextEditingController _reason;
+
+  @override
+  void initState() {
+    super.initState();
+    final eligible = widget.tracks
+        .where(
+          (track) =>
+              track.sourceType == AdminRadioMondoSourceType.audio &&
+              !track.isLive,
+        )
+        .toList(growable: false)
+      ..sort((a, b) {
+        final order = a.jahanOrder.compareTo(b.jahanOrder);
+        if (order != 0) return order;
+        final categoryOrder = a.category.index.compareTo(b.category.index);
+        if (categoryOrder != 0) return categoryOrder;
+        final trackOrder = a.sortOrder.compareTo(b.sortOrder);
+        if (trackOrder != 0) return trackOrder;
+        return a.title.toLowerCase().compareTo(b.title.toLowerCase());
+      });
+
+    _items = eligible
+        .map(
+          (track) => _RadioJahanEditorItem(
+            track: track,
+            included: track.jahanEnabled,
+          ),
+        )
+        .toList(growable: true);
+
+    _reason = TextEditingController(
+      text: 'Aggiornamento playlist Radio Jahan',
+    );
+  }
+
+  @override
+  void dispose() {
+    _reason.dispose();
+    super.dispose();
+  }
+
+  bool _categoryIncluded(AdminRadioMondoCategory category) {
+    final matches = _items.where((item) => item.track.category == category);
+    if (matches.isEmpty) return false;
+    return matches.every((item) => item.included);
+  }
+
+  bool _categoryHasItems(AdminRadioMondoCategory category) =>
+      _items.any((item) => item.track.category == category);
+
+  void _setCategory(
+    AdminRadioMondoCategory category,
+    bool included,
+  ) {
+    setState(() {
+      for (final item in _items) {
+        if (item.track.category == category) {
+          item.included = included;
+        }
+      }
+    });
+  }
+
+  void _submit() {
+    final reason = _reason.text.trim();
+    if (reason.isEmpty) return;
+
+    Navigator.pop(
+      context,
+      _RadioJahanDraft(
+        items: <AdminRadioJahanPlaylistItem>[
+          for (var i = 0; i < _items.length; i += 1)
+            AdminRadioJahanPlaylistItem(
+              trackId: _items[i].track.id,
+              isEnabled: _items[i].included,
+              sortOrder: (i + 1) * 10,
+            ),
+        ],
+        reason: reason,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final viewport = MediaQuery.sizeOf(context);
+    final width = (viewport.width - 48).clamp(320.0, 720.0).toDouble();
+    final height = (viewport.height - 160).clamp(420.0, 650.0).toDouble();
+
+    return AlertDialog(
+      title: Row(
+        children: [
+          SizedBox.square(
+            dimension: 24,
+            child: CustomPaint(
+              painter: _JahanInfinityGlyphPainter(color: colors.primary),
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Expanded(child: Text('Radio Jahan')),
+        ],
+      ),
+      content: SizedBox(
+        width: width,
+        height: height,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colors.primaryContainer.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: colors.primary.withValues(alpha: 0.35),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox.square(
+                    dimension: 24,
+                    child: CustomPaint(
+                      painter: _JahanDragHandlePainter(color: colors.primary),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _radioText(
+                        context,
+                        'Attiva o disattiva i brani. Per cambiare ordine, trascina la maniglia a destra di ogni brano. Stream e contenuti LIVE restano esclusi.',
+                        'Enable or disable tracks. To change the order, drag the handle on the right of each track. Streams and LIVE items stay excluded.',
+                        'Aktiviere oder deaktiviere Titel. Zum Sortieren ziehe den Griff rechts am jeweiligen Titel. Streams und LIVE-Inhalte bleiben ausgeschlossen.',
+                        'قطعه‌ها را فعال یا غیرفعال کنید. برای تغییر ترتیب، دستگیره سمت راست هر قطعه را بکشید. استریم‌ها و موارد LIVE خارج می‌مانند.',
+                      ),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final category in AdminRadioMondoCategory.values)
+                  if (_categoryHasItems(category))
+                    FilterChip(
+                      selected: _categoryIncluded(category),
+                      showCheckmark: true,
+                      label: Text(_categoryTypeLabel(context, category)),
+                      onSelected: (value) => _setCategory(category, value),
+                    ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: _items.isEmpty
+                  ? Center(
+                      child: Text(
+                        _radioText(
+                          context,
+                          'Nessuna traccia audio disponibile.',
+                          'No audio tracks available.',
+                          'Keine Audiotitel verfügbar.',
+                          'هیچ قطعه صوتی موجود نیست.',
+                        ),
+                      ),
+                    )
+                  : ReorderableListView.builder(
+                      buildDefaultDragHandles: false,
+                      itemCount: _items.length,
+                      onReorderItem: (oldIndex, newIndex) {
+                        setState(() {
+                          final item = _items.removeAt(oldIndex);
+                          _items.insert(newIndex, item);
+                        });
+                      },
+                      itemBuilder: (context, index) {
+                        final item = _items[index];
+                        final track = item.track;
+                        return Card(
+                          key: ValueKey('jahan-${track.id}'),
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            leading: SizedBox(
+                              width: 88,
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 30,
+                                    height: 30,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: colors.surfaceContainerHighest,
+                                      borderRadius: BorderRadius.circular(9),
+                                    ),
+                                    child: Text(
+                                      '${index + 1}',
+                                      style:
+                                          theme.textTheme.labelMedium?.copyWith(
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Switch(
+                                    value: item.included,
+                                    onChanged: (value) {
+                                      setState(() => item.included = value);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            title: Text(
+                              track.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              '${_categoryTypeLabel(context, track.category)} · '
+                              '${track.isEnabled ? _radioText(context, 'Pubblicata', 'Published', 'Veröffentlicht', 'منتشرشده') : _radioText(context, 'Non pubblicata', 'Not published', 'Nicht veröffentlicht', 'منتشرنشده')}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            trailing: Tooltip(
+                              message: _radioText(
+                                context,
+                                'Trascina per riordinare',
+                                'Drag to reorder',
+                                'Zum Sortieren ziehen',
+                                'برای تغییر ترتیب بکشید',
+                              ),
+                              child: ReorderableDragStartListener(
+                                index: index,
+                                child: Container(
+                                  width: 42,
+                                  height: 42,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: colors.primaryContainer,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: SizedBox.square(
+                                    dimension: 24,
+                                    child: CustomPaint(
+                                      painter: _JahanDragHandlePainter(
+                                        color: colors.onPrimaryContainer,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _reason,
+              onChanged: (_) => setState(() {}),
+              maxLength: 1000,
+              decoration: InputDecoration(
+                labelText: _radioText(
+                  context,
+                  'Motivo amministrativo',
+                  'Administrative reason',
+                  'Administrativer Grund',
+                  'دلیل مدیریتی',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+        ),
+        FilledButton.icon(
+          onPressed:
+              _items.isEmpty || _reason.text.trim().isEmpty ? null : _submit,
+          icon: const Icon(Icons.save_outlined),
+          label: Text(
+            _radioText(
+              context,
+              'Salva Radio Jahan',
+              'Save Radio Jahan',
+              'Radio Jahan speichern',
+              'ذخیره رادیو جهان',
+            ),
+          ),
         ),
       ],
     );
@@ -1560,6 +2165,94 @@ class _RadioDeleteReasonDialog extends StatefulWidget {
   @override
   State<_RadioDeleteReasonDialog> createState() =>
       _RadioDeleteReasonDialogState();
+}
+
+class _JahanDragHandlePainter extends CustomPainter {
+  final Color color;
+
+  const _JahanDragHandlePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = size.shortestSide * 0.11
+      ..strokeCap = StrokeCap.round;
+
+    final left = size.width * 0.20;
+    final right = size.width * 0.80;
+
+    for (final y in <double>[0.28, 0.50, 0.72]) {
+      canvas.drawLine(
+        Offset(left, size.height * y),
+        Offset(right, size.height * y),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _JahanDragHandlePainter oldDelegate) {
+    return oldDelegate.color != color;
+  }
+}
+
+class _JahanInfinityGlyphPainter extends CustomPainter {
+  final Color color;
+
+  const _JahanInfinityGlyphPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.shortestSide * 0.12
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path()
+      ..moveTo(size.width * 0.12, size.height * 0.50)
+      ..cubicTo(
+        size.width * 0.25,
+        size.height * 0.18,
+        size.width * 0.40,
+        size.height * 0.18,
+        size.width * 0.50,
+        size.height * 0.50,
+      )
+      ..cubicTo(
+        size.width * 0.60,
+        size.height * 0.82,
+        size.width * 0.75,
+        size.height * 0.82,
+        size.width * 0.88,
+        size.height * 0.50,
+      )
+      ..cubicTo(
+        size.width * 0.75,
+        size.height * 0.18,
+        size.width * 0.60,
+        size.height * 0.18,
+        size.width * 0.50,
+        size.height * 0.50,
+      )
+      ..cubicTo(
+        size.width * 0.40,
+        size.height * 0.82,
+        size.width * 0.25,
+        size.height * 0.82,
+        size.width * 0.12,
+        size.height * 0.50,
+      );
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _JahanInfinityGlyphPainter oldDelegate) {
+    return oldDelegate.color != color;
+  }
 }
 
 class _RadioDeleteReasonDialogState extends State<_RadioDeleteReasonDialog> {
@@ -1712,6 +2405,17 @@ class _RadioEnabledReasonDialogState extends State<_RadioEnabledReasonDialog> {
       ],
     );
   }
+}
+
+IconData _adminCategoryIcon(AdminRadioMondoCategory category) {
+  return switch (category) {
+    AdminRadioMondoCategory.reggae => Icons.waves_rounded,
+    AdminRadioMondoCategory.classical => Icons.music_note_rounded,
+    AdminRadioMondoCategory.house => Icons.graphic_eq_rounded,
+    AdminRadioMondoCategory.jazzSoul => Icons.queue_music_rounded,
+    AdminRadioMondoCategory.worldMusic => Icons.public_rounded,
+    AdminRadioMondoCategory.soundsAtmospheres => Icons.spa_rounded,
+  };
 }
 
 String _categoryTypeLabel(

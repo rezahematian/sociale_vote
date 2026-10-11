@@ -682,6 +682,28 @@ class AdminRepositoryImpl implements AdminRepository {
     );
   }
 
+  @override
+  Future<void> setRadioJahanPlaylist({
+    required List<AdminRadioJahanPlaylistItem> items,
+    required String reason,
+  }) async {
+    await _client.rpc(
+      'admin_radio_mondo_set_jahan_playlist_v1',
+      params: <String, dynamic>{
+        'p_items': items
+            .map(
+              (item) => <String, dynamic>{
+                'track_id': item.trackId.trim(),
+                'is_enabled': item.isEnabled,
+                'sort_order': item.sortOrder,
+              },
+            )
+            .toList(growable: false),
+        'p_reason': reason.trim(),
+      },
+    );
+  }
+
   AdminFinanceEntry _mapFinanceEntry(Map<String, Object?> row) {
     return AdminFinanceEntry(
       id: _readRequiredString(row, 'id'),
@@ -727,6 +749,12 @@ class AdminRepositoryImpl implements AdminRepository {
       isLive: row.containsKey('is_live')
           ? _readRequiredBool(row, 'is_live')
           : false,
+      jahanEnabled: row.containsKey('jahan_enabled')
+          ? _readRequiredBool(row, 'jahan_enabled')
+          : false,
+      jahanOrder: row.containsKey('jahan_order')
+          ? _readRequiredNonNegativeInt(row, 'jahan_order')
+          : _readRequiredNonNegativeInt(row, 'sort_order'),
       createdAt: _readRequiredDateTime(row, 'created_at'),
       updatedAt: _readRequiredDateTime(row, 'updated_at'),
     );

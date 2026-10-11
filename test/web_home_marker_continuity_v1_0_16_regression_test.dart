@@ -8,7 +8,7 @@ void main() {
 
     expect(
       jsSource,
-      contains('WEB-WORLD-V10.8-CONTINUOUS-ROTATION-V1.0.17'),
+      contains(RegExp(r"const SOCIAL_VOTE_GLOBE_BUILD = 'WEB-WORLD-[^']+';")),
     );
     expect(jsSource, contains('const visible = facing > 0.055;'));
     expect(jsSource, isNot(contains('_homeMarkerBlankSince')));

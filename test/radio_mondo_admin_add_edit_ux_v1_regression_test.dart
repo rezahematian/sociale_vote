@@ -21,21 +21,45 @@ void main() {
     );
   });
 
-  test('Radio Mondo Admin add/edit labels the current management fields', () {
+  test('Radio Mondo Admin add/edit exposes a simple primary workflow', () {
     final admin = File(
       'lib/features/admin/presentation/widgets/admin_radio_mondo_control_section.dart',
     ).readAsStringSync();
 
-    expect(admin, contains("'Identità, sorgente e classificazione'"));
-    expect(admin, contains("'Sorgente audio'"));
+    expect(admin, contains("'Campi essenziali'"));
+    expect(admin, contains("'Titolo pubblico'"));
     expect(admin, contains("'Categoria musicale'"));
-    expect(admin, contains("'Tipo canale'"));
-    expect(admin, contains("'Posizione nella categoria (0–1000)'"));
-    expect(admin, contains('Ogni categoria può ripartire da 10.'));
-    expect(admin, contains(r"'Ordine ${track.sortOrder}'"));
+    expect(admin, contains("'Ordine categoria'"));
+    expect(admin, contains("'Carica / sostituisci file audio'"));
+    expect(admin, contains("'Pubblicazione'"));
     expect(admin, contains("'Visibile / abilitata nella Radio Mondo'"));
-    expect(admin, contains("'Pubblicazione e diritti'"));
+    expect(admin, contains("'Diritti / attribuzione'"));
+    expect(admin, contains("'Motivo amministrativo'"));
     expect(admin, contains("'Salva e ricarica'"));
+
+    expect(
+      admin.indexOf("'Campi essenziali'"),
+      lessThan(admin.indexOf("'Opzioni avanzate'")),
+    );
+    expect(
+      admin.indexOf("'Carica / sostituisci file audio'"),
+      lessThan(admin.indexOf("'Opzioni avanzate'")),
+    );
+  });
+
+  test('Radio Mondo Admin keeps technical controls under advanced options', () {
+    final admin = File(
+      'lib/features/admin/presentation/widgets/admin_radio_mondo_control_section.dart',
+    ).readAsStringSync();
+
+    expect(admin, contains("'Opzioni avanzate'"));
+    expect(admin, contains("'Sorgente audio'"));
+    expect(admin, contains("'Tipo canale'"));
+    expect(admin, contains("'Lingua (opzionale)'"));
+    expect(admin, contains("'World Brief collegato (opzionale)'"));
+    expect(admin, contains("'URL licenza (opzionale)'"));
+    expect(admin, contains("'Stazione predefinita World Live'"));
+    expect(admin, contains("'LIVE adesso'"));
   });
 
   test('Radio Mondo Admin upload and backend contracts stay in place', () {
@@ -49,7 +73,9 @@ void main() {
     );
     expect(admin, contains('widget.repository.upsertRadioMondoTrack('));
     expect(
-        admin, contains('await RadioMondoService.instance.reloadCatalog();'));
+      admin,
+      contains('await RadioMondoService.instance.reloadCatalog();'),
+    );
     expect(admin, contains('controller: _attribution'));
     expect(admin, contains('validator: _required'));
     expect(admin, isNot(contains('service_role')));

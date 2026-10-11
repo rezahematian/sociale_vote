@@ -387,6 +387,7 @@ class WorldGlobeWidget extends StatefulWidget {
   /// Home-only Radio control. Keeping Radio and Rotate inside the same globe
   /// viewport prevents mobile drift/overflow between independent overlays.
   final bool showHomeRadioControl;
+  final bool showRotationControl;
   final RadioVisualStyle radioVisualStyle;
 
   /// False while the map controller is refreshing/loading a same-scope
@@ -420,6 +421,7 @@ class WorldGlobeWidget extends StatefulWidget {
     this.visualStyle = GlobeVisualStyle.bright,
     this.rotationVisualStyle = GlobeRotationVisualStyle.minimal,
     this.showHomeRadioControl = false,
+    this.showRotationControl = true,
     this.radioVisualStyle = RadioVisualStyle.oldStyle,
     this.markerDataSettled = true,
     this.homeMarkerDensityOverride,
@@ -460,6 +462,8 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
   bool _stylePickerOpen = false;
   DateTime? _suppressHomeSurfaceTapUntil;
   bool _radioPickerOpen = false;
+  bool _homeOverlayPointerBlocked = false;
+  Timer? _homeOverlayPointerReleaseTimer;
   String? _lastWebLayoutDiagnostic;
   final WorldMarkerPolicyService _markerPolicy =
       WorldMarkerPolicyService.instance;
@@ -553,6 +557,37 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
     unawaited(WorldAppearanceService.instance.setGlobeStyle(style));
   }
 
+  void _handleHomeOverlayPointerDown(PointerDownEvent event) {
+    if (!_isHomeProfile) return;
+
+    _homeOverlayPointerReleaseTimer?.cancel();
+    _suppressHomeSurfaceTapUntil =
+        DateTime.now().add(const Duration(milliseconds: 420));
+
+    if (!_homeOverlayPointerBlocked && mounted) {
+      setState(() {
+        _homeOverlayPointerBlocked = true;
+      });
+    }
+  }
+
+  void _handleHomeOverlayPointerEnd(PointerEvent event) {
+    if (!_isHomeProfile) return;
+
+    _suppressHomeSurfaceTapUntil =
+        DateTime.now().add(const Duration(milliseconds: 420));
+    _homeOverlayPointerReleaseTimer?.cancel();
+    _homeOverlayPointerReleaseTimer = Timer(
+      const Duration(milliseconds: 420),
+      () {
+        if (!mounted || !_homeOverlayPointerBlocked) return;
+        setState(() {
+          _homeOverlayPointerBlocked = false;
+        });
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -591,6 +626,7 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
 
   @override
   void dispose() {
+    _homeOverlayPointerReleaseTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _markerPolicy.removeListener(_handleMarkerPolicyChanged);
     _clouds.removeListener(_handleCloudsChanged);
@@ -650,7 +686,9 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
                       child: SizedBox.square(
                         dimension: surfaceSize,
                         child: WebWorldGlobeSurface(
-                          interactionEnabled: !_radioPickerOpen,
+                          interactionEnabled: !_radioPickerOpen &&
+                              !_stylePickerOpen &&
+                              !_homeOverlayPointerBlocked,
                           items: widget.items,
                           homeProfile: _isHomeProfile,
                           isAuthenticated: isAuthenticated,
@@ -686,47 +724,61 @@ class _WebWorldGlobeWidgetState extends State<WorldGlobeWidget>
                       Positioned(
                         left: controlInset,
                         bottom: controlInset,
-                        child: RadioMondoDock(
-                          visualStyle: widget.radioVisualStyle,
-                          globeStyle: widget.visualStyle,
-                          rotationVisualStyle: widget.rotationVisualStyle,
-                          size: WorldHomeGlobeGeometry.controlSize,
-                          onPickerOpened: () {
-                            if (!_radioPickerOpen && mounted) {
-                              setState(() {
-                                _radioPickerOpen = true;
-                              });
-                            }
-                          },
-                          onPickerDismissed: () {
-                            if (_radioPickerOpen && mounted) {
-                              setState(() {
-                                _radioPickerOpen = false;
-                              });
-                            }
-                          },
-                          onPickerClosed: () {
-                            if (_isHomeProfile) {
-                              _suppressHomeSurfaceTapUntil = DateTime.now().add(
-                                const Duration(milliseconds: 420),
-                              );
-                            }
-                          },
+                        child: Listener(
+                          behavior: HitTestBehavior.opaque,
+                          onPointerDown: _handleHomeOverlayPointerDown,
+                          onPointerUp: _handleHomeOverlayPointerEnd,
+                          onPointerCancel: _handleHomeOverlayPointerEnd,
+                          child: RadioMondoDock(
+                            visualStyle: widget.radioVisualStyle,
+                            globeStyle: widget.visualStyle,
+                            rotationVisualStyle: widget.rotationVisualStyle,
+                            size: WorldHomeGlobeGeometry.controlSize,
+                            onPickerOpened: () {
+                              if (!_radioPickerOpen && mounted) {
+                                setState(() {
+                                  _radioPickerOpen = true;
+                                });
+                              }
+                            },
+                            onPickerDismissed: () {
+                              if (_radioPickerOpen && mounted) {
+                                setState(() {
+                                  _radioPickerOpen = false;
+                                });
+                              }
+                            },
+                            onPickerClosed: () {
+                              if (_isHomeProfile) {
+                                _suppressHomeSurfaceTapUntil =
+                                    DateTime.now().add(
+                                  const Duration(milliseconds: 420),
+                                );
+                              }
+                            },
+                          ),
                         ),
                       ),
-                    if (widget.showHomeRadioControl || isAuthenticated)
+                    if (widget.showRotationControl &&
+                        (widget.showHomeRadioControl || isAuthenticated))
                       Positioned(
                         right: controlInset,
                         bottom: controlInset,
-                        child: _GlobeRotationButton(
-                          isRotating: _autoRotateEnabled,
-                          globeStyle: widget.visualStyle,
-                          visualStyle: widget.rotationVisualStyle,
-                          onPressed: () {
-                            setState(() {
-                              _autoRotateEnabled = !_autoRotateEnabled;
-                            });
-                          },
+                        child: Listener(
+                          behavior: HitTestBehavior.opaque,
+                          onPointerDown: _handleHomeOverlayPointerDown,
+                          onPointerUp: _handleHomeOverlayPointerEnd,
+                          onPointerCancel: _handleHomeOverlayPointerEnd,
+                          child: _GlobeRotationButton(
+                            isRotating: _autoRotateEnabled,
+                            globeStyle: widget.visualStyle,
+                            visualStyle: widget.rotationVisualStyle,
+                            onPressed: () {
+                              setState(() {
+                                _autoRotateEnabled = !_autoRotateEnabled;
+                              });
+                            },
+                          ),
                         ),
                       ),
                     if (_stylePickerOpen)
@@ -1473,7 +1525,13 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
         final previous = _cloudMotionLastTick ?? now;
         _cloudMotionLastTick = now;
         final seconds = now.difference(previous).inMicroseconds / 1000000.0;
-        final radiansPerSecond = 0.001 + (_effectiveCloudSpeed * 0.009);
+        // Native Cloud V4: keep the Admin speed scale identical to Web.
+        // Direction remains backend-authoritative: -1 = West, +1 = East.
+        // 0% is still a hard stop through shouldRun above.
+        // Native Cloud V5: faster and symmetric in either direction, including
+        // with the Earth paused. Keep the 0% stop guard in _syncNativeCloudMotion.
+        // No special-case speed for East/West or for globe auto-rotation.
+        final radiansPerSecond = 0.003 + (_effectiveCloudSpeed * 0.022);
         _cloudRotationOffset = (_cloudRotationOffset +
                 seconds * radiansPerSecond * _effectiveCloudDirection) %
             (2 * math.pi);
@@ -1925,7 +1983,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
                           onPointerCancel: _handleExplorePointerCancel,
                           child: globe,
                         ),
-                  if (widget.showHomeRadioControl || isAuthenticated)
+                  if (widget.showHomeRadioControl ||
+                      (widget.showRotationControl && isAuthenticated))
                     Positioned(
                       left: controlInset,
                       right: controlInset,
@@ -1943,7 +2002,8 @@ class _WorldGlobeWidgetState extends State<WorldGlobeWidget>
                           else
                             const SizedBox.square(
                                 dimension: WorldHomeGlobeGeometry.controlSize),
-                          if (widget.showHomeRadioControl || isAuthenticated)
+                          if (widget.showRotationControl &&
+                              (widget.showHomeRadioControl || isAuthenticated))
                             _GlobeRotationButton(
                               isRotating: _autoRotateEnabled,
                               globeStyle: widget.visualStyle,

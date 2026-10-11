@@ -88,6 +88,7 @@ class AdminCenterPage extends StatefulWidget {
 }
 
 class _AdminCenterPageState extends State<AdminCenterPage> {
+  // ADMIN_CENTER_PRO_V2: responsive cockpit + direct marker-budget control.
   static const double _desktopBreakpoint = 840;
   static const double _extendedRailBreakpoint = 1200;
   static const int _usersPerPage = 25;
@@ -157,6 +158,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
   double? _cloudDensityDraft;
   double? _cloudSpeedDraft;
   int? _cloudDirectionDraft;
+  int _adminPresentationCompactSection = 0;
 
   List<_AdminDestination> _destinationsFor(BuildContext context) {
     return [
@@ -2934,8 +2936,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       final accent = indicatorAccent(index);
 
       return Material(
-        color: colors.surface.withValues(alpha: 0.90),
-        borderRadius: BorderRadius.circular(16),
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: indicator.section == null
@@ -2943,8 +2945,10 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               : () => _selectSection(indicator.section!),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: accent.withValues(alpha: 0.22)),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: colors.outlineVariant.withValues(alpha: 0.66),
+              ),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
@@ -2996,20 +3000,22 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
 
     Widget buildPriorityGrid(double width) {
       final columns = switch (width) {
-        >= 940 => 5,
-        >= 580 => 3,
-        >= 340 => 2,
+        >= 900 => 5,
+        >= 560 => 3,
+        >= 320 => 2,
         _ => 1,
       };
+
+      final dense = width < 620;
 
       return GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: columns,
-          crossAxisSpacing: 9,
-          mainAxisSpacing: 9,
-          mainAxisExtent: 70,
+          crossAxisSpacing: dense ? 6 : 9,
+          mainAxisSpacing: dense ? 6 : 9,
+          mainAxisExtent: dense ? 54 : 64,
         ),
         itemCount: indicators.length,
         itemBuilder: (context, index) {
@@ -3104,8 +3110,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
 
       return DecoratedBox(
         decoration: BoxDecoration(
-          color: colors.surface.withValues(alpha: 0.62),
-          borderRadius: BorderRadius.circular(20),
+          color: colors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: colors.outlineVariant.withValues(alpha: 0.44),
           ),
@@ -3192,6 +3198,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               cloudDirectionOverride: cloudDirection,
               visualStyle: appearance.globeStyle,
               rotationVisualStyle: appearance.rotationStyle,
+              showRotationControl: false,
               onItemTap: (item) {
                 unawaited(_openAdminGlobeItem(item));
               },
@@ -3209,44 +3216,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           .max(1.0, math.min(width, height) - 22)
           .clamp(1.0, 390.0)
           .toDouble();
-      final refreshing =
-          _adminGlobeController.isLoading || _adminGlobeController.isRefreshing;
 
-      return Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned.fill(
-            child: Center(child: buildGlobe(globeSize)),
-          ),
-          Positioned(
-            top: 2,
-            right: 2,
-            child: Tooltip(
-              message: _adminL10n(context).adminCenterRefreshMarkersTooltip,
-              child: IconButton(
-                onPressed: refreshing
-                    ? null
-                    : () => unawaited(
-                          _loadAdminGlobe(forceRefresh: true),
-                        ),
-                icon: refreshing
-                    ? const SizedBox.square(
-                        dimension: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.refresh_rounded),
-                style: IconButton.styleFrom(
-                  backgroundColor: colors.surface.withValues(alpha: 0.82),
-                  foregroundColor: colors.primary,
-                  side: BorderSide(
-                    color: colors.outlineVariant.withValues(alpha: 0.55),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
+      return Center(child: buildGlobe(globeSize));
     }
 
     Widget buildHeaderBrandModeControl() {
@@ -3285,28 +3256,85 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             }
           }
 
-          return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _adminControlText(
-                      context,
-                      it: 'Logo Social Vote',
-                      en: 'Social Vote logo',
-                      de: 'Social Vote Logo',
-                      fa: 'لوگوی Social Vote',
-                    ),
-                    style: Theme.of(context).textTheme.titleMedium,
+          Widget tuningSlider({
+            required String label,
+            required double value,
+            required double min,
+            required double max,
+            required int divisions,
+            required ValueChanged<double> onChanged,
+            required ValueChanged<double> onChangeEnd,
+          }) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  '$label · ${value.round()}%',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
-                  const SizedBox(height: 12),
+                ),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(trackHeight: 2.5),
+                  child: Slider(
+                    value: value,
+                    min: min,
+                    max: max,
+                    divisions: divisions,
+                    onChanged: tuningDisabled ? null : onChanged,
+                    onChangeEnd: tuningDisabled ? null : onChangeEnd,
+                  ),
+                ),
+              ],
+            );
+          }
+
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: colors.outlineVariant.withValues(alpha: 0.52),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _adminControlText(
+                            context,
+                            it: 'Logo Social Vote',
+                            en: 'Social Vote logo',
+                            de: 'Social Vote Logo',
+                            fa: 'لوگوی Social Vote',
+                          ),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                      if (disabled)
+                        const SizedBox.square(
+                          dimension: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
                   SegmentedButton<BrandHeaderMode>(
+                    style: const ButtonStyle(
+                      visualDensity: VisualDensity.compact,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     segments: [
                       ButtonSegment(
                         value: BrandHeaderMode.normal,
-                        icon: const Icon(Icons.image_outlined),
+                        icon: const Icon(Icons.image_outlined, size: 17),
                         label: Text(
                           _adminControlText(
                             context,
@@ -3319,7 +3347,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                       ),
                       ButtonSegment(
                         value: BrandHeaderMode.flicker,
-                        icon: const Icon(Icons.flash_on_outlined),
+                        icon: const Icon(Icons.flash_on_outlined, size: 17),
                         label: Text(
                           _adminControlText(
                             context,
@@ -3340,62 +3368,81 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                             );
                           },
                   ),
-                  const SizedBox(height: 14),
-                  Text(
-                    '${_adminControlText(context, it: 'Intensità lampeggio', en: 'Flicker intensity', de: 'Flackerintensität', fa: 'شدت چشمک')} · ${intensity.round()}%',
-                    style: Theme.of(context).textTheme.labelLarge,
+                  const SizedBox(height: 8),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final inline = constraints.maxWidth >= 420;
+                      final intensityControl = tuningSlider(
+                        label: _adminControlText(
+                          context,
+                          it: 'Intensità lampeggio',
+                          en: 'Flicker intensity',
+                          de: 'Intensität',
+                          fa: 'شدت',
+                        ),
+                        value: intensity,
+                        min: 20,
+                        max: 100,
+                        divisions: 16,
+                        onChanged: (value) {
+                          setState(() {
+                            _headerFlickerIntensityDraft = value;
+                          });
+                        },
+                        onChangeEnd: (value) => unawaited(
+                          saveProfile(intensityValue: value),
+                        ),
+                      );
+                      final speedControl = tuningSlider(
+                        label: _adminControlText(
+                          context,
+                          it: 'Velocità lampeggio',
+                          en: 'Flicker speed',
+                          de: 'Flackergeschwindigkeit',
+                          fa: 'سرعت چشمک',
+                        ),
+                        value: speed,
+                        min: 50,
+                        max: 200,
+                        divisions: 30,
+                        onChanged: (value) {
+                          setState(() {
+                            _headerFlickerSpeedDraft = value;
+                          });
+                        },
+                        onChangeEnd: (value) => unawaited(
+                          saveProfile(speedValue: value),
+                        ),
+                      );
+
+                      if (!inline) {
+                        return Column(
+                          children: [
+                            intensityControl,
+                            speedControl,
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: intensityControl),
+                          const SizedBox(width: 10),
+                          Expanded(child: speedControl),
+                        ],
+                      );
+                    },
                   ),
-                  Slider(
-                    value: intensity,
-                    min: 20,
-                    max: 100,
-                    divisions: 16,
-                    onChanged: tuningDisabled
-                        ? null
-                        : (value) {
-                            setState(() {
-                              _headerFlickerIntensityDraft = value;
-                            });
-                          },
-                    onChangeEnd: tuningDisabled
-                        ? null
-                        : (value) => unawaited(
-                              saveProfile(intensityValue: value),
-                            ),
-                  ),
-                  Text(
-                    '${_adminControlText(context, it: 'Velocità lampeggio', en: 'Flicker speed', de: 'Flackergeschwindigkeit', fa: 'سرعت چشمک')} · ${speed.round()}%',
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
-                  Slider(
-                    value: speed,
-                    min: 50,
-                    max: 200,
-                    divisions: 30,
-                    onChanged: tuningDisabled
-                        ? null
-                        : (value) {
-                            setState(() {
-                              _headerFlickerSpeedDraft = value;
-                            });
-                          },
-                    onChangeEnd: tuningDisabled
-                        ? null
-                        : (value) => unawaited(
-                              saveProfile(speedValue: value),
-                            ),
-                  ),
-                  if (service.isLoading || service.isSaving) ...[
-                    const SizedBox(height: 10),
-                    const LinearProgressIndicator(),
-                  ],
                   if (service.lastError != null) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     Text(
                       service.lastError!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colors.error,
+                      ),
                     ),
                   ],
                 ],
@@ -3445,180 +3492,269 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
             }
           }
 
-          return Card(
+          Widget tuningSlider({
+            required String label,
+            required double value,
+            required ValueChanged<double> onChanged,
+            required ValueChanged<double> onChangeEnd,
+          }) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  '$label · ${value.round()}%',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(trackHeight: 2.5),
+                  child: Slider(
+                    value: value,
+                    min: 0,
+                    max: 100,
+                    divisions: 20,
+                    onChanged: tuningDisabled ? null : onChanged,
+                    onChangeEnd: tuningDisabled ? null : onChangeEnd,
+                  ),
+                ),
+              ],
+            );
+          }
+
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: colors.outlineVariant.withValues(alpha: 0.52),
+              ),
+            ),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    _adminControlText(
-                      context,
-                      it: 'Nuvole Globe',
-                      en: 'Globe clouds',
-                      de: 'Globus-Wolken',
-                      fa: 'ابرهای کره زمین',
-                    ),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _adminControlText(
-                      context,
-                      it: 'Layer nuvole indipendente dalla rotazione della Terra: copertura, velocità e direzione sono globali.',
-                      en: 'Cloud layer independent from Earth rotation: coverage, speed and direction are global.',
-                      de: 'Wolkenschicht unabhängig von der Erdrotation: Abdeckung, Geschwindigkeit und Richtung gelten global.',
-                      fa: 'لایه ابر مستقل از چرخش زمین است؛ پوشش، سرعت و جهت به‌صورت سراسری تنظیم می‌شوند.',
-                    ),
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 12),
-                  SegmentedButton<bool>(
-                    segments: [
-                      ButtonSegment(
-                        value: false,
-                        icon: const Icon(Icons.cloud_off_outlined),
-                        label: Text(
-                          _adminControlText(
-                            context,
-                            it: 'Disattivate',
-                            en: 'Off',
-                            de: 'Aus',
-                            fa: 'خاموش',
-                          ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _adminControlText(
+                                context,
+                                it: 'Nuvole Globe',
+                                en: 'Globe clouds',
+                                de: 'Globus-Wolken',
+                                fa: 'ابرهای کره زمین',
+                              ),
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            Text(
+                              _adminControlText(
+                                context,
+                                it: 'Layer indipendente dalla Terra',
+                                en: 'Layer independent from Earth rotation',
+                                de: 'Von der Erdrotation unabhängige Ebene',
+                                fa: 'لایه مستقل از چرخش زمین',
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colors.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      ButtonSegment(
-                        value: true,
-                        icon: const Icon(Icons.cloud_outlined),
-                        label: Text(
-                          _adminControlText(
-                            context,
-                            it: 'Attive',
-                            en: 'On',
-                            de: 'Ein',
-                            fa: 'روشن',
+                      if (disabled)
+                        const SizedBox.square(
+                          dimension: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SegmentedButton<bool>(
+                          style: const ButtonStyle(
+                            visualDensity: VisualDensity.compact,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
+                          segments: [
+                            ButtonSegment(
+                              value: false,
+                              icon: const Icon(
+                                Icons.cloud_off_outlined,
+                                size: 17,
+                              ),
+                              label: Text(
+                                _adminControlText(
+                                  context,
+                                  it: 'Off',
+                                  en: 'Off',
+                                  de: 'Aus',
+                                  fa: 'خاموش',
+                                ),
+                              ),
+                            ),
+                            ButtonSegment(
+                              value: true,
+                              icon: const Icon(Icons.cloud_outlined, size: 17),
+                              label: Text(
+                                _adminControlText(
+                                  context,
+                                  it: 'On',
+                                  en: 'On',
+                                  de: 'Ein',
+                                  fa: 'روشن',
+                                ),
+                              ),
+                            ),
+                          ],
+                          selected: <bool>{service.enabled},
+                          onSelectionChanged: disabled
+                              ? null
+                              : (selection) {
+                                  unawaited(
+                                    service
+                                        .setEnabledFromAdmin(selection.first),
+                                  );
+                                },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Semantics(
+                        label: _adminControlText(
+                          context,
+                          it: 'Direzione nuvole',
+                          en: 'Cloud direction',
+                          de: 'Wolkenrichtung',
+                          fa: 'جهت ابرها',
+                        ),
+                        child: SegmentedButton<int>(
+                          style: const ButtonStyle(
+                            visualDensity: VisualDensity.compact,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          segments: [
+                            ButtonSegment<int>(
+                              value: -1,
+                              icon: const Icon(Icons.west_rounded, size: 17),
+                              label: Text(
+                                _adminControlText(
+                                  context,
+                                  it: 'Ovest',
+                                  en: 'West',
+                                  de: 'West',
+                                  fa: 'غرب',
+                                ),
+                              ),
+                            ),
+                            ButtonSegment<int>(
+                              value: 1,
+                              icon: const Icon(Icons.east_rounded, size: 17),
+                              label: Text(
+                                _adminControlText(
+                                  context,
+                                  it: 'Est',
+                                  en: 'East',
+                                  de: 'Ost',
+                                  fa: 'شرق',
+                                ),
+                              ),
+                            ),
+                          ],
+                          selected: <int>{direction},
+                          onSelectionChanged: tuningDisabled
+                              ? null
+                              : (selection) {
+                                  final next = selection.first;
+                                  setState(() {
+                                    _cloudDirectionDraft = next;
+                                  });
+                                  unawaited(
+                                    saveProfile(directionValue: next),
+                                  );
+                                },
                         ),
                       ),
                     ],
-                    selected: <bool>{service.enabled},
-                    onSelectionChanged: disabled
-                        ? null
-                        : (selection) {
-                            unawaited(
-                              service.setEnabledFromAdmin(selection.first),
-                            );
-                          },
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    '${_adminControlText(context, it: 'Copertura nuvole', en: 'Cloud coverage', de: 'Wolkenabdeckung', fa: 'پوشش ابر')} · ${density.round()}%',
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
-                  Slider(
-                    value: density,
-                    min: 0,
-                    max: 100,
-                    divisions: 20,
-                    onChanged: tuningDisabled
-                        ? null
-                        : (value) {
-                            setState(() {
-                              _cloudDensityDraft = value;
-                            });
-                          },
-                    onChangeEnd: tuningDisabled
-                        ? null
-                        : (value) => unawaited(
-                              saveProfile(densityValue: value),
-                            ),
-                  ),
-                  Text(
-                    '${_adminControlText(context, it: 'Velocità nuvole', en: 'Cloud speed', de: 'Wolkengeschwindigkeit', fa: 'سرعت ابر')} · ${speed.round()}%',
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
-                  Slider(
-                    value: speed,
-                    min: 0,
-                    max: 100,
-                    divisions: 20,
-                    onChanged: tuningDisabled
-                        ? null
-                        : (value) {
-                            setState(() {
-                              _cloudSpeedDraft = value;
-                            });
-                          },
-                    onChangeEnd: tuningDisabled
-                        ? null
-                        : (value) => unawaited(
-                              saveProfile(speedValue: value),
-                            ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    _adminControlText(
-                      context,
-                      it: 'Direzione nuvole',
-                      en: 'Cloud direction',
-                      de: 'Wolkenrichtung',
-                      fa: 'جهت ابرها',
-                    ),
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  SegmentedButton<int>(
-                    segments: [
-                      ButtonSegment<int>(
-                        value: -1,
-                        icon: const Icon(Icons.west_rounded),
-                        label: Text(
-                          _adminControlText(
-                            context,
-                            it: 'Ovest',
-                            en: 'West',
-                            de: 'West',
-                            fa: 'غرب',
-                          ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final inline = constraints.maxWidth >= 420;
+                      final densityControl = tuningSlider(
+                        label: _adminControlText(
+                          context,
+                          it: 'Copertura nuvole',
+                          en: 'Cloud coverage',
+                          de: 'Abdeckung',
+                          fa: 'پوشش',
                         ),
-                      ),
-                      ButtonSegment<int>(
-                        value: 1,
-                        icon: const Icon(Icons.east_rounded),
-                        label: Text(
-                          _adminControlText(
-                            context,
-                            it: 'Est',
-                            en: 'East',
-                            de: 'Ost',
-                            fa: 'شرق',
-                          ),
+                        value: density,
+                        onChanged: (value) {
+                          setState(() {
+                            _cloudDensityDraft = value;
+                          });
+                        },
+                        onChangeEnd: (value) => unawaited(
+                          saveProfile(densityValue: value),
                         ),
-                      ),
-                    ],
-                    selected: <int>{direction},
-                    onSelectionChanged: tuningDisabled
-                        ? null
-                        : (selection) {
-                            final next = selection.first;
-                            setState(() {
-                              _cloudDirectionDraft = next;
-                            });
-                            unawaited(saveProfile(directionValue: next));
-                          },
+                      );
+                      final speedControl = tuningSlider(
+                        label: _adminControlText(
+                          context,
+                          it: 'Velocità nuvole',
+                          en: 'Cloud speed',
+                          de: 'Wolkengeschwindigkeit',
+                          fa: 'سرعت ابر',
+                        ),
+                        value: speed,
+                        onChanged: (value) {
+                          setState(() {
+                            _cloudSpeedDraft = value;
+                          });
+                        },
+                        onChangeEnd: (value) => unawaited(
+                          saveProfile(speedValue: value),
+                        ),
+                      );
+
+                      if (!inline) {
+                        return Column(
+                          children: [
+                            densityControl,
+                            speedControl,
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: densityControl),
+                          const SizedBox(width: 10),
+                          Expanded(child: speedControl),
+                        ],
+                      );
+                    },
                   ),
-                  if (service.isLoading || service.isSaving) ...[
-                    const SizedBox(height: 10),
-                    const LinearProgressIndicator(),
-                  ],
                   if (service.lastError != null) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     Text(
                       service.lastError!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colors.error,
+                      ),
                     ),
                   ],
                 ],
@@ -3636,22 +3772,32 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               .toDouble();
       final effectiveBudget =
           _worldMarkerPolicy.homeMarkerLimitForDensity(density.round());
+      const maxBudget = WorldMarkerPolicyService.maxHomeMarkerBudget;
       final backendUnavailable =
           _worldMarkerPolicy.lastError != null && !_worldMarkerPolicy.isLoaded;
       final disabled = _markerDensitySaving ||
           _worldMarkerPolicy.isLoading ||
           backendUnavailable;
 
+      int densityForBudget(int budget) {
+        final normalized = budget.clamp(0, maxBudget).toInt();
+        if (normalized <= 0) return 0;
+        if (normalized >= maxBudget) return 100;
+        return ((((normalized - 1) * 100) ~/ maxBudget) + 1)
+            .clamp(1, 100)
+            .toInt();
+      }
+
       return DecoratedBox(
         decoration: BoxDecoration(
-          color: colors.surface.withValues(alpha: 0.78),
-          borderRadius: BorderRadius.circular(18),
+          color: colors.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: colors.outlineVariant.withValues(alpha: 0.52),
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -3659,7 +3805,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                 children: [
                   Icon(
                     Icons.scatter_plot_rounded,
-                    size: 20,
+                    size: 18,
                     color: colors.primary,
                   ),
                   const SizedBox(width: 8),
@@ -3673,10 +3819,15 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                             fontWeight: FontWeight.w900,
                           ),
                         ),
-                        const SizedBox(height: 1),
                         Text(
-                          _adminL10n(context).adminCenterMarkerDensitySubtitle,
-                          maxLines: 2,
+                          _adminControlText(
+                            context,
+                            it: 'Budget reale Home: ogni scatto modifica un marker.',
+                            en: 'Real Home budget: every step changes one marker.',
+                            de: 'Reales Home-Budget: jeder Schritt ändert einen Marker.',
+                            fa: 'بودجه واقعی صفحه اصلی: هر گام یک نشانگر را تغییر می‌دهد.',
+                          ),
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colors.onSurfaceVariant,
@@ -3685,19 +3836,19 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
+                      horizontal: 9,
+                      vertical: 5,
                     ),
                     decoration: BoxDecoration(
                       color: colors.primaryContainer,
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      '${density.round()}%',
-                      style: theme.textTheme.labelLarge?.copyWith(
+                      '$effectiveBudget / $maxBudget',
+                      style: theme.textTheme.labelMedium?.copyWith(
                         color: colors.onPrimaryContainer,
                         fontWeight: FontWeight.w900,
                       ),
@@ -3705,64 +3856,71 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 7),
-              Slider(
-                value: density,
-                min: 0,
-                max: 100,
-                divisions: 100,
-                label: '${density.round()}%',
-                onChanged: disabled
-                    ? null
-                    : (value) {
-                        setState(() {
-                          _markerDensityDraft = value;
-                        });
-                      },
-                onChangeEnd: disabled
-                    ? null
-                    : (value) => unawaited(_saveMarkerDensity(value)),
+              const SizedBox(height: 4),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(trackHeight: 2.5),
+                child: Slider(
+                  value: effectiveBudget.toDouble(),
+                  min: 0,
+                  max: maxBudget.toDouble(),
+                  divisions: maxBudget,
+                  label: '$effectiveBudget',
+                  onChanged: disabled
+                      ? null
+                      : (value) {
+                          final nextDensity =
+                              densityForBudget(value.round()).toDouble();
+                          setState(() {
+                            _markerDensityDraft = nextDensity;
+                          });
+                        },
+                  onChangeEnd: disabled
+                      ? null
+                      : (value) => unawaited(
+                            _saveMarkerDensity(
+                              densityForBudget(value.round()).toDouble(),
+                            ),
+                          ),
+                ),
               ),
               Row(
                 children: [
                   Text(
-                    _adminL10n(context).adminCenterMarkerDensityEmpty,
+                    '0',
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: colors.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const Spacer(),
                   if (_markerDensitySaving)
                     const SizedBox.square(
-                      dimension: 14,
+                      dimension: 13,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   else
                     Text(
-                      _adminL10n(context)
-                          .adminCenterMarkerDensityBudget(effectiveBudget),
+                      '${_adminControlText(context, it: 'Policy', en: 'Policy', de: 'Policy', fa: 'سیاست')} ${density.round()}% · ${_adminControlText(context, it: 'max', en: 'max', de: 'max.', fa: 'حداکثر')} $effectiveBudget',
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: colors.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   const Spacer(),
                   Text(
-                    _adminL10n(context).adminCenterMarkerDensityFull,
+                    '$maxBudget',
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: colors.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
               ),
               if (backendUnavailable) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     Icon(
                       Icons.cloud_off_outlined,
-                      size: 16,
+                      size: 15,
                       color: colors.error,
                     ),
                     const SizedBox(width: 6),
@@ -3770,6 +3928,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                       child: Text(
                         _adminL10n(context)
                             .adminCenterMarkerDensityBackendUnavailable,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colors.error,
                         ),
@@ -3991,14 +4151,28 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
     }
 
     Widget buildPresentationStudio(double width) {
-      final sideBySide = width >= 1040;
-      final compact = width < 560;
+      // ADMIN_CENTER_PRO_V3: three deliberate cockpit modes.
+      // Narrow stays stacked and compact; medium becomes two-column earlier;
+      // wide keeps preview, controls and operations in one viewport.
+      final ultraWide = width >= 1080;
+      final sideBySide = width >= 700;
+      final compact = width < 620;
+      final viewportHeight = MediaQuery.sizeOf(context).height;
+      final previewHeight = ultraWide
+          ? math.max(430.0, math.min(470.0, viewportHeight - 250.0))
+          : sideBySide
+              ? math.max(360.0, math.min(420.0, viewportHeight - 290.0))
+              : compact
+                  ? 280.0
+                  : 330.0;
       final headerService = BrandHeaderModeService.instance;
       final cloudService = GlobeCloudsService.instance;
       final markerDensity =
           (_markerDensityDraft ?? _worldMarkerPolicy.markerDensity.toDouble())
               .clamp(0.0, 100.0)
               .toDouble();
+      final markerBudget =
+          _worldMarkerPolicy.homeMarkerLimitForDensity(markerDensity.round());
       final headerIntensity = (_headerFlickerIntensityDraft ??
               headerService.flickerIntensityPercent.toDouble())
           .clamp(20.0, 100.0)
@@ -4016,16 +4190,21 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               .clamp(0.0, 100.0)
               .toDouble();
       final cloudDirection = _cloudDirectionDraft ?? cloudService.direction;
+      final refreshing =
+          _adminGlobeController.isLoading || _adminGlobeController.isRefreshing;
 
       Widget statusChip({
         required IconData icon,
         required String text,
       }) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 5 : 7,
+            vertical: compact ? 3 : 4,
+          ),
           decoration: BoxDecoration(
-            color: colors.surfaceContainerHighest.withValues(alpha: 0.58),
-            borderRadius: BorderRadius.circular(999),
+            color: colors.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: colors.outlineVariant.withValues(alpha: 0.48),
             ),
@@ -4033,11 +4212,12 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 15, color: colors.primary),
-              const SizedBox(width: 6),
+              Icon(icon, size: compact ? 12 : 13, color: colors.primary),
+              const SizedBox(width: 5),
               Text(
                 text,
-                style: theme.textTheme.labelMedium?.copyWith(
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: colors.onSurfaceVariant,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -4048,43 +4228,36 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
 
       Widget previewPanel() {
         return Container(
-          height: compact ? 560 : 720,
+          height: previewHeight,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                const Color(0xFF07111F),
-                colors.surfaceContainerHighest.withValues(alpha: 0.82),
-                colors.primaryContainer.withValues(alpha: 0.20),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(24),
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: colors.primary.withValues(alpha: 0.28),
+              color: colors.outlineVariant.withValues(alpha: 0.68),
             ),
           ),
           child: Padding(
-            padding: EdgeInsets.all(compact ? 14 : 18),
+            padding: EdgeInsets.all(compact ? 7 : 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
                   children: [
                     Container(
-                      width: 38,
-                      height: 38,
+                      width: compact ? 28 : 32,
+                      height: compact ? 28 : 32,
                       decoration: BoxDecoration(
-                        color: colors.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
+                        color: colors.primaryContainer.withValues(alpha: 0.62),
+                        borderRadius: BorderRadius.circular(9),
                       ),
                       alignment: Alignment.center,
                       child: Icon(
                         Icons.visibility_outlined,
+                        size: compact ? 16 : 18,
                         color: colors.primary,
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -4097,71 +4270,87 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                               de: 'Live-Vorschau',
                               fa: 'پیش‌نمایش زنده',
                             ),
-                            style: theme.textTheme.titleMedium?.copyWith(
+                            style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w900,
                             ),
                           ),
-                          Text(
-                            _adminControlText(
-                              context,
-                              it: 'I cursori aggiornano questa anteprima mentre li sposti; il salvataggio avviene al rilascio.',
-                              en: 'Sliders update this preview while you drag; saving happens on release.',
-                              de: 'Die Regler aktualisieren diese Vorschau während des Ziehens; gespeichert wird beim Loslassen.',
-                              fa: 'هنگام حرکت دادن اسلایدرها، پیش‌نمایش زنده تغییر می‌کند و با رها کردن ذخیره می‌شود.',
+                          if (!compact)
+                            Text(
+                              _adminControlText(
+                                context,
+                                it: 'Preview operativa: trascina i controlli e verifica qui il risultato.',
+                                en: 'Operational preview: move the controls and verify the result here.',
+                                de: 'Operative Vorschau: Regler bewegen und Ergebnis hier prüfen.',
+                                fa: 'پیش‌نمایش عملیاتی: کنترل‌ها را تغییر دهید و نتیجه را اینجا بررسی کنید.',
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colors.onSurfaceVariant,
+                              ),
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colors.onSurfaceVariant,
-                            ),
-                          ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
+                        horizontal: 7,
+                        vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: colors.primary.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(999),
+                        color: colors.primaryContainer.withValues(alpha: 0.58),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.circle,
-                            size: 8,
-                            color: colors.primary,
-                          ),
-                          const SizedBox(width: 6),
+                          Icon(Icons.circle, size: 6, color: colors.primary),
+                          const SizedBox(width: 4),
                           Text(
                             'LIVE',
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: colors.primary,
                               fontWeight: FontWeight.w900,
-                              letterSpacing: 0.7,
                             ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 4),
+                    Tooltip(
+                      message:
+                          _adminL10n(context).adminCenterRefreshMarkersTooltip,
+                      child: IconButton(
+                        visualDensity: VisualDensity.compact,
+                        constraints: const BoxConstraints.tightFor(
+                          width: 34,
+                          height: 34,
+                        ),
+                        onPressed: refreshing
+                            ? null
+                            : () => unawaited(
+                                  _loadAdminGlobe(forceRefresh: true),
+                                ),
+                        icon: refreshing
+                            ? const SizedBox.square(
+                                dimension: 15,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.refresh_rounded, size: 19),
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: compact ? 6 : 8),
                 Container(
-                  height: compact ? 72 : 82,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
+                  height: compact ? 42 : 50,
+                  padding: const EdgeInsets.symmetric(horizontal: 11),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.78),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: colors.outlineVariant.withValues(alpha: 0.38),
-                    ),
+                    color: const Color(0xFF111827),
+                    borderRadius: BorderRadius.circular(11),
                   ),
                   child: Row(
                     children: [
@@ -4169,13 +4358,12 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                         child: Align(
                           alignment: AlignmentDirectional.centerStart,
                           child: SocialVoteHeaderBrand(
-                            height: compact ? 42 : 50,
+                            height: compact ? 27 : 34,
                             flickerIntensityOverride: headerIntensity / 100,
                             flickerSpeedMultiplierOverride: headerSpeed / 100,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
                       Text(
                         headerService.mode == BrandHeaderMode.flicker
                             ? '${headerIntensity.round()}% · ${headerSpeed.round()}%'
@@ -4187,43 +4375,57 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                                 fa: 'عادی',
                               ),
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: colors.onSurfaceVariant,
+                          color: Colors.white70,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: compact ? 6 : 8),
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(18),
+                      color: colors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(13),
                       border: Border.all(
-                        color: colors.outlineVariant.withValues(alpha: 0.34),
+                        color: colors.outlineVariant.withValues(alpha: 0.58),
                       ),
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        return buildGlobeStage(
+                        final stageWidth = math.min(
                           constraints.maxWidth,
-                          constraints.maxHeight,
+                          compact
+                              ? 245.0
+                              : ultraWide
+                                  ? 500.0
+                                  : 390.0,
+                        );
+                        return Center(
+                          child: SizedBox(
+                            width: stageWidth,
+                            height: constraints.maxHeight,
+                            child: buildGlobeStage(
+                              stageWidth,
+                              constraints.maxHeight,
+                            ),
+                          ),
                         );
                       },
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: compact ? 5 : 7),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: 6,
+                  runSpacing: 5,
                   children: [
                     statusChip(
                       icon: Icons.scatter_plot_rounded,
                       text:
-                          '${_adminControlText(context, it: 'Marker', en: 'Markers', de: 'Marker', fa: 'نشانگر')} ${markerDensity.round()}%',
+                          '${_adminControlText(context, it: 'Marker', en: 'Markers', de: 'Marker', fa: 'نشانگر')} $markerBudget/${WorldMarkerPolicyService.maxHomeMarkerBudget}',
                     ),
                     statusChip(
                       icon: cloudService.enabled
@@ -4269,22 +4471,35 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       }
 
       Widget controlsPanel() {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-              decoration: BoxDecoration(
-                color: colors.surface.withValues(alpha: 0.78),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: colors.outlineVariant.withValues(alpha: 0.52),
-                ),
-              ),
-              child: Row(
+        return Container(
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: colors.outlineVariant.withValues(alpha: 0.68),
+            ),
+          ),
+          padding: EdgeInsets.all(compact ? 7 : 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
                 children: [
-                  Icon(Icons.tune_rounded, color: colors.primary),
-                  const SizedBox(width: 9),
+                  Container(
+                    width: compact ? 28 : 32,
+                    height: compact ? 28 : 32,
+                    decoration: BoxDecoration(
+                      color: colors.primaryContainer.withValues(alpha: 0.62),
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.tune_rounded,
+                      size: compact ? 16 : 18,
+                      color: colors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -4297,34 +4512,122 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                             de: 'Präsentationsstudio',
                             fa: 'استودیوی نمایش',
                           ),
-                          style: theme.textTheme.titleMedium?.copyWith(
+                          style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w900,
                           ),
                         ),
-                        Text(
-                          _adminControlText(
-                            context,
-                            it: 'Marker, logo e nuvole nello stesso spazio di lavoro.',
-                            en: 'Markers, logo and clouds in one workspace.',
-                            de: 'Marker, Logo und Wolken in einem Arbeitsbereich.',
-                            fa: 'نشانگرها، لوگو و ابرها در یک فضای کاری.',
+                        if (!compact)
+                          Text(
+                            _adminControlText(
+                              context,
+                              it: 'Controlli compatti, risultato visibile nella preview.',
+                              en: 'Compact controls, result visible in the preview.',
+                              de: 'Kompakte Steuerung, Ergebnis in der Vorschau sichtbar.',
+                              fa: 'کنترل‌های فشرده و نتیجه در پیش‌نمایش قابل مشاهده است.',
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
                           ),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colors.onSurfaceVariant,
-                          ),
-                        ),
                       ],
                     ),
                   ),
                 ],
               ),
+              SizedBox(height: compact ? 6 : 7),
+              if (compact) ...[
+                SegmentedButton<int>(
+                  style: const ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  segments: [
+                    ButtonSegment<int>(
+                      value: 0,
+                      icon: const Icon(Icons.scatter_plot_rounded, size: 16),
+                      label: Text(
+                        _adminControlText(
+                          context,
+                          it: 'Marker',
+                          en: 'Markers',
+                          de: 'Marker',
+                          fa: 'نشانگر',
+                        ),
+                      ),
+                    ),
+                    ButtonSegment<int>(
+                      value: 1,
+                      icon: const Icon(Icons.image_outlined, size: 16),
+                      label: Text(
+                        _adminControlText(
+                          context,
+                          it: 'Logo',
+                          en: 'Logo',
+                          de: 'Logo',
+                          fa: 'لوگو',
+                        ),
+                      ),
+                    ),
+                    ButtonSegment<int>(
+                      value: 2,
+                      icon: const Icon(Icons.cloud_outlined, size: 16),
+                      label: Text(
+                        _adminControlText(
+                          context,
+                          it: 'Nuvole',
+                          en: 'Clouds',
+                          de: 'Wolken',
+                          fa: 'ابر',
+                        ),
+                      ),
+                    ),
+                  ],
+                  selected: <int>{_adminPresentationCompactSection},
+                  onSelectionChanged: (selection) {
+                    setState(() {
+                      _adminPresentationCompactSection = selection.first;
+                    });
+                  },
+                ),
+                const SizedBox(height: 6),
+                switch (_adminPresentationCompactSection) {
+                  0 => buildMarkerDensityControl(),
+                  1 => buildHeaderBrandModeControl(),
+                  _ => buildGlobeCloudsControl(),
+                },
+              ] else ...[
+                buildMarkerDensityControl(),
+                const SizedBox(height: 7),
+                buildHeaderBrandModeControl(),
+                const SizedBox(height: 7),
+                buildGlobeCloudsControl(),
+              ],
+            ],
+          ),
+        );
+      }
+
+      if (ultraWide) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 10, child: previewPanel()),
+            const SizedBox(width: 10),
+            Expanded(flex: 10, child: controlsPanel()),
+            const SizedBox(width: 10),
+            Expanded(
+              flex: 8,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  buildOperationalPanel(width * 0.27),
+                  const SizedBox(height: 10),
+                  buildEgressModeControl(),
+                ],
+              ),
             ),
-            const SizedBox(height: 10),
-            buildMarkerDensityControl(),
-            const SizedBox(height: 10),
-            buildHeaderBrandModeControl(),
-            const SizedBox(height: 10),
-            buildGlobeCloudsControl(),
           ],
         );
       }
@@ -4333,8 +4636,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(flex: 11, child: previewPanel()),
-            const SizedBox(width: 16),
+            Expanded(flex: 10, child: previewPanel()),
+            const SizedBox(width: 10),
             Expanded(flex: 9, child: controlsPanel()),
           ],
         );
@@ -4344,43 +4647,78 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           previewPanel(),
-          const SizedBox(height: 14),
+          const SizedBox(height: 8),
           controlsPanel(),
         ],
       );
     }
 
     Widget buildCommandDeck(double width) {
-      final sideBySide = width >= 820;
-      final compact = width < 520;
-      final horizontalPadding = compact ? 12.0 : 18.0;
-      final viewportHeight = MediaQuery.sizeOf(context).height;
-      final commandStageHeight = sideBySide
-          ? math.max(360.0, math.min(560.0, viewportHeight - 360.0))
-          : compact
-              ? 300.0
-              : 340.0;
+      final ultraWide = width >= 1080;
+      final compact = width < 620;
+      final horizontalPadding = compact ? 8.0 : 14.0;
+
+      Widget sectionLabel({
+        required IconData icon,
+        required String title,
+        required String subtitle,
+      }) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: compact ? 26 : 30,
+                height: compact ? 26 : 30,
+                decoration: BoxDecoration(
+                  color: colors.primaryContainer.withValues(alpha: 0.58),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                alignment: Alignment.center,
+                child:
+                    Icon(icon, size: compact ? 15 : 17, color: colors.primary),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    if (!compact)
+                      Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }
 
       return Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colors.surfaceContainerHighest.withValues(alpha: 0.66),
-              colors.surface.withValues(alpha: 0.96),
-              colors.primaryContainer.withValues(alpha: 0.28),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(compact ? 22 : 28),
+          color: colors.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(compact ? 16 : 18),
           border: Border.all(
-            color: colors.outlineVariant.withValues(alpha: 0.62),
+            color: colors.outlineVariant.withValues(alpha: 0.70),
           ),
         ),
         child: Padding(
           padding: EdgeInsets.symmetric(
             horizontal: horizontalPadding,
-            vertical: compact ? 14 : 18,
+            vertical: compact ? 8 : 13,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -4388,19 +4726,20 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
               Row(
                 children: [
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: compact ? 30 : 34,
+                    height: compact ? 30 : 34,
                     decoration: BoxDecoration(
-                      color: colors.primary.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(13),
+                      color: colors.primaryContainer.withValues(alpha: 0.68),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     alignment: Alignment.center,
                     child: Icon(
                       Icons.admin_panel_settings_rounded,
+                      size: compact ? 17 : 19,
                       color: colors.primary,
                     ),
                   ),
-                  const SizedBox(width: 11),
+                  const SizedBox(width: 9),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -4409,14 +4748,13 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                           _adminL10n(context).adminCenterTitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleLarge?.copyWith(
+                          style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w900,
                           ),
                         ),
-                        const SizedBox(height: 1),
                         Text(
                           _adminRoleLabel(context, widget.currentRole),
-                          style: theme.textTheme.bodyMedium?.copyWith(
+                          style: theme.textTheme.bodySmall?.copyWith(
                             color: colors.onSurfaceVariant,
                           ),
                         ),
@@ -4425,14 +4763,14 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                      horizontal: 9,
+                      vertical: 5,
                     ),
                     decoration: BoxDecoration(
                       color: hasPendingWork
                           ? colors.errorContainer
                           : colors.primaryContainer,
-                      borderRadius: BorderRadius.circular(999),
+                      borderRadius: BorderRadius.circular(9),
                     ),
                     child: Text(
                       compact
@@ -4445,8 +4783,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                                   .adminCenterNoPendingWorkTitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
                         color: hasPendingWork
                             ? colors.onErrorContainer
                             : colors.onPrimaryContainer,
@@ -4455,77 +4793,123 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: compact ? 8 : 12),
+              sectionLabel(
+                icon: Icons.dashboard_customize_outlined,
+                title: _adminControlText(
+                  context,
+                  it: 'Panoramica',
+                  en: 'Overview',
+                  de: 'Übersicht',
+                  fa: 'نمای کلی',
+                ),
+                subtitle: _adminControlText(
+                  context,
+                  it: 'Priorità, utenti e stato operativo in un colpo d’occhio.',
+                  en: 'Priorities, users and operational state at a glance.',
+                  de: 'Prioritäten, Nutzer und Betriebsstatus auf einen Blick.',
+                  fa: 'اولویت‌ها، کاربران و وضعیت عملیاتی در یک نگاه.',
+                ),
+              ),
+              SizedBox(height: compact ? 5 : 7),
               LayoutBuilder(
                 builder: (context, innerConstraints) {
                   return buildPriorityGrid(innerConstraints.maxWidth);
                 },
               ),
-              const SizedBox(height: 14),
               if (widget.currentRole == Role.admin) ...[
+                SizedBox(height: compact ? 9 : 14),
+                sectionLabel(
+                  icon: Icons.auto_awesome_mosaic_outlined,
+                  title: _adminControlText(
+                    context,
+                    it: 'Workspace visuale',
+                    en: 'Visual workspace',
+                    de: 'Visueller Arbeitsbereich',
+                    fa: 'فضای کاری بصری',
+                  ),
+                  subtitle: _adminControlText(
+                    context,
+                    it: ultraWide
+                        ? 'Preview, controlli e salute operativa nello stesso cockpit.'
+                        : 'Anteprima e controlli di presentazione nello stesso spazio.',
+                    en: ultraWide
+                        ? 'Preview, controls and operational health in the same cockpit.'
+                        : 'Preview and presentation controls in the same workspace.',
+                    de: ultraWide
+                        ? 'Vorschau, Steuerung und Betriebsstatus in einem Cockpit.'
+                        : 'Vorschau und Präsentationssteuerung im selben Arbeitsbereich.',
+                    fa: ultraWide
+                        ? 'پیش‌نمایش، کنترل‌ها و وضعیت عملیاتی در یک داشبورد.'
+                        : 'پیش‌نمایش و کنترل‌های نمایش در یک فضای کاری.',
+                  ),
+                ),
+                SizedBox(height: compact ? 5 : 7),
                 LayoutBuilder(
                   builder: (context, innerConstraints) {
                     return buildPresentationStudio(innerConstraints.maxWidth);
                   },
                 ),
-                const SizedBox(height: 16),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    return buildOperationalPanel(constraints.maxWidth);
-                  },
-                ),
-                const SizedBox(height: 14),
-                buildEgressModeControl(),
-              ] else if (sideBySide)
-                SizedBox(
-                  height: commandStageHeight,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        flex: 9,
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            return buildOperationalPanel(
-                              constraints.maxWidth,
-                              boundedHeight: true,
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        flex: 11,
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            return buildGlobeStage(
-                              constraints.maxWidth,
-                              constraints.maxHeight,
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                if (!ultraWide) ...[
+                  SizedBox(height: compact ? 9 : 14),
+                  sectionLabel(
+                    icon: Icons.monitor_heart_outlined,
+                    title: _adminControlText(
+                      context,
+                      it: 'Operazioni e salute',
+                      en: 'Operations and health',
+                      de: 'Betrieb und Status',
+                      fa: 'عملیات و وضعیت',
+                    ),
+                    subtitle: _adminControlText(
+                      context,
+                      it: 'Attività recente e profilo di traffico automatico.',
+                      en: 'Recent activity and automatic traffic profile.',
+                      de: 'Letzte Aktivität und automatisches Datenverkehrsprofil.',
+                      fa: 'فعالیت اخیر و پروفایل ترافیک خودکار.',
+                    ),
                   ),
-                )
-              else ...[
-                SizedBox(
-                  height: compact ? 300 : 330,
-                  child: LayoutBuilder(
+                  SizedBox(height: compact ? 5 : 7),
+                  LayoutBuilder(
                     builder: (context, constraints) {
-                      return buildGlobeStage(
-                        constraints.maxWidth,
-                        constraints.maxHeight,
+                      final splitSecondary = constraints.maxWidth >= 900;
+                      if (!splitSecondary) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            buildOperationalPanel(constraints.maxWidth),
+                            const SizedBox(height: 8),
+                            buildEgressModeControl(),
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 11,
+                            child: LayoutBuilder(
+                              builder: (context, panelConstraints) {
+                                return buildOperationalPanel(
+                                  panelConstraints.maxWidth,
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            flex: 9,
+                            child: buildEgressModeControl(),
+                          ),
+                        ],
                       );
                     },
                   ),
-                ),
-                const SizedBox(height: 10),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    return buildOperationalPanel(constraints.maxWidth);
-                  },
-                ),
+                ],
+              ] else ...[
+                const SizedBox(height: 14),
+                buildOperationalPanel(width),
               ],
             ],
           ),
@@ -4533,24 +4917,27 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (_dashboardLoadFailed) ...[
-          _AdminDashboardRefreshError(
-            retryInProgress: _isRefreshing,
-            onRetry: _refresh,
-          ),
-          const SizedBox(height: 12),
-        ],
-        LayoutBuilder(
-          builder: (context, constraints) {
-            return buildCommandDeck(constraints.maxWidth);
-          },
-        ),
-        const SizedBox(height: 14),
-        _buildDashboardShortcuts(context),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final showModuleGrid = constraints.maxWidth < _desktopBreakpoint;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_dashboardLoadFailed) ...[
+              _AdminDashboardRefreshError(
+                retryInProgress: _isRefreshing,
+                onRetry: _refresh,
+              ),
+              const SizedBox(height: 10),
+            ],
+            buildCommandDeck(constraints.maxWidth),
+            if (showModuleGrid) ...[
+              const SizedBox(height: 10),
+              _buildDashboardShortcuts(context),
+            ],
+          ],
+        );
+      },
     );
   }
 
@@ -4560,60 +4947,162 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
           (destination) => destination.section != AdminCenterSection.dashboard,
         )
         .toList(growable: false);
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final compact = MediaQuery.sizeOf(context).width < 620;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final crossAxisCount = switch (constraints.maxWidth) {
-          < 380 => 1,
-          < 760 => 2,
-          _ => destinations.length > 4 ? 4 : destinations.length,
-        };
-
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            mainAxisExtent: 88,
-          ),
-          itemCount: destinations.length,
-          itemBuilder: (context, index) {
-            final destination = destinations[index];
-
-            return Card(
-              margin: EdgeInsets.zero,
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: () => _selectSection(destination.section),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      Icon(
-                        destination.icon,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          destination.label,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.chevron_right),
-                    ],
-                  ),
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(compact ? 16 : 20),
+        border: Border.all(
+          color: colors.outlineVariant.withValues(alpha: 0.72),
+        ),
+      ),
+      padding: EdgeInsets.all(compact ? 10 : 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: compact ? 30 : 34,
+                height: compact ? 30 : 34,
+                decoration: BoxDecoration(
+                  color: colors.primaryContainer.withValues(alpha: 0.58),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.grid_view_rounded,
+                  size: compact ? 17 : 19,
+                  color: colors.primary,
                 ),
               ),
-            );
-          },
-        );
-      },
+              const SizedBox(width: 9),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _adminControlText(
+                        context,
+                        it: 'Moduli amministrativi',
+                        en: 'Admin modules',
+                        de: 'Admin-Module',
+                        fa: 'ماژول‌های مدیریت',
+                      ),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    if (!compact) ...[
+                      const SizedBox(height: 1),
+                      Text(
+                        _adminControlText(
+                          context,
+                          it: 'Le nuove sezioni registrate nel Centro amministrazione entrano automaticamente in questa griglia.',
+                          en: 'New sections registered in the Admin Center automatically appear in this grid.',
+                          de: 'Neue im Admin Center registrierte Bereiche erscheinen automatisch in diesem Raster.',
+                          fa: 'بخش‌های جدید ثبت‌شده در مرکز مدیریت به‌صورت خودکار در این شبکه نمایش داده می‌شوند.',
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: compact ? 8 : 12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final crossAxisCount = switch (constraints.maxWidth) {
+                < 360 => 1,
+                < 760 => 2,
+                < 1180 => 3,
+                _ => 4,
+              };
+
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: compact ? 7 : 10,
+                  mainAxisSpacing: compact ? 7 : 10,
+                  mainAxisExtent: compact ? 62 : 76,
+                ),
+                itemCount: destinations.length,
+                itemBuilder: (context, index) {
+                  final destination = destinations[index];
+
+                  return Material(
+                    color: colors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(14),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: () => _selectSection(destination.section),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color:
+                                colors.outlineVariant.withValues(alpha: 0.62),
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 13),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 34,
+                                height: 34,
+                                decoration: BoxDecoration(
+                                  color: colors.primaryContainer
+                                      .withValues(alpha: 0.58),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  destination.icon,
+                                  size: 19,
+                                  color: colors.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  destination.label,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.chevron_right_rounded,
+                                size: 20,
+                                color: colors.onSurfaceVariant,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -4622,8 +5111,16 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       key: const ValueKey(AdminCenterSection.dashboard),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.all(16),
-          sliver: SliverToBoxAdapter(child: _buildDashboardIndicators(context)),
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 18),
+          sliver: SliverToBoxAdapter(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1760),
+                child: _buildDashboardIndicators(context),
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -4634,7 +5131,7 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       key: const ValueKey(AdminCenterSection.dashboard),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
           sliver: SliverToBoxAdapter(child: _buildDashboardIndicators(context)),
         ),
       ],
@@ -4659,7 +5156,8 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         NavigationRail(
-          backgroundColor: Theme.of(context).colorScheme.surface,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+          indicatorColor: Theme.of(context).colorScheme.primaryContainer,
           extended: extendRail,
           minExtendedWidth: 238,
           selectedIndex: selectedIndex < 0 ? 0 : selectedIndex,
@@ -4694,8 +5192,14 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
       orElse: () => destinations.first,
     );
 
+    final colors = Theme.of(context).colorScheme;
+
     return Scaffold(
+      backgroundColor: colors.surfaceContainerLow,
       appBar: AppBar(
+        backgroundColor: colors.surfaceContainerLowest,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
         leading: showingUserDetail ||
                 (isMobileLayout &&
                     _selectedSection != AdminCenterSection.dashboard)
@@ -4720,6 +5224,14 @@ class _AdminCenterPageState extends State<AdminCenterPage> {
                   : _adminL10n(context).adminCenterTitle,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: colors.outlineVariant.withValues(alpha: 0.55),
+          ),
         ),
         actions: [
           if (!isMobileLayout) ...[

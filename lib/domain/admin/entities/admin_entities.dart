@@ -220,6 +220,8 @@ class AdminRadioMondoTrack {
   final String? worldBriefId;
   final bool isDefault;
   final bool isLive;
+  final bool jahanEnabled;
+  final int jahanOrder;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -238,8 +240,22 @@ class AdminRadioMondoTrack {
     required this.worldBriefId,
     required this.isDefault,
     required this.isLive,
+    required this.jahanEnabled,
+    required this.jahanOrder,
     required this.createdAt,
     required this.updatedAt,
+  });
+}
+
+class AdminRadioJahanPlaylistItem {
+  final String trackId;
+  final bool isEnabled;
+  final int sortOrder;
+
+  const AdminRadioJahanPlaylistItem({
+    required this.trackId,
+    required this.isEnabled,
+    required this.sortOrder,
   });
 }
 

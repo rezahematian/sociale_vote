@@ -59,6 +59,18 @@ class GlobePresetVisual {
   final double ambientLight;
   final double webEmissiveIntensity;
   final double webShininess;
+  final double webAmbientIntensity;
+  final double webHemisphereIntensity;
+  final double webSunIntensity;
+  final int webSunRgb;
+  final int cloudTintRgb;
+  final int cloudEmissiveRgb;
+  final double cloudEmissiveIntensity;
+  final double cloudOpacityMin;
+  final double cloudOpacityMax;
+  final double cloudThresholdSparse;
+  final double cloudThresholdDense;
+  final double cloudShellScale;
 
   const GlobePresetVisual({
     required this.code,
@@ -74,6 +86,20 @@ class GlobePresetVisual {
     this.ambientLight = 0.68,
     this.webEmissiveIntensity = 0.34,
     this.webShininess = 1.0,
+    this.webAmbientIntensity = 0.28,
+    this.webHemisphereIntensity = 0.34,
+    this.webSunIntensity = 0.98,
+    this.webSunRgb = 0xFFF1DC,
+    // One neutral Natural cloud profile is shared by every Globe preset.
+    // Presets remain distinct through Earth texture, light and atmosphere.
+    this.cloudTintRgb = 0xF7FBFF,
+    this.cloudEmissiveRgb = 0xF7FBFF,
+    this.cloudEmissiveIntensity = 0.18,
+    this.cloudOpacityMin = 0.42,
+    this.cloudOpacityMax = 0.82,
+    this.cloudThresholdSparse = 0.82,
+    this.cloudThresholdDense = 0.12,
+    this.cloudShellScale = 1.008,
   });
 
   String get shortLabel => code == 'D' || code == 'E' ? name : code;
@@ -91,79 +117,131 @@ class GlobePresetVisual {
 
   static GlobePresetVisual forStyle(GlobeVisualStyle style) {
     return switch (style) {
+      // A — balanced daylight. Natural ocean/land colour remains the visual
+      // anchor; atmosphere and clouds stay restrained and photographic.
       GlobeVisualStyle.classic => const GlobePresetVisual(
           code: 'A',
           name: 'Natural',
           asset: dayAsset,
-          atmosphereRgb: 0x69B5FF,
-          atmosphereOpacity: 0.18,
+          atmosphereRgb: 0x63B8FF,
+          atmosphereOpacity: 0.16,
+          atmosphereBlur: 16,
+          atmosphereThickness: 0.0085,
+          lightAngle: -30,
+          lightIntensity: 1.08,
+          ambientLight: 0.62,
+          webEmissiveIntensity: 0.20,
+          webShininess: 0.80,
+          webAmbientIntensity: 0.26,
+          webHemisphereIntensity: 0.34,
+          webSunIntensity: 0.96,
+          webSunRgb: 0xFFF3DF,
         ),
+
+      // B — stronger terrain modelling and lower ambient fill. This is the
+      // most sculpted daylight preset rather than another bright satellite.
       GlobeVisualStyle.realistic => const GlobePresetVisual(
           code: 'B',
           name: 'Relief',
           asset: satelliteAsset,
-          atmosphereRgb: 0x6FAFFF,
-          atmosphereOpacity: 0.15,
-          lightAngle: -42,
-          lightIntensity: 1.36,
-          ambientLight: 0.54,
-          webEmissiveIntensity: 0.22,
-          webShininess: 0.6,
+          atmosphereRgb: 0x82BAE8,
+          atmosphereOpacity: 0.13,
+          atmosphereBlur: 15,
+          atmosphereThickness: 0.008,
+          lightAngle: -46,
+          lightIntensity: 1.44,
+          ambientLight: 0.42,
+          webEmissiveIntensity: 0.10,
+          webShininess: 0.58,
+          webAmbientIntensity: 0.18,
+          webHemisphereIntensity: 0.24,
+          webSunIntensity: 1.12,
+          webSunRgb: 0xFFE9CC,
         ),
+
+      // C — clear, modern Social Vote blue. High ambient readability and a
+      // cyan rim distinguish it from Relief/Satellite without recolouring land.
       GlobeVisualStyle.bright ||
       GlobeVisualStyle.minimalDay =>
         const GlobePresetVisual(
           code: 'C',
           name: 'Civic Blue',
           asset: satelliteAsset,
-          atmosphereRgb: 0x55C8FF,
-          atmosphereOpacity: 0.24,
+          atmosphereRgb: 0x43CFFF,
+          atmosphereOpacity: 0.22,
           atmosphereBlur: 18,
-          atmosphereThickness: 0.011,
+          atmosphereThickness: 0.0105,
           lightAngle: -24,
-          lightIntensity: 0.96,
-          ambientLight: 0.82,
-          webEmissiveIntensity: 0.48,
-          webShininess: 0.6,
+          lightIntensity: 0.92,
+          ambientLight: 0.80,
+          webEmissiveIntensity: 0.34,
+          webShininess: 0.44,
+          webAmbientIntensity: 0.36,
+          webHemisphereIntensity: 0.50,
+          webSunIntensity: 0.78,
+          webSunRgb: 0xE8F8FF,
         ),
+
+      // D — Black Marble stays self-lit. The shared neutral cloud layer remains
+      // readable above the night texture without changing Elias' identity.
       GlobeVisualStyle.nightLights => const GlobePresetVisual(
           code: 'D',
           name: 'Elias',
           asset: nightAsset,
-          atmosphereRgb: 0x4D7EC8,
-          atmosphereOpacity: 0.15,
+          atmosphereRgb: 0x315C9A,
+          atmosphereOpacity: 0.13,
           atmosphereBlur: 14,
-          atmosphereThickness: 0.008,
+          atmosphereThickness: 0.0075,
           unlit: true,
           ambientLight: 1.0,
           webEmissiveIntensity: 1.0,
           webShininess: 0.0,
+          webAmbientIntensity: 0.08,
+          webHemisphereIntensity: 0.10,
+          webSunIntensity: 0.0,
+          webSunRgb: 0xBFD8FF,
         ),
+
+      // E — Elena keeps a neutral Earth texture and the same Natural clouds as
+      // every other preset. Violet belongs only to the atmosphere/rim.
       GlobeVisualStyle.techNeon => const GlobePresetVisual(
           code: 'E',
           name: 'Elena',
           asset: dayAsset,
-          atmosphereRgb: 0xA78CFF,
-          atmosphereOpacity: 0.24,
-          atmosphereBlur: 19,
-          atmosphereThickness: 0.011,
+          atmosphereRgb: 0x9B7BFF,
+          atmosphereOpacity: 0.21,
+          atmosphereBlur: 20,
+          atmosphereThickness: 0.0115,
           lightAngle: -20,
-          lightIntensity: 1.08,
-          ambientLight: 0.92,
-          webEmissiveIntensity: 0.50,
-          webShininess: 1.0,
+          lightIntensity: 0.96,
+          ambientLight: 0.84,
+          webEmissiveIntensity: 0.36,
+          webShininess: 0.72,
+          webAmbientIntensity: 0.38,
+          webHemisphereIntensity: 0.42,
+          webSunIntensity: 0.82,
+          webSunRgb: 0xEEF6FF,
         ),
+
+      // F — crisp observational satellite view. Lowest atmospheric veil and
+      // strongest directional light keep it distinct from Relief/Civic Blue.
       GlobeVisualStyle.terrainRelief => const GlobePresetVisual(
           code: 'F',
           name: 'Satellite',
           asset: satelliteAsset,
-          atmosphereRgb: 0x64B7E8,
-          atmosphereOpacity: 0.15,
-          lightAngle: -32,
-          lightIntensity: 1.42,
-          ambientLight: 0.56,
-          webEmissiveIntensity: 0.12,
-          webShininess: 1.65,
+          atmosphereRgb: 0x78A9C4,
+          atmosphereOpacity: 0.10,
+          atmosphereBlur: 13,
+          atmosphereThickness: 0.007,
+          lightAngle: -34,
+          lightIntensity: 1.52,
+          ambientLight: 0.36,
+          webEmissiveIntensity: 0.05,
+          webShininess: 1.80,
+          webAmbientIntensity: 0.16,
+          webHemisphereIntensity: 0.20,
+          webSunIntensity: 1.18,
+          webSunRgb: 0xFFF0D6,
         ),
     };
   }
@@ -185,6 +263,14 @@ class GlobePresetVisual {
           'density': cloudDensity.clamp(0.0, 1.0),
           'speed': cloudSpeed.clamp(0.0, 1.0),
           'direction': cloudDirection < 0 ? -1 : 1,
+          'tintColor': cloudTintRgb,
+          'emissiveColor': cloudEmissiveRgb,
+          'emissiveIntensity': cloudEmissiveIntensity,
+          'opacityMin': cloudOpacityMin,
+          'opacityMax': cloudOpacityMax,
+          'thresholdSparse': cloudThresholdSparse,
+          'thresholdDense': cloudThresholdDense,
+          'shellScale': cloudShellScale,
         },
         'material': <String, Object?>{
           // Violet belongs to Elena's rim, never to the entire surface.
@@ -196,6 +282,10 @@ class GlobePresetVisual {
           'toneMapped': !unlit,
           'atmosphereColor': atmosphereRgb,
           'atmosphereStrength': atmosphereOpacity,
+          'ambientIntensity': webAmbientIntensity,
+          'hemisphereIntensity': webHemisphereIntensity,
+          'sunIntensity': webSunIntensity,
+          'sunColor': webSunRgb,
         },
       };
 }

@@ -390,6 +390,8 @@ class SocialVoteGlobeElement extends HTMLElement {
     this._lastFrameAt = performance.now();
     this._nightLights = null;
     this._atmosphere = null;
+    this._ambientLight = null;
+    this._hemisphereLight = null;
     this._sunLight = null;
     this._sunDirection = new THREE.Vector3(1, 0, 0);
     this._lastSunUpdateAt = 0;
@@ -633,7 +635,11 @@ class SocialVoteGlobeElement extends HTMLElement {
       this.setAttribute('data-runtime-ready', 'true');
       this._resize();
 
-      this._loadEarthTexture();
+      // Lifecycle correctness: appearance may already be present before this
+      // custom element is connected. Apply the complete appearance snapshot
+      // during initialization so Earth + Cloud are both restored even when
+      // data-appearance is later re-published with the same JSON value.
+      this._applyAppearance();
       this._startLoop();
 
       // Renderer readiness is independent from texture download timing.
@@ -691,9 +697,11 @@ class SocialVoteGlobeElement extends HTMLElement {
 
     const material = new THREE.MeshPhongMaterial({
       color: 0xf7fbff,
+      emissive: 0xf7fbff,
+      emissiveIntensity: 0.18,
       transparent: true,
-      opacity: 0.58,
-      alphaTest: 0.45,
+      opacity: 0.62,
+      alphaTest: 0.47,
       depthWrite: false,
       shininess: 0.0,
       specular: 0x000000,
@@ -708,18 +716,18 @@ class SocialVoteGlobeElement extends HTMLElement {
   _createLights() {
     // Daylight is driven by the current subsolar point. A tiny cool ambient
     // component keeps the night hemisphere readable without washing it out.
-    const ambient = new THREE.AmbientLight(
+    this._ambientLight = new THREE.AmbientLight(
       0xc8daf5,
       0.34,
     );
-    this._scene.add(ambient);
+    this._scene.add(this._ambientLight);
 
-    const hemisphere = new THREE.HemisphereLight(
+    this._hemisphereLight = new THREE.HemisphereLight(
       0xb9d6ff,
       0x223247,
       0.36,
     );
-    this._scene.add(hemisphere);
+    this._scene.add(this._hemisphereLight);
 
     this._sunLight = new THREE.DirectionalLight(
       0xfff1dc,
@@ -1347,10 +1355,33 @@ class SocialVoteGlobeElement extends HTMLElement {
     const direction = clouds.direction === -1 ? -1 : 1;
     const enabled = clouds.enabled === true && density > 0.001;
 
+    const profileNumber = (key, fallback, min, max) => {
+      const value = clouds[key];
+      return typeof value === 'number' && Number.isFinite(value)
+        ? clamp(value, min, max)
+        : fallback;
+    };
+    // Natural cloud rendering is intentionally preset-independent. Earth,
+    // light and atmosphere define the six Globe identities; clouds stay neutral.
+    const tintColor = profileNumber('tintColor', 0xf7fbff, 0, 0xffffff);
+    const emissiveColor = profileNumber('emissiveColor', 0xf7fbff, 0, 0xffffff);
+    const emissiveIntensity = profileNumber('emissiveIntensity', 0.18, 0, 0.35);
+    const opacityMin = profileNumber('opacityMin', 0.42, 0.05, 0.75);
+    const opacityMax = profileNumber('opacityMax', 0.82, opacityMin, 0.88);
+    const thresholdSparse = profileNumber('thresholdSparse', 0.82, 0.50, 0.98);
+    const thresholdDense = profileNumber('thresholdDense', 0.12, 0.08, thresholdSparse);
+    const shellScale = profileNumber('shellScale', 1.008, 1.003, 1.018);
+
     this._cloudSpeed = speed;
     this._cloudDirection = direction;
-    this._cloudLayer.material.alphaTest = 0.80 - density * 0.64;
-    this._cloudLayer.material.opacity = 0.42 + density * 0.36;
+    this._cloudLayer.material.color.setHex(tintColor);
+    this._cloudLayer.material.emissive.setHex(emissiveColor);
+    this._cloudLayer.material.emissiveIntensity = emissiveIntensity;
+    this._cloudLayer.material.alphaTest =
+        thresholdSparse + (thresholdDense - thresholdSparse) * density;
+    this._cloudLayer.material.opacity =
+        opacityMin + (opacityMax - opacityMin) * density;
+    this._cloudLayer.scale.setScalar(shellScale);
     this._cloudLayer.material.needsUpdate = true;
     this._cloudLayer.visible = enabled && this._cloudTexture != null;
   }
@@ -1405,6 +1436,10 @@ class SocialVoteGlobeElement extends HTMLElement {
     const specular = number('specular', 0x020408, 0, 0xffffff);
     const atmosphereColor = number('atmosphereColor', 0x55c8ff, 0, 0xffffff);
     const atmosphereStrength = number('atmosphereStrength', 0.24, 0, 0.35);
+    const ambientIntensity = number('ambientIntensity', 0.28, 0, 1.2);
+    const hemisphereIntensity = number('hemisphereIntensity', 0.34, 0, 1.2);
+    const sunIntensity = number('sunIntensity', 0.98, 0, 1.8);
+    const sunColor = number('sunColor', 0xfff1dc, 0, 0xffffff);
     const showNightLights = false;
     // Elias uses the same self-lit Black Marble source as native. Avoid
     // tone mapping only for this unlit texture so city lights stay natural.
@@ -1416,6 +1451,17 @@ class SocialVoteGlobeElement extends HTMLElement {
     material.shininess = shininess;
     material.specular.setHex(specular);
     material.needsUpdate = true;
+
+    if (this._ambientLight) {
+      this._ambientLight.intensity = ambientIntensity;
+    }
+    if (this._hemisphereLight) {
+      this._hemisphereLight.intensity = hemisphereIntensity;
+    }
+    if (this._sunLight) {
+      this._sunLight.intensity = sunIntensity;
+      this._sunLight.color.setHex(sunColor);
+    }
 
     if (atmosphereUniforms?.glowColor) {
       atmosphereUniforms.glowColor.value.setHex(atmosphereColor);

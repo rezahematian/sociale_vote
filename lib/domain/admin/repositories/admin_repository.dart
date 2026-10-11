@@ -167,6 +167,11 @@ abstract class AdminRepository {
     required String reason,
   });
 
+  Future<void> setRadioJahanPlaylist({
+    required List<AdminRadioJahanPlaylistItem> items,
+    required String reason,
+  });
+
   Future<List<AdminAuditEntry>> getAuditEntries({
     String? actorUserId,
     String? action,

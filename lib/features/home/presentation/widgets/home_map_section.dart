@@ -142,7 +142,16 @@ class _HomeMapSectionView extends StatefulWidget {
   State<_HomeMapSectionView> createState() => _HomeMapSectionViewState();
 }
 
-class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
+class _HomeMapSectionViewState extends State<_HomeMapSectionView>
+    with AutomaticKeepAliveClientMixin<_HomeMapSectionView> {
+  // Keep the Home Web Globe, its CivicMapController, and the last loaded
+  // marker snapshot alive when ListView scrolls this section off-screen.
+  // A remount could request another automatic fetch after the egress budget
+  // was consumed, leaving the Web globe empty while Admin still has markers.
+  // Do not keep Android alive: preserve its current memory/lifecycle behavior.
+  @override
+  bool get wantKeepAlive => kIsWeb;
+
   static const Duration _webMarkerWarmupDelay = Duration(milliseconds: 700);
   static const Duration _nativeMarkerWarmupDelay = Duration(milliseconds: 1900);
 
@@ -157,6 +166,7 @@ class _HomeMapSectionViewState extends State<_HomeMapSectionView> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // AutomaticKeepAliveClientMixin notification.
     final controller = context.watch<CivicMapController>();
     final geoScopeController = context.watch<GeoScopeController?>();
 

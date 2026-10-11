@@ -100,6 +100,8 @@ class RadioMondoStation {
   final String? worldBriefId;
   final bool isDefault;
   final bool isLive;
+  final bool jahanEnabled;
+  final int jahanOrder;
 
   const RadioMondoStation({
     required this.id,
@@ -116,6 +118,8 @@ class RadioMondoStation {
     this.worldBriefId,
     this.isDefault = false,
     this.isLive = false,
+    this.jahanEnabled = false,
+    this.jahanOrder = 100,
   }) : assert(builtInTrack != null || audioUrl != null);
 
   bool get isBuiltIn => builtInTrack != null;
@@ -229,6 +233,7 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
   RadioMondoStation? _currentStation;
   RadioMondoCategory _selectedCategory = RadioMondoCategory.worldMusic;
   bool _selectionExplicit = false;
+  bool _jahanMode = false;
 
   bool get isLoading => _isLoading || _catalogLoading;
   bool get isPlaying => _isPlaying;
@@ -238,6 +243,12 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
   RadioMondoStation? get selectedStation => _selectedStation;
   RadioMondoStation? get currentStation => _currentStation;
   RadioMondoCategory get selectedCategory => _selectedCategory;
+  bool get isJahanMode => _jahanMode;
+
+  List<RadioMondoStation> get jahanStations =>
+      List<RadioMondoStation>.unmodifiable(_jahanStationsFrom(_stations));
+
+  int get jahanStationCount => _jahanStationsFrom(_stations).length;
 
   List<RadioMondoStation> stationsForCategory(RadioMondoCategory category) =>
       List<RadioMondoStation>.unmodifiable(
@@ -307,6 +318,10 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
               worldBriefId: _nullable(row['world_brief_id']),
               isDefault: row['is_default'] == true,
               isLive: row['is_live'] == true,
+              jahanEnabled: row['jahan_enabled'] == true,
+              jahanOrder: row['jahan_order'] is num
+                  ? (row['jahan_order'] as num).toInt().clamp(0, 10000).toInt()
+                  : 100,
             ),
           );
         }
@@ -367,10 +382,26 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
         _selectedCategory = _selectedStation!.category;
       }
 
-      if (_currentStation != null && currentMatch == null) {
+      RadioMondoStation? currentJahanMatch;
+      if (_jahanMode) {
+        final jahanCatalog = _jahanStationsFrom(nextStations);
+        final jahanSelected =
+            selectedId == null ? null : _findById(jahanCatalog, selectedId);
+        currentJahanMatch =
+            currentId == null ? null : _findById(jahanCatalog, currentId);
+        _selectedStation = jahanSelected ??
+            currentJahanMatch ??
+            (jahanCatalog.isEmpty ? null : jahanCatalog.first);
+        if (_selectedStation != null) {
+          _selectedCategory = _selectedStation!.category;
+        }
+      }
+
+      final resolvedCurrent = _jahanMode ? currentJahanMatch : currentMatch;
+      if (_currentStation != null && resolvedCurrent == null) {
         await stop();
       } else {
-        _currentStation = currentMatch;
+        _currentStation = resolvedCurrent;
       }
     } catch (error, stackTrace) {
       if (kDebugMode) {
@@ -531,10 +562,13 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> selectCategory(RadioMondoCategory category) async {
-    if (_selectedCategory == category &&
+    if (!_jahanMode &&
+        _selectedCategory == category &&
         _selectedStation?.category == category) {
       return;
     }
+
+    _jahanMode = false;
 
     if (_currentStation != null && _currentStation?.category != category) {
       await stop();
@@ -563,6 +597,36 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  Future<void> selectJahan() async {
+    final candidates = _jahanStationsFrom(_stations);
+    if (_jahanMode &&
+        (_selectedStation == null ||
+            candidates.any((item) => item.id == _selectedStation!.id))) {
+      return;
+    }
+
+    _jahanMode = true;
+    _selectionExplicit = true;
+
+    final current = _currentStation;
+    if (current != null && candidates.any((item) => item.id == current.id)) {
+      _selectedStation = current;
+      _selectedCategory = current.category;
+      notifyListeners();
+      return;
+    }
+
+    if (current != null) {
+      await stop();
+    }
+
+    _selectedStation = candidates.isEmpty ? null : candidates.first;
+    if (_selectedStation != null) {
+      _selectedCategory = _selectedStation!.category;
+    }
+    notifyListeners();
+  }
+
   Future<bool> playPrevious() => _playAdjacent(-1);
 
   Future<bool> playNext() => _playAdjacent(1);
@@ -570,9 +634,11 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
   Future<bool> _playAdjacent(int offset) async {
     final anchor = _currentStation ?? _selectedStation;
     final category = anchor?.category ?? _selectedCategory;
-    final catalog = _stations
-        .where((station) => station.category == category)
-        .toList(growable: false);
+    final catalog = _jahanMode
+        ? _jahanStationsFrom(_stations)
+        : _stations
+            .where((station) => station.category == category)
+            .toList(growable: false);
     if (catalog.isEmpty) return false;
 
     var currentIndex = anchor == null
@@ -600,13 +666,15 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
 
     _advancingPlaylist = true;
     try {
-      final catalog = _stations
-          .where(
-            (station) =>
-                station.sourceType == RadioMondoSourceType.audio &&
-                station.category == current.category,
-          )
-          .toList(growable: false);
+      final catalog = _jahanMode
+          ? _jahanStationsFrom(_stations)
+          : _stations
+              .where(
+                (station) =>
+                    station.sourceType == RadioMondoSourceType.audio &&
+                    station.category == current.category,
+              )
+              .toList(growable: false);
       if (catalog.isEmpty) {
         await stop();
         return;
@@ -750,6 +818,29 @@ class RadioMondoService extends ChangeNotifier with WidgetsBindingObserver {
     await _webAudio.dispose();
     _initialized = false;
     await _player.dispose();
+  }
+
+  static List<RadioMondoStation> _jahanStationsFrom(
+    List<RadioMondoStation> stations,
+  ) {
+    final result = stations
+        .where(
+          (station) =>
+              station.jahanEnabled &&
+              station.sourceType == RadioMondoSourceType.audio &&
+              !station.isLive,
+        )
+        .toList(growable: false);
+    result.sort((a, b) {
+      final order = a.jahanOrder.compareTo(b.jahanOrder);
+      if (order != 0) return order;
+      final categoryOrder = a.category.index.compareTo(b.category.index);
+      if (categoryOrder != 0) return categoryOrder;
+      final trackOrder = a.sortOrder.compareTo(b.sortOrder);
+      if (trackOrder != 0) return trackOrder;
+      return a.id.compareTo(b.id);
+    });
+    return result;
   }
 
   static RadioMondoStation? _findById(

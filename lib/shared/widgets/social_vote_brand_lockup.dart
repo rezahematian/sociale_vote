@@ -45,6 +45,10 @@ class _SocialVoteHeaderBrandState extends State<SocialVoteHeaderBrand> {
   Timer? _timer;
   double _glowIntensity = 0.0;
   int _flickerStep = 0;
+  double _rawFlickerIntensity = 0.0;
+  SocialVoteBrandEffect? _configuredEffect;
+  double? _lastFlickerIntensity;
+  double? _lastFlickerSpeed;
 
   final BrandHeaderModeService _brandHeaderMode =
       BrandHeaderModeService.instance;
@@ -84,12 +88,12 @@ class _SocialVoteHeaderBrandState extends State<SocialVoteHeaderBrand> {
     super.initState();
     _brandHeaderMode.addListener(_handleBrandHeaderModeChanged);
     unawaited(_brandHeaderMode.ensureLoaded());
-    _configureEffect();
+    _syncEffect();
   }
 
   void _handleBrandHeaderModeChanged() {
     if (widget.effect != null) return;
-    _configureEffect(rebuild: true);
+    _syncEffect(rebuild: true);
   }
 
   @override
@@ -100,7 +104,41 @@ class _SocialVoteHeaderBrandState extends State<SocialVoteHeaderBrand> {
         oldWidget.flickerIntensityOverride != widget.flickerIntensityOverride ||
         oldWidget.flickerSpeedMultiplierOverride !=
             widget.flickerSpeedMultiplierOverride) {
-      _configureEffect(rebuild: true);
+      _syncEffect(rebuild: true);
+    }
+  }
+
+// Do not restart the neon rhythm on every slider tick or saving/loading
+// notification. Otherwise the opening OFF pause hides all live adjustments.
+  void _syncEffect({bool rebuild = false}) {
+    final effect = _effect;
+    final intensity = _effectiveFlickerIntensity;
+    final speed = _effectiveFlickerSpeed;
+    final effectChanged = _configuredEffect != effect;
+    final intensityChanged = _lastFlickerIntensity != intensity;
+    final speedChanged = _lastFlickerSpeed != speed;
+    _lastFlickerIntensity = intensity;
+    _lastFlickerSpeed = speed;
+
+    if (effectChanged) {
+      _configuredEffect = effect;
+      _configureEffect(rebuild: rebuild);
+      return;
+    }
+
+    if (effect == SocialVoteBrandEffect.flicker) {
+      if (intensityChanged) {
+        _glowIntensity =
+            (_rawFlickerIntensity * intensity).clamp(0.0, 1.0).toDouble();
+      }
+      if (speedChanged) {
+        _timer?.cancel();
+        _scheduleNextFlicker();
+      }
+    }
+
+    if (rebuild && mounted && (intensityChanged || speedChanged)) {
+      setState(() {});
     }
   }
 
@@ -126,7 +164,9 @@ class _SocialVoteHeaderBrandState extends State<SocialVoteHeaderBrand> {
         });
 
       case SocialVoteBrandEffect.flicker:
-        _glowIntensity = 0.0;
+        // Show the current intensity immediately, including in Admin preview.
+        _rawFlickerIntensity = 1.0;
+        _glowIntensity = _effectiveFlickerIntensity;
         _scheduleNextFlicker();
     }
 
@@ -146,6 +186,7 @@ class _SocialVoteHeaderBrandState extends State<SocialVoteHeaderBrand> {
       if (!mounted || _effect != SocialVoteBrandEffect.flicker) return;
 
       setState(() {
+        _rawFlickerIntensity = step.intensity;
         _glowIntensity = (step.intensity * _effectiveFlickerIntensity)
             .clamp(0.0, 1.0)
             .toDouble();

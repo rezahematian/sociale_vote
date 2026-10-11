@@ -126,6 +126,12 @@ class RadioMondoDock extends StatelessWidget {
       return;
     }
 
+    // Home Globe policy: a fresh tap on Radio Mondo starts from Radio Jahan.
+    // This changes only the selected playlist mode; playback still requires
+    // this explicit user tap and never autostarts on page/app load.
+    await radio.selectJahan();
+    if (!context.mounted) return;
+
     var station = radio.selectedStation;
     if (station == null) {
       await radio.reloadCatalog();
@@ -168,7 +174,10 @@ class RadioMondoDock extends StatelessWidget {
                 final theme = Theme.of(sheetContext);
                 final colors = theme.colorScheme;
                 final category = radio.selectedCategory;
-                final stations = radio.stationsForCategory(category);
+                final jahanMode = radio.isJahanMode;
+                final stations = jahanMode
+                    ? radio.jahanStations
+                    : radio.stationsForCategory(category);
                 final activeStation =
                     radio.currentStation ?? radio.selectedStation;
 
@@ -176,113 +185,17 @@ class RadioMondoDock extends StatelessWidget {
                   final controlsEnabled =
                       stations.isNotEmpty && !radio.isLoading;
 
-                  Widget transportGlyph({
-                    required bool next,
-                    required Color color,
-                  }) {
-                    final triangle = Text(
-                      next ? '▶' : '◀',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: color,
-                        fontSize: 19,
-                        fontWeight: FontWeight.w900,
-                        height: 1,
-                      ),
-                    );
-
-                    final stopBar = Container(
-                      width: 2.4,
-                      height: 17,
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    );
-
-                    return SizedBox(
-                      width: 25,
-                      height: 22,
-                      child: Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: next
-                              ? [
-                                  triangle,
-                                  const SizedBox(width: 1),
-                                  stopBar,
-                                ]
-                              : [
-                                  stopBar,
-                                  const SizedBox(width: 1),
-                                  triangle,
-                                ],
-                        ),
-                      ),
-                    );
-                  }
-
-                  Widget playPauseGlyph({
-                    required bool playing,
-                    required Color color,
-                  }) {
-                    if (!playing) {
-                      return Text(
-                        '▶',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: color,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          height: 1,
-                        ),
-                      );
-                    }
-
-                    return SizedBox(
-                      width: 22,
-                      height: 24,
-                      child: Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 5,
-                              height: 20,
-                              decoration: BoxDecoration(
-                                color: color,
-                                borderRadius: BorderRadius.circular(1.5),
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            Container(
-                              width: 5,
-                              height: 20,
-                              decoration: BoxDecoration(
-                                color: color,
-                                borderRadius: BorderRadius.circular(1.5),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-
                   Widget transportButton({
                     required String tooltip,
-                    required bool next,
+                    required _TransportGlyph glyph,
                     required VoidCallback? onPressed,
                   }) {
-                    final glyphColor = controlsEnabled
-                        ? colors.onSurface
-                        : colors.onSurface.withValues(alpha: 0.38);
-
+                    final enabled = onPressed != null;
                     return IconButton(
                       tooltip: tooltip,
                       constraints: const BoxConstraints.tightFor(
-                        width: 44,
-                        height: 44,
+                        width: 46,
+                        height: 46,
                       ),
                       padding: EdgeInsets.zero,
                       style: IconButton.styleFrom(
@@ -293,14 +206,17 @@ class RadioMondoDock extends StatelessWidget {
                         disabledForegroundColor:
                             colors.onSurface.withValues(alpha: 0.38),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(14),
                           side: BorderSide(color: colors.outlineVariant),
                         ),
                       ),
                       onPressed: onPressed,
-                      icon: transportGlyph(
-                        next: next,
-                        color: glyphColor,
+                      icon: _TransportGlyphIcon(
+                        glyph: glyph,
+                        size: 27,
+                        color: enabled
+                            ? colors.onSurface
+                            : colors.onSurface.withValues(alpha: 0.38),
                       ),
                     );
                   }
@@ -314,19 +230,19 @@ class RadioMondoDock extends StatelessWidget {
                           'Precedente',
                           'Previous',
                         ),
-                        next: false,
+                        glyph: _TransportGlyph.previous,
                         onPressed: controlsEnabled
                             ? () => unawaited(radio.playPrevious())
                             : null,
                       ),
-                      const SizedBox(width: 7),
+                      const SizedBox(width: 8),
                       IconButton.filled(
                         tooltip: radio.isPlaying
                             ? _uiText(sheetContext, 'Pausa', 'Pause')
                             : _uiText(sheetContext, 'Riproduci', 'Play'),
                         constraints: const BoxConstraints.tightFor(
-                          width: 48,
-                          height: 48,
+                          width: 54,
+                          height: 54,
                         ),
                         padding: EdgeInsets.zero,
                         style: IconButton.styleFrom(
@@ -337,7 +253,7 @@ class RadioMondoDock extends StatelessWidget {
                           disabledForegroundColor:
                               colors.onSurface.withValues(alpha: 0.38),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(17),
                           ),
                         ),
                         onPressed: controlsEnabled
@@ -345,21 +261,24 @@ class RadioMondoDock extends StatelessWidget {
                                   _togglePlayback(sheetContext, radio),
                                 )
                             : null,
-                        icon: playPauseGlyph(
-                          playing: radio.isPlaying,
+                        icon: _TransportGlyphIcon(
+                          glyph: radio.isPlaying
+                              ? _TransportGlyph.pause
+                              : _TransportGlyph.play,
+                          size: 31,
                           color: controlsEnabled
                               ? colors.onPrimary
                               : colors.onSurface.withValues(alpha: 0.38),
                         ),
                       ),
-                      const SizedBox(width: 7),
+                      const SizedBox(width: 8),
                       transportButton(
                         tooltip: _uiText(
                           sheetContext,
                           'Successivo',
                           'Next',
                         ),
-                        next: true,
+                        glyph: _TransportGlyph.next,
                         onPressed: controlsEnabled
                             ? () => unawaited(radio.playNext())
                             : null,
@@ -369,27 +288,32 @@ class RadioMondoDock extends StatelessWidget {
                 }
 
                 Widget buildTrackIdentity() {
+                  final station = activeStation;
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        activeStation == null
+                        station == null
                             ? _uiText(
                                 sheetContext,
                                 'Nessun brano',
                                 'No track',
                               )
-                            : _stationLabel(l10n, activeStation),
+                            : _stationLabel(l10n, station),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      if (activeStation != null)
+                      if (station != null)
                         Text(
-                          _channelLabel(activeStation),
+                          jahanMode
+                              ? 'Radio Jahan · '
+                                  '${_categoryLabel(sheetContext, station.category)} · '
+                                  '${_channelLabel(station)}'
+                              : _channelLabel(station),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodySmall?.copyWith(
@@ -400,14 +324,21 @@ class RadioMondoDock extends StatelessWidget {
                   );
                 }
 
-                Widget buildVolume({double width = 150}) {
+                Widget buildVolume({double width = 170}) {
+                  final percent = (radio.volume * 100).round();
+                  final volumeIcon = radio.volume <= 0.01
+                      ? Icons.volume_off_rounded
+                      : radio.volume < 0.55
+                          ? Icons.volume_down_rounded
+                          : Icons.volume_up_rounded;
+
                   return SizedBox(
                     width: width,
                     child: Row(
                       children: [
                         Icon(
-                          Icons.volume_down_rounded,
-                          size: 20,
+                          volumeIcon,
+                          size: 22,
                           color: colors.onSurfaceVariant,
                         ),
                         Expanded(
@@ -415,6 +346,17 @@ class RadioMondoDock extends StatelessWidget {
                             value: radio.volume,
                             onChanged: (value) =>
                                 unawaited(radio.setVolume(value)),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 38,
+                          child: Text(
+                            '$percent%',
+                            textAlign: TextAlign.end,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ],
@@ -453,6 +395,49 @@ class RadioMondoDock extends StatelessWidget {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
+                            Tooltip(
+                              message: radio.jahanStationCount == 0
+                                  ? _uiText(
+                                      sheetContext,
+                                      'Nessun brano',
+                                      'No track',
+                                    )
+                                  : _uiText(
+                                      sheetContext,
+                                      'Ascolto continuo',
+                                      'Continuous listening',
+                                    ),
+                              child: FilterChip(
+                                avatar: Icon(
+                                  Icons.public_rounded,
+                                  size: 19,
+                                  color: jahanMode
+                                      ? colors.onPrimaryContainer
+                                      : colors.primary,
+                                ),
+                                selected: jahanMode,
+                                selectedColor: colors.primaryContainer,
+                                side: BorderSide(
+                                  color: jahanMode
+                                      ? colors.primary
+                                      : colors.outlineVariant,
+                                  width: jahanMode ? 1.5 : 1,
+                                ),
+                                showCheckmark: false,
+                                labelStyle:
+                                    theme.textTheme.labelLarge?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: jahanMode
+                                      ? colors.onPrimaryContainer
+                                      : colors.onSurface,
+                                ),
+                                label: const Text('Radio Jahan'),
+                                onSelected: radio.jahanStationCount == 0 ||
+                                        radio.isLoading
+                                    ? null
+                                    : (_) => unawaited(radio.selectJahan()),
+                              ),
+                            ),
                             for (final item in RadioMondoCategory.values)
                               Tooltip(
                                 message:
@@ -467,8 +452,11 @@ class RadioMondoDock extends StatelessWidget {
                                   avatar: Icon(
                                     _categoryIcon(item),
                                     size: 18,
+                                    color: !jahanMode && item == category
+                                        ? colors.onSecondaryContainer
+                                        : colors.onSurfaceVariant,
                                   ),
-                                  selected: item == category,
+                                  selected: !jahanMode && item == category,
                                   showCheckmark: false,
                                   label: Text(
                                     _categoryLabel(sheetContext, item),
@@ -487,10 +475,89 @@ class RadioMondoDock extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (jahanMode)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 11,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                colors.primaryContainer.withValues(alpha: 0.55),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: colors.primary.withValues(alpha: 0.55),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: colors.primary,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.public_rounded,
+                                  color: colors.onPrimary,
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Radio Jahan',
+                                      style:
+                                          theme.textTheme.titleSmall?.copyWith(
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                    Text(
+                                      _uiText(
+                                        sheetContext,
+                                        'Ascolto continuo',
+                                        'Continuous listening',
+                                      ),
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
+                                        color: colors.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                '∞',
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  color: colors.primary,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                       child: Card(
                         margin: EdgeInsets.zero,
+                        color: jahanMode
+                            ? colors.primaryContainer.withValues(alpha: 0.16)
+                            : colors.surfaceContainerLow,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                          side: BorderSide(
+                            color: jahanMode
+                                ? colors.primary.withValues(alpha: 0.45)
+                                : colors.outlineVariant,
+                          ),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
@@ -540,7 +607,9 @@ class RadioMondoDock extends StatelessWidget {
                       child: Align(
                         alignment: AlignmentDirectional.centerStart,
                         child: Text(
-                          _categoryLabel(sheetContext, category),
+                          jahanMode
+                              ? 'Radio Jahan'
+                              : _categoryLabel(sheetContext, category),
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w800,
                           ),
@@ -551,11 +620,17 @@ class RadioMondoDock extends StatelessWidget {
                       child: stations.isEmpty
                           ? Center(
                               child: Text(
-                                _uiText(
-                                  sheetContext,
-                                  'Nessun brano in questa categoria',
-                                  'No tracks in this category',
-                                ),
+                                jahanMode
+                                    ? _uiText(
+                                        sheetContext,
+                                        'Nessun brano in Radio Jahan',
+                                        'No tracks in Radio Jahan',
+                                      )
+                                    : _uiText(
+                                        sheetContext,
+                                        'Nessun brano in questa categoria',
+                                        'No tracks in this category',
+                                      ),
                               ),
                             )
                           : ListView.separated(
@@ -572,6 +647,11 @@ class RadioMondoDock extends StatelessWidget {
 
                                 return ListTile(
                                   selected: selectedStation,
+                                  selectedTileColor: colors.primaryContainer
+                                      .withValues(alpha: 0.30),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 12,
                                     vertical: 2,
@@ -773,6 +853,17 @@ class RadioMondoDock extends StatelessWidget {
         'ru': 'Следующий',
         'zh': '下一首',
       },
+      'Ascolto continuo': <String, String>{
+        'de': 'Fortlaufende Wiedergabe',
+        'fa': 'پخش پیوسته',
+        'es': 'Escucha continua',
+        'pt': 'Reprodução contínua',
+        'fr': 'Écoute continue',
+        'ar': 'استماع متواصل',
+        'ro': 'Ascultare continuă',
+        'ru': 'Непрерывное прослушивание',
+        'zh': '连续播放',
+      },
       'Nessun brano': <String, String>{
         'de': 'Kein Titel',
         'fa': 'بدون قطعه',
@@ -783,6 +874,17 @@ class RadioMondoDock extends StatelessWidget {
         'ro': 'Nicio piesă',
         'ru': 'Нет трека',
         'zh': '暂无曲目',
+      },
+      'Nessun brano in Radio Jahan': <String, String>{
+        'de': 'Keine Titel in Radio Jahan',
+        'fa': 'قطعه‌ای در رادیو جهان نیست',
+        'es': 'No hay pistas en Radio Jahan',
+        'pt': 'Sem faixas na Radio Jahan',
+        'fr': 'Aucun titre dans Radio Jahan',
+        'ar': 'لا توجد مقطوعات في Radio Jahan',
+        'ro': 'Nicio piesă în Radio Jahan',
+        'ru': 'Нет треков в Radio Jahan',
+        'zh': 'Radio Jahan 暂无曲目',
       },
       'Nessun brano in questa categoria': <String, String>{
         'de': 'Keine Titel in dieser Kategorie',
@@ -824,7 +926,7 @@ class RadioMondoDock extends StatelessWidget {
   static IconData _categoryIcon(RadioMondoCategory category) {
     return switch (category) {
       RadioMondoCategory.reggae => Icons.waves_rounded,
-      RadioMondoCategory.classical => Icons.piano_rounded,
+      RadioMondoCategory.classical => Icons.album,
       RadioMondoCategory.house => Icons.graphic_eq_rounded,
       RadioMondoCategory.jazzSoul => Icons.music_note_rounded,
       RadioMondoCategory.worldMusic => Icons.public_rounded,
@@ -838,11 +940,124 @@ class RadioMondoDock extends StatelessWidget {
     }
     return switch (station.category) {
       RadioMondoCategory.reggae => Icons.waves_rounded,
-      RadioMondoCategory.classical => Icons.piano_rounded,
+      RadioMondoCategory.classical => Icons.album,
       RadioMondoCategory.house => Icons.graphic_eq_rounded,
       RadioMondoCategory.jazzSoul => Icons.music_note_rounded,
       RadioMondoCategory.worldMusic => Icons.public_rounded,
       RadioMondoCategory.soundsAtmospheres => Icons.spa_outlined,
     };
+  }
+}
+
+enum _TransportGlyph { previous, play, pause, next }
+
+class _TransportGlyphIcon extends StatelessWidget {
+  final _TransportGlyph glyph;
+  final double size;
+  final Color color;
+
+  const _TransportGlyphIcon({
+    required this.glyph,
+    required this.size,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: size,
+      child: CustomPaint(
+        painter: _TransportGlyphPainter(
+          glyph: glyph,
+          color: color,
+        ),
+      ),
+    );
+  }
+}
+
+class _TransportGlyphPainter extends CustomPainter {
+  final _TransportGlyph glyph;
+  final Color color;
+
+  const _TransportGlyphPainter({
+    required this.glyph,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final w = size.width;
+    final h = size.height;
+    final top = h * 0.20;
+    final bottom = h * 0.80;
+    final centerY = h * 0.50;
+    final barWidth = w * 0.13;
+
+    Path triangle({required bool pointsRight}) {
+      final path = Path();
+      if (pointsRight) {
+        path
+          ..moveTo(w * 0.29, top)
+          ..lineTo(w * 0.75, centerY)
+          ..lineTo(w * 0.29, bottom);
+      } else {
+        path
+          ..moveTo(w * 0.71, top)
+          ..lineTo(w * 0.25, centerY)
+          ..lineTo(w * 0.71, bottom);
+      }
+      path.close();
+      return path;
+    }
+
+    switch (glyph) {
+      case _TransportGlyph.previous:
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTWH(w * 0.18, top, barWidth, bottom - top),
+            Radius.circular(barWidth * 0.35),
+          ),
+          paint,
+        );
+        canvas.drawPath(triangle(pointsRight: false), paint);
+        break;
+      case _TransportGlyph.play:
+        canvas.drawPath(triangle(pointsRight: true), paint);
+        break;
+      case _TransportGlyph.pause:
+        final pauseWidth = w * 0.20;
+        final gap = w * 0.10;
+        final left = (w - (pauseWidth * 2 + gap)) / 2;
+        for (final x in <double>[left, left + pauseWidth + gap]) {
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(
+              Rect.fromLTWH(x, top, pauseWidth, bottom - top),
+              Radius.circular(pauseWidth * 0.25),
+            ),
+            paint,
+          );
+        }
+        break;
+      case _TransportGlyph.next:
+        canvas.drawPath(triangle(pointsRight: true), paint);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTWH(w * 0.69, top, barWidth, bottom - top),
+            Radius.circular(barWidth * 0.35),
+          ),
+          paint,
+        );
+        break;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _TransportGlyphPainter oldDelegate) {
+    return oldDelegate.glyph != glyph || oldDelegate.color != color;
   }
 }

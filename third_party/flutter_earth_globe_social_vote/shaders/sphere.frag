@@ -163,21 +163,36 @@ void main() {
         fragColor = dayColor;
     }
     
-    // Independent cloud layer. The cloud source is a grayscale map where
-    // brighter pixels represent thicker clouds. Density changes both the
-    // visibility threshold and opacity, while longitude offset lets clouds
-    // drift independently from the Earth texture.
+    // Independent Natural cloud layer. Coverage is calculated before surface
+    // lighting but composited afterwards, so 25/50/100% means the same visible
+    // amount on every Globe preset instead of disappearing on darker styles.
+    float cloudAlpha = 0.0;
     if (uCloudEnabled > 0.5 && uCloudDensity > 0.001) {
         vec2 cloudUv = uv;
-        cloudUv.x = fract(uv.x + (uCloudRotationOffset / TWO_PI) + 1.0);
+        // Texture sampling runs opposite to the visible surface motion.
+        // Subtract offset so Admin West (-1) moves clouds west visually.
+        cloudUv.x = fract(uv.x - (uCloudRotationOffset / TWO_PI) + 1.0);
         vec3 cloudSample = texture(uCloudSurface, cloudUv).rgb;
-        float cloudLuma = dot(cloudSample, vec3(0.2126, 0.7152, 0.0722));
-        float threshold = mix(0.82, 0.16, clamp(uCloudDensity, 0.0, 1.0));
-        float softness = 0.18;
-        float cloudMask = smoothstep(threshold, min(1.0, threshold + softness), cloudLuma);
-        float cloudOpacity = mix(0.42, 0.78, clamp(uCloudDensity, 0.0, 1.0));
-        float cloudAlpha = cloudMask * cloudOpacity;
-        fragColor.rgb = mix(fragColor.rgb, vec3(0.97, 0.98, 1.0), cloudAlpha);
+        float coverage = clamp(uCloudDensity, 0.0, 1.0);
+        // Match the existing Web Three.js cloud alphaMap pipeline:
+        // alphaMap uses the GREEN texture channel, multiplies material opacity,
+        // and applies alphaTest to the resulting alpha (not to raw luminance).
+        float threshold = mix(0.82, 0.12, clamp(uCloudDensity, 0.0, 1.0));
+        float cloudOpacity = mix(0.42, 0.82, clamp(uCloudDensity, 0.0, 1.0));
+        float cloudRawAlpha = cloudSample.g * cloudOpacity;
+        // Retain V5's edge-softness profile, but use only a narrow feather at
+        // alphaTest's boundary to avoid hard aliasing on Android GLES/Vulkan.
+        float softness = mix(0.075, 0.115, coverage);
+        // Wider transition recovers wispy cloud details clipped by the narrow
+        // V5 R3 alphaTest approximation, while keeping the Web green-channel
+        // alpha pipeline, opacity and coverage thresholds identical.
+        float feather = softness * 0.30;
+        float cloudVisibility = smoothstep(
+            threshold - feather,
+            threshold + feather,
+            cloudRawAlpha
+        );
+        cloudAlpha = cloudRawAlpha * cloudVisibility;
     }
 
     // Apply 3D surface lighting if enabled
@@ -196,8 +211,21 @@ void main() {
         // Apply intensity and ambient
         float lighting = uAmbientLight + diffuse * uLightIntensity * (1.0 - uAmbientLight);
         
-        // Apply lighting to the color
+        // Apply lighting to the Earth surface only. Clouds are composited
+        // afterwards so their coverage is not accidentally reduced by the
+        // selected Globe's directional-light preset.
         fragColor.rgb *= lighting;
+    }
+
+    if (cloudAlpha > 0.0) {
+        float surfaceLuma = dot(fragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+        float cloudBrightness = mix(
+            0.82,
+            1.0,
+            clamp(surfaceLuma * 1.8, 0.0, 1.0)
+        );
+        vec3 naturalCloudColor = vec3(0.97, 0.98, 1.0) * cloudBrightness;
+        fragColor.rgb = mix(fragColor.rgb, naturalCloudColor, cloudAlpha);
     }
     
     // Apply anti-aliasing edge smoothing with premultiplied alpha

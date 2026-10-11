@@ -53,14 +53,14 @@ class _SocialVoteHeaderWebImageState extends State<SocialVoteHeaderWebImage> {
       return;
     }
 
-    final brightness = (1.0 + (0.12 * intensity)).toStringAsFixed(3);
-    final saturation = (1.0 + (0.18 * intensity)).toStringAsFixed(3);
-    final whiteAlpha = (0.20 * intensity).toStringAsFixed(3);
-    final cyanAlpha = (0.32 * intensity).toStringAsFixed(3);
-    final violetAlpha = (0.24 * intensity).toStringAsFixed(3);
-    final tightBlur = (1.2 + (2.0 * intensity)).toStringAsFixed(1);
-    final mediumBlur = (3.0 + (4.5 * intensity)).toStringAsFixed(1);
-    final wideBlur = (5.0 + (6.5 * intensity)).toStringAsFixed(1);
+    final brightness = (1.0 + (0.34 * intensity)).toStringAsFixed(3);
+    final saturation = (1.0 + (0.30 * intensity)).toStringAsFixed(3);
+    final whiteAlpha = (0.30 * intensity).toStringAsFixed(3);
+    final cyanAlpha = (0.46 * intensity).toStringAsFixed(3);
+    final violetAlpha = (0.34 * intensity).toStringAsFixed(3);
+    final tightBlur = (1.2 + (3.0 * intensity)).toStringAsFixed(1);
+    final mediumBlur = (3.0 + (5.5 * intensity)).toStringAsFixed(1);
+    final wideBlur = (5.0 + (8.0 * intensity)).toStringAsFixed(1);
 
     style.setProperty(
       'filter',

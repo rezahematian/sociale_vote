@@ -13,20 +13,11 @@ void main() {
       contains('DateTime? _suppressHomeSurfaceTapUntil;'),
     );
     expect(
-      source,
-      contains(
-        '_suppressHomeSurfaceTapUntil =\n'
-        '          DateTime.now().add(const Duration(milliseconds: 420));',
-      ),
-    );
-    expect(
-      source,
-      contains(
-        'if (_stylePickerOpen ||\n'
-        '          (suppressUntil != null &&\n'
-        '              DateTime.now().isBefore(suppressUntil))) {\n'
-        '        return;',
-      ),
+      RegExp(
+        r'_suppressHomeSurfaceTapUntil\s*=\s*DateTime\.now\(\)\.add\('
+        r'const Duration\(milliseconds:\s*420\)\);',
+      ).hasMatch(source),
+      isTrue,
     );
 
     final surfaceTap = source.indexOf(
@@ -40,10 +31,20 @@ void main() {
       'if (_stylePickerOpen ||',
       surfaceTap,
     );
+    final guardEnd = source.indexOf(
+      'return;',
+      guard,
+    );
 
     expect(surfaceTap, greaterThanOrEqualTo(0));
     expect(guard, greaterThan(surfaceTap));
-    expect(openClassic, greaterThan(guard));
+    expect(guardEnd, greaterThan(guard));
+    expect(openClassic, greaterThan(guardEnd));
+
+    final guardBlock = source.substring(guard, guardEnd + 'return;'.length);
+    expect(guardBlock, contains('_stylePickerOpen'));
+    expect(guardBlock, contains('suppressUntil != null'));
+    expect(guardBlock, contains('DateTime.now().isBefore(suppressUntil)'));
   });
 
   test('radial preset remains a normal single-tap action', () {
@@ -52,8 +53,9 @@ void main() {
     ).readAsStringSync();
 
     expect(
-      source,
-      contains('onTap: () => onSelected(styles[index])'),
+      RegExp(r'onTap:\s*\(\)\s*=>\s*onSelected\(styles\[index\]\)')
+          .hasMatch(source),
+      isTrue,
     );
   });
 }
