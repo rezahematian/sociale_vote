@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/poll_result.dart';
+import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 import 'package:sociale_vote/domain/poll/repositories/vote_repository.dart';
 import 'package:sociale_vote/domain/poll/usecases/get_poll_results.dart';
 import 'package:sociale_vote/domain/poll/value_objects/quorum_status.dart';
@@ -100,6 +101,11 @@ class PollResultController extends ChangeNotifier {
     final poll = _lastPoll;
     if (poll == null) return false;
     if (!_canShowResults) return false;
+    if (poll.configuration.visibilityRules.resultsVisibility ==
+            ResultsVisibilityMode.afterVote &&
+        _lastUserHasVoted != true) {
+      return false;
+    }
     return _isPublicVoteEnabled(poll);
   }
 

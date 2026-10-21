@@ -1467,7 +1467,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileAccountSectionTitle => 'الحساب';
 
   @override
-  String get profileAccountEmailHelper => 'لا يمكن تغيير البريد الإلكتروني للحساب من هذه الشاشة.';
+  String get profileAccountEmailHelper => 'يمكنك تحديث بريد الحساب عبر «تغيير البريد الإلكتروني» أدناه.';
+
+  @override
+  String get profileChangeEmailCurrent => 'البريد الحالي';
+
+  @override
+  String get profileChangeEmailAction => 'تغيير البريد الإلكتروني';
+
+  @override
+  String get profileChangeEmailDescription => 'طلب عنوان بريد إلكتروني جديد لهذا الحساب.';
+
+  @override
+  String get profileChangeEmailNew => 'البريد الإلكتروني الجديد';
+
+  @override
+  String get profileChangeEmailInvalid => 'أدخل عنوان بريد إلكتروني صالحًا.';
+
+  @override
+  String get profileChangeEmailUnchanged => 'هذا هو بريدك الحالي بالفعل.';
+
+  @override
+  String get profileChangeEmailSubmit => 'طلب تغيير البريد الإلكتروني';
+
+  @override
+  String get profileChangeEmailSecurityNote => 'إذا كان تغيير البريد الآمن مفعّلًا، فأكّد الرسائل المرسلة إلى العنوانين. يبقى الحساب ومحتواه كما هما.';
+
+  @override
+  String get profileChangeEmailRequested => 'تم إرسال الطلب. تحقّق من صندوقي البريد القديم والجديد وأكمل التأكيدات المطلوبة. لن يصبح التغيير فعّالًا قبل تأكيد الخدمة.';
+
+  @override
+  String get profileChangeEmailRequestFailed => 'تعذّر إرسال طلب التغيير. تحقّق من الاتصال والعنوان والجلسة ثم حاول مجددًا.';
+
+  @override
+  String get profileChangeEmailClose => 'إغلاق';
 
   @override
   String get profileChangePasswordAction => 'تغيير كلمة المرور';

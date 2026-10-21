@@ -1463,7 +1463,40 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileAccountSectionTitle => 'Аккаунт';
 
   @override
-  String get profileAccountEmailHelper => 'Адрес email аккаунта нельзя изменить на этом экране.';
+  String get profileAccountEmailHelper => 'Адрес можно обновить через «Изменить почту» ниже.';
+
+  @override
+  String get profileChangeEmailCurrent => 'Текущая почта';
+
+  @override
+  String get profileChangeEmailAction => 'Изменить почту';
+
+  @override
+  String get profileChangeEmailDescription => 'Запросить новый адрес электронной почты для этой учётной записи.';
+
+  @override
+  String get profileChangeEmailNew => 'Новая почта';
+
+  @override
+  String get profileChangeEmailInvalid => 'Введите корректный адрес электронной почты.';
+
+  @override
+  String get profileChangeEmailUnchanged => 'Это уже ваш текущий адрес.';
+
+  @override
+  String get profileChangeEmailSubmit => 'Запросить изменение';
+
+  @override
+  String get profileChangeEmailSecurityNote => 'Если безопасная смена адреса включена, подтвердите письма на обоих адресах. Учётная запись и содержимое сохраняются.';
+
+  @override
+  String get profileChangeEmailRequested => 'Запрос отправлен. Проверьте старый и новый ящики и выполните необходимые подтверждения. Изменение вступит в силу только после подтверждения сервисом.';
+
+  @override
+  String get profileChangeEmailRequestFailed => 'Не удалось отправить запрос. Проверьте соединение, адрес и сеанс.';
+
+  @override
+  String get profileChangeEmailClose => 'Закрыть';
 
   @override
   String get profileChangePasswordAction => 'Изменить пароль';

@@ -1213,9 +1213,53 @@
   "@profileAccountSectionTitle": {
     "description": "Edit profile UI: profileAccountSectionTitle"
   },
-  "profileAccountEmailHelper": "L’adresse e-mail du compte ne peut pas être modifiée depuis cet écran.",
+  "profileAccountEmailHelper": "Vous pouvez modifier l’adresse via « Changer d’adresse e-mail » ci-dessous.",
   "@profileAccountEmailHelper": {
     "description": "Edit profile UI: profileAccountEmailHelper"
+  },
+  "profileChangeEmailCurrent": "Adresse e-mail actuelle",
+  "@profileChangeEmailCurrent": {
+    "description": "Account change email: profileChangeEmailCurrent"
+  },
+  "profileChangeEmailAction": "Changer d’adresse e-mail",
+  "@profileChangeEmailAction": {
+    "description": "Account change email: profileChangeEmailAction"
+  },
+  "profileChangeEmailDescription": "Demander une nouvelle adresse e-mail pour ce compte.",
+  "@profileChangeEmailDescription": {
+    "description": "Account change email: profileChangeEmailDescription"
+  },
+  "profileChangeEmailNew": "Nouvelle adresse e-mail",
+  "@profileChangeEmailNew": {
+    "description": "Account change email: profileChangeEmailNew"
+  },
+  "profileChangeEmailInvalid": "Saisissez une adresse e-mail valide.",
+  "@profileChangeEmailInvalid": {
+    "description": "Account change email: profileChangeEmailInvalid"
+  },
+  "profileChangeEmailUnchanged": "C’est déjà votre adresse actuelle.",
+  "@profileChangeEmailUnchanged": {
+    "description": "Account change email: profileChangeEmailUnchanged"
+  },
+  "profileChangeEmailSubmit": "Demander le changement",
+  "@profileChangeEmailSubmit": {
+    "description": "Account change email: profileChangeEmailSubmit"
+  },
+  "profileChangeEmailSecurityNote": "Si le changement sécurisé est activé, confirmez les messages envoyés aux deux adresses. Votre compte et vos contenus restent identiques.",
+  "@profileChangeEmailSecurityNote": {
+    "description": "Account change email: profileChangeEmailSecurityNote"
+  },
+  "profileChangeEmailRequested": "Demande envoyée. Consultez vos deux boîtes et effectuez les confirmations nécessaires. Le changement prendra effet après confirmation du service.",
+  "@profileChangeEmailRequested": {
+    "description": "Account change email: profileChangeEmailRequested"
+  },
+  "profileChangeEmailRequestFailed": "Impossible de demander le changement. Vérifiez la connexion, l’adresse et la session.",
+  "@profileChangeEmailRequestFailed": {
+    "description": "Account change email: profileChangeEmailRequestFailed"
+  },
+  "profileChangeEmailClose": "Fermer",
+  "@profileChangeEmailClose": {
+    "description": "Account change email: profileChangeEmailClose"
   },
   "profileChangePasswordAction": "Changer le mot de passe",
   "@profileChangePasswordAction": {

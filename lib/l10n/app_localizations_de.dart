@@ -1457,7 +1457,40 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profileAccountSectionTitle => 'Konto';
 
   @override
-  String get profileAccountEmailHelper => 'Die E-Mail-Adresse des Kontos kann auf dieser Seite nicht geändert werden.';
+  String get profileAccountEmailHelper => 'Du kannst deine E-Mail über „E-Mail ändern“ unten aktualisieren.';
+
+  @override
+  String get profileChangeEmailCurrent => 'Aktuelle E-Mail';
+
+  @override
+  String get profileChangeEmailAction => 'E-Mail ändern';
+
+  @override
+  String get profileChangeEmailDescription => 'Eine neue E-Mail-Adresse für dieses Konto anfordern.';
+
+  @override
+  String get profileChangeEmailNew => 'Neue E-Mail-Adresse';
+
+  @override
+  String get profileChangeEmailInvalid => 'Gib eine gültige E-Mail-Adresse ein.';
+
+  @override
+  String get profileChangeEmailUnchanged => 'Dies ist bereits deine aktuelle E-Mail-Adresse.';
+
+  @override
+  String get profileChangeEmailSubmit => 'E-Mail-Änderung anfordern';
+
+  @override
+  String get profileChangeEmailSecurityNote => 'Wenn die sichere E-Mail-Änderung aktiviert ist, bestätige die Nachrichten an beide Adressen. Konto und Inhalte bleiben erhalten.';
+
+  @override
+  String get profileChangeEmailRequested => 'Anfrage gesendet. Prüfe beide Postfächer und bestätige alle erforderlichen Nachrichten. Die Änderung wird erst nach der Bestätigung durch den Dienst wirksam.';
+
+  @override
+  String get profileChangeEmailRequestFailed => 'Die Änderung konnte nicht angefordert werden. Prüfe Verbindung, Adresse und Sitzung.';
+
+  @override
+  String get profileChangeEmailClose => 'Schließen';
 
   @override
   String get profileChangePasswordAction => 'Passwort ändern';

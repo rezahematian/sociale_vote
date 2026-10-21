@@ -1457,7 +1457,40 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileAccountSectionTitle => '账户';
 
   @override
-  String get profileAccountEmailHelper => '无法在此页面更改账户邮箱地址。';
+  String get profileAccountEmailHelper => '可以通过下方“更改邮箱”更新账户邮箱。';
+
+  @override
+  String get profileChangeEmailCurrent => '当前邮箱';
+
+  @override
+  String get profileChangeEmailAction => '更改邮箱';
+
+  @override
+  String get profileChangeEmailDescription => '为此账户申请新的电子邮箱地址。';
+
+  @override
+  String get profileChangeEmailNew => '新邮箱地址';
+
+  @override
+  String get profileChangeEmailInvalid => '请输入有效的电子邮箱地址。';
+
+  @override
+  String get profileChangeEmailUnchanged => '这已经是你的当前邮箱。';
+
+  @override
+  String get profileChangeEmailSubmit => '申请更改邮箱';
+
+  @override
+  String get profileChangeEmailSecurityNote => '如果已启用安全邮箱更改，请确认发送到两个地址的邮件。账户和内容保持不变。';
+
+  @override
+  String get profileChangeEmailRequested => '请求已发送。请检查旧邮箱与新邮箱并完成所有必要确认。更改须经服务确认后才会生效。';
+
+  @override
+  String get profileChangeEmailRequestFailed => '无法申请更改邮箱。请检查网络、地址和登录状态后重试。';
+
+  @override
+  String get profileChangeEmailClose => '关闭';
 
   @override
   String get profileChangePasswordAction => '更改密码';

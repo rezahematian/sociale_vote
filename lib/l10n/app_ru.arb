@@ -1213,9 +1213,53 @@
   "@profileAccountSectionTitle": {
     "description": "Edit profile UI: profileAccountSectionTitle"
   },
-  "profileAccountEmailHelper": "Адрес email аккаунта нельзя изменить на этом экране.",
+  "profileAccountEmailHelper": "Адрес можно обновить через «Изменить почту» ниже.",
   "@profileAccountEmailHelper": {
     "description": "Edit profile UI: profileAccountEmailHelper"
+  },
+  "profileChangeEmailCurrent": "Текущая почта",
+  "@profileChangeEmailCurrent": {
+    "description": "Account change email: profileChangeEmailCurrent"
+  },
+  "profileChangeEmailAction": "Изменить почту",
+  "@profileChangeEmailAction": {
+    "description": "Account change email: profileChangeEmailAction"
+  },
+  "profileChangeEmailDescription": "Запросить новый адрес электронной почты для этой учётной записи.",
+  "@profileChangeEmailDescription": {
+    "description": "Account change email: profileChangeEmailDescription"
+  },
+  "profileChangeEmailNew": "Новая почта",
+  "@profileChangeEmailNew": {
+    "description": "Account change email: profileChangeEmailNew"
+  },
+  "profileChangeEmailInvalid": "Введите корректный адрес электронной почты.",
+  "@profileChangeEmailInvalid": {
+    "description": "Account change email: profileChangeEmailInvalid"
+  },
+  "profileChangeEmailUnchanged": "Это уже ваш текущий адрес.",
+  "@profileChangeEmailUnchanged": {
+    "description": "Account change email: profileChangeEmailUnchanged"
+  },
+  "profileChangeEmailSubmit": "Запросить изменение",
+  "@profileChangeEmailSubmit": {
+    "description": "Account change email: profileChangeEmailSubmit"
+  },
+  "profileChangeEmailSecurityNote": "Если безопасная смена адреса включена, подтвердите письма на обоих адресах. Учётная запись и содержимое сохраняются.",
+  "@profileChangeEmailSecurityNote": {
+    "description": "Account change email: profileChangeEmailSecurityNote"
+  },
+  "profileChangeEmailRequested": "Запрос отправлен. Проверьте старый и новый ящики и выполните необходимые подтверждения. Изменение вступит в силу только после подтверждения сервисом.",
+  "@profileChangeEmailRequested": {
+    "description": "Account change email: profileChangeEmailRequested"
+  },
+  "profileChangeEmailRequestFailed": "Не удалось отправить запрос. Проверьте соединение, адрес и сеанс.",
+  "@profileChangeEmailRequestFailed": {
+    "description": "Account change email: profileChangeEmailRequestFailed"
+  },
+  "profileChangeEmailClose": "Закрыть",
+  "@profileChangeEmailClose": {
+    "description": "Account change email: profileChangeEmailClose"
   },
   "profileChangePasswordAction": "Изменить пароль",
   "@profileChangePasswordAction": {

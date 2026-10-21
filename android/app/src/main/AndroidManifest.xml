@@ -79,6 +79,17 @@
                 <data android:pathPrefix="/post/" />
             </intent-filter>
 
+            <!-- Public Radio Mondo track links; no autoplay. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="socialevote.com" />
+                <data android:pathPrefix="/radio/track/" />
+            </intent-filter>
+
             <!-- Verified public City links. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />

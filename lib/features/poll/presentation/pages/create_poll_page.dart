@@ -10,11 +10,13 @@ import 'package:sociale_vote/domain/identity/value_objects/institution_level.dar
 import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/organization/entities/organization_models.dart';
 import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
+import 'package:sociale_vote/domain/poll/services/create_poll_timing_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_id.dart';
 import 'package:sociale_vote/domain/poll/value_objects/poll_type.dart';
 import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 import 'package:sociale_vote/features/poll/application/create_poll_controller.dart';
+import 'package:sociale_vote/features/poll/presentation/create_poll_form_messages.dart';
 import 'package:sociale_vote/features/poll/presentation/widgets/create_poll_selection_limits.dart';
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/auth_guard.dart';
@@ -68,6 +70,11 @@ class _CreatePollViewState extends State<_CreatePollView> {
   bool _publishingIdentityLoaded = false;
   bool _showAdvancedOptions = false;
   bool _showManualContentLocationFields = false;
+  bool _showValidationErrors = false;
+  final FocusNode _titleFocusNode = FocusNode();
+  final GlobalKey _answersStepKey = GlobalKey();
+  final GlobalKey _participationStepKey = GlobalKey();
+  final GlobalKey _publicationStepKey = GlobalKey();
 
   @override
   void initState() {
@@ -78,6 +85,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
   @override
   void dispose() {
     _contentCityController.dispose();
+    _titleFocusNode.dispose();
     super.dispose();
   }
 
@@ -571,42 +579,256 @@ class _CreatePollViewState extends State<_CreatePollView> {
     );
   }
 
-  bool _isTimingTooLong(CreatePollController controller) {
-    if (!controller.hasExplicitTimeWindow) {
-      return false;
+  String _formMessage(String key, {int? days}) => CreatePollFormMessages.of(
+        Localizations.localeOf(context).languageCode,
+        key,
+        days: days,
+      );
+
+  bool _isTimingTooLong(CreatePollController controller) =>
+      controller.hasExplicitTimeWindow &&
+      CreatePollTimingRules.isOverLimit(controller.startAt, controller.endAt);
+
+  List<String> _incompleteFormMessages(CreatePollController controller) {
+    final issues = <String>[];
+    if (controller.title.trim().isEmpty) {
+      issues.add(_formMessage('titleMissing'));
     }
-    return controller.endAt.difference(controller.startAt) >
-        const Duration(days: 31);
+    final validOptions =
+        controller.options.where((value) => value.trim().isNotEmpty).length;
+    if (validOptions < 2) {
+      issues.add(_formMessage('optionsMissing'));
+    }
+    if (controller.type == PollType.multipleChoice &&
+        (controller.minSelections != 1 ||
+            controller.maxSelections < 2 ||
+            controller.maxSelections > validOptions)) {
+      issues.add(_formMessage('selectionInvalid'));
+    }
+    if (!controller.hasExplicitStartAt) {
+      issues.add(_formMessage('startMissing'));
+    }
+    if (!controller.hasExplicitEndAt) {
+      issues.add(_formMessage('endMissing'));
+    }
+    if (controller.hasExplicitTimeWindow) {
+      if (controller.endAt.isBefore(controller.startAt) &&
+          CreatePollTimingRules.inclusiveDays(
+                controller.startAt,
+                controller.endAt,
+              ) <
+              1) {
+        issues.add(_formMessage('invalid'));
+      } else if (_isTimingTooLong(controller)) {
+        issues.add(_formMessage('tooLong'));
+      }
+    }
+    if (controller.participationScope == ParticipationScope.geoScopeOnly &&
+        (controller.countryCodeForParticipation?.trim().isEmpty ?? true)) {
+      issues.add(_formMessage('countryMissing'));
+    }
+    return issues;
   }
 
-  String? _submitHintText(CreatePollController controller) {
-    if (!controller.hasExplicitTimeWindow) {
-      return _isItalian
-          ? 'Imposta data di inizio e data di fine prima di creare il Vote.'
-          : deOrEnglish(context,
-              english:
-                  'Set a start date and an end date before creating the Vote.',
-              german:
-                  'Lege vor dem Erstellen eines Vote ein Start- und Enddatum fest.');
+  Widget _formStatus(BuildContext context, List<String> issues) {
+    if (issues.isEmpty) {
+      return _buildInlineInfoBox(context, text: _formMessage('ready'));
+    }
+    return _buildInlineErrorBox(
+      context,
+      text:
+          '${_formMessage('status')}\n${issues.map((issue) => '• $issue').join('\n')}',
+    );
+  }
+
+  Widget _buildStepHeading(
+    BuildContext context, {
+    required int number,
+    required String title,
+    required IconData icon,
+    Key? key,
+  }) {
+    final theme = Theme.of(context);
+    return Padding(
+      key: key,
+      padding: const EdgeInsets.fromLTRB(4, 22, 4, 12),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: theme.colorScheme.primaryContainer,
+            foregroundColor: theme.colorScheme.onPrimaryContainer,
+            child: Text('$number',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(width: 12),
+          Icon(icon, color: theme.colorScheme.primary, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                )),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _focusFirstInvalid(CreatePollController controller) {
+    if (controller.title.trim().isEmpty) {
+      _titleFocusNode.requestFocus();
+      return;
+    }
+    final filledOptions =
+        controller.options.where((option) => option.trim().isNotEmpty).length;
+    final selectionInvalid = controller.type == PollType.multipleChoice &&
+        (controller.minSelections != 1 ||
+            controller.maxSelections < 2 ||
+            controller.maxSelections > filledOptions);
+    final target = filledOptions < 2 || selectionInvalid
+        ? _answersStepKey.currentContext
+        : controller.participationScope == ParticipationScope.geoScopeOnly &&
+                (controller.countryCodeForParticipation?.trim().isEmpty ?? true)
+            ? _participationStepKey.currentContext
+            : _publicationStepKey.currentContext;
+    if (target != null) {
+      Scrollable.ensureVisible(target,
+          duration: const Duration(milliseconds: 280),
+          alignment: 0.08,
+          curve: Curves.easeOutCubic);
+    }
+  }
+
+  Widget _reviewLine(BuildContext context, String label, String value) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(label,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              )),
+          const SizedBox(height: 3),
+          Text(value, style: theme.textTheme.bodyMedium),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _reviewAndSubmit(
+    CreatePollController controller,
+    String successMessage,
+  ) async {
+    if (controller.isSubmitting) return;
+    final issues = _incompleteFormMessages(controller);
+    if (issues.isNotEmpty || !controller.canSubmit) {
+      setState(() => _showValidationErrors = true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _focusFirstInvalid(controller);
+      });
+      return;
     }
 
-    if (controller.endAt.isBefore(controller.startAt)) {
-      return _isItalian
-          ? 'La data di fine deve essere successiva alla data di inizio.'
-          : deOrEnglish(context,
-              english: 'The end date must be after the start date.',
-              german: 'Das Enddatum muss nach dem Startdatum liegen.');
-    }
-
-    if (_isTimingTooLong(controller)) {
-      return _isItalian
-          ? 'La votazione non può durare più di 31 giorni.'
-          : deOrEnglish(context,
-              english: 'The Vote cannot last more than 31 days.',
-              german: 'Der Vote darf nicht länger als 31 Tage dauern.');
-    }
-
-    return null;
+    FocusScope.of(context).unfocus();
+    final l10n = AppLocalizations.of(context)!;
+    final answers = controller.options
+        .where((option) => option.trim().isNotEmpty)
+        .toList(growable: false);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(_formMessage('reviewTitle')),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(_formMessage('reviewHint')),
+                const SizedBox(height: 18),
+                _reviewLine(dialogContext, l10n.createPollTitleFieldLabel,
+                    controller.title.trim()),
+                if (controller.description.trim().isNotEmpty)
+                  _reviewLine(
+                      dialogContext,
+                      l10n.createPollDescriptionFieldLabel,
+                      controller.description.trim()),
+                _reviewLine(dialogContext, l10n.createPollVotingModelTitle,
+                    '${_pollTypeLabel(controller.type)} · ${_selectionSummary(controller)}'),
+                _reviewLine(
+                    dialogContext,
+                    l10n.createPollOptionsTitle,
+                    answers
+                        .asMap()
+                        .entries
+                        .map((entry) => '${entry.key + 1}. ${entry.value}')
+                        .join('\n')),
+                _reviewLine(dialogContext, l10n.createPollWhoCanVoteLabel,
+                    _participationScopeLabel(controller.participationScope)),
+                if (controller.participationScope ==
+                    ParticipationScope.geoScopeOnly)
+                  _reviewLine(dialogContext, l10n.createPollCountryFieldLabel,
+                      controller.countryCodeForParticipation ?? ''),
+                _reviewLine(
+                    dialogContext,
+                    l10n.adminCenterVerificationLevelLabel,
+                    _minimumVerificationLevelLabel(
+                        controller.minimumVerificationLevel)),
+                _reviewLine(dialogContext, _formMessage('reviewAnonymity'),
+                    _anonymityLabel(controller.anonymityLevel)),
+                _reviewLine(
+                    dialogContext,
+                    _formMessage('reviewPublisher'),
+                    controller.isPublishingAsOrganization
+                        ? (_organizationContext?.organization.publicName ??
+                            _formMessage('reviewPersonal'))
+                        : _formMessage('reviewPersonal')),
+                _reviewLine(
+                    dialogContext,
+                    _formMessage('reviewLocation'),
+                    _contentLocationSummary(
+                        controller.effectiveContentLocation)),
+                _reviewLine(
+                    dialogContext,
+                    l10n.createPollResultsVisibilityFieldLabel,
+                    _resultsVisibilityLabel(controller.resultsVisibility)),
+                _reviewLine(
+                    dialogContext,
+                    l10n.createPollTimingTitle,
+                    '${_formatDate(controller.startAt)} → ${_formatDate(controller.endAt)}\n'
+                    '${_formMessage('duration', days: CreatePollTimingRules.inclusiveDays(controller.startAt, controller.endAt))}'),
+                if (controller.allowVoteChange)
+                  _reviewLine(
+                      dialogContext,
+                      l10n.createPollAllowVoteChangeTitle,
+                      _formMessage('reviewEnabled')),
+                if (controller.minQuorumVotes != null)
+                  _reviewLine(dialogContext, l10n.createPollQuorumTitle,
+                      '${controller.minQuorumVotes}'),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(_formMessage('reviewCancel')),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            icon: const Icon(Icons.check_circle_outline),
+            label: Text(_formMessage('reviewConfirm')),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || confirmed != true) return;
+    await _submitPoll(controller, successMessage);
   }
 
   bool _canPublishAsRepresentative(UserProfile? profile) {
@@ -1372,17 +1594,14 @@ class _CreatePollViewState extends State<_CreatePollView> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxWidth: 720,
+                maxWidth: 920,
               ),
               child: Consumer<CreatePollController>(
                 builder: (context, controller, _) {
                   final isSubmitting = controller.isSubmitting;
                   final selectedParticipationCountryCode =
                       controller.countryCodeForParticipation;
-                  final submitHintText = _submitHintText(controller);
-                  final canSubmitPoll = controller.canSubmit &&
-                      controller.hasExplicitTimeWindow &&
-                      !_isTimingTooLong(controller);
+                  final formIssues = _incompleteFormMessages(controller);
 
                   return AbsorbPointer(
                     absorbing: isSubmitting,
@@ -1393,6 +1612,16 @@ class _CreatePollViewState extends State<_CreatePollView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          _buildInlineInfoBox(
+                            context,
+                            text: _formMessage('intro'),
+                          ),
+                          _buildStepHeading(
+                            context,
+                            number: 1,
+                            title: _formMessage('stepQuestion'),
+                            icon: Icons.edit_note_rounded,
+                          ),
                           _buildSectionCard(
                             context,
                             child: Column(
@@ -1415,6 +1644,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                 const SizedBox(height: 16),
                                 TextField(
                                   enabled: !isSubmitting,
+                                  focusNode: _titleFocusNode,
                                   textDirection:
                                       socialVoteEditableTextDirection(
                                     context,
@@ -1428,6 +1658,10 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     labelText: l10n.createPollTitleFieldLabel,
                                     border: const OutlineInputBorder(),
                                     helperText: l10n.createPollTitleFieldHelper,
+                                    errorText: _showValidationErrors &&
+                                            controller.title.trim().isEmpty
+                                        ? _formMessage('titleMissing')
+                                        : null,
                                   ),
                                   onChanged: controller.setTitle,
                                 ),
@@ -1462,26 +1696,11 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               ],
                             ),
                           ),
-                          if (_organizationContext != null) ...[
-                            const SizedBox(height: 16),
-                            _buildOrganizationPublishingCard(
-                              context,
-                              controller,
-                            ),
-                          ],
-                          if (!controller.isPublishingAsOrganization &&
-                              _canPublishAsRepresentative(
-                                _currentUserProfile,
-                              )) ...[
-                            const SizedBox(height: 16),
-                            _buildRepresentativePublishingCard(context),
-                          ],
-                          const SizedBox(height: 16),
-                          _buildContentLocationCard(
-                            context,
-                            controller,
-                            isSubmitting,
-                          ),
+                          _buildStepHeading(context,
+                              number: 2,
+                              title: _formMessage('stepAnswers'),
+                              icon: Icons.checklist_rounded,
+                              key: _answersStepKey),
                           const SizedBox(height: 16),
                           _buildSectionCard(
                             context,
@@ -1553,42 +1772,32 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                   icon: Icons.check_box_outlined,
                                   enabled: !isSubmitting,
                                 ),
-                                if (controller.type ==
-                                    PollType.multipleChoice) ...[
-                                  const SizedBox(height: 12),
-                                  CreatePollSelectionLimits(
-                                    maxSelections: controller.maxSelections,
-                                    selectionLimit: controller.selectionLimit,
-                                    enabled: !isSubmitting &&
-                                        controller.canConfigureSelectionLimits,
-                                    onMaxChanged: controller.setMaxSelections,
-                                  ),
-                                  const SizedBox(height: 12),
-                                ],
                                 const SizedBox(height: 4),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Icon(
-                                      Icons.info_outline,
-                                      size: 18,
-                                      color: theme.colorScheme.primary
-                                          .withValues(alpha: 0.8),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        _selectionSummary(controller),
-                                        style:
-                                            theme.textTheme.bodySmall?.copyWith(
-                                          color: theme
-                                              .textTheme.bodySmall?.color
-                                              ?.withValues(alpha: 0.8),
+                                if (controller.type != PollType.multipleChoice)
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        Icons.info_outline,
+                                        size: 18,
+                                        color: theme.colorScheme.primary
+                                            .withValues(alpha: 0.8),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          _selectionSummary(controller),
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                            color: theme
+                                                .textTheme.bodySmall?.color
+                                                ?.withValues(alpha: 0.8),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
+                                    ],
+                                  ),
                                 if (_showAdvancedOptions) ...[
                                   const SizedBox(height: 8),
                                   SwitchListTile.adaptive(
@@ -1750,10 +1959,87 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                       ),
                                     ),
                                   ),
+                                  if (controller.type ==
+                                      PollType.multipleChoice) ...[
+                                    const SizedBox(height: 12),
+                                    if (!controller.canConfigureSelectionLimits)
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            Icons.info_outline,
+                                            size: 18,
+                                            color: theme.colorScheme.primary,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              _formMessage('optionsMissing'),
+                                              style: theme.textTheme.bodySmall,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    else ...[
+                                      if (controller.selectionLimit == 2)
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                l10n.createPollMaximumAnswersLabel,
+                                                style:
+                                                    theme.textTheme.bodyMedium,
+                                              ),
+                                            ),
+                                            Text(
+                                              '${controller.maxSelections}',
+                                              style:
+                                                  theme.textTheme.titleMedium,
+                                            ),
+                                          ],
+                                        )
+                                      else
+                                        CreatePollSelectionLimits(
+                                          maxSelections:
+                                              controller.maxSelections,
+                                          selectionLimit:
+                                              controller.selectionLimit,
+                                          enabled: !isSubmitting,
+                                          onMaxChanged:
+                                              controller.setMaxSelections,
+                                        ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            Icons.info_outline,
+                                            size: 18,
+                                            color: theme.colorScheme.primary
+                                                .withValues(alpha: 0.8),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              _selectionSummary(controller),
+                                              style: theme.textTheme.bodySmall,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
                                 ],
                               ],
                             ),
                           ),
+                          _buildStepHeading(context,
+                              number: 3,
+                              title: _formMessage('stepParticipation'),
+                              icon: Icons.groups_outlined,
+                              key: _participationStepKey),
                           const SizedBox(height: 16),
                           _buildSectionCard(
                             context,
@@ -1969,65 +2255,88 @@ class _CreatePollViewState extends State<_CreatePollView> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          if (_showAdvancedOptions) ...[
-                            _buildSectionCard(
+                          _buildStepHeading(context,
+                              number: 4,
+                              title: _formMessage('stepPublication'),
+                              icon: Icons.event_available_outlined,
+                              key: _publicationStepKey),
+                          if (_organizationContext != null) ...[
+                            const SizedBox(height: 16),
+                            _buildOrganizationPublishingCard(
                               context,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n.createPollResultsValidityTitle,
-                                    style:
-                                        theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                              controller,
+                            ),
+                          ],
+                          if (!controller.isPublishingAsOrganization &&
+                              _canPublishAsRepresentative(
+                                _currentUserProfile,
+                              )) ...[
+                            const SizedBox(height: 16),
+                            _buildRepresentativePublishingCard(context),
+                          ],
+                          const SizedBox(height: 16),
+                          _buildContentLocationCard(
+                            context,
+                            controller,
+                            isSubmitting,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildSectionCard(
+                            context,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  l10n.createPollResultsValidityTitle,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    l10n.createPollResultsValiditySubtitle,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: theme.textTheme.bodySmall?.color
-                                          ?.withValues(alpha: 0.8),
-                                    ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  l10n.createPollResultsValiditySubtitle,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.textTheme.bodySmall?.color
+                                        ?.withValues(alpha: 0.8),
                                   ),
-                                  const SizedBox(height: 16),
-                                  InputDecorator(
-                                    decoration: InputDecoration(
-                                      labelText: l10n
-                                          .createPollResultsVisibilityFieldLabel,
-                                      border: const OutlineInputBorder(),
-                                    ),
-                                    child: DropdownButtonHideUnderline(
-                                      child:
-                                          DropdownButton<ResultsVisibilityMode>(
-                                        isExpanded: true,
-                                        value: controller.resultsVisibility,
-                                        onChanged: isSubmitting
-                                            ? null
-                                            : (value) {
-                                                if (value != null) {
-                                                  controller
-                                                      .setResultsVisibility(
-                                                    value,
-                                                  );
-                                                }
-                                              },
-                                        items: ResultsVisibilityMode.values
-                                            .map(
-                                              (mode) => DropdownMenuItem(
-                                                value: mode,
-                                                child: Text(
-                                                  _resultsVisibilityLabel(
-                                                    mode,
-                                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                InputDecorator(
+                                  decoration: InputDecoration(
+                                    labelText: l10n
+                                        .createPollResultsVisibilityFieldLabel,
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child:
+                                        DropdownButton<ResultsVisibilityMode>(
+                                      isExpanded: true,
+                                      value: controller.resultsVisibility,
+                                      onChanged: isSubmitting
+                                          ? null
+                                          : (value) {
+                                              if (value != null) {
+                                                controller.setResultsVisibility(
+                                                  value,
+                                                );
+                                              }
+                                            },
+                                      items: ResultsVisibilityMode.values
+                                          .map(
+                                            (mode) => DropdownMenuItem(
+                                              value: mode,
+                                              child: Text(
+                                                _resultsVisibilityLabel(
+                                                  mode,
                                                 ),
                                               ),
-                                            )
-                                            .toList(),
-                                      ),
+                                            ),
+                                          )
+                                          .toList(),
                                     ),
                                   ),
+                                ),
+                                if (_showAdvancedOptions) ...[
                                   const SizedBox(height: 16),
                                   Text(
                                     l10n.createPollQuorumTitle,
@@ -2066,10 +2375,10 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     },
                                   ),
                                 ],
-                              ),
+                              ],
                             ),
-                            const SizedBox(height: 16),
-                          ],
+                          ),
+                          const SizedBox(height: 16),
                           _buildSectionCard(
                             context,
                             child: Column(
@@ -2088,6 +2397,12 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                     color: theme.textTheme.bodySmall?.color
                                         ?.withValues(alpha: 0.8),
                                   ),
+                                ),
+                                const SizedBox(height: 8),
+                                _buildInlineInfoBox(
+                                  context,
+                                  text:
+                                      '${_formMessage('max31')}\n${_formMessage('wholeDays')}',
                                 ),
                                 const SizedBox(height: 12),
                                 ListTile(
@@ -2176,32 +2491,39 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                                 german: 'Nicht festgelegt')),
                                   ),
                                   trailing: TextButton(
-                                    onPressed: isSubmitting
+                                    onPressed: isSubmitting ||
+                                            !controller.hasExplicitStartAt
                                         ? null
                                         : () async {
-                                            final now = DateTime.now();
-                                            final baseDate = DateTime(
-                                              now.year,
-                                              now.month,
-                                              now.day,
+                                            final start = controller.startAt;
+                                            final minDate = DateTime(
+                                              start.year,
+                                              start.month,
+                                              start.day,
                                             );
-                                            final initialDate =
+                                            final maxDate =
+                                                CreatePollTimingRules
+                                                    .lastAllowedEndDate(start);
+                                            final proposed =
                                                 controller.hasExplicitEndAt
-                                                    ? controller.endAt
-                                                    : now;
+                                                    ? DateTime(
+                                                        controller.endAt.year,
+                                                        controller.endAt.month,
+                                                        controller.endAt.day,
+                                                      )
+                                                    : minDate;
+                                            final initialDate =
+                                                proposed.isBefore(minDate)
+                                                    ? minDate
+                                                    : (proposed.isAfter(maxDate)
+                                                        ? maxDate
+                                                        : proposed);
 
                                             final picked = await showDatePicker(
                                               context: context,
-                                              initialDate:
-                                                  initialDate.isBefore(baseDate)
-                                                      ? now
-                                                      : initialDate,
-                                              firstDate: now.subtract(
-                                                const Duration(days: 365),
-                                              ),
-                                              lastDate: now.add(
-                                                const Duration(days: 365 * 5),
-                                              ),
+                                              initialDate: initialDate,
+                                              firstDate: minDate,
+                                              lastDate: maxDate,
                                             );
                                             if (picked != null) {
                                               final current = controller.endAt;
@@ -2235,17 +2557,40 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                         ?.withValues(alpha: 0.8),
                                   ),
                                 ),
-                                if (submitHintText != null) ...[
-                                  const SizedBox(height: 12),
-                                  _buildInlineInfoBox(
-                                    context,
-                                    text: submitHintText,
+                                const SizedBox(height: 8),
+                                Text(
+                                  controller.hasExplicitTimeWindow
+                                      ? _formMessage(
+                                          'duration',
+                                          days: CreatePollTimingRules
+                                              .inclusiveDays(
+                                            controller.startAt,
+                                            controller.endAt,
+                                          ),
+                                        )
+                                      : controller.hasExplicitStartAt
+                                          ? _formMessage('endMissing')
+                                          : _formMessage('firstStart'),
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: _isTimingTooLong(controller)
+                                        ? theme.colorScheme.error
+                                        : theme.colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _formMessage('endRange'),
+                                  style: theme.textTheme.bodySmall,
+                                ),
                               ],
                             ),
                           ),
                           const SizedBox(height: 24),
+                          if (_showValidationErrors) ...[
+                            _formStatus(context, formIssues),
+                            const SizedBox(height: 12),
+                          ],
                           if (controller.errorMessage != null) ...[
                             _buildInlineErrorBox(
                               context,
@@ -2256,12 +2601,12 @@ class _CreatePollViewState extends State<_CreatePollView> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
-                              onPressed: canSubmitPoll && !isSubmitting
-                                  ? () => _submitPoll(
+                              onPressed: isSubmitting
+                                  ? null
+                                  : () => _reviewAndSubmit(
                                         controller,
                                         l10n.createPollSuccessMessage,
-                                      )
-                                  : null,
+                                      ),
                               icon: isSubmitting
                                   ? const SizedBox(
                                       width: 16,
@@ -2270,11 +2615,11 @@ class _CreatePollViewState extends State<_CreatePollView> {
                                         strokeWidth: 2,
                                       ),
                                     )
-                                  : const Icon(Icons.check),
+                                  : const Icon(Icons.rate_review_outlined),
                               label: Text(
                                 isSubmitting
                                     ? l10n.createPollSubmitCreatingLabel
-                                    : l10n.createPollSubmitLabel,
+                                    : _formMessage('reviewButton'),
                               ),
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(

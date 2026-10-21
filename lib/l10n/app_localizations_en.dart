@@ -1457,7 +1457,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileAccountSectionTitle => 'Account';
 
   @override
-  String get profileAccountEmailHelper => 'The account email address cannot be changed from this screen.';
+  String get profileAccountEmailHelper => 'Your account email can be updated using Change email below.';
+
+  @override
+  String get profileChangeEmailCurrent => 'Your current email';
+
+  @override
+  String get profileChangeEmailAction => 'Change email';
+
+  @override
+  String get profileChangeEmailDescription => 'Request a new email address for this account.';
+
+  @override
+  String get profileChangeEmailNew => 'New email address';
+
+  @override
+  String get profileChangeEmailInvalid => 'Enter a valid email address.';
+
+  @override
+  String get profileChangeEmailUnchanged => 'This is already your current email.';
+
+  @override
+  String get profileChangeEmailSubmit => 'Request email change';
+
+  @override
+  String get profileChangeEmailSecurityNote => 'If secure email change is enabled, confirm the messages sent to both addresses. Your account and content remain the same.';
+
+  @override
+  String get profileChangeEmailRequested => 'Email change requested. Check your old and new inboxes and complete all required confirmations. Your email will not change until the service confirms it.';
+
+  @override
+  String get profileChangeEmailRequestFailed => 'Could not request email change. Check your connection, address and account session, then try again.';
+
+  @override
+  String get profileChangeEmailClose => 'Close';
 
   @override
   String get profileChangePasswordAction => 'Change password';

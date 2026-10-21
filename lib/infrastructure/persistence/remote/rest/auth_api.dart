@@ -145,6 +145,26 @@ class AuthApi {
     );
   }
 
+  Future<void> requestEmailChange({required String newEmail}) async {
+    final user = AppSupabase.auth.currentUser;
+    if (user == null || AppSupabase.currentSession == null) {
+      throw StateError('Authenticated session required.');
+    }
+
+    final requested = newEmail.trim();
+    if (requested.isEmpty ||
+        requested.toLowerCase() == (user.email ?? '').trim().toLowerCase()) {
+      throw ArgumentError('Invalid or unchanged email address.');
+    }
+
+    // Supabase Auth owns the identity: no new user is created and no
+    // profile, vote, verification or other user data is rewritten here.
+    // Secure Email Change must be ENABLED in Supabase Auth settings.
+    await AppSupabase.auth.updateUser(
+      UserAttributes(email: requested),
+    );
+  }
+
   Future<void> updatePassword({
     required String newPassword,
   }) async {

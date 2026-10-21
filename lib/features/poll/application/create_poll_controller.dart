@@ -14,6 +14,7 @@ import 'package:sociale_vote/domain/identity/value_objects/actor_type.dart';
 import 'package:sociale_vote/domain/identity/value_objects/verification_level.dart';
 import 'package:sociale_vote/domain/poll/entities/poll.dart';
 import 'package:sociale_vote/domain/poll/entities/poll_option.dart';
+import 'package:sociale_vote/domain/poll/services/create_poll_timing_rules.dart';
 import 'package:sociale_vote/domain/poll/usecases/create_poll.dart';
 import 'package:sociale_vote/domain/poll/value_objects/anonymity_rules.dart';
 import 'package:sociale_vote/domain/poll/value_objects/participation_rules.dart';
@@ -26,7 +27,6 @@ import 'package:sociale_vote/domain/poll/value_objects/visibility_rules.dart';
 import 'package:sociale_vote/features/geo/application/geo_scope_controller.dart';
 
 class CreatePollController extends ChangeNotifier {
-  static const Duration _maxPollDuration = Duration(days: 31);
   static const ParticipationPolicy _participationPolicy = ParticipationPolicy();
 
   final CreatePoll _createPollUseCase;
@@ -141,7 +141,7 @@ class CreatePollController extends ChangeNotifier {
 
   bool get _isTimeWindowWithinLimit =>
       !hasExplicitTimeWindow ||
-      _effectiveEndAt.difference(_effectiveStartAt) <= _maxPollDuration;
+      !CreatePollTimingRules.isOverLimit(_startAt, _endAt);
 
   bool get canSubmit =>
       !_isSubmitting &&
@@ -635,7 +635,7 @@ class CreatePollController extends ChangeNotifier {
       return null;
     }
 
-    if (effectiveEndAt.difference(effectiveStartAt) > _maxPollDuration) {
+    if (CreatePollTimingRules.isOverLimit(_startAt, _endAt)) {
       _errorMessage = 'Poll duration cannot exceed 31 days.';
       notifyListeners();
       return null;

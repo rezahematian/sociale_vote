@@ -19,6 +19,7 @@ import 'package:sociale_vote/domain/organization/entities/organization_models.da
 import 'package:sociale_vote/features/profile/application/profile_controller.dart';
 import 'package:sociale_vote/features/profile/application/verification_requests_controller.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/edit_profile_page.dart';
+import 'package:sociale_vote/features/profile/presentation/pages/change_email_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_account_connections_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_comments_page.dart';
 import 'package:sociale_vote/features/profile/presentation/pages/my_favorites_page.dart';
@@ -84,7 +85,6 @@ String _globeQuickSettingsTitle(BuildContext context) {
     _ => 'Globe',
   };
 }
-
 
 String _quickSettingsSectionTitle(BuildContext context) {
   return switch (Localizations.localeOf(context).languageCode) {
@@ -193,9 +193,9 @@ String _globeStyleLabel(
         zh: 'C · 现代明亮',
       ),
     GlobeVisualStyle.nightLights =>
-        'D · ${WorldAppearanceService.brandedGlobeName(style)!}',
+      'D · ${WorldAppearanceService.brandedGlobeName(style)!}',
     GlobeVisualStyle.techNeon =>
-        'E · ${WorldAppearanceService.brandedGlobeName(style)!}',
+      'E · ${WorldAppearanceService.brandedGlobeName(style)!}',
     GlobeVisualStyle.terrainRelief => localized(
         en: 'F · Terrain relief',
         it: 'F · Rilievo geografico',
@@ -395,7 +395,6 @@ class _MyProfileViewState extends State<_MyProfileView> {
         'Organization workspace access cannot be checked right now. Tap to try again.',
     };
   }
-
 
   void _refreshUnreadNotificationsCount() {
     setState(() {
@@ -1106,6 +1105,25 @@ class _MyProfileViewState extends State<_MyProfileView> {
                       : l10n.authEmailLabel,
                   subtitle: l10n.profileAccountEmailHelper,
                   icon: Icons.email_outlined,
+                ),
+                const Divider(height: 1),
+                _SettingsTile(
+                  title: l10n.profileChangeEmailAction,
+                  subtitle: l10n.profileChangeEmailDescription,
+                  icon: Icons.mark_email_unread_outlined,
+                  onTap: _isDeletingAccount
+                      ? null
+                      : () {
+                          Navigator.of(sectionContext).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => ChangeEmailPage(
+                                currentEmail: Supabase.instance.client.auth
+                                        .currentUser?.email ??
+                                    accountEmail,
+                              ),
+                            ),
+                          );
+                        },
                 ),
                 const Divider(height: 1),
                 _SettingsTile(

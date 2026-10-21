@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:sociale_vote/l10n/app_localizations.dart';
 import 'package:sociale_vote/shared/services/radio_mondo_service.dart';
+import 'package:sociale_vote/shared/services/radio_mondo_track_share.dart';
 import 'package:sociale_vote/shared/services/social_vote_hud_service.dart';
 import 'package:sociale_vote/shared/services/world_appearance_service.dart';
 import 'package:sociale_vote/shared/widgets/world_control_visuals.dart';
@@ -154,7 +155,7 @@ class RadioMondoDock extends StatelessWidget {
 
     final viewport = MediaQuery.sizeOf(context);
     final wideSheet = viewport.width >= 720;
-    final sheetHeight = viewport.height * (wideSheet ? 0.70 : 0.80);
+    final sheetHeight = viewport.height * (wideSheet ? 0.70 : 0.90);
 
     final selected = await showModalBottomSheet<RadioMondoStation>(
       context: context,
@@ -175,13 +176,14 @@ class RadioMondoDock extends StatelessWidget {
                 final colors = theme.colorScheme;
                 final category = radio.selectedCategory;
                 final jahanMode = radio.isJahanMode;
+                final compact = MediaQuery.sizeOf(sheetContext).width < 600;
                 final stations = jahanMode
                     ? radio.jahanStations
                     : radio.stationsForCategory(category);
                 final activeStation =
                     radio.currentStation ?? radio.selectedStation;
 
-                Widget buildPlaybackControls() {
+                Widget buildPlaybackControls({bool compactMobile = false}) {
                   final controlsEnabled =
                       stations.isNotEmpty && !radio.isLoading;
 
@@ -193,9 +195,9 @@ class RadioMondoDock extends StatelessWidget {
                     final enabled = onPressed != null;
                     return IconButton(
                       tooltip: tooltip,
-                      constraints: const BoxConstraints.tightFor(
-                        width: 46,
-                        height: 46,
+                      constraints: BoxConstraints.tightFor(
+                        width: compactMobile ? 38 : 46,
+                        height: compactMobile ? 40 : 46,
                       ),
                       padding: EdgeInsets.zero,
                       style: IconButton.styleFrom(
@@ -213,7 +215,7 @@ class RadioMondoDock extends StatelessWidget {
                       onPressed: onPressed,
                       icon: _TransportGlyphIcon(
                         glyph: glyph,
-                        size: 27,
+                        size: compactMobile ? 23 : 27,
                         color: enabled
                             ? colors.onSurface
                             : colors.onSurface.withValues(alpha: 0.38),
@@ -235,14 +237,14 @@ class RadioMondoDock extends StatelessWidget {
                             ? () => unawaited(radio.playPrevious())
                             : null,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: compactMobile ? 4 : 8),
                       IconButton.filled(
                         tooltip: radio.isPlaying
                             ? _uiText(sheetContext, 'Pausa', 'Pause')
                             : _uiText(sheetContext, 'Riproduci', 'Play'),
-                        constraints: const BoxConstraints.tightFor(
-                          width: 54,
-                          height: 54,
+                        constraints: BoxConstraints.tightFor(
+                          width: compactMobile ? 44 : 54,
+                          height: compactMobile ? 44 : 54,
                         ),
                         padding: EdgeInsets.zero,
                         style: IconButton.styleFrom(
@@ -265,13 +267,13 @@ class RadioMondoDock extends StatelessWidget {
                           glyph: radio.isPlaying
                               ? _TransportGlyph.pause
                               : _TransportGlyph.play,
-                          size: 31,
+                          size: compactMobile ? 27 : 31,
                           color: controlsEnabled
                               ? colors.onPrimary
                               : colors.onSurface.withValues(alpha: 0.38),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: compactMobile ? 4 : 8),
                       transportButton(
                         tooltip: _uiText(
                           sheetContext,
@@ -387,26 +389,20 @@ class RadioMondoDock extends StatelessWidget {
                         ],
                       ),
                     ),
+                    // Categories scroll horizontally on mobile, leaving the
+                    // track list as the main scrollable area. Desktop retains
+                    // its original wrapping layout.
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                      child: Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                      child: Builder(
+                        builder: (context) {
+                          final filterChips = <Widget>[
                             Tooltip(
                               message: radio.jahanStationCount == 0
                                   ? _uiText(
-                                      sheetContext,
-                                      'Nessun brano',
-                                      'No track',
-                                    )
-                                  : _uiText(
-                                      sheetContext,
-                                      'Ascolto continuo',
-                                      'Continuous listening',
-                                    ),
+                                      sheetContext, 'Nessun brano', 'No track')
+                                  : _uiText(sheetContext, 'Ascolto continuo',
+                                      'Continuous listening'),
                               child: FilterChip(
                                 avatar: Icon(
                                   Icons.public_rounded,
@@ -442,11 +438,8 @@ class RadioMondoDock extends StatelessWidget {
                               Tooltip(
                                 message:
                                     radio.stationCountForCategory(item) == 0
-                                        ? _uiText(
-                                            sheetContext,
-                                            'Nessun brano',
-                                            'No track',
-                                          )
+                                        ? _uiText(sheetContext, 'Nessun brano',
+                                            'No track')
                                         : _categoryLabel(sheetContext, item),
                                 child: FilterChip(
                                   avatar: Icon(
@@ -458,24 +451,42 @@ class RadioMondoDock extends StatelessWidget {
                                   ),
                                   selected: !jahanMode && item == category,
                                   showCheckmark: false,
-                                  label: Text(
-                                    _categoryLabel(sheetContext, item),
-                                  ),
-                                  onSelected:
-                                      radio.stationCountForCategory(item) ==
-                                                  0 ||
-                                              radio.isLoading
-                                          ? null
-                                          : (_) => unawaited(
-                                                radio.selectCategory(item),
-                                              ),
+                                  label:
+                                      Text(_categoryLabel(sheetContext, item)),
+                                  onSelected: radio.stationCountForCategory(
+                                                  item) ==
+                                              0 ||
+                                          radio.isLoading
+                                      ? null
+                                      : (_) =>
+                                          unawaited(radio.selectCategory(item)),
                                 ),
                               ),
-                          ],
-                        ),
+                          ];
+                          if (!compact) {
+                            return Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: filterChips,
+                            );
+                          }
+                          return SizedBox(
+                            height: 48,
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              children: [
+                                for (final chip in filterChips)
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: chip,
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ),
-                    if (jahanMode)
+                    if (jahanMode && !compact)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                         child: Container(
@@ -566,23 +577,50 @@ class RadioMondoDock extends StatelessWidget {
                           child: LayoutBuilder(
                             builder: (context, constraints) {
                               if (constraints.maxWidth < 560) {
-                                return Column(
+                                return Row(
                                   children: [
-                                    Row(
-                                      children: [
-                                        buildPlaybackControls(),
-                                        const SizedBox(width: 8),
-                                        Expanded(child: buildTrackIdentity()),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Row(
-                                      children: [
-                                        const Spacer(),
-                                        buildVolume(
-                                          width: constraints.maxWidth * 0.72,
+                                    buildPlaybackControls(compactMobile: true),
+                                    const SizedBox(width: 6),
+                                    Expanded(child: buildTrackIdentity()),
+                                    IconButton(
+                                      tooltip: _uiText(
+                                          sheetContext, 'Volume', 'Volume'),
+                                      constraints:
+                                          const BoxConstraints.tightFor(
+                                        width: 38,
+                                        height: 44,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      icon: Icon(
+                                        radio.volume <= 0.01
+                                            ? Icons.volume_off_rounded
+                                            : radio.volume < 0.55
+                                                ? Icons.volume_down_rounded
+                                                : Icons.volume_up_rounded,
+                                        size: 24,
+                                      ),
+                                      onPressed: () => showDialog<void>(
+                                        context: sheetContext,
+                                        builder: (dialogContext) => AlertDialog(
+                                          title: Text(_uiText(dialogContext,
+                                              'Volume', 'Volume')),
+                                          content: AnimatedBuilder(
+                                            animation: radio,
+                                            builder: (context, _) =>
+                                                buildVolume(width: 190),
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(dialogContext),
+                                              child: Text(
+                                                  MaterialLocalizations.of(
+                                                          dialogContext)
+                                                      .closeButtonTooltip),
+                                            ),
+                                          ],
                                         ),
-                                      ],
+                                      ),
                                     ),
                                   ],
                                 );
@@ -679,14 +717,38 @@ class RadioMondoDock extends StatelessWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  trailing: selectedStation
-                                      ? Icon(
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        tooltip: _uiText(
+                                            sheetContext, 'Condividi', 'Share'),
+                                        icon: const Icon(Icons.share_outlined),
+                                        onPressed: () => unawaited(
+                                          RadioMondoTrackShare.share(station)
+                                              .catchError((Object error) {
+                                            if (sheetContext.mounted) {
+                                              ScaffoldMessenger.of(sheetContext)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                    content: Text(_uiText(
+                                                        sheetContext,
+                                                        'Condivisione non disponibile',
+                                                        'Sharing unavailable'))),
+                                              );
+                                            }
+                                          }),
+                                        ),
+                                      ),
+                                      if (selectedStation)
+                                        Icon(
                                           playingStation
                                               ? Icons.equalizer_rounded
                                               : Icons.check_circle_rounded,
                                           color: colors.primary,
-                                        )
-                                      : null,
+                                        ),
+                                    ],
+                                  ),
                                   onTap: () {
                                     onPickerClosed?.call();
                                     Navigator.pop(sheetContext, station);
@@ -896,6 +958,28 @@ class RadioMondoDock extends StatelessWidget {
         'ro': 'Nicio piesă în această categorie',
         'ru': 'В этой категории нет треков',
         'zh': '此分类暂无曲目',
+      },
+      'Condividi': <String, String>{
+        'de': 'Teilen',
+        'fa': 'اشتراک‌گذاری',
+        'es': 'Compartir',
+        'pt': 'Compartilhar',
+        'fr': 'Partager',
+        'ar': 'مشاركة',
+        'ro': 'Distribuie',
+        'ru': 'Поделиться',
+        'zh': '分享',
+      },
+      'Condivisione non disponibile': <String, String>{
+        'de': 'Teilen nicht verfügbar',
+        'fa': 'اشتراک‌گذاری در دسترس نیست',
+        'es': 'No se puede compartir',
+        'pt': 'Compartilhamento indisponível',
+        'fr': 'Partage indisponible',
+        'ar': 'المشاركة غير متاحة',
+        'ro': 'Distribuirea nu este disponibilă',
+        'ru': 'Поделиться не удалось',
+        'zh': '无法分享',
       },
       'Radio in pausa': <String, String>{
         'de': 'Radio pausiert',

@@ -20,7 +20,7 @@ class PollResultsVisibilityResolver {
         return true;
 
       case ResultsVisibilityMode.afterVote:
-        return userHasVoted;
+        return userHasVoted || poll.status == PollStatus.closed;
 
       case ResultsVisibilityMode.afterClose:
         return poll.status == PollStatus.closed;

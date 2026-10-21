@@ -2888,8 +2888,74 @@ abstract class AppLocalizations {
   /// Edit profile UI: profileAccountEmailHelper
   ///
   /// In en, this message translates to:
-  /// **'The account email address cannot be changed from this screen.'**
+  /// **'Your account email can be updated using Change email below.'**
   String get profileAccountEmailHelper;
+
+  /// Account change email: profileChangeEmailCurrent
+  ///
+  /// In en, this message translates to:
+  /// **'Your current email'**
+  String get profileChangeEmailCurrent;
+
+  /// Account change email: profileChangeEmailAction
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get profileChangeEmailAction;
+
+  /// Account change email: profileChangeEmailDescription
+  ///
+  /// In en, this message translates to:
+  /// **'Request a new email address for this account.'**
+  String get profileChangeEmailDescription;
+
+  /// Account change email: profileChangeEmailNew
+  ///
+  /// In en, this message translates to:
+  /// **'New email address'**
+  String get profileChangeEmailNew;
+
+  /// Account change email: profileChangeEmailInvalid
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address.'**
+  String get profileChangeEmailInvalid;
+
+  /// Account change email: profileChangeEmailUnchanged
+  ///
+  /// In en, this message translates to:
+  /// **'This is already your current email.'**
+  String get profileChangeEmailUnchanged;
+
+  /// Account change email: profileChangeEmailSubmit
+  ///
+  /// In en, this message translates to:
+  /// **'Request email change'**
+  String get profileChangeEmailSubmit;
+
+  /// Account change email: profileChangeEmailSecurityNote
+  ///
+  /// In en, this message translates to:
+  /// **'If secure email change is enabled, confirm the messages sent to both addresses. Your account and content remain the same.'**
+  String get profileChangeEmailSecurityNote;
+
+  /// Account change email: profileChangeEmailRequested
+  ///
+  /// In en, this message translates to:
+  /// **'Email change requested. Check your old and new inboxes and complete all required confirmations. Your email will not change until the service confirms it.'**
+  String get profileChangeEmailRequested;
+
+  /// Account change email: profileChangeEmailRequestFailed
+  ///
+  /// In en, this message translates to:
+  /// **'Could not request email change. Check your connection, address and account session, then try again.'**
+  String get profileChangeEmailRequestFailed;
+
+  /// Account change email: profileChangeEmailClose
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get profileChangeEmailClose;
 
   /// Edit profile UI: profileChangePasswordAction
   ///

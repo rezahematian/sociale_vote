@@ -1213,9 +1213,53 @@
   "@profileAccountSectionTitle": {
     "description": "Edit profile UI: profileAccountSectionTitle"
   },
-  "profileAccountEmailHelper": "لا يمكن تغيير البريد الإلكتروني للحساب من هذه الشاشة.",
+  "profileAccountEmailHelper": "يمكنك تحديث بريد الحساب عبر «تغيير البريد الإلكتروني» أدناه.",
   "@profileAccountEmailHelper": {
     "description": "Edit profile UI: profileAccountEmailHelper"
+  },
+  "profileChangeEmailCurrent": "البريد الحالي",
+  "@profileChangeEmailCurrent": {
+    "description": "Account change email: profileChangeEmailCurrent"
+  },
+  "profileChangeEmailAction": "تغيير البريد الإلكتروني",
+  "@profileChangeEmailAction": {
+    "description": "Account change email: profileChangeEmailAction"
+  },
+  "profileChangeEmailDescription": "طلب عنوان بريد إلكتروني جديد لهذا الحساب.",
+  "@profileChangeEmailDescription": {
+    "description": "Account change email: profileChangeEmailDescription"
+  },
+  "profileChangeEmailNew": "البريد الإلكتروني الجديد",
+  "@profileChangeEmailNew": {
+    "description": "Account change email: profileChangeEmailNew"
+  },
+  "profileChangeEmailInvalid": "أدخل عنوان بريد إلكتروني صالحًا.",
+  "@profileChangeEmailInvalid": {
+    "description": "Account change email: profileChangeEmailInvalid"
+  },
+  "profileChangeEmailUnchanged": "هذا هو بريدك الحالي بالفعل.",
+  "@profileChangeEmailUnchanged": {
+    "description": "Account change email: profileChangeEmailUnchanged"
+  },
+  "profileChangeEmailSubmit": "طلب تغيير البريد الإلكتروني",
+  "@profileChangeEmailSubmit": {
+    "description": "Account change email: profileChangeEmailSubmit"
+  },
+  "profileChangeEmailSecurityNote": "إذا كان تغيير البريد الآمن مفعّلًا، فأكّد الرسائل المرسلة إلى العنوانين. يبقى الحساب ومحتواه كما هما.",
+  "@profileChangeEmailSecurityNote": {
+    "description": "Account change email: profileChangeEmailSecurityNote"
+  },
+  "profileChangeEmailRequested": "تم إرسال الطلب. تحقّق من صندوقي البريد القديم والجديد وأكمل التأكيدات المطلوبة. لن يصبح التغيير فعّالًا قبل تأكيد الخدمة.",
+  "@profileChangeEmailRequested": {
+    "description": "Account change email: profileChangeEmailRequested"
+  },
+  "profileChangeEmailRequestFailed": "تعذّر إرسال طلب التغيير. تحقّق من الاتصال والعنوان والجلسة ثم حاول مجددًا.",
+  "@profileChangeEmailRequestFailed": {
+    "description": "Account change email: profileChangeEmailRequestFailed"
+  },
+  "profileChangeEmailClose": "إغلاق",
+  "@profileChangeEmailClose": {
+    "description": "Account change email: profileChangeEmailClose"
   },
   "profileChangePasswordAction": "تغيير كلمة المرور",
   "@profileChangePasswordAction": {

@@ -25,6 +25,7 @@ import 'package:sociale_vote/features/onboarding/presentation/how_social_vote_wo
 import 'package:sociale_vote/features/organization/presentation/pages/live_session_participant_page.dart';
 import 'package:sociale_vote/features/organization/presentation/pages/organization_workspace_page.dart';
 import 'package:sociale_vote/features/organization/presentation/pages/verified_session_report_page.dart';
+import 'package:sociale_vote/features/radio/presentation/pages/radio_mondo_track_page.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/create_poll_page.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/poll_detail_page.dart';
 import 'package:sociale_vote/features/poll/presentation/pages/poll_list_page.dart';
@@ -65,6 +66,14 @@ class AppRouter {
   static String publicPollPath(String pollId) {
     final id = pollId.trim();
     return '/poll/${Uri.encodeComponent(id)}';
+  }
+
+  static String publicRadioTrackPath(String stationId) {
+    return '/radio/track/${Uri.encodeComponent(stationId.trim())}';
+  }
+
+  static String publicRadioTrackUrl(String stationId) {
+    return 'https://$publicHost${publicRadioTrackPath(stationId)}';
   }
 
   static String publicPostPath(String postId) {
@@ -211,6 +220,14 @@ class AppRouter {
     if (publicPostId != null) {
       return MaterialPageRoute<void>(
         builder: (_) => PostDetailPage(postId: publicPostId),
+        settings: settings,
+      );
+    }
+
+    final publicRadioStationId = _publicRadioTrackId(routeName);
+    if (publicRadioStationId != null) {
+      return MaterialPageRoute<void>(
+        builder: (_) => RadioMondoTrackPage(stationId: publicRadioStationId),
         settings: settings,
       );
     }
@@ -464,7 +481,8 @@ class AppRouter {
         return true;
     }
 
-    return _publicContentId(path, prefix: 'poll') != null ||
+    return _publicRadioTrackId(path) != null ||
+        _publicContentId(path, prefix: 'poll') != null ||
         _publicContentId(path, prefix: 'post') != null ||
         _publicSessionJoinCode(path) != null ||
         _publicVerifiedSessionId(path) != null ||
@@ -481,6 +499,17 @@ class AppRouter {
     }
 
     final id = segments[1].trim();
+    return id.isEmpty ? null : id;
+  }
+
+  static String? _publicRadioTrackId(String path) {
+    final segments = Uri.tryParse(path)?.pathSegments ?? const <String>[];
+    if (segments.length != 3 ||
+        segments[0].toLowerCase() != 'radio' ||
+        segments[1].toLowerCase() != 'track') {
+      return null;
+    }
+    final id = segments[2].trim();
     return id.isEmpty ? null : id;
   }
 

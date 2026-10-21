@@ -1457,7 +1457,40 @@ class AppLocalizationsPt extends AppLocalizations {
   String get profileAccountSectionTitle => 'Conta';
 
   @override
-  String get profileAccountEmailHelper => 'O endereço de e-mail da conta não pode ser alterado nesta tela.';
+  String get profileAccountEmailHelper => 'Você pode atualizar seu e-mail pela opção «Alterar e-mail» abaixo.';
+
+  @override
+  String get profileChangeEmailCurrent => 'E-mail atual';
+
+  @override
+  String get profileChangeEmailAction => 'Alterar e-mail';
+
+  @override
+  String get profileChangeEmailDescription => 'Solicite um novo endereço de e-mail para esta conta.';
+
+  @override
+  String get profileChangeEmailNew => 'Novo e-mail';
+
+  @override
+  String get profileChangeEmailInvalid => 'Insira um e-mail válido.';
+
+  @override
+  String get profileChangeEmailUnchanged => 'Este já é seu e-mail atual.';
+
+  @override
+  String get profileChangeEmailSubmit => 'Solicitar alteração de e-mail';
+
+  @override
+  String get profileChangeEmailSecurityNote => 'Se a alteração segura estiver ativa, confirme as mensagens enviadas aos dois endereços. A conta e o conteúdo permanecem iguais.';
+
+  @override
+  String get profileChangeEmailRequested => 'Solicitação enviada. Verifique as duas caixas de entrada e conclua as confirmações necessárias. A alteração só será efetiva após a confirmação do serviço.';
+
+  @override
+  String get profileChangeEmailRequestFailed => 'Não foi possível solicitar a alteração. Verifique conexão, endereço e sessão.';
+
+  @override
+  String get profileChangeEmailClose => 'Fechar';
 
   @override
   String get profileChangePasswordAction => 'Alterar senha';

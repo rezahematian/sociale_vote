@@ -1213,9 +1213,53 @@
   "@profileAccountSectionTitle": {
     "description": "Edit profile UI: profileAccountSectionTitle"
   },
-  "profileAccountEmailHelper": "ایمیل حساب از این صفحه قابل تغییر نیست.",
+  "profileAccountEmailHelper": "می‌توانید ایمیل حساب را از بخش «تغییر ایمیل» در پایین به‌روز کنید.",
   "@profileAccountEmailHelper": {
     "description": "Edit profile UI: profileAccountEmailHelper"
+  },
+  "profileChangeEmailCurrent": "ایمیل فعلی",
+  "@profileChangeEmailCurrent": {
+    "description": "Account change email: profileChangeEmailCurrent"
+  },
+  "profileChangeEmailAction": "تغییر ایمیل",
+  "@profileChangeEmailAction": {
+    "description": "Account change email: profileChangeEmailAction"
+  },
+  "profileChangeEmailDescription": "درخواست نشانی ایمیل جدید برای این حساب.",
+  "@profileChangeEmailDescription": {
+    "description": "Account change email: profileChangeEmailDescription"
+  },
+  "profileChangeEmailNew": "ایمیل جدید",
+  "@profileChangeEmailNew": {
+    "description": "Account change email: profileChangeEmailNew"
+  },
+  "profileChangeEmailInvalid": "یک نشانی ایمیل معتبر وارد کنید.",
+  "@profileChangeEmailInvalid": {
+    "description": "Account change email: profileChangeEmailInvalid"
+  },
+  "profileChangeEmailUnchanged": "این همان ایمیل فعلی شماست.",
+  "@profileChangeEmailUnchanged": {
+    "description": "Account change email: profileChangeEmailUnchanged"
+  },
+  "profileChangeEmailSubmit": "درخواست تغییر ایمیل",
+  "@profileChangeEmailSubmit": {
+    "description": "Account change email: profileChangeEmailSubmit"
+  },
+  "profileChangeEmailSecurityNote": "اگر تغییر امن ایمیل فعال باشد، پیام‌های ارسال‌شده به هر دو نشانی را تأیید کنید. حساب و محتوای شما حفظ می‌شوند.",
+  "@profileChangeEmailSecurityNote": {
+    "description": "Account change email: profileChangeEmailSecurityNote"
+  },
+  "profileChangeEmailRequested": "درخواست ارسال شد. صندوق‌های ایمیل قدیم و جدید را بررسی و همه تأییدهای لازم را کامل کنید. تغییر تنها پس از تأیید سرویس اعمال می‌شود.",
+  "@profileChangeEmailRequested": {
+    "description": "Account change email: profileChangeEmailRequested"
+  },
+  "profileChangeEmailRequestFailed": "درخواست تغییر ایمیل انجام نشد. اتصال، نشانی و نشست حساب را بررسی و دوباره تلاش کنید.",
+  "@profileChangeEmailRequestFailed": {
+    "description": "Account change email: profileChangeEmailRequestFailed"
+  },
+  "profileChangeEmailClose": "بستن",
+  "@profileChangeEmailClose": {
+    "description": "Account change email: profileChangeEmailClose"
   },
   "profileChangePasswordAction": "تغییر رمز عبور",
   "@profileChangePasswordAction": {

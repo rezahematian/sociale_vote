@@ -1457,7 +1457,40 @@ class AppLocalizationsFa extends AppLocalizations {
   String get profileAccountSectionTitle => 'حساب';
 
   @override
-  String get profileAccountEmailHelper => 'ایمیل حساب از این صفحه قابل تغییر نیست.';
+  String get profileAccountEmailHelper => 'می‌توانید ایمیل حساب را از بخش «تغییر ایمیل» در پایین به‌روز کنید.';
+
+  @override
+  String get profileChangeEmailCurrent => 'ایمیل فعلی';
+
+  @override
+  String get profileChangeEmailAction => 'تغییر ایمیل';
+
+  @override
+  String get profileChangeEmailDescription => 'درخواست نشانی ایمیل جدید برای این حساب.';
+
+  @override
+  String get profileChangeEmailNew => 'ایمیل جدید';
+
+  @override
+  String get profileChangeEmailInvalid => 'یک نشانی ایمیل معتبر وارد کنید.';
+
+  @override
+  String get profileChangeEmailUnchanged => 'این همان ایمیل فعلی شماست.';
+
+  @override
+  String get profileChangeEmailSubmit => 'درخواست تغییر ایمیل';
+
+  @override
+  String get profileChangeEmailSecurityNote => 'اگر تغییر امن ایمیل فعال باشد، پیام‌های ارسال‌شده به هر دو نشانی را تأیید کنید. حساب و محتوای شما حفظ می‌شوند.';
+
+  @override
+  String get profileChangeEmailRequested => 'درخواست ارسال شد. صندوق‌های ایمیل قدیم و جدید را بررسی و همه تأییدهای لازم را کامل کنید. تغییر تنها پس از تأیید سرویس اعمال می‌شود.';
+
+  @override
+  String get profileChangeEmailRequestFailed => 'درخواست تغییر ایمیل انجام نشد. اتصال، نشانی و نشست حساب را بررسی و دوباره تلاش کنید.';
+
+  @override
+  String get profileChangeEmailClose => 'بستن';
 
   @override
   String get profileChangePasswordAction => 'تغییر رمز عبور';

@@ -1457,7 +1457,40 @@ class AppLocalizationsRo extends AppLocalizations {
   String get profileAccountSectionTitle => 'Cont';
 
   @override
-  String get profileAccountEmailHelper => 'Adresa de e-mail a contului nu poate fi schimbată din acest ecran.';
+  String get profileAccountEmailHelper => 'Poți schimba adresa contului prin „Schimbă adresa de e-mail” de mai jos.';
+
+  @override
+  String get profileChangeEmailCurrent => 'E-mail actual';
+
+  @override
+  String get profileChangeEmailAction => 'Schimbă adresa de e-mail';
+
+  @override
+  String get profileChangeEmailDescription => 'Solicită o nouă adresă de e-mail pentru acest cont.';
+
+  @override
+  String get profileChangeEmailNew => 'E-mail nou';
+
+  @override
+  String get profileChangeEmailInvalid => 'Introdu o adresă de e-mail validă.';
+
+  @override
+  String get profileChangeEmailUnchanged => 'Aceasta este deja adresa curentă.';
+
+  @override
+  String get profileChangeEmailSubmit => 'Solicită schimbarea';
+
+  @override
+  String get profileChangeEmailSecurityNote => 'Dacă schimbarea securizată este activă, confirmă mesajele trimise la ambele adrese. Contul și conținutul rămân neschimbate.';
+
+  @override
+  String get profileChangeEmailRequested => 'Solicitare trimisă. Verifică ambele căsuțe și finalizează confirmările necesare. Schimbarea are efect doar după confirmarea serviciului.';
+
+  @override
+  String get profileChangeEmailRequestFailed => 'Nu s-a putut solicita schimbarea. Verifică conexiunea, adresa și sesiunea.';
+
+  @override
+  String get profileChangeEmailClose => 'Închide';
 
   @override
   String get profileChangePasswordAction => 'Schimbă parola';
